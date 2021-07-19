@@ -1,2 +1,5 @@
 rootProject.name = "TheColor"
 include ':app'
+include ':domain'
+include ':data-remote'
+include ':data-local'
