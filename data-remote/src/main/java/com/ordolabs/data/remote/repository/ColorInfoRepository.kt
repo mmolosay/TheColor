@@ -10,7 +10,7 @@ class ColorInfoRepository(
     private val api: TheColorApiService
 ) : IColorInfoRepository {
 
-    override suspend fun fetchColorInfo(): Flow<Color> = flow {
+    override suspend fun fetchColorInfo(color: String): Flow<Color> = flow {
         // TODO: implement
     }
 }
