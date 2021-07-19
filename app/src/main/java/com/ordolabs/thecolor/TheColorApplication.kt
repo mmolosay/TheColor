@@ -1,6 +1,7 @@
 package com.ordolabs.thecolor
 
 import android.app.Application
+import com.ordolabs.thecolor.di.localDataSourceModule
 import com.ordolabs.thecolor.di.networkModule
 import com.ordolabs.thecolor.di.viewModelModule
 import org.koin.android.ext.koin.androidContext
@@ -17,7 +18,7 @@ internal class TheColorApplication : Application() {
             modules(
                 networkModule,
                 viewModelModule,
-
+                localDataSourceModule,
             )
         }
     }

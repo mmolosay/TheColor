@@ -1,2 +1,2 @@
-package com.ordolabs.data_local.dao
+package com.ordolabs.data.local.mapper
 
