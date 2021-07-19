@@ -1,5 +1,5 @@
 package com.ordolabs.domain.model
 
-data class ColorHistory(
+data class Color(
     val a: String
 )
