@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">TheColor</string>
+
+    <string name="home_find_your_color">Find you color</string>
+    <string name="home_input_hex">HEX</string>
+    <string name="home_input_rgb">RGB</string>
+    <string name="home_input_cmyk">CMYK</string>
+    <string name="home_input_hsv">HSV</string>
 </resources>

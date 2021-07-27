@@ -1,6 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- TODO: always sync changes with other versions -->
     <style name="Theme.TheColor" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
 
         <!-- colors -->
@@ -12,6 +12,7 @@
         <item name="android:windowBackground">@color/theme_window_background</item>
         <item name="android:statusBarColor">@color/theme_status_bar</item>
         <item name="android:navigationBarColor">@color/theme_navigation_bar</item>
+        <item name="android:windowLightNavigationBar">true</item> <!-- !distinct! -->
 
     </style>
 

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="theme_primary">@color/sanmarino</color>
+    <color name="theme_primary_dark">@color/chambray</color>
+    <color name="theme_accent">@color/amaranth</color>
+    <color name="theme_window_background">@color/white</color>
+    <color name="theme_status_bar">@color/chambray</color>
+    <color name="theme_navigation_bar">@color/white</color>
+
+</resources>
