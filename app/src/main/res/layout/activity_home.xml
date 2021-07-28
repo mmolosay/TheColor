@@ -6,15 +6,118 @@
     android:layout_height="match_parent"
     tools:context=".ui.activity.HomeActivity">
 
-    <TextView
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/glStart"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        app:layout_constraintGuide_begin="@dimen/offset_horizontal_default" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/glEnd"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        app:layout_constraintGuide_end="@dimen/offset_horizontal_default" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/headline"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/home_find_your_color"
-        android:textAppearance="@style/TextAppearance.Body1"
+        android:textAppearance="@style/TextAppearance.Headline6"
 
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.28" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/inputHex"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/offset_8"
+        android:hint="@string/input_hex_hint"
+        android:minWidth="128dp"
+
+        app:layout_constraintEnd_toEndOf="@+id/headline"
+        app:layout_constraintStart_toStartOf="@+id/headline"
+        app:layout_constraintTop_toBottomOf="@+id/headline"
+        app:placeholderText="@string/input_hex_placeholder">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:digits="0123456789ABCDEF"
+            android:inputType="textCapCharacters"
+            android:maxLength="6" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/inputRgbR"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/offset_8"
+        android:hint="@string/input_rgb_hint_r"
+        android:minWidth="40dp"
+
+        app:layout_constraintEnd_toEndOf="@+id/headline"
+        app:layout_constraintEnd_toStartOf="@+id/inputRgbG"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="@+id/headline"
+        app:layout_constraintTop_toBottomOf="@+id/inputHex"
+        app:placeholderText="@string/input_rgb_placeholder_r">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:maxLength="3" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/inputRgbG"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="@string/input_rgb_hint_g"
+        android:minWidth="40dp"
+
+        app:layout_constraintEnd_toStartOf="@+id/inputRgbB"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/inputRgbR"
+        app:layout_constraintTop_toTopOf="@+id/inputRgbR"
+        app:placeholderText="@string/input_rgb_placeholder_g">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:maxLength="3" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/inputRgbB"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="@string/input_rgb_hint_b"
+        android:minWidth="40dp"
+
+        app:layout_constraintEnd_toEndOf="@+id/headline"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/inputRgbG"
+        app:layout_constraintTop_toTopOf="@+id/inputRgbR"
+        app:placeholderText="@string/input_rgb_placeholder_b">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:maxLength="3" />
+
+    </com.google.android.material.textfield.TextInputLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

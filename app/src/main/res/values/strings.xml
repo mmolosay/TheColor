@@ -1,9 +1,18 @@
 <resources>
     <string name="app_name">TheColor</string>
 
-    <string name="home_find_your_color">Find you color</string>
-    <string name="home_input_hex">HEX</string>
-    <string name="home_input_rgb">RGB</string>
-    <string name="home_input_cmyk">CMYK</string>
-    <string name="home_input_hsv">HSV</string>
+    <string name="home_find_your_color">Find your color</string>
+
+    <string name="input_hex_hint">HEX</string>
+    <string name="input_hex_placeholder">000000</string>
+
+    <string name="input_rgb_hint_r">R</string>
+    <string name="input_rgb_hint_g">G</string>
+    <string name="input_rgb_hint_b">B</string>
+    <string name="input_rgb_placeholder_r">0</string>
+    <string name="input_rgb_placeholder_g">0</string>
+    <string name="input_rgb_placeholder_b">0</string>
+
+    <string name="input_cmyk_hint">CMYK</string>
+    <string name="input_hsv_hint">HSV</string>
 </resources>
