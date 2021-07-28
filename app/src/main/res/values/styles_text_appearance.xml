@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--~~~~~~~~~~~ TEXT APPEARANCE ABSTRACT ~~~~~~~~~~~-->
+
+    <style name="TextAppearance" parent="TextAppearance.AppCompat">
+        <item name="fontFamily">@font/ff_nunito_regular</item>
+        <item name="android:textSize">@dimen/text_size_default</item>
+        <item name="android:textColor">@color/selector_text_body</item>
+        <item name="android:letterSpacing">@dimen/text_letter_spacing_default</item>
+    </style>
+
+    <style name="TextAppearance.Headline">
+        <item name="android:textColor">@color/selector_text_headline</item>
+    </style>
+
+    <style name="TextAppearance.Subtitle">
+        <item name="fontFamily">@font/ff_nunito_regular</item>
+        <item name="android:textColor">@color/selector_text_subtitle</item>
+    </style>
+
+    <style name="TextAppearance.Body">
+        <item name="fontFamily">@font/ff_nunito_regular</item>
+        <item name="android:textColor">@color/selector_text_body</item>
+    </style>
+
+    <!--~~~~~~~~~~~~~~ HEADLINE APPEARANCE ~~~~~~~~~~~~~-->
+
+    <style name="TextAppearance.Headline1" parent="@style/TextAppearance.Headline">
+        <item name="fontFamily">@font/ff_nunito_light</item>
+        <item name="android:textSize">@dimen/text_size_headline1</item>
+        <item name="android:letterSpacing">@dimen/text_letter_spacing_headline1</item>
+    </style>
+
+    <style name="TextAppearance.Headline2" parent="@style/TextAppearance.Headline">
+        <item name="fontFamily">@font/ff_nunito_light</item>
+        <item name="android:textSize">@dimen/text_size_headline2</item>
+        <item name="android:letterSpacing">@dimen/text_letter_spacing_headline2</item>
+    </style>
+
+    <style name="TextAppearance.Headline3" parent="@style/TextAppearance.Headline">
+        <item name="fontFamily">@font/ff_nunito_regular</item>
+        <item name="android:textSize">@dimen/text_size_headline3</item>
+        <item name="android:letterSpacing">@dimen/text_letter_spacing_headline3</item>
+    </style>
+
+    <style name="TextAppearance.Headline4" parent="@style/TextAppearance.Headline">
+        <item name="fontFamily">@font/ff_nunito_regular</item>
+        <item name="android:textSize">@dimen/text_size_headline4</item>
+        <item name="android:letterSpacing">@dimen/text_letter_spacing_headline4</item>
+    </style>
+
+    <style name="TextAppearance.Headline5" parent="@style/TextAppearance.Headline">
+        <item name="fontFamily">@font/ff_nunito_regular</item>
+        <item name="android:textSize">@dimen/text_size_headline5</item>
+        <item name="android:letterSpacing">@dimen/text_letter_spacing_headline5</item>
+    </style>
+
+    <style name="TextAppearance.Headline6" parent="@style/TextAppearance.Headline">
+        <item name="fontFamily">@font/ff_nunito_semibold</item>
+        <item name="android:textSize">@dimen/text_size_headline6</item>
+        <item name="android:letterSpacing">@dimen/text_letter_spacing_headline6</item>
+    </style>
+
+    <!--~~~~~~~~~~~~~~ SUBTITLE APPEARANCE ~~~~~~~~~~~~~-->
+
+    <style name="TextAppearance.Subtitle1" parent="@style/TextAppearance.Subtitle">
+        <item name="android:textSize">@dimen/text_size_subtitle1</item>
+        <item name="android:letterSpacing">@dimen/text_letter_spacing_subtitle1</item>
+    </style>
+
+    <style name="TextAppearance.Subtitle2" parent="@style/TextAppearance.Subtitle">
+        <item name="android:textSize">@dimen/text_size_subtitle2</item>
+        <item name="android:letterSpacing">@dimen/text_letter_spacing_subtitle2</item>
+    </style>
+
+    <!--~~~~~~~~~~~~~~~~ BODY APPEARANCE ~~~~~~~~~~~~~~~-->
+
+    <style name="TextAppearance.Body1" parent="@style/TextAppearance.Body">
+        <item name="fontFamily">@font/ff_nunito_regular</item>
+        <item name="android:textSize">@dimen/text_size_body1</item>
+        <item name="android:letterSpacing">@dimen/text_letter_spacing_body1</item>
+    </style>
+
+    <style name="TextAppearance.Body2" parent="@style/TextAppearance.Body">
+        <item name="fontFamily">@font/ff_nunito_regular</item>
+        <item name="android:textSize">@dimen/text_size_body2</item>
+        <item name="android:letterSpacing">@dimen/text_letter_spacing_body2</item>
+    </style>
+
+    <!--~~~~~~~~~~~~ MISCELLANEOUS APPEARANCE ~~~~~~~~~~-->
+
+    <style name="TextAppearance.Caption">
+        <item name="fontFamily">@font/ff_nunito_regular</item>
+        <item name="android:textSize">@dimen/text_size_caption</item>
+        <item name="android:textColor">@color/selector_text_caption</item>
+        <item name="android:letterSpacing">@dimen/text_letter_spacing_caption</item>
+    </style>
+
+    <style name="TextAppearance.Overline">
+        <item name="fontFamily">@font/ff_nunito_regular</item>
+        <item name="textAllCaps">true</item>
+        <item name="android:textSize">@dimen/text_size_overline</item>
+        <item name="android:textColor">@color/selector_text_overline</item>
+        <item name="android:letterSpacing">@dimen/text_letter_spacing_overline</item>
+    </style>
+
+    <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+
+</resources>

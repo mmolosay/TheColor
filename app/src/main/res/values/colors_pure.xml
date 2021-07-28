@@ -8,5 +8,9 @@
     <color name="chambray">#36428F</color>
     <color name="amaranth">#E91E63</color>
 
+    <color name="dim">#6C6C6C</color>
+    <color name="raisin">#1F1F20</color>
+    <color name="abbey">#545455</color>
+    <color name="space">#444445</color>
 
 </resources>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="text_default_disabled">@color/dim</color>
+
+    <color name="text_headline_normal">@color/raisin</color>
+    <color name="text_headline_disabled">@color/text_default_disabled</color>
+
+    <color name="text_subtitle_normal">@color/abbey</color>
+    <color name="text_subtitle_disabled">@color/text_default_disabled</color>
+
+    <color name="text_body_normal">@color/space</color>
+    <color name="text_body_disabled">@color/text_default_disabled</color>
+
+    <color name="text_caption_normal">@color/abbey</color>
+    <color name="text_caption_disabled">@color/text_default_disabled</color>
+
+    <color name="text_overline_normal">@color/raisin</color>
+    <color name="text_overline_disabled">@color/text_default_disabled</color>
+
+</resources>
