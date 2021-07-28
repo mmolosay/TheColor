@@ -1,12 +1,15 @@
 package com.ordolabs.thecolor.ui.activity
 
-import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
-import com.ordolabs.thecolor.R
+import com.ordolabs.thecolor.databinding.ActivityHomeBinding
 
-class HomeActivity : AppCompatActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_home)
+class HomeActivity : BaseActivity<ActivityHomeBinding>() {
+
+    override fun setUp() {
+        // fill me
     }
+
+    override fun setViews() {
+    }
+
+    override fun getViewBinding() = ActivityHomeBinding.inflate(layoutInflater)
 }
