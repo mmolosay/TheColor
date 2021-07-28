@@ -71,6 +71,7 @@
 
     <style name="TextAppearance.Subtitle2" parent="@style/TextAppearance.Subtitle">
         <item name="android:textSize">@dimen/text_size_subtitle2</item>
+        <item name="android:textStyle">bold</item>
         <item name="android:letterSpacing">@dimen/text_letter_spacing_subtitle2</item>
     </style>
 
@@ -88,7 +89,7 @@
         <item name="android:letterSpacing">@dimen/text_letter_spacing_body2</item>
     </style>
 
-    <!--~~~~~~~~~~~~ MISCELLANEOUS APPEARANCE ~~~~~~~~~~-->
+    <!--~~~~~~~~~~~ MISCELLANEOUS APPEARANCE ~~~~~~~~~~~-->
 
     <style name="TextAppearance.Caption">
         <item name="fontFamily">@font/ff_nunito_regular</item>
@@ -103,6 +104,20 @@
         <item name="android:textSize">@dimen/text_size_overline</item>
         <item name="android:textColor">@color/selector_text_overline</item>
         <item name="android:letterSpacing">@dimen/text_letter_spacing_overline</item>
+    </style>
+
+    <!--~~~~~~~~~~~~~ INPUT TEXT APPEARANCE ~~~~~~~~~~~~-->
+
+    <style name="TextAppearance.TextInputLayoutHint" parent="TextAppearance.Caption">
+        <!-- nothing is here -->
+    </style>
+
+    <style name="TextAppearance.TextInputLayoutPlaceholder" parent="TextAppearance.Subtitle1">
+        <item name="android:textColor">@color/selector_text_input_placeholder</item>
+    </style>
+
+    <style name="TextAppearance.EditText" parent="TextAppearance.Body1">
+        <!-- nothing is here -->
     </style>
 
     <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->

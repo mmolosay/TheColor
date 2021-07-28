@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!--~~~~~~~~~~~~~~~~ TEXT APPEARANCE ~~~~~~~~~~~~~~~-->
     <color name="text_default_disabled">@color/dim</color>
 
     <color name="text_headline_normal">@color/raisin</color>
@@ -17,5 +18,10 @@
 
     <color name="text_overline_normal">@color/raisin</color>
     <color name="text_overline_disabled">@color/text_default_disabled</color>
+
+    <!--~~~~~~~~~~~~~~~~~ INPUT LAYOUT ~~~~~~~~~~~~~~~-->
+
+    <color name="input_placeholder_normal">@color/silver</color>
+    <color name="input_placeholder_disabled">@color/silver</color>
 
 </resources>
