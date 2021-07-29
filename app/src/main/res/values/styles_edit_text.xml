@@ -2,13 +2,20 @@
 <resources>
 
     <style name="TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="shapeAppearance">@style/TextInputLayoutShapeAppearance</item>
         <item name="hintTextAppearance">@style/TextAppearance.TextInputLayoutHint</item>
-        <item name="placeholderTextAppearance">@style/TextAppearance.TextInputLayoutPlaceholder</item>
+        <item name="placeholderTextAppearance">@style/TextAppearance.TextInputLayoutPlaceholder
+        </item>
         <item name="placeholderTextColor">@null</item>
-        <item name="boxCornerRadiusTopStart">@dimen/input_radius</item>
-        <item name="boxCornerRadiusTopEnd">@dimen/input_radius</item>
-        <item name="boxCornerRadiusBottomStart">@dimen/input_radius</item>
-        <item name="boxCornerRadiusBottomEnd">@dimen/input_radius</item>
+<!--        <item name="boxCornerRadiusTopStart">@dimen/input_radius</item>-->
+<!--        <item name="boxCornerRadiusTopEnd">@dimen/input_radius</item>-->
+<!--        <item name="boxCornerRadiusBottomStart">@dimen/input_radius</item>-->
+<!--        <item name="boxCornerRadiusBottomEnd">@dimen/input_radius</item>-->
+    </style>
+
+    <style name="TextInputLayoutShapeAppearance" parent="ShapeAppearance.MaterialComponents.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">1000dp</item>
     </style>
 
     <style name="EditText" parent="Widget.AppCompat.EditText">
