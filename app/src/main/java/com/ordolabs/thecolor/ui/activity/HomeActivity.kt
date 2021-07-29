@@ -1,11 +1,12 @@
 package com.ordolabs.thecolor.ui.activity
 
 import com.ordolabs.thecolor.databinding.ActivityHomeBinding
+import com.ordolabs.thecolor.util.setTransparentSystemBars
 
 class HomeActivity : BaseActivity<ActivityHomeBinding>() {
 
     override fun setUp() {
-        // fill me
+        setTransparentSystemBars()
     }
 
     override fun setViews() {
