@@ -14,8 +14,9 @@
     <dimen name="offset_48">48dp</dimen>
     <dimen name="offset_64">64dp</dimen>
 
-    <dimen name="offset_horizontal_default">@dimen/offset_16</dimen>
-    <dimen name="offset_vertical_default">@dimen/offset_32</dimen>
+    <dimen name="offset_content_default">@dimen/offset_16</dimen>
+    <dimen name="offset_content_horizontal">@dimen/offset_16</dimen>
+    <dimen name="offset_content_vertical">@dimen/offset_32</dimen>
 
     <!--~~~~~~~~~~~~~~~~~~~~~ TEXT ~~~~~~~~~~~~~~~~~~~~~-->
     <dimen name="text_size_headline1">96sp</dimen>

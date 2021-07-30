@@ -10,6 +10,13 @@
         <item name="placeholderTextColor">@null</item>
     </style>
 
+    <style name="TextInputLayout.ExposedDropdownMenu" parent="Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu">
+        <item name="hintTextAppearance">@style/TextAppearance.TextInputLayoutHint</item>
+        <item name="placeholderTextAppearance">@style/TextAppearance.TextInputLayoutPlaceholder
+        </item>
+        <item name="placeholderTextColor">@null</item>
+    </style>
+
     <style name="TextInputLayoutShapeAppearance" parent="ShapeAppearance.MaterialComponents.SmallComponent">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">@dimen/input_radius</item>

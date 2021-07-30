@@ -7,18 +7,42 @@
     tools:context="ui.fragment.ColorInputFragment">
 
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/inputHex"
+        android:id="@+id/inputDropdown"
+        style="@style/TextInputLayout.ExposedDropdownMenu"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:hint="@string/input_hex_hint"
+        android:hint="@string/color_input_dropdown"
         android:maxWidth="256dp"
         android:minWidth="128dp"
 
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintWidth_percent="0.5">
+
+        <AutoCompleteTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="none"
+            android:text="@string/color_input_hex_hint"
+            tools:ignore="LabelFor" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/inputHex"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/offset_16"
+        android:hint="@string/color_input_hex_hint"
+        android:maxWidth="256dp"
+        android:minWidth="128dp"
+
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/inputDropdown"
         app:layout_constraintWidth_percent="0.5"
-        app:placeholderText="@string/input_hex_placeholder">
+        app:placeholderText="@string/color_input_hex_placeholder">
 
         <com.google.android.material.textfield.TextInputEditText
             android:layout_width="match_parent"

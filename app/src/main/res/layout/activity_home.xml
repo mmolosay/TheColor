@@ -11,14 +11,14 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        app:layout_constraintGuide_begin="@dimen/offset_horizontal_default" />
+        app:layout_constraintGuide_begin="@dimen/offset_content_horizontal" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/glEnd"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        app:layout_constraintGuide_end="@dimen/offset_horizontal_default" />
+        app:layout_constraintGuide_end="@dimen/offset_content_horizontal" />
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/headline"
