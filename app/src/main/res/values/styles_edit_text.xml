@@ -2,23 +2,32 @@
 <resources>
 
     <style name="TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="materialThemeOverlay">@style/TextInputEditTextMaterialThemeOverlay</item>
         <item name="shapeAppearance">@style/TextInputLayoutShapeAppearance</item>
         <item name="hintTextAppearance">@style/TextAppearance.TextInputLayoutHint</item>
         <item name="placeholderTextAppearance">@style/TextAppearance.TextInputLayoutPlaceholder
         </item>
         <item name="placeholderTextColor">@null</item>
-<!--        <item name="boxCornerRadiusTopStart">@dimen/input_radius</item>-->
-<!--        <item name="boxCornerRadiusTopEnd">@dimen/input_radius</item>-->
-<!--        <item name="boxCornerRadiusBottomStart">@dimen/input_radius</item>-->
-<!--        <item name="boxCornerRadiusBottomEnd">@dimen/input_radius</item>-->
     </style>
 
     <style name="TextInputLayoutShapeAppearance" parent="ShapeAppearance.MaterialComponents.SmallComponent">
         <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">1000dp</item>
+        <item name="cornerSize">@dimen/input_radius</item>
     </style>
 
     <style name="EditText" parent="Widget.AppCompat.EditText">
+        <item name="android:textAppearance">@style/TextAppearance.EditText</item>
+        <item name="android:gravity">left|center_vertical</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:includeFontPadding">true</item>
+    </style>
+
+    <style name="TextInputEditTextMaterialThemeOverlay" parent="ThemeOverlay.MaterialComponents.TextInputEditText.OutlinedBox">
+        <!-- https://stackoverflow.com/a/60178370/11672687 -->
+        <item name="editTextStyle">@style/TextInputEditText</item>
+    </style>
+
+    <style name="TextInputEditText" parent="Widget.MaterialComponents.TextInputEditText.OutlinedBox">
         <item name="android:textAppearance">@style/TextAppearance.EditText</item>
         <item name="android:gravity">left|center_vertical</item>
         <item name="android:ellipsize">end</item>

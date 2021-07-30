@@ -4,6 +4,7 @@
     <color name="white">@android:color/white</color>
     <color name="black">@android:color/black</color>
     <color name="transparent">@android:color/transparent</color>
+    <color name="debug_red">#ff0000</color>
 
     <color name="sanmarino">#3F51B5</color>
     <color name="chambray">#36428F</color>

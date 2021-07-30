@@ -117,7 +117,7 @@
     </style>
 
     <style name="TextAppearance.EditText" parent="TextAppearance.Body1">
-        <!-- nothing is here -->
+        <item name="fontFamily">sans-serif</item>
     </style>
 
     <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->

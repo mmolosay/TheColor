@@ -35,10 +35,13 @@
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@id/defaultFragmentContainer"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/offset_16"
+
         app:layout_constraintEnd_toStartOf="@+id/glEnd"
         app:layout_constraintStart_toStartOf="@+id/glStart"
-        app:layout_constraintTop_toBottomOf="@id/headline" />
+        app:layout_constraintTop_toBottomOf="@id/headline"
+        tools:layout="@layout/fragment_color_input" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
