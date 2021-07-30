@@ -1,18 +1,25 @@
 package com.ordolabs.thecolor.util
 
-import android.view.WindowManager
+import androidx.annotation.IdRes
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowCompat
+import com.ordolabs.thecolor.R
+import com.ordolabs.thecolor.ui.fragment.BaseFragment
+import java.lang.Exception
 
-fun AppCompatActivity.setTransparentSystemBars() {
-    WindowCompat.setDecorFitsSystemWindows(window, false)
-    window.addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
+fun AppCompatActivity.setFragment(fragment: BaseFragment): Result<Int> {
+    return setFragment(fragment, R.id.defaultFragmentContainer, fragment.transactionTag)
 }
 
-fun AppCompatActivity.setLightSystemBars(light: Boolean) {
-    ViewCompat.getWindowInsetsController(window.decorView)?.run {
-        isAppearanceLightStatusBars = light
-        isAppearanceLightNavigationBars = light
+fun AppCompatActivity.setFragment(
+    fragment: BaseFragment,
+    @IdRes containerId: Int,
+    transactionTag: String
+): Result<Int> {
+    supportFragmentManager.findFragmentByTag(transactionTag)?.let {
+        return Result.failure(Exception("fragment with $transactionTag tag already added"))
     }
+    val transactionId = supportFragmentManager.commit {
+        add(containerId, fragment, transactionTag)
+    }
+    return Result.success(transactionId)
 }

@@ -15,4 +15,8 @@ class ColorInputFragment : BaseFragment(R.layout.fragment_color_input) {
     override fun setViews() {
 
     }
+
+    companion object {
+        fun newInstance() = ColorInputFragment()
+    }
 }

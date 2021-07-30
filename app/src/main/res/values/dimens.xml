@@ -55,7 +55,7 @@
     <dimen name="text_letter_spacing_default">@dimen/text_letter_spacing_body1</dimen>
 
     <!--~~~~~~~~~~~~~~~~~~ INPUT TEXT ~~~~~~~~~~~~~~~~~~-->
-    <dimen name="input_radius">4dp</dimen> <!-- default -->
+    <dimen name="input_radius">100dp</dimen> <!-- default -->
     <dimen name="input_offset_horizontal">@dimen/input_radius</dimen>
 
     <!--~~~~~~~~~~~~~~~~~~~~ BUTTON ~~~~~~~~~~~~~~~~~~~~-->

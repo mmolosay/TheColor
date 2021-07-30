@@ -7,8 +7,11 @@ import androidx.fragment.app.Fragment
 
 abstract class BaseFragment(@LayoutRes layoutRes: Int) : Fragment(layoutRes) {
 
+    val transactionTag: String = this::class.java.simpleName
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         parseStartIntent()
         setUp()
         setViews()
