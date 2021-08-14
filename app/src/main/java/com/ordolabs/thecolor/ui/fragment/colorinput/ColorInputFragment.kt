@@ -20,13 +20,15 @@ class ColorInputFragment : BaseFragment(R.layout.fragment_color_input) {
     private val binding: FragmentColorInputBinding by viewBinding()
     private val colorInputVM: ColorInputViewModel by viewModels()
 
+    private val initialColorInputModel = ColorModel.HEX
+
     override fun setUp() {
 
     }
 
     override fun setViews() {
         setDropdown()
-        setFragment(getColorInputModelFragment(ColorModel.HEX))
+        setInitialColorInputFragment()
     }
 
     private fun setDropdown() {
@@ -36,6 +38,10 @@ class ColorInputFragment : BaseFragment(R.layout.fragment_color_input) {
         val adapter = ArrayAdapter(requireContext(), R.layout.item_color_input_dropdown, items)
         autoCompleteView.setAdapter(adapter)
         autoCompleteView.setOnItemClickListener(::onDropdownItemClick)
+    }
+
+    private fun setInitialColorInputFragment() {
+        setFragment(getColorInputModelFragment(initialColorInputModel))
     }
 
     @Suppress("UNUSED_PARAMETER")
