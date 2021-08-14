@@ -59,6 +59,9 @@
     <dimen name="input_radius">32dp</dimen>
     <dimen name="input_offset_horizontal">@dimen/input_radius</dimen>
 
+    <dimen name="input_color_width_min">128dp</dimen>
+    <dimen name="input_color_width_max">256dp</dimen>
+
     <!--~~~~~~~~~~~~~~~~~~~~ BUTTON ~~~~~~~~~~~~~~~~~~~~-->
     <dimen name="btn_text_size_default">14sp</dimen>
     <dimen name="btn_text_letter_spacing_default" type="dimen" format="float">0.0892857143</dimen>

@@ -84,7 +84,8 @@ dependencies {
     implementation "io.insert-koin:koin-androidx-compose:3.1.2"
 
     // Third Party Libraries
-    implementation 'com.github.kirich1409:viewbindingpropertydelegate:1.4.7'
+    implementation "com.github.kirich1409:viewbindingpropertydelegate:1.4.7"
+    implementation "com.michael-bull.kotlin-result:kotlin-result:1.1.12"
 
     // Testing
     testImplementation "junit:junit:4.13.2"

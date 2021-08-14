@@ -10,11 +10,12 @@ class ColorInputViewModel : BaseViewModel() {
         // TODO: implement
     }
 
-    fun getDropdownItems(typedArray: TypedArray): Array<String> {
-        val items = Array(typedArray.length()) {
-            typedArray.getStringOrThrow(it)
-        }
-        typedArray.recycle()
-        return items
-    }
+    fun getDropdownItems(typedArray: TypedArray): Array<String>? =
+        kotlin.runCatching {
+            val items = Array(typedArray.length()) {
+                typedArray.getStringOrThrow(it)
+            }
+            typedArray.recycle()
+            items
+        }.getOrNull()
 }
