@@ -1,9 +1,11 @@
 package com.ordolabs.thecolor.ui.fragment.colorinput
 
+import com.github.michaelbull.result.Result
 import com.ordolabs.thecolor.R
 import com.ordolabs.thecolor.ui.fragment.BaseFragment
 
-class ColorInputRgbFragment : BaseFragment(R.layout.fragment_color_input_rgb) {
+class ColorInputRgbFragment :
+    BaseFragment(R.layout.fragment_color_input_rgb) {
 
     override fun setUp() {
 //        TODO("setUp is not implemented")

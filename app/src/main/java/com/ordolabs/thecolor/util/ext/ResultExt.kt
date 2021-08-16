@@ -1,4 +1,4 @@
-package com.ordolabs.thecolor.util
+package com.ordolabs.thecolor.util.ext
 
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Err
@@ -15,4 +15,11 @@ fun <E> Result.Companion.error(error: E): Result<Nothing, E> {
 
 fun Result.Companion.error(errorMsg: String): Result<Nothing, RuntimeException> {
     return Err(RuntimeException(errorMsg))
+}
+
+inline fun <V> V?.toResultOrError(errorMsg: () -> String): Result<V, RuntimeException> {
+    return when (this) {
+        null -> Result.error(errorMsg())
+        else -> Result.success(this)
+    }
 }

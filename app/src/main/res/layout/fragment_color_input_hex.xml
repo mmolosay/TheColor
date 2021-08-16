@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:paddingHorizontal="@dimen/offset_content_horizontal"
     tools:context=".ui.fragment.colorinput.ColorInputHexFragment">
 
     <com.google.android.material.textfield.TextInputLayout

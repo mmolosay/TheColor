@@ -2,7 +2,8 @@
 <resources>
 
     <!--~~~~~~~~~~~~~~~~ TEXT APPEARANCE ~~~~~~~~~~~~~~~-->
-    <color name="text_default_disabled">@color/dim</color>
+    <color name="text_default_disabled">@color/theme_disabled</color>
+    <color name="text_default_selected">@color/theme_selected</color>
 
     <color name="text_headline_normal">@color/raisin</color>
     <color name="text_headline_disabled">@color/text_default_disabled</color>
@@ -20,8 +21,12 @@
     <color name="text_overline_disabled">@color/text_default_disabled</color>
 
     <!--~~~~~~~~~~~~~~~~~ INPUT LAYOUT ~~~~~~~~~~~~~~~-->
-
     <color name="input_placeholder_normal">@color/silver</color>
     <color name="input_placeholder_disabled">@color/silver</color>
+
+    <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+    <color name="tab_layout_text_normal">@color/text_subtitle_normal</color>
+    <color name="tab_layout_text_disabled">@color/text_subtitle_disabled</color>
+    <color name="tab_layout_text_selected">@color/text_default_selected</color>
 
 </resources>

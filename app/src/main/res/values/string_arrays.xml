@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string-array name="color_input_dropdown_items">
+    <string-array name="color_input_items">
         <item>@string/color_input_hex_hint</item>
         <item>@string/color_input_rgb_hint</item>
     </string-array>

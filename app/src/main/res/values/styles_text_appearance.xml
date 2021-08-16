@@ -122,4 +122,8 @@
 
     <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
 
+    <style name="TextAppearance.TabLayout" parent="@style/TextAppearance.Subtitle2">
+        <item name="android:textColor">@color/selector_text_tab_layout</item>
+    </style>
+
 </resources>

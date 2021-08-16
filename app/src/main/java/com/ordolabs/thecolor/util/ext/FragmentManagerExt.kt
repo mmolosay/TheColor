@@ -1,4 +1,4 @@
-package com.ordolabs.thecolor.util
+package com.ordolabs.thecolor.util.ext
 
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentTransaction

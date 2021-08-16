@@ -7,6 +7,7 @@
         <item name="colorPrimary">@color/theme_primary</item>
         <item name="colorPrimaryDark">@color/theme_primary_dark</item>
         <item name="colorAccent">@color/theme_accent</item>
+        <item name="colorControlHighlight">@color/ripple_default</item>
 
         <!-- window -->
         <item name="android:windowBackground">@color/theme_window_background</item>
@@ -21,6 +22,7 @@
         <item name="android:textAppearance">@style/TextAppearance</item>
         <item name="android:textViewStyle">@style/TextView</item>
         <item name="android:editTextStyle">@style/EditText</item>
+        <item name="android:buttonStyle">@style/Button</item>
         <item name="textInputStyle">@style/TextInputLayout</item>
 
         <item name="textAppearanceHeadline1">@style/TextAppearance.Headline1</item>

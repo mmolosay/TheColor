@@ -3,7 +3,6 @@
 
     <style name="TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
         <item name="materialThemeOverlay">@style/TextInputEditTextMaterialThemeOverlay</item>
-        <item name="shapeAppearance">@style/TextInputLayoutShapeAppearance</item>
         <item name="hintTextAppearance">@style/TextAppearance.TextInputLayoutHint</item>
         <item name="placeholderTextAppearance">@style/TextAppearance.TextInputLayoutPlaceholder
         </item>
@@ -15,11 +14,6 @@
         <item name="placeholderTextAppearance">@style/TextAppearance.TextInputLayoutPlaceholder
         </item>
         <item name="placeholderTextColor">@null</item>
-    </style>
-
-    <style name="TextInputLayoutShapeAppearance" parent="ShapeAppearance.MaterialComponents.SmallComponent">
-        <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">@dimen/input_radius</item>
     </style>
 
     <style name="EditText" parent="Widget.AppCompat.EditText">
@@ -39,9 +33,6 @@
         <item name="android:gravity">left|center_vertical</item>
         <item name="android:ellipsize">end</item>
         <item name="android:includeFontPadding">true</item>
-
-        <item name="android:paddingStart">@dimen/input_offset_horizontal</item>
-        <item name="android:paddingEnd">@dimen/input_offset_horizontal</item>
     </style>
 
 </resources>

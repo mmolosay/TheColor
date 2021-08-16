@@ -1,2 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+
+    <!--~~~~~~~~~~~~~~~~~~ TAB LAYOUT ~~~~~~~~~~~~~~~~~~-->
+    <color name="tab_layout_indicator_default">@color/theme_primary_dark</color>
+
+    <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+    <color name="tools_bg">@color/gallery</color>
+
+    <color name="divider">@color/silver</color>
+
+</resources>

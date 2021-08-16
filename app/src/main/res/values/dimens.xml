@@ -55,15 +55,34 @@
 
     <dimen name="text_letter_spacing_default">@dimen/text_letter_spacing_body1</dimen>
 
+    <!--~~~~~~~~~~~~~~~~~~~~ DEFAULT ~~~~~~~~~~~~~~~~~~~-->
+    <dimen name="ripple_alpha_default" type="dimen" format="float">0.26</dimen>
+    <dimen name="disabled_alpha_default" type="dimen" format="float">0.4</dimen>
+    <dimen name="roundness_default">6dp</dimen>
+    <dimen name="elevation_small">2dp</dimen>
+    <dimen name="elevation_normal">4dp</dimen>
+
     <!--~~~~~~~~~~~~~~~~~~ INPUT TEXT ~~~~~~~~~~~~~~~~~~-->
     <dimen name="input_radius">32dp</dimen>
-    <dimen name="input_offset_horizontal">@dimen/input_radius</dimen>
-
-    <dimen name="input_color_width_min">128dp</dimen>
-    <dimen name="input_color_width_max">256dp</dimen>
 
     <!--~~~~~~~~~~~~~~~~~~~~ BUTTON ~~~~~~~~~~~~~~~~~~~~-->
-    <dimen name="btn_text_size_default">14sp</dimen>
     <dimen name="btn_text_letter_spacing_default" type="dimen" format="float">0.0892857143</dimen>
+    <dimen name="btn_inset_horizontal">4dp</dimen>
+    <dimen name="btn_inset_vertical">6dp</dimen>
+    <dimen name="btn_padding_horizontal">8dp</dimen>
+    <dimen name="btn_padding_vertical">4dp</dimen>
+    <dimen name="btn_roundness">@dimen/roundness_default</dimen>
+
+    <dimen name="btn_primary_padding_horizontal">14dp</dimen>
+    <dimen name="btn_primary_padding_vertical">8dp</dimen>
+
+    <!--~~~~~~~~~~~~~~~~~~~~ WIDGET ~~~~~~~~~~~~~~~~~~~~-->
+    <dimen name="divider_height">1dp</dimen>
+
+    <!--~~~~~~~~~~~~~~~~~~~~ SCREEN ~~~~~~~~~~~~~~~~~~~~-->
+    <dimen name="color_input_pager_height">400dp</dimen>
+
+    <dimen name="input_color_width_min">96dp</dimen>
+    <dimen name="input_color_width_max">256dp</dimen>
 
 </resources>
