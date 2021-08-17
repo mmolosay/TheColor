@@ -2,7 +2,7 @@
 <resources>
 
     <!--~~~~~~~~~~~~~~~~ TEXT APPEARANCE ~~~~~~~~~~~~~~~-->
-    <color name="text_default_disabled">@color/theme_disabled</color>
+    <color name="text_default_disabled">@color/theme_disabled_content</color>
     <color name="text_default_selected">@color/theme_selected</color>
 
     <color name="text_headline_normal">@color/raisin</color>
