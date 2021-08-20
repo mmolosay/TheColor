@@ -9,12 +9,13 @@ import org.koin.dsl.module
 val viewModelModule = module {
 
     viewModel {
+
         HomeViewModel(
             getColorInfoUseCase = get(named(GET_COLOR_INFO_USE_CASE))
         )
 
         ColorInputViewModel(
-
+            validateColorHexUseCase = get(named(VALIDATE_COLOR_HEX_USE_CASE))
         )
     }
 

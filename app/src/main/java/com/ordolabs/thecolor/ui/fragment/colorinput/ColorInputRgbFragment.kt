@@ -1,19 +1,19 @@
 package com.ordolabs.thecolor.ui.fragment.colorinput
 
-import androidx.fragment.app.viewModels
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.github.michaelbull.result.Result
 import com.ordolabs.thecolor.R
 import com.ordolabs.thecolor.databinding.FragmentColorInputRgbBinding
 import com.ordolabs.thecolor.ui.fragment.BaseFragment
 import com.ordolabs.thecolor.viewmodel.ColorInputViewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class ColorInputRgbFragment :
     BaseFragment(R.layout.fragment_color_input_rgb),
     ColorInputModelFragment {
 
     private val binding: FragmentColorInputRgbBinding by viewBinding()
-    private val colorInputVM: ColorInputViewModel by viewModels()
+    private val colorInputVM: ColorInputViewModel by viewModel()
 
     override fun setUp() {
 //        TODO("setUp is not implemented")
@@ -23,7 +23,7 @@ class ColorInputRgbFragment :
 //        TODO("setViews is not implemented")
     }
 
-    override fun isColorInputValid(): Boolean {
+    override fun validateColorInput() {
         TODO("isColorInputValid is not implemented")
     }
 

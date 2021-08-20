@@ -2,12 +2,18 @@ package com.ordolabs.thecolor.di
 
 import androidx.room.Room
 import com.ordolabs.data.local.TheColorDatabase
+import com.ordolabs.data.local.repository.ColorValidatorRepository
 import com.ordolabs.data.local.repository.ColorsHistoryRepository
+import com.ordolabs.domain.repository.IColorValidatorRepository
 import com.ordolabs.domain.repository.IColorsHistoryRepository
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
 val localDataSourceModule = module {
+
+    single<IColorValidatorRepository> {
+        ColorValidatorRepository()
+    }
 
     single<IColorsHistoryRepository> {
         ColorsHistoryRepository(colorsHistoryDao = get() )

@@ -4,6 +4,6 @@ import com.github.michaelbull.result.Result
 
 interface ColorInputModelFragment {
 
-    fun isColorInputValid(): Boolean
+    fun validateColorInput()
     fun processColorInput(): Result<Unit, Boolean>
 }
