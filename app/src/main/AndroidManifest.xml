@@ -11,7 +11,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.TheColor">
 
-        <activity android:name="com.ordolabs.thecolor.ui.activity.MainActivity">
+        <activity
+            android:name="com.ordolabs.thecolor.ui.activity.HomeActivity"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

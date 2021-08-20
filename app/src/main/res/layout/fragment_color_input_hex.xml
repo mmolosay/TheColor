@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingHorizontal="@dimen/offset_content_horizontal"
+    tools:context=".ui.fragment.colorinput.ColorInputHexFragment">
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/inputHex"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="@string/color_input_hex_hint"
+        android:maxWidth="@dimen/input_color_width_max"
+        android:minWidth="@dimen/input_color_width_min"
+
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintWidth_percent="0.5"
+        app:placeholderText="@string/color_input_hex_placeholder"
+        app:prefixText="@string/color_input_hex_number_sign">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:digits="0123456789ABCDEF"
+            android:imeOptions="actionDone"
+            android:inputType="textCapCharacters"
+            android:maxLength="6"
+            android:maxLines="1" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="white">@android:color/white</color>
+    <color name="black">@android:color/black</color>
+    <color name="transparent">@android:color/transparent</color>
+    <color name="debug_red">#ff0000</color>
+
+    <color name="oxford">#344955</color>
+    <color name="charlestone">#232F34</color>
+
+    <color name="sanmarino">#3F51B5</color>
+    <color name="chambray">#36428F</color>
+
+    <color name="olive">#3D3F40</color>
+    <color name="raisin">#181819</color>
+    <color name="abbey">#4B4B4C</color>
+    <color name="space">#3B3B3C</color>
+    <color name="silver">#AEAEAF</color>
+    <color name="gallery">#F0F0F0</color>
+
+</resources>
