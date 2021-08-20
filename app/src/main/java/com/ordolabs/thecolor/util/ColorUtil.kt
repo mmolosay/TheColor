@@ -13,17 +13,18 @@ object ColorUtil {
     }
 
     fun Color.Companion.from(color: ColorHexPresentation): Color {
-        val completed = if (color.value.length == 3) {
+        val expanded = if (color.value.length == 3) {
             color.value.map { it.toString().repeat(2) }.joinToString(separator = "")
         } else {
             color.value + "0".repeat(6 - color.value.length)
         }
-        return Color(hex = completed)
+        return Color(hex = expanded)
     }
 
     fun Color.Companion.from(color: ColorRgbPresentation): Color {
         val rgb = RGB(color.r, color.g, color.b)
-        return Color(hex = rgb.toHex(withNumberSign = false))
+        val value = rgb.toHex(withNumberSign = false).uppercase()
+        return Color(hex = value)
     }
 
     fun Color.toColorHex(): ColorHexPresentation {

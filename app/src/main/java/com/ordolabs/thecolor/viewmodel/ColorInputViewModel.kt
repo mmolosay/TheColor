@@ -7,7 +7,6 @@ import com.ordolabs.domain.usecase.local.ValidateColorRgbBaseUseCase
 import com.ordolabs.thecolor.mapper.toDomain
 import com.ordolabs.thecolor.model.ColorHexPresentation
 import com.ordolabs.thecolor.model.ColorRgbPresentation
-import com.ordolabs.thecolor.util.ColorUtil
 import com.ordolabs.thecolor.util.ColorUtil.Color
 import com.ordolabs.thecolor.util.ColorUtil.from
 import com.ordolabs.thecolor.util.ColorUtil.toColorHex
