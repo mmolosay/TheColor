@@ -13,7 +13,11 @@ object ColorUtil {
     }
 
     fun Color.Companion.from(color: ColorHexPresentation): Color {
-        val completed = color.value + "0".repeat(6 - color.value.length)
+        val completed = if (color.value.length == 3) {
+            color.value.map { it.toString().repeat(2) }.joinToString(separator = "")
+        } else {
+            color.value + "0".repeat(6 - color.value.length)
+        }
         return Color(hex = completed)
     }
 
