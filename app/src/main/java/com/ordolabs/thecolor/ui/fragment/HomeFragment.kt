@@ -6,7 +6,7 @@ import com.ordolabs.thecolor.databinding.FragmentHomeBinding
 import com.ordolabs.thecolor.viewmodel.HomeViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-internal class HomeFragment : BaseFragment(R.layout.fragment_home) {
+class HomeFragment : BaseFragment(R.layout.fragment_home) {
 
     private val binding: FragmentHomeBinding by viewBinding()
     private val homeVM: HomeViewModel by viewModel()

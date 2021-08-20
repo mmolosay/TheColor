@@ -2,7 +2,6 @@ package com.ordolabs.thecolor.viewmodel
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.github.michaelbull.result.Ok
 import com.ordolabs.domain.usecase.local.ValidateColorHexBaseUseCase
 import com.ordolabs.thecolor.mapper.toDomain
 import com.ordolabs.thecolor.model.ColorHexPresentation
@@ -30,14 +29,15 @@ class ColorInputViewModel(
     }
 
     fun validateColor(color: ColorHexPresentation?) {
-        val colorDomainResult = color?.toDomain()
-        if (colorDomainResult == null || colorDomainResult !is Ok) {
+        colorValidatorJob?.cancel()
+        val colorDomain = color?.toDomain()
+        if (colorDomain == null) {
             _colorValidationState.value = Resource.success(false)
             return
         }
         _colorValidationState.value = Resource.loading()
         colorValidatorJob = launchCoroutine {
-            validateColorHexUseCase.invoke(colorDomainResult.value).collect { valid ->
+            validateColorHexUseCase.invoke(colorDomain).collect { valid ->
                 _colorValidationState.value = Resource.success(valid)
             }
         }

@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.flow
 class ColorValidatorRepository : IColorValidatorRepository {
 
     override fun validateColor(color: ColorHex): Flow<Boolean> = flow {
-        val value = color.value.toString()
+        val value = color.value
         val valid = Regex(HEX_COLOR_VALIDATION_REGEX_PATTERN).matches(value)
         emit(valid)
     }

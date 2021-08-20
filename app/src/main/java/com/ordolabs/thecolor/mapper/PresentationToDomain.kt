@@ -7,14 +7,11 @@ import com.github.michaelbull.result.Result
 import com.ordolabs.thecolor.util.ext.error
 import com.ordolabs.thecolor.util.ext.success
 
-internal fun ColorHexPresentation.toDomain(): Result<ColorHex, Throwable> {
+internal fun ColorHexPresentation.toDomain(): ColorHex {
     val valueString = this.value.let {
         if (it.startsWith('#')) it.substring(1) else it
     }
-    return try {
-        val valueInt = valueString.toInt(16)
-        Result.success(ColorHex(value = valueInt))
-    } catch (e: NumberFormatException) {
-        Result.error(e)
-    }
+    return ColorHex(
+        value = valueString
+    )
 }

@@ -2,7 +2,7 @@ package com.ordolabs.thecolor.ui.adapter
 
 import androidx.fragment.app.Fragment
 
-interface EnumTab {
+internal interface EnumTab {
 
     fun getFragmentNewInstance(): Fragment
 }
