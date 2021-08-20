@@ -15,7 +15,8 @@ val viewModelModule = module {
         )
 
         ColorInputViewModel(
-            validateColorHexUseCase = get(named(VALIDATE_COLOR_HEX_USE_CASE))
+            validateColorHexUseCase = get(named(VALIDATE_COLOR_HEX_USE_CASE)),
+            validateColorRgbUseCase = get(named(VALIDATE_COLOR_RGB_USE_CASE))
         )
     }
 

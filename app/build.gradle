@@ -89,6 +89,7 @@ dependencies {
     // Third Party Libraries
     implementation "com.github.kirich1409:viewbindingpropertydelegate:1.4.7"
     implementation "com.michael-bull.kotlin-result:kotlin-result:1.1.12"
+    implementation "com.github.ajalt.colormath:colormath:2.1.0"
 
     // Testing
     testImplementation "junit:junit:4.13.2"

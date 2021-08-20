@@ -7,6 +7,7 @@
         <item name="placeholderTextAppearance">@style/TextAppearance.TextInputLayoutPlaceholder
         </item>
         <item name="placeholderTextColor">@null</item>
+        <item name="hintTextColor">@null</item>
     </style>
 
     <style name="TextInputLayout.ExposedDropdownMenu" parent="Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu">

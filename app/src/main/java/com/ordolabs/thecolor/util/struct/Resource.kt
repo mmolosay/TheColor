@@ -38,7 +38,7 @@ sealed class Resource<out V> {
     companion object {
 
         fun loading(): Resource<Nothing> {
-            return Loading()
+            return loading
         }
 
         fun <V : Any> success(value: V): Resource<V> {
@@ -52,5 +52,7 @@ sealed class Resource<out V> {
         fun <V : Any> failure(message: V): Resource<V> {
             return Failure(message, null)
         }
+
+        private val loading: Resource<Nothing> = Loading()
     }
 }

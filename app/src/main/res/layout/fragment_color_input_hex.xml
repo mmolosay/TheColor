@@ -19,13 +19,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintWidth_percent="0.5"
-        app:placeholderText="@string/color_input_hex_placeholder">
+        app:placeholderText="@string/color_input_hex_placeholder"
+        app:prefixText="@string/color_input_hex_number_sign">
 
         <com.google.android.material.textfield.TextInputEditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:digits="0123456789ABCDEF"
             android:imeOptions="actionDone"
             android:inputType="textCapCharacters"
+            android:maxLength="6"
             android:maxLines="1" />
 
     </com.google.android.material.textfield.TextInputLayout>

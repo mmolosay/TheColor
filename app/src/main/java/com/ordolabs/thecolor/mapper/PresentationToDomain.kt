@@ -1,11 +1,9 @@
 package com.ordolabs.thecolor.mapper
 
 import com.ordolabs.domain.model.ColorHex
+import com.ordolabs.domain.model.ColorRgb
 import com.ordolabs.thecolor.model.ColorHexPresentation
-import java.lang.NumberFormatException
-import com.github.michaelbull.result.Result
-import com.ordolabs.thecolor.util.ext.error
-import com.ordolabs.thecolor.util.ext.success
+import com.ordolabs.thecolor.model.ColorRgbPresentation
 
 internal fun ColorHexPresentation.toDomain(): ColorHex {
     val valueString = this.value.let {
@@ -13,5 +11,13 @@ internal fun ColorHexPresentation.toDomain(): ColorHex {
     }
     return ColorHex(
         value = valueString
+    )
+}
+
+internal fun ColorRgbPresentation.toDomain(): ColorRgb {
+    return ColorRgb(
+        r = this.r,
+        g = this.g,
+        b = this.b
     )
 }
