@@ -1,5 +1,6 @@
 package com.ordolabs.thecolor.ui.fragment.colorinput
 
+import androidx.annotation.ColorInt
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
@@ -10,6 +11,7 @@ import com.ordolabs.thecolor.ui.fragment.BaseFragment
 import com.ordolabs.thecolor.util.ext.getFromEnumOrNull
 import com.ordolabs.thecolor.viewmodel.ColorInputViewModel
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
+import android.graphics.Color as ColorAndroid
 
 class ColorInputHostFragment :
     BaseFragment(R.layout.fragment_color_input_host) {
@@ -19,6 +21,7 @@ class ColorInputHostFragment :
 
     override fun setUp() {
         observeValidationState()
+        observeColorPreview()
     }
 
     override fun setViews() {
@@ -39,10 +42,22 @@ class ColorInputHostFragment :
         tab.setText(data.titleRes)
     }
 
+    private fun setColorPreview(@ColorInt color: Int) = binding.preview.run {
+        setBackgroundColor(color)
+    }
+
     private fun observeValidationState() =
         colorInputVM.colorValidationState.observe(this) { resource ->
             resource.onSuccess { valid ->
                 binding.procceedBtn.isEnabled = valid
+            }
+        }
+
+    private fun observeColorPreview() =
+        colorInputVM.colorPreview.observe(this) { resource ->
+            resource.onSuccess { color ->
+                val colorInt = ColorAndroid.parseColor("#${color.hex}")
+                setColorPreview(colorInt)
             }
         }
 

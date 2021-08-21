@@ -81,6 +81,7 @@
 
     <!--~~~~~~~~~~~~~~~~~~~~ SCREEN ~~~~~~~~~~~~~~~~~~~~-->
     <dimen name="color_input_pager_height">300dp</dimen>
+    <dimen name="color_input_preview_height">32dp</dimen>
 
     <dimen name="input_color_width_min">96dp</dimen>
     <dimen name="input_color_width_max">256dp</dimen>
