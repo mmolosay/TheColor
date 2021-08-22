@@ -1,8 +1,8 @@
 package com.ordolabs.thecolor.viewmodel
 
-import com.ordolabs.domain.usecase.GetColorInfoBaseUseCase
-import kotlinx.coroutines.CoroutineExceptionHandler
+class HomeViewModel : BaseViewModel() {
 
-internal class HomeViewModel(
-    private val getColorInfoUseCase: GetColorInfoBaseUseCase
-) : BaseViewModel()
+    override fun onCleared() {
+        super.onCleared()
+    }
+}

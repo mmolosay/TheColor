@@ -73,8 +73,8 @@ class ColorInputRgbFragment :
         )
     }
 
-    private fun observeColorRgb() = colorInputVM.colorRgb.observe(this) { result ->
-        result.onSuccess { color ->
+    private fun observeColorRgb() = colorInputVM.getColorRgb().observe(this) { result ->
+        result.ifSuccess { color ->
             isTypedByUser = false
             binding.inputRgbR.editText?.setText(color.r.toString())
             binding.inputRgbG.editText?.setText(color.g.toString())

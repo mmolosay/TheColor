@@ -1,10 +1,10 @@
 package com.ordolabs.thecolor.di
 
-import com.ordolabs.data.remote.repository.ColorInfoRepository
-import com.ordolabs.domain.repository.IColorInfoRepository
+import com.ordolabs.data.remote.repository.ColorRemoteRepository
+import com.ordolabs.domain.repository.IColorRemoteRepository
 import org.koin.dsl.module
 
 val remoteDataSourceModule = module {
 
-    single<IColorInfoRepository> { ColorInfoRepository(api = get()) }
+    single<IColorRemoteRepository> { ColorRemoteRepository(api = get()) }
 }

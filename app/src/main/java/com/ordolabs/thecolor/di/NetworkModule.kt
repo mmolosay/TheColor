@@ -18,8 +18,8 @@ val networkModule = module {
 }
 
 private const val THE_COLOR_API_BASE_URL = "http://thecolorapi.com/"
-private const val CONNECT_TIMEOUT_SECONDS = 60L
-private const val READ_TIMEOUT_SECONDS = 60L
+private const val CONNECT_TIMEOUT_SECONDS = 10L
+private const val READ_TIMEOUT_SECONDS = 10L
 
 internal fun provideOkHttpClient(): OkHttpClient {
     val httpLoggingInterceptor = HttpLoggingInterceptor().apply {

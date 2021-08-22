@@ -19,10 +19,10 @@ internal class TheColorApplication : Application() {
             androidContext(this@TheColorApplication)
             modules(
                 networkModule,
-                viewModelModule,
                 localDataSourceModule,
                 remoteDataSourceModule,
-                useCaseModule
+                useCaseModule,
+                viewModelModule
             )
         }
     }

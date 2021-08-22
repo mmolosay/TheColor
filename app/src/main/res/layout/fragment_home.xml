@@ -43,4 +43,16 @@
         app:layout_constraintTop_toBottomOf="@id/headline"
         tools:layout="@layout/fragment_color_input_host" />
 
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/colorInfoFragmentContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/offset_32"
+        android:background="@drawable/bg_color_preview"
+
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/defaultFragmentContainer"
+        tools:layout="@layout/fragment_color_information" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

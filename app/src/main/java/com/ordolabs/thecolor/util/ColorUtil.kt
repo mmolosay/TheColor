@@ -6,6 +6,9 @@ import com.ordolabs.thecolor.model.ColorRgbPresentation
 
 object ColorUtil {
 
+    /**
+     * "Abstract" color model. Actually, holds HEX color value __without number sign__.
+     */
     data class Color(
         val hex: String
     ) {

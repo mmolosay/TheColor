@@ -28,20 +28,11 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
 
-        app:layout_constraintBottom_toTopOf="@+id/preview"
+        app:layout_constraintBottom_toTopOf="@+id/inputTabs"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:background="@color/tools_bg" />
-
-    <View
-        android:id="@+id/preview"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/color_input_preview_height"
-        app:layout_constraintBottom_toTopOf="@id/inputTabs"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        tools:background="@color/theme_primary" />
 
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/inputTabs"

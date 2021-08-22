@@ -2,7 +2,7 @@
 
 package com.ordolabs.data.remote.model
 
-data class GetColorIdentificationResponse(
+data class GetColorInformationResponse(
     val hex: HexModelResponse,
     val rgb: RgbModelResponse,
     val hsl: HslModelResponse,
@@ -61,6 +61,20 @@ data class HsvModelFractionResponse(
     val v: Float
 )
 
+data class XyzModelResponse(
+    val fraction: XyzModelFractionResponse,
+    val x: Int,
+    val y: Int,
+    val z: Int,
+    val value: String
+)
+
+data class XyzModelFractionResponse(
+    val x: Float,
+    val y: Float,
+    val z: Float
+)
+
 data class CmykModelResponse(
     val fraction: CmykModelFractionResponse,
     val c: Int,
@@ -75,20 +89,6 @@ data class CmykModelFractionResponse(
     val m: Float,
     val y: Float,
     val k: Float
-)
-
-data class XyzModelResponse(
-    val fraction: XyzModelFractionResponse,
-    val x: Int,
-    val y: Int,
-    val z: Int,
-    val value: String
-)
-
-data class XyzModelFractionResponse(
-    val x: Float,
-    val y: Float,
-    val z: Float
 )
 
 data class NameResponse(

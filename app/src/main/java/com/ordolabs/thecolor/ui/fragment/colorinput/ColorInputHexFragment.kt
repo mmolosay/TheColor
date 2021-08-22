@@ -43,8 +43,8 @@ class ColorInputHexFragment :
         return ColorHexPresentation(value)
     }
 
-    private fun observeColorHex() = colorInputVM.colorHex.observe(this) { result ->
-        result.onSuccess { color ->
+    private fun observeColorHex() = colorInputVM.getColorHex().observe(this) { result ->
+        result.ifSuccess { color ->
             isTypedByUser = false
             binding.inputHex.editText?.setText(color.value)
             isTypedByUser = true

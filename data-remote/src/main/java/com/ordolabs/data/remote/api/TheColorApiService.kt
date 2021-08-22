@@ -1,6 +1,6 @@
 package com.ordolabs.data.remote.api
 
-import com.ordolabs.data.remote.model.GetColorIdentificationResponse
+import com.ordolabs.data.remote.model.GetColorInformationResponse
 import retrofit2.http.GET
 import retrofit2.http.Query
 
@@ -13,20 +13,20 @@ import retrofit2.http.Query
 interface TheColorApiService {
 
     @GET("id")
-    suspend fun getColorIdentification(
-        @Query("hex") hex: String,
-        @Query("rgb") rgb: String,
-        @Query("hsl") hsl: String,
-        @Query("cmyk") cmyk: String,
+    suspend fun getColorInformation(
+        @Query("hex") hex: String? = null,
+        @Query("rgb") rgb: String? = null,
+        @Query("hsl") hsl: String? = null,
+        @Query("cmyk") cmyk: String? = null,
         @Query("format") format: ResponseFormat = ResponseFormat.JSON
-    ): GetColorIdentificationResponse
+    ): GetColorInformationResponse
 
     @GET("scheme")
     suspend fun getColorScheme(
-        @Query("hex") hex: String,
-        @Query("rgb") rgb: String,
-        @Query("hsl") hsl: String,
-        @Query("cmyk") cmyk: String,
+        @Query("hex") hex: String? = null,
+        @Query("rgb") rgb: String? = null,
+        @Query("hsl") hsl: String? = null,
+        @Query("cmyk") cmyk: String? = null,
         @Query("format") format: ResponseFormat = ResponseFormat.JSON,
         @Query("mode") type: SchemeType = SchemeType.ANALOGIC,
         @Query("count") count: Int = 5,

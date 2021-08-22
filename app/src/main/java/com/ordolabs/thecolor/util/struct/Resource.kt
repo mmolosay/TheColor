@@ -28,10 +28,10 @@ sealed class Resource<out V> {
         is Failure -> onFailure(this.message, this.error)
     }
 
-    inline fun onSuccess(action: (value: V) -> Unit) {
-        when (this) {
+    inline fun <R> ifSuccess(action: (value: V) -> R): R? {
+        return when (this) {
             is Success -> action(value)
-            else -> return
+            else -> null
         }
     }
 

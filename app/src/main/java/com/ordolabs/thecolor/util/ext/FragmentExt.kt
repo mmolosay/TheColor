@@ -23,16 +23,21 @@ fun Fragment.findFragmentInDefaultContainer(): Result<Fragment, Throwable> {
     )
 }
 
-fun Fragment.setFragment(fragment: BaseFragment): Result<Int, Throwable> {
+fun Fragment.setFragment(
+    fragment: BaseFragment,
+    @IdRes containerId: Int = R.id.defaultFragmentContainer
+): Result<Int, Throwable> {
     return ContextUtil.setFragment(
         this.childFragmentManager,
         fragment,
-        R.id.defaultFragmentContainer,
+        containerId,
         fragment.transactionTag
     )
 }
 
-fun Fragment.replaceFragment(fragment: BaseFragment): Result<Int, Throwable> {
+fun Fragment.replaceFragment(
+    fragment: BaseFragment
+): Result<Int, Throwable> {
     return ContextUtil.replaceFragment(
         this.childFragmentManager,
         fragment,
