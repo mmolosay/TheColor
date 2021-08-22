@@ -6,6 +6,7 @@ import com.ordolabs.thecolor.R
 import com.ordolabs.thecolor.databinding.FragmentColorInputRgbBinding
 import com.ordolabs.thecolor.model.ColorRgbPresentation
 import com.ordolabs.thecolor.ui.fragment.BaseFragment
+import com.ordolabs.thecolor.ui.util.PreventingInputFilter
 import com.ordolabs.thecolor.ui.util.RangeInputFilter
 import com.ordolabs.thecolor.util.ext.addFilters
 import com.ordolabs.thecolor.util.ext.getTextString
@@ -26,17 +27,18 @@ class ColorInputRgbFragment :
     }
 
     override fun setViews() {
-        setComponetnsInputRange()
+        setComponentInputsFilters()
         setComponentRTextWatcher()
         setComponentGTextWatcher()
         setComponentBTextWatcher()
     }
 
-    private fun setComponetnsInputRange() = binding.run {
-        val filter = RangeInputFilter(min = 0, max = 255)
-        inputRgbR.editText?.addFilters(filter)
-        inputRgbG.editText?.addFilters(filter)
-        inputRgbB.editText?.addFilters(filter)
+    private fun setComponentInputsFilters() = binding.run {
+        val range = RangeInputFilter(min = 0, max = 255)
+        val preventing = PreventingInputFilter(preceding = "0", what = "0")
+        inputRgbR.editText?.addFilters(range, preventing)
+        inputRgbG.editText?.addFilters(range, preventing)
+        inputRgbB.editText?.addFilters(range, preventing)
     }
 
     private fun setComponentRTextWatcher() =
