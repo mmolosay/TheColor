@@ -10,7 +10,6 @@ import com.ordolabs.thecolor.ui.fragment.BaseFragment
 import com.ordolabs.thecolor.util.ext.getFromEnumOrNull
 import com.ordolabs.thecolor.viewmodel.ColorInputViewModel
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
-import android.graphics.Color as ColorAndroid
 
 class ColorInputHostFragment : BaseFragment(R.layout.fragment_color_input_host) {
 
@@ -19,7 +18,6 @@ class ColorInputHostFragment : BaseFragment(R.layout.fragment_color_input_host) 
 
     override fun setUp() {
         observeValidationState()
-        observeColorPreview()
     }
 
     override fun setViews() {
@@ -45,23 +43,10 @@ class ColorInputHostFragment : BaseFragment(R.layout.fragment_color_input_host) 
         tab.setText(data.titleRes)
     }
 
-    // TODO: move
-//    private fun setColorPreview(@ColorInt color: Int) = binding.preview.run {
-//        setBackgroundColor(color)
-//    }
-
     private fun observeValidationState() =
         colorInputVM.getColorValidationState().observe(this) { resource ->
             resource.ifSuccess { valid ->
                 binding.procceedBtn.isEnabled = valid
-            }
-        }
-
-    private fun observeColorPreview() =
-        colorInputVM.getColorPreview().observe(this) { resource ->
-            resource.ifSuccess { color ->
-                val colorInt = ColorAndroid.parseColor("#${color.hex}")
-//                setColorPreview(colorInt)
             }
         }
 

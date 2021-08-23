@@ -7,7 +7,7 @@ data class GetColorInformationResponse(
     val rgb: RgbModelResponse,
     val hsl: HslModelResponse,
     val hsv: HsvModelResponse,
-    val xyz: XyzModelResponse,
+    val XYZ: XyzModelResponse,
     val cmyk: CmykModelResponse,
     val name: NameResponse,
     val image: ImageResponse,
@@ -63,16 +63,16 @@ data class HsvModelFractionResponse(
 
 data class XyzModelResponse(
     val fraction: XyzModelFractionResponse,
-    val x: Int,
-    val y: Int,
-    val z: Int,
+    val X: Int,
+    val Y: Int,
+    val Z: Int,
     val value: String
 )
 
 data class XyzModelFractionResponse(
-    val x: Float,
-    val y: Float,
-    val z: Float
+    val X: Float,
+    val Y: Float,
+    val Z: Float
 )
 
 data class CmykModelResponse(

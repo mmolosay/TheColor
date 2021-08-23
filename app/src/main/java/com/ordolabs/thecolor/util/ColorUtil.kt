@@ -1,8 +1,10 @@
 package com.ordolabs.thecolor.util
 
+import androidx.annotation.ColorInt
 import com.github.ajalt.colormath.RGB
 import com.ordolabs.thecolor.model.ColorHexPresentation
 import com.ordolabs.thecolor.model.ColorRgbPresentation
+import android.graphics.Color as ColorAndroid
 
 object ColorUtil {
 
@@ -12,6 +14,8 @@ object ColorUtil {
     data class Color(
         val hex: String
     ) {
+        val hexWithNumberSign: String get() = '#' + this.hex
+
         companion object
     }
 
@@ -41,5 +45,10 @@ object ColorUtil {
             g = color.g,
             b = color.b
         )
+    }
+
+    @ColorInt
+    fun Color.toColorInt(): Int {
+        return ColorAndroid.parseColor(this.hexWithNumberSign)
     }
 }

@@ -30,9 +30,8 @@ class ColorInformationViewModel(
 
     fun fetchColorInformation(color: Color) {
         fetchColorInformationJob?.cancel()
-        val hexValue = '#' + color.hex
         fetchColorInformationJob = launchCoroutine {
-            getColorInformationUseCase.invoke(hexValue).collect { information ->
+            getColorInformationUseCase.invoke(color.hexWithNumberSign).collect { information ->
                 colorInformation.setSuccess(information.toPresentation())
             }
         }
