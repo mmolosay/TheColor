@@ -10,7 +10,7 @@ import com.ordolabs.thecolor.util.struct.Resource.Success
  */
 sealed class Resource<out V> {
 
-    class Loading<out V> : Resource<V>()
+    object Loading : Resource<Nothing>()
     data class Success<out V : Any>(val value: V) : Resource<V>()
     data class Failure<out V : Any>(val message: V, val error: Throwable?) : Resource<V>()
 
@@ -53,6 +53,6 @@ sealed class Resource<out V> {
             return Failure(message, null)
         }
 
-        private val loading: Resource<Nothing> = Loading()
+        private val loading: Resource<Nothing> = Loading
     }
 }
