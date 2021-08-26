@@ -3,7 +3,12 @@
   <component name="CompilerConfiguration">
     <bytecodeTargetLevel target="1.8">
       <module name="TheColor.app" target="11" />
+      <module name="TheColor.data" target="11" />
       <module name="TheColor.data-local" target="11" />
+      <module name="TheColor.data-remote" target="1.8" />
+      <module name="TheColor.data.local" target="11" />
+      <module name="TheColor.data.remote" target="11" />
+      <module name="TheColor.data.repository" target="11" />
     </bytecodeTargetLevel>
   </component>
 </project>

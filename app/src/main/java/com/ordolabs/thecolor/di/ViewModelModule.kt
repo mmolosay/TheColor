@@ -1,5 +1,8 @@
 package com.ordolabs.thecolor.di
 
+import com.ordolabs.domain.di.GET_COLOR_INFORMATION_USE_CASE
+import com.ordolabs.domain.di.VALIDATE_COLOR_HEX_USE_CASE
+import com.ordolabs.domain.di.VALIDATE_COLOR_RGB_USE_CASE
 import com.ordolabs.thecolor.viewmodel.ColorInformationViewModel
 import com.ordolabs.thecolor.viewmodel.ColorInputViewModel
 import com.ordolabs.thecolor.viewmodel.HomeViewModel
