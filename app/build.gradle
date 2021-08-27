@@ -49,12 +49,13 @@ android {
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_1_8.toString()
     }
+    dynamicFeatures = [':feature:home']
 }
 
 dependencies {
 
     // Modules
-    implementation project(':data')
+    implementation project(':data') // needed for DI
     implementation project(':domain')
 
     // Jetpack
