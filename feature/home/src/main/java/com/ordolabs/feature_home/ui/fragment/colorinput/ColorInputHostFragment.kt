@@ -1,14 +1,14 @@
-package com.ordolabs.thecolor.ui.fragment.colorinput
+package com.ordolabs.feature_home.ui.fragment.colorinput
 
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
-import com.ordolabs.thecolor.R
-import com.ordolabs.thecolor.databinding.FragmentColorInputHostBinding
-import com.ordolabs.thecolor.ui.adapter.pager.ColorInputPagerAdapter
+import com.ordolabs.feature_home.R
+import com.ordolabs.feature_home.databinding.FragmentColorInputHostBinding
+import com.ordolabs.feature_home.ui.adapter.pager.ColorInputPagerAdapter
+import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
 import com.ordolabs.thecolor.ui.fragment.BaseFragment
 import com.ordolabs.thecolor.util.ext.getFromEnumOrNull
-import com.ordolabs.thecolor.viewmodel.ColorInputViewModel
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 class ColorInputHostFragment : BaseFragment(R.layout.fragment_color_input_host) {

@@ -1,4 +1,4 @@
-package com.ordolabs.thecolor.ui.fragment.colorinput
+package com.ordolabs.feature_home.ui.fragment.colorinput
 
 interface ColorInputModelFragment {
 

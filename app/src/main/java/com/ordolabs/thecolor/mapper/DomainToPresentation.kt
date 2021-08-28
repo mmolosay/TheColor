@@ -3,7 +3,7 @@ package com.ordolabs.thecolor.mapper
 import com.ordolabs.domain.model.ColorInformation
 import com.ordolabs.thecolor.model.ColorInformationPresentation
 
-internal fun ColorInformation.toPresentation() = ColorInformationPresentation(
+fun ColorInformation.toPresentation() = ColorInformationPresentation(
     hexValue = this.hexValue,
     hexClean = this.hexClean,
 

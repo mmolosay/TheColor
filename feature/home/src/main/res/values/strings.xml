@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="feature_home">Home</string>
+
+    <string name="home_find_your_color">Find your color</string>
+
+    <!--~~~~~~~~~~~~~ COLOR INPUT FRAGMENT ~~~~~~~~~~~~~-->
+    <string name="color_input_hex_number_sign">#</string>
+    <string name="color_input_hex_hint">HEX</string>
+    <string name="color_input_hex_placeholder">000000</string>
+
+    <string name="color_input_rgb_hint">RGB</string>
+    <string name="color_input_rgb_hint_r">R</string>
+    <string name="color_input_rgb_hint_g">G</string>
+    <string name="color_input_rgb_hint_b">B</string>
+    <string name="color_input_rgb_placeholder_r">0</string>
+    <string name="color_input_rgb_placeholder_g">0</string>
+    <string name="color_input_rgb_placeholder_b">0</string>
+
+    <string name="color_input_cmyk_hint">CMYK</string>
+    <string name="color_input_hsv_hint">HSV</string>
+
+    <string name="color_input_procceed">Procceed</string>
+
+</resources>

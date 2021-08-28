@@ -79,11 +79,4 @@
     <!--~~~~~~~~~~~~~~~~~~~~ WIDGET ~~~~~~~~~~~~~~~~~~~~-->
     <dimen name="divider_height">1dp</dimen>
 
-    <!--~~~~~~~~~~~~~~~~~~~~ SCREEN ~~~~~~~~~~~~~~~~~~~~-->
-    <dimen name="color_input_pager_height">200dp</dimen>
-    <dimen name="color_input_preview_height">32dp</dimen>
-
-    <dimen name="input_color_width_min">96dp</dimen>
-    <dimen name="input_color_width_max">256dp</dimen>
-
 </resources>

@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:clipToPadding="false"
     android:paddingBottom="@dimen/offset_8"
-    tools:context=".ui.fragment.colorinput.ColorInputHostFragment"
+    tools:context="com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputHostFragment"
     tools:layout_height="@dimen/color_input_pager_height">
 
     <androidx.constraintlayout.widget.Guideline

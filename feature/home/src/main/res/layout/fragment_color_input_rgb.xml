@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:paddingHorizontal="@dimen/offset_content_horizontal"
-    tools:context=".ui.fragment.colorinput.ColorInputRgbFragment">
+    tools:context="com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputRgbFragment">
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/inputRgbR"

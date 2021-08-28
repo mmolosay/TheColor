@@ -4,7 +4,7 @@ import androidx.annotation.StringRes
 import com.ordolabs.thecolor.R
 import java.net.UnknownHostException
 
-internal object ExceptionHandler {
+object ExceptionHandler {
 
     @StringRes
     fun parseExceptionType(t: Throwable): Int = when (t) {

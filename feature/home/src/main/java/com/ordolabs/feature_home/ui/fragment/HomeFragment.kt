@@ -1,23 +1,34 @@
-package com.ordolabs.thecolor.ui.fragment
+package com.ordolabs.feature_home.ui.fragment
 
+import android.os.Bundle
 import androidx.annotation.ColorInt
 import by.kirich1409.viewbindingdelegate.viewBinding
-import com.ordolabs.thecolor.R
-import com.ordolabs.thecolor.databinding.FragmentHomeBinding
-import com.ordolabs.thecolor.ui.fragment.colorinput.ColorInputHostFragment
+import com.ordolabs.feature_home.R
+import com.ordolabs.feature_home.databinding.FragmentHomeBinding
+import com.ordolabs.feature_home.di.featureHomeModule
+import com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputHostFragment
+import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
+import com.ordolabs.thecolor.ui.fragment.BaseFragment
 import com.ordolabs.thecolor.util.ColorUtil.toColorInt
 import com.ordolabs.thecolor.util.ext.setColor
 import com.ordolabs.thecolor.util.ext.setFragment
-import com.ordolabs.thecolor.viewmodel.ColorInputViewModel
 import com.ordolabs.thecolor.viewmodel.HomeViewModel
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.core.context.loadKoinModules
 
 class HomeFragment : BaseFragment(R.layout.fragment_home) {
+
+    override val defaultFragmentContainerId: Int = R.id.defaultFragmentContainer
 
     private val binding: FragmentHomeBinding by viewBinding()
     private val homeVM: HomeViewModel by viewModel()
     private val colorInputVM: ColorInputViewModel by sharedViewModel()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        loadKoinModules(featureHomeModule)
+    }
 
     override fun setUp() {
         observeColorPreview()

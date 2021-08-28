@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingHorizontal="@dimen/offset_content_horizontal"
-    tools:context=".ui.fragment.colorinput.ColorInputHexFragment">
+    tools:context="com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputHexFragment">
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/inputHex"

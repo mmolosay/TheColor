@@ -1,16 +1,16 @@
-package com.ordolabs.thecolor.ui.fragment.colorinput
+package com.ordolabs.feature_home.ui.fragment.colorinput
 
 import androidx.core.widget.doOnTextChanged
 import by.kirich1409.viewbindingdelegate.viewBinding
-import com.ordolabs.thecolor.R
-import com.ordolabs.thecolor.databinding.FragmentColorInputRgbBinding
+import com.ordolabs.feature_home.R
+import com.ordolabs.feature_home.databinding.FragmentColorInputRgbBinding
+import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
 import com.ordolabs.thecolor.model.ColorRgbPresentation
 import com.ordolabs.thecolor.ui.fragment.BaseFragment
 import com.ordolabs.thecolor.ui.util.PreventingInputFilter
 import com.ordolabs.thecolor.ui.util.RangeInputFilter
 import com.ordolabs.thecolor.util.ext.addFilters
 import com.ordolabs.thecolor.util.ext.getTextString
-import com.ordolabs.thecolor.viewmodel.ColorInputViewModel
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 class ColorInputRgbFragment :

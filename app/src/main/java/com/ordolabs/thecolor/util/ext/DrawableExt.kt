@@ -7,7 +7,7 @@ import android.graphics.drawable.LayerDrawable
 import android.graphics.drawable.ShapeDrawable
 import androidx.annotation.ColorInt
 
-internal fun Drawable.setColor(@ColorInt color: Int) {
+fun Drawable.setColor(@ColorInt color: Int) {
     when (this) {
         is ColorDrawable -> this.color = color
         is ShapeDrawable -> this.setColor(color)
@@ -17,12 +17,12 @@ internal fun Drawable.setColor(@ColorInt color: Int) {
     }
 }
 
-internal fun LayerDrawable.setColor(@ColorInt color: Int) {
+fun LayerDrawable.setColor(@ColorInt color: Int) {
     repeat(this.numberOfLayers) { index ->
         this.getDrawable(index).setColor(color)
     }
 }
 
-internal fun ShapeDrawable.setColor(@ColorInt color: Int) {
+fun ShapeDrawable.setColor(@ColorInt color: Int) {
     this.paint.color = color
 }

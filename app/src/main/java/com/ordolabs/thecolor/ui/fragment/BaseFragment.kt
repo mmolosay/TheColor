@@ -2,12 +2,17 @@ package com.ordolabs.thecolor.ui.fragment
 
 import android.os.Bundle
 import android.view.View
+import androidx.annotation.IdRes
 import androidx.annotation.LayoutRes
 import androidx.fragment.app.Fragment
+import com.ordolabs.thecolor.R
 
 abstract class BaseFragment(@LayoutRes layoutRes: Int) : Fragment(layoutRes) {
 
     val transactionTag: String = this::class.java.simpleName
+
+    @IdRes
+    open val defaultFragmentContainerId: Int = R.id.defaultFragmentContainer
 
     protected val initialSoftInputMode: Int? by lazy {
         activity?.window?.attributes?.softInputMode
