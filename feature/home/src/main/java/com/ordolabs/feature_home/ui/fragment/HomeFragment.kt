@@ -8,7 +8,6 @@ import com.ordolabs.feature_home.databinding.FragmentHomeBinding
 import com.ordolabs.feature_home.di.featureHomeModule
 import com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputHostFragment
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
-import com.ordolabs.thecolor.ui.fragment.BaseFragment
 import com.ordolabs.thecolor.util.ColorUtil.toColorInt
 import com.ordolabs.thecolor.util.ext.setColor
 import com.ordolabs.thecolor.util.ext.setFragment
@@ -18,8 +17,6 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.context.loadKoinModules
 
 class HomeFragment : BaseFragment(R.layout.fragment_home) {
-
-    override val defaultFragmentContainerId: Int = R.id.defaultFragmentContainer
 
     private val binding: FragmentHomeBinding by viewBinding()
     private val homeVM: HomeViewModel by viewModel()

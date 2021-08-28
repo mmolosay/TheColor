@@ -6,8 +6,8 @@ import com.google.android.material.tabs.TabLayoutMediator
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.FragmentColorInputHostBinding
 import com.ordolabs.feature_home.ui.adapter.pager.ColorInputPagerAdapter
+import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
-import com.ordolabs.thecolor.ui.fragment.BaseFragment
 import com.ordolabs.thecolor.util.ext.getFromEnumOrNull
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
