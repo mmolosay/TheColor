@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="@dimen/offset_content_horizontal"
+    tools:context="com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputRgbFragment">
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/inputRgbR"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="@string/color_input_rgb_hint_r"
+        android:minWidth="@dimen/input_color_width_min"
+
+        app:layout_constraintEnd_toStartOf="@+id/inputRgbG"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:placeholderText="@string/color_input_rgb_placeholder_r">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:imeOptions="actionNext"
+            android:inputType="number"
+            android:maxLength="3"
+            android:selectAllOnFocus="true" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/inputRgbG"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="@string/color_input_rgb_hint_g"
+        android:minWidth="@dimen/input_color_width_min"
+
+        app:layout_constraintEnd_toStartOf="@id/inputRgbB"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/inputRgbR"
+        app:layout_constraintTop_toTopOf="parent"
+        app:placeholderText="@string/color_input_rgb_placeholder_g">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:imeOptions="actionNext"
+            android:inputType="number"
+            android:maxLength="3"
+            android:selectAllOnFocus="true" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/inputRgbB"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="@string/color_input_rgb_hint_b"
+        android:minWidth="@dimen/input_color_width_min"
+
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/inputRgbG"
+        app:layout_constraintTop_toTopOf="parent"
+        app:placeholderText="@string/color_input_rgb_placeholder_b">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:imeOptions="actionSend"
+            android:inputType="number"
+            android:maxLength="3"
+            android:selectAllOnFocus="true" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -10,7 +10,7 @@ import com.ordolabs.thecolor.util.struct.Resource.Success
  */
 sealed class Resource<out V> {
 
-    class Loading<out V> : Resource<V>()
+    object Loading : Resource<Nothing>()
     data class Success<out V : Any>(val value: V) : Resource<V>()
     data class Failure<out V : Any>(val message: V, val error: Throwable?) : Resource<V>()
 
@@ -28,31 +28,32 @@ sealed class Resource<out V> {
         is Failure -> onFailure(this.message, this.error)
     }
 
-    inline fun onSuccess(action: (value: V) -> Unit) {
-        when (this) {
+    inline fun <R> ifSuccess(action: (value: V) -> R): R? {
+        return when (this) {
             is Success -> action(value)
-            else -> return
+            else -> null
         }
     }
 
-    companion object {
 
-        fun loading(): Resource<Nothing> {
-            return loading
-        }
+    companion object
+}
 
-        fun <V : Any> success(value: V): Resource<V> {
-            return Success(value)
-        }
+fun Resource.Companion.loading(): Resource<Nothing> {
+    return Loading
+}
 
-        fun <V : Any> failure(message: V, error: Throwable = RuntimeException()): Resource<V> {
-            return Failure(message, error)
-        }
+fun <V : Any> Resource.Companion.success(value: V): Resource<V> {
+    return Success(value)
+}
 
-        fun <V : Any> failure(message: V): Resource<V> {
-            return Failure(message, null)
-        }
+fun <V : Any> Resource.Companion.failure(
+    message: V,
+    error: Throwable = RuntimeException()
+): Resource<V> {
+    return Failure(message, error)
+}
 
-        private val loading: Resource<Nothing> = Loading()
-    }
+fun <V : Any> Resource.Companion.failure(message: V): Resource<V> {
+    return Failure(message, null)
 }

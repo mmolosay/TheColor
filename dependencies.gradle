@@ -1,7 +1,9 @@
 ext {
 
+    // TODO: move all dependecies there
+
     // Kotlin
-    kotlinVersion = "1.5.21"
+    kotlinVersion = "1.5.30"
 
     // Android Core
     compileSdkV = 30

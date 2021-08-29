@@ -1,14 +1,13 @@
 package com.ordolabs.thecolor
 
 import android.app.Application
-import com.ordolabs.thecolor.di.localDataSourceModule
-import com.ordolabs.thecolor.di.networkModule
-import com.ordolabs.thecolor.di.remoteDataSourceModule
-import com.ordolabs.thecolor.di.useCaseModule
-import com.ordolabs.thecolor.di.viewModelModule
+import com.ordolabs.data.di.localDataSourceModule
+import com.ordolabs.data.di.networkModule
+import com.ordolabs.data.di.repositoryModule
+import com.ordolabs.domain.di.useCaseModule
+import com.ordolabs.thecolor.di.appModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
-
 
 internal class TheColorApplication : Application() {
 
@@ -18,10 +17,10 @@ internal class TheColorApplication : Application() {
         startKoin {
             androidContext(this@TheColorApplication)
             modules(
-                networkModule,
-                viewModelModule,
+                appModule,
+                repositoryModule,
                 localDataSourceModule,
-                remoteDataSourceModule,
+                networkModule,
                 useCaseModule
             )
         }

@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!--
+        generated ViewBinding classes use THEIR module R class,
+        so all generic resources from 'app' module should be copied in the end module
+    -->
+
     <item name="defaultFragmentContainer" type="id" />
 
 </resources>

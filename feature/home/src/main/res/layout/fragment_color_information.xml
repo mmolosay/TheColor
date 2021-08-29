@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?><!-- TODO: set regular height -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="400dp">
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/glStart"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        app:layout_constraintGuide_begin="@dimen/offset_content_horizontal" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/glEnd"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        app:layout_constraintGuide_end="@dimen/offset_content_horizontal" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/offset_content_vertical"
+        android:textAppearance="@style/TextAppearance.Headline3"
+
+        app:layout_constraintEnd_toStartOf="@+id/glEnd"
+        app:layout_constraintStart_toStartOf="@+id/glStart"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Cobalt" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
