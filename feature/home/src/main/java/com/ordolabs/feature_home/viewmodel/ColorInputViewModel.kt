@@ -1,5 +1,6 @@
 package com.ordolabs.feature_home.viewmodel
 
+import androidx.annotation.MainThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.ordolabs.domain.usecase.local.ValidateColorHexBaseUseCase
@@ -11,8 +12,8 @@ import com.ordolabs.thecolor.util.ColorUtil.Color
 import com.ordolabs.thecolor.util.ColorUtil.from
 import com.ordolabs.thecolor.util.ColorUtil.toColorHex
 import com.ordolabs.thecolor.util.ColorUtil.toColorRgb
+import com.ordolabs.thecolor.util.ext.postSuccess
 import com.ordolabs.thecolor.util.ext.setLoading
-import com.ordolabs.thecolor.util.ext.setSuccess
 import com.ordolabs.thecolor.util.struct.Resource
 import com.ordolabs.thecolor.viewmodel.BaseViewModel
 import kotlinx.coroutines.Job
@@ -60,7 +61,7 @@ class ColorInputViewModel(
         }
         val abstract = Color.from(color)
 
-        colorValidationJob = launchCoroutine {
+        colorValidationJob = launch {
             validateColorHexUseCase.invoke(colorDomain).collect { valid ->
                 onColorValidated(valid, abstract, color::class.java)
             }
@@ -75,39 +76,41 @@ class ColorInputViewModel(
         }
         val abstract = Color.from(color)
 
-        colorValidationJob = launchCoroutine {
+        colorValidationJob = launch {
             validateColorRgbUseCase.invoke(colorDomain).collect { valid ->
                 onColorValidated(valid, abstract, color::class.java)
             }
         }
     }
 
+    @MainThread
     fun procceedInput() {
         val color = colorPreview.value?.ifSuccess { it }
         procceedCommand.value = color
     }
 
+    @MainThread
     private fun resetColorValidation() {
         colorValidationJob?.cancel()
         colorValidationState.setLoading()
     }
 
     private fun onColorValidated(valid: Boolean, abstract: Color, initialColorClass: Class<*>) {
-        colorValidationState.setSuccess(valid)
+        colorValidationState.postSuccess(valid)
         updateColors(abstract, initialColorClass)
         updateColorPreview(valid, abstract)
     }
 
     private fun updateColors(color: Color, exclude: Class<*>) {
         if (exclude != ColorHexPresentation::class.java) {
-            colorHex.setSuccess(color.toColorHex())
+            colorHex.postSuccess(color.toColorHex())
         }
         if (exclude != ColorRgbPresentation::class.java) {
-            colorRgb.setSuccess(color.toColorRgb())
+            colorRgb.postSuccess(color.toColorRgb())
         }
     }
 
     private fun updateColorPreview(valid: Boolean, color: Color) {
-        if (valid) colorPreview.setSuccess(color)
+        if (valid) colorPreview.postSuccess(color)
     }
 }

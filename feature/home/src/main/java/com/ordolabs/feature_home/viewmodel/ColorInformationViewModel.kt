@@ -6,7 +6,7 @@ import com.ordolabs.domain.usecase.remote.GetColorInformationBaseUseCase
 import com.ordolabs.thecolor.mapper.toPresentation
 import com.ordolabs.thecolor.model.ColorInformationPresentation
 import com.ordolabs.thecolor.util.ColorUtil.Color
-import com.ordolabs.thecolor.util.ext.setSuccess
+import com.ordolabs.thecolor.util.ext.postSuccess
 import com.ordolabs.thecolor.util.struct.Resource
 import com.ordolabs.thecolor.viewmodel.BaseViewModel
 import kotlinx.coroutines.Job
@@ -31,9 +31,9 @@ class ColorInformationViewModel(
 
     fun fetchColorInformation(color: Color) {
         fetchColorInformationJob?.cancel()
-        fetchColorInformationJob = launchCoroutine {
+        fetchColorInformationJob = launch {
             getColorInformationUseCase.invoke(color.hexWithNumberSign).collect { information ->
-                colorInformation.setSuccess(information.toPresentation())
+                colorInformation.postSuccess(information.toPresentation())
             }
         }
     }
