@@ -14,9 +14,15 @@ import kotlinx.coroutines.launch
 
 abstract class BaseViewModel : ViewModel() {
 
+    /**
+     * Specifies default [CoroutineDispatcher] for `this ViewModel`.
+     */
     protected open val coroutineDispatcherDefault: CoroutineDispatcher = Dispatchers.Default
 
-    open val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
+    /**
+     * Specifies [CoroutineExceptionHandler] to be used in `this ViewModel` [CoroutineContext].
+     */
+    protected open val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
         val messageRes = ExceptionHandler.parseExceptionType(throwable)
         _coroutineExceptionMessageRes.value = messageRes
     }
