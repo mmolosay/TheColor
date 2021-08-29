@@ -100,7 +100,11 @@ class ColorInputViewModel(
         _colorValidationState.emit(Resource.loading())
     }
 
-    private fun onColorValidated(result: Boolean, abstract: Color, initialColorClass: Class<*>) =
+    private fun onColorValidated(
+        result: Boolean,
+        abstract: Color,
+        initialColorClass: Class<*>
+    ) =
         launch {
             _colorValidationState.emit(Resource.success(result))
             updateColors(abstract, initialColorClass)
@@ -108,13 +112,11 @@ class ColorInputViewModel(
         }
 
     private suspend fun updateColors(color: Color, exclude: Class<*>) {
-        when {
-            exclude != ColorHexPresentation::class.java -> {
-                _colorHex.emit(Resource.success(color.toColorHex()))
-            }
-            exclude != ColorRgbPresentation::class.java -> {
-                _colorRgb.emit(Resource.success(color.toColorRgb()))
-            }
+        if (exclude != ColorHexPresentation::class.java) {
+            _colorHex.emit(Resource.success(color.toColorHex()))
+        }
+        if (exclude != ColorRgbPresentation::class.java) {
+            _colorRgb.emit(Resource.success(color.toColorRgb()))
         }
     }
 
