@@ -27,8 +27,8 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         loadKoinModules(featureHomeModule)
     }
 
-    override fun setUp() {
-        observeColorPreview()
+    override fun collectViewModelsData() {
+        collectColorPreview()
     }
 
     override fun setViews() {
@@ -50,8 +50,8 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         binding.colorInfoFragmentContainer.background.setColor(color)
     }
 
-    private fun observeColorPreview() =
-        colorInputVM.getColorPreview().observe(this) { resource ->
+    private fun collectColorPreview() =
+        colorInputVM.colorPreview.collectOnLifecycle { resource ->
             resource.ifSuccess { color ->
                 setColorPreview(color.toColorInt())
             }

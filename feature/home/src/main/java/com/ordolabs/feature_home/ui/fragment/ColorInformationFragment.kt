@@ -15,9 +15,9 @@ class ColorInformationFragment : BaseFragment(R.layout.fragment_color_informatio
     private val colorInputVM: ColorInputViewModel by sharedViewModel()
     private val colorInformationVM: ColorInformationViewModel by viewModel()
 
-    override fun setUp() {
-        observeProcceedCommand()
-        observeColorInformation()
+    override fun collectViewModelsData() {
+        collectProcceedCommand()
+        collectColorInformation()
     }
 
     override fun setViews() {
@@ -28,15 +28,17 @@ class ColorInformationFragment : BaseFragment(R.layout.fragment_color_informatio
         name.text = info.name
     }
 
-    private fun observeProcceedCommand() =
-        colorInputVM.getProcceedCommand().observe(this) { color ->
-            colorInformationVM.fetchColorInformation(color)
-        }
-
-    private fun observeColorInformation() =
-        colorInformationVM.getColorInformation().observe(this) { resource ->
+    private fun collectColorInformation() =
+        colorInformationVM.information.collectOnLifecycle { resource ->
             resource.ifSuccess { information ->
                 populateInformationViews(information)
+            }
+        }
+
+    private fun collectProcceedCommand() =
+        colorInputVM.procceedCommand.collectOnLifecycle { resource ->
+            resource.ifSuccess { color ->
+                colorInformationVM.fetchColorInformation(color)
             }
         }
 

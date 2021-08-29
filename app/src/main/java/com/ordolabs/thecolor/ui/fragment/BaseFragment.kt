@@ -2,10 +2,17 @@ package com.ordolabs.thecolor.ui.fragment
 
 import android.os.Bundle
 import android.view.View
+import androidx.annotation.CallSuper
 import androidx.annotation.IdRes
 import androidx.annotation.LayoutRes
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.ordolabs.thecolor.R
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
 abstract class BaseFragment(@LayoutRes layoutRes: Int) : Fragment(layoutRes) {
 
@@ -14,6 +21,9 @@ abstract class BaseFragment(@LayoutRes layoutRes: Int) : Fragment(layoutRes) {
     @IdRes
     open val defaultFragmentContainerId: Int = R.id.defaultFragmentContainer
 
+    /**
+     * Initial soft input mode, which `activity` had before adding `this` fragment.
+     */
     protected val initialSoftInputMode: Int? by lazy {
         activity?.window?.attributes?.softInputMode
     }
@@ -51,14 +61,37 @@ abstract class BaseFragment(@LayoutRes layoutRes: Int) : Fragment(layoutRes) {
     /**
      * Configures non-view components.
      */
-    abstract fun setUp()
+    @CallSuper
+    protected open fun setUp() {
+        collectViewModelsData()
+    }
+
+    /**
+     * Collects data from declared ViewModel's.
+     */
+    protected abstract fun collectViewModelsData()
 
     /**
      * Sets activity's views and configures them.
      */
-    abstract fun setViews()
+    protected abstract fun setViews()
 
     companion object {
         // extra keys and stuff
     }
+
+    /**
+     * @see launch
+     * @see Lifecycle.repeatOnLifecycle
+     * @see Flow.collect
+     */
+    protected inline fun <T> Flow<T>.collectOnLifecycle(
+        state: Lifecycle.State = Lifecycle.State.STARTED,
+        crossinline action: suspend (value: T) -> Unit
+    ) =
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(state) {
+                this@collectOnLifecycle.collect(action)
+            }
+        }
 }

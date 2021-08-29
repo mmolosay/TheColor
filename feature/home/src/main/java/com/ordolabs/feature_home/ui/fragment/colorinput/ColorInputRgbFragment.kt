@@ -22,8 +22,8 @@ class ColorInputRgbFragment :
 
     private var isTypedByUser = true
 
-    override fun setUp() {
-        observeColorRgb()
+    override fun collectViewModelsData() {
+        collectColorRgb()
     }
 
     override fun setViews() {
@@ -73,15 +73,16 @@ class ColorInputRgbFragment :
         )
     }
 
-    private fun observeColorRgb() = colorInputVM.getColorRgb().observe(this) { result ->
-        result.ifSuccess { color ->
-            isTypedByUser = false
-            binding.inputRgbR.editText?.setText(color.r.toString())
-            binding.inputRgbG.editText?.setText(color.g.toString())
-            binding.inputRgbB.editText?.setText(color.b.toString())
-            isTypedByUser = true
+    private fun collectColorRgb() =
+        colorInputVM.colorRgb.collectOnLifecycle { resource ->
+            resource.ifSuccess { color ->
+                isTypedByUser = false
+                binding.inputRgbR.editText?.setText(color.r.toString())
+                binding.inputRgbG.editText?.setText(color.g.toString())
+                binding.inputRgbB.editText?.setText(color.b.toString())
+                isTypedByUser = true
+            }
         }
-    }
 
     companion object {
 

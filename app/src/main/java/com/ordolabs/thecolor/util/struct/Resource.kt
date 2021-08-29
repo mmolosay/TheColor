@@ -35,24 +35,25 @@ sealed class Resource<out V> {
         }
     }
 
-    companion object {
 
-        fun loading(): Resource<Nothing> {
-            return loading
-        }
+    companion object
+}
 
-        fun <V : Any> success(value: V): Resource<V> {
-            return Success(value)
-        }
+fun Resource.Companion.loading(): Resource<Nothing> {
+    return Loading
+}
 
-        fun <V : Any> failure(message: V, error: Throwable = RuntimeException()): Resource<V> {
-            return Failure(message, error)
-        }
+fun <V : Any> Resource.Companion.success(value: V): Resource<V> {
+    return Success(value)
+}
 
-        fun <V : Any> failure(message: V): Resource<V> {
-            return Failure(message, null)
-        }
+fun <V : Any> Resource.Companion.failure(
+    message: V,
+    error: Throwable = RuntimeException()
+): Resource<V> {
+    return Failure(message, error)
+}
 
-        private val loading: Resource<Nothing> = Loading
-    }
+fun <V : Any> Resource.Companion.failure(message: V): Resource<V> {
+    return Failure(message, null)
 }

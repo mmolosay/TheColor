@@ -1,7 +1,5 @@
 package com.ordolabs.thecolor.viewmodel
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ordolabs.thecolor.util.ExceptionHandler
@@ -10,6 +8,8 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 abstract class BaseViewModel : ViewModel() {
@@ -24,11 +24,23 @@ abstract class BaseViewModel : ViewModel() {
      */
     protected open val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
         val messageRes = ExceptionHandler.parseExceptionType(throwable)
-        _coroutineExceptionMessageRes.value = messageRes
+        launchOn(Dispatchers.Main.immediate) {
+            _coroutineExceptionMessageRes.emit(messageRes)
+        }
     }
 
-    val coroutineExceptionMessageRes: LiveData<Int> get() = _coroutineExceptionMessageRes
-    protected val _coroutineExceptionMessageRes = MutableLiveData(0)
+    /**
+     * [StateFlow] that will emit @StringRes ids, corresponding to occured while
+     * coroutine execution with [launchOn].
+     *
+     * [coroutineExceptionMessageRes] can be used to get its String resource and
+     * show it on UI as `Snackbar` or `Toast`.
+     *
+     * @see launchOn
+     * @see coroutineExceptionHandler
+     */
+    protected val _coroutineExceptionMessageRes = MutableStateFlow(0)
+    val coroutineExceptionMessageRes = _coroutineExceptionMessageRes.asStateFlow()
 
     /**
      * Launches specified coroutine [block] in current [viewModelScope] on [dispatcher].
@@ -38,6 +50,7 @@ abstract class BaseViewModel : ViewModel() {
      * @param dispatcher [CoroutineDispatcher] for specified `suspend` [block].
      * @param block the body of coroutine.
      */
+    @Suppress("unused")
     protected fun BaseViewModel.launchOn(
         dispatcher: CoroutineDispatcher,
         block: suspend CoroutineScope.() -> Unit
@@ -51,6 +64,7 @@ abstract class BaseViewModel : ViewModel() {
      *
      * @see BaseViewModel.launchOn
      */
+    @Suppress("unused")
     protected fun BaseViewModel.launch(
         block: suspend CoroutineScope.() -> Unit
     ): Job {

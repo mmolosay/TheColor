@@ -19,8 +19,8 @@ class ColorInputHexFragment :
 
     private var isTypedByUser = true
 
-    override fun setUp() {
-        observeColorHex()
+    override fun collectViewModelsData() {
+        collectColorHex()
     }
 
     override fun setViews() {
@@ -43,13 +43,14 @@ class ColorInputHexFragment :
         return ColorHexPresentation(value)
     }
 
-    private fun observeColorHex() = colorInputVM.getColorHex().observe(this) { result ->
-        result.ifSuccess { color ->
-            isTypedByUser = false
-            binding.inputHex.editText?.setText(color.value)
-            isTypedByUser = true
+    private fun collectColorHex() =
+        colorInputVM.colorHex.collectOnLifecycle { resource ->
+            resource.ifSuccess { color ->
+                isTypedByUser = false
+                binding.inputHex.editText?.setText(color.value)
+                isTypedByUser = true
+            }
         }
-    }
 
     companion object {
 
