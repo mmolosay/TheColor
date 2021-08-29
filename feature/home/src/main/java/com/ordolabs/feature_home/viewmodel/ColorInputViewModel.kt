@@ -46,7 +46,7 @@ class ColorInputViewModel(
 
     init {
         launch {
-            _colorValidationState.emit(Resource.success(true))
+            _colorValidationState.emit(Resource.success(false))
             _colorPreview.emit(Resource.loading())
             _colorHex.emit(Resource.loading())
             _colorRgb.emit(Resource.loading())
@@ -59,35 +59,31 @@ class ColorInputViewModel(
         colorValidationJob = null
     }
 
-    fun validateColor(color: ColorHexPresentation?) {
-        resetColorValidation()
-        val colorDomain = color?.toDomain() ?: kotlin.run {
-            launch {
-                _colorValidationState.emit(Resource.success(false))
-            }
-            return
+    fun validateColor(color: ColorHexPresentation?) = launch {
+        resetColorValidation().join()
+        val domain = color?.toDomain() ?: kotlin.run {
+            _colorValidationState.emit(Resource.success(false))
+            return@launch
         }
         val abstract = Color.from(color)
 
         colorValidationJob = launch {
-            validateColorHexUseCase.invoke(colorDomain).collect { valid ->
+            validateColorHexUseCase.invoke(domain).collect { valid ->
                 onColorValidated(valid, abstract, color::class.java)
             }
         }
     }
 
-    fun validateColor(color: ColorRgbPresentation?) {
-        resetColorValidation()
-        val colorDomain = color?.toDomain() ?: kotlin.run {
-            launch {
-                _colorValidationState.emit(Resource.success(false))
-            }
-            return
+    fun validateColor(color: ColorRgbPresentation?) = launch {
+        resetColorValidation().join()
+        val domain = color?.toDomain() ?: kotlin.run {
+            _colorValidationState.emit(Resource.success(false))
+            return@launch
         }
         val abstract = Color.from(color)
 
         colorValidationJob = launch {
-            validateColorRgbUseCase.invoke(colorDomain).collect { valid ->
+            validateColorRgbUseCase.invoke(domain).collect { valid ->
                 onColorValidated(valid, abstract, color::class.java)
             }
         }
@@ -99,7 +95,7 @@ class ColorInputViewModel(
         _procceedCommand.emit(Resource.success(color))
     }
 
-    private fun resetColorValidation() = launch {
+    private suspend fun resetColorValidation() = launch {
         colorValidationJob?.cancel()
         _colorValidationState.emit(Resource.loading())
     }
@@ -111,7 +107,7 @@ class ColorInputViewModel(
             updateColorPreview(result, abstract)
         }
 
-    private fun updateColors(color: Color, exclude: Class<*>) = launch {
+    private suspend fun updateColors(color: Color, exclude: Class<*>) {
         when {
             exclude != ColorHexPresentation::class.java -> {
                 _colorHex.emit(Resource.success(color.toColorHex()))
@@ -122,7 +118,7 @@ class ColorInputViewModel(
         }
     }
 
-    private fun updateColorPreview(valid: Boolean, color: Color) = launch {
+    private suspend fun updateColorPreview(valid: Boolean, color: Color) {
         if (valid) _colorPreview.emit(Resource.success(color))
     }
 }
