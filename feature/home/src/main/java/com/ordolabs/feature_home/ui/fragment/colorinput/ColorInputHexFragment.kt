@@ -2,16 +2,12 @@ package com.ordolabs.feature_home.ui.fragment.colorinput
 
 import androidx.core.widget.doOnTextChanged
 import by.kirich1409.viewbindingdelegate.viewBinding
-import com.github.michaelbull.result.Result
-import com.github.michaelbull.result.get
-import com.github.michaelbull.result.runCatching
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.FragmentColorInputHexBinding
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
 import com.ordolabs.thecolor.model.ColorHexPresentation
 import com.ordolabs.thecolor.util.ext.getTextString
-import com.ordolabs.thecolor.util.ext.showToast
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 class ColorInputHexFragment :
@@ -25,7 +21,6 @@ class ColorInputHexFragment :
 
     override fun collectViewModelsData() {
         collectColorHex()
-        collectCoroutineException()
     }
 
     override fun setViews() {
@@ -55,12 +50,6 @@ class ColorInputHexFragment :
                 binding.inputHex.editText?.setText(color.value)
                 isTypedByUser = true
             }
-        }
-
-    private fun collectCoroutineException() =
-        colorInputVM.coroutineExceptionMessageRes.collectOnLifecycle { idres ->
-            val text = Result.runCatching { getString(idres) }.get() ?: return@collectOnLifecycle
-            showToast(text)
         }
 
     companion object {

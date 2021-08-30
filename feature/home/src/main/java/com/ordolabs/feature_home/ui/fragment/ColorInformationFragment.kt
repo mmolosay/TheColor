@@ -1,11 +1,15 @@
 package com.ordolabs.feature_home.ui.fragment
 
 import by.kirich1409.viewbindingdelegate.viewBinding
+import com.github.michaelbull.result.Result
+import com.github.michaelbull.result.get
+import com.github.michaelbull.result.runCatching
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.FragmentColorInformationBinding
 import com.ordolabs.feature_home.viewmodel.ColorInformationViewModel
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
 import com.ordolabs.thecolor.model.ColorInformationPresentation
+import com.ordolabs.thecolor.util.ext.showToast
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -18,6 +22,7 @@ class ColorInformationFragment : BaseFragment(R.layout.fragment_color_informatio
     override fun collectViewModelsData() {
         collectProcceedCommand()
         collectColorInformation()
+        collectCoroutineException()
     }
 
     override fun setViews() {
@@ -40,6 +45,12 @@ class ColorInformationFragment : BaseFragment(R.layout.fragment_color_informatio
             resource.ifSuccess { color ->
                 colorInformationVM.fetchColorInformation(color)
             }
+        }
+
+    private fun collectCoroutineException() =
+        colorInformationVM.coroutineExceptionMessageRes.collectOnLifecycle { idres ->
+            val text = Result.runCatching { getString(idres) }.get() ?: return@collectOnLifecycle
+            showToast(text)
         }
 
     companion object {

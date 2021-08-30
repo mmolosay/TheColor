@@ -1,5 +1,6 @@
 package com.ordolabs.feature_home.viewmodel
 
+import androidx.lifecycle.viewModelScope
 import com.ordolabs.domain.usecase.local.ValidateColorHexBaseUseCase
 import com.ordolabs.domain.usecase.local.ValidateColorRgbBaseUseCase
 import com.ordolabs.thecolor.mapper.toDomain
@@ -10,6 +11,8 @@ import com.ordolabs.thecolor.util.ColorUtil.from
 import com.ordolabs.thecolor.util.ColorUtil.toColorHex
 import com.ordolabs.thecolor.util.ColorUtil.toColorRgb
 import com.ordolabs.thecolor.util.MutableStateResourceFlow
+import com.ordolabs.thecolor.util.ext.shareOnceIn
+import com.ordolabs.thecolor.util.ext.updateGuaranteed
 import com.ordolabs.thecolor.util.struct.Resource
 import com.ordolabs.thecolor.util.struct.loading
 import com.ordolabs.thecolor.util.struct.success
@@ -36,7 +39,7 @@ class ColorInputViewModel(
     val colorRgb = _colorRgb.asStateFlow()
 
     private val _procceedCommand = MutableStateResourceFlow<Color>(Resource.loading())
-    val procceedCommand = _procceedCommand.asStateFlow()
+    val procceedCommand = _procceedCommand.shareOnceIn(viewModelScope)
 
     private var colorValidationJob: Job? = null
 
@@ -78,7 +81,9 @@ class ColorInputViewModel(
 
     fun procceedInput() {
         val color = colorPreview.value.getOrNull() ?: return
-        _procceedCommand.value = Resource.success(color)
+        _procceedCommand.updateGuaranteed {
+            Resource.success(color)
+        }
     }
 
     private fun resetColorValidation() = launch {
