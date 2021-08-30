@@ -1,5 +1,7 @@
 package com.ordolabs.thecolor.util
 
+import android.content.Context
+import android.widget.Toast
 import androidx.annotation.IdRes
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
@@ -56,5 +58,14 @@ object ContextUtil {
             replace(containerId, fragment, transactionTag)
         }
         return Result.success(transactionId)
+    }
+
+    fun showToast(
+        context: Context,
+        text: String?,
+        duration: Int
+    ) {
+        text ?: return
+        Toast.makeText(context, text, duration).show()
     }
 }

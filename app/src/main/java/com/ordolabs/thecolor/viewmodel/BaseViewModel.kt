@@ -8,8 +8,8 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 
 abstract class BaseViewModel : ViewModel() {
@@ -30,7 +30,7 @@ abstract class BaseViewModel : ViewModel() {
     }
 
     /**
-     * [StateFlow] that will emit @StringRes ids, corresponding to occured while
+     * [SharedFlow] that will emit @StringRes ids, corresponding to occured while
      * coroutine execution with [launchOn].
      *
      * [coroutineExceptionMessageRes] can be used to get its String resource and
@@ -39,8 +39,8 @@ abstract class BaseViewModel : ViewModel() {
      * @see launchOn
      * @see coroutineExceptionHandler
      */
-    protected val _coroutineExceptionMessageRes = MutableStateFlow(0)
-    val coroutineExceptionMessageRes = _coroutineExceptionMessageRes.asStateFlow()
+    protected val _coroutineExceptionMessageRes = MutableSharedFlow<Int>()
+    val coroutineExceptionMessageRes = _coroutineExceptionMessageRes.asSharedFlow()
 
     /**
      * Launches specified coroutine [block] in current [viewModelScope] on [dispatcher].

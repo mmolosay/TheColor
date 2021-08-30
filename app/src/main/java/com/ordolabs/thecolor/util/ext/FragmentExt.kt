@@ -1,6 +1,8 @@
 package com.ordolabs.thecolor.util.ext
 
+import android.widget.Toast
 import androidx.annotation.IdRes
+import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
 import com.github.michaelbull.result.Result
 import com.ordolabs.thecolor.ui.fragment.BaseFragment
@@ -37,4 +39,20 @@ fun BaseFragment.replaceFragment(
         containerId,
         fragment.transactionTag
     )
+}
+
+fun BaseFragment.showToast(
+    text: String?,
+    duration: Int = Toast.LENGTH_SHORT
+) {
+    ContextUtil.showToast(requireContext(), text, duration)
+}
+
+fun BaseFragment.showToast(
+    @StringRes textRes: Int?,
+    duration: Int = Toast.LENGTH_SHORT
+) {
+    textRes ?: return
+    val text = getString(textRes)
+    ContextUtil.showToast(requireContext(), text, duration)
 }

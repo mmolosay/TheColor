@@ -35,6 +35,13 @@ sealed class Resource<out V> {
         }
     }
 
+    fun getOrNull(): V? {
+        return when (this) {
+            is Success -> this.value
+            else -> null
+        }
+    }
+
 
     companion object
 }
