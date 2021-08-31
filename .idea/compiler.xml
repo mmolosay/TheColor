@@ -7,7 +7,6 @@
       <module name="TheColor.data-local" target="11" />
       <module name="TheColor.data-remote" target="1.8" />
       <module name="TheColor.data.local" target="11" />
-      <module name="TheColor.data.remote" target="11" />
       <module name="TheColor.data.repository" target="11" />
       <module name="TheColor.di" target="11" />
       <module name="TheColor.feature.home" target="11" />
