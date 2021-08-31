@@ -80,10 +80,6 @@ dependencies {
 
     // Animations
 
-    // Koin
-    api "io.insert-koin:koin-core:3.1.2"
-    api "io.insert-koin:koin-androidx-compose:3.1.2"
-
     // Third Party Libraries
     api "com.github.kirich1409:viewbindingpropertydelegate:1.4.7"
     api "com.michael-bull.kotlin-result:kotlin-result:1.1.12"
