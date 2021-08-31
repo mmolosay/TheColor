@@ -1,8 +1,8 @@
 package com.ordolabs.feature_home.di
 
-import com.ordolabs.domain.di.GET_COLOR_INFORMATION_USE_CASE
-import com.ordolabs.domain.di.VALIDATE_COLOR_HEX_USE_CASE
-import com.ordolabs.domain.di.VALIDATE_COLOR_RGB_USE_CASE
+import com.ordolabs.di.GET_COLOR_INFORMATION_USE_CASE
+import com.ordolabs.di.VALIDATE_COLOR_HEX_USE_CASE
+import com.ordolabs.di.VALIDATE_COLOR_RGB_USE_CASE
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.qualifier.named
 import org.koin.dsl.module

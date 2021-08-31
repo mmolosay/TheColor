@@ -1,10 +1,10 @@
 package com.ordolabs.thecolor
 
 import android.app.Application
-import com.ordolabs.data.di.localDataSourceModule
-import com.ordolabs.data.di.networkModule
-import com.ordolabs.data.di.repositoryModule
-import com.ordolabs.domain.di.useCaseModule
+import com.ordolabs.di.localDataSourceModule
+import com.ordolabs.di.networkModule
+import com.ordolabs.di.repositoryModule
+import com.ordolabs.di.useCaseModule
 import com.ordolabs.thecolor.di.appModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin

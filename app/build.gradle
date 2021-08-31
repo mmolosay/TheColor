@@ -56,8 +56,8 @@ android {
 dependencies {
 
     // Modules
-    api project(':data') // needed for DI // TODO: make :data module self-DI
-    api project(':domain')
+    api project(":di")
+    api project(":domain")
 
     // Jetpack
     api "androidx.core:core-ktx:1.6.0"
@@ -67,14 +67,13 @@ dependencies {
     api "androidx.constraintlayout:constraintlayout:2.1.0"
     api "androidx.recyclerview:recyclerview:1.2.1"
 
-    api "androidx.navigation:navigation-fragment-ktx:2.3.5"
-    api "androidx.navigation:navigation-dynamic-features-fragment:2.3.5"
-    api "androidx.navigation:navigation-ui-ktx:2.3.5"
+    implementation "androidx.navigation:navigation-fragment-ktx:2.3.5"
+    implementation "androidx.navigation:navigation-dynamic-features-fragment:2.3.5"
+    implementation "androidx.navigation:navigation-ui-ktx:2.3.5"
 
     // Lifecycle
     api "androidx.lifecycle:lifecycle-runtime-ktx:2.4.0-alpha03"
     api "androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0-alpha03"
-//    api "androidx.lifecycle:lifecycle-common-java8:2.3.1" // TODO: remove if unused
 
     // Material
     api "com.google.android.material:material:1.4.0"

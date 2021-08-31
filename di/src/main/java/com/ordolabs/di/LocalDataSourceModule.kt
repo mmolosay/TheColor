@@ -1,4 +1,4 @@
-package com.ordolabs.data.di
+package com.ordolabs.di
 
 import androidx.room.Room
 import com.ordolabs.data_local.TheColorDatabase

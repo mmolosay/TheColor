@@ -1,4 +1,4 @@
-package com.ordolabs.data.di
+package com.ordolabs.di
 
 import com.ordolabs.data_remote.api.TheColorApiService
 import okhttp3.OkHttpClient
