@@ -23,14 +23,15 @@ sealed class Resource<out V> {
     object Loading : Resource<Nothing>()
 
     /**
-     * Represent success state with obtained resource.
+     * Represents success state with obtained resource [value].
      */
     data class Success<out V : Any>(val value: V) : Resource<V>()
 
     /**
-     * Represent failure, occured while obtaining resource.
+     * Represents failure, occured while obtaining resource. [payload] can be string message,
+     * int code or anything else. If there was any [Throwable] set, it can be obtainded from [error].
      */
-    data class Failure<out V : Any>(val message: V, val error: Throwable?) : Resource<V>()
+    data class Failure<out P : Any>(val payload: P, val error: Throwable?) : Resource<Nothing>()
 
     /**
      *  Maps this [Resource] by applying one of specified callbacks to it
@@ -40,12 +41,19 @@ sealed class Resource<out V> {
         onEmpty: () -> Unit = { },
         onLoading: () -> Unit = { },
         onSuccess: (value: V) -> Unit = { _ -> },
-        onFailure: (message: V, error: Throwable?) -> Unit = { _, _ -> }
+        onFailure: (payload: Any, error: Throwable?) -> Unit = { _, _ -> }
     ) = when (this) {
         is Empty -> onEmpty()
         is Loading -> onLoading()
         is Success -> onSuccess(this.value)
-        is Failure -> onFailure(this.message, this.error)
+        is Failure<*> -> onFailure(this.payload, this.error)
+    }
+
+    inline fun <R> ifEmpty(action: () -> R): R? {
+        return when (this) {
+            is Empty -> action()
+            else -> null
+        }
     }
 
     inline fun <R> ifSuccess(action: (value: V) -> R): R? {
@@ -62,7 +70,6 @@ sealed class Resource<out V> {
         }
     }
 
-
     companion object
 }
 
@@ -78,13 +85,10 @@ fun <V : Any> Resource.Companion.success(value: V): Resource<V> {
     return Success(value)
 }
 
-fun <V : Any> Resource.Companion.failure(
-    message: V,
-    error: Throwable = RuntimeException()
-): Resource<V> {
-    return Failure(message, error)
+fun <P : Any> Resource.Companion.failure(payload: P, error: Throwable): Resource<Nothing> {
+    return Failure(payload, error)
 }
 
-fun <V : Any> Resource.Companion.failure(message: V): Resource<V> {
-    return Failure(message, null)
+fun <P : Any> Resource.Companion.failure(payload: P): Resource<Nothing> {
+    return Failure(payload, null)
 }

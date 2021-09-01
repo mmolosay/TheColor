@@ -61,32 +61,43 @@ class ColorInputRgbFragment :
         colorInputVM.validateColor(color)
     }
 
-    private fun collectColorInput(): ColorRgbPresentation {
-        val default = DEFAULT_INPUT_VALUE_RGB_COMPONENT
-        val r = binding.inputRgbR.getTextString()?.toIntOrNull() ?: default
-        val g = binding.inputRgbG.getTextString()?.toIntOrNull() ?: default
-        val b = binding.inputRgbB.getTextString()?.toIntOrNull() ?: default
+    private fun collectColorInput(): ColorRgbPresentation? {
+        val r = binding.inputRgbR.getTextString()?.toIntOrNull()
+        val g = binding.inputRgbG.getTextString()?.toIntOrNull()
+        val b = binding.inputRgbB.getTextString()?.toIntOrNull()
+        r ?: g ?: b ?: return null
         return ColorRgbPresentation(
-            r = r,
-            g = g,
-            b = b
+            r = r ?: 0,
+            g = g ?: 0,
+            b = b ?: 0
         )
     }
 
     private fun collectColorRgb() =
         colorInputVM.colorRgb.collectOnLifecycle { resource ->
-            resource.ifSuccess { color ->
-                isTypedByUser = false
-                binding.inputRgbR.editText?.setText(color.r.toString())
-                binding.inputRgbG.editText?.setText(color.g.toString())
-                binding.inputRgbB.editText?.setText(color.b.toString())
-                isTypedByUser = true
-            }
+            resource.fold(
+                onEmpty = ::onColorRgbEmpty,
+                onSuccess = ::onColorRgbSuccess
+            )
         }
 
-    companion object {
+    private fun onColorRgbEmpty() {
+        isTypedByUser = false
+        binding.inputRgbR.editText?.text?.clear()
+        binding.inputRgbG.editText?.text?.clear()
+        binding.inputRgbB.editText?.text?.clear()
+        isTypedByUser = true
+    }
 
-        private const val DEFAULT_INPUT_VALUE_RGB_COMPONENT = 0
+    private fun onColorRgbSuccess(color: ColorRgbPresentation) {
+        isTypedByUser = false
+        binding.inputRgbR.editText?.setText(color.r.toString())
+        binding.inputRgbG.editText?.setText(color.g.toString())
+        binding.inputRgbB.editText?.setText(color.b.toString())
+        isTypedByUser = true
+    }
+
+    companion object {
 
         fun newInstance() = ColorInputRgbFragment()
     }

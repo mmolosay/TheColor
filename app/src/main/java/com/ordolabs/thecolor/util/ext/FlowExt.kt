@@ -1,6 +1,7 @@
 package com.ordolabs.thecolor.util.ext
 
 import com.ordolabs.thecolor.util.struct.Resource
+import com.ordolabs.thecolor.util.struct.empty
 import com.ordolabs.thecolor.util.struct.loading
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -36,6 +37,6 @@ fun <V : Any> MutableStateFlow<Resource<V>>.updateGuaranteed(
 ) {
     val oldValue = this.value
     val newValue = function(oldValue)
-    if (newValue == oldValue) this.update { Resource.loading() }
+    if (newValue == oldValue) this.update { Resource.empty() }
     this.update { newValue }
 }

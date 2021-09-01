@@ -37,24 +37,33 @@ class ColorInputHexFragment :
         colorInputVM.validateColor(color)
     }
 
-    private fun collectColorInput(): ColorHexPresentation {
+    private fun collectColorInput(): ColorHexPresentation? {
         val input = binding.inputHex.getTextString()
-        val value = input?.takeUnless { it.isEmpty() } ?: DEFAULT_INPUT_VALUE_HEX
+        val value = input?.takeUnless { it.isEmpty() } ?: return null
         return ColorHexPresentation(value)
     }
 
     private fun collectColorHex() =
         colorInputVM.colorHex.collectOnLifecycle { resource ->
-            resource.ifSuccess { color ->
-                isTypedByUser = false
-                binding.inputHex.editText?.setText(color.value)
-                isTypedByUser = true
-            }
+            resource.fold(
+                onEmpty = ::onColorHexEmpty,
+                onSuccess = ::onColorHexSuccess
+            )
         }
 
-    companion object {
+    private fun onColorHexEmpty() {
+        isTypedByUser = false
+        binding.inputHex.editText?.text?.clear()
+        isTypedByUser = true
+    }
 
-        private const val DEFAULT_INPUT_VALUE_HEX = "000000"
+    private fun onColorHexSuccess(color: ColorHexPresentation) {
+        isTypedByUser = false
+        binding.inputHex.editText?.setText(color.value)
+        isTypedByUser = true
+    }
+
+    companion object {
 
         fun newInstance() = ColorInputHexFragment()
     }
