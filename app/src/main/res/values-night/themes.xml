@@ -28,8 +28,11 @@
         <item name="colorControlHighlight">@color/ripple_default</item>
         <item name="android:colorBackground">@color/white</item>
 
-        <item name="buttonPrimaryDisabled">?attr/textDisabled</item>
-        <item name="buttonPrimaryContentDisabled">@color/gallery</item>
+        <item name="buttonDisabled">@color/silver</item>
+        <item name="buttonContentDisabled">@color/gallery</item>
+
+        <item name="buttonPrimaryDisabled">?attr/buttonDisabled</item>
+        <item name="buttonPrimaryContentDisabled">?attr/buttonContentDisabled</item>
 
         <!-- window -->
         <item name="android:windowBackground">?android:attr/colorBackground</item>

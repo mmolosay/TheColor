@@ -2,9 +2,9 @@
 <resources>
 
     <!--~~~~~~~~~~~~~~~~~~ TAB LAYOUT ~~~~~~~~~~~~~~~~~~-->
+
     <style name="TabLayout" parent="Widget.Design.TabLayout">
         <item name="tabTextAppearance">@style/TextAppearance.TabLayout</item>
-        <item name="tabIndicatorColor">@color/tab_layout_indicator_default</item>
     </style>
 
 </resources>
