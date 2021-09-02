@@ -11,9 +11,9 @@
         <item name="colorSurface">@color/peppermint</item>
         <item name="colorOnSurface">?android:attr/textColorPrimary</item>
 
-        <item name="colorPrimary">@color/wedgewood</item>
-        <item name="colorPrimaryDark">@color/deepsea</item>
-        <item name="colorPrimaryVariant">@color/iceberg</item>
+        <item name="colorPrimary">@color/sanmarino</item>
+        <item name="colorPrimaryDark">@color/resolution</item>
+        <item name="colorPrimaryVariant">@color/cornflower</item>
         <item name="colorOnPrimary">@color/white</item>
 
         <item name="colorSecondary">@color/apache</item>

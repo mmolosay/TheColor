@@ -7,14 +7,11 @@
     <color name="debug_red">#ff0000</color>
 
     <color name="amaranth">#E63946</color>
-    <color name="wedgewood">#457B9D</color>
-    <color name="deepsea">#094F6F</color>
-    <color name="iceberg">#76AACE</color>
+    <color name="sanmarino">#3F51B5</color>
+    <color name="resolution">#002984</color>
+    <color name="cornflower">#757DE8</color>
     <color name="apache">#E2C577</color>
     <color name="peppermint">#F1FAEE</color>
-
-    <color name="sanmarino">#3F51B5</color>
-    <color name="chambray">#36428F</color>
 
     <color name="raisin">#181819</color>
     <color name="space">#3B3B3C</color>
