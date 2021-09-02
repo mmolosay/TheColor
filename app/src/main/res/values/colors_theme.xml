@@ -1,19 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <color name="theme_primary">@color/sanmarino</color>
-    <color name="theme_primary_dark">@color/chambray</color>
-    <color name="theme_accent">@color/theme_primary</color>
+    <color name="theme_status_bar">@color/transparent</color>
+    <color name="theme_navigation_bar">@color/transparent</color>
 
     <color name="theme_disabled_background">@color/silver</color>
     <color name="theme_disabled_content">@color/silver</color>
 
-    <color name="theme_selected">@color/theme_primary_dark</color>
     <color name="theme_ripple_mask">@color/black</color>
-    <color name="theme_ripple_default">#767EB1</color>
-
-    <color name="theme_window_background">@color/white</color>
-    <color name="theme_status_bar">@color/transparent</color>
-    <color name="theme_navigation_bar">@color/transparent</color>
 
 </resources>

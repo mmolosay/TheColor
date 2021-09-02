@@ -4,13 +4,35 @@
     <style name="Theme.TheColor" parent="Theme.MaterialComponents.DayNight.NoActionBar">
 
         <!-- colors -->
-        <item name="colorPrimary">@color/theme_primary</item>
-        <item name="colorPrimaryDark">@color/theme_primary_dark</item>
-        <item name="colorAccent">@color/theme_accent</item>
+        <item name="android:textColorPrimary">@color/raisin</item>
+        <item name="android:textColorSecondary">@color/abbey</item>
+        <item name="textDisabled">@color/silver</item>
+
+        <item name="colorSurface">@color/peppermint</item>
+        <item name="colorOnSurface">?android:attr/textColorPrimary</item>
+
+        <item name="colorPrimary">@color/wedgewood</item>
+        <item name="colorPrimaryDark">@color/deepsea</item>
+        <item name="colorPrimaryVariant">@color/iceberg</item>
+        <item name="colorOnPrimary">@color/white</item>
+
+        <item name="colorSecondary">@color/apache</item>
+        <item name="colorOnSecondary">?android:attr/textColorPrimary</item>
+
+        <item name="colorAccent">@color/amaranth</item>
+
+        <item name="colorError">@color/amaranth</item>
+        <item name="colorOnError">?attr/colorOnPrimary</item>
+
+        <item name="colorControlNormal">?attr/colorPrimary</item>
         <item name="colorControlHighlight">@color/ripple_default</item>
+        <item name="android:colorBackground">@color/white</item>
+
+        <item name="buttonPrimaryDisabled">?attr/textDisabled</item>
+        <item name="buttonPrimaryContentDisabled">@color/gallery</item>
 
         <!-- window -->
-        <item name="android:windowBackground">@color/theme_window_background</item>
+        <item name="android:windowBackground">?android:attr/colorBackground</item>
 
         <item name="android:statusBarColor">@color/theme_status_bar</item>
         <item name="android:windowLightStatusBar">false</item>
@@ -40,6 +62,7 @@
 
         <item name="textAppearanceCaption">@style/TextAppearance.Caption</item>
         <item name="textAppearanceOverline">@style/TextAppearance.Overline</item>
+        <!-- textAppearanceButton is not set, because app uses different button styles -->
 
     </style>
 

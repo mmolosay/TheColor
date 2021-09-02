@@ -3,13 +3,13 @@
 
     <item android:top="100dp">
         <shape android:shape="rectangle">
-            <solid android:color="@color/theme_primary"/>
+            <solid android:color="?attr/colorPrimary"/>
         </shape>
     </item>
 
     <item android:start="-100dp" android:end="-100dp">
         <shape android:shape="oval">
-            <solid android:color="@color/theme_primary"/>
+            <solid android:color="?attr/colorPrimary"/>
         </shape>
     </item>
 

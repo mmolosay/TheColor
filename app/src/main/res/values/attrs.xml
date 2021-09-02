@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <attr name="textDisabled" format="reference|color"/>
+
+    <attr name="buttonPrimaryDisabled" format="reference|color"/>
+    <attr name="buttonPrimaryContentDisabled" format="reference|color"/>
+
+</resources>

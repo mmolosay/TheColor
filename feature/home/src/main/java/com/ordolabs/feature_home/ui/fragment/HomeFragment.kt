@@ -3,6 +3,7 @@ package com.ordolabs.feature_home.ui.fragment
 import android.os.Bundle
 import androidx.annotation.ColorInt
 import by.kirich1409.viewbindingdelegate.viewBinding
+import com.google.android.material.color.MaterialColors
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.FragmentHomeBinding
 import com.ordolabs.feature_home.di.featureHomeModule
@@ -24,8 +25,8 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     private val homeVM: HomeViewModel by viewModel()
     private val colorInputVM: ColorInputViewModel by sharedViewModel()
 
-    private val defaultColor: Int by lazy {
-        resources.getColor(RApp.color.theme_primary, context?.theme)
+    private val defaultPreviewColor: Int by lazy {
+        MaterialColors.getColor(binding.colorInfoFragmentContainer, RApp.attr.colorPrimary)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,7 +66,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         }
 
     private fun onColorPreviewEmpty() {
-        setColorPreview(defaultColor)
+        setColorPreview(defaultPreviewColor)
     }
 
     private fun onColorPreviewSuccess(color: Color) {
