@@ -21,9 +21,10 @@
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/name"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/offset_content_vertical"
+        android:gravity="center"
         android:textAppearance="@style/TextAppearance.Headline3"
 
         app:layout_constraintEnd_toStartOf="@+id/glEnd"
