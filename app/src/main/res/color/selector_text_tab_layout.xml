@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:alpha="@dimen/disabled_alpha_default" android:color="?android:attr/textColorSecondary" android:state_checked="false" android:state_enabled="true" android:state_selected="false" />
-    <item android:alpha="@dimen/disabled_alpha_default" android:color="?attr/textDisabled" android:state_checked="false" android:state_enabled="false" android:state_selected="false" />
+    <item android:alpha="@dimen/disabled_alpha_default" android:color="?attr/colorTextDisabled" android:state_checked="false" android:state_enabled="false" android:state_selected="false" />
     <item android:color="?attr/colorPrimaryDark" />
 </selector>

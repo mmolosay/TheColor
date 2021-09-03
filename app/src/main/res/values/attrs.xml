@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <attr name="textDisabled" format="reference|color" />
+    <attr name="colorTextDisabled" format="reference|color" />
 
-    <attr name="buttonDisabled" format="reference|color" />
-    <attr name="buttonContentDisabled" format="reference|color" />
+    <attr name="colorButtonDisabled" format="reference|color" />
+    <attr name="colorButtonContentDisabled" format="reference|color" />
 
-    <attr name="buttonPrimaryDisabled" format="reference|color" />
-    <attr name="buttonPrimaryContentDisabled" format="reference|color" />
+    <attr name="colorButtonPrimaryDisabled" format="reference|color" />
+    <attr name="colorButtonPrimaryContentDisabled" format="reference|color" />
 
 </resources>

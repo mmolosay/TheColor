@@ -6,7 +6,7 @@
         <!-- colors -->
         <item name="android:textColorPrimary">@color/raisin</item>
         <item name="android:textColorSecondary">@color/abbey</item>
-        <item name="textDisabled">@color/silver</item>
+        <item name="colorTextDisabled">@color/silver</item>
 
         <item name="colorSurface">@color/peppermint</item>
         <item name="colorOnSurface">?android:attr/textColorPrimary</item>
@@ -28,11 +28,11 @@
         <item name="colorControlHighlight">@color/ripple_default</item>
         <item name="android:colorBackground">@color/white</item>
 
-        <item name="buttonDisabled">@color/silver</item>
-        <item name="buttonContentDisabled">@color/gallery</item>
+        <item name="colorButtonDisabled">@color/silver</item>
+        <item name="colorButtonContentDisabled">@color/gallery</item>
 
-        <item name="buttonPrimaryDisabled">?attr/buttonDisabled</item>
-        <item name="buttonPrimaryContentDisabled">?attr/buttonContentDisabled</item>
+        <item name="colorButtonPrimaryDisabled">?attr/colorButtonDisabled</item>
+        <item name="colorButtonPrimaryContentDisabled">?attr/colorButtonContentDisabled</item>
 
         <!-- window -->
         <item name="android:windowBackground">?android:attr/colorBackground</item>
