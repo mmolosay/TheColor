@@ -14,8 +14,7 @@ import com.ordolabs.thecolor.util.ext.getTextString
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 class ColorInputRgbFragment :
-    BaseFragment(R.layout.fragment_color_input_rgb),
-    ColorInputModelFragment {
+    BaseFragment(R.layout.fragment_color_input_rgb) {
 
     private val binding: FragmentColorInputRgbBinding by viewBinding()
     private val colorInputVM: ColorInputViewModel by sharedViewModel()
@@ -56,7 +55,7 @@ class ColorInputRgbFragment :
             if (isTypedByUser) validateColorInput()
         }
 
-    override fun validateColorInput() {
+    private fun validateColorInput() {
         val color = collectColorInput()
         colorInputVM.validateColor(color)
     }

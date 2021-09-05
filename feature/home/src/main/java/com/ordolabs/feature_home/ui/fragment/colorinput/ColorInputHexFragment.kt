@@ -10,9 +10,7 @@ import com.ordolabs.thecolor.model.ColorHexPresentation
 import com.ordolabs.thecolor.util.ext.getTextString
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
-class ColorInputHexFragment :
-    BaseFragment(R.layout.fragment_color_input_hex),
-    ColorInputModelFragment {
+class ColorInputHexFragment : BaseFragment(R.layout.fragment_color_input_hex) {
 
     private val binding: FragmentColorInputHexBinding by viewBinding()
     private val colorInputVM: ColorInputViewModel by sharedViewModel()
@@ -32,7 +30,7 @@ class ColorInputHexFragment :
             if (isTypedByUser) validateColorInput()
         }
 
-    override fun validateColorInput() {
+    private fun validateColorInput() {
         val color = collectColorInput()
         colorInputVM.validateColor(color)
     }
