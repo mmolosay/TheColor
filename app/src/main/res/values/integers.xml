@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!--~~~~~~~~~~~~~~~~~~ FONT WEIGHT ~~~~~~~~~~~~~~~~~-->
+    <!--—————————————————— FONT WEIGHT —————————————————-->
     <integer name="font_weight_thin">200</integer>
     <integer name="font_weight_light">300</integer>
     <integer name="font_weight_regular">400</integer>
     <integer name="font_weight_semibold">600</integer>
     <integer name="font_weight_bold">700</integer>
 
-    <!--~~~~~~~~~~~~~~~~~~~~ GENERIC ~~~~~~~~~~~~~~~~~~~-->
+    <!--———————————————————— GENERIC ———————————————————-->
 
 </resources>

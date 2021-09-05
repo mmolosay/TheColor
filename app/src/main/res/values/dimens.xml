@@ -18,43 +18,6 @@
     <dimen name="offset_content_horizontal">@dimen/offset_16</dimen>
     <dimen name="offset_content_vertical">@dimen/offset_32</dimen>
 
-    <!--~~~~~~~~~~~~~~~~~~~~~ TEXT ~~~~~~~~~~~~~~~~~~~~~-->
-    <dimen name="text_size_headline1">96sp</dimen>
-    <dimen name="text_size_headline2">60sp</dimen>
-    <dimen name="text_size_headline3">48sp</dimen>
-    <dimen name="text_size_headline4">34sp</dimen>
-    <dimen name="text_size_headline5">24sp</dimen>
-    <dimen name="text_size_headline6">20sp</dimen>
-
-    <dimen name="text_size_subtitle1">16sp</dimen>
-    <dimen name="text_size_subtitle2">14sp</dimen>
-
-    <dimen name="text_size_body1">16sp</dimen>
-    <dimen name="text_size_body2">14sp</dimen>
-
-    <dimen name="text_size_caption">12sp</dimen>
-    <dimen name="text_size_overline">10sp</dimen>
-
-    <dimen name="text_size_default">@dimen/text_size_body1</dimen>
-
-    <dimen name="text_letter_spacing_headline1" type="dimen" format="float">-0.015625</dimen>
-    <dimen name="text_letter_spacing_headline2" type="dimen" format="float">-0.00833333333</dimen>
-    <dimen name="text_letter_spacing_headline3" type="dimen" format="float">0</dimen>
-    <dimen name="text_letter_spacing_headline4" type="dimen" format="float">0.00735294118</dimen>
-    <dimen name="text_letter_spacing_headline5" type="dimen" format="float">0</dimen>
-    <dimen name="text_letter_spacing_headline6" type="dimen" format="float">0.0125</dimen>
-
-    <dimen name="text_letter_spacing_subtitle1" type="dimen" format="float">0.009375</dimen>
-    <dimen name="text_letter_spacing_subtitle2" type="dimen" format="float">0.00714285714</dimen>
-
-    <dimen name="text_letter_spacing_body1" type="dimen" format="float">0.03125</dimen>
-    <dimen name="text_letter_spacing_body2" type="dimen" format="float">0.0178571429</dimen>
-
-    <dimen name="text_letter_spacing_caption" type="dimen" format="float">0.0333333333</dimen>
-    <dimen name="text_letter_spacing_overline" type="dimen" format="float">0.166666667</dimen>
-
-    <dimen name="text_letter_spacing_default">@dimen/text_letter_spacing_body1</dimen>
-
     <!--~~~~~~~~~~~~~~~~~~~~ DEFAULT ~~~~~~~~~~~~~~~~~~~-->
     <dimen name="ripple_alpha_default" type="dimen" format="float">0.26</dimen>
     <dimen name="disabled_alpha_default" type="dimen" format="float">0.4</dimen>
@@ -63,18 +26,8 @@
     <dimen name="elevation_normal">4dp</dimen>
 
     <!--~~~~~~~~~~~~~~~~~~ INPUT TEXT ~~~~~~~~~~~~~~~~~~-->
-    <dimen name="input_radius">32dp</dimen>
 
     <!--~~~~~~~~~~~~~~~~~~~~ BUTTON ~~~~~~~~~~~~~~~~~~~~-->
-    <dimen name="btn_text_letter_spacing_default" type="dimen" format="float">0.0892857143</dimen>
-    <dimen name="btn_inset_horizontal">4dp</dimen>
-    <dimen name="btn_inset_vertical">6dp</dimen>
-    <dimen name="btn_padding_horizontal">8dp</dimen>
-    <dimen name="btn_padding_vertical">4dp</dimen>
-    <dimen name="btn_roundness">@dimen/roundness_default</dimen>
-
-    <dimen name="btn_primary_padding_horizontal">14dp</dimen>
-    <dimen name="btn_primary_padding_vertical">8dp</dimen>
 
     <!--~~~~~~~~~~~~~~~~~~~~ WIDGET ~~~~~~~~~~~~~~~~~~~~-->
     <dimen name="divider_height">1dp</dimen>

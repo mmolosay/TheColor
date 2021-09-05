@@ -1,72 +1,27 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- TODO: always sync changes with other versions -->
-    <style name="Theme.TheColor" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Theme.TheColor" parent="Base.Theme.TheColor">
+        <!-- colors theme -->
+        <item name="colorPrimary">@color/purple_200</item>
+        <item name="colorPrimaryVariant">@color/purple_600</item>
+        <item name="colorSecondary">@color/green_200</item>
+        <item name="colorSecondaryVariant">@color/green_500</item>
 
-        <!-- colors -->
-        <item name="android:textColorPrimary">@color/raisin</item>
-        <item name="android:textColorSecondary">@color/abbey</item>
-        <item name="colorTextDisabled">@color/silver</item>
+        <!-- colors on -->
+        <item name="colorOnPrimary">@color/black_900</item>
+        <item name="colorOnSecondary">@color/black_900</item>
+        <item name="colorOnBackground">@color/white_50</item>
+        <item name="colorOnSurface">@color/white_50</item>
+        <item name="colorOnError">@color/black_900</item>
 
-        <item name="colorSurface">@color/peppermint</item>
-        <item name="colorOnSurface">?android:attr/textColorPrimary</item>
-
-        <item name="colorPrimary">@color/sanmarino</item>
-        <item name="colorPrimaryDark">@color/resolution</item>
-        <item name="colorPrimaryVariant">@color/cornflower</item>
-        <item name="colorOnPrimary">@color/white</item>
-
-        <item name="colorSecondary">@color/apache</item>
-        <item name="colorOnSecondary">?android:attr/textColorPrimary</item>
-
-        <item name="colorAccent">@color/amaranth</item>
-
-        <item name="colorError">@color/amaranth</item>
-        <item name="colorOnError">?attr/colorOnPrimary</item>
-
-        <item name="colorControlNormal">?attr/colorPrimary</item>
-        <item name="colorControlHighlight">@color/ripple_default</item>
-        <item name="android:colorBackground">@color/white</item>
-
-        <item name="colorButtonDisabled">@color/silver</item>
-        <item name="colorButtonContentDisabled">@color/gallery</item>
-
-        <item name="colorButtonPrimaryDisabled">?attr/colorButtonDisabled</item>
-        <item name="colorButtonPrimaryContentDisabled">?attr/colorButtonContentDisabled</item>
+        <!-- colors background -->
+        <item name="android:colorBackground">@color/black_900</item>
+        <item name="colorSurface">@color/black_800</item>
+        <item name="colorError">@color/red_200</item>
 
         <!-- window -->
-        <item name="android:windowBackground">?android:attr/colorBackground</item>
-
-        <item name="android:statusBarColor">@color/theme_status_bar</item>
         <item name="android:windowLightStatusBar">false</item>
-
-        <item name="android:navigationBarColor">@color/theme_navigation_bar</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">false</item>
-
-        <!-- styles -->
-        <item name="android:textAppearance">@style/TextAppearance</item>
-        <item name="android:textViewStyle">@style/TextView</item>
-        <item name="android:editTextStyle">@style/EditText</item>
-        <item name="android:buttonStyle">@style/Button</item>
-        <item name="textInputStyle">@style/TextInputLayout</item>
-
-        <item name="textAppearanceHeadline1">@style/TextAppearance.Headline1</item>
-        <item name="textAppearanceHeadline2">@style/TextAppearance.Headline2</item>
-        <item name="textAppearanceHeadline3">@style/TextAppearance.Headline3</item>
-        <item name="textAppearanceHeadline4">@style/TextAppearance.Headline4</item>
-        <item name="textAppearanceHeadline5">@style/TextAppearance.Headline5</item>
-        <item name="textAppearanceHeadline6">@style/TextAppearance.Headline6</item>
-
-        <item name="textAppearanceSubtitle1">@style/TextAppearance.Subtitle1</item>
-        <item name="textAppearanceSubtitle2">@style/TextAppearance.Subtitle2</item>
-
-        <item name="textAppearanceBody1">@style/TextAppearance.Body1</item>
-        <item name="textAppearanceBody2">@style/TextAppearance.Body2</item>
-
-        <item name="textAppearanceCaption">@style/TextAppearance.Caption</item>
-        <item name="textAppearanceOverline">@style/TextAppearance.Overline</item>
-        <!-- textAppearanceButton is not set, because app uses different button styles -->
-
     </style>
 
 </resources>

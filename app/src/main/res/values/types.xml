@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="TextAppearance.TheColor.Headline1" parent="TextAppearance.MaterialComponents.Headline1">
+        <item name="fontFamily">@font/ff_nunito_light</item>
+    </style>
+
+    <style name="TextAppearance.TheColor.Headline2" parent="TextAppearance.MaterialComponents.Headline2">
+        <item name="fontFamily">@font/ff_nunito_light</item>
+    </style>
+
+    <style name="TextAppearance.TheColor.Headline3" parent="TextAppearance.MaterialComponents.Headline3">
+        <item name="fontFamily">@font/ff_nunito_regular</item>
+    </style>
+
+    <style name="TextAppearance.TheColor.Headline4" parent="TextAppearance.MaterialComponents.Headline4">
+        <item name="fontFamily">@font/ff_nunito_regular</item>
+    </style>
+
+    <style name="TextAppearance.TheColor.Headline5" parent="TextAppearance.MaterialComponents.Headline5">
+        <item name="fontFamily">@font/ff_nunito_regular</item>
+    </style>
+
+    <style name="TextAppearance.TheColor.Headline6" parent="TextAppearance.MaterialComponents.Headline6">
+        <item name="fontFamily">@font/ff_nunito_semibold</item>
+    </style>
+
+    <style name="TextAppearance.TheColor.Subtitle1" parent="TextAppearance.MaterialComponents.Subtitle1">
+        <item name="fontFamily">@font/ff_nunito_regular</item>
+    </style>
+
+    <style name="TextAppearance.TheColor.Subtitle2" parent="TextAppearance.MaterialComponents.Subtitle2">
+        <item name="fontFamily">@font/ff_nunito_semibold</item>
+    </style>
+
+    <style name="TextAppearance.TheColor.Body1" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="fontFamily">@font/ff_nunito_regular</item>
+    </style>
+
+    <style name="TextAppearance.TheColor.Body2" parent="TextAppearance.MaterialComponents.Body2">
+        <item name="fontFamily">@font/ff_nunito_regular</item>
+    </style>
+
+    <style name="TextAppearance.TheColor.Button" parent="TextAppearance.MaterialComponents.Button">
+        <item name="fontFamily">@font/ff_nunito_semibold</item>
+    </style>
+
+    <style name="TextAppearance.TheColor.Caption" parent="TextAppearance.MaterialComponents.Caption">
+        <item name="fontFamily">@font/ff_nunito_regular</item>
+    </style>
+
+    <style name="TextAppearance.TheColor.Overline" parent="TextAppearance.MaterialComponents.Overline">
+        <item name="fontFamily">@font/ff_nunito_regular</item>
+    </style>
+
+</resources>
