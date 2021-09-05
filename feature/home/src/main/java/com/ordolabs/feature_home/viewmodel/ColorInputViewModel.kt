@@ -30,7 +30,7 @@ class ColorInputViewModel(
     private val _colorValidationState = MutableStateResourceFlow<Boolean>(Resource.empty())
     val colorValidationState = _colorValidationState.asStateFlow()
 
-    private val _colorPreview = MutableStateResourceFlow<Color>(Resource.empty())
+    private val _colorPreview = MutableStateResourceFlow<Color>(Resource.loading())
     val colorPreview = _colorPreview.asStateFlow()
 
     private val _colorHex = MutableStateResourceFlow<ColorHexPresentation>(Resource.empty())
@@ -83,7 +83,7 @@ class ColorInputViewModel(
     }
 
     fun procceedInput() {
-        val color = colorPreview.value.getOrNull() ?: return
+        val color = _colorPreview.value.getOrNull() ?: return
         _procceedCommand.updateGuaranteed {
             Resource.success(color)
         }

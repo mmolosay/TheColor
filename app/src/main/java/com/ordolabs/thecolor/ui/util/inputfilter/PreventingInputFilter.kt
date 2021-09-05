@@ -1,4 +1,4 @@
-package com.ordolabs.thecolor.ui.util
+package com.ordolabs.thecolor.ui.util.inputfilter
 
 import android.text.InputFilter
 import android.text.Spanned

@@ -1,23 +1,17 @@
 package com.ordolabs.feature_home.ui.fragment
 
 import android.os.Bundle
-import androidx.annotation.ColorInt
 import by.kirich1409.viewbindingdelegate.viewBinding
-import com.google.android.material.color.MaterialColors
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.FragmentHomeBinding
 import com.ordolabs.feature_home.di.featureHomeModule
 import com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputHostFragment
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
-import com.ordolabs.thecolor.util.ColorUtil.Color
-import com.ordolabs.thecolor.util.ColorUtil.toColorInt
-import com.ordolabs.thecolor.util.ext.setColor
 import com.ordolabs.thecolor.util.ext.setFragment
 import com.ordolabs.thecolor.viewmodel.HomeViewModel
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.context.loadKoinModules
-import com.ordolabs.thecolor.R as RApp
 
 class HomeFragment : BaseFragment(R.layout.fragment_home) {
 
@@ -25,17 +19,13 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     private val homeVM: HomeViewModel by viewModel()
     private val colorInputVM: ColorInputViewModel by sharedViewModel()
 
-    private val defaultPreviewColor: Int by lazy {
-        MaterialColors.getColor(binding.colorInfoFragmentContainer, RApp.attr.colorPrimary)
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         loadKoinModules(featureHomeModule)
     }
 
     override fun collectViewModelsData() {
-        collectColorPreview()
+        // nothing is here
     }
 
     override fun setViews() {
@@ -53,24 +43,8 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         setFragment(fragment, binding.colorInfoFragmentContainer.id)
     }
 
-    private fun setColorPreview(@ColorInt color: Int) {
-        binding.colorInfoFragmentContainer.background.setColor(color)
-    }
-
-    private fun collectColorPreview() =
-        colorInputVM.colorPreview.collectOnLifecycle { resource ->
-            resource.fold(
-                onEmpty = ::onColorPreviewEmpty,
-                onSuccess = ::onColorPreviewSuccess
-            )
-        }
-
-    private fun onColorPreviewEmpty() {
-        setColorPreview(defaultPreviewColor)
-    }
-
-    private fun onColorPreviewSuccess(color: Color) {
-        setColorPreview(color.toColorInt())
+    override fun setSoftInputMode() {
+        // https://yatmanwong.medium.com/android-how-to-pan-the-page-up-more-25fc5c542a97
     }
 
     companion object {

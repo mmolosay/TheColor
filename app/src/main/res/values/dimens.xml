@@ -24,6 +24,7 @@
     <dimen name="roundness_default">6dp</dimen>
     <dimen name="elevation_small">2dp</dimen>
     <dimen name="elevation_normal">4dp</dimen>
+    <dimen name="elevation_big">8dp</dimen>
 
     <!--~~~~~~~~~~~~~~~~~~ INPUT TEXT ~~~~~~~~~~~~~~~~~~-->
 

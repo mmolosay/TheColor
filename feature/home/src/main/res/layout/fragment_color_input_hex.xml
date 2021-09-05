@@ -30,7 +30,8 @@
             android:imeOptions="actionDone"
             android:inputType="textCapCharacters"
             android:maxLength="6"
-            android:maxLines="1" />
+            android:maxLines="1"
+            android:selectAllOnFocus="true" />
 
     </com.google.android.material.textfield.TextInputLayout>
 

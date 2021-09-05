@@ -7,8 +7,8 @@ import com.ordolabs.feature_home.databinding.FragmentColorInputRgbBinding
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
 import com.ordolabs.thecolor.model.ColorRgbPresentation
-import com.ordolabs.thecolor.ui.util.PreventingInputFilter
-import com.ordolabs.thecolor.ui.util.RangeInputFilter
+import com.ordolabs.thecolor.ui.util.inputfilter.PreventingInputFilter
+import com.ordolabs.thecolor.ui.util.inputfilter.RangeInputFilter
 import com.ordolabs.thecolor.util.ext.addFilters
 import com.ordolabs.thecolor.util.ext.getTextString
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
