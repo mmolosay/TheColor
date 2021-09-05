@@ -34,10 +34,10 @@ class ColorInputViewModel(
     val colorPreview = _colorPreview.asStateFlow()
 
     private val _colorHex = MutableStateResourceFlow<ColorHexPresentation>(Resource.empty())
-    val colorHex = _colorHex.asStateFlow()
+    val colorHex = _colorHex.shareOnceIn(viewModelScope)
 
     private val _colorRgb = MutableStateResourceFlow<ColorRgbPresentation>(Resource.empty())
-    val colorRgb = _colorRgb.asStateFlow()
+    val colorRgb = _colorRgb.shareOnceIn(viewModelScope)
 
     private val _procceedCommand = MutableStateResourceFlow<Color>(Resource.empty())
     val procceedCommand = _procceedCommand.shareOnceIn(viewModelScope)
