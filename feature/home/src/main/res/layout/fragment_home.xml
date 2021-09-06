@@ -44,17 +44,28 @@
         app:layout_constraintTop_toBottomOf="@id/headline"
         tools:layout="@layout/fragment_color_input_host" />
 
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/preview"
+        android:layout_width="@dimen/color_input_preview_size"
+        android:layout_height="@dimen/color_input_preview_size"
+        app:cardBackgroundColor="?attr/colorPrimary"
+        app:cardCornerRadius="1000dp"
+        app:cardElevation="@dimen/elevation_big"
+        app:layout_constraintEnd_toStartOf="@+id/glEnd"
+        app:layout_constraintStart_toStartOf="@+id/glStart"
+        app:layout_constraintTop_toBottomOf="@+id/defaultFragmentContainer" />
+
     <FrameLayout
         android:id="@+id/colorInfoWrapper"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/offset_32"
         android:background="@drawable/bg_color_information"
+        android:layout_marginTop="@dimen/offset_16"
         android:backgroundTint="@color/transparent"
 
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/defaultFragmentContainer">
+        app:layout_constraintTop_toBottomOf="@+id/preview">
 
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/colorInfoFragmentContainer"

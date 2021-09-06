@@ -5,7 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="@dimen/color_input_pager_height"
     android:clipToPadding="false"
-    android:paddingBottom="@dimen/offset_16"
     tools:context="com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputHostFragment">
 
     <androidx.constraintlayout.widget.Guideline
@@ -38,7 +37,6 @@
         style="@style/Widget.Main.TabLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/offset_8"
 
         app:layout_constraintBottom_toTopOf="@+id/procceedBtn"
         app:layout_constraintEnd_toEndOf="@id/glEnd"
@@ -61,17 +59,6 @@
 
     </com.google.android.material.tabs.TabLayout>
 
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/preview"
-        android:layout_width="@dimen/color_input_preview_size"
-        android:layout_height="@dimen/color_input_preview_size"
-        app:cardBackgroundColor="?attr/colorPrimary"
-        app:cardCornerRadius="1000dp"
-        app:cardElevation="@dimen/elevation_big"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/glEnd"
-        app:layout_constraintStart_toStartOf="@+id/glStart" />
-
     <Button
         android:id="@+id/procceedBtn"
         android:layout_width="wrap_content"
@@ -80,7 +67,7 @@
         android:enabled="false"
         android:text="@string/color_input_procceed"
 
-        app:layout_constraintBottom_toTopOf="@+id/preview"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@id/glEnd"
         app:layout_constraintStart_toStartOf="@id/glStart" />
 
