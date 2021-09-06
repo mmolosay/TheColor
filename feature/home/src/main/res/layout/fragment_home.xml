@@ -24,8 +24,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/home_find_your_color"
-        android:textColor="@color/material_on_background_emphasis_medium"
         android:textAppearance="?attr/textAppearanceHeadline5"
+        android:textColor="@color/material_on_background_emphasis_medium"
 
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -44,16 +44,24 @@
         app:layout_constraintTop_toBottomOf="@id/headline"
         tools:layout="@layout/fragment_color_input_host" />
 
-    <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/colorInfoFragmentContainer"
+    <FrameLayout
+        android:id="@+id/colorInfoWrapper"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/offset_32"
         android:background="@drawable/bg_color_information"
+        android:backgroundTint="@color/transparent"
 
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/defaultFragmentContainer"
-        tools:layout="@layout/fragment_color_information" />
+        app:layout_constraintTop_toBottomOf="@id/defaultFragmentContainer">
+
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/colorInfoFragmentContainer"
+            android:layout_width="match_parent"
+            android:layout_height="400dp"
+            tools:layout="@layout/fragment_color_information" />
+
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

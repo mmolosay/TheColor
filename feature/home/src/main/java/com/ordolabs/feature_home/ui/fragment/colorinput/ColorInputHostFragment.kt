@@ -55,8 +55,7 @@ class ColorInputHostFragment : BaseFragment(R.layout.fragment_color_input_host) 
 
     private fun updateColorPreview(@ColorInt color: Int) {
         val view = binding.preview
-        val current = view.cardBackgroundColor.defaultColor
-        if (color == current) return
+        if (color == view.cardBackgroundColor.defaultColor) return
         val duration = resources.getInteger(android.R.integer.config_mediumAnimTime)
         view.setCardBackgroundColor(color)
         ObjectAnimator
@@ -73,7 +72,7 @@ class ColorInputHostFragment : BaseFragment(R.layout.fragment_color_input_host) 
         }
 
     private fun collectColorPreview() =
-        colorInputVM.colorPreview.collectOnLifecycle() { resource ->
+        colorInputVM.colorPreview.collectOnLifecycle { resource ->
             resource.fold(
                 onEmpty = ::onColorPreviewEmpty,
                 onSuccess = ::onColorPreviewSuccess

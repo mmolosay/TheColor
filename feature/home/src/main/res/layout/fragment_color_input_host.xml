@@ -3,11 +3,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="@dimen/color_input_pager_height"
     android:clipToPadding="false"
     android:paddingBottom="@dimen/offset_16"
-    tools:context="com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputHostFragment"
-    tools:layout_height="@dimen/color_input_pager_height">
+    tools:context="com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputHostFragment">
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/glStart"
@@ -66,12 +65,12 @@
         android:id="@+id/preview"
         android:layout_width="@dimen/color_input_preview_size"
         android:layout_height="@dimen/color_input_preview_size"
+        app:cardBackgroundColor="?attr/colorPrimary"
         app:cardCornerRadius="1000dp"
         app:cardElevation="@dimen/elevation_big"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/glEnd"
-        app:layout_constraintStart_toStartOf="@+id/glStart"
-        app:cardBackgroundColor="?attr/colorPrimary" />
+        app:layout_constraintStart_toStartOf="@+id/glStart" />
 
     <Button
         android:id="@+id/procceedBtn"
