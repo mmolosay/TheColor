@@ -44,10 +44,12 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     private val homeVM: HomeViewModel by viewModel()
     private val colorInputVM: ColorInputViewModel by sharedViewModel()
 
-    private var infoSheetColor: Int = 0
-
     private val defaultPreviewColor: Int by lazy {
         MaterialColors.getColor(binding.root, com.ordolabs.thecolor.R.attr.colorPrimary)
+    }
+
+    private val defaultSheetColor: Int by lazy {
+        binding.infoSheet.backgroundTintList?.defaultColor ?: 0
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -61,6 +63,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     }
 
     override fun setViews() {
+        defaultSheetColor // init
         setColorInputFragment()
         setColorInformationFragment()
     }
@@ -76,9 +79,9 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     }
 
     private fun updateColorPreview(@ColorInt color: Int) {
-        val preview = binding.preview
-        if (color == preview.cardBackgroundColor.defaultColor) return
-        if (color != infoSheetColor && infoSheetColor != 0x00000000) {
+        val sheetColor = getInfoSheetColor()
+        if (color == getPreviewColor()) return
+        if (color != sheetColor && sheetColor != defaultSheetColor) {
             animPreviewShowing(color)
         } else {
             makePreviewColorChangingAnimation(color).start()
@@ -164,7 +167,6 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
             duration = longAnimDuration
             interpolator = FastOutSlowInInterpolator()
             doOnStart {
-                infoSheetColor = color
                 sheet.isVisible = true
                 sheet.backgroundTintList = ColorStateList.valueOf(color)
             }
@@ -179,6 +181,14 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         val x = sheet.width / 2
         val y = bottom - navbarHeight - padding
         return Point(x, y)
+    }
+
+    private fun getPreviewColor(): Int {
+        return binding.preview.cardBackgroundColor.defaultColor
+    }
+
+    private fun getInfoSheetColor(): Int {
+        return binding.infoSheet.backgroundTintList?.defaultColor ?: 0
     }
 
     private fun collectColorPreview() =
