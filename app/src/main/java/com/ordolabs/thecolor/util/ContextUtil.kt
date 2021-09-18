@@ -14,6 +14,21 @@ import com.ordolabs.thecolor.util.ext.toResultOrError
 
 object ContextUtil {
 
+    fun getShortAnimDuration(context: Context?): Long? {
+        context ?: return null
+        return context.resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
+    }
+
+    fun getMediumAnimDuration(context: Context?): Long? {
+        context ?: return null
+        return context.resources.getInteger(android.R.integer.config_mediumAnimTime).toLong()
+    }
+
+    fun getLongAnimDuration(context: Context?): Long? {
+        context ?: return null
+        return context.resources.getInteger(android.R.integer.config_longAnimTime).toLong()
+    }
+
     fun findFragmentById(
         fm: FragmentManager,
         @IdRes containerId: Int

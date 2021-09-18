@@ -8,6 +8,15 @@ import com.github.michaelbull.result.Result
 import com.ordolabs.thecolor.ui.fragment.BaseFragment
 import com.ordolabs.thecolor.util.ContextUtil
 
+val BaseFragment.shortAnimDuration: Long
+    get() = ContextUtil.getShortAnimDuration(context) ?: 0L
+
+val BaseFragment.mediumAnimDuration: Long
+    get() = ContextUtil.getMediumAnimDuration(context) ?: 0L
+
+val BaseFragment.longAnimDuration: Long
+    get() = ContextUtil.getLongAnimDuration(context) ?: 0L
+
 fun BaseFragment.findFragmentById(
     @IdRes containerId: Int = this.defaultFragmentContainerId
 ): Result<Fragment, Throwable> {

@@ -25,6 +25,8 @@ import com.ordolabs.thecolor.util.ColorUtil.toColorInt
 import com.ordolabs.thecolor.util.InsetsUtil
 import com.ordolabs.thecolor.util.ext.getBottomVisibleInParent
 import com.ordolabs.thecolor.util.ext.getDistanceInParent
+import com.ordolabs.thecolor.util.ext.longAnimDuration
+import com.ordolabs.thecolor.util.ext.mediumAnimDuration
 import com.ordolabs.thecolor.util.ext.setFragment
 import com.ordolabs.thecolor.viewmodel.HomeViewModel
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
@@ -71,11 +73,10 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     private fun updateColorPreview(@ColorInt color: Int) {
         val view = binding.preview
         if (color == view.cardBackgroundColor.defaultColor) return
-        val duration = resources.getInteger(android.R.integer.config_mediumAnimTime)
         view.setCardBackgroundColor(color)
         ObjectAnimator
             .ofFloat(view, "translationY", 0f, -16f, 15f, -13f, 11f, -7f, 3f, 1f, 0f)
-            .setDuration(duration.toLong())
+            .setDuration(mediumAnimDuration)
             .start()
     }
 
@@ -99,7 +100,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         return ObjectAnimator
             .ofFloat(preview, "translationY", 0f, translation)
             .apply {
-                duration = resources.getInteger(android.R.integer.config_longAnimTime).toLong()
+                duration = longAnimDuration
                 interpolator = AnticipateOvershootInterpolator()
             }
     }
@@ -111,7 +112,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         val sr = preview.width.toFloat() / 2
         val er = hypot(reveal.x.toDouble(), reveal.y.toDouble()).toFloat()
         return ViewAnimationUtils.createCircularReveal(sheet, reveal.x, reveal.y, sr, er).apply {
-            duration = resources.getInteger(android.R.integer.config_longAnimTime).toLong()
+            duration = longAnimDuration
             interpolator = FastOutSlowInInterpolator()
             doOnStart {
                 sheet.isVisible = true
