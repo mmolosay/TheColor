@@ -26,16 +26,18 @@ class ColorInputHostFragment : BaseFragment(R.layout.fragment_color_input_host) 
         setProcceedBtn()
     }
 
-    private fun setInputPager() = binding.inputPager.run {
-        adapter = ColorInputPagerAdapter(this@ColorInputHostFragment)
+    private fun setInputPager() = binding.run {
+        inputPager.adapter = ColorInputPagerAdapter(this@ColorInputHostFragment)
     }
 
-    private fun setInputTabs() = binding.inputTabs.run {
-        TabLayoutMediator(this, binding.inputPager, ::configureInputTab).attach()
+    private fun setInputTabs() = binding.run {
+        TabLayoutMediator(inputTabs, binding.inputPager, ::configureInputTab).attach()
     }
 
-    private fun setProcceedBtn() = binding.procceedBtn.run {
-        setOnClickListener { colorInputVM.procceedInput() }
+    private fun setProcceedBtn() = binding.run {
+        procceedBtn.setOnClickListener {
+            colorInputVM.procceedInput()
+        }
     }
 
     private fun configureInputTab(tab: TabLayout.Tab, position: Int) {

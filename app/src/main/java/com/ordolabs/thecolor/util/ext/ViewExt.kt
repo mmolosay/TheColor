@@ -1,9 +1,11 @@
 package com.ordolabs.thecolor.util.ext
 
+import android.content.Context
 import android.graphics.Point
 import android.text.Editable
 import android.text.InputFilter
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import androidx.core.graphics.minus
 import com.google.android.material.textfield.TextInputLayout
@@ -16,9 +18,19 @@ fun TextInputLayout.getTextString(): String? {
     return this.editText?.text?.toString()
 }
 
+fun TextInputLayout.hideSoftInput(): Boolean {
+    return this.editText?.hideSoftInput() ?: false
+}
+
 fun EditText.addFilters(vararg filters: InputFilter) {
     val updated = this.filters.toMutableList().apply { addAll(filters) }
     this.filters = updated.toTypedArray()
+}
+
+fun EditText.hideSoftInput(): Boolean {
+    val manager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+    manager?.hideSoftInputFromWindow(this.windowToken, 0) ?: return false
+    return true
 }
 
 /**

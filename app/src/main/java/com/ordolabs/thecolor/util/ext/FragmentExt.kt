@@ -1,5 +1,6 @@
 package com.ordolabs.thecolor.util.ext
 
+import android.widget.EditText
 import android.widget.Toast
 import androidx.annotation.IdRes
 import androidx.annotation.StringRes
@@ -64,4 +65,11 @@ fun BaseFragment.showToast(
     textRes ?: return
     val text = getString(textRes)
     ContextUtil.showToast(requireContext(), text, duration)
+}
+
+fun BaseFragment.hideSoftInput(): Boolean {
+    val focused = this.view?.findFocus() ?: return false
+    return if (focused is EditText) {
+        focused.hideSoftInput()
+    } else false
 }

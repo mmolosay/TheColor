@@ -27,6 +27,7 @@ import com.ordolabs.thecolor.util.ColorUtil.toColorInt
 import com.ordolabs.thecolor.util.InsetsUtil
 import com.ordolabs.thecolor.util.ext.getBottomVisibleInParent
 import com.ordolabs.thecolor.util.ext.getDistanceInParent
+import com.ordolabs.thecolor.util.ext.hideSoftInput
 import com.ordolabs.thecolor.util.ext.longAnimDuration
 import com.ordolabs.thecolor.util.ext.mediumAnimDuration
 import com.ordolabs.thecolor.util.ext.setFragment
@@ -60,9 +61,6 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     }
 
     override fun setViews() {
-        binding.headline.setOnClickListener {
-            animPreviewShowing(defaultPreviewColor)
-        }
         setColorInputFragment()
         setColorInformationFragment()
     }
@@ -207,6 +205,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         }
 
     private fun onProcceedCommandSuccess(color: ColorUtil.Color) {
+        hideSoftInput()
         animOnProcceedCommand(color.toColorInt())
     }
 
