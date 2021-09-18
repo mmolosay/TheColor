@@ -5,6 +5,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+<!--    <View-->
+<!--        android:background="@color/debug_red"-->
+<!--        app:layout_constraintTop_toTopOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="100dp"/>-->
+
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/glStart"
         android:layout_width="wrap_content"
@@ -56,19 +63,26 @@
         app:layout_constraintTop_toBottomOf="@+id/defaultFragmentContainer" />
 
     <FrameLayout
-        android:id="@+id/colorInfoWrapper"
+        android:id="@+id/infoWrapper"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_color_information"
+        android:translationZ="@dimen/elevation_big"
         android:layout_marginTop="@dimen/offset_16"
-        android:backgroundTint="@color/transparent"
 
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/preview">
 
+        <FrameLayout
+            android:id="@+id/infoSheet"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_color_information"
+            android:backgroundTint="?attr/colorPrimary"
+            android:visibility="invisible" />
+
         <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/colorInfoFragmentContainer"
+            android:id="@+id/infoFragmentContainer"
             android:layout_width="match_parent"
             android:layout_height="400dp"
             tools:layout="@layout/fragment_color_information" />
