@@ -35,10 +35,9 @@ class ColorInputHexFragment : BaseFragment(R.layout.fragment_color_input_hex) {
         colorInputVM.validateColor(color)
     }
 
-    private fun collectColorInput(): ColorHexPresentation? {
+    private fun collectColorInput(): ColorHexPresentation {
         val input = binding.inputHex.getTextString()
-        val value = input?.takeUnless { it.isEmpty() } ?: return null
-        return ColorHexPresentation(value)
+        return ColorHexPresentation(value = input)
     }
 
     private fun collectColorHex() =

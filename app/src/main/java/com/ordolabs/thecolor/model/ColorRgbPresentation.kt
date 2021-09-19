@@ -5,7 +5,7 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class ColorRgbPresentation(
-    val r: Int,
-    val g: Int,
-    val b: Int
+    val r: Int?,
+    val g: Int?,
+    val b: Int?
 ) : Parcelable

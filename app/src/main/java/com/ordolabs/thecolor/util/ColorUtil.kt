@@ -34,16 +34,18 @@ object ColorUtil {
         companion object
     }
 
-    fun Color.Companion.from(color: ColorHexPresentation): Color {
-        val expanded = if (color.value.length == 3) {
-            color.value.map { it.toString().repeat(2) }.joinToString(separator = "")
-        } else {
-            color.value + "0".repeat(6 - color.value.length)
+    fun Color.Companion.from(color: ColorHexPresentation): Color? {
+        color.value ?: return null
+        val expanded = when (color.value.length) {
+            3 -> color.value.map { it.toString().repeat(2) }.joinToString(separator = "")
+            6 -> color.value
+            else -> return null
         }
         return Color(hex = expanded)
     }
 
-    fun Color.Companion.from(color: ColorRgbPresentation): Color {
+    fun Color.Companion.from(color: ColorRgbPresentation): Color? {
+        if (color.r == null || color.g == null || color.b == null) return null
         val rgb = RGB(color.r, color.g, color.b)
         val value = rgb.toHex(withNumberSign = false).uppercase()
         return Color(hex = value)

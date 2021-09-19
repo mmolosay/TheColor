@@ -5,5 +5,5 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class ColorHexPresentation(
-    val value: String
+    val value: String?
 ) : Parcelable

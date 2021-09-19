@@ -50,16 +50,13 @@ class ColorInputViewModel(
         colorValidationJob = null
     }
 
-    fun validateColor(color: ColorHexPresentation?) = launch {
+    fun validateColor(color: ColorHexPresentation) = launch {
         restartColorValidation().join()
-        val domain = color?.toDomain() ?: kotlin.run {
+        val domain = color.toDomain() ?: kotlin.run {
             _colorValidationState.value = Resource.success(false)
-            clearAllColors()
-            clearColorPreview()
             return@launch
         }
         val abstract = Color.from(color)
-
         colorValidationJob = launch {
             validateColorHexUseCase.invoke(domain).collect { valid ->
                 onColorValidated(valid, abstract, color::class.java)
@@ -67,16 +64,13 @@ class ColorInputViewModel(
         }
     }
 
-    fun validateColor(color: ColorRgbPresentation?) = launch {
+    fun validateColor(color: ColorRgbPresentation) = launch {
         restartColorValidation().join()
-        val domain = color?.toDomain() ?: kotlin.run {
+        val domain = color.toDomain() ?: kotlin.run {
             _colorValidationState.value = Resource.success(false)
-            clearAllColors()
-            clearColorPreview()
             return@launch
         }
         val abstract = Color.from(color)
-
         colorValidationJob = launch {
             validateColorRgbUseCase.invoke(domain).collect { valid ->
                 onColorValidated(valid, abstract, color::class.java)
@@ -98,13 +92,18 @@ class ColorInputViewModel(
 
     private fun onColorValidated(
         valid: Boolean,
-        abstract: Color,
+        abstract: Color?,
         initialColorClass: Class<*>
     ) =
         launch {
             _colorValidationState.value = Resource.success(valid)
-            updateColors(abstract, initialColorClass)
-            updateColorPreview(valid, abstract)
+            if (valid && abstract != null) {
+                updateColors(abstract, initialColorClass)
+                updateColorPreview(abstract)
+            } else {
+                clearColors()
+                clearColorPreview()
+            }
         }
 
     private fun updateColors(color: Color, exclude: Class<*>) {
@@ -116,16 +115,16 @@ class ColorInputViewModel(
         }
     }
 
-    private fun updateColorPreview(valid: Boolean, color: Color) {
-        if (valid) _colorPreview.value = Resource.success(color)
+    private fun clearColors() {
+        _colorHex.value = Resource.empty()
+        _colorRgb.value = Resource.empty()
+    }
+
+    private fun updateColorPreview(color: Color) {
+        _colorPreview.value = Resource.success(color)
     }
 
     private fun clearColorPreview() {
         _colorPreview.value = Resource.empty()
-    }
-
-    private fun clearAllColors() {
-        _colorHex.value = Resource.empty()
-        _colorRgb.value = Resource.empty()
     }
 }

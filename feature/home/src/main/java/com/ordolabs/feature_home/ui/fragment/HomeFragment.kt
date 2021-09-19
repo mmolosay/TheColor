@@ -14,13 +14,13 @@ import androidx.annotation.ColorInt
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
 import androidx.core.view.isInvisible
+import androidx.core.view.isVisible
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.FragmentHomeBinding
 import com.ordolabs.feature_home.di.featureHomeModule
 import com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputHostFragment
-import com.ordolabs.feature_home.viewmodel.ColorInformationViewModel
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
 import com.ordolabs.thecolor.util.AnimationUtils
 import com.ordolabs.thecolor.util.ColorUtil
@@ -43,7 +43,6 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
 
     private val binding: FragmentHomeBinding by viewBinding()
     private val colorInputVM: ColorInputViewModel by sharedViewModel()
-    private val colorInformationVM: ColorInformationViewModel by sharedViewModel()
 
     private val defaultPreviewColor: Int by lazy {
         getPreviewColor()
@@ -60,6 +59,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
 
     override fun collectViewModelsData() {
         collectColorPreview()
+        collectColorValidationState()
         collectProcceedCommand()
     }
 
@@ -81,19 +81,26 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     }
 
     private fun updateColorPreview(@ColorInt color: Int) {
-        val sheetColor = getInfoSheetColor()
         if (color == getPreviewColor()) return
-        if (color != sheetColor && sheetColor != defaultSheetColor) {
-            animInfoSheetHiding(color)
-        } else {
-            makePreviewColorChangingAnimation(color).start()
-        }
+        makePreviewColorChangingAnimation(color).start()
+    }
+
+    private fun getPreviewColor(): Int {
+        return binding.preview.background.getColor()
+    }
+
+    private fun getInfoSheetColor(): Int {
+        return binding.infoSheet.backgroundTintList?.defaultColor ?: 0
+    }
+
+    private fun setInfoSheetColor(@ColorInt color: Int) {
+        binding.infoSheet.backgroundTintList = ColorStateList.valueOf(color)
     }
 
     private fun animInfoSheetShowing(@ColorInt color: Int) {
         AnimatorSet().apply {
             playSequentially(
-                animPreviewHiding(),
+                animPreviewCollapsing(),
                 makeInfoSheetRevealAnimation(hide = false).apply {
                     doOnStart {
                         setInfoSheetColor(color)
@@ -103,17 +110,17 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         }.start()
     }
 
-    private fun animInfoSheetHiding(@ColorInt color: Int) {
+    private fun animInfoSheetHiding() {
+        if (!binding.infoSheet.isVisible) return
         AnimatorSet().apply {
             playSequentially(
                 makeInfoSheetRevealAnimation(hide = true),
-                animPreviewShowing(),
-                makePreviewColorChangingAnimation(color)
+                animPreviewExpanding()
             )
         }.start()
     }
 
-    private fun animPreviewShowing() = AnimatorSet().apply {
+    private fun animPreviewExpanding() = AnimatorSet().apply {
         playTogether(
             makePreviewShowingAnimation(),
             makePreviewElevationAnimation(flatten = false)
@@ -121,7 +128,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         duration = longAnimDuration
     }
 
-    private fun animPreviewHiding() = AnimatorSet().apply {
+    private fun animPreviewCollapsing() = AnimatorSet().apply {
         playTogether(
             makePreviewHidingAnimation(),
             makePreviewElevationAnimation(flatten = true)
@@ -218,18 +225,6 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         return Point(x, y)
     }
 
-    private fun getPreviewColor(): Int {
-        return binding.preview.background.getColor()
-    }
-
-    private fun getInfoSheetColor(): Int {
-        return binding.infoSheet.backgroundTintList?.defaultColor ?: 0
-    }
-
-    private fun setInfoSheetColor(@ColorInt color: Int) {
-        binding.infoSheet.backgroundTintList = ColorStateList.valueOf(color)
-    }
-
     private fun collectColorPreview() =
         colorInputVM.colorPreview.collectOnLifecycle { resource ->
             resource.fold(
@@ -246,6 +241,13 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         updateColorPreview(color.toColorInt())
     }
 
+    private fun collectColorValidationState() =
+        colorInputVM.colorValidationState.collectOnLifecycle { resource ->
+            resource.ifSuccess {
+                animInfoSheetHiding()
+            }
+        }
+
     private fun collectProcceedCommand() =
         colorInputVM.procceedCommand.collectOnLifecycle { resource ->
             resource.fold(
@@ -256,7 +258,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     private fun onProcceedCommandSuccess(color: ColorUtil.Color) {
         hideSoftInput()
         val int = color.toColorInt()
-        if (getInfoSheetColor() == int) return // sequentiall button clicks, do nothing
+        if (getInfoSheetColor() == int && binding.infoSheet.isVisible) return // sequential button clicks, do nothing
         animInfoSheetShowing(int)
     }
 

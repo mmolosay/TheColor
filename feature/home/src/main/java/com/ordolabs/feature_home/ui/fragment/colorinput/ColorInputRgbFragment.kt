@@ -60,15 +60,14 @@ class ColorInputRgbFragment :
         colorInputVM.validateColor(color)
     }
 
-    private fun collectColorInput(): ColorRgbPresentation? {
+    private fun collectColorInput(): ColorRgbPresentation {
         val r = binding.inputRgbR.getTextString()?.toIntOrNull()
         val g = binding.inputRgbG.getTextString()?.toIntOrNull()
         val b = binding.inputRgbB.getTextString()?.toIntOrNull()
-        r ?: g ?: b ?: return null
         return ColorRgbPresentation(
-            r = r ?: 0,
-            g = g ?: 0,
-            b = b ?: 0
+            r = r,
+            g = g,
+            b = b
         )
     }
 
