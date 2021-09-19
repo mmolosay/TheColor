@@ -41,7 +41,8 @@ class ColorInformationFragment : BaseFragment(R.layout.fragment_color_informatio
 
     private fun collectColorValidationState() =
         colorInputVM.colorValidationState.collectOnLifecycle { resource ->
-            resource.ifSuccess {
+            resource.ifLoading {
+                colorInformationVM.clearColorInformation()
                 toggleVisibility(visible = false)
             }
         }
@@ -49,12 +50,7 @@ class ColorInformationFragment : BaseFragment(R.layout.fragment_color_informatio
     private fun collectProcceedCommand() =
         colorInputVM.procceedCommand.collectOnLifecycle { resource ->
             resource.ifSuccess { color ->
-                val fetched = colorInformationVM.information.value.getOrNull()?.hexValue
-                if (color.equals(fetched)) {
-                    toggleVisibility(visible = true)
-                } else {
-                    colorInformationVM.fetchColorInformation(color)
-                }
+                colorInformationVM.fetchColorInformation(color)
             }
         }
 

@@ -15,9 +15,11 @@ import com.ordolabs.thecolor.util.ext.shareOnceIn
 import com.ordolabs.thecolor.util.ext.updateGuaranteed
 import com.ordolabs.thecolor.util.struct.Resource
 import com.ordolabs.thecolor.util.struct.empty
+import com.ordolabs.thecolor.util.struct.getOrNull
 import com.ordolabs.thecolor.util.struct.loading
 import com.ordolabs.thecolor.util.struct.success
 import com.ordolabs.thecolor.viewmodel.BaseViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
@@ -53,7 +55,7 @@ class ColorInputViewModel(
     fun validateColor(color: ColorHexPresentation) = launch {
         restartColorValidation().join()
         val domain = color.toDomain() ?: kotlin.run {
-            _colorValidationState.value = Resource.success(false)
+            updateColorValidationState(valid = false)
             return@launch
         }
         val abstract = Color.from(color)
@@ -67,7 +69,7 @@ class ColorInputViewModel(
     fun validateColor(color: ColorRgbPresentation) = launch {
         restartColorValidation().join()
         val domain = color.toDomain() ?: kotlin.run {
-            _colorValidationState.value = Resource.success(false)
+            updateColorValidationState(valid = false)
             return@launch
         }
         val abstract = Color.from(color)
@@ -85,7 +87,7 @@ class ColorInputViewModel(
         }
     }
 
-    private fun restartColorValidation() = launch {
+    private fun restartColorValidation() = launchOn(Dispatchers.Main) {
         colorValidationJob?.cancel()
         _colorValidationState.value = Resource.loading()
     }
@@ -95,8 +97,8 @@ class ColorInputViewModel(
         abstract: Color?,
         initialColorClass: Class<*>
     ) =
-        launch {
-            _colorValidationState.value = Resource.success(valid)
+        launchOn(Dispatchers.Main) {
+            updateColorValidationState(valid)
             if (valid && abstract != null) {
                 updateColors(abstract, initialColorClass)
                 updateColorPreview(abstract)
@@ -105,6 +107,10 @@ class ColorInputViewModel(
                 clearColorPreview()
             }
         }
+
+    private fun updateColorValidationState(valid: Boolean) {
+        _colorValidationState.value = Resource.success(valid)
+    }
 
     private fun updateColors(color: Color, exclude: Class<*>) {
         if (exclude != ColorHexPresentation::class.java) {

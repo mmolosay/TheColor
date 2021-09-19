@@ -60,7 +60,7 @@ abstract class BaseViewModel : ViewModel() {
     }
 
     /**
-     * Launches specified coroutine [block] on [BaseViewModel.coroutineDispatcherDefault].
+     * Launches specified coroutine [block] on [coroutineDispatcherDefault].
      *
      * @see BaseViewModel.launchOn
      */

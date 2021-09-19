@@ -56,16 +56,16 @@ sealed class Resource<out V> {
         }
     }
 
-    inline fun <R> ifSuccess(action: (value: V) -> R): R? {
+    inline fun <R> ifLoading(action: () -> R): R? {
         return when (this) {
-            is Success -> action(value)
+            is Loading -> action()
             else -> null
         }
     }
 
-    fun getOrNull(): V? {
+    inline fun <R> ifSuccess(action: (value: V) -> R): R? {
         return when (this) {
-            is Success -> this.value
+            is Success -> action(value)
             else -> null
         }
     }
@@ -91,4 +91,11 @@ fun <P : Any> Resource.Companion.failure(payload: P, error: Throwable): Resource
 
 fun <P : Any> Resource.Companion.failure(payload: P): Resource<Nothing> {
     return Failure(payload, null)
+}
+
+fun <V : Any> Resource<V>.getOrNull(): V? {
+    return when (this) {
+        is Success -> this.value
+        else -> null
+    }
 }

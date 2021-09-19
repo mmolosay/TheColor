@@ -2,7 +2,6 @@ package com.ordolabs.thecolor.util.ext
 
 import com.ordolabs.thecolor.util.struct.Resource
 import com.ordolabs.thecolor.util.struct.empty
-import com.ordolabs.thecolor.util.struct.loading
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,7 +29,7 @@ fun <T> Flow<T>.shareOnceIn(
 /**
  * Updates [MutableStateFlow]<[Resource]<[V]>> atomically using the specified [function] of its value.
  * Due to [StateFlow]'s __strong equality-based conflation__, if current `value` is equal to new
- * value from [function], then `value` is first updated with [Resource].[loading].
+ * value from [function], then `value` is first updated with [Resource].[empty] value.
  */
 fun <V : Any> MutableStateFlow<Resource<V>>.updateGuaranteed(
     function: (Resource<V>) -> Resource<V>
