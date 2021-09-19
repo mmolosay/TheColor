@@ -7,7 +7,6 @@ import android.animation.ValueAnimator
 import android.content.res.ColorStateList
 import android.graphics.Point
 import android.os.Bundle
-import android.util.Log
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.AnticipateOvershootInterpolator
@@ -93,7 +92,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         AnimatorSet().apply {
             playSequentially(
                 animPreviewHiding(),
-                makeInfoSheetRevealShowAnimation().apply {
+                makeInfoSheetRevealAnimation(hide = false).apply {
                     doOnStart {
                         setInfoSheetColor(color)
                     }
@@ -105,7 +104,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     private fun animInfoSheetHiding(@ColorInt color: Int) {
         AnimatorSet().apply {
             playSequentially(
-                makeInfoSheetRevealHideAnimation(),
+                makeInfoSheetRevealAnimation(hide = true),
                 animPreviewShowing(),
                 makePreviewColorChangingAnimation(color)
             )
@@ -115,7 +114,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     private fun animPreviewShowing() = AnimatorSet().apply {
         playTogether(
             makePreviewShowingAnimation(),
-            makePreviewElevationAnimation(forward = false)
+            makePreviewElevationAnimation(flatten = false)
         )
         duration = longAnimDuration
     }
@@ -123,7 +122,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     private fun animPreviewHiding() = AnimatorSet().apply {
         playTogether(
             makePreviewHidingAnimation(),
-            makePreviewElevationAnimation(forward = true)
+            makePreviewElevationAnimation(flatten = true)
         )
         duration = longAnimDuration
     }
@@ -169,10 +168,10 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
             }
     }
 
-    private fun makePreviewElevationAnimation(forward: Boolean): Animator {
+    private fun makePreviewElevationAnimation(flatten: Boolean): Animator {
         val preview = binding.previewWrapper
         val elevation = resources.getDimension(R.dimen.home_preview_elevation)
-        val animator = if (forward) { // reverse() can't be used when is a part of AnimatorSet
+        val animator = if (flatten) { // reverse() can't be used when is a part of AnimatorSet
             ValueAnimator.ofFloat(elevation, 0f)
         } else {
             ValueAnimator.ofFloat(0f, elevation)
@@ -180,39 +179,29 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         return animator.apply {
             interpolator = AccelerateInterpolator()
             addUpdateListener {
-                Log.d("QWERTY", (animatedValue as Float).toString())
                 preview.elevation = animatedValue as Float
             }
         }
     }
 
-    private fun makeInfoSheetRevealHideAnimation(): Animator {
+    private fun makeInfoSheetRevealAnimation(hide: Boolean): Animator {
         val sheet = binding.infoSheet
         val preview = binding.previewWrapper
         val center = makeInfoSheetRevealStartPosistion()
-        val sr = AnimationUtils.getCircularRevealMaxRadius(sheet, center)
-        val er = preview.width.toFloat() / 2
+        var sr = preview.width.toFloat() / 2
+        var er = AnimationUtils.getCircularRevealMaxRadius(sheet, center)
+        if (hide) er.let {
+            er = sr
+            sr = it
+        }
         return sheet.createCircularRevealAnimation(center.x, center.y, sr, er).apply {
             duration = longAnimDuration
             interpolator = AccelerateDecelerateInterpolator()
-            doOnEnd {
-                sheet.isInvisible = true
-            }
-        }
-    }
-
-    // TODO: make single method with forward: Boolean parameter
-    private fun makeInfoSheetRevealShowAnimation(): Animator {
-        val sheet = binding.infoSheet
-        val preview = binding.previewWrapper
-        val center = makeInfoSheetRevealStartPosistion()
-        val sr = preview.width.toFloat() / 2
-        val er = AnimationUtils.getCircularRevealMaxRadius(sheet, center)
-        return sheet.createCircularRevealAnimation(center.x, center.y, sr, er).apply {
-            duration = longAnimDuration
-            interpolator = FastOutSlowInInterpolator()
             doOnStart {
                 sheet.isInvisible = false
+            }
+            doOnEnd {
+                sheet.isInvisible = hide
             }
         }
     }
