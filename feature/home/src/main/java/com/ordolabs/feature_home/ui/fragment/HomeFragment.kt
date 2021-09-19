@@ -3,11 +3,14 @@ package com.ordolabs.feature_home.ui.fragment
 import android.animation.Animator
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.content.res.ColorStateList
 import android.graphics.Point
 import android.os.Bundle
+import android.util.Log
 import android.view.ViewAnimationUtils
 import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.AccelerateInterpolator
 import android.view.animation.AnticipateOvershootInterpolator
 import androidx.annotation.ColorInt
 import androidx.core.animation.doOnEnd
@@ -31,9 +34,7 @@ import com.ordolabs.thecolor.util.ext.hideSoftInput
 import com.ordolabs.thecolor.util.ext.longAnimDuration
 import com.ordolabs.thecolor.util.ext.mediumAnimDuration
 import com.ordolabs.thecolor.util.ext.setFragment
-import com.ordolabs.thecolor.viewmodel.HomeViewModel
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
-import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.context.loadKoinModules
 import kotlin.math.hypot
 import com.ordolabs.thecolor.R as RApp
@@ -41,7 +42,6 @@ import com.ordolabs.thecolor.R as RApp
 class HomeFragment : BaseFragment(R.layout.fragment_home) {
 
     private val binding: FragmentHomeBinding by viewBinding()
-    private val homeVM: HomeViewModel by viewModel()
     private val colorInputVM: ColorInputViewModel by sharedViewModel()
 
     private val defaultPreviewColor: Int by lazy {
@@ -82,34 +82,58 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         val sheetColor = getInfoSheetColor()
         if (color == getPreviewColor()) return
         if (color != sheetColor && sheetColor != defaultSheetColor) {
-            animPreviewShowing(color)
+            animInfoSheetHiding(color)
         } else {
-            makePreviewColorChangingAnimation(color).start()
+            setPreviewColor(color)
+            makePreviewColorChangingAnimation().start()
         }
     }
 
-    private fun animPreviewShowing(@ColorInt color: Int) {
+    private fun animInfoSheetShowing(@ColorInt color: Int) {
+        AnimatorSet().apply {
+            playSequentially(
+                animPreviewHiding(),
+                makeInfoSheetRevealShowAnimation().apply {
+                    doOnStart {
+                        setInfoSheetColor(color)
+                    }
+                }
+            )
+        }.start()
+    }
+
+    private fun animInfoSheetHiding(@ColorInt color: Int) {
         AnimatorSet().apply {
             playSequentially(
                 makeInfoSheetRevealHideAnimation(),
-                makePreviewShowingAnimation(),
-                makePreviewColorChangingAnimation(color)
+                animPreviewShowing(),
+                makePreviewColorChangingAnimation().apply {
+                    doOnStart {
+                        setPreviewColor(color)
+                    }
+                }
             )
         }.start()
     }
 
-    private fun animOnProcceedCommand(@ColorInt color: Int) {
-        AnimatorSet().apply {
-            playSequentially(
-                makePreviewHidingAnimation(),
-                makeInfoSheetRevealShowAnimation(color)
-            )
-        }.start()
+    private fun animPreviewShowing() = AnimatorSet().apply {
+        playTogether(
+            makePreviewShowingAnimation(),
+            makePreviewElevationAnimation(forward = false)
+        )
+        duration = 5000L
     }
 
-    private fun makePreviewColorChangingAnimation(@ColorInt color: Int): Animator {
+    private fun animPreviewHiding() = AnimatorSet().apply {
+        playTogether(
+            makePreviewHidingAnimation(),
+            makePreviewElevationAnimation(forward = true)
+        )
+        duration = 5000L
+    }
+
+    private fun makePreviewColorChangingAnimation(): Animator {
         val preview = binding.preview
-        preview.setCardBackgroundColor(color)
         return ObjectAnimator
             .ofFloat(preview, "translationY", 0f, -16f, 15f, -13f, 11f, -7f, 3f, 1f, 0f)
             .apply {
@@ -122,7 +146,6 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         return ObjectAnimator
             .ofFloat(preview, "translationY", preview.translationY, 0f)
             .apply {
-                duration = longAnimDuration
                 interpolator = AnticipateOvershootInterpolator()
             }
     }
@@ -137,9 +160,25 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         return ObjectAnimator
             .ofFloat(preview, "translationY", 0f, translation)
             .apply {
-                duration = longAnimDuration
                 interpolator = AnticipateOvershootInterpolator()
             }
+    }
+
+    private fun makePreviewElevationAnimation(forward: Boolean): Animator {
+        val preview = binding.preview
+        val elevation = resources.getDimension(R.dimen.home_preview_elevation)
+        val animator = if (forward) { // reverse() can't be used when is a part of AnimatorSet
+            ValueAnimator.ofFloat(elevation, 0f)
+        } else {
+            ValueAnimator.ofFloat(0f, elevation)
+        }
+        return animator.apply {
+            interpolator = AccelerateInterpolator()
+            addUpdateListener {
+                Log.d("QWERTY", (animatedValue as Float).toString())
+                preview.elevation = animatedValue as Float
+            }
+        }
     }
 
     private fun makeInfoSheetRevealHideAnimation(): Animator {
@@ -157,7 +196,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         }
     }
 
-    private fun makeInfoSheetRevealShowAnimation(@ColorInt color: Int): Animator {
+    private fun makeInfoSheetRevealShowAnimation(): Animator {
         val sheet = binding.infoSheet
         val preview = binding.preview
         val reveal = makeInfoSheetRevealStartPosistion()
@@ -168,7 +207,6 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
             interpolator = FastOutSlowInInterpolator()
             doOnStart {
                 sheet.isVisible = true
-                sheet.backgroundTintList = ColorStateList.valueOf(color)
             }
         }
     }
@@ -187,8 +225,16 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         return binding.preview.cardBackgroundColor.defaultColor
     }
 
+    private fun setPreviewColor(@ColorInt color: Int) {
+        binding.preview.setCardBackgroundColor(color)
+    }
+
     private fun getInfoSheetColor(): Int {
         return binding.infoSheet.backgroundTintList?.defaultColor ?: 0
+    }
+
+    private fun setInfoSheetColor(@ColorInt color: Int) {
+        binding.infoSheet.backgroundTintList = ColorStateList.valueOf(color)
     }
 
     private fun collectColorPreview() =
@@ -216,7 +262,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
 
     private fun onProcceedCommandSuccess(color: ColorUtil.Color) {
         hideSoftInput()
-        animOnProcceedCommand(color.toColorInt())
+        animInfoSheetShowing(color.toColorInt())
     }
 
     override fun setSoftInputMode() {
