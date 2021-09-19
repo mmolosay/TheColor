@@ -30,7 +30,7 @@ class ColorInputViewModel(
     private val _colorValidationState = MutableStateResourceFlow<Boolean>(Resource.empty())
     val colorValidationState = _colorValidationState.asStateFlow()
 
-    private val _colorPreview = MutableStateResourceFlow<Color>(Resource.loading())
+    private val _colorPreview = MutableStateResourceFlow<Color>(Resource.empty())
     val colorPreview = _colorPreview.asStateFlow()
 
     private val _colorHex = MutableStateResourceFlow<ColorHexPresentation>(Resource.empty())
@@ -55,6 +55,7 @@ class ColorInputViewModel(
         val domain = color?.toDomain() ?: kotlin.run {
             _colorValidationState.value = Resource.success(false)
             clearAllColors()
+            clearColorPreview()
             return@launch
         }
         val abstract = Color.from(color)
@@ -71,6 +72,7 @@ class ColorInputViewModel(
         val domain = color?.toDomain() ?: kotlin.run {
             _colorValidationState.value = Resource.success(false)
             clearAllColors()
+            clearColorPreview()
             return@launch
         }
         val abstract = Color.from(color)
@@ -116,6 +118,10 @@ class ColorInputViewModel(
 
     private fun updateColorPreview(valid: Boolean, color: Color) {
         if (valid) _colorPreview.value = Resource.success(color)
+    }
+
+    private fun clearColorPreview() {
+        _colorPreview.value = Resource.empty()
     }
 
     private fun clearAllColors() {

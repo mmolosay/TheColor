@@ -158,7 +158,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         val sheet = binding.infoSheet
         val preview = binding.previewWrapper
         val distance = preview.getDistanceInParent(sheet, view)?.y ?: 0
-        val addend = makeInfoSheetRevealStartPosistion().y
+        val addend = makeInfoSheetRevealCenter().y
         val radius = preview.height / 2
         val translation = distance.toFloat() + addend - radius
         return ObjectAnimator
@@ -187,7 +187,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     private fun makeInfoSheetRevealAnimation(hide: Boolean): Animator {
         val sheet = binding.infoSheet
         val preview = binding.previewWrapper
-        val center = makeInfoSheetRevealStartPosistion()
+        val center = makeInfoSheetRevealCenter()
         var sr = preview.width.toFloat() / 2
         var er = AnimationUtils.getCircularRevealMaxRadius(sheet, center)
         if (hide) er.let {
@@ -206,7 +206,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         }
     }
 
-    private fun makeInfoSheetRevealStartPosistion(): Point {
+    private fun makeInfoSheetRevealCenter(): Point {
         val sheet = binding.infoSheet
         val bottom = sheet.getBottomVisibleInParent(view) ?: sheet.height
         val padding = resources.getDimensionPixelSize(RApp.dimen.offset_32)
