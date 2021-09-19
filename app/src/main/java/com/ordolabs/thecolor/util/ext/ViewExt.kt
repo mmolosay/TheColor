@@ -8,7 +8,12 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import androidx.core.graphics.minus
+import androidx.dynamicanimation.animation.DynamicAnimation
+import androidx.dynamicanimation.animation.SpringAnimation
 import com.google.android.material.textfield.TextInputLayout
+import com.ordolabs.thecolor.util.AnimationUtils
+
+/* TextInputLayout and EditText */
 
 fun TextInputLayout.getText(): Editable? {
     return this.editText?.text
@@ -32,6 +37,8 @@ fun EditText.hideSoftInput(): Boolean {
     manager?.hideSoftInputFromWindow(this.windowToken, 0) ?: return false
     return true
 }
+
+/* Location */
 
 /**
  * Computes coordinates of `this` view relative to specified [parent].
@@ -67,4 +74,16 @@ fun View.getBottomVisibleInParent(parent: View?): Int? {
     val absBottom = location.y + this.height
     val clipped = absBottom - parent.height
     return if (clipped > 0) this.height - clipped else this.height
+}
+
+/* Animation */
+
+fun View.spring(property: DynamicAnimation.ViewProperty): SpringAnimation {
+    val key = AnimationUtils.getSpringPropertyKey(property)
+    var anim = this.getTag(key) as? SpringAnimation
+    if (anim == null) {
+        anim = SpringAnimation(this, property)
+        this.setTag(key, anim)
+    }
+    return anim
 }
