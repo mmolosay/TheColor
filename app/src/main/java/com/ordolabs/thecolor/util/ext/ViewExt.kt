@@ -1,10 +1,12 @@
 package com.ordolabs.thecolor.util.ext
 
+import android.animation.Animator
 import android.content.Context
 import android.graphics.Point
 import android.text.Editable
 import android.text.InputFilter
 import android.view.View
+import android.view.ViewAnimationUtils
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import androidx.core.graphics.minus
@@ -12,6 +14,7 @@ import androidx.dynamicanimation.animation.DynamicAnimation
 import androidx.dynamicanimation.animation.SpringAnimation
 import com.google.android.material.textfield.TextInputLayout
 import com.ordolabs.thecolor.util.AnimationUtils
+import kotlin.math.hypot
 
 /* TextInputLayout and EditText */
 
@@ -80,10 +83,25 @@ fun View.getBottomVisibleInParent(parent: View?): Int? {
 
 fun View.spring(property: DynamicAnimation.ViewProperty): SpringAnimation {
     val key = AnimationUtils.getSpringPropertyKey(property)
-    var anim = this.getTag(key) as? SpringAnimation
-    if (anim == null) {
-        anim = SpringAnimation(this, property)
-        this.setTag(key, anim)
+    return this.getTag(key) as? SpringAnimation
+        ?: SpringAnimation(this, property).also {
+            this.setTag(key, it)
+        }
+}
+
+fun View.circularRevealAnimation(
+    cx: Int = width / 2,
+    cy: Int = height / 2,
+    sr: Float = 0f,
+    er: Float = kotlin.run {
+        val x = (if (cx >= width / 2) 0 else width).toFloat()
+        val y = (if (cy >= height / 2) 0 else height).toFloat()
+        hypot(x - cx, y - cy)
     }
-    return anim
+): Animator {
+    val key = AnimationUtils.getCircularRevealKey()
+    return this.getTag(key) as? Animator
+        ?: ViewAnimationUtils.createCircularReveal(this, cx, cy, sr, er).also {
+            this.setTag(key, it)
+        }
 }
