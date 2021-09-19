@@ -72,13 +72,14 @@ dependencies {
     implementation "androidx.navigation:navigation-ui-ktx:2.3.5"
 
     // Lifecycle
-    api "androidx.lifecycle:lifecycle-runtime-ktx:2.4.0-alpha03"
-    api "androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0-alpha03"
+    api "androidx.lifecycle:lifecycle-runtime-ktx:2.4.0-beta01"
+    api "androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0-beta01"
 
     // Material
     api "com.google.android.material:material:1.4.0"
 
     // Animations
+    api "androidx.dynamicanimation:dynamicanimation:1.0.0"
 
     // Third Party Libraries
     api "com.github.kirich1409:viewbindingpropertydelegate:1.4.7"
