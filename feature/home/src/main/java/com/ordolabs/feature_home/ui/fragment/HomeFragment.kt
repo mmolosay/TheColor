@@ -20,6 +20,7 @@ import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.FragmentHomeBinding
 import com.ordolabs.feature_home.di.featureHomeModule
 import com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputHostFragment
+import com.ordolabs.feature_home.viewmodel.ColorInformationViewModel
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
 import com.ordolabs.thecolor.util.AnimationUtils
 import com.ordolabs.thecolor.util.ColorUtil
@@ -42,6 +43,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
 
     private val binding: FragmentHomeBinding by viewBinding()
     private val colorInputVM: ColorInputViewModel by sharedViewModel()
+    private val colorInformationVM: ColorInformationViewModel by sharedViewModel()
 
     private val defaultPreviewColor: Int by lazy {
         getPreviewColor()
@@ -253,7 +255,9 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
 
     private fun onProcceedCommandSuccess(color: ColorUtil.Color) {
         hideSoftInput()
-        animInfoSheetShowing(color.toColorInt())
+        val int = color.toColorInt()
+        if (getInfoSheetColor() == int) return // sequentiall button clicks, do nothing
+        animInfoSheetShowing(int)
     }
 
     override fun setSoftInputMode() {

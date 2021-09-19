@@ -16,6 +16,21 @@ object ColorUtil {
     ) {
         val hexWithNumberSign: String get() = '#' + this.hex
 
+        override operator fun equals(other: Any?): Boolean {
+            other ?: return false
+            if (other is String) {
+                return (other == hex || other == hexWithNumberSign)
+            }
+            if (other is Color) {
+                return super.equals(other)
+            }
+            return false
+        }
+
+        override fun hashCode(): Int {
+            return hex.hashCode()
+        }
+
         companion object
     }
 
