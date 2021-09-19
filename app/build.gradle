@@ -70,11 +70,10 @@ dependencies {
     implementation "androidx.navigation:navigation-fragment-ktx:2.3.5"
     implementation "androidx.navigation:navigation-dynamic-features-fragment:2.3.5"
     implementation "androidx.navigation:navigation-ui-ktx:2.3.5"
-    implementation "androidx.navigation:navigation-safe-args-gradle-plugin:2.3.5"
 
     // Lifecycle
-    api "androidx.lifecycle:lifecycle-runtime-ktx:2.4.0-beta01"
-    api "androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0-beta01"
+    api "androidx.lifecycle:lifecycle-runtime-ktx:2.4.0-alpha03"
+    api "androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0-alpha03"
 
     // Material
     api "com.google.android.material:material:1.4.0"

@@ -14,7 +14,6 @@ import androidx.dynamicanimation.animation.DynamicAnimation
 import androidx.dynamicanimation.animation.SpringAnimation
 import com.google.android.material.textfield.TextInputLayout
 import com.ordolabs.thecolor.util.AnimationUtils
-import kotlin.math.hypot
 
 /* TextInputLayout and EditText */
 
@@ -24,10 +23,6 @@ fun TextInputLayout.getText(): Editable? {
 
 fun TextInputLayout.getTextString(): String? {
     return this.editText?.text?.toString()
-}
-
-fun TextInputLayout.hideSoftInput(): Boolean {
-    return this.editText?.hideSoftInput() ?: false
 }
 
 fun EditText.addFilters(vararg filters: InputFilter) {
@@ -81,6 +76,11 @@ fun View.getBottomVisibleInParent(parent: View?): Int? {
 
 /* Animation */
 
+/**
+ * Returns [SpringAnimation], associated with `this` view or a new one.
+ * Note, that if returned animation is not a newly created, it would has all
+ * listeners from the past.
+ */
 fun View.spring(property: DynamicAnimation.ViewProperty): SpringAnimation {
     val key = AnimationUtils.getSpringPropertyKey(property)
     return this.getTag(key) as? SpringAnimation
@@ -89,19 +89,14 @@ fun View.spring(property: DynamicAnimation.ViewProperty): SpringAnimation {
         }
 }
 
-fun View.circularRevealAnimation(
+/**
+ * Returns newly created circular reveal animation.
+ */
+fun View.createCircularRevealAnimation(
     cx: Int = width / 2,
     cy: Int = height / 2,
     sr: Float = 0f,
-    er: Float = kotlin.run {
-        val x = (if (cx >= width / 2) 0 else width).toFloat()
-        val y = (if (cy >= height / 2) 0 else height).toFloat()
-        hypot(x - cx, y - cy)
-    }
+    er: Float = AnimationUtils.getCircularRevealMaxRadius(this, cx, cy)
 ): Animator {
-    val key = AnimationUtils.getCircularRevealKey()
-    return this.getTag(key) as? Animator
-        ?: ViewAnimationUtils.createCircularReveal(this, cx, cy, sr, er).also {
-            this.setTag(key, it)
-        }
+    return ViewAnimationUtils.createCircularReveal(this, cx, cy, sr, er)
 }

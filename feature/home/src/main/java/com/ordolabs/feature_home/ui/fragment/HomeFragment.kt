@@ -8,7 +8,6 @@ import android.content.res.ColorStateList
 import android.graphics.Point
 import android.os.Bundle
 import android.util.Log
-import android.view.ViewAnimationUtils
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.AnticipateOvershootInterpolator
@@ -23,9 +22,11 @@ import com.ordolabs.feature_home.databinding.FragmentHomeBinding
 import com.ordolabs.feature_home.di.featureHomeModule
 import com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputHostFragment
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
+import com.ordolabs.thecolor.util.AnimationUtils
 import com.ordolabs.thecolor.util.ColorUtil
 import com.ordolabs.thecolor.util.ColorUtil.toColorInt
 import com.ordolabs.thecolor.util.InsetsUtil
+import com.ordolabs.thecolor.util.ext.createCircularRevealAnimation
 import com.ordolabs.thecolor.util.ext.getBottomVisibleInParent
 import com.ordolabs.thecolor.util.ext.getColor
 import com.ordolabs.thecolor.util.ext.getDistanceInParent
@@ -36,7 +37,6 @@ import com.ordolabs.thecolor.util.ext.setColor
 import com.ordolabs.thecolor.util.ext.setFragment
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.koin.core.context.loadKoinModules
-import kotlin.math.hypot
 import com.ordolabs.thecolor.R as RApp
 
 class HomeFragment : BaseFragment(R.layout.fragment_home) {
@@ -131,16 +131,12 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     private fun makePreviewColorChangingAnimation(@ColorInt color: Int): Animator {
         val preview = binding.preview
         val updated = binding.previewUpdated
-        val cx = updated.width / 2
-        val cy = updated.height / 2
-        val sr = 0f
-        val er = hypot(cx.toFloat(), cy.toFloat())
-        return ViewAnimationUtils.createCircularReveal(updated, cx, cy, sr, er).apply {
+        return updated.createCircularRevealAnimation().apply {
             duration = mediumAnimDuration
             interpolator = FastOutSlowInInterpolator()
             doOnStart {
-                updated.isInvisible = false
                 updated.background.setColor(color)
+                updated.isInvisible = false
             }
             doOnEnd {
                 preview.background.setColor(color)
@@ -193,10 +189,10 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     private fun makeInfoSheetRevealHideAnimation(): Animator {
         val sheet = binding.infoSheet
         val preview = binding.previewWrapper
-        val reveal = makeInfoSheetRevealStartPosistion()
-        val sr = hypot(reveal.x.toFloat(), reveal.y.toFloat())
+        val center = makeInfoSheetRevealStartPosistion()
+        val sr = AnimationUtils.getCircularRevealMaxRadius(sheet, center)
         val er = preview.width.toFloat() / 2
-        return ViewAnimationUtils.createCircularReveal(sheet, reveal.x, reveal.y, sr, er).apply {
+        return sheet.createCircularRevealAnimation(center.x, center.y, sr, er).apply {
             duration = longAnimDuration
             interpolator = AccelerateDecelerateInterpolator()
             doOnEnd {
@@ -205,13 +201,14 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         }
     }
 
+    // TODO: make single method with forward: Boolean parameter
     private fun makeInfoSheetRevealShowAnimation(): Animator {
         val sheet = binding.infoSheet
         val preview = binding.previewWrapper
-        val reveal = makeInfoSheetRevealStartPosistion()
+        val center = makeInfoSheetRevealStartPosistion()
         val sr = preview.width.toFloat() / 2
-        val er = hypot(reveal.x.toFloat(), reveal.y.toFloat())
-        return ViewAnimationUtils.createCircularReveal(sheet, reveal.x, reveal.y, sr, er).apply {
+        val er = AnimationUtils.getCircularRevealMaxRadius(sheet, center)
+        return sheet.createCircularRevealAnimation(center.x, center.y, sr, er).apply {
             duration = longAnimDuration
             interpolator = FastOutSlowInInterpolator()
             doOnStart {

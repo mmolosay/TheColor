@@ -1,44 +1,44 @@
 package com.ordolabs.thecolor.util
 
+import android.graphics.Point
+import android.view.View
+import androidx.annotation.IdRes
 import androidx.dynamicanimation.animation.DynamicAnimation.ViewProperty
 import androidx.dynamicanimation.animation.SpringAnimation
+import com.ordolabs.thecolor.R
+import kotlin.math.hypot
 
 object AnimationUtils {
 
-    private const val SPRING_PROPERTY_KEY_TRANSLATION_X = 77000
-    private const val SPRING_PROPERTY_KEY_TRANSLATION_Y = 77001
-    private const val SPRING_PROPERTY_KEY_TRANSLATION_Z = 77002
-    private const val SPRING_PROPERTY_KEY_SCALE_X = 77003
-    private const val SPRING_PROPERTY_KEY_SCALE_Y = 77004
-    private const val SPRING_PROPERTY_KEY_ROTATION = 77005
-    private const val SPRING_PROPERTY_KEY_ROTATION_X = 77006
-    private const val SPRING_PROPERTY_KEY_ROTATION_Y = 77007
-    private const val SPRING_PROPERTY_KEY_X = 77008
-    private const val SPRING_PROPERTY_KEY_Y = 77009
-    private const val SPRING_PROPERTY_KEY_Z = 77010
-    private const val SPRING_PROPERTY_KEY_ALPHA = 77011
-    private const val SPRING_PROPERTY_KEY_SCROLL_X = 77012
-    private const val SPRING_PROPERTY_KEY_SCROLL_Y = 77013
-
-    private const val CIRCULAR_REVEAL_KEY = 88000
-
+    @IdRes
     fun getSpringPropertyKey(property: ViewProperty): Int = when (property) {
-        SpringAnimation.TRANSLATION_X -> SPRING_PROPERTY_KEY_TRANSLATION_X
-        SpringAnimation.TRANSLATION_Y -> SPRING_PROPERTY_KEY_TRANSLATION_Y
-        SpringAnimation.TRANSLATION_Z -> SPRING_PROPERTY_KEY_TRANSLATION_Z
-        SpringAnimation.SCALE_X -> SPRING_PROPERTY_KEY_SCALE_X
-        SpringAnimation.SCALE_Y -> SPRING_PROPERTY_KEY_SCALE_Y
-        SpringAnimation.ROTATION -> SPRING_PROPERTY_KEY_ROTATION
-        SpringAnimation.ROTATION_X -> SPRING_PROPERTY_KEY_ROTATION_X
-        SpringAnimation.ROTATION_Y -> SPRING_PROPERTY_KEY_ROTATION_Y
-        SpringAnimation.X -> SPRING_PROPERTY_KEY_X
-        SpringAnimation.Y -> SPRING_PROPERTY_KEY_Y
-        SpringAnimation.Z -> SPRING_PROPERTY_KEY_Z
-        SpringAnimation.ALPHA -> SPRING_PROPERTY_KEY_ALPHA
-        SpringAnimation.SCROLL_X -> SPRING_PROPERTY_KEY_SCROLL_X
-        SpringAnimation.SCROLL_Y -> SPRING_PROPERTY_KEY_SCROLL_Y
+        SpringAnimation.TRANSLATION_X -> R.id.springPropertyKeyTranslationX
+        SpringAnimation.TRANSLATION_Y -> R.id.springPropertyKeyTranslationY
+        SpringAnimation.TRANSLATION_Z -> R.id.springPropertyKeyTranslationZ
+        SpringAnimation.SCALE_X -> R.id.springPropertyKeyScaleX
+        SpringAnimation.SCALE_Y -> R.id.springPropertyKeyScaleY
+        SpringAnimation.ROTATION -> R.id.springPropertyKeyRotation
+        SpringAnimation.ROTATION_X -> R.id.springPropertyKeyRotationX
+        SpringAnimation.ROTATION_Y -> R.id.springPropertyKeyRotationY
+        SpringAnimation.X -> R.id.springPropertyKeyX
+        SpringAnimation.Y -> R.id.springPropertyKeyY
+        SpringAnimation.Z -> R.id.springPropertyKeyZ
+        SpringAnimation.ALPHA -> R.id.springPropertyKeyAlpha
+        SpringAnimation.SCROLL_X -> R.id.springPropertyKeyScrollX
+        SpringAnimation.SCROLL_Y -> R.id.springPropertyKeyScrollY
         else -> error("this animation property is not supported")
     }
 
-    fun getCircularRevealKey(): Int = CIRCULAR_REVEAL_KEY
+    @IdRes
+    fun getCircularRevealKey(): Int = R.id.animCircularRevealKey
+
+    fun getCircularRevealMaxRadius(view: View, cx: Int, cy: Int): Float {
+        val x = (if (cx >= view.width / 2) 0 else view.width).toFloat()
+        val y = (if (cy >= view.height / 2) 0 else view.height).toFloat()
+        return hypot(x - cx, y - cy)
+    }
+
+    fun getCircularRevealMaxRadius(view: View, center: Point): Float {
+        return getCircularRevealMaxRadius(view, center.x, center.y)
+    }
 }
