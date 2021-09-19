@@ -16,10 +16,8 @@ import androidx.annotation.ColorInt
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
 import androidx.core.view.isInvisible
-import androidx.core.view.isVisible
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import by.kirich1409.viewbindingdelegate.viewBinding
-import com.google.android.material.color.MaterialColors
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.FragmentHomeBinding
 import com.ordolabs.feature_home.di.featureHomeModule
@@ -29,10 +27,12 @@ import com.ordolabs.thecolor.util.ColorUtil
 import com.ordolabs.thecolor.util.ColorUtil.toColorInt
 import com.ordolabs.thecolor.util.InsetsUtil
 import com.ordolabs.thecolor.util.ext.getBottomVisibleInParent
+import com.ordolabs.thecolor.util.ext.getColor
 import com.ordolabs.thecolor.util.ext.getDistanceInParent
 import com.ordolabs.thecolor.util.ext.hideSoftInput
 import com.ordolabs.thecolor.util.ext.longAnimDuration
 import com.ordolabs.thecolor.util.ext.mediumAnimDuration
+import com.ordolabs.thecolor.util.ext.setColor
 import com.ordolabs.thecolor.util.ext.setFragment
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.koin.core.context.loadKoinModules
@@ -45,11 +45,11 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     private val colorInputVM: ColorInputViewModel by sharedViewModel()
 
     private val defaultPreviewColor: Int by lazy {
-        MaterialColors.getColor(binding.root, com.ordolabs.thecolor.R.attr.colorPrimary)
+        getPreviewColor()
     }
 
     private val defaultSheetColor: Int by lazy {
-        binding.infoSheet.backgroundTintList?.defaultColor ?: 0
+        getInfoSheetColor()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,6 +63,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     }
 
     override fun setViews() {
+        defaultPreviewColor // init
         defaultSheetColor // init
         setColorInputFragment()
         setColorInformationFragment()
@@ -84,8 +85,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         if (color != sheetColor && sheetColor != defaultSheetColor) {
             animInfoSheetHiding(color)
         } else {
-            setPreviewColor(color)
-            makePreviewColorChangingAnimation().start()
+            makePreviewColorChangingAnimation(color).start()
         }
     }
 
@@ -107,11 +107,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
             playSequentially(
                 makeInfoSheetRevealHideAnimation(),
                 animPreviewShowing(),
-                makePreviewColorChangingAnimation().apply {
-                    doOnStart {
-                        setPreviewColor(color)
-                    }
-                }
+                makePreviewColorChangingAnimation(color)
             )
         }.start()
     }
@@ -121,7 +117,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
             makePreviewShowingAnimation(),
             makePreviewElevationAnimation(forward = false)
         )
-        duration = 5000L
+        duration = longAnimDuration
     }
 
     private fun animPreviewHiding() = AnimatorSet().apply {
@@ -129,20 +125,33 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
             makePreviewHidingAnimation(),
             makePreviewElevationAnimation(forward = true)
         )
-        duration = 5000L
+        duration = longAnimDuration
     }
 
-    private fun makePreviewColorChangingAnimation(): Animator {
+    private fun makePreviewColorChangingAnimation(@ColorInt color: Int): Animator {
         val preview = binding.preview
-        return ObjectAnimator
-            .ofFloat(preview, "translationY", 0f, -16f, 15f, -13f, 11f, -7f, 3f, 1f, 0f)
-            .apply {
-                duration = mediumAnimDuration
+        val updated = binding.previewUpdated
+        val cx = updated.width / 2
+        val cy = updated.height / 2
+        val sr = 0f
+        val er = hypot(cx.toFloat(), cy.toFloat())
+        return ViewAnimationUtils.createCircularReveal(updated, cx, cy, sr, er).apply {
+            duration = mediumAnimDuration
+            interpolator = FastOutSlowInInterpolator()
+            doOnStart {
+                updated.isInvisible = false
+                updated.background.setColor(color)
             }
+            doOnEnd {
+                preview.background.setColor(color)
+                preview.invalidate()
+                updated.isInvisible = true
+            }
+        }
     }
 
     private fun makePreviewShowingAnimation(): Animator {
-        val preview = binding.preview
+        val preview = binding.previewWrapper
         return ObjectAnimator
             .ofFloat(preview, "translationY", preview.translationY, 0f)
             .apply {
@@ -152,7 +161,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
 
     private fun makePreviewHidingAnimation(): Animator {
         val sheet = binding.infoSheet
-        val preview = binding.preview
+        val preview = binding.previewWrapper
         val distance = preview.getDistanceInParent(sheet, view)?.y ?: 0
         val addend = makeInfoSheetRevealStartPosistion().y
         val radius = preview.height / 2
@@ -165,7 +174,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     }
 
     private fun makePreviewElevationAnimation(forward: Boolean): Animator {
-        val preview = binding.preview
+        val preview = binding.previewWrapper
         val elevation = resources.getDimension(R.dimen.home_preview_elevation)
         val animator = if (forward) { // reverse() can't be used when is a part of AnimatorSet
             ValueAnimator.ofFloat(elevation, 0f)
@@ -183,9 +192,9 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
 
     private fun makeInfoSheetRevealHideAnimation(): Animator {
         val sheet = binding.infoSheet
-        val preview = binding.preview
+        val preview = binding.previewWrapper
         val reveal = makeInfoSheetRevealStartPosistion()
-        val sr = hypot(reveal.x.toDouble(), reveal.y.toDouble()).toFloat()
+        val sr = hypot(reveal.x.toFloat(), reveal.y.toFloat())
         val er = preview.width.toFloat() / 2
         return ViewAnimationUtils.createCircularReveal(sheet, reveal.x, reveal.y, sr, er).apply {
             duration = longAnimDuration
@@ -198,15 +207,15 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
 
     private fun makeInfoSheetRevealShowAnimation(): Animator {
         val sheet = binding.infoSheet
-        val preview = binding.preview
+        val preview = binding.previewWrapper
         val reveal = makeInfoSheetRevealStartPosistion()
         val sr = preview.width.toFloat() / 2
-        val er = hypot(reveal.x.toDouble(), reveal.y.toDouble()).toFloat()
+        val er = hypot(reveal.x.toFloat(), reveal.y.toFloat())
         return ViewAnimationUtils.createCircularReveal(sheet, reveal.x, reveal.y, sr, er).apply {
             duration = longAnimDuration
             interpolator = FastOutSlowInInterpolator()
             doOnStart {
-                sheet.isVisible = true
+                sheet.isInvisible = false
             }
         }
     }
@@ -222,11 +231,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     }
 
     private fun getPreviewColor(): Int {
-        return binding.preview.cardBackgroundColor.defaultColor
-    }
-
-    private fun setPreviewColor(@ColorInt color: Int) {
-        binding.preview.setCardBackgroundColor(color)
+        return binding.preview.background.getColor()
     }
 
     private fun getInfoSheetColor(): Int {

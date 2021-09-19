@@ -50,15 +50,33 @@
             tools:layout="@layout/fragment_color_input_host" />
 
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/preview"
-            android:layout_width="@dimen/color_input_preview_size"
-            android:layout_height="@dimen/color_input_preview_size"
-            app:cardBackgroundColor="?attr/colorPrimary"
+            android:id="@+id/previewWrapper"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
             app:cardCornerRadius="1000dp"
             app:cardElevation="@dimen/home_preview_elevation"
             app:layout_constraintEnd_toStartOf="@+id/glEnd"
             app:layout_constraintStart_toStartOf="@+id/glStart"
-            app:layout_constraintTop_toBottomOf="@+id/defaultFragmentContainer" />
+            app:layout_constraintTop_toBottomOf="@+id/defaultFragmentContainer">
+
+            <View
+                android:id="@+id/preview"
+                android:layout_width="@dimen/color_input_preview_size"
+                android:layout_height="@dimen/color_input_preview_size"
+                android:background="?attr/colorPrimary"
+                tools:visibility="visible" />
+
+            <View
+                android:id="@+id/previewUpdated"
+                android:layout_width="@dimen/color_input_preview_size"
+                android:layout_height="@dimen/color_input_preview_size"
+                android:background="?attr/colorPrimary"
+                android:visibility="invisible"
+                tools:background="@color/debug_red"
+                tools:visibility="visible" />
+
+        </com.google.android.material.card.MaterialCardView>
 
         <FrameLayout
             android:id="@+id/infoWrapper"
@@ -69,7 +87,7 @@
 
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/preview">
+            app:layout_constraintTop_toBottomOf="@+id/previewWrapper">
 
             <FrameLayout
                 android:id="@+id/infoSheet"
