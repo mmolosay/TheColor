@@ -34,6 +34,7 @@ import com.ordolabs.thecolor.util.ext.getDistanceInParent
 import com.ordolabs.thecolor.util.ext.hideSoftInput
 import com.ordolabs.thecolor.util.ext.longAnimDuration
 import com.ordolabs.thecolor.util.ext.mediumAnimDuration
+import com.ordolabs.thecolor.util.ext.play
 import com.ordolabs.thecolor.util.ext.setColor
 import com.ordolabs.thecolor.util.ext.setFragment
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
@@ -99,25 +100,17 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     }
 
     private fun animInfoSheetShowing(@ColorInt color: Int) {
-        AnimatorSet().apply {
-            playSequentially(
-                animPreviewCollapsing(),
-                makeInfoSheetRevealAnimation(hide = false).apply {
-                    doOnStart {
-                        setInfoSheetColor(color)
-                    }
-                }
-            )
+        AnimatorSet().play(animPreviewCollapsing()) {
+            before(makeInfoSheetRevealAnimation(hide = false).apply {
+                doOnStart { setInfoSheetColor(color) }
+            })
         }.start()
     }
 
     private fun animInfoSheetHiding() {
         if (!binding.infoSheet.isVisible) return
-        AnimatorSet().apply {
-            playSequentially(
-                makeInfoSheetRevealAnimation(hide = true),
-                animPreviewExpanding()
-            )
+        AnimatorSet().play(makeInfoSheetRevealAnimation(hide = true)) {
+            before(animPreviewExpanding())
         }.start()
     }
 
