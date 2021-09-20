@@ -29,8 +29,8 @@
             android:digits="0123456789ABCDEF"
             android:imeOptions="actionDone"
             android:inputType="textCapCharacters"
+            android:lines="1"
             android:maxLength="6"
-            android:maxLines="1"
             android:selectAllOnFocus="true" />
 
     </com.google.android.material.textfield.TextInputLayout>

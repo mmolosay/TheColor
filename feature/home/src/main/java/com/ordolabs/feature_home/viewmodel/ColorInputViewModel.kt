@@ -19,8 +19,10 @@ import com.ordolabs.thecolor.util.struct.getOrNull
 import com.ordolabs.thecolor.util.struct.loading
 import com.ordolabs.thecolor.util.struct.success
 import com.ordolabs.thecolor.viewmodel.BaseViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 
@@ -32,19 +34,35 @@ class ColorInputViewModel(
     private val _colorValidationState = MutableStateResourceFlow<Boolean>(Resource.empty())
     val colorValidationState = _colorValidationState.asStateFlow()
 
-    private val _colorPreview = MutableStateResourceFlow<Color>(Resource.empty())
-    val colorPreview = _colorPreview.asStateFlow()
+    private val _colorPreview: MutableStateFlow<Resource<Color>>
+    val colorPreview: StateFlow<Resource<Color>>
 
-    private val _colorHex = MutableStateResourceFlow<ColorHexPresentation>(Resource.empty())
-    val colorHex = _colorHex.shareOnceIn(viewModelScope)
+    private val _colorHex: MutableStateFlow<Resource<ColorHexPresentation>>
+    val colorHex: SharedFlow<Resource<ColorHexPresentation>>
 
-    private val _colorRgb = MutableStateResourceFlow<ColorRgbPresentation>(Resource.empty())
-    val colorRgb = _colorRgb.shareOnceIn(viewModelScope)
+    private val _colorRgb: MutableStateFlow<Resource<ColorRgbPresentation>>
+    val colorRgb: SharedFlow<Resource<ColorRgbPresentation>>
 
     private val _procceedCommand = MutableStateResourceFlow<Color>(Resource.empty())
     val procceedCommand = _procceedCommand.shareOnceIn(viewModelScope)
 
     private var colorValidationJob: Job? = null
+
+    init {
+        _colorPreview = MutableStateResourceFlow(Color("000000"))
+        colorPreview = _colorPreview.asStateFlow()
+
+        _colorHex = MutableStateResourceFlow(Resource.loading())
+        colorHex = _colorHex.shareOnceIn(viewModelScope)
+
+        _colorRgb = MutableStateResourceFlow(Resource.loading())
+        colorRgb = _colorRgb.shareOnceIn(viewModelScope)
+
+        colorPreview.value.ifSuccess { color ->
+            updateColorValidationState(valid = true)
+            updateColors(color, Nothing::class.java)
+        }
+    }
 
     override fun onCleared() {
         super.onCleared()
@@ -87,7 +105,7 @@ class ColorInputViewModel(
         }
     }
 
-    private fun restartColorValidation() = launchOn(Dispatchers.Main) {
+    private fun restartColorValidation() = launchInMain {
         colorValidationJob?.cancel()
         _colorValidationState.value = Resource.loading()
     }
@@ -96,17 +114,16 @@ class ColorInputViewModel(
         valid: Boolean,
         abstract: Color?,
         initialColorClass: Class<*>
-    ) =
-        launchOn(Dispatchers.Main) {
-            updateColorValidationState(valid)
-            if (valid && abstract != null) {
-                updateColors(abstract, initialColorClass)
-                updateColorPreview(abstract)
-            } else {
-                clearColors()
-                clearColorPreview()
-            }
+    ) {
+        updateColorValidationState(valid)
+        if (valid && abstract != null) {
+            updateColors(abstract, initialColorClass)
+            updateColorPreview(abstract)
+        } else {
+            clearColors()
+            clearColorPreview()
         }
+    }
 
     private fun updateColorValidationState(valid: Boolean) {
         _colorValidationState.value = Resource.success(valid)

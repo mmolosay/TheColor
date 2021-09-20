@@ -14,6 +14,7 @@ import android.view.animation.AnticipateOvershootInterpolator
 import androidx.annotation.ColorInt
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
+import androidx.core.view.doOnLayout
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
@@ -82,10 +83,11 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         setFragment(fragment, binding.infoFragmentContainer.id)
     }
 
-    private fun updateColorPreview(@ColorInt color: Int) {
-        if (color == getPreviewColor()) return
-        makePreviewColorChangingAnimation(color).start()
-    }
+    private fun updateColorPreview(@ColorInt color: Int) =
+        binding.previewWrapper.doOnLayout {
+            if (color == getPreviewColor()) return@doOnLayout
+            makePreviewColorChangingAnimation(color).start()
+        }
 
     private fun getPreviewColor(): Int {
         return binding.preview.background.getColor()

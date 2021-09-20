@@ -10,7 +10,6 @@ import com.ordolabs.thecolor.util.struct.empty
 import com.ordolabs.thecolor.util.struct.loading
 import com.ordolabs.thecolor.util.struct.success
 import com.ordolabs.thecolor.viewmodel.BaseViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
@@ -30,7 +29,7 @@ class ColorInformationViewModel(
         fetchColorInformationJob?.cancel()
     }
 
-    fun fetchColorInformation(color: Color) = launch {
+    fun fetchColorInformation(color: Color) = launchInIO {
         restartFetchingColorInformation().join()
         fetchColorInformationJob = launch {
             getColorInformationUseCase.invoke(color.hex).collect { colorInfo ->
@@ -44,7 +43,7 @@ class ColorInformationViewModel(
         _information.value = Resource.empty()
     }
 
-    private fun restartFetchingColorInformation() = launchOn(Dispatchers.Main) {
+    private fun restartFetchingColorInformation() = launchInMain {
         fetchColorInformationJob?.cancel()
         _information.value = Resource.loading()
     }
