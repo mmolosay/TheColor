@@ -81,6 +81,8 @@ fun View.getBottomVisibleInParent(parent: View?): Int? {
  * Returns [SpringAnimation], associated with `this` view or a new one.
  * Note, that if returned animation is not a newly created, it would has all
  * listeners from the past.
+ *
+ * @see [View.createSpringAnimation]
  */
 fun View.spring(
     property: DynamicAnimation.ViewProperty,
@@ -89,13 +91,25 @@ fun View.spring(
 ): SpringAnimation {
     val key = AnimationUtils.getSpringPropertyKey(property)
     return this.getTag(key) as? SpringAnimation
-        ?: SpringAnimation(this, property).also {
-            it.spring = SpringForce().apply {
-                this.dampingRatio = damping
-                this.stiffness = stiffness
-            }
+        ?: this.createSpringAnimation(property, damping, stiffness).also {
             this.setTag(key, it)
         }
+}
+
+/**
+ * Returns newly created [SpringAnimation].
+ */
+fun View.createSpringAnimation(
+    property: DynamicAnimation.ViewProperty,
+    damping: Float = SpringForce.DAMPING_RATIO_MEDIUM_BOUNCY,
+    stiffness: Float = 500f // MEDIUM == 1500, LOW == 200
+): SpringAnimation {
+    val animation = SpringAnimation(this, property)
+    animation.spring = SpringForce().apply {
+        this.dampingRatio = damping
+        this.stiffness = stiffness
+    }
+    return animation
 }
 
 /**

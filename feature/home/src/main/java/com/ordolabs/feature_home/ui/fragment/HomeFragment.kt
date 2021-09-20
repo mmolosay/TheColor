@@ -117,7 +117,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     private fun animPreviewExpanding() =
         AnimatorSet().apply {
             playTogether(
-                makePreviewShowingAnimation(),
+                makePreviewTranslationAnimation(down = false),
                 makePreviewElevationAnimation(flatten = false)
             )
             duration = longAnimDuration
@@ -126,7 +126,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     private fun animPreviewCollapsing() =
         AnimatorSet().apply {
             playTogether(
-                makePreviewHidingAnimation(),
+                makePreviewTranslationAnimation(down = true),
                 makePreviewElevationAnimation(flatten = true)
             )
             duration = longAnimDuration
@@ -150,21 +150,16 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         }
     }
 
-    private fun makePreviewShowingAnimation(): Animator {
+    private fun makePreviewTranslationAnimation(down: Boolean): Animator {
         val preview = binding.previewWrapper
-        return ObjectAnimator
-            .ofFloat(preview, View.TRANSLATION_Y, 0f)
-            .apply {
-                interpolator = AnticipateOvershootInterpolator()
-            }
-    }
-
-    private fun makePreviewHidingAnimation(): Animator {
-        val preview = binding.previewWrapper
-        val distance = preview.getDistanceInParent(binding.infoSheet, view)?.y ?: 0
-        val addend = makeInfoSheetRevealCenter().y
-        val radius = preview.height / 2
-        val translation = distance.toFloat() + addend - radius
+        val translation = if (down) {
+            val distance = preview.getDistanceInParent(binding.infoSheet, view)?.y ?: 0
+            val addend = makeInfoSheetRevealCenter().y
+            val radius = preview.height / 2
+            distance.toFloat() + addend - radius
+        } else {
+            0f
+        }
         return ObjectAnimator
             .ofFloat(preview, View.TRANSLATION_Y, translation)
             .apply {
