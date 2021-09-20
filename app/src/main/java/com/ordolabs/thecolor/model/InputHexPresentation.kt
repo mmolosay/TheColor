@@ -4,8 +4,6 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-data class ColorRgbPresentation(
-    val r: Int?,
-    val g: Int?,
-    val b: Int?
+data class InputHexPresentation(
+    val value: String?
 ) : Parcelable

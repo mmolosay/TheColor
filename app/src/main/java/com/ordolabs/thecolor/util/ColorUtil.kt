@@ -2,8 +2,8 @@ package com.ordolabs.thecolor.util
 
 import androidx.annotation.ColorInt
 import com.github.ajalt.colormath.RGB
-import com.ordolabs.thecolor.model.ColorHexPresentation
-import com.ordolabs.thecolor.model.ColorRgbPresentation
+import com.ordolabs.thecolor.model.InputHexPresentation
+import com.ordolabs.thecolor.model.InputRgbPresentation
 import android.graphics.Color as ColorAndroid
 
 object ColorUtil {
@@ -34,30 +34,30 @@ object ColorUtil {
         companion object
     }
 
-    fun Color.Companion.from(color: ColorHexPresentation): Color? {
-        color.value ?: return null
-        val expanded = when (color.value.length) {
-            3 -> color.value.map { it.toString().repeat(2) }.joinToString(separator = "")
-            6 -> color.value
+    fun Color.Companion.from(input: InputHexPresentation): Color? {
+        input.value ?: return null
+        val expanded = when (input.value.length) {
+            3 -> input.value.map { it.toString().repeat(2) }.joinToString(separator = "")
+            6 -> input.value
             else -> return null
         }
         return Color(hex = expanded)
     }
 
-    fun Color.Companion.from(color: ColorRgbPresentation): Color? {
-        if (color.r == null || color.g == null || color.b == null) return null
-        val rgb = RGB(color.r, color.g, color.b)
+    fun Color.Companion.from(input: InputRgbPresentation): Color? {
+        if (input.r == null || input.g == null || input.b == null) return null
+        val rgb = RGB(input.r, input.g, input.b)
         val value = rgb.toHex(withNumberSign = false).uppercase()
         return Color(hex = value)
     }
 
-    fun Color.toColorHex(): ColorHexPresentation {
-        return ColorHexPresentation(value = this.hex)
+    fun Color.toColorHex(): InputHexPresentation {
+        return InputHexPresentation(value = this.hex)
     }
 
-    fun Color.toColorRgb(): ColorRgbPresentation {
+    fun Color.toColorRgb(): InputRgbPresentation {
         val color = RGB(this.hex)
-        return ColorRgbPresentation(
+        return InputRgbPresentation(
             r = color.r,
             g = color.g,
             b = color.b

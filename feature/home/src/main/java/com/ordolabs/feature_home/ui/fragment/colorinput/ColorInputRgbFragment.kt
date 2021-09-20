@@ -6,7 +6,7 @@ import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.FragmentColorInputRgbBinding
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
-import com.ordolabs.thecolor.model.ColorRgbPresentation
+import com.ordolabs.thecolor.model.InputRgbPresentation
 import com.ordolabs.thecolor.ui.util.inputfilter.PreventingInputFilter
 import com.ordolabs.thecolor.ui.util.inputfilter.RangeInputFilter
 import com.ordolabs.thecolor.util.ext.addFilters
@@ -60,11 +60,11 @@ class ColorInputRgbFragment :
         colorInputVM.validateColor(color)
     }
 
-    private fun collectColorInput(): ColorRgbPresentation {
+    private fun collectColorInput(): InputRgbPresentation {
         val r = binding.inputRgbR.getTextString()?.toIntOrNull()
         val g = binding.inputRgbG.getTextString()?.toIntOrNull()
         val b = binding.inputRgbB.getTextString()?.toIntOrNull()
-        return ColorRgbPresentation(
+        return InputRgbPresentation(
             r = r,
             g = g,
             b = b
@@ -72,7 +72,7 @@ class ColorInputRgbFragment :
     }
 
     private fun collectColorRgb() =
-        colorInputVM.colorRgb.collectOnLifecycle { resource ->
+        colorInputVM.inputRgb.collectOnLifecycle { resource ->
             resource.fold(
                 onEmpty = ::onColorRgbEmpty,
                 onSuccess = ::onColorRgbSuccess
@@ -87,11 +87,11 @@ class ColorInputRgbFragment :
         isTypedByUser = true
     }
 
-    private fun onColorRgbSuccess(color: ColorRgbPresentation) {
+    private fun onColorRgbSuccess(input: InputRgbPresentation) {
         isTypedByUser = false
-        binding.inputRgbR.editText?.setText(color.r.toString())
-        binding.inputRgbG.editText?.setText(color.g.toString())
-        binding.inputRgbB.editText?.setText(color.b.toString())
+        binding.inputRgbR.editText?.setText(input.r.toString())
+        binding.inputRgbG.editText?.setText(input.g.toString())
+        binding.inputRgbB.editText?.setText(input.b.toString())
         isTypedByUser = true
     }
 
