@@ -114,21 +114,23 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         }.start()
     }
 
-    private fun animPreviewExpanding() = AnimatorSet().apply {
-        playTogether(
-            makePreviewShowingAnimation(),
-            makePreviewElevationAnimation(flatten = false)
-        )
-        duration = longAnimDuration
-    }
+    private fun animPreviewExpanding() =
+        AnimatorSet().apply {
+            playTogether(
+                makePreviewShowingAnimation(),
+                makePreviewElevationAnimation(flatten = false)
+            )
+            duration = longAnimDuration
+        }
 
-    private fun animPreviewCollapsing() = AnimatorSet().apply {
-        playTogether(
-            makePreviewHidingAnimation(),
-            makePreviewElevationAnimation(flatten = true)
-        )
-        duration = longAnimDuration
-    }
+    private fun animPreviewCollapsing() =
+        AnimatorSet().apply {
+            playTogether(
+                makePreviewHidingAnimation(),
+                makePreviewElevationAnimation(flatten = true)
+            )
+            duration = longAnimDuration
+        }
 
     private fun makePreviewColorChangingAnimation(@ColorInt color: Int): Animator {
         val preview = binding.preview
