@@ -7,6 +7,7 @@ import android.animation.ValueAnimator
 import android.content.res.ColorStateList
 import android.graphics.Point
 import android.os.Bundle
+import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.AnticipateOvershootInterpolator
@@ -157,21 +158,20 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     private fun makePreviewShowingAnimation(): Animator {
         val preview = binding.previewWrapper
         return ObjectAnimator
-            .ofFloat(preview, "translationY", preview.translationY, 0f)
+            .ofFloat(preview, View.TRANSLATION_Y, 0f)
             .apply {
                 interpolator = AnticipateOvershootInterpolator()
             }
     }
 
     private fun makePreviewHidingAnimation(): Animator {
-        val sheet = binding.infoSheet
         val preview = binding.previewWrapper
-        val distance = preview.getDistanceInParent(sheet, view)?.y ?: 0
+        val distance = preview.getDistanceInParent(binding.infoSheet, view)?.y ?: 0
         val addend = makeInfoSheetRevealCenter().y
         val radius = preview.height / 2
         val translation = distance.toFloat() + addend - radius
         return ObjectAnimator
-            .ofFloat(preview, "translationY", 0f, translation)
+            .ofFloat(preview, View.TRANSLATION_Y, translation)
             .apply {
                 interpolator = AnticipateOvershootInterpolator()
             }

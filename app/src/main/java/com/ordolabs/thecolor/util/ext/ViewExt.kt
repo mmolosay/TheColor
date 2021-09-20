@@ -12,6 +12,7 @@ import android.widget.EditText
 import androidx.core.graphics.minus
 import androidx.dynamicanimation.animation.DynamicAnimation
 import androidx.dynamicanimation.animation.SpringAnimation
+import androidx.dynamicanimation.animation.SpringForce
 import com.google.android.material.textfield.TextInputLayout
 import com.ordolabs.thecolor.util.AnimationUtils
 
@@ -81,10 +82,18 @@ fun View.getBottomVisibleInParent(parent: View?): Int? {
  * Note, that if returned animation is not a newly created, it would has all
  * listeners from the past.
  */
-fun View.spring(property: DynamicAnimation.ViewProperty): SpringAnimation {
+fun View.spring(
+    property: DynamicAnimation.ViewProperty,
+    damping: Float = SpringForce.DAMPING_RATIO_MEDIUM_BOUNCY,
+    stiffness: Float = 500f // MEDIUM == 1500, LOW == 200
+): SpringAnimation {
     val key = AnimationUtils.getSpringPropertyKey(property)
     return this.getTag(key) as? SpringAnimation
         ?: SpringAnimation(this, property).also {
+            it.spring = SpringForce().apply {
+                this.dampingRatio = damping
+                this.stiffness = stiffness
+            }
             this.setTag(key, it)
         }
 }
