@@ -1,7 +1,6 @@
 package com.ordolabs.thecolor.util.ext
 
 import android.animation.Animator
-import android.animation.AnimatorSet
 
 inline fun Animator.doOnEndOnce(
     crossinline action: (animator: Animator) -> Unit
@@ -17,12 +16,4 @@ inline fun Animator.doOnEndOnce(
     }
     addListener(listener)
     return listener
-}
-
-inline fun AnimatorSet.play(
-    animator: Animator,
-    builder: AnimatorSet.Builder.() -> Unit
-): AnimatorSet {
-    this.play(animator).apply(builder)
-    return this
 }
