@@ -10,6 +10,7 @@ object ColorUtil {
 
     /**
      * "Abstract" color model. Actually, holds HEX color value __without number sign__.
+     * __Always__ represents a valid color.
      */
     data class Color(
         val hex: String

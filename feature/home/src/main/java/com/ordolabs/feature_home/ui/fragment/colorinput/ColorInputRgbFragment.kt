@@ -9,12 +9,14 @@ import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
 import com.ordolabs.thecolor.model.InputRgbPresentation
 import com.ordolabs.thecolor.ui.util.inputfilter.PreventingInputFilter
 import com.ordolabs.thecolor.ui.util.inputfilter.RangeInputFilter
+import com.ordolabs.thecolor.util.ColorUtil
+import com.ordolabs.thecolor.util.ColorUtil.toColorRgb
 import com.ordolabs.thecolor.util.ext.addFilters
+import com.ordolabs.thecolor.util.ext.getText
 import com.ordolabs.thecolor.util.ext.getTextString
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
-class ColorInputRgbFragment :
-    BaseFragment(R.layout.fragment_color_input_rgb) {
+class ColorInputRgbFragment : BaseFragment(R.layout.fragment_color_input_rgb) {
 
     private val binding: FragmentColorInputRgbBinding by viewBinding()
     private val colorInputVM: ColorInputViewModel by sharedViewModel()
@@ -22,7 +24,7 @@ class ColorInputRgbFragment :
     private var isTypedByUser = true
 
     override fun collectViewModelsData() {
-        collectColorRgb()
+        collectColorPreview()
     }
 
     override fun setViews() {
@@ -64,34 +66,31 @@ class ColorInputRgbFragment :
         val r = binding.inputRgbR.getTextString()?.toIntOrNull()
         val g = binding.inputRgbG.getTextString()?.toIntOrNull()
         val b = binding.inputRgbB.getTextString()?.toIntOrNull()
-        return InputRgbPresentation(
-            r = r,
-            g = g,
-            b = b
-        )
+        return InputRgbPresentation(r, g, b)
     }
 
-    private fun collectColorRgb() =
-        colorInputVM.inputRgb.collectOnLifecycle { resource ->
+    private fun collectColorPreview() =
+        colorInputVM.colorPreview.collectOnLifecycle { resource ->
             resource.fold(
-                onEmpty = ::onColorRgbEmpty,
-                onSuccess = ::onColorRgbSuccess
+                onEmpty = ::onColorPreviewEmpty,
+                onSuccess = ::onColorPreviewSuccess
             )
         }
 
-    private fun onColorRgbEmpty() {
+    private fun onColorPreviewEmpty() {
         isTypedByUser = false
-        binding.inputRgbR.editText?.text?.clear()
-        binding.inputRgbG.editText?.text?.clear()
-        binding.inputRgbB.editText?.text?.clear()
+        binding.inputRgbR.getText()?.clear()
+        binding.inputRgbG.getText()?.clear()
+        binding.inputRgbB.getText()?.clear()
         isTypedByUser = true
     }
 
-    private fun onColorRgbSuccess(input: InputRgbPresentation) {
+    private fun onColorPreviewSuccess(color: ColorUtil.Color) {
+        val rgb = color.toColorRgb()
         isTypedByUser = false
-        binding.inputRgbR.editText?.setText(input.r.toString())
-        binding.inputRgbG.editText?.setText(input.g.toString())
-        binding.inputRgbB.editText?.setText(input.b.toString())
+        binding.inputRgbR.editText?.setText(rgb.r.toString())
+        binding.inputRgbG.editText?.setText(rgb.g.toString())
+        binding.inputRgbB.editText?.setText(rgb.b.toString())
         isTypedByUser = true
     }
 

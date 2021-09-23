@@ -18,6 +18,7 @@ class ColorInputPagerAdapter(fragment: Fragment) : FragmentStateAdapter(fragment
 
     override fun getItemCount(): Int = getEnumSize<ColorModel>()
 
+    @Suppress("unused")
     enum class Tab(
         @StringRes val titleRes: Int,
         val colorModel: ColorModel

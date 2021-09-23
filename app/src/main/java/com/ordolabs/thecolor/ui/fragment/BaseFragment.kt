@@ -32,6 +32,7 @@ abstract class BaseFragment(@LayoutRes layoutRes: Int) : Fragment(layoutRes) {
         super.onCreate(savedInstanceState)
         initialSoftInputMode // initialize
         setSoftInputMode()
+        parseStartIntent()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -52,7 +53,8 @@ abstract class BaseFragment(@LayoutRes layoutRes: Int) : Fragment(layoutRes) {
     }
 
     /**
-     * Parses `Intent`, that started this `Activity`.
+     * Parses `Intent`, that started this `Fragment`.
+     * Being called in [Fragment.onCreate] method.
      */
     protected open fun parseStartIntent() {
         // override me
@@ -60,6 +62,7 @@ abstract class BaseFragment(@LayoutRes layoutRes: Int) : Fragment(layoutRes) {
 
     /**
      * Configures non-view components.
+     * Being called in [Fragment.onViewCreated] method.
      */
     @CallSuper
     protected open fun setUp() {
@@ -67,12 +70,14 @@ abstract class BaseFragment(@LayoutRes layoutRes: Int) : Fragment(layoutRes) {
     }
 
     /**
-     * Collects data from declared ViewModel's.
+     * Collects (subscribes to) data from declared ViewModel's.
+     * Being called in [setUp] method.
      */
     protected abstract fun collectViewModelsData()
 
     /**
-     * Sets activity's views and configures them.
+     * Sets fragment's views and configures them.
+     * Being called in [Fragment.onViewCreated] method.
      */
     protected abstract fun setViews()
 

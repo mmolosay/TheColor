@@ -7,6 +7,9 @@ import com.ordolabs.feature_home.databinding.FragmentColorInputHexBinding
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
 import com.ordolabs.thecolor.model.InputHexPresentation
+import com.ordolabs.thecolor.util.ColorUtil
+import com.ordolabs.thecolor.util.ColorUtil.toColorHex
+import com.ordolabs.thecolor.util.ext.getText
 import com.ordolabs.thecolor.util.ext.getTextString
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
@@ -18,7 +21,7 @@ class ColorInputHexFragment : BaseFragment(R.layout.fragment_color_input_hex) {
     private var isTypedByUser = true
 
     override fun collectViewModelsData() {
-        collectColorHex()
+        collectColorPreview()
     }
 
     override fun setViews() {
@@ -40,23 +43,24 @@ class ColorInputHexFragment : BaseFragment(R.layout.fragment_color_input_hex) {
         return InputHexPresentation(value = input)
     }
 
-    private fun collectColorHex() =
-        colorInputVM.inputHex.collectOnLifecycle { resource ->
+    private fun collectColorPreview() =
+        colorInputVM.colorPreview.collectOnLifecycle { resource ->
             resource.fold(
-                onEmpty = ::onColorHexEmpty,
-                onSuccess = ::onColorHexSuccess
+                onEmpty = ::onColorPreviewEmpty,
+                onSuccess = ::onColorPreviewSuccess
             )
         }
 
-    private fun onColorHexEmpty() {
+    private fun onColorPreviewEmpty() {
         isTypedByUser = false
-        binding.inputHex.editText?.text?.clear()
+        binding.inputHex.getText()?.clear()
         isTypedByUser = true
     }
 
-    private fun onColorHexSuccess(input: InputHexPresentation) {
+    private fun onColorPreviewSuccess(color: ColorUtil.Color) {
+        val hex = color.toColorHex()
         isTypedByUser = false
-        binding.inputHex.editText?.setText(input.value)
+        binding.inputHex.editText?.setText(hex.value)
         isTypedByUser = true
     }
 

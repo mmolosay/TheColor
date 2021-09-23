@@ -32,7 +32,7 @@ class ColorInputViewModel(
 ) : BaseViewModel() {
 
     private val _colorValidationState = MutableStateResourceFlow<Boolean>(Resource.empty())
-    val colorValidationState = _colorValidationState.asStateFlow()
+    val colorValidationState = _colorValidationState.shareOnceIn(viewModelScope)
 
     private val _colorPreview: MutableStateFlow<Resource<Color>>
     val colorPreview: StateFlow<Resource<Color>>
@@ -72,6 +72,7 @@ class ColorInputViewModel(
 
     fun validateColor(input: InputHexPresentation) = launch {
         restartColorValidation().join()
+        _inputHex.value = Resource.success(input)
         val domain = input.toDomain() ?: kotlin.run {
             updateColorValidationState(valid = false)
             return@launch
@@ -86,6 +87,7 @@ class ColorInputViewModel(
 
     fun validateColor(input: InputRgbPresentation) = launch {
         restartColorValidation().join()
+        _inputRgb.value = Resource.success(input)
         val domain = input.toDomain() ?: kotlin.run {
             updateColorValidationState(valid = false)
             return@launch

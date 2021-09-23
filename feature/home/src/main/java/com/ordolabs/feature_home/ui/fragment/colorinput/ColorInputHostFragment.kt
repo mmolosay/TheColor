@@ -27,11 +27,13 @@ class ColorInputHostFragment : BaseFragment(R.layout.fragment_color_input_host) 
     }
 
     private fun setInputPager() = binding.run {
-        inputPager.adapter = ColorInputPagerAdapter(this@ColorInputHostFragment)
+        val adapter = ColorInputPagerAdapter(this@ColorInputHostFragment)
+        inputPager.adapter = adapter
+        inputPager.offscreenPageLimit = adapter.itemCount
     }
 
     private fun setInputTabs() = binding.run {
-        TabLayoutMediator(inputTabs, binding.inputPager, ::configureInputTab).attach()
+        TabLayoutMediator(inputTabs, inputPager, ::configureInputTab).attach()
     }
 
     private fun setProcceedBtn() = binding.run {
