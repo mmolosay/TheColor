@@ -32,7 +32,11 @@ object AnimationUtils {
     @IdRes
     fun getCircularRevealKey(): Int = R.id.animCircularRevealKey
 
-    fun getCircularRevealMaxRadius(view: View, cx: Int, cy: Int): Float {
+    fun getCircularRevealMaxRadius(
+        view: View,
+        cx: Int = view.width / 2,
+        cy: Int = view.height / 2
+    ): Float {
         val x = (if (cx >= view.width / 2) 0 else view.width).toFloat()
         val y = (if (cy >= view.height / 2) 0 else view.height).toFloat()
         return hypot(x - cx, y - cy)

@@ -75,6 +75,7 @@ class ColorInputViewModel(
         _inputHex.value = Resource.success(input)
         val domain = input.toDomain() ?: kotlin.run {
             updateColorValidationState(valid = false)
+            clearColorPreview()
             return@launch
         }
         val abstract = Color.from(input)
@@ -90,6 +91,7 @@ class ColorInputViewModel(
         _inputRgb.value = Resource.success(input)
         val domain = input.toDomain() ?: kotlin.run {
             updateColorValidationState(valid = false)
+            clearColorPreview()
             return@launch
         }
         val abstract = Color.from(input)
@@ -131,6 +133,7 @@ class ColorInputViewModel(
         _colorValidationState.value = Resource.success(valid)
     }
 
+    // TODO: remove?
     private fun updateColors(color: Color, exclude: Class<*>) {
         if (exclude != InputHexPresentation::class.java) {
             _inputHex.value = Resource.success(color.toColorHex())

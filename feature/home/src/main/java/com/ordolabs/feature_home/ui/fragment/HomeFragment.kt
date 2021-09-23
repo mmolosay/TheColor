@@ -30,12 +30,10 @@ import com.ordolabs.thecolor.util.ColorUtil.toColorInt
 import com.ordolabs.thecolor.util.InsetsUtil
 import com.ordolabs.thecolor.util.ext.createCircularRevealAnimation
 import com.ordolabs.thecolor.util.ext.getBottomVisibleInParent
-import com.ordolabs.thecolor.util.ext.getColor
 import com.ordolabs.thecolor.util.ext.getDistanceInParent
 import com.ordolabs.thecolor.util.ext.hideSoftInput
 import com.ordolabs.thecolor.util.ext.longAnimDuration
 import com.ordolabs.thecolor.util.ext.mediumAnimDuration
-import com.ordolabs.thecolor.util.ext.setColor
 import com.ordolabs.thecolor.util.ext.setFragment
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.koin.core.context.loadKoinModules
@@ -89,7 +87,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         }
 
     private fun getPreviewColor(): Int {
-        return binding.preview.background.getColor()
+        return binding.preview.backgroundTintList?.defaultColor ?: 0
     }
 
     private fun getInfoSheetColor(): Int {
@@ -103,7 +101,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     private fun animInfoSheetShowing(@ColorInt color: Int) {
         val animatorSet = AnimatorSet()
         animatorSet
-            .play(animPreviewCollapsing())
+            .play(makePreviewFallingAnimation())
             .before(makeInfoSheetRevealAnimation(hide = false).apply {
                 doOnStart { setInfoSheetColor(color) }
             })
@@ -115,11 +113,21 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         val animatorSet = AnimatorSet()
         animatorSet
             .play(makeInfoSheetRevealAnimation(hide = true))
-            .before(animPreviewExpanding())
+            .before(makePreviewRisingAnimation())
         animatorSet.start()
     }
 
-    private fun animPreviewExpanding() =
+    private fun animPreviewToggling(collapse: Boolean) {
+        if (collapse == !binding.previewWrapper.isVisible) return
+        AnimatorSet().apply {
+            playTogether(
+                makePreviewTogglingAnimation(collapse)
+            )
+            duration = mediumAnimDuration
+        }.start()
+    }
+
+    private fun makePreviewRisingAnimation() =
         AnimatorSet().apply {
             playTogether(
                 makePreviewTranslationAnimation(down = false),
@@ -128,7 +136,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
             duration = longAnimDuration
         }
 
-    private fun animPreviewCollapsing() =
+    private fun makePreviewFallingAnimation() =
         AnimatorSet().apply {
             playTogether(
                 makePreviewTranslationAnimation(down = true),
@@ -137,19 +145,38 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
             duration = longAnimDuration
         }
 
+    private fun makePreviewTogglingAnimation(collapse: Boolean): Animator {
+        val wrapper = binding.previewWrapper
+        var sr = 0f
+        var er = AnimationUtils.getCircularRevealMaxRadius(binding.preview)
+        if (collapse) er.let {
+            er = sr
+            sr = it
+        }
+        return wrapper.createCircularRevealAnimation(sr = sr, er = er).apply {
+            interpolator = FastOutSlowInInterpolator()
+            doOnStart {
+                wrapper.isInvisible = false
+            }
+            doOnEnd {
+                wrapper.isInvisible = collapse
+            }
+        }
+    }
+
     private fun makePreviewColorChangingAnimation(@ColorInt color: Int): Animator {
         val preview = binding.preview
         val updated = binding.previewUpdated
+        val wrapper = binding.previewWrapper
         return updated.createCircularRevealAnimation().apply {
-            duration = mediumAnimDuration
+            duration = if (wrapper.isVisible) mediumAnimDuration else 0L
             interpolator = FastOutSlowInInterpolator()
             doOnStart {
-                updated.background.setColor(color)
+                updated.backgroundTintList = ColorStateList.valueOf(color)
                 updated.isInvisible = false
             }
             doOnEnd {
-                preview.background.setColor(color)
-                preview.invalidate()
+                preview.backgroundTintList = ColorStateList.valueOf(color)
                 updated.isInvisible = true
             }
         }
@@ -230,15 +257,21 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
 
     private fun onColorPreviewEmpty() {
         updateColorPreview(defaultPreviewColor)
+        binding.previewWrapper.doOnLayout {
+            animPreviewToggling(collapse = true)
+        }
     }
 
     private fun onColorPreviewSuccess(color: ColorUtil.Color) {
         updateColorPreview(color.toColorInt())
+        binding.previewWrapper.doOnLayout {
+            animPreviewToggling(collapse = false)
+        }
     }
 
     private fun collectColorValidationState() =
         colorInputVM.colorValidationState.collectOnLifecycle { resource ->
-            resource.ifSuccess {
+            resource.ifSuccess { valid ->
                 animInfoSheetHiding()
             }
         }

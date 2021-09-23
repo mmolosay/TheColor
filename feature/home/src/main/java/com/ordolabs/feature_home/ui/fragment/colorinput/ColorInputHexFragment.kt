@@ -45,6 +45,7 @@ class ColorInputHexFragment : BaseFragment(R.layout.fragment_color_input_hex) {
 
     private fun collectColorPreview() =
         colorInputVM.colorPreview.collectOnLifecycle { resource ->
+            if (isResumed) return@collectOnLifecycle // prevent user interrupting
             resource.fold(
                 onEmpty = ::onColorPreviewEmpty,
                 onSuccess = ::onColorPreviewSuccess
