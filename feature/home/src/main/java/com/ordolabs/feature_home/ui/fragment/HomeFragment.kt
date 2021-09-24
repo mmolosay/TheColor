@@ -44,14 +44,6 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     private val binding: FragmentHomeBinding by viewBinding()
     private val colorInputVM: ColorInputViewModel by sharedViewModel()
 
-    private val defaultPreviewColor: Int by lazy {
-        getPreviewColor()
-    }
-
-    private val defaultSheetColor: Int by lazy {
-        getInfoSheetColor()
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         loadKoinModules(featureHomeModule)
@@ -63,8 +55,6 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     }
 
     override fun setViews() {
-        defaultPreviewColor // init
-        defaultSheetColor // init
         setColorInputFragment()
         setColorInformationFragment()
     }
@@ -87,10 +77,6 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
 
     private fun getPreviewColor(): Int {
         return binding.preview.backgroundTintList?.defaultColor ?: 0
-    }
-
-    private fun getInfoSheetColor(): Int {
-        return binding.infoSheet.backgroundTintList?.defaultColor ?: 0
     }
 
     private fun setInfoSheetColor(@ColorInt color: Int) {
