@@ -21,7 +21,7 @@ class ColorInformationFragment : BaseFragment(R.layout.fragment_color_informatio
     private val colorInformationVM: ColorInformationViewModel by viewModel()
 
     override fun collectViewModelsData() {
-        collectColorValidationState()
+        collectColorPreview()
         collectProcceedCommand()
         collectColorInformation()
         collectCoroutineException()
@@ -39,12 +39,10 @@ class ColorInformationFragment : BaseFragment(R.layout.fragment_color_informatio
         view?.isInvisible = !visible
     }
 
-    private fun collectColorValidationState() =
-        colorInputVM.colorValidationState.collectOnLifecycle { resource ->
-            resource.ifLoading {
-                colorInformationVM.clearColorInformation()
-                toggleVisibility(visible = false)
-            }
+    private fun collectColorPreview() =
+        colorInputVM.colorPreview.collectOnLifecycle { resource ->
+            colorInformationVM.clearColorInformation()
+            toggleVisibility(visible = false)
         }
 
     private fun collectProcceedCommand() =

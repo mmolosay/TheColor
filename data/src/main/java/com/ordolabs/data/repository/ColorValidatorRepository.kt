@@ -8,15 +8,23 @@ import kotlinx.coroutines.flow.flow
 
 class ColorValidatorRepository : IColorValidatorRepository {
 
-    override fun validateColor(color: ColorHex): Flow<Boolean> = flow {
-        val value = color.value
-        val valid = Regex(HEX_COLOR_VALIDATION_REGEX_PATTERN).matches(value)
-        emit(valid)
+    override fun validateColor(color: ColorHex?): Flow<Boolean> = flow {
+        if (color == null) {
+            emit(false)
+        } else {
+            val value = color.value
+            val valid = Regex(HEX_COLOR_VALIDATION_REGEX_PATTERN).matches(value)
+            emit(valid)
+        }
     }
 
-    override fun validateColor(color: ColorRgb): Flow<Boolean> = flow {
-        val componentRange = 0..256
-        emit(color.r in componentRange && color.g in componentRange && color.b in componentRange)
+    override fun validateColor(color: ColorRgb?): Flow<Boolean> = flow {
+        if (color == null) {
+            emit(false)
+        } else {
+            val componentRange = 0..255
+            emit(color.r in componentRange && color.g in componentRange && color.b in componentRange)
+        }
     }
 
     companion object {

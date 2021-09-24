@@ -33,6 +33,18 @@ sealed class Resource<out V> {
      */
     data class Failure<out P : Any>(val payload: P, val error: Throwable?) : Resource<Nothing>()
 
+    val isEmpty: Boolean
+        get() = (this is Empty)
+
+    val isLoading: Boolean
+        get() = (this is Loading)
+
+    val isSuccess: Boolean
+        get() = (this is Success)
+
+    val isFailure: Boolean
+        get() = (this is Failure<*>)
+
     /**
      *  Maps this [Resource] by applying one of specified callbacks to it
      *  depending on its actual instance.
@@ -42,12 +54,13 @@ sealed class Resource<out V> {
         onLoading: () -> Unit = { },
         onSuccess: (value: V) -> Unit = { _ -> },
         onFailure: (payload: Any, error: Throwable?) -> Unit = { _, _ -> }
-    ) = when (this) {
-        is Empty -> onEmpty()
-        is Loading -> onLoading()
-        is Success -> onSuccess(this.value)
-        is Failure<*> -> onFailure(this.payload, this.error)
-    }
+    ) =
+        when (this) {
+            is Empty -> onEmpty()
+            is Loading -> onLoading()
+            is Success -> onSuccess(this.value)
+            is Failure<*> -> onFailure(this.payload, this.error)
+        }
 
     inline fun <R> ifEmpty(action: () -> R): R? {
         return when (this) {

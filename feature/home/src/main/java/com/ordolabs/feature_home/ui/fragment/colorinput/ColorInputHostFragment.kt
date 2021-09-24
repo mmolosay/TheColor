@@ -17,7 +17,7 @@ class ColorInputHostFragment : BaseFragment(R.layout.fragment_color_input_host) 
     private val colorInputVM: ColorInputViewModel by sharedViewModel()
 
     override fun collectViewModelsData() {
-        collectValidationState()
+        collectColorPreview()
     }
 
     override fun setViews() {
@@ -47,11 +47,9 @@ class ColorInputHostFragment : BaseFragment(R.layout.fragment_color_input_host) 
         tab.setText(data.titleRes)
     }
 
-    private fun collectValidationState() =
-        colorInputVM.colorValidationState.collectOnLifecycle { resource ->
-            resource.ifSuccess { valid ->
-                binding.procceedBtn.isEnabled = valid
-            }
+    private fun collectColorPreview() =
+        colorInputVM.colorPreview.collectOnLifecycle { resource ->
+            binding.procceedBtn.isEnabled = resource.isSuccess
         }
 
     companion object {

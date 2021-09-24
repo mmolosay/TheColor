@@ -59,7 +59,6 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
 
     override fun collectViewModelsData() {
         collectColorPreview()
-        collectColorValidationState()
         collectProcceedCommand()
     }
 
@@ -249,6 +248,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
 
     private fun collectColorPreview() =
         colorInputVM.colorPreview.collectOnLifecycle { resource ->
+            animInfoSheetHiding()
             resource.fold(
                 onEmpty = ::onColorPreviewEmpty,
                 onSuccess = ::onColorPreviewSuccess
@@ -267,13 +267,6 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
             animPreviewToggling(collapse = false)
         }
     }
-
-    private fun collectColorValidationState() =
-        colorInputVM.colorValidationState.collectOnLifecycle { resource ->
-            resource.ifSuccess {
-                animInfoSheetHiding()
-            }
-        }
 
     private fun collectProcceedCommand() =
         colorInputVM.procceedCommand.collectOnLifecycle { resource ->

@@ -13,13 +13,11 @@ import com.ordolabs.thecolor.util.ext.shareOnceIn
 import com.ordolabs.thecolor.util.struct.Resource
 import com.ordolabs.thecolor.util.struct.empty
 import com.ordolabs.thecolor.util.struct.getOrNull
-import com.ordolabs.thecolor.util.struct.loading
 import com.ordolabs.thecolor.util.struct.success
 import com.ordolabs.thecolor.viewmodel.BaseViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.collect
 
 class ColorInputViewModel(
@@ -27,11 +25,8 @@ class ColorInputViewModel(
     private val validateColorRgbUseCase: ValidateColorRgbBaseUseCase
 ) : BaseViewModel() {
 
-    private val _colorValidationState = MutableStateResourceFlow<Boolean>(Resource.empty())
-    val colorValidationState = _colorValidationState.shareOnceIn(viewModelScope)
-
     private val _colorPreview: MutableStateFlow<Resource<Color>>
-    val colorPreview: StateFlow<Resource<Color>>
+    val colorPreview: SharedFlow<Resource<Color>>
 
     private val _procceedCommand = MutableStateResourceFlow<Color>(Resource.empty())
     val procceedCommand = _procceedCommand.shareOnceIn(viewModelScope)
@@ -40,7 +35,7 @@ class ColorInputViewModel(
 
     init {
         _colorPreview = MutableStateResourceFlow(Resource.empty())
-        colorPreview = _colorPreview.asStateFlow()
+        colorPreview = _colorPreview.shareOnceIn(viewModelScope)
     }
 
     override fun onCleared() {
@@ -51,10 +46,7 @@ class ColorInputViewModel(
 
     fun validateColor(input: InputHexPresentation) = launch {
         restartColorValidation().join()
-        val domain = input.toDomain() ?: kotlin.run {
-            onColorValidated(valid = false)
-            return@launch
-        }
+        val domain = input.toDomain()
         colorValidationJob = launch {
             validateColorHexUseCase.invoke(domain).collect { valid ->
                 onColorValidated(valid, Color.from(input))
@@ -64,10 +56,7 @@ class ColorInputViewModel(
 
     fun validateColor(input: InputRgbPresentation) = launch {
         restartColorValidation().join()
-        val domain = input.toDomain() ?: kotlin.run {
-            onColorValidated(valid = false)
-            return@launch
-        }
+        val domain = input.toDomain()
         colorValidationJob = launch {
             validateColorRgbUseCase.invoke(domain).collect { valid ->
                 onColorValidated(valid, Color.from(input))
@@ -82,23 +71,17 @@ class ColorInputViewModel(
 
     private fun restartColorValidation() = launchInMain {
         colorValidationJob?.cancel()
-        _colorValidationState.value = Resource.loading()
     }
 
     private fun onColorValidated(
         valid: Boolean,
         color: Color? = null
     ) {
-        updateColorValidationState(valid)
         if (valid && color != null) {
             updateColorPreview(color)
         } else {
             clearColorPreview()
         }
-    }
-
-    private fun updateColorValidationState(valid: Boolean) {
-        _colorValidationState.value = Resource.success(valid)
     }
 
     private fun updateColorPreview(color: Color) {
