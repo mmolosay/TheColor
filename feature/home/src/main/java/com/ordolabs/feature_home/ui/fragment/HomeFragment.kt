@@ -123,7 +123,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
             playTogether(
                 makePreviewTogglingAnimation(collapse)
             )
-            duration = mediumAnimDuration
+            duration = 300L
         }.start()
     }
 
