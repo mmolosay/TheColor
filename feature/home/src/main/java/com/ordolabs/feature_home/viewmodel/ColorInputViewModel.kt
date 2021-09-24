@@ -10,7 +10,6 @@ import com.ordolabs.thecolor.util.ColorUtil.Color
 import com.ordolabs.thecolor.util.ColorUtil.from
 import com.ordolabs.thecolor.util.MutableStateResourceFlow
 import com.ordolabs.thecolor.util.ext.shareOnceIn
-import com.ordolabs.thecolor.util.ext.updateGuaranteed
 import com.ordolabs.thecolor.util.struct.Resource
 import com.ordolabs.thecolor.util.struct.empty
 import com.ordolabs.thecolor.util.struct.getOrNull
@@ -78,9 +77,7 @@ class ColorInputViewModel(
 
     fun procceedInput() {
         val color = _colorPreview.value.getOrNull() ?: return
-        _procceedCommand.updateGuaranteed {
-            Resource.success(color)
-        }
+        _procceedCommand.value = Resource.success(color)
     }
 
     private fun restartColorValidation() = launchInMain {

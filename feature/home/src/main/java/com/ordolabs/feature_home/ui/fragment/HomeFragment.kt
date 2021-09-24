@@ -256,39 +256,32 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         }
 
     private fun onColorPreviewEmpty() {
-        updateColorPreview(defaultPreviewColor)
         binding.previewWrapper.doOnLayout {
             animPreviewToggling(collapse = true)
         }
     }
 
     private fun onColorPreviewSuccess(color: ColorUtil.Color) {
-        updateColorPreview(color.toColorInt())
         binding.previewWrapper.doOnLayout {
+            updateColorPreview(color.toColorInt())
             animPreviewToggling(collapse = false)
         }
     }
 
     private fun collectColorValidationState() =
         colorInputVM.colorValidationState.collectOnLifecycle { resource ->
-            resource.ifSuccess { valid ->
+            resource.ifSuccess {
                 animInfoSheetHiding()
             }
         }
 
     private fun collectProcceedCommand() =
         colorInputVM.procceedCommand.collectOnLifecycle { resource ->
-            resource.fold(
-                onSuccess = ::onProcceedCommandSuccess
-            )
+            resource.ifSuccess { color ->
+                hideSoftInput()
+                animInfoSheetShowing(color.toColorInt())
+            }
         }
-
-    private fun onProcceedCommandSuccess(color: ColorUtil.Color) {
-        hideSoftInput()
-        val int = color.toColorInt()
-        if (getInfoSheetColor() == int && binding.infoSheet.isVisible) return // sequential button clicks, do nothing
-        animInfoSheetShowing(int)
-    }
 
     override fun setSoftInputMode() {
         // https://yatmanwong.medium.com/android-how-to-pan-the-page-up-more-25fc5c542a97
