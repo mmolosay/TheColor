@@ -17,7 +17,8 @@ import com.ordolabs.thecolor.util.struct.success
 import com.ordolabs.thecolor.viewmodel.BaseViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 
 class ColorInputViewModel(
@@ -26,7 +27,7 @@ class ColorInputViewModel(
 ) : BaseViewModel() {
 
     private val _colorPreview: MutableStateFlow<Resource<Color>>
-    val colorPreview: SharedFlow<Resource<Color>>
+    val colorPreview: StateFlow<Resource<Color>>
 
     private val _procceedCommand = MutableStateResourceFlow<Color>(Resource.empty())
     val procceedCommand = _procceedCommand.shareOnceIn(viewModelScope)
@@ -35,7 +36,7 @@ class ColorInputViewModel(
 
     init {
         _colorPreview = MutableStateResourceFlow(Resource.empty())
-        colorPreview = _colorPreview.shareOnceIn(viewModelScope)
+        colorPreview = _colorPreview.asStateFlow()
     }
 
     override fun onCleared() {

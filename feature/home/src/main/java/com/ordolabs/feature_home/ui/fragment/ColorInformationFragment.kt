@@ -11,14 +11,14 @@ import com.ordolabs.feature_home.viewmodel.ColorInformationViewModel
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
 import com.ordolabs.thecolor.model.ColorInformationPresentation
 import com.ordolabs.thecolor.util.ext.showToast
+import com.ordolabs.thecolor.util.struct.getOrNull
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
-import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class ColorInformationFragment : BaseFragment(R.layout.fragment_color_information) {
 
     private val binding: FragmentColorInformationBinding by viewBinding()
     private val colorInputVM: ColorInputViewModel by sharedViewModel()
-    private val colorInformationVM: ColorInformationViewModel by viewModel()
+    private val colorInfoVM: ColorInformationViewModel by sharedViewModel()
 
     override fun collectViewModelsData() {
         collectColorPreview()
@@ -31,9 +31,10 @@ class ColorInformationFragment : BaseFragment(R.layout.fragment_color_informatio
         // nothing is here
     }
 
-    private fun populateInformationViews(info: ColorInformationPresentation) = binding.run {
-        name.text = info.name
-    }
+    private fun populateInformationViews(info: ColorInformationPresentation) =
+        binding.run {
+            name.text = info.name
+        }
 
     private fun toggleVisibility(visible: Boolean) {
         view?.isInvisible = !visible
@@ -41,19 +42,22 @@ class ColorInformationFragment : BaseFragment(R.layout.fragment_color_informatio
 
     private fun collectColorPreview() =
         colorInputVM.colorPreview.collectOnLifecycle { resource ->
-            colorInformationVM.clearColorInformation()
+            val infoHex = colorInfoVM.information.value.getOrNull()?.hexValue
+            val previewHex = resource.getOrNull()?.hexWithNumberSign
+            if (infoHex == previewHex) return@collectOnLifecycle
+            colorInfoVM.clearColorInformation()
             toggleVisibility(visible = false)
         }
 
     private fun collectProcceedCommand() =
         colorInputVM.procceedCommand.collectOnLifecycle { resource ->
             resource.ifSuccess { color ->
-                colorInformationVM.fetchColorInformation(color)
+                colorInfoVM.fetchColorInformation(color)
             }
         }
 
     private fun collectColorInformation() =
-        colorInformationVM.information.collectOnLifecycle { resource ->
+        colorInfoVM.information.collectOnLifecycle { resource ->
             resource.ifSuccess { information ->
                 toggleVisibility(visible = true)
                 populateInformationViews(information)
@@ -61,7 +65,7 @@ class ColorInformationFragment : BaseFragment(R.layout.fragment_color_informatio
         }
 
     private fun collectCoroutineException() =
-        colorInformationVM.coroutineExceptionMessageRes.collectOnLifecycle { idres ->
+        colorInfoVM.coroutineExceptionMessageRes.collectOnLifecycle { idres ->
             val text = Result.runCatching { getString(idres) }.get() ?: return@collectOnLifecycle
             showToast(text)
         }

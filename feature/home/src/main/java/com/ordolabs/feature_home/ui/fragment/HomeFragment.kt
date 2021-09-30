@@ -24,6 +24,7 @@ import com.ordolabs.feature_home.databinding.FragmentHomeBinding
 import com.ordolabs.feature_home.di.featureHomeModule
 import com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputHostFragment
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
+import com.ordolabs.feature_home.viewmodel.HomeViewModel
 import com.ordolabs.thecolor.util.AnimationUtils
 import com.ordolabs.thecolor.util.ColorUtil
 import com.ordolabs.thecolor.util.ColorUtil.toColorInt
@@ -42,11 +43,17 @@ import com.ordolabs.thecolor.R as RApp
 class HomeFragment : BaseFragment(R.layout.fragment_home) {
 
     private val binding: FragmentHomeBinding by viewBinding()
+    private val homeVM: HomeViewModel by sharedViewModel()
     private val colorInputVM: ColorInputViewModel by sharedViewModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         loadKoinModules(featureHomeModule)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        view?.clearFocus()
     }
 
     override fun collectViewModelsData() {
@@ -79,30 +86,42 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         return binding.preview.backgroundTintList?.defaultColor ?: 0
     }
 
+    @ColorInt
+    private fun getInfoSheetColor(): Int? {
+        return binding.infoSheet.backgroundTintList?.defaultColor
+    }
+
     private fun setInfoSheetColor(@ColorInt color: Int) {
         binding.infoSheet.backgroundTintList = ColorStateList.valueOf(color)
     }
 
     private fun animInfoSheetShowing(@ColorInt color: Int) {
+        if (homeVM.isInfoSheetShown) return
         val animatorSet = AnimatorSet()
         animatorSet
             .play(makePreviewFallingAnimation())
             .before(makeInfoSheetRevealAnimation(hide = false).apply {
                 doOnStart { setInfoSheetColor(color) }
             })
+        animatorSet.doOnEnd {
+            homeVM.isInfoSheetShown = true
+        }
         animatorSet.start()
     }
 
     private fun animInfoSheetHiding() {
-        if (!binding.infoSheet.isVisible) return
+        if (!homeVM.isInfoSheetShown) return
         val animatorSet = AnimatorSet()
         animatorSet
             .play(makeInfoSheetRevealAnimation(hide = true))
             .before(makePreviewRisingAnimation())
+        animatorSet.doOnStart {
+            homeVM.isInfoSheetShown = false
+        }
         animatorSet.start()
     }
 
-    private fun animPreviewToggling(collapse: Boolean) {
+    private fun animPreviewResize(collapse: Boolean) {
         if (collapse == !binding.previewWrapper.isVisible) return
         AnimatorSet().apply {
             playTogether(
@@ -234,7 +253,6 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
 
     private fun collectColorPreview() =
         colorInputVM.colorPreview.collectOnLifecycle { resource ->
-            animInfoSheetHiding()
             resource.fold(
                 onEmpty = ::onColorPreviewEmpty,
                 onSuccess = ::onColorPreviewSuccess
@@ -243,14 +261,19 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
 
     private fun onColorPreviewEmpty() {
         binding.previewWrapper.doOnLayout {
-            animPreviewToggling(collapse = true)
+            animInfoSheetHiding()
+            animPreviewResize(collapse = true)
         }
     }
 
     private fun onColorPreviewSuccess(color: ColorUtil.Color) {
         binding.previewWrapper.doOnLayout {
-            updateColorPreview(color.toColorInt())
-            animPreviewToggling(collapse = false)
+            val colorInt = color.toColorInt()
+            if (getInfoSheetColor() != colorInt) {
+                animInfoSheetHiding()
+            }
+            updateColorPreview(colorInt)
+            animPreviewResize(collapse = false)
         }
     }
 
