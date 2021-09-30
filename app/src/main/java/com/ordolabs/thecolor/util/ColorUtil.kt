@@ -1,6 +1,7 @@
 package com.ordolabs.thecolor.util
 
 import androidx.annotation.ColorInt
+import androidx.annotation.IntRange
 import com.github.ajalt.colormath.RGB
 import com.ordolabs.thecolor.model.InputHexPresentation
 import com.ordolabs.thecolor.model.InputRgbPresentation
@@ -68,5 +69,12 @@ object ColorUtil {
     @ColorInt
     fun Color.toColorInt(): Int {
         return ColorAndroid.parseColor(this.hexWithNumberSign)
+    }
+
+    fun Color.isDark(
+        @IntRange(from = 0, to = 100) threshold: Int = 60
+    ): Boolean {
+        val hsl = RGB(this.hex).toHSL()
+        return (hsl.l <= threshold)
     }
 }

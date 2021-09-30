@@ -27,6 +27,7 @@ import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
 import com.ordolabs.feature_home.viewmodel.HomeViewModel
 import com.ordolabs.thecolor.util.AnimationUtils
 import com.ordolabs.thecolor.util.ColorUtil
+import com.ordolabs.thecolor.util.ColorUtil.isDark
 import com.ordolabs.thecolor.util.ColorUtil.toColorInt
 import com.ordolabs.thecolor.util.InsetsUtil
 import com.ordolabs.thecolor.util.ext.createCircularRevealAnimation
@@ -36,6 +37,7 @@ import com.ordolabs.thecolor.util.ext.hideSoftInput
 import com.ordolabs.thecolor.util.ext.longAnimDuration
 import com.ordolabs.thecolor.util.ext.mediumAnimDuration
 import com.ordolabs.thecolor.util.ext.setFragment
+import com.ordolabs.thecolor.util.setNavigationBarsLight
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.koin.core.context.loadKoinModules
 import com.ordolabs.thecolor.R as RApp
@@ -95,13 +97,16 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         binding.infoSheet.backgroundTintList = ColorStateList.valueOf(color)
     }
 
-    private fun animInfoSheetShowing(@ColorInt color: Int) {
+    private fun animInfoSheetShowing(color: ColorUtil.Color) {
         if (homeVM.isInfoSheetShown) return
         val animatorSet = AnimatorSet()
         animatorSet
             .play(makePreviewFallingAnimation())
             .before(makeInfoSheetRevealAnimation(hide = false).apply {
-                doOnStart { setInfoSheetColor(color) }
+                doOnStart {
+                    setInfoSheetColor(color.toColorInt())
+                    activity?.setNavigationBarsLight(light = !color.isDark())
+                }
             })
         animatorSet.doOnEnd {
             homeVM.isInfoSheetShown = true
@@ -113,7 +118,11 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         if (!homeVM.isInfoSheetShown) return
         val animatorSet = AnimatorSet()
         animatorSet
-            .play(makeInfoSheetRevealAnimation(hide = true))
+            .play(makeInfoSheetRevealAnimation(hide = true).apply {
+                doOnEnd {
+                    activity?.setNavigationBarsLight(light = true)
+                }
+            })
             .before(makePreviewRisingAnimation())
         animatorSet.doOnStart {
             homeVM.isInfoSheetShown = false
@@ -281,7 +290,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         colorInputVM.procceedCommand.collectOnLifecycle { resource ->
             resource.ifSuccess { color ->
                 hideSoftInput()
-                animInfoSheetShowing(color.toColorInt())
+                animInfoSheetShowing(color)
             }
         }
 
