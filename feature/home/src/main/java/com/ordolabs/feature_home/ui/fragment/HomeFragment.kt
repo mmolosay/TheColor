@@ -7,6 +7,7 @@ import android.animation.ValueAnimator
 import android.content.res.ColorStateList
 import android.graphics.Point
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.AccelerateInterpolator
@@ -136,7 +137,6 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
             playTogether(
                 makePreviewTogglingAnimation(collapse)
             )
-            duration = 300L
         }.start()
     }
 
@@ -160,14 +160,34 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
 
     private fun makePreviewTogglingAnimation(collapse: Boolean): Animator {
         val wrapper = binding.previewWrapper
-        var sr = 0f
-        var er = AnimationUtils.getCircularRevealMaxRadius(binding.preview)
-        if (collapse) er.let {
-            er = sr
-            sr = it
+//        var sr = 0f
+//        var er = AnimationUtils.getCircularRevealMaxRadius(binding.preview)
+//        if (collapse) er.let {
+//            er = sr
+//            sr = it
+//        }
+//        return wrapper.createCircularRevealAnimation(sr = sr, er = er).apply {
+//            interpolator = FastOutSlowInInterpolator()
+//            doOnStart {
+//                wrapper.isInvisible = false
+//            }
+//            doOnEnd {
+//                wrapper.isInvisible = collapse
+//            }
+//        }
+        var start = wrapper.scaleX
+        var end = 1f
+        if (collapse) end.let {
+            end = start
+            start = it
         }
-        return wrapper.createCircularRevealAnimation(sr = sr, er = er).apply {
+        return ValueAnimator.ofFloat(start, end).apply {
             interpolator = FastOutSlowInInterpolator()
+            duration = 300L
+            addUpdateListener {
+                wrapper.scaleX = animatedValue as Float
+                wrapper.scaleY = animatedValue as Float
+            }
             doOnStart {
                 wrapper.isInvisible = false
             }
@@ -271,6 +291,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     private fun onColorPreviewEmpty() {
         binding.previewWrapper.doOnLayout {
             animInfoSheetHiding()
+            Log.d("colorpreviewtoggling", "collapse: true; color: empty")
             animPreviewResize(collapse = true)
         }
     }
@@ -282,6 +303,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
                 animInfoSheetHiding()
             }
             updateColorPreview(colorInt)
+            Log.d("colorpreviewtoggling", "collapse: false; color: ${color.hex}")
             animPreviewResize(collapse = false)
         }
     }

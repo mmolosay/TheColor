@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="ThemeOverlay.TheColor.Light" parent="Base.Theme.TheColor">
+
+    </style>
+
+    <style name="ThemeOverlay.TheColor.Dark" parent="Base.Theme.TheColor">
+
+    </style>
+
+</resources>

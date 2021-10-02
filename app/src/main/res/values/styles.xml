@@ -7,6 +7,10 @@
         <item name="android:includeFontPadding">true</item>
     </style>
 
+    <style name="TextView.ColorValue" parent="">
+        <item name="fontFamily">sans-serif</item>
+    </style>
+
     <!-- TabLayout -->
     <style name="Widget.Main.TabLayout" parent="Widget.Design.TabLayout">
         <item name="tabTextAppearance">@style/TextAppearance.TabLayout</item>
