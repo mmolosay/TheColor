@@ -57,6 +57,11 @@ class ColorInformationFragment : BaseFragment() {
             .inflate(R.layout.fragment_color_information, container, false)
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        colorInfoVM.clearColorInformation()
+    }
+
     override fun collectViewModelsData() {
         collectColorInformation()
         collectCoroutineException()

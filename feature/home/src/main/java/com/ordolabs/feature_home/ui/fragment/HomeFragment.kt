@@ -5,6 +5,7 @@ import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.content.res.ColorStateList
+import android.graphics.Color
 import android.graphics.Point
 import android.os.Bundle
 import android.util.Log
@@ -96,48 +97,56 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     }
 
     @ColorInt
-    private fun getInfoSheetColor(): Int? {
-        return binding.infoSheet.backgroundTintList?.defaultColor
+    private fun getInfoBackgroundColor(): Int? {
+        return binding.infoFragmentContainer.backgroundTintList?.defaultColor
     }
 
-    private fun setInfoSheetColor(@ColorInt color: Int) {
-        binding.infoSheet.backgroundTintList = ColorStateList.valueOf(color)
+    private fun setInfoBackgroundColor(@ColorInt color: Int) {
+        binding.infoFragmentContainer.backgroundTintList = ColorStateList.valueOf(color)
+    }
+
+    private fun toggleInfoFragmentVisibility(visible: Boolean) {
+        binding.infoFragmentContainer.isVisible = visible
     }
 
     private fun animInfoSheetShowing(color: ColorUtil.Color) {
         if (homeVM.isInfoSheetShown) return
-        binding.infoWrapper.isVisible = true
-        binding.root.post { // when ^ infoWrapper becomes visible
-            val animatorSet = AnimatorSet()
-            animatorSet
-                .play(makePreviewFallingAnimation())
-                .before(makeInfoSheetRevealAnimation(hide = false).apply {
-                    doOnStart {
-                        setInfoSheetColor(color.toColorInt())
-                        activity?.setNavigationBarsLight(light = !color.isDark())
+        toggleInfoFragmentVisibility(visible = true)
+        binding.root.post { // when ^ infoFragmentContainer becomes visible
+            AnimatorSet().apply {
+                playSequentially(
+                    makePreviewFallingAnimation(),
+                    makeInfoSheetRevealAnimation(hide = false).apply {
+                        doOnStart {
+                            setInfoBackgroundColor(color.toColorInt())
+                            activity?.setNavigationBarsLight(light = !color.isDark())
+                        }
                     }
-                })
-            animatorSet.doOnEnd {
-                homeVM.isInfoSheetShown = true
-            }
-            animatorSet.start()
+                )
+                doOnEnd {
+                    homeVM.isInfoSheetShown = true
+                }
+            }.start()
         }
     }
 
     private fun animInfoSheetHiding() {
         if (!homeVM.isInfoSheetShown) return
-        val animatorSet = AnimatorSet()
-        animatorSet
-            .play(makeInfoSheetRevealAnimation(hide = true).apply {
-                doOnEnd {
-                    activity?.setNavigationBarsLight(light = true)
-                }
-            })
-            .before(makePreviewRisingAnimation())
-        animatorSet.doOnStart {
-            homeVM.isInfoSheetShown = false
-        }
-        animatorSet.start()
+        AnimatorSet().apply {
+            playSequentially(
+                makeScrollingToTopAnimation(),
+                makeInfoSheetRevealAnimation(hide = true).apply {
+                    doOnEnd {
+                        setInfoBackgroundColor(Color.TRANSPARENT)
+                        activity?.setNavigationBarsLight(light = true)
+                    }
+                },
+                makePreviewRisingAnimation()
+            )
+            doOnStart {
+                homeVM.isInfoSheetShown = false
+            }
+        }.start()
     }
 
     private fun animPreviewResize(collapse: Boolean) {
@@ -207,8 +216,9 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
 
     private fun makePreviewTranslationAnimation(down: Boolean): Animator {
         val preview = binding.previewWrapper
+        val info = binding.infoFragmentContainer
         val translation = if (down) {
-            val distance = preview.getDistanceToViewInParent(binding.infoSheet, view)?.y ?: 0
+            val distance = preview.getDistanceToViewInParent(info, view)?.y ?: 0
             val addend = makeInfoSheetRevealCenter().y
             val radius = preview.height / 2
             distance.toFloat() + addend - radius
@@ -239,33 +249,41 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     }
 
     private fun makeInfoSheetRevealAnimation(hide: Boolean): Animator {
-        val sheet = binding.infoSheet
+        val info = binding.infoFragmentContainer
         val preview = binding.previewWrapper
         val center = makeInfoSheetRevealCenter()
         var sr = preview.width.toFloat() / 2
-        var er = AnimationUtils.getCircularRevealMaxRadius(sheet, center)
+        var er = AnimationUtils.getCircularRevealMaxRadius(info, center)
         if (hide) er.let {
             er = sr
             sr = it
         }
-        return sheet.createCircularRevealAnimation(center.x, center.y, sr, er).apply {
+        return info.createCircularRevealAnimation(center.x, center.y, sr, er).apply {
             duration = longAnimDuration
             interpolator = AccelerateDecelerateInterpolator()
             doOnStart {
-                sheet.isInvisible = false
+                toggleInfoFragmentVisibility(visible = true)
             }
             doOnEnd {
-                sheet.isInvisible = hide
+                toggleInfoFragmentVisibility(visible = !hide)
             }
         }
     }
 
+    private fun makeScrollingToTopAnimation(): Animator {
+        val scroll = binding.scrollview
+        return ObjectAnimator.ofInt(scroll, "scrollY", 0).apply {
+            duration = mediumAnimDuration
+            interpolator = FastOutSlowInInterpolator()
+        }
+    }
+
     private fun makeInfoSheetRevealCenter(): Point {
-        val sheet = binding.infoSheet
-        val bottom = sheet.getBottomVisibleInParent(view) ?: sheet.height
+        val info = binding.infoFragmentContainer
+        val bottom = info.getBottomVisibleInParent(view) ?: info.height
         val padding = resources.getDimensionPixelSize(RApp.dimen.offset_32)
         val navbarHeight = InsetsUtil.getNavigationBarHeight(context) ?: 0
-        val x = sheet.width / 2
+        val x = info.width / 2
         val y = bottom - navbarHeight - padding
         return Point(x, y)
     }
@@ -289,7 +307,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     private fun onColorPreviewSuccess(color: ColorUtil.Color) {
         binding.previewWrapper.doOnLayout {
             val colorInt = color.toColorInt()
-            if (getInfoSheetColor() != colorInt) {
+            if (getInfoBackgroundColor() != colorInt) {
                 animInfoSheetHiding()
             }
             updateColorPreview(colorInt)
