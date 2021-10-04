@@ -23,6 +23,7 @@ import com.ordolabs.thecolor.model.ColorInformationPresentation
 import com.ordolabs.thecolor.util.ColorUtil
 import com.ordolabs.thecolor.util.ColorUtil.isDark
 import com.ordolabs.thecolor.util.InsetsUtil
+import com.ordolabs.thecolor.util.ext.getStringYesOrNo
 import com.ordolabs.thecolor.util.ext.showToast
 import com.ordolabs.thecolor.util.struct.getOrNull
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
@@ -85,8 +86,7 @@ class ColorInformationFragment : BaseFragment() {
             populateHsvGroup(info)
             populateCmykGroup(info)
             populateNameGroup(info)
-            populateClosestMatchGroup(info)
-            populateDeviationGroup(info)
+            populateMatchGroup(info)
         }
 
     private fun populateHexGroup(info: ColorInformationPresentation) =
@@ -147,18 +147,27 @@ class ColorInformationFragment : BaseFragment() {
             nameValue.text = info.name
         }
 
-    private fun populateClosestMatchGroup(info: ColorInformationPresentation) =
+    private fun populateMatchGroup(info: ColorInformationPresentation) =
+        binding.run {
+            val hasData = (info.isNameMatchExact != null)
+            val exactMatch = (info.isNameMatchExact == true)
+            matchGroup.isVisible = hasData
+            if (!hasData) return
+            matchValue.text = resources.getStringYesOrNo(yes = exactMatch)
+            matchGroups.isVisible = !exactMatch
+            if (exactMatch) return
+            populateExactGroup(info)
+            populateDeviationGroup(info)
+        }
+
+    private fun populateExactGroup(info: ColorInformationPresentation) =
         binding.run {
             val hasData = (info.exactNameHex != null)
-            val notExactMatch = (info.isNameMatchExact == false)
-            closestGroup.isVisible = hasData
+            exactGroup.isVisible = hasData
             if (!hasData) return
-            closestValue.text = info.exactNameHex
-            closestColor.isVisible = notExactMatch
-            if (notExactMatch) {
-                val color = Color.parseColor(info.exactNameHex)
-                closestColor.backgroundTintList = ColorStateList.valueOf(color)
-            }
+            exactValue.text = info.exactNameHex
+            val color = Color.parseColor(info.exactNameHex)
+            exactColor.backgroundTintList = ColorStateList.valueOf(color)
         }
 
     private fun populateDeviationGroup(info: ColorInformationPresentation) =

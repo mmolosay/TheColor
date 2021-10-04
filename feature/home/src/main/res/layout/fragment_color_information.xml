@@ -61,10 +61,22 @@
         app:constraint_referenced_ids="nameLabel,nameValue" />
 
     <androidx.constraintlayout.widget.Group
-        android:id="@+id/closestGroup"
+        android:id="@+id/matchGroup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:constraint_referenced_ids="closestLabel,closestValue,closestColor" />
+        app:constraint_referenced_ids="matchLabel,matchValue" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/matchGroups"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="exactGroup, deviationGroup" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/exactGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="exactLabel,exactValue,exactColor" />
 
     <androidx.constraintlayout.widget.Group
         android:id="@+id/deviationGroup"
@@ -103,7 +115,7 @@
 
     <TextView
         android:id="@+id/hexValue"
-        style="@style/TextView.ColorValue"
+        style="@style/TextView.Value"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?attr/textAppearanceBody2"
@@ -129,7 +141,7 @@
 
     <TextView
         android:id="@+id/rgbValueR"
-        style="@style/TextView.ColorValue"
+        style="@style/TextView.Value"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?attr/textAppearanceBody2"
@@ -140,7 +152,7 @@
 
     <TextView
         android:id="@+id/rgbValueG"
-        style="@style/TextView.ColorValue"
+        style="@style/TextView.Value"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/offset_8"
@@ -152,7 +164,7 @@
 
     <TextView
         android:id="@+id/rgbValueB"
-        style="@style/TextView.ColorValue"
+        style="@style/TextView.Value"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?attr/textAppearanceBody2"
@@ -178,7 +190,7 @@
 
     <TextView
         android:id="@+id/hslValueH"
-        style="@style/TextView.ColorValue"
+        style="@style/TextView.Value"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?attr/textAppearanceBody2"
@@ -189,7 +201,7 @@
 
     <TextView
         android:id="@+id/hslValueS"
-        style="@style/TextView.ColorValue"
+        style="@style/TextView.Value"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/offset_8"
@@ -201,7 +213,7 @@
 
     <TextView
         android:id="@+id/hslValueL"
-        style="@style/TextView.ColorValue"
+        style="@style/TextView.Value"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?attr/textAppearanceBody2"
@@ -227,7 +239,7 @@
 
     <TextView
         android:id="@+id/hsvValueH"
-        style="@style/TextView.ColorValue"
+        style="@style/TextView.Value"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?attr/textAppearanceBody2"
@@ -238,7 +250,7 @@
 
     <TextView
         android:id="@+id/hsvValueS"
-        style="@style/TextView.ColorValue"
+        style="@style/TextView.Value"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/offset_8"
@@ -250,7 +262,7 @@
 
     <TextView
         android:id="@+id/hsvValueV"
-        style="@style/TextView.ColorValue"
+        style="@style/TextView.Value"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?attr/textAppearanceBody2"
@@ -276,7 +288,7 @@
 
     <TextView
         android:id="@+id/cmykValueC"
-        style="@style/TextView.ColorValue"
+        style="@style/TextView.Value"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?attr/textAppearanceBody2"
@@ -287,7 +299,7 @@
 
     <TextView
         android:id="@+id/cmykValueM"
-        style="@style/TextView.ColorValue"
+        style="@style/TextView.Value"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/offset_8"
@@ -299,7 +311,7 @@
 
     <TextView
         android:id="@+id/cmykValueY"
-        style="@style/TextView.ColorValue"
+        style="@style/TextView.Value"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="@dimen/offset_8"
@@ -311,7 +323,7 @@
 
     <TextView
         android:id="@+id/cmykValueK"
-        style="@style/TextView.ColorValue"
+        style="@style/TextView.Value"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?attr/textAppearanceBody2"
@@ -355,11 +367,11 @@
         tools:text="Cobalt" />
 
     <TextView
-        android:id="@+id/closestLabel"
+        android:id="@+id/matchLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/offset_16"
-        android:text="@string/color_information_closest_match_label"
+        android:text="@string/color_information_exact_match_label"
         android:textAppearance="?attr/textAppearanceOverline"
         android:textColor="@color/material_on_background_emphasis_medium"
 
@@ -367,29 +379,52 @@
         app:layout_constraintTop_toBottomOf="@+id/nameValue" />
 
     <TextView
-        android:id="@+id/closestValue"
-        style="@style/TextView.ColorValue"
+        android:id="@+id/matchValue"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?attr/textAppearanceBody1"
         android:textColor="@color/material_on_background_emphasis_high_type"
 
-        app:layout_constraintStart_toStartOf="@+id/closestLabel"
-        app:layout_constraintTop_toBottomOf="@+id/closestLabel"
+        app:layout_constraintStart_toStartOf="@+id/matchLabel"
+        app:layout_constraintTop_toBottomOf="@+id/matchLabel"
+        tools:text="No" />
+
+    <TextView
+        android:id="@+id/exactLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/offset_16"
+        android:text="@string/color_information_exact_value_label"
+        android:textAppearance="?attr/textAppearanceOverline"
+        android:textColor="@color/material_on_background_emphasis_medium"
+
+        app:layout_constraintStart_toStartOf="@+id/divider"
+        app:layout_constraintTop_toBottomOf="@+id/matchValue" />
+
+    <TextView
+        android:id="@+id/exactValue"
+        style="@style/TextView.Value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceBody1"
+        android:textColor="@color/material_on_background_emphasis_high_type"
+
+        app:layout_constraintStart_toStartOf="@+id/exactLabel"
+        app:layout_constraintTop_toBottomOf="@+id/exactLabel"
         tools:text="#0047AB" />
 
     <View
-        android:id="@+id/closestColor"
+        android:id="@+id/exactColor"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginHorizontal="@dimen/offset_8"
         android:layout_marginVertical="@dimen/offset_4"
         android:background="@drawable/bg_shape_round"
 
-        app:layout_constraintBottom_toBottomOf="@id/closestValue"
+        app:layout_constraintBottom_toBottomOf="@id/exactValue"
         app:layout_constraintDimensionRatio="1:1"
-        app:layout_constraintStart_toEndOf="@id/closestValue"
-        app:layout_constraintTop_toTopOf="@id/closestValue"
+        app:layout_constraintStart_toEndOf="@id/exactValue"
+        app:layout_constraintTop_toTopOf="@id/exactValue"
         tools:backgroundTint="#0047AB" />
 
     <TextView
@@ -402,11 +437,11 @@
         android:textColor="@color/material_on_background_emphasis_medium"
 
         app:layout_constraintStart_toStartOf="@+id/divider"
-        app:layout_constraintTop_toBottomOf="@+id/closestValue" />
+        app:layout_constraintTop_toBottomOf="@+id/exactValue" />
 
     <TextView
         android:id="@+id/deviationValue"
-        style="@style/TextView.ColorValue"
+        style="@style/TextView.Value"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?attr/textAppearanceBody1"

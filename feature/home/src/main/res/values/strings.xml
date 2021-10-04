@@ -30,8 +30,8 @@
     <string name="color_information_hsv_label">HSV</string>
     <string name="color_information_cmyk_label">CMYK</string>
     <string name="color_information_name_label">Name</string>
-    <string name="color_information_closest_match_label">Closest match</string>
-    <string name="color_information_clean_value_label">Clean value</string>
+    <string name="color_information_exact_match_label">Exact match</string>
+    <string name="color_information_exact_value_label">Exact value</string>
     <string name="color_information_deviation_label">Deviation</string>
 
 </resources>
