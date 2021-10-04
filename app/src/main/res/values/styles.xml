@@ -9,6 +9,7 @@
 
     <style name="TextView.Value" parent="">
         <item name="fontFamily">sans-serif</item>
+        <item name="android:fontFamily">sans-serif</item>
     </style>
 
     <!-- TabLayout -->

@@ -185,8 +185,8 @@ class ColorInformationFragment : BaseFragment() {
     private fun collectColorInformation() =
         colorInfoVM.information.collectOnLifecycle { resource ->
             resource.ifSuccess { information ->
-                toggleVisibility(visible = true)
                 populateInformationViews(information)
+                toggleVisibility(visible = true)
             }
         }
 
