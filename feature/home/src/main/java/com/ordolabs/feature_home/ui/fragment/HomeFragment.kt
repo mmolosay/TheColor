@@ -33,10 +33,11 @@ import com.ordolabs.thecolor.util.ColorUtil.toColorInt
 import com.ordolabs.thecolor.util.InsetsUtil
 import com.ordolabs.thecolor.util.ext.createCircularRevealAnimation
 import com.ordolabs.thecolor.util.ext.getBottomVisibleInParent
-import com.ordolabs.thecolor.util.ext.getDistanceInParent
+import com.ordolabs.thecolor.util.ext.getDistanceToViewInParent
 import com.ordolabs.thecolor.util.ext.hideSoftInput
 import com.ordolabs.thecolor.util.ext.longAnimDuration
 import com.ordolabs.thecolor.util.ext.mediumAnimDuration
+import com.ordolabs.thecolor.util.ext.replaceFragment
 import com.ordolabs.thecolor.util.ext.setFragment
 import com.ordolabs.thecolor.util.setNavigationBarsLight
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
@@ -79,6 +80,11 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         setFragment(fragment, binding.infoFragmentContainer.id)
     }
 
+    private fun replaceColorInformationFragment() {
+        val fragment = ColorInformationFragment.newInstance()
+        replaceFragment(fragment, binding.infoFragmentContainer.id)
+    }
+
     private fun updateColorPreview(@ColorInt color: Int) =
         binding.previewWrapper.doOnLayout {
             if (color == getPreviewColor()) return@doOnLayout
@@ -100,19 +106,22 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
 
     private fun animInfoSheetShowing(color: ColorUtil.Color) {
         if (homeVM.isInfoSheetShown) return
-        val animatorSet = AnimatorSet()
-        animatorSet
-            .play(makePreviewFallingAnimation())
-            .before(makeInfoSheetRevealAnimation(hide = false).apply {
-                doOnStart {
-                    setInfoSheetColor(color.toColorInt())
-                    activity?.setNavigationBarsLight(light = !color.isDark())
-                }
-            })
-        animatorSet.doOnEnd {
-            homeVM.isInfoSheetShown = true
+        binding.infoWrapper.isVisible = true
+        binding.root.post { // when ^ infoWrapper becomes visible
+            val animatorSet = AnimatorSet()
+            animatorSet
+                .play(makePreviewFallingAnimation())
+                .before(makeInfoSheetRevealAnimation(hide = false).apply {
+                    doOnStart {
+                        setInfoSheetColor(color.toColorInt())
+                        activity?.setNavigationBarsLight(light = !color.isDark())
+                    }
+                })
+            animatorSet.doOnEnd {
+                homeVM.isInfoSheetShown = true
+            }
+            animatorSet.start()
         }
-        animatorSet.start()
     }
 
     private fun animInfoSheetHiding() {
@@ -160,27 +169,8 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
 
     private fun makePreviewTogglingAnimation(collapse: Boolean): Animator {
         val wrapper = binding.previewWrapper
-//        var sr = 0f
-//        var er = AnimationUtils.getCircularRevealMaxRadius(binding.preview)
-//        if (collapse) er.let {
-//            er = sr
-//            sr = it
-//        }
-//        return wrapper.createCircularRevealAnimation(sr = sr, er = er).apply {
-//            interpolator = FastOutSlowInInterpolator()
-//            doOnStart {
-//                wrapper.isInvisible = false
-//            }
-//            doOnEnd {
-//                wrapper.isInvisible = collapse
-//            }
-//        }
-        var start = wrapper.scaleX
-        var end = 1f
-        if (collapse) end.let {
-            end = start
-            start = it
-        }
+        val start = if (collapse) wrapper.scaleX else 0f
+        val end = if (collapse) 0f else 1f
         return ValueAnimator.ofFloat(start, end).apply {
             interpolator = FastOutSlowInInterpolator()
             duration = 300L
@@ -218,7 +208,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     private fun makePreviewTranslationAnimation(down: Boolean): Animator {
         val preview = binding.previewWrapper
         val translation = if (down) {
-            val distance = preview.getDistanceInParent(binding.infoSheet, view)?.y ?: 0
+            val distance = preview.getDistanceToViewInParent(binding.infoSheet, view)?.y ?: 0
             val addend = makeInfoSheetRevealCenter().y
             val radius = preview.height / 2
             distance.toFloat() + addend - radius
@@ -313,6 +303,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
             resource.ifSuccess { color ->
                 hideSoftInput()
                 animInfoSheetShowing(color)
+                replaceColorInformationFragment()
             }
         }
 

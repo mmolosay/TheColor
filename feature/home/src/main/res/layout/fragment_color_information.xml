@@ -4,7 +4,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:theme="@style/ThemeOverlay.TheColor.Light">
+    android:visibility="invisible"
+    tools:theme="@style/ThemeOverlay.TheColor.Light"
+    tools:visibility="visible">
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/glStart"
@@ -19,6 +21,54 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         app:layout_constraintGuide_end="@dimen/offset_content_horizontal" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/hexGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="hexLabel,hexValue" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/rgbGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="rgbValueB,rgbValueR,rgbValueG,rgbLabel" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/hslGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="hslValueL,hslValueH,hslLabel,hslValueS" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/hsvGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="hsvValueH,hsvValueS,hsvLabel,hsvValueV" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/cmykGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="cmykValueM,cmykValueY,cmykValueC,cmykLabel,cmykValueK" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/nameGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="nameLabel,nameValue" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/closestGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="closestLabel,closestValue,closestColor" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/deviationGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="deviationValue,deviationLabel" />
 
     <TextView
         android:id="@+id/nameHeadline"

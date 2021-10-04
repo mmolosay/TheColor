@@ -14,7 +14,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
-abstract class BaseFragment(@LayoutRes layoutRes: Int) : Fragment(layoutRes) {
+abstract class BaseFragment : Fragment {
+
+    constructor()
+
+    constructor(@LayoutRes layoutRes: Int) : super(layoutRes)
 
     val transactionTag: String = this::class.java.simpleName
 
@@ -32,13 +36,12 @@ abstract class BaseFragment(@LayoutRes layoutRes: Int) : Fragment(layoutRes) {
         super.onCreate(savedInstanceState)
         initialSoftInputMode // initialize
         setSoftInputMode()
-        parseStartIntent()
+        parseArguments()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        parseStartIntent()
         setUp()
         setViews()
     }
@@ -53,10 +56,10 @@ abstract class BaseFragment(@LayoutRes layoutRes: Int) : Fragment(layoutRes) {
     }
 
     /**
-     * Parses `Intent`, that started this `Fragment`.
+     * Parses [Fragment.getArguments].
      * Being called in [Fragment.onCreate] method.
      */
-    protected open fun parseStartIntent() {
+    protected open fun parseArguments() {
         // override me
     }
 

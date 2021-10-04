@@ -90,24 +90,28 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/offset_16"
             android:translationZ="@dimen/home_preview_elevation"
+            android:visibility="gone"
 
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/previewWrapper">
+            app:layout_constraintTop_toBottomOf="@+id/previewWrapper"
+            tools:visibility="visible">
 
             <FrameLayout
                 android:id="@+id/infoSheet"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@drawable/bg_color_information"
-                android:backgroundTint="?attr/colorPrimary"
-                android:visibility="invisible" />
+                android:visibility="invisible"
+                tools:backgroundTint="#0047AB"
+                tools:visibility="visible" />
 
             <androidx.fragment.app.FragmentContainerView
                 android:id="@+id/infoFragmentContainer"
                 android:layout_width="match_parent"
-                android:layout_height="400dp"
-                tools:layout="@layout/fragment_color_information" />
+                android:layout_height="wrap_content"
+                tools:layout="@layout/fragment_color_information"
+                tools:theme="@style/ThemeOverlay.TheColor.Dark" />
 
         </FrameLayout>
 

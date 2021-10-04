@@ -60,13 +60,21 @@ fun View.getLocationInParent(parent: View?): Point? {
     }
 }
 
-fun View.getDistanceInParent(to: View?, parent: View?): Point? {
+fun View.getDistanceToViewInParent(to: View?, parent: View?): Point? {
     to ?: return null
     val toLocation = to.getLocationInParent(parent) ?: return null
     val thisLocation = this.getLocationInParent(parent) ?: return null
     return toLocation - thisLocation
 }
 
+/**
+ * Calculates bottom of `this` view, that visible in specified [parent].
+ *
+ * @return [View.getHeight], if the view bottom is not clipped by [parent],
+ * otherwise clipped position.
+ *
+ * @see getLocationInParent
+ */
 fun View.getBottomVisibleInParent(parent: View?): Int? {
     parent ?: return null
     val location = this.getLocationInParent(parent) ?: return null

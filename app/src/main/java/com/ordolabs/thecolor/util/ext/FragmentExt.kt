@@ -51,6 +51,15 @@ fun BaseFragment.replaceFragment(
     )
 }
 
+fun BaseFragment.removeFragment(
+    fragment: Fragment
+): Result<Int, Throwable> {
+    return ContextUtil.removeFragment(
+        this.childFragmentManager,
+        fragment
+    )
+}
+
 fun BaseFragment.showToast(
     text: String?,
     duration: Int = Toast.LENGTH_SHORT

@@ -4,7 +4,11 @@ import androidx.annotation.LayoutRes
 import com.ordolabs.feature_home.R
 import com.ordolabs.thecolor.ui.fragment.BaseFragment as AppBaseFragment
 
-abstract class BaseFragment(@LayoutRes layoutRes: Int) : AppBaseFragment(layoutRes) {
+abstract class BaseFragment : AppBaseFragment {
+
+    constructor()
+
+    constructor(@LayoutRes layoutRes: Int) : super(layoutRes)
 
     override val defaultFragmentContainerId: Int = R.id.defaultFragmentContainer
 }

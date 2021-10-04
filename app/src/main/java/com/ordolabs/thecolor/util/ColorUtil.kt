@@ -1,10 +1,12 @@
 package com.ordolabs.thecolor.util
 
+import android.os.Parcelable
 import androidx.annotation.ColorInt
 import androidx.annotation.IntRange
 import com.github.ajalt.colormath.RGB
 import com.ordolabs.thecolor.model.InputHexPresentation
 import com.ordolabs.thecolor.model.InputRgbPresentation
+import kotlinx.parcelize.Parcelize
 import android.graphics.Color as ColorAndroid
 
 object ColorUtil {
@@ -13,12 +15,13 @@ object ColorUtil {
      * "Abstract" color model. Actually, holds HEX color value __without number sign__.
      * __Always__ represents a valid color.
      */
+    @Parcelize
     data class Color(
         val hex: String
-    ) {
+    ) : Parcelable {
         val hexWithNumberSign: String get() = '#' + this.hex
 
-        override operator fun equals(other: Any?): Boolean {
+        override fun equals(other: Any?): Boolean {
             other ?: return false
             if (other is String) {
                 return (other == hex || other == hexWithNumberSign)

@@ -66,11 +66,21 @@ object ContextUtil {
         @IdRes containerId: Int,
         transactionTag: String
     ): Result<Int, Throwable> {
-        fm.findFragmentByTag(transactionTag)?.let {
-            return Result.error("fragment with $transactionTag tag already added")
-        }
         val transactionId = fm.commit {
             replace(containerId, fragment, transactionTag)
+        }
+        return Result.success(transactionId)
+    }
+
+    fun removeFragment(
+        fm: FragmentManager,
+        fragment: Fragment
+    ): Result<Int, Throwable> {
+        if (!fm.fragments.contains(fragment)) {
+            return Result.error("fragment $fragment in not associated with fragment manager")
+        }
+        val transactionId = fm.commit {
+            remove(fragment)
         }
         return Result.success(transactionId)
     }
