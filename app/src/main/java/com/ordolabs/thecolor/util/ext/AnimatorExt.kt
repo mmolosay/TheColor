@@ -1,6 +1,8 @@
 package com.ordolabs.thecolor.util.ext
 
 import android.animation.Animator
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 
 inline fun Animator.doOnEndOnce(
     crossinline action: (animator: Animator) -> Unit
@@ -16,4 +18,20 @@ inline fun Animator.doOnEndOnce(
     }
     addListener(listener)
     return listener
+}
+
+fun ObjectAnimator.startOrReverse() {
+    if (this.isRunning) {
+        this.reverse()
+    } else {
+        this.start()
+    }
+}
+
+fun ValueAnimator.startOrReverse() {
+    if (this.isRunning) {
+        this.reverse()
+    } else {
+        this.start()
+    }
 }

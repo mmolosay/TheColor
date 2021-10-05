@@ -10,21 +10,20 @@
 
     <!-- Animation -->
 
-    <item name="springPropertyKeyTranslationX" type="id"/>
-    <item name="springPropertyKeyTranslationY" type="id"/>
-    <item name="springPropertyKeyTranslationZ" type="id"/>
-    <item name="springPropertyKeyScaleX" type="id"/>
-    <item name="springPropertyKeyScaleY" type="id"/>
-    <item name="springPropertyKeyRotation" type="id"/>
-    <item name="springPropertyKeyRotationX" type="id"/>
-    <item name="springPropertyKeyRotationY" type="id"/>
-    <item name="springPropertyKeyX" type="id"/>
-    <item name="springPropertyKeyY" type="id"/>
-    <item name="springPropertyKeyZ" type="id"/>
-    <item name="springPropertyKeyAlpha" type="id"/>
-    <item name="springPropertyKeyScrollX" type="id"/>
-    <item name="springPropertyKeyScrollY" type="id"/>
-
-    <item name="animCircularRevealKey" type="id"/>
+    <item name="animPropertyKeyTranslationX" type="id" />
+    <item name="animPropertyKeyTranslationY" type="id" />
+    <item name="animPropertyKeyTranslationZ" type="id" />
+    <item name="animPropertyKeyScaleX" type="id" />
+    <item name="animPropertyKeyScaleY" type="id" />
+    <item name="animPropertyKeyRotation" type="id" />
+    <item name="animPropertyKeyRotationX" type="id" />
+    <item name="animPropertyKeyRotationY" type="id" />
+    <item name="animPropertyKeyX" type="id" />
+    <item name="animPropertyKeyY" type="id" />
+    <item name="animPropertyKeyZ" type="id" />
+    <item name="animPropertyKeyAlpha" type="id" />
+    <item name="animPropertyKeyScrollX" type="id" />
+    <item name="animPropertyKeyScrollY" type="id" />
+    <item name="animKeyCircularReveal" type="id" />
 
 </resources>

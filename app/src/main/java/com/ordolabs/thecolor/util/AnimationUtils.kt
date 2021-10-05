@@ -1,6 +1,7 @@
 package com.ordolabs.thecolor.util
 
 import android.graphics.Point
+import android.util.Property
 import android.view.View
 import androidx.annotation.IdRes
 import androidx.dynamicanimation.animation.DynamicAnimation.ViewProperty
@@ -11,26 +12,52 @@ import kotlin.math.hypot
 object AnimationUtils {
 
     @IdRes
-    fun getSpringPropertyKey(property: ViewProperty): Int = when (property) {
-        SpringAnimation.TRANSLATION_X -> R.id.springPropertyKeyTranslationX
-        SpringAnimation.TRANSLATION_Y -> R.id.springPropertyKeyTranslationY
-        SpringAnimation.TRANSLATION_Z -> R.id.springPropertyKeyTranslationZ
-        SpringAnimation.SCALE_X -> R.id.springPropertyKeyScaleX
-        SpringAnimation.SCALE_Y -> R.id.springPropertyKeyScaleY
-        SpringAnimation.ROTATION -> R.id.springPropertyKeyRotation
-        SpringAnimation.ROTATION_X -> R.id.springPropertyKeyRotationX
-        SpringAnimation.ROTATION_Y -> R.id.springPropertyKeyRotationY
-        SpringAnimation.X -> R.id.springPropertyKeyX
-        SpringAnimation.Y -> R.id.springPropertyKeyY
-        SpringAnimation.Z -> R.id.springPropertyKeyZ
-        SpringAnimation.ALPHA -> R.id.springPropertyKeyAlpha
-        SpringAnimation.SCROLL_X -> R.id.springPropertyKeyScrollX
-        SpringAnimation.SCROLL_Y -> R.id.springPropertyKeyScrollY
-        else -> error("this animation property is not supported")
-    }
+    fun getSpringPropertyKey(property: ViewProperty): Int =
+        when (property) {
+            SpringAnimation.TRANSLATION_X -> R.id.animPropertyKeyTranslationX
+            SpringAnimation.TRANSLATION_Y -> R.id.animPropertyKeyTranslationY
+            SpringAnimation.TRANSLATION_Z -> R.id.animPropertyKeyTranslationZ
+            SpringAnimation.SCALE_X -> R.id.animPropertyKeyScaleX
+            SpringAnimation.SCALE_Y -> R.id.animPropertyKeyScaleY
+            SpringAnimation.ROTATION -> R.id.animPropertyKeyRotation
+            SpringAnimation.ROTATION_X -> R.id.animPropertyKeyRotationX
+            SpringAnimation.ROTATION_Y -> R.id.animPropertyKeyRotationY
+            SpringAnimation.X -> R.id.animPropertyKeyX
+            SpringAnimation.Y -> R.id.animPropertyKeyY
+            SpringAnimation.Z -> R.id.animPropertyKeyZ
+            SpringAnimation.ALPHA -> R.id.animPropertyKeyAlpha
+            SpringAnimation.SCROLL_X -> R.id.animPropertyKeyScrollX
+            SpringAnimation.SCROLL_Y -> R.id.animPropertyKeyScrollY
+            else -> error("this animation property is not supported")
+        }
 
     @IdRes
-    fun getCircularRevealKey(): Int = R.id.animCircularRevealKey
+    fun getViewPropertyKey(property: Property<*, *>): Int =
+        when (property) {
+            View.TRANSLATION_X -> R.id.animPropertyKeyTranslationX
+            View.TRANSLATION_Y -> R.id.animPropertyKeyTranslationY
+            View.TRANSLATION_Z -> R.id.animPropertyKeyTranslationZ
+            View.SCALE_X -> R.id.animPropertyKeyScaleX
+            View.SCALE_Y -> R.id.animPropertyKeyScaleY
+            View.ROTATION -> R.id.animPropertyKeyRotation
+            View.ROTATION_X -> R.id.animPropertyKeyRotationX
+            View.ROTATION_Y -> R.id.animPropertyKeyRotationY
+            View.X -> R.id.animPropertyKeyX
+            View.Y -> R.id.animPropertyKeyY
+            View.Z -> R.id.animPropertyKeyZ
+            View.ALPHA -> R.id.animPropertyKeyAlpha
+            else -> error("this animation property is not supported")
+        }
+
+    @IdRes
+    fun getCustomPropertyKey(property: AnimationProperty): Int =
+        when (property) {
+            AnimationProperty.CIRCULAR_REVEAL -> R.id.animKeyCircularReveal
+        }
+
+    fun <T : Number> getAnimationEndValue(start: T, current: T, end: T): T {
+        return if (current != end) end else start
+    }
 
     fun getCircularRevealMaxRadius(
         view: View,
@@ -42,7 +69,14 @@ object AnimationUtils {
         return hypot(x - cx, y - cy)
     }
 
-    fun getCircularRevealMaxRadius(view: View, center: Point): Float {
+    fun getCircularRevealMaxRadius(
+        view: View,
+        center: Point
+    ): Float {
         return getCircularRevealMaxRadius(view, center.x, center.y)
+    }
+
+    enum class AnimationProperty {
+        CIRCULAR_REVEAL
     }
 }

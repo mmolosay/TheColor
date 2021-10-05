@@ -38,8 +38,10 @@ import com.ordolabs.thecolor.util.ext.getDistanceToViewInParent
 import com.ordolabs.thecolor.util.ext.hideSoftInput
 import com.ordolabs.thecolor.util.ext.longAnimDuration
 import com.ordolabs.thecolor.util.ext.mediumAnimDuration
+import com.ordolabs.thecolor.util.ext.propertyAnimator
 import com.ordolabs.thecolor.util.ext.replaceFragment
 import com.ordolabs.thecolor.util.ext.setFragment
+import com.ordolabs.thecolor.util.ext.startOrReverse
 import com.ordolabs.thecolor.util.setNavigationBarsLight
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.koin.core.context.loadKoinModules
@@ -67,8 +69,23 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     }
 
     override fun setViews() {
+        binding.startBtn.setOnClickListener {
+            val animator = getCircleTranslationAnimation()
+            animator.startOrReverse()
+        }
         setColorInputFragment()
         setColorInformationFragment()
+    }
+
+    private fun getCircleTranslationAnimation(): ObjectAnimator {
+        val circle = binding.circle
+        val property = View.TRANSLATION_X
+        val current = circle.translationX
+        val dest = AnimationUtils.getAnimationEndValue(0f, current, 400f)
+        val animator = ObjectAnimator.ofFloat(circle, View.TRANSLATION_X, current, dest).apply {
+            duration = 3000L
+        }
+        return circle.propertyAnimator(property, animator)
     }
 
     private fun setColorInputFragment() {

@@ -5,10 +5,12 @@ import android.content.Context
 import android.graphics.Point
 import android.text.Editable
 import android.text.InputFilter
+import android.util.Property
 import android.view.View
 import android.view.ViewAnimationUtils
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
+import androidx.core.animation.doOnEnd
 import androidx.core.graphics.minus
 import androidx.dynamicanimation.animation.DynamicAnimation
 import androidx.dynamicanimation.animation.SpringAnimation
@@ -118,6 +120,24 @@ fun View.createSpringAnimation(
         this.stiffness = stiffness
     }
     return animation
+}
+
+@Suppress("UNCHECKED_CAST")
+fun <T : Animator> View.propertyAnimator(property: Property<*, *>, animator: T): T {
+    val key = AnimationUtils.getViewPropertyKey(property)
+    return this.getTag(key) as? T
+        ?: animator.also {
+            this.setTag(key, it)
+            it.doOnEnd {
+                this.setTag(key, null)
+            }
+        }
+}
+
+@Suppress("UNCHECKED_CAST")
+fun <T : Animator> View.propertyAnimatorOrNull(property: Property<*, *>): T? {
+    val key = AnimationUtils.getViewPropertyKey(property)
+    return this.getTag(key) as? T
 }
 
 /**
