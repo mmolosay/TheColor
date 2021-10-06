@@ -8,7 +8,6 @@ import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Point
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.AccelerateInterpolator
@@ -178,11 +177,9 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         if (animator.isStarted) {
             previewResizeDest.reverse()
             animator.reverse()
-            Log.d("PREVIEW", "collapse $collapse, animation reverse")
         } else {
             previewResizeDest.set(collapse)
             animator.start()
-            Log.d("PREVIEW", "collapse $collapse, animation start")
         }
     }
 
