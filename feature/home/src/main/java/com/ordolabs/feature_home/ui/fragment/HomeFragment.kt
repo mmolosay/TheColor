@@ -167,12 +167,8 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     }
 
     private fun animPreviewResize(collapse: Boolean) {
-        if (collapse == !binding.previewWrapper.isVisible) return
-        AnimatorSet().apply {
-            playTogether(
-                makePreviewTogglingAnimation(collapse)
-            )
-        }.start()
+        val animator = makePreviewTogglingAnimation(collapse)
+        animator.startOrReverse()
     }
 
     private fun makePreviewRisingAnimation() =
@@ -193,11 +189,11 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
             duration = longAnimDuration
         }
 
-    private fun makePreviewTogglingAnimation(collapse: Boolean): Animator {
+    private fun makePreviewTogglingAnimation(collapse: Boolean): ValueAnimator {
         val wrapper = binding.previewWrapper
-        val start = if (collapse) wrapper.scaleX else 0f
+        val current = wrapper.scaleX
         val end = if (collapse) 0f else 1f
-        return ValueAnimator.ofFloat(start, end).apply {
+        val animator = ValueAnimator.ofFloat(current, end).apply {
             interpolator = FastOutSlowInInterpolator()
             duration = 300L
             addUpdateListener {
@@ -211,6 +207,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
                 wrapper.isInvisible = collapse
             }
         }
+        return wrapper.propertyAnimator(View.SCALE_X, animator)
     }
 
     private fun makePreviewColorChangingAnimation(@ColorInt color: Int): Animator {
