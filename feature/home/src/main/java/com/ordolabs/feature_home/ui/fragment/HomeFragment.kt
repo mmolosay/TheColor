@@ -8,7 +8,6 @@ import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Point
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.AccelerateInterpolator
@@ -313,7 +312,6 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     private fun onColorPreviewEmpty() {
         binding.previewWrapper.doOnLayout {
             animInfoSheetHiding()
-            Log.d("colorpreviewtoggling", "collapse: true; color: empty")
             animPreviewResize(collapse = true)
         }
     }
@@ -325,7 +323,6 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
                 animInfoSheetHiding()
             }
             updateColorPreview(colorInt)
-            Log.d("colorpreviewtoggling", "collapse: false; color: ${color.hex}")
             animPreviewResize(collapse = false)
         }
     }
