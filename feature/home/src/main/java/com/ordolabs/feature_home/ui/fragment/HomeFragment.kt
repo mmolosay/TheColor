@@ -87,12 +87,6 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         replaceFragment(fragment, binding.infoFragmentContainer.id)
     }
 
-    private fun updateColorPreview(@ColorInt color: Int) =
-        binding.previewWrapper.doOnLayout {
-            if (color == getPreviewColor()) return@doOnLayout
-            makePreviewColorChangingAnimation(color).start()
-        }
-
     private fun getPreviewColor(): Int {
         return binding.preview.backgroundTintList?.defaultColor ?: 0
     }
@@ -110,7 +104,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         binding.infoFragmentContainer.isVisible = visible
     }
 
-    private fun animInfoSheetShowing(color: ColorUtil.Color) {
+    private fun animInfoSheetExpanding(color: ColorUtil.Color) {
         if (homeVM.isInfoSheetShown) return
         toggleInfoFragmentVisibility(visible = true)
         binding.root.post { // when ^ infoFragmentContainer becomes visible
@@ -131,8 +125,27 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         }
     }
 
-    private fun animInfoSheetHiding() {
+    private fun animInfoSheetCollapsingOnPreviewEmpty() {
+        AnimatorSet().apply {
+            playSequentially(
+                makeInfoSheetCollapsingAnimation(),
+                makePreviewTogglingAnimation(collapse = true).apply {
+                    doOnStart {
+                        colorInputVM.colorPreview.value.ifSuccess {
+                            cancel()
+                        }
+                    }
+                }
+            )
+        }.start()
+    }
+
+    private fun animInfoSheetCollapsingOnPreviewSuccess() {
         if (!homeVM.isInfoSheetShown) return
+        makeInfoSheetCollapsingAnimation().start()
+    }
+
+    private fun makeInfoSheetCollapsingAnimation(): Animator =
         AnimatorSet().apply {
             playSequentially(
                 makeScrollingToTopAnimation(),
@@ -147,8 +160,13 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
             doOnStart {
                 homeVM.isInfoSheetShown = false
             }
-        }.start()
-    }
+        }
+
+    private fun animPreviewColorChanging(@ColorInt color: Int) =
+        binding.previewWrapper.doOnLayout {
+            if (color == getPreviewColor()) return@doOnLayout
+            makePreviewColorChangingAnimation(color).start()
+        }
 
     private fun animPreviewResize(collapse: Boolean) {
         val animator = makePreviewTogglingAnimation(collapse)
@@ -296,8 +314,11 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
 
     private fun onColorPreviewEmpty() {
         binding.previewWrapper.doOnLayout {
-            animInfoSheetHiding()
-            animPreviewResize(collapse = true)
+            if (homeVM.isInfoSheetShown) {
+                animInfoSheetCollapsingOnPreviewEmpty()
+            } else {
+                animPreviewResize(collapse = true)
+            }
         }
     }
 
@@ -305,9 +326,9 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         binding.previewWrapper.doOnLayout {
             val colorInt = color.toColorInt()
             if (getInfoBackgroundColor() != colorInt) {
-                animInfoSheetHiding()
+                animInfoSheetCollapsingOnPreviewSuccess()
             }
-            updateColorPreview(colorInt)
+            animPreviewColorChanging(colorInt)
             animPreviewResize(collapse = false)
         }
     }
@@ -316,7 +337,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         colorInputVM.procceedCommand.collectOnLifecycle { resource ->
             resource.ifSuccess { color ->
                 hideSoftInput()
-                animInfoSheetShowing(color)
+                animInfoSheetExpanding(color)
                 replaceColorInformationFragment()
             }
         }
