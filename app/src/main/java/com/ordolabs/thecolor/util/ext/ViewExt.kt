@@ -137,7 +137,7 @@ fun <T : Animator> View.propertyAnimator(property: Property<*, *>, animator: T):
 @Suppress("UNCHECKED_CAST")
 fun <T : Animator> View.propertyAnimatorOrNull(property: Property<*, *>): T? {
     val key = AnimationUtils.getViewPropertyKey(property)
-    return this.getTag(key) as? T
+    return (this.getTag(key) as? T)
 }
 
 /**

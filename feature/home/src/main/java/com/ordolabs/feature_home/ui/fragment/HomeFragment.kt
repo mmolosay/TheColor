@@ -8,6 +8,7 @@ import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Point
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.AccelerateInterpolator
@@ -40,8 +41,8 @@ import com.ordolabs.thecolor.util.ext.mediumAnimDuration
 import com.ordolabs.thecolor.util.ext.propertyAnimator
 import com.ordolabs.thecolor.util.ext.replaceFragment
 import com.ordolabs.thecolor.util.ext.setFragment
-import com.ordolabs.thecolor.util.ext.startOrReverse
 import com.ordolabs.thecolor.util.setNavigationBarsLight
+import com.ordolabs.thecolor.util.struct.AnimatorDestination
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.koin.core.context.loadKoinModules
 import com.ordolabs.thecolor.R as RApp
@@ -51,6 +52,8 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     private val binding: FragmentHomeBinding by viewBinding()
     private val homeVM: HomeViewModel by sharedViewModel()
     private val colorInputVM: ColorInputViewModel by sharedViewModel()
+
+    private val previewResizeDest = AnimatorDestination()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -169,8 +172,18 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         }
 
     private fun animPreviewResize(collapse: Boolean) {
+        if (collapse == binding.previewWrapper.isInvisible) return // already in desired dest
+        if (collapse == previewResizeDest.isEnd) return // already running towards desired dest
         val animator = makePreviewTogglingAnimation(collapse)
-        animator.startOrReverse()
+        if (animator.isStarted) {
+            previewResizeDest.reverse()
+            animator.reverse()
+            Log.d("PREVIEW", "collapse $collapse, animation reverse")
+        } else {
+            previewResizeDest.set(collapse)
+            animator.start()
+            Log.d("PREVIEW", "collapse $collapse, animation start")
+        }
     }
 
     private fun makePreviewRisingAnimation() =
@@ -208,6 +221,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
             doOnEnd {
                 // expanded state could be achieved by reversing collapsing animation
                 wrapper.isInvisible = (wrapper.scaleX == 0f)
+                previewResizeDest.clear()
             }
         }
         return wrapper.propertyAnimator(View.SCALE_X, animator)
