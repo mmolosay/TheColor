@@ -206,7 +206,8 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
                 wrapper.isInvisible = false
             }
             doOnEnd {
-                wrapper.isInvisible = collapse
+                // expanded state could be achieved by reversing collapsing animation
+                wrapper.isInvisible = (wrapper.scaleX == 0f)
             }
         }
         return wrapper.propertyAnimator(View.SCALE_X, animator)
