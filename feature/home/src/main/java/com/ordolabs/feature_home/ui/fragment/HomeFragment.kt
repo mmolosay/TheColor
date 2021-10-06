@@ -68,23 +68,8 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     }
 
     override fun setViews() {
-        binding.startBtn.setOnClickListener {
-            val animator = getCircleTranslationAnimation()
-            animator.startOrReverse()
-        }
         setColorInputFragment()
         setColorInformationFragment()
-    }
-
-    private fun getCircleTranslationAnimation(): ObjectAnimator {
-        val circle = binding.circle
-        val property = View.TRANSLATION_X
-        val current = circle.translationX
-        val dest = AnimationUtils.getAnimationEndValue(0f, current, 400f)
-        val animator = ObjectAnimator.ofFloat(circle, View.TRANSLATION_X, current, dest).apply {
-            duration = 3000L
-        }
-        return circle.propertyAnimator(property, animator)
     }
 
     private fun setColorInputFragment() {
