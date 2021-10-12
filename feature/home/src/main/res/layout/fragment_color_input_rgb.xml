@@ -21,6 +21,7 @@
         app:placeholderText="@string/color_input_rgb_placeholder_r">
 
         <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/edittextR"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:imeOptions="actionNext"
@@ -44,6 +45,7 @@
         app:placeholderText="@string/color_input_rgb_placeholder_g">
 
         <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/edittextG"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:imeOptions="actionNext"
@@ -66,6 +68,7 @@
         app:placeholderText="@string/color_input_rgb_placeholder_b">
 
         <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/edittextB"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:imeOptions="actionSend"

@@ -17,7 +17,7 @@ class ColorInputHostFragment : BaseFragment(R.layout.fragment_color_input_host) 
     private val colorInputVM: ColorInputViewModel by sharedViewModel()
 
     override fun collectViewModelsData() {
-        collectValidationState()
+        collectColorPreview()
     }
 
     override fun setViews() {
@@ -26,16 +26,20 @@ class ColorInputHostFragment : BaseFragment(R.layout.fragment_color_input_host) 
         setProcceedBtn()
     }
 
-    private fun setInputPager() = binding.inputPager.run {
-        adapter = ColorInputPagerAdapter(this@ColorInputHostFragment)
+    private fun setInputPager() = binding.run {
+        val adapter = ColorInputPagerAdapter(this@ColorInputHostFragment)
+        inputPager.adapter = adapter
+        inputPager.offscreenPageLimit = adapter.itemCount
     }
 
-    private fun setInputTabs() = binding.inputTabs.run {
-        TabLayoutMediator(this, binding.inputPager, ::configureInputTab).attach()
+    private fun setInputTabs() = binding.run {
+        TabLayoutMediator(inputTabs, inputPager, ::configureInputTab).attach()
     }
 
-    private fun setProcceedBtn() = binding.procceedBtn.run {
-        setOnClickListener { colorInputVM.procceedInput() }
+    private fun setProcceedBtn() = binding.run {
+        procceedBtn.setOnClickListener {
+            colorInputVM.procceedInput()
+        }
     }
 
     private fun configureInputTab(tab: TabLayout.Tab, position: Int) {
@@ -43,16 +47,10 @@ class ColorInputHostFragment : BaseFragment(R.layout.fragment_color_input_host) 
         tab.setText(data.titleRes)
     }
 
-    private fun collectValidationState() =
-        colorInputVM.colorValidationState.collectOnLifecycle { resource ->
-            resource.ifSuccess { valid ->
-                binding.procceedBtn.isEnabled = valid
-            }
+    private fun collectColorPreview() =
+        colorInputVM.colorPreview.collectOnLifecycle { resource ->
+            binding.procceedBtn.isEnabled = resource.isSuccess
         }
-
-    override fun setSoftInputMode() {
-        // https://yatmanwong.medium.com/android-how-to-pan-the-page-up-more-25fc5c542a97
-    }
 
     companion object {
         fun newInstance() = ColorInputHostFragment()

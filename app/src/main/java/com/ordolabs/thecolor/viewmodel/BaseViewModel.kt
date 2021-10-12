@@ -8,8 +8,8 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 
 abstract class BaseViewModel : ViewModel() {
@@ -24,23 +24,23 @@ abstract class BaseViewModel : ViewModel() {
      */
     protected open val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
         val messageRes = ExceptionHandler.parseExceptionType(throwable)
-        launchOn(Dispatchers.Main.immediate) {
+        launchIn(Dispatchers.Main.immediate) {
             _coroutineExceptionMessageRes.emit(messageRes)
         }
     }
 
     /**
-     * [StateFlow] that will emit @StringRes ids, corresponding to occured while
-     * coroutine execution with [launchOn].
+     * [SharedFlow] that will emit @StringRes ids, corresponding to occured while
+     * coroutine execution with [launchIn].
      *
      * [coroutineExceptionMessageRes] can be used to get its String resource and
      * show it on UI as `Snackbar` or `Toast`.
      *
-     * @see launchOn
+     * @see launchIn
      * @see coroutineExceptionHandler
      */
-    protected val _coroutineExceptionMessageRes = MutableStateFlow(0)
-    val coroutineExceptionMessageRes = _coroutineExceptionMessageRes.asStateFlow()
+    protected val _coroutineExceptionMessageRes = MutableSharedFlow<Int>()
+    val coroutineExceptionMessageRes = _coroutineExceptionMessageRes.asSharedFlow()
 
     /**
      * Launches specified coroutine [block] in current [viewModelScope] on [dispatcher].
@@ -51,7 +51,7 @@ abstract class BaseViewModel : ViewModel() {
      * @param block the body of coroutine.
      */
     @Suppress("unused")
-    protected fun BaseViewModel.launchOn(
+    protected fun BaseViewModel.launchIn(
         dispatcher: CoroutineDispatcher,
         block: suspend CoroutineScope.() -> Unit
     ): Job {
@@ -60,14 +60,38 @@ abstract class BaseViewModel : ViewModel() {
     }
 
     /**
-     * Launches specified coroutine [block] on [BaseViewModel.coroutineDispatcherDefault].
+     * Launches specified coroutine [block] in [Dispatchers.Main] dispatcher.
      *
-     * @see BaseViewModel.launchOn
+     * @see BaseViewModel.launchIn
+     */
+    @Suppress("unused")
+    protected fun BaseViewModel.launchInMain(
+        block: suspend CoroutineScope.() -> Unit
+    ): Job {
+        return this.launchIn(Dispatchers.Main, block)
+    }
+
+    /**
+     * Launches specified coroutine [block] in [Dispatchers.IO] dispatcher.
+     *
+     * @see BaseViewModel.launchIn
+     */
+    @Suppress("unused")
+    protected fun BaseViewModel.launchInIO(
+        block: suspend CoroutineScope.() -> Unit
+    ): Job {
+        return this.launchIn(Dispatchers.IO, block)
+    }
+
+    /**
+     * Launches specified coroutine [block] on [coroutineDispatcherDefault].
+     *
+     * @see BaseViewModel.launchIn
      */
     @Suppress("unused")
     protected fun BaseViewModel.launch(
         block: suspend CoroutineScope.() -> Unit
     ): Job {
-        return this.launchOn(this.coroutineDispatcherDefault, block)
+        return this.launchIn(this.coroutineDispatcherDefault, block)
     }
 }

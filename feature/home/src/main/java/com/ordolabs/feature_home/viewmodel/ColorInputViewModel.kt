@@ -4,53 +4,39 @@ import androidx.lifecycle.viewModelScope
 import com.ordolabs.domain.usecase.local.ValidateColorHexBaseUseCase
 import com.ordolabs.domain.usecase.local.ValidateColorRgbBaseUseCase
 import com.ordolabs.thecolor.mapper.toDomain
-import com.ordolabs.thecolor.model.ColorHexPresentation
-import com.ordolabs.thecolor.model.ColorRgbPresentation
+import com.ordolabs.thecolor.model.InputHexPresentation
+import com.ordolabs.thecolor.model.InputRgbPresentation
 import com.ordolabs.thecolor.util.ColorUtil.Color
 import com.ordolabs.thecolor.util.ColorUtil.from
-import com.ordolabs.thecolor.util.ColorUtil.toColorHex
-import com.ordolabs.thecolor.util.ColorUtil.toColorRgb
-import com.ordolabs.thecolor.util.MutableSharedResourceFlow
 import com.ordolabs.thecolor.util.MutableStateResourceFlow
+import com.ordolabs.thecolor.util.ext.shareOnceIn
 import com.ordolabs.thecolor.util.struct.Resource
-import com.ordolabs.thecolor.util.struct.loading
+import com.ordolabs.thecolor.util.struct.empty
+import com.ordolabs.thecolor.util.struct.getOrNull
 import com.ordolabs.thecolor.util.struct.success
 import com.ordolabs.thecolor.viewmodel.BaseViewModel
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.stateIn
 
 class ColorInputViewModel(
     private val validateColorHexUseCase: ValidateColorHexBaseUseCase,
     private val validateColorRgbUseCase: ValidateColorRgbBaseUseCase
 ) : BaseViewModel() {
 
-    private val _colorValidationState = MutableSharedResourceFlow<Boolean>()
-    val colorValidationState = _colorValidationState.asSharedFlow()
+    private val _colorPreview: MutableStateFlow<Resource<Color>>
+    val colorPreview: StateFlow<Resource<Color>>
 
-    private val _colorPreview = MutableSharedResourceFlow<Color>()
-    val colorPreview = _colorPreview.asSharedFlow()
-
-    private val _colorHex = MutableSharedResourceFlow<ColorHexPresentation>()
-    val colorHex = _colorHex.asSharedFlow()
-
-    private val _colorRgb = MutableSharedResourceFlow<ColorRgbPresentation>()
-    val colorRgb = _colorRgb.asSharedFlow()
-
-    private val _procceedCommand = MutableStateResourceFlow<Color>(Resource.loading())
-    val procceedCommand = _procceedCommand.asStateFlow()
+    private val _procceedCommand = MutableStateResourceFlow<Color>(Resource.empty())
+    val procceedCommand = _procceedCommand.shareOnceIn(viewModelScope)
 
     private var colorValidationJob: Job? = null
 
     init {
-        launch {
-            _colorValidationState.emit(Resource.success(false))
-            _colorPreview.emit(Resource.loading())
-            _colorHex.emit(Resource.loading())
-            _colorRgb.emit(Resource.loading())
-        }
+        _colorPreview = MutableStateResourceFlow(Resource.empty())
+        colorPreview = _colorPreview.asStateFlow()
     }
 
     override fun onCleared() {
@@ -59,68 +45,51 @@ class ColorInputViewModel(
         colorValidationJob = null
     }
 
-    fun validateColor(color: ColorHexPresentation?) = launch {
-        resetColorValidation().join()
-        val domain = color?.toDomain() ?: kotlin.run {
-            _colorValidationState.emit(Resource.success(false))
-            return@launch
-        }
-        val abstract = Color.from(color)
-
+    fun validateColor(input: InputHexPresentation) = launch {
+        restartColorValidation().join()
+        val domain = input.toDomain()
         colorValidationJob = launch {
             validateColorHexUseCase.invoke(domain).collect { valid ->
-                onColorValidated(valid, abstract, color::class.java)
+                onColorValidated(valid, Color.from(input))
             }
         }
     }
 
-    fun validateColor(color: ColorRgbPresentation?) = launch {
-        resetColorValidation().join()
-        val domain = color?.toDomain() ?: kotlin.run {
-            _colorValidationState.emit(Resource.success(false))
-            return@launch
-        }
-        val abstract = Color.from(color)
-
+    fun validateColor(input: InputRgbPresentation) = launch {
+        restartColorValidation().join()
+        val domain = input.toDomain()
         colorValidationJob = launch {
             validateColorRgbUseCase.invoke(domain).collect { valid ->
-                onColorValidated(valid, abstract, color::class.java)
+                onColorValidated(valid, Color.from(input))
             }
         }
     }
 
-    fun procceedInput() = launch {
-        val resource = colorPreview.stateIn(viewModelScope).value
-        val color = resource.ifSuccess { it } ?: return@launch
-        _procceedCommand.emit(Resource.success(color))
+    fun procceedInput() {
+        val color = _colorPreview.value.getOrNull() ?: return
+        _procceedCommand.value = Resource.success(color)
     }
 
-    private suspend fun resetColorValidation() = launch {
+    private fun restartColorValidation() = launchInMain {
         colorValidationJob?.cancel()
-        _colorValidationState.emit(Resource.loading())
     }
 
     private fun onColorValidated(
-        result: Boolean,
-        abstract: Color,
-        initialColorClass: Class<*>
-    ) =
-        launch {
-            _colorValidationState.emit(Resource.success(result))
-            updateColors(abstract, initialColorClass)
-            updateColorPreview(result, abstract)
-        }
-
-    private suspend fun updateColors(color: Color, exclude: Class<*>) {
-        if (exclude != ColorHexPresentation::class.java) {
-            _colorHex.emit(Resource.success(color.toColorHex()))
-        }
-        if (exclude != ColorRgbPresentation::class.java) {
-            _colorRgb.emit(Resource.success(color.toColorRgb()))
+        valid: Boolean,
+        color: Color? = null
+    ) {
+        if (valid && color != null) {
+            updateColorPreview(color)
+        } else {
+            clearColorPreview()
         }
     }
 
-    private suspend fun updateColorPreview(valid: Boolean, color: Color) {
-        if (valid) _colorPreview.emit(Resource.success(color))
+    private fun updateColorPreview(color: Color) {
+        _colorPreview.value = Resource.success(color)
+    }
+
+    private fun clearColorPreview() {
+        _colorPreview.value = Resource.empty()
     }
 }

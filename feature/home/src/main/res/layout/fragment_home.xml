@@ -1,58 +1,105 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/scrollview"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:fillViewport="true">
 
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/glStart"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        app:layout_constraintGuide_begin="@dimen/offset_content_horizontal" />
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/glEnd"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        app:layout_constraintGuide_end="@dimen/offset_content_horizontal" />
-
-    <androidx.appcompat.widget.AppCompatTextView
-        android:id="@+id/headline"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/home_find_your_color"
-        android:textAppearance="@style/TextAppearance.Headline6"
-
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.20" />
-
-    <androidx.fragment.app.FragmentContainerView
-        android:id="@id/defaultFragmentContainer"
-        android:layout_width="0dp"
-        android:layout_height="@dimen/color_input_pager_height"
-        android:layout_marginTop="@dimen/offset_16"
-
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/headline"
-        tools:layout="@layout/fragment_color_input_host" />
-
-    <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/colorInfoFragmentContainer"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/offset_32"
-        android:background="@drawable/bg_color_preview"
+        android:layout_height="wrap_content">
 
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/defaultFragmentContainer"
-        tools:layout="@layout/fragment_color_information" />
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/glStart"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            app:layout_constraintGuide_begin="@dimen/offset_content_horizontal" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/glEnd"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            app:layout_constraintGuide_end="@dimen/offset_content_horizontal" />
+
+        <TextView
+            android:id="@+id/headline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="192dp"
+            android:text="@string/home_find_your_color"
+            android:textAppearance="?attr/textAppearanceHeadline5"
+            android:textColor="@color/material_on_background_emphasis_medium"
+
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@id/defaultFragmentContainer"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/color_input_pager_height"
+            android:layout_marginTop="@dimen/offset_16"
+
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/headline"
+            tools:layout="@layout/fragment_color_input_host" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/previewWrapper"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:scaleX="0"
+            android:scaleY="0"
+            android:visibility="invisible"
+
+            app:cardCornerRadius="1000dp"
+            app:cardElevation="@dimen/home_preview_elevation"
+            app:layout_constraintEnd_toStartOf="@+id/glEnd"
+            app:layout_constraintStart_toStartOf="@+id/glStart"
+            app:layout_constraintTop_toBottomOf="@+id/defaultFragmentContainer"
+            tools:scaleX="1"
+            tools:scaleY="1"
+            tools:visibility="visible">
+
+            <View
+                android:id="@+id/preview"
+                android:layout_width="@dimen/color_input_preview_size"
+                android:layout_height="@dimen/color_input_preview_size"
+                android:background="@drawable/bg_shape_round"
+                tools:visibility="visible" />
+
+            <View
+                android:id="@+id/previewUpdated"
+                android:layout_width="@dimen/color_input_preview_size"
+                android:layout_height="@dimen/color_input_preview_size"
+                android:background="@drawable/bg_shape_round"
+                android:backgroundTint="@color/transparent"
+                android:visibility="invisible"
+                tools:visibility="visible" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/infoFragmentContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/offset_16"
+            android:background="@drawable/bg_color_information"
+            android:backgroundTint="@color/transparent"
+            android:visibility="gone"
+
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/previewWrapper"
+            tools:backgroundTint="#0047AB"
+            tools:layout="@layout/fragment_color_information"
+            tools:visibility="visible" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</ScrollView>

@@ -6,16 +6,17 @@ import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.FragmentColorInputRgbBinding
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
-import com.ordolabs.thecolor.model.ColorRgbPresentation
-import com.ordolabs.thecolor.ui.util.PreventingInputFilter
-import com.ordolabs.thecolor.ui.util.RangeInputFilter
+import com.ordolabs.thecolor.model.InputRgbPresentation
+import com.ordolabs.thecolor.ui.util.inputfilter.PreventingInputFilter
+import com.ordolabs.thecolor.ui.util.inputfilter.RangeInputFilter
+import com.ordolabs.thecolor.util.ColorUtil
+import com.ordolabs.thecolor.util.ColorUtil.toColorRgb
 import com.ordolabs.thecolor.util.ext.addFilters
+import com.ordolabs.thecolor.util.ext.getText
 import com.ordolabs.thecolor.util.ext.getTextString
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
-class ColorInputRgbFragment :
-    BaseFragment(R.layout.fragment_color_input_rgb),
-    ColorInputModelFragment {
+class ColorInputRgbFragment : BaseFragment(R.layout.fragment_color_input_rgb) {
 
     private val binding: FragmentColorInputRgbBinding by viewBinding()
     private val colorInputVM: ColorInputViewModel by sharedViewModel()
@@ -23,7 +24,7 @@ class ColorInputRgbFragment :
     private var isTypedByUser = true
 
     override fun collectViewModelsData() {
-        collectColorRgb()
+        collectColorPreview()
     }
 
     override fun setViews() {
@@ -56,37 +57,45 @@ class ColorInputRgbFragment :
             if (isTypedByUser) validateColorInput()
         }
 
-    override fun validateColorInput() {
+    private fun validateColorInput() {
         val color = collectColorInput()
         colorInputVM.validateColor(color)
     }
 
-    private fun collectColorInput(): ColorRgbPresentation {
-        val default = DEFAULT_INPUT_VALUE_RGB_COMPONENT
-        val r = binding.inputRgbR.getTextString()?.toIntOrNull() ?: default
-        val g = binding.inputRgbG.getTextString()?.toIntOrNull() ?: default
-        val b = binding.inputRgbB.getTextString()?.toIntOrNull() ?: default
-        return ColorRgbPresentation(
-            r = r,
-            g = g,
-            b = b
-        )
+    private fun collectColorInput(): InputRgbPresentation {
+        val r = binding.inputRgbR.getTextString()?.toIntOrNull()
+        val g = binding.inputRgbG.getTextString()?.toIntOrNull()
+        val b = binding.inputRgbB.getTextString()?.toIntOrNull()
+        return InputRgbPresentation(r, g, b)
     }
 
-    private fun collectColorRgb() =
-        colorInputVM.colorRgb.collectOnLifecycle { resource ->
-            resource.ifSuccess { color ->
-                isTypedByUser = false
-                binding.inputRgbR.editText?.setText(color.r.toString())
-                binding.inputRgbG.editText?.setText(color.g.toString())
-                binding.inputRgbB.editText?.setText(color.b.toString())
-                isTypedByUser = true
-            }
+    private fun collectColorPreview() =
+        colorInputVM.colorPreview.collectOnLifecycle { resource ->
+            if (isResumed) return@collectOnLifecycle // prevent user interrupting
+            resource.fold(
+                onEmpty = ::onColorPreviewEmpty,
+                onSuccess = ::onColorPreviewSuccess
+            )
         }
 
-    companion object {
+    private fun onColorPreviewEmpty() {
+        isTypedByUser = false
+        binding.inputRgbR.getText()?.clear()
+        binding.inputRgbG.getText()?.clear()
+        binding.inputRgbB.getText()?.clear()
+        isTypedByUser = true
+    }
 
-        private const val DEFAULT_INPUT_VALUE_RGB_COMPONENT = 0
+    private fun onColorPreviewSuccess(color: ColorUtil.Color) {
+        val rgb = color.toColorRgb()
+        isTypedByUser = false
+        binding.inputRgbR.editText?.setText(rgb.r.toString())
+        binding.inputRgbG.editText?.setText(rgb.g.toString())
+        binding.inputRgbB.editText?.setText(rgb.b.toString())
+        isTypedByUser = true
+    }
+
+    companion object {
 
         fun newInstance() = ColorInputRgbFragment()
     }

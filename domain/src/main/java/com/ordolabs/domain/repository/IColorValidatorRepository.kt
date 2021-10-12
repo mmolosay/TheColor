@@ -6,6 +6,6 @@ import kotlinx.coroutines.flow.Flow
 
 interface IColorValidatorRepository {
 
-    fun validateColor(color: ColorHex): Flow<Boolean>
-    fun validateColor(color: ColorRgb): Flow<Boolean>
+    fun validateColor(color: ColorHex?): Flow<Boolean>
+    fun validateColor(color: ColorRgb?): Flow<Boolean>
 }

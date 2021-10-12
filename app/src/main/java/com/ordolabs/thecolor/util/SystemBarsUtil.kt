@@ -1,5 +1,6 @@
 package com.ordolabs.thecolor.util
 
+import android.app.Activity
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -10,9 +11,14 @@ fun AppCompatActivity.setTransparentSystemBars() {
     window.addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
 }
 
-fun AppCompatActivity.setSystemBarsLight(light: Boolean) {
+fun Activity.setStatusBarsLight(light: Boolean) {
     ViewCompat.getWindowInsetsController(window.decorView)?.run {
         isAppearanceLightStatusBars = light
+    }
+}
+
+fun Activity.setNavigationBarsLight(light: Boolean) {
+    ViewCompat.getWindowInsetsController(window.decorView)?.run {
         isAppearanceLightNavigationBars = light
     }
 }

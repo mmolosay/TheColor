@@ -35,10 +35,7 @@ android {
 dependencies {
 
     // Modules
-    implementation project(':data:local')
-    implementation project(':data:remote')
+    api project(':data:local')
+    api project(':data:remote')
     implementation project(':domain')
-
-    // Koin
-    implementation "io.insert-koin:koin-android-compat:3.1.2"
 }

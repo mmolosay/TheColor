@@ -14,7 +14,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
-abstract class BaseFragment(@LayoutRes layoutRes: Int) : Fragment(layoutRes) {
+abstract class BaseFragment : Fragment {
+
+    constructor()
+
+    constructor(@LayoutRes layoutRes: Int) : super(layoutRes)
 
     val transactionTag: String = this::class.java.simpleName
 
@@ -32,12 +36,12 @@ abstract class BaseFragment(@LayoutRes layoutRes: Int) : Fragment(layoutRes) {
         super.onCreate(savedInstanceState)
         initialSoftInputMode // initialize
         setSoftInputMode()
+        parseArguments()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        parseStartIntent()
         setUp()
         setViews()
     }
@@ -52,14 +56,16 @@ abstract class BaseFragment(@LayoutRes layoutRes: Int) : Fragment(layoutRes) {
     }
 
     /**
-     * Parses `Intent`, that started this `Activity`.
+     * Parses [Fragment.getArguments].
+     * Being called in [Fragment.onCreate] method.
      */
-    protected open fun parseStartIntent() {
+    protected open fun parseArguments() {
         // override me
     }
 
     /**
      * Configures non-view components.
+     * Being called in [Fragment.onViewCreated] method.
      */
     @CallSuper
     protected open fun setUp() {
@@ -67,12 +73,14 @@ abstract class BaseFragment(@LayoutRes layoutRes: Int) : Fragment(layoutRes) {
     }
 
     /**
-     * Collects data from declared ViewModel's.
+     * Collects (subscribes to) data from declared ViewModel's.
+     * Being called in [setUp] method.
      */
     protected abstract fun collectViewModelsData()
 
     /**
-     * Sets activity's views and configures them.
+     * Sets fragment's views and configures them.
+     * Being called in [Fragment.onViewCreated] method.
      */
     protected abstract fun setViews()
 

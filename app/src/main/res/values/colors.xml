@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="white">@android:color/white</color>
+    <color name="black">@android:color/black</color>
+    <color name="transparent">@android:color/transparent</color>
+    <color name="debug_red">#ff0000</color>
+
+    <color name="silver">#AEAEAF</color>
+    <color name="gallery">#F0F0F0</color>
+
+    <!--color primary (light)-->
+    <color name="purple_500">#6200ee</color>
+
+    <!--color primary (dark)-->
+    <color name="purple_200">#bb86fc</color>
+
+    <!--color primary variant (light)-->
+    <color name="purple_700">#3700b3</color>
+
+    <!--color primary variant (dark)-->
+    <color name="purple_600">#4b01d0</color>
+
+    <!--color secondary-->
+    <color name="green_200">#03dac6</color>
+
+    <!--Color secondary variant-->
+    <color name="green_500">#018786</color>
+
+    <!--color error (light)-->
+    <color name="red_600">#b00020</color>
+
+    <!--color error (dark)-->
+    <color name="red_200">#cf6679</color>
+
+    <!--color surface (light)-->
+    <!--color background (light)-->
+    <!--color on error (light)-->
+    <!--color on surface (dark)-->
+    <!--color on surface (dark)-->
+    <color name="white_50">#ffffff</color>
+
+    <!--color surface (dark)-->
+    <color name="black_800">#121212</color>
+
+    <!--color on secondary (light)-->
+    <!--color on background (light)-->
+    <!--color on surface (light)-->
+    <color name="black_900">#000000</color>
+
+</resources>

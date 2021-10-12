@@ -6,13 +6,14 @@ import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.FragmentColorInputHexBinding
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
-import com.ordolabs.thecolor.model.ColorHexPresentation
+import com.ordolabs.thecolor.model.InputHexPresentation
+import com.ordolabs.thecolor.util.ColorUtil
+import com.ordolabs.thecolor.util.ColorUtil.toColorHex
+import com.ordolabs.thecolor.util.ext.getText
 import com.ordolabs.thecolor.util.ext.getTextString
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
-class ColorInputHexFragment :
-    BaseFragment(R.layout.fragment_color_input_hex),
-    ColorInputModelFragment {
+class ColorInputHexFragment : BaseFragment(R.layout.fragment_color_input_hex) {
 
     private val binding: FragmentColorInputHexBinding by viewBinding()
     private val colorInputVM: ColorInputViewModel by sharedViewModel()
@@ -20,7 +21,7 @@ class ColorInputHexFragment :
     private var isTypedByUser = true
 
     override fun collectViewModelsData() {
-        collectColorHex()
+        collectColorPreview()
     }
 
     override fun setViews() {
@@ -32,29 +33,39 @@ class ColorInputHexFragment :
             if (isTypedByUser) validateColorInput()
         }
 
-    override fun validateColorInput() {
+    private fun validateColorInput() {
         val color = collectColorInput()
         colorInputVM.validateColor(color)
     }
 
-    private fun collectColorInput(): ColorHexPresentation {
+    private fun collectColorInput(): InputHexPresentation {
         val input = binding.inputHex.getTextString()
-        val value = input?.takeUnless { it.isEmpty() } ?: DEFAULT_INPUT_VALUE_HEX
-        return ColorHexPresentation(value)
+        return InputHexPresentation(value = input)
     }
 
-    private fun collectColorHex() =
-        colorInputVM.colorHex.collectOnLifecycle { resource ->
-            resource.ifSuccess { color ->
-                isTypedByUser = false
-                binding.inputHex.editText?.setText(color.value)
-                isTypedByUser = true
-            }
+    private fun collectColorPreview() =
+        colorInputVM.colorPreview.collectOnLifecycle { resource ->
+            if (isResumed) return@collectOnLifecycle // prevent user interrupting
+            resource.fold(
+                onEmpty = ::onColorPreviewEmpty,
+                onSuccess = ::onColorPreviewSuccess
+            )
         }
 
-    companion object {
+    private fun onColorPreviewEmpty() {
+        isTypedByUser = false
+        binding.inputHex.getText()?.clear()
+        isTypedByUser = true
+    }
 
-        private const val DEFAULT_INPUT_VALUE_HEX = "000000"
+    private fun onColorPreviewSuccess(color: ColorUtil.Color) {
+        val hex = color.toColorHex()
+        isTypedByUser = false
+        binding.inputHex.editText?.setText(hex.value)
+        isTypedByUser = true
+    }
+
+    companion object {
 
         fun newInstance() = ColorInputHexFragment()
     }

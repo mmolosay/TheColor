@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-
-    <string name="error_check_internet_connection">Check Internet connection</string>
-    <string name="error_unknown">Sory, an error occurred, try again later</string>
-
-</resources>
