@@ -171,7 +171,8 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         }
 
     private fun animPreviewResize(collapse: Boolean) {
-        if (collapse == binding.previewWrapper.isInvisible) return // already in desired dest
+        if (collapse && binding.previewWrapper.scaleX == 0f) return // already collapsed
+        if (!collapse && binding.previewWrapper.scaleX == 1f) return // already expanded
         if (collapse == previewResizeDest.isEnd) return // already running towards desired dest
         val animator = makePreviewTogglingAnimation(collapse)
         if (animator.isStarted) {
