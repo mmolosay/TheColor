@@ -2,7 +2,10 @@
 <resources>
 
     <style name="ThemeOverlay.TheColor.Light" parent="Base.Theme.TheColor">
-        <!-- nothing is here -->
+
+        <!-- color control -->
+        <item name="colorControlHighlight">@color/gainsboro</item>
+
     </style>
 
     <style name="ThemeOverlay.TheColor.Dark" parent="Base.Theme.TheColor">
@@ -15,6 +18,9 @@
 
         <!-- colors background -->
         <item name="android:colorBackground">@color/black_800</item>
+
+        <!-- color control -->
+        <item name="colorControlHighlight">@color/silver</item>
 
     </style>
 

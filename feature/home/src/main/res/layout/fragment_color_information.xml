@@ -76,7 +76,7 @@
         android:id="@+id/exactGroup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:constraint_referenced_ids="exactLabel,exactValue,exactColor" />
+        app:constraint_referenced_ids="exactLabel,exactValue,exactColor,exactLink" />
 
     <androidx.constraintlayout.widget.Group
         android:id="@+id/deviationGroup"
@@ -425,7 +425,24 @@
         app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintStart_toEndOf="@id/exactValue"
         app:layout_constraintTop_toTopOf="@id/exactValue"
-        tools:backgroundTint="#0047AB" />
+        tools:backgroundTint="#000000" />
+
+    <ImageButton
+        android:id="@+id/exactLink"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:padding="@dimen/offset_2"
+        android:layout_marginHorizontal="@dimen/offset_4"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_open_in_new"
+
+        app:layout_constraintBottom_toBottomOf="@+id/exactLabel"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintStart_toEndOf="@+id/exactLabel"
+        app:layout_constraintTop_toTopOf="@+id/exactLabel"
+        app:tint="@color/material_on_background_emphasis_high_type"
+        tools:ignore="ContentDescription" />
 
     <TextView
         android:id="@+id/deviationLabel"

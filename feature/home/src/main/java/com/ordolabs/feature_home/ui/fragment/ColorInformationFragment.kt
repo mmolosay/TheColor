@@ -29,6 +29,7 @@ import com.ordolabs.thecolor.util.InsetsUtil
 import com.ordolabs.thecolor.util.ext.by
 import com.ordolabs.thecolor.util.ext.getStringYesOrNo
 import com.ordolabs.thecolor.util.ext.mediumAnimDuration
+import com.ordolabs.thecolor.util.ext.setTextOrGoneWith
 import com.ordolabs.thecolor.util.ext.showToast
 import com.ordolabs.thecolor.util.struct.getOrNull
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
@@ -171,9 +172,15 @@ class ColorInformationFragment : BaseFragment() {
             val hasData = (info.exactNameHex != null)
             exactGroup.isVisible = hasData
             if (!hasData) return
-            exactValue.text = info.exactNameHex
+            val exact = info.exactNameHex
             val color = Color.parseColor(info.exactNameHex)
+            exactValue.setTextOrGoneWith(exact, exactGroup)
             exactColor.backgroundTintList = ColorStateList.valueOf(color)
+            exactLink.setOnClickListener {
+                exact ?: return@setOnClickListener
+                val exactColor = ColorUtil.Color(hex = exact)
+                colorInfoVM.fetchColorInformation(exactColor)
+            }
         }
 
     private fun populateDeviationGroup(info: ColorInformationPresentation) =

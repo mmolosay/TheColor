@@ -10,15 +10,51 @@ import android.view.View
 import android.view.ViewAnimationUtils
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
+import android.widget.TextView
 import androidx.core.animation.doOnEnd
 import androidx.core.graphics.minus
+import androidx.core.view.isVisible
 import androidx.dynamicanimation.animation.DynamicAnimation
 import androidx.dynamicanimation.animation.SpringAnimation
 import androidx.dynamicanimation.animation.SpringForce
 import com.google.android.material.textfield.TextInputLayout
 import com.ordolabs.thecolor.util.AnimationUtils
 
-/* TextInputLayout and EditText */
+// region TextView
+
+/**
+ * Sets specified [text] in [TextView.setText] and makes view visible,
+ * if [text] is not [CharSequence.isNullOrEmpty].
+ * Sets visibility to [View.GONE] otherwise.
+ *
+ * @return whether has meaningful text or not.
+ */
+fun TextView.setTextOrGone(text: CharSequence?): Boolean {
+    val hasText = !text.isNullOrEmpty()
+    this.isVisible = hasText
+    if (hasText) {
+        this.text = text
+    }
+    return hasText
+}
+
+/**
+ * Performs [TextView.setTextOrGone], but __only hides__ [views].
+ */
+fun TextView.setTextOrGoneWith(text: CharSequence?, vararg views: View): Boolean {
+    val hasText = !text.isNullOrEmpty()
+    this.isVisible = hasText
+    if (hasText) {
+        this.text = text
+    } else {
+        views.forEach { it.isVisible = false }
+    }
+    return hasText
+}
+
+// endregion
+
+// region TextInputLayout and EditText
 
 fun TextInputLayout.getText(): Editable? {
     return this.editText?.text
@@ -39,7 +75,9 @@ fun EditText.hideSoftInput(): Boolean {
     return true
 }
 
-/* Location */
+// endregion
+
+// region Location
 
 /**
  * Computes coordinates of `this` view relative to specified [parent].
@@ -85,7 +123,9 @@ fun View.getBottomVisibleInParent(parent: View?): Int? {
     return if (clipped > 0) this.height - clipped else this.height
 }
 
-/* Animation */
+// endregion
+
+// region Animation
 
 /**
  * Returns [SpringAnimation], associated with `this` view or a new one.
@@ -151,3 +191,5 @@ fun View.createCircularRevealAnimation(
 ): Animator {
     return ViewAnimationUtils.createCircularReveal(this, cx, cy, sr, er)
 }
+
+// endregion
