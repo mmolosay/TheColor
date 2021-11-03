@@ -7,9 +7,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.view.ContextThemeWrapper
+import androidx.core.view.ViewCompat
+import androidx.core.view.ViewPropertyAnimatorListenerAdapter
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.github.michaelbull.result.Result
@@ -23,7 +26,9 @@ import com.ordolabs.thecolor.model.ColorInformationPresentation
 import com.ordolabs.thecolor.util.ColorUtil
 import com.ordolabs.thecolor.util.ColorUtil.isDark
 import com.ordolabs.thecolor.util.InsetsUtil
+import com.ordolabs.thecolor.util.ext.by
 import com.ordolabs.thecolor.util.ext.getStringYesOrNo
+import com.ordolabs.thecolor.util.ext.mediumAnimDuration
 import com.ordolabs.thecolor.util.ext.showToast
 import com.ordolabs.thecolor.util.struct.getOrNull
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
@@ -64,6 +69,7 @@ class ColorInformationFragment : BaseFragment() {
     }
 
     override fun collectViewModelsData() {
+        collectColorPreview()
         collectColorInformation()
         collectCoroutineException()
     }
@@ -178,17 +184,54 @@ class ColorInformationFragment : BaseFragment() {
             deviationValue.text = info.exactNameHexDistance.toString()
         }
 
-    private fun toggleVisibility(visible: Boolean) {
-        binding.root.isInvisible = !visible
+    private fun animRootVisibility(visible: Boolean) {
+        val translation = resources.getDimension(R.dimen.color_information_root_translationY)
+        val translationY = 0f to translation by visible
+        val alpha = 1f to 0f by visible
+        ViewCompat.animate(binding.root)
+            .translationY(translationY)
+            .alpha(alpha)
+            .setDuration(mediumAnimDuration)
+            .setInterpolator(FastOutSlowInInterpolator())
+            .setListener(object : ViewPropertyAnimatorListenerAdapter() {
+
+                override fun onAnimationStart(view: View?) {
+                    view?.isInvisible = false
+                }
+
+                override fun onAnimationEnd(view: View?) {
+                    view?.isInvisible = !visible
+                }
+            })
+            .start()
     }
+
+    private fun collectColorPreview() =
+        colorInputVM.colorPreview.collectOnLifecycle { resource ->
+            resource.ifSuccess { color ->
+                val info = colorInfoVM.information.value.getOrNull() ?: return@ifSuccess
+                if (!color.equals(info.hexValue)) { // info for another color
+                    colorInfoVM.clearColorInformation()
+                }
+            }
+        }
 
     private fun collectColorInformation() =
         colorInfoVM.information.collectOnLifecycle { resource ->
-            resource.ifSuccess { information ->
-                populateInformationViews(information)
-                toggleVisibility(visible = true)
-            }
+            resource.fold(
+                onEmpty = ::onColorInformationEmpty,
+                onSuccess = ::onColorInformationSuccess
+            )
         }
+
+    private fun onColorInformationEmpty() {
+        animRootVisibility(visible = false)
+    }
+
+    private fun onColorInformationSuccess(info: ColorInformationPresentation) {
+        populateInformationViews(info)
+        animRootVisibility(visible = true)
+    }
 
     private fun collectCoroutineException() =
         colorInfoVM.coroutineExceptionMessageRes.collectOnLifecycle { idres ->
