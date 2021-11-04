@@ -71,9 +71,8 @@ class ColorInputViewModel(
         _procceedCommand.setSuccess(preview.color)
     }
 
-    fun updateColorPreview(color: Color, source: ColorPreviewSource) {
-        val preview = ColorPreview(color, source)
-        _colorPreview.setSuccess(preview)
+    fun updateColorPreview(new: ColorPreview) {
+        _colorPreview.setSuccess(new)
     }
 
     private fun restartColorValidation() = launchInMain {
@@ -85,7 +84,8 @@ class ColorInputViewModel(
         color: Color? = null
     ) {
         if (valid && color != null) {
-            updateColorPreview(color, ColorPreviewSource.USER_INPUT)
+            val new = ColorPreview(color, isUserInput = true)
+            updateColorPreview(new)
         } else {
             clearColorPreview()
         }
@@ -97,11 +97,6 @@ class ColorInputViewModel(
 
     data class ColorPreview(
         val color: Color,
-        val source: ColorPreviewSource
+        val isUserInput: Boolean
     )
-
-    enum class ColorPreviewSource {
-        USER_INPUT,
-        EXACT_LINK
-    }
 }

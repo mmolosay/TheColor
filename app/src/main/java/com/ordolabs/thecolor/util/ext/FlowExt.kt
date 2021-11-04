@@ -26,10 +26,12 @@ fun <T> Flow<T>.shareOnceIn(
     this.shareIn(scope, started, replay = 0)
 
 fun <V> MutableStateFlow<Resource<V>>.setEmpty() {
+    if (this.value.isEmpty) return
     this.value = this.value.empty()
 }
 
 fun <V> MutableStateFlow<Resource<V>>.setLoading() {
+    if (this.value.isLoading) return
     this.value = this.value.loading()
 }
 

@@ -22,7 +22,6 @@ import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.FragmentColorInformationBinding
 import com.ordolabs.feature_home.viewmodel.ColorInformationViewModel
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
-import com.ordolabs.feature_home.viewmodel.ColorInputViewModel.ColorPreviewSource
 import com.ordolabs.thecolor.model.ColorInformationPresentation
 import com.ordolabs.thecolor.util.ColorUtil
 import com.ordolabs.thecolor.util.ColorUtil.isDark
@@ -252,7 +251,8 @@ class ColorInformationFragment : BaseFragment() {
             val preview = colorInputVM.colorPreview.value.getOrNull()
             if (preview?.color?.hex == it) return@let
             val color = ColorUtil.Color(hex = it)
-            colorInputVM.updateColorPreview(color, ColorPreviewSource.EXACT_LINK)
+            val new = ColorInputViewModel.ColorPreview(color, isUserInput = false)
+            colorInputVM.updateColorPreview(new)
         }
 
         populateInformationViews(info)

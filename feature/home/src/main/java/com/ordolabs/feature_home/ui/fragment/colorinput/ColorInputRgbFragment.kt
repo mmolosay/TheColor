@@ -7,7 +7,6 @@ import com.ordolabs.feature_home.databinding.FragmentColorInputRgbBinding
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel.ColorPreview
-import com.ordolabs.feature_home.viewmodel.ColorInputViewModel.ColorPreviewSource
 import com.ordolabs.thecolor.model.InputRgbPresentation
 import com.ordolabs.thecolor.ui.util.inputfilter.PreventingInputFilter
 import com.ordolabs.thecolor.ui.util.inputfilter.RangeInputFilter
@@ -89,7 +88,7 @@ class ColorInputRgbFragment : BaseFragment(R.layout.fragment_color_input_rgb) {
     }
 
     private fun onColorPreviewSuccess(colorPreview: ColorPreview) {
-        if (isResumed && colorPreview.source == ColorPreviewSource.USER_INPUT) return // prevent user interrupting
+        if (isResumed && colorPreview.isUserInput) return // prevent user interrupting
         val rgb = colorPreview.color.toColorRgb()
         isTypedByUser = false
         binding.inputRgbR.editText?.setText(rgb.r.toString())

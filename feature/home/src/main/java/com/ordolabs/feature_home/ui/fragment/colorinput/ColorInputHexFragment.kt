@@ -7,7 +7,6 @@ import com.ordolabs.feature_home.databinding.FragmentColorInputHexBinding
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel.ColorPreview
-import com.ordolabs.feature_home.viewmodel.ColorInputViewModel.ColorPreviewSource
 import com.ordolabs.thecolor.model.InputHexPresentation
 import com.ordolabs.thecolor.util.ColorUtil.toColorHex
 import com.ordolabs.thecolor.util.ext.getText
@@ -61,7 +60,7 @@ class ColorInputHexFragment : BaseFragment(R.layout.fragment_color_input_hex) {
     }
 
     private fun onColorPreviewSuccess(colorPreview: ColorPreview) {
-        if (isResumed && colorPreview.source == ColorPreviewSource.USER_INPUT) return // prevent user interrupting
+        if (isResumed && colorPreview.isUserInput) return // prevent user interrupting
         val hex = colorPreview.color.toColorHex()
         isTypedByUser = false
         binding.inputHex.editText?.setText(hex.value)
