@@ -475,17 +475,13 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <com.google.android.material.progressindicator.CircularProgressIndicator
+    <ProgressBar
         android:id="@+id/progress"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
+        android:indeterminateTint="@color/material_on_background_emphasis_high_type"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/glEnd"
-        app:layout_constraintStart_toStartOf="@+id/glStart"
-        app:layout_constraintTop_toTopOf="parent"
-        app:trackColor="@color/white"
         tools:visibility="visible" />
 
 </FrameLayout>

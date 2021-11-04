@@ -8,6 +8,6 @@ infix fun <T> Pair<T, T>.by(selector: Boolean): T {
     return if (selector) this.first else this.second
 }
 
-infix fun Pair<Float, Float>.by(factor: Float): Float {
-    return first + (second - first) * factor
+infix fun Pair<Float, Float>.factor(fraction: Float): Float {
+    return first + (second - first) * fraction
 }

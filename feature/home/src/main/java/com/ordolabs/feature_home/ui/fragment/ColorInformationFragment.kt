@@ -22,6 +22,7 @@ import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.FragmentColorInformationBinding
 import com.ordolabs.feature_home.viewmodel.ColorInformationViewModel
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
+import com.ordolabs.feature_home.viewmodel.ColorInputViewModel.ColorPreviewSource
 import com.ordolabs.thecolor.model.ColorInformationPresentation
 import com.ordolabs.thecolor.util.ColorUtil
 import com.ordolabs.thecolor.util.ColorUtil.isDark
@@ -41,7 +42,7 @@ class ColorInformationFragment : BaseFragment() {
     private val colorInfoVM: ColorInformationViewModel by sharedViewModel()
 
     private val color: ColorUtil.Color? by lazy {
-        colorInputVM.colorPreview.value.getOrNull()
+        colorInputVM.colorPreview.value.getOrNull()?.color
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -191,14 +192,15 @@ class ColorInformationFragment : BaseFragment() {
             deviationValue.text = info.exactNameHexDistance.toString()
         }
 
-    private fun animContentVisibility(visible: Boolean) {
+    private fun animContentVisibility(visible: Boolean, zeroDuration: Boolean = false) {
         val translation = resources.getDimension(R.dimen.color_information_root_translationY)
         val translationY = 0f to translation by visible
         val alpha = 1f to 0f by visible
+        val duration = 0L to mediumAnimDuration by zeroDuration
         ViewCompat.animate(binding.content)
             .translationY(translationY)
             .alpha(alpha)
-            .setDuration(mediumAnimDuration)
+            .setDuration(duration)
             .setInterpolator(FastOutSlowInInterpolator())
             .setListener(object : ViewPropertyAnimatorListenerAdapter() {
 
@@ -215,9 +217,9 @@ class ColorInformationFragment : BaseFragment() {
 
     private fun collectColorPreview() =
         colorInputVM.colorPreview.collectOnLifecycle { resource ->
-            resource.ifSuccess { color ->
+            resource.ifSuccess { colorPreview ->
                 val info = colorInfoVM.information.value.getOrNull() ?: return@ifSuccess
-                if (!color.equals(info.hexValue)) { // info for another color
+                if (!colorPreview.color.equals(info.hexValue)) { // info for another color
                     colorInfoVM.clearColorInformation()
                 }
             }
@@ -227,20 +229,34 @@ class ColorInformationFragment : BaseFragment() {
         colorInfoVM.information.collectOnLifecycle { resource ->
             resource.fold(
                 onEmpty = ::onColorInformationEmpty,
+                onLoading = ::onColorInformationLoading,
                 onSuccess = ::onColorInformationSuccess
             )
         }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun onColorInformationEmpty(previous: ColorInformationPresentation?) {
-        if (previous == null) {
-            animContentVisibility(visible = false)
-        } else {
-            // show
+        animContentVisibility(visible = false)
+    }
+
+    private fun onColorInformationLoading(previous: ColorInformationPresentation?) {
+        if (previous != null) {
+            animContentVisibility(visible = false, zeroDuration = true)
+            binding.progress.isVisible = true
         }
     }
 
     private fun onColorInformationSuccess(info: ColorInformationPresentation) {
+        info.hexClean?.let {
+            // update colorPreview if exact color was fetched
+            val preview = colorInputVM.colorPreview.value.getOrNull()
+            if (preview?.color?.hex == it) return@let
+            val color = ColorUtil.Color(hex = it)
+            colorInputVM.updateColorPreview(color, ColorPreviewSource.EXACT_LINK)
+        }
+
         populateInformationViews(info)
+        binding.progress.isVisible = false
         animContentVisibility(visible = true)
     }
 

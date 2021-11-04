@@ -25,6 +25,8 @@ import com.ordolabs.feature_home.databinding.FragmentHomeBinding
 import com.ordolabs.feature_home.di.featureHomeModule
 import com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputHostFragment
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
+import com.ordolabs.feature_home.viewmodel.ColorInputViewModel.ColorPreview
+import com.ordolabs.feature_home.viewmodel.ColorInputViewModel.ColorPreviewSource
 import com.ordolabs.feature_home.viewmodel.HomeViewModel
 import com.ordolabs.thecolor.util.AnimationUtils
 import com.ordolabs.thecolor.util.ColorUtil
@@ -326,7 +328,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         }
 
     @Suppress("UNUSED_PARAMETER")
-    private fun onColorPreviewEmpty(previous: ColorUtil.Color?) {
+    private fun onColorPreviewEmpty(previous: ColorPreview?) {
         binding.previewWrapper.doOnLayout {
             if (homeVM.isInfoSheetShown) {
                 animInfoSheetCollapsingOnPreviewEmpty()
@@ -336,9 +338,11 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         }
     }
 
-    private fun onColorPreviewSuccess(color: ColorUtil.Color) {
+    private fun onColorPreviewSuccess(colorPreview: ColorPreview) {
         binding.previewWrapper.doOnLayout {
-            val colorInt = color.toColorInt()
+            // ignore not user-inputted colors
+            if (colorPreview.source != ColorPreviewSource.USER_INPUT) return@doOnLayout
+            val colorInt = colorPreview.color.toColorInt()
             if (getInfoBackgroundColor() != colorInt) {
                 animInfoSheetCollapsingOnPreviewSuccess()
             }

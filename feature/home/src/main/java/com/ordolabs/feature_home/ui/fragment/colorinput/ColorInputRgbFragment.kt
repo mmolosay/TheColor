@@ -6,10 +6,11 @@ import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.FragmentColorInputRgbBinding
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
+import com.ordolabs.feature_home.viewmodel.ColorInputViewModel.ColorPreview
+import com.ordolabs.feature_home.viewmodel.ColorInputViewModel.ColorPreviewSource
 import com.ordolabs.thecolor.model.InputRgbPresentation
 import com.ordolabs.thecolor.ui.util.inputfilter.PreventingInputFilter
 import com.ordolabs.thecolor.ui.util.inputfilter.RangeInputFilter
-import com.ordolabs.thecolor.util.ColorUtil
 import com.ordolabs.thecolor.util.ColorUtil.toColorRgb
 import com.ordolabs.thecolor.util.ext.addFilters
 import com.ordolabs.thecolor.util.ext.getText
@@ -71,7 +72,6 @@ class ColorInputRgbFragment : BaseFragment(R.layout.fragment_color_input_rgb) {
 
     private fun collectColorPreview() =
         colorInputVM.colorPreview.collectOnLifecycle { resource ->
-            if (isResumed) return@collectOnLifecycle // prevent user interrupting
             resource.fold(
                 onEmpty = ::onColorPreviewEmpty,
                 onSuccess = ::onColorPreviewSuccess
@@ -79,7 +79,8 @@ class ColorInputRgbFragment : BaseFragment(R.layout.fragment_color_input_rgb) {
         }
 
     @Suppress("UNUSED_PARAMETER")
-    private fun onColorPreviewEmpty(previous: ColorUtil.Color?) {
+    private fun onColorPreviewEmpty(previous: ColorPreview?) {
+        if (isResumed) return // prevent user interrupting
         isTypedByUser = false
         binding.inputRgbR.getText()?.clear()
         binding.inputRgbG.getText()?.clear()
@@ -87,8 +88,9 @@ class ColorInputRgbFragment : BaseFragment(R.layout.fragment_color_input_rgb) {
         isTypedByUser = true
     }
 
-    private fun onColorPreviewSuccess(color: ColorUtil.Color) {
-        val rgb = color.toColorRgb()
+    private fun onColorPreviewSuccess(colorPreview: ColorPreview) {
+        if (isResumed && colorPreview.source == ColorPreviewSource.USER_INPUT) return // prevent user interrupting
+        val rgb = colorPreview.color.toColorRgb()
         isTypedByUser = false
         binding.inputRgbR.editText?.setText(rgb.r.toString())
         binding.inputRgbG.editText?.setText(rgb.g.toString())

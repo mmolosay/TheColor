@@ -27,8 +27,8 @@ class ColorInputViewModel(
     private val validateColorRgbUseCase: ValidateColorRgbBaseUseCase
 ) : BaseViewModel() {
 
-    private val _colorPreview: MutableStateFlow<Resource<Color>>
-    val colorPreview: StateFlow<Resource<Color>>
+    private val _colorPreview: MutableStateFlow<Resource<ColorPreview>>
+    val colorPreview: StateFlow<Resource<ColorPreview>>
 
     private val _procceedCommand = MutableStateResourceFlow<Color>(Resource.empty())
     val procceedCommand = _procceedCommand.shareOnceIn(viewModelScope)
@@ -67,8 +67,13 @@ class ColorInputViewModel(
     }
 
     fun procceedInput() {
-        val color = _colorPreview.value.getOrNull() ?: return
-        _procceedCommand.setSuccess(color)
+        val preview = _colorPreview.value.getOrNull() ?: return
+        _procceedCommand.setSuccess(preview.color)
+    }
+
+    fun updateColorPreview(color: Color, source: ColorPreviewSource) {
+        val preview = ColorPreview(color, source)
+        _colorPreview.setSuccess(preview)
     }
 
     private fun restartColorValidation() = launchInMain {
@@ -80,17 +85,23 @@ class ColorInputViewModel(
         color: Color? = null
     ) {
         if (valid && color != null) {
-            updateColorPreview(color)
+            updateColorPreview(color, ColorPreviewSource.USER_INPUT)
         } else {
             clearColorPreview()
         }
     }
 
-    private fun updateColorPreview(color: Color) {
-        _colorPreview.setSuccess(color)
-    }
-
     private fun clearColorPreview() {
         _colorPreview.setEmpty()
+    }
+
+    data class ColorPreview(
+        val color: Color,
+        val source: ColorPreviewSource
+    )
+
+    enum class ColorPreviewSource {
+        USER_INPUT,
+        EXACT_LINK
     }
 }

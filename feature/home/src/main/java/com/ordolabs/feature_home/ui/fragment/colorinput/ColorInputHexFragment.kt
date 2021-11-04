@@ -6,8 +6,9 @@ import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.FragmentColorInputHexBinding
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
+import com.ordolabs.feature_home.viewmodel.ColorInputViewModel.ColorPreview
+import com.ordolabs.feature_home.viewmodel.ColorInputViewModel.ColorPreviewSource
 import com.ordolabs.thecolor.model.InputHexPresentation
-import com.ordolabs.thecolor.util.ColorUtil
 import com.ordolabs.thecolor.util.ColorUtil.toColorHex
 import com.ordolabs.thecolor.util.ext.getText
 import com.ordolabs.thecolor.util.ext.getTextString
@@ -45,7 +46,6 @@ class ColorInputHexFragment : BaseFragment(R.layout.fragment_color_input_hex) {
 
     private fun collectColorPreview() =
         colorInputVM.colorPreview.collectOnLifecycle { resource ->
-            if (isResumed) return@collectOnLifecycle // prevent user interrupting
             resource.fold(
                 onEmpty = ::onColorPreviewEmpty,
                 onSuccess = ::onColorPreviewSuccess
@@ -53,14 +53,16 @@ class ColorInputHexFragment : BaseFragment(R.layout.fragment_color_input_hex) {
         }
 
     @Suppress("UNUSED_PARAMETER")
-    private fun onColorPreviewEmpty(previous: ColorUtil.Color?) {
+    private fun onColorPreviewEmpty(previous: ColorPreview?) {
+        if (isResumed) return // prevent user interrupting
         isTypedByUser = false
         binding.inputHex.getText()?.clear()
         isTypedByUser = true
     }
 
-    private fun onColorPreviewSuccess(color: ColorUtil.Color) {
-        val hex = color.toColorHex()
+    private fun onColorPreviewSuccess(colorPreview: ColorPreview) {
+        if (isResumed && colorPreview.source == ColorPreviewSource.USER_INPUT) return // prevent user interrupting
+        val hex = colorPreview.color.toColorHex()
         isTypedByUser = false
         binding.inputHex.editText?.setText(hex.value)
         isTypedByUser = true
