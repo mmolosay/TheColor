@@ -191,11 +191,11 @@ class ColorInformationFragment : BaseFragment() {
             deviationValue.text = info.exactNameHexDistance.toString()
         }
 
-    private fun animRootVisibility(visible: Boolean) {
+    private fun animContentVisibility(visible: Boolean) {
         val translation = resources.getDimension(R.dimen.color_information_root_translationY)
         val translationY = 0f to translation by visible
         val alpha = 1f to 0f by visible
-        ViewCompat.animate(binding.root)
+        ViewCompat.animate(binding.content)
             .translationY(translationY)
             .alpha(alpha)
             .setDuration(mediumAnimDuration)
@@ -233,7 +233,7 @@ class ColorInformationFragment : BaseFragment() {
 
     private fun onColorInformationEmpty(previous: ColorInformationPresentation?) {
         if (previous == null) {
-            animRootVisibility(visible = false)
+            animContentVisibility(visible = false)
         } else {
             // show
         }
@@ -241,7 +241,7 @@ class ColorInformationFragment : BaseFragment() {
 
     private fun onColorInformationSuccess(info: ColorInformationPresentation) {
         populateInformationViews(info)
-        animRootVisibility(visible = true)
+        animContentVisibility(visible = true)
     }
 
     private fun collectCoroutineException() =
