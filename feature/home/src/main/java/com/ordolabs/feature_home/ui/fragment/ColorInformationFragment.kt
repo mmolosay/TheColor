@@ -231,8 +231,12 @@ class ColorInformationFragment : BaseFragment() {
             )
         }
 
-    private fun onColorInformationEmpty() {
-        animRootVisibility(visible = false)
+    private fun onColorInformationEmpty(previous: ColorInformationPresentation?) {
+        if (previous == null) {
+            animRootVisibility(visible = false)
+        } else {
+            // show
+        }
     }
 
     private fun onColorInformationSuccess(info: ColorInformationPresentation) {

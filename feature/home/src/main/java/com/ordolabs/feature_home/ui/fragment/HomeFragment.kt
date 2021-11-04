@@ -325,7 +325,8 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
             )
         }
 
-    private fun onColorPreviewEmpty() {
+    @Suppress("UNUSED_PARAMETER")
+    private fun onColorPreviewEmpty(previous: ColorUtil.Color?) {
         binding.previewWrapper.doOnLayout {
             if (homeVM.isInfoSheetShown) {
                 animInfoSheetCollapsingOnPreviewEmpty()

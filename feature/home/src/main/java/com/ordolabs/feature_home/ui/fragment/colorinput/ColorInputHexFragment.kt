@@ -52,7 +52,8 @@ class ColorInputHexFragment : BaseFragment(R.layout.fragment_color_input_hex) {
             )
         }
 
-    private fun onColorPreviewEmpty() {
+    @Suppress("UNUSED_PARAMETER")
+    private fun onColorPreviewEmpty(previous: ColorUtil.Color?) {
         isTypedByUser = false
         binding.inputHex.getText()?.clear()
         isTypedByUser = true

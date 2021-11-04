@@ -5,10 +5,11 @@ import com.ordolabs.thecolor.mapper.toPresentation
 import com.ordolabs.thecolor.model.ColorInformationPresentation
 import com.ordolabs.thecolor.util.ColorUtil.Color
 import com.ordolabs.thecolor.util.MutableStateResourceFlow
+import com.ordolabs.thecolor.util.ext.setEmpty
+import com.ordolabs.thecolor.util.ext.setLoading
+import com.ordolabs.thecolor.util.ext.setSuccess
 import com.ordolabs.thecolor.util.struct.Resource
 import com.ordolabs.thecolor.util.struct.empty
-import com.ordolabs.thecolor.util.struct.loading
-import com.ordolabs.thecolor.util.struct.success
 import com.ordolabs.thecolor.viewmodel.BaseViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,17 +35,17 @@ class ColorInformationViewModel(
         fetchColorInformationJob = launch {
             getColorInformationUseCase.invoke(color.hex).collect { colorInfo ->
                 val info = colorInfo.toPresentation()
-                _information.value = Resource.success(info)
+                _information.setSuccess(info)
             }
         }
     }
 
     fun clearColorInformation() {
-        _information.value = Resource.empty()
+        _information.setEmpty()
     }
 
     private fun restartFetchingColorInformation() = launchInMain {
         fetchColorInformationJob?.cancel()
-        _information.value = Resource.loading()
+        _information.setLoading()
     }
 }

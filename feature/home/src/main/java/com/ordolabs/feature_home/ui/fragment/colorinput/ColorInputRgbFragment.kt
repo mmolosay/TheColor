@@ -78,7 +78,8 @@ class ColorInputRgbFragment : BaseFragment(R.layout.fragment_color_input_rgb) {
             )
         }
 
-    private fun onColorPreviewEmpty() {
+    @Suppress("UNUSED_PARAMETER")
+    private fun onColorPreviewEmpty(previous: ColorUtil.Color?) {
         isTypedByUser = false
         binding.inputRgbR.getText()?.clear()
         binding.inputRgbG.getText()?.clear()

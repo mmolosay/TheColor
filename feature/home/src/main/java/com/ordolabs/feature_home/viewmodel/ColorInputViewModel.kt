@@ -9,11 +9,12 @@ import com.ordolabs.thecolor.model.InputRgbPresentation
 import com.ordolabs.thecolor.util.ColorUtil.Color
 import com.ordolabs.thecolor.util.ColorUtil.from
 import com.ordolabs.thecolor.util.MutableStateResourceFlow
+import com.ordolabs.thecolor.util.ext.setEmpty
+import com.ordolabs.thecolor.util.ext.setSuccess
 import com.ordolabs.thecolor.util.ext.shareOnceIn
 import com.ordolabs.thecolor.util.struct.Resource
 import com.ordolabs.thecolor.util.struct.empty
 import com.ordolabs.thecolor.util.struct.getOrNull
-import com.ordolabs.thecolor.util.struct.success
 import com.ordolabs.thecolor.viewmodel.BaseViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -67,7 +68,7 @@ class ColorInputViewModel(
 
     fun procceedInput() {
         val color = _colorPreview.value.getOrNull() ?: return
-        _procceedCommand.value = Resource.success(color)
+        _procceedCommand.setSuccess(color)
     }
 
     private fun restartColorValidation() = launchInMain {
@@ -86,10 +87,10 @@ class ColorInputViewModel(
     }
 
     private fun updateColorPreview(color: Color) {
-        _colorPreview.value = Resource.success(color)
+        _colorPreview.setSuccess(color)
     }
 
     private fun clearColorPreview() {
-        _colorPreview.value = Resource.empty()
+        _colorPreview.setEmpty()
     }
 }
