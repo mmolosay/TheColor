@@ -6,14 +6,15 @@
         Preserve alphabetical order.
     -->
 
-    <!-- region TextView -->
+    <style name="Widget.MaterialDivider.Insets" parent="Widget.TheColor.MaterialDivider">
+        <item name="dividerInsetStart">@dimen/offset_content_horizontal</item>
+        <item name="dividerInsetEnd">@dimen/offset_content_horizontal</item>
+    </style>
 
     <!-- solution to override any specified textApearance's fontFamily -->
-    <style name="TextView.Value" parent="">
+    <style name="Widget.TextView.Value" parent="">
         <item name="fontFamily">sans-serif</item>
         <item name="android:fontFamily">sans-serif</item>
     </style>
-
-    <!-- endregion -->
 
 </resources>

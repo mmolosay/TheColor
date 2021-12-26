@@ -73,6 +73,10 @@
         <!-- widgets -->
         <item name="materialAlertDialogTheme">@style/ThemeOverlay.TheColor.MaterialAlertDialog
         </item>
+        <item name="materialButtonStyle">@style/Widget.TheColor.Button</item>
+        <item name="materialButtonOutlinedStyle">@style/Widget.TheColor.Button.Outlined</item>
+        <item name="materialDividerStyle">@style/Widget.TheColor.MaterialDivider</item>
+
         <item name="buttonStyle">@style/Widget.TheColor.Button</item>
         <item name="toolbarStyle">@style/Widget.MaterialComponents.Toolbar.PrimarySurface</item>
         <item name="android:textViewStyle">@style/Widget.TheColor.TextView</item>
@@ -82,7 +86,7 @@
 
     <style name="Base.Theme.Material" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:windowBackground">?android:attr/colorBackground</item>
-        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:statusBarColor">?android:attr/colorBackground</item>
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:navigationBarColor">?android:attr/colorBackground</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">true</item>

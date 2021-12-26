@@ -10,11 +10,19 @@
         <!-- nothing special here -->
     </style>
 
+    <style name="Widget.TheColor.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <!-- nothing special here -->
+    </style>
+
     <style name="Widget.TheColor.EditText" parent="Widget.AppCompat.EditText">
         <item name="android:textAppearance">@style/TextAppearance.EditText</item>
         <item name="android:gravity">left|center_vertical</item>
         <item name="android:ellipsize">end</item>
         <item name="android:includeFontPadding">true</item>
+    </style>
+
+    <style name="Widget.TheColor.MaterialDivider" parent="Widget.Material3.MaterialDivider">
+        <item name="dividerColor">@color/material_on_background_disabled</item>
     </style>
 
     <style name="Widget.TheColor.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">

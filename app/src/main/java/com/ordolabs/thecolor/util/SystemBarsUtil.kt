@@ -11,13 +11,13 @@ fun AppCompatActivity.setTransparentSystemBars() {
     window.addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
 }
 
-fun Activity.setStatusBarsLight(light: Boolean) {
+fun Activity.setLightStatusBar(light: Boolean) {
     ViewCompat.getWindowInsetsController(window.decorView)?.run {
         isAppearanceLightStatusBars = light
     }
 }
 
-fun Activity.setNavigationBarsLight(light: Boolean) {
+fun Activity.setLightNavigationBars(light: Boolean) {
     ViewCompat.getWindowInsetsController(window.decorView)?.run {
         isAppearanceLightNavigationBars = light
     }

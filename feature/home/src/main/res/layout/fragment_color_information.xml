@@ -120,7 +120,7 @@
 
         <TextView
             android:id="@+id/hexValue"
-            style="@style/TextView.Value"
+            style="@style/Widget.TextView.Value"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceBody2"
@@ -146,7 +146,7 @@
 
         <TextView
             android:id="@+id/rgbValueR"
-            style="@style/TextView.Value"
+            style="@style/Widget.TextView.Value"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceBody2"
@@ -157,7 +157,7 @@
 
         <TextView
             android:id="@+id/rgbValueG"
-            style="@style/TextView.Value"
+            style="@style/Widget.TextView.Value"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/offset_8"
@@ -169,7 +169,7 @@
 
         <TextView
             android:id="@+id/rgbValueB"
-            style="@style/TextView.Value"
+            style="@style/Widget.TextView.Value"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceBody2"
@@ -195,7 +195,7 @@
 
         <TextView
             android:id="@+id/hslValueH"
-            style="@style/TextView.Value"
+            style="@style/Widget.TextView.Value"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceBody2"
@@ -206,7 +206,7 @@
 
         <TextView
             android:id="@+id/hslValueS"
-            style="@style/TextView.Value"
+            style="@style/Widget.TextView.Value"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/offset_8"
@@ -218,7 +218,7 @@
 
         <TextView
             android:id="@+id/hslValueL"
-            style="@style/TextView.Value"
+            style="@style/Widget.TextView.Value"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceBody2"
@@ -244,7 +244,7 @@
 
         <TextView
             android:id="@+id/hsvValueH"
-            style="@style/TextView.Value"
+            style="@style/Widget.TextView.Value"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceBody2"
@@ -255,7 +255,7 @@
 
         <TextView
             android:id="@+id/hsvValueS"
-            style="@style/TextView.Value"
+            style="@style/Widget.TextView.Value"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/offset_8"
@@ -267,7 +267,7 @@
 
         <TextView
             android:id="@+id/hsvValueV"
-            style="@style/TextView.Value"
+            style="@style/Widget.TextView.Value"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceBody2"
@@ -293,7 +293,7 @@
 
         <TextView
             android:id="@+id/cmykValueC"
-            style="@style/TextView.Value"
+            style="@style/Widget.TextView.Value"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceBody2"
@@ -304,7 +304,7 @@
 
         <TextView
             android:id="@+id/cmykValueM"
-            style="@style/TextView.Value"
+            style="@style/Widget.TextView.Value"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/offset_8"
@@ -316,7 +316,7 @@
 
         <TextView
             android:id="@+id/cmykValueY"
-            style="@style/TextView.Value"
+            style="@style/Widget.TextView.Value"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/offset_8"
@@ -328,7 +328,7 @@
 
         <TextView
             android:id="@+id/cmykValueK"
-            style="@style/TextView.Value"
+            style="@style/Widget.TextView.Value"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceBody2"
@@ -337,12 +337,11 @@
             app:layout_constraintStart_toEndOf="@id/cmykValueY"
             tools:text="33" />
 
-        <View
+        <com.google.android.material.divider.MaterialDivider
             android:id="@+id/divider"
             android:layout_width="0dp"
-            android:layout_height="@dimen/divider_height"
+            android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/offset_24"
-            android:background="@drawable/bg_divider"
             app:layout_constraintEnd_toStartOf="@id/glEnd"
             app:layout_constraintStart_toEndOf="@id/glStart"
             app:layout_constraintTop_toBottomOf="@id/cmykLabel"
@@ -408,7 +407,7 @@
 
         <TextView
             android:id="@+id/exactValue"
-            style="@style/TextView.Value"
+            style="@style/Widget.TextView.Value"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceBodyLarge"
@@ -463,7 +462,7 @@
 
         <TextView
             android:id="@+id/deviationValue"
-            style="@style/TextView.Value"
+            style="@style/Widget.TextView.Value"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceBodyLarge"

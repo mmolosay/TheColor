@@ -11,7 +11,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.ViewPropertyAnimatorListenerAdapter
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
-import androidx.core.view.updatePadding
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
@@ -25,7 +24,6 @@ import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
 import com.ordolabs.thecolor.model.ColorInformationPresentation
 import com.ordolabs.thecolor.util.ColorUtil
 import com.ordolabs.thecolor.util.ColorUtil.isDark
-import com.ordolabs.thecolor.util.InsetsUtil
 import com.ordolabs.thecolor.util.ext.by
 import com.ordolabs.thecolor.util.ext.getStringYesOrNo
 import com.ordolabs.thecolor.util.ext.mediumAnimDuration
@@ -77,12 +75,7 @@ class ColorInformationFragment : BaseFragment() {
     }
 
     override fun setViews() {
-        setBottomPadding()
-    }
-
-    private fun setBottomPadding() {
-        val navbarHeight = InsetsUtil.getNavigationBarHeight(context) ?: return
-        binding.root.updatePadding(bottom = navbarHeight)
+        // nothing here
     }
 
     private fun populateInformationViews(info: ColorInformationPresentation) =

@@ -31,7 +31,6 @@ import com.ordolabs.thecolor.util.AnimationUtils
 import com.ordolabs.thecolor.util.ColorUtil
 import com.ordolabs.thecolor.util.ColorUtil.isDark
 import com.ordolabs.thecolor.util.ColorUtil.toColorInt
-import com.ordolabs.thecolor.util.InsetsUtil
 import com.ordolabs.thecolor.util.ext.createCircularRevealAnimation
 import com.ordolabs.thecolor.util.ext.getBottomVisibleInParent
 import com.ordolabs.thecolor.util.ext.getDistanceToViewInParent
@@ -41,7 +40,7 @@ import com.ordolabs.thecolor.util.ext.mediumAnimDuration
 import com.ordolabs.thecolor.util.ext.propertyAnimator
 import com.ordolabs.thecolor.util.ext.replaceFragment
 import com.ordolabs.thecolor.util.ext.setFragment
-import com.ordolabs.thecolor.util.setNavigationBarsLight
+import com.ordolabs.thecolor.util.setLightNavigationBars
 import com.ordolabs.thecolor.util.struct.AnimatorDestination
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.koin.core.context.loadKoinModules
@@ -118,7 +117,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
                     makeInfoSheetRevealAnimation(hide = false).apply {
                         doOnStart {
                             setInfoBackgroundColor(color.toColorInt())
-                            activity?.setNavigationBarsLight(light = !color.isDark())
+                            activity?.setLightNavigationBars(light = !color.isDark())
                         }
                     }
                 )
@@ -156,7 +155,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
                 makeInfoSheetRevealAnimation(hide = true).apply {
                     doOnEnd {
                         setInfoBackgroundColor(Color.TRANSPARENT)
-                        activity?.setNavigationBarsLight(light = true)
+                        activity?.setLightNavigationBars(light = true)
                     }
                 },
                 makePreviewRisingAnimation()
@@ -313,9 +312,8 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         val info = binding.infoFragmentContainer
         val bottom = info.getBottomVisibleInParent(view) ?: info.height
         val padding = resources.getDimensionPixelSize(RApp.dimen.offset_32)
-        val navbarHeight = InsetsUtil.getNavigationBarHeight(context) ?: 0
         val x = info.width / 2
-        val y = bottom - navbarHeight - padding
+        val y = bottom - padding
         return Point(x, y)
     }
 

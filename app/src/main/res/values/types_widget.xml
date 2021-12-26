@@ -6,11 +6,12 @@
         Preserve alphabetical order.
     -->
 
-    <style name="TextAppearance.EditText" parent="TextAppearance.TheColor.Body1">
+    <style name="TextAppearance.EditText" parent="TextAppearance.TheColor.BodyLarge">
         <item name="fontFamily">sans-serif</item>
+        <item name="android:fontFamily">sans-serif</item>
     </style>
 
-    <style name="TextAppearance.TabLayout" parent="TextAppearance.TheColor.Subtitle2">
+    <style name="TextAppearance.TabLayout" parent="TextAppearance.TheColor.TitleSmall">
         <item name="android:textColor">@color/selector_text_tab_layout</item>
     </style>
 
