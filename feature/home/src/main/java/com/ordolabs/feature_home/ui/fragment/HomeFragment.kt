@@ -45,6 +45,7 @@ import com.ordolabs.thecolor.util.setNavigationBarsLight
 import com.ordolabs.thecolor.util.struct.AnimatorDestination
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.koin.core.context.loadKoinModules
+import com.google.android.material.R as RMaterial
 import com.ordolabs.thecolor.R as RApp
 
 class HomeFragment : BaseFragment(R.layout.fragment_home) {
@@ -264,7 +265,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
 
     private fun makePreviewElevationAnimation(flatten: Boolean): Animator {
         val preview = binding.previewWrapper
-        val elevation = resources.getDimension(R.dimen.home_preview_elevation)
+        val elevation = resources.getDimension(RMaterial.dimen.m3_card_elevated_elevation)
         val animator = if (flatten) { // reverse() can't be used when is a part of AnimatorSet
             ValueAnimator.ofFloat(elevation, 0f)
         } else {

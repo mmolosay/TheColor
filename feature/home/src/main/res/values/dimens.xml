@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <dimen name="home_preview_elevation">@dimen/elevation_big</dimen>
-
     <dimen name="color_input_pager_height">200dp</dimen>
     <dimen name="color_input_preview_size">48dp</dimen>
 

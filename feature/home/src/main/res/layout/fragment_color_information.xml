@@ -95,7 +95,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/offset_content_vertical"
             android:gravity="center"
-            android:textAppearance="?attr/textAppearanceHeadline2"
+            android:textAppearance="?attr/textAppearanceDisplayLarge"
             android:textColor="@color/material_on_background_emphasis_high_type"
 
             app:layout_constraintEnd_toStartOf="@+id/glEnd"
@@ -110,7 +110,7 @@
             android:layout_marginHorizontal="@dimen/offset_12"
             android:layout_marginTop="@dimen/offset_24"
             android:text="@string/color_information_hex_label"
-            android:textAppearance="?attr/textAppearanceSubtitle2"
+            android:textAppearance="?attr/textAppearanceLabelLarge"
             android:textColor="@color/material_on_background_emphasis_medium"
 
             app:layout_constraintEnd_toStartOf="@id/hexValue"
@@ -136,7 +136,7 @@
             android:layout_marginHorizontal="@dimen/offset_12"
             android:layout_marginTop="@dimen/offset_16"
             android:text="@string/color_information_rgb_label"
-            android:textAppearance="?attr/textAppearanceSubtitle2"
+            android:textAppearance="?attr/textAppearanceLabelLarge"
             android:textColor="@color/material_on_background_emphasis_medium"
 
             app:layout_constraintEnd_toStartOf="@id/rgbValueR"
@@ -185,7 +185,7 @@
             android:layout_marginHorizontal="@dimen/offset_12"
             android:layout_marginTop="@dimen/offset_16"
             android:text="@string/color_information_hsl_label"
-            android:textAppearance="?attr/textAppearanceSubtitle2"
+            android:textAppearance="?attr/textAppearanceLabelLarge"
             android:textColor="@color/material_on_background_emphasis_medium"
 
             app:layout_constraintEnd_toStartOf="@id/hslValueH"
@@ -234,7 +234,7 @@
             android:layout_marginHorizontal="@dimen/offset_12"
             android:layout_marginTop="@dimen/offset_16"
             android:text="@string/color_information_hsv_label"
-            android:textAppearance="?attr/textAppearanceSubtitle2"
+            android:textAppearance="?attr/textAppearanceLabelLarge"
             android:textColor="@color/material_on_background_emphasis_medium"
 
             app:layout_constraintEnd_toStartOf="@id/hsvValueH"
@@ -283,7 +283,7 @@
             android:layout_marginHorizontal="@dimen/offset_12"
             android:layout_marginTop="@dimen/offset_16"
             android:text="@string/color_information_cmyk_label"
-            android:textAppearance="?attr/textAppearanceSubtitle2"
+            android:textAppearance="?attr/textAppearanceLabelLarge"
             android:textColor="@color/material_on_background_emphasis_medium"
 
             app:layout_constraintEnd_toStartOf="@id/cmykValueC"
@@ -364,7 +364,7 @@
             android:id="@+id/nameValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceBody1"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
             android:textColor="@color/material_on_background_emphasis_high_type"
 
             app:layout_constraintStart_toStartOf="@+id/nameLabel"
@@ -387,7 +387,7 @@
             android:id="@+id/matchValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceBody1"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
             android:textColor="@color/material_on_background_emphasis_high_type"
 
             app:layout_constraintStart_toStartOf="@+id/matchLabel"
@@ -411,7 +411,7 @@
             style="@style/TextView.Value"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceBody1"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
             android:textColor="@color/material_on_background_emphasis_high_type"
 
             app:layout_constraintStart_toStartOf="@+id/exactLabel"
@@ -466,7 +466,7 @@
             style="@style/TextView.Value"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceBody1"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
             android:textColor="@color/material_on_background_emphasis_high_type"
 
             app:layout_constraintStart_toStartOf="@+id/deviationLabel"

@@ -6,6 +6,10 @@
         Preserve alphabetical order.
     -->
 
+    <style name="Widget.TheColor.Button" parent="Widget.Material3.Button">
+        <!-- nothing special here -->
+    </style>
+
     <style name="Widget.TheColor.EditText" parent="Widget.AppCompat.EditText">
         <item name="android:textAppearance">@style/TextAppearance.EditText</item>
         <item name="android:gravity">left|center_vertical</item>

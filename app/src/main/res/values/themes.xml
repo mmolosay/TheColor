@@ -60,6 +60,8 @@
         <item name="textAppearanceLabelMedium">@style/TextAppearance.TheColor.LabelMedium</item>
         <item name="textAppearanceLabelSmall">@style/TextAppearance.TheColor.LabelSmall</item>
 
+        <item name="textAppearanceOverline">@style/TextAppearance.TheColor.Overline</item>
+
         <!-- shapes -->
         <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.TheColor.SmallComponent
         </item>
@@ -71,6 +73,7 @@
         <!-- widgets -->
         <item name="materialAlertDialogTheme">@style/ThemeOverlay.TheColor.MaterialAlertDialog
         </item>
+        <item name="buttonStyle">@style/Widget.TheColor.Button</item>
         <item name="toolbarStyle">@style/Widget.MaterialComponents.Toolbar.PrimarySurface</item>
         <item name="android:textViewStyle">@style/Widget.TheColor.TextView</item>
         <item name="android:editTextStyle">@style/Widget.TheColor.EditText</item>

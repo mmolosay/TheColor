@@ -31,7 +31,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="192dp"
             android:text="@string/home_find_your_color"
-            android:textAppearance="?attr/textAppearanceHeadline5"
+            android:textAppearance="?attr/textAppearanceTitleLarge"
             android:textColor="@color/material_on_background_emphasis_medium"
 
             app:layout_constraintLeft_toLeftOf="parent"
@@ -51,17 +51,17 @@
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/previewWrapper"
+            style="?attr/materialCardViewElevatedStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:scaleX="0"
             android:scaleY="0"
             android:visibility="invisible"
 
-            app:cardCornerRadius="1000dp"
-            app:cardElevation="@dimen/home_preview_elevation"
             app:layout_constraintEnd_toStartOf="@+id/glEnd"
             app:layout_constraintStart_toStartOf="@+id/glStart"
             app:layout_constraintTop_toBottomOf="@+id/defaultFragmentContainer"
+            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.FullRound"
             tools:scaleX="1"
             tools:scaleY="1"
             tools:visibility="visible">

@@ -33,6 +33,7 @@ import com.ordolabs.thecolor.util.ext.setTextOrGoneWith
 import com.ordolabs.thecolor.util.ext.showToast
 import com.ordolabs.thecolor.util.struct.getOrNull
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
+import com.ordolabs.thecolor.R as RApp
 
 class ColorInformationFragment : BaseFragment() {
 
@@ -55,9 +56,9 @@ class ColorInformationFragment : BaseFragment() {
         savedInstanceState: Bundle?
     ): View? {
         val theme = if (color?.isDark() == true) {
-            R.style.ThemeOverlay_TheColor_Dark
+            RApp.style.ThemeOverlay_TheColor_Dark
         } else {
-            R.style.ThemeOverlay_TheColor_Light
+            RApp.style.ThemeOverlay_TheColor_Light
         }
         val themedContext = ContextThemeWrapper(activity, theme)
         return inflater.cloneInContext(themedContext)
