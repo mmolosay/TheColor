@@ -34,7 +34,7 @@
 
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/inputTabs"
-        style="@style/Widget.Main.TabLayout"
+        style="@style/Widget.TheColor.TabLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
 

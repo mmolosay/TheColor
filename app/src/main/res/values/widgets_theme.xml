@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--
+        Widget styles, used in application themes attributes.
+        Preserve alphabetical order.
+    -->
+
+    <style name="Widget.TheColor.EditText" parent="Widget.AppCompat.EditText">
+        <item name="android:textAppearance">@style/TextAppearance.EditText</item>
+        <item name="android:gravity">left|center_vertical</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:includeFontPadding">true</item>
+    </style>
+
+    <style name="Widget.TheColor.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="materialThemeOverlay">
+            @style/Widget.TheColor.TextInputLayout_MaterialThemeOverlay
+        </item>
+    </style>
+
+    <style name="Widget.TheColor.TextInputLayout_MaterialThemeOverlay" parent="ThemeOverlay.MaterialComponents.TextInputEditText.OutlinedBox">
+        <!-- https://stackoverflow.com/a/60178370/11672687 -->
+        <item name="editTextStyle">@style/Widget.TheColor.TextInputLayout_EditTextStyle</item>
+    </style>
+
+    <style name="Widget.TheColor.TextInputLayout_EditTextStyle" parent="Widget.MaterialComponents.TextInputEditText.OutlinedBox">
+        <item name="android:textAppearance">@style/TextAppearance.EditText</item>
+        <item name="android:gravity">left|center_vertical</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:includeFontPadding">true</item>
+    </style>
+
+    <style name="Widget.TheColor.TabLayout" parent="Widget.Design.TabLayout">
+        <item name="tabTextAppearance">@style/TextAppearance.TabLayout</item>
+    </style>
+
+    <style name="Widget.TheColor.TextView" parent="Widget.MaterialComponents.TextView">
+        <item name="android:ellipsize">end</item>
+        <item name="android:includeFontPadding">true</item>
+    </style>
+
+</resources>

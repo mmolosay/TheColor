@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--
+        Theme overlay styles, used in application themes attributes.
+        Preserve alphabetical order.
+    -->
+
+    <style name="ThemeOverlay.TheColor.Light" parent="Base.Theme.TheColor">
+        <item name="colorControlHighlight">@color/gainsboro</item>
+    </style>
+
+    <style name="ThemeOverlay.TheColor.Dark" parent="Base.Theme.TheColor">
+        <item name="android:textColorPrimary">@color/white</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorOnBackground">@color/white</item>
+        <item name="android:colorBackground">@color/cod_gray</item>
+        <item name="colorControlHighlight">@color/silver</item>
+    </style>
+
+    <style name="ThemeOverlay.TheColor.MaterialAlertDialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
+        <!-- nothing special here -->
+    </style>
+
+</resources>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--
+        Widget styles, used in specific places and not associated with application themes.
+        Preserve alphabetical order.
+    -->
+
+    <!-- region TextView -->
+
+    <!-- solution to override any specified textApearance's fontFamily -->
+    <style name="TextView.Value" parent="">
+        <item name="fontFamily">sans-serif</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+
+    <!-- endregion -->
+
+</resources>

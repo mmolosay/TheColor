@@ -2,22 +2,22 @@
 
     <style name="Theme.TheColor" parent="Base.Theme.TheColor">
         <!-- colors theme -->
-        <item name="colorPrimary">@color/purple_200</item>
-        <item name="colorPrimaryVariant">@color/purple_600</item>
-        <item name="colorSecondary">@color/green_200</item>
-        <item name="colorSecondaryVariant">@color/green_500</item>
+        <item name="colorPrimary">@color/violet</item>
+        <item name="colorPrimaryVariant">@color/purple</item>
+        <item name="colorSecondary">@color/robin_egg</item>
+        <item name="colorSecondaryVariant">@color/dark_cyan</item>
 
         <!-- colors on -->
-        <item name="colorOnPrimary">@color/black_900</item>
-        <item name="colorOnSecondary">@color/black_900</item>
-        <item name="colorOnBackground">@color/white_50</item>
-        <item name="colorOnSurface">@color/white_50</item>
-        <item name="colorOnError">@color/black_900</item>
+        <item name="colorOnPrimary">@color/black</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <item name="colorOnBackground">@color/white</item>
+        <item name="colorOnSurface">@color/white</item>
+        <item name="colorOnError">@color/black</item>
 
         <!-- colors background -->
-        <item name="android:colorBackground">@color/black_900</item>
-        <item name="colorSurface">@color/black_800</item>
-        <item name="colorError">@color/red_200</item>
+        <item name="android:colorBackground">@color/black</item>
+        <item name="colorSurface">@color/cod_gray</item>
+        <item name="colorError">@color/cinnamon_satin</item>
 
         <!-- window -->
         <item name="android:windowLightStatusBar">false</item>
