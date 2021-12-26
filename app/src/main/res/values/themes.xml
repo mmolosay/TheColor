@@ -5,20 +5,42 @@
 
     <!-- base custom theme to be overridden -->
     <style name="Base.Theme.TheColor" parent="Base.Theme.Material">
+
         <!-- colors theme -->
         <item name="colorPrimary">@color/indigo</item>
+        <item name="colorPrimaryInverse">?attr/colorDebug</item>
         <item name="colorSecondary">@color/robin_egg</item>
+        <item name="colorTertiary">?attr/colorDebug</item>
+        <item name="colorOutline">@color/m3_sys_color_light_outline</item>
+
+        <item name="colorDebug">#FF0000</item>
+        <item name="colorToolsBackground">#F0F0F0</item>
 
         <!-- color on -->
         <item name="colorOnPrimary">@color/white</item>
+        <item name="colorOnPrimaryContainer">?attr/colorOnPrimary</item>
         <item name="colorOnSecondary">@color/black</item>
+        <item name="colorOnSecondaryContainer">?attr/colorOnSecondary</item>
+        <item name="colorOnTertiary">?attr/colorDebug</item>
+        <item name="colorOnTertiaryContainer">?attr/colorDebug</item>
         <item name="colorOnBackground">@color/black</item>
         <item name="colorOnSurface">@color/black</item>
+        <item name="colorOnSurfaceVariant">@color/cod_gray</item>
+        <item name="colorOnSurfaceInverse">@color/white</item>
         <item name="colorOnError">@color/white</item>
+        <item name="colorOnErrorContainer">?attr/colorDebug</item>
+
+        <!-- color container -->
+        <item name="colorPrimaryContainer">?attr/colorPrimary</item>
+        <item name="colorSecondaryContainer">?attr/colorSecondary</item>
+        <item name="colorTertiaryContainer">?attr/colorTertiary</item>
+        <item name="colorErrorContainer">?attr/colorError</item>
 
         <!-- colors background -->
         <item name="android:colorBackground">@color/white</item>
         <item name="colorSurface">@color/white</item>
+        <item name="colorSurfaceVariant">@color/gainsboro</item>
+        <item name="colorSurfaceInverse">@color/black</item>
         <item name="colorError">@color/crimson</item>
 
         <!-- types -->

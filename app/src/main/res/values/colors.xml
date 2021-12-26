@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- TODO: should change with theme; create cutom theme attribute "toolsColorBackground" -->
-    <color name="tools_bg">#F0F0F0</color>
-    <color name="debug_red">#FF0000</color>
-
     <color name="white">@android:color/white</color>
     <color name="black">@android:color/black</color>
     <color name="transparent">@android:color/transparent</color>
@@ -15,10 +11,13 @@
     <color name="indigo">#6200EE</color>
     <color name="violet">#BB86FC</color>
     <color name="purple">#4B01D0</color>
+
     <color name="robin_egg">#03DAC6</color>
     <color name="dark_cyan">#018786</color>
+
     <color name="crimson">#B00020</color>
     <color name="cinnamon_satin">#CF6679</color>
+
     <color name="cod_gray">#121212</color>
 
 </resources>

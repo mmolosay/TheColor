@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--
+        Theme attributes.
+        Preserve alphabetical order.
+    -->
+
+    <attr name="colorDebug" format="color" />
+    <attr name="colorToolsBackground" format="color" />
+
+</resources>
