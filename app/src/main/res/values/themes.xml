@@ -12,6 +12,7 @@
         <item name="colorSecondary">@color/robin_egg</item>
         <item name="colorTertiary">?attr/colorDebug</item>
         <item name="colorOutline">@color/m3_sys_color_light_outline</item>
+        <item name="colorError">@color/crimson</item>
 
         <item name="colorDebug">#FF0000</item>
         <item name="colorToolsBackground">#F0F0F0</item>
@@ -41,22 +42,23 @@
         <item name="colorSurface">@color/white</item>
         <item name="colorSurfaceVariant">@color/gainsboro</item>
         <item name="colorSurfaceInverse">@color/black</item>
-        <item name="colorError">@color/crimson</item>
 
         <!-- types -->
-        <item name="textAppearanceHeadline1">@style/TextAppearance.TheColor.Headline1</item>
-        <item name="textAppearanceHeadline2">@style/TextAppearance.TheColor.Headline2</item>
-        <item name="textAppearanceHeadline3">@style/TextAppearance.TheColor.Headline3</item>
-        <item name="textAppearanceHeadline4">@style/TextAppearance.TheColor.Headline4</item>
-        <item name="textAppearanceHeadline5">@style/TextAppearance.TheColor.Headline5</item>
-        <item name="textAppearanceHeadline6">@style/TextAppearance.TheColor.Headline6</item>
-        <item name="textAppearanceSubtitle1">@style/TextAppearance.TheColor.Subtitle1</item>
-        <item name="textAppearanceSubtitle2">@style/TextAppearance.TheColor.Subtitle2</item>
-        <item name="textAppearanceBody1">@style/TextAppearance.TheColor.Body1</item>
-        <item name="textAppearanceBody2">@style/TextAppearance.TheColor.Body2</item>
-        <item name="textAppearanceButton">@style/TextAppearance.TheColor.Button</item>
-        <item name="textAppearanceCaption">@style/TextAppearance.TheColor.Caption</item>
-        <item name="textAppearanceOverline">@style/TextAppearance.TheColor.Overline</item>
+        <item name="textAppearanceDisplayLarge">@style/TextAppearance.TheColor.DisplayLarge</item>
+        <item name="textAppearanceDisplayMedium">@style/TextAppearance.TheColor.DisplayMedium</item>
+        <item name="textAppearanceDisplaySmall">@style/TextAppearance.TheColor.DisplaySmall</item>
+        <item name="textAppearanceHeadlineLarge">@style/TextAppearance.TheColor.HeadlineLarge</item>
+        <item name="textAppearanceHeadlineMedium">@style/TextAppearance.TheColor.HeadlineMedium</item>
+        <item name="textAppearanceHeadlineSmall">@style/TextAppearance.TheColor.HeadlineSmall</item>
+        <item name="textAppearanceTitleLarge">@style/TextAppearance.TheColor.TitleLarge</item>
+        <item name="textAppearanceTitleMedium">@style/TextAppearance.TheColor.TitleMedium</item>
+        <item name="textAppearanceTitleSmall">@style/TextAppearance.TheColor.TitleSmall</item>
+        <item name="textAppearanceBodyLarge">@style/TextAppearance.TheColor.BodyLarge</item>
+        <item name="textAppearanceBodyMedium">@style/TextAppearance.TheColor.BodyMedium</item>
+        <item name="textAppearanceBodySmall">@style/TextAppearance.TheColor.BodySmall</item>
+        <item name="textAppearanceLabelLarge">@style/TextAppearance.TheColor.LabelLarge</item>
+        <item name="textAppearanceLabelMedium">@style/TextAppearance.TheColor.LabelMedium</item>
+        <item name="textAppearanceLabelSmall">@style/TextAppearance.TheColor.LabelSmall</item>
 
         <!-- shapes -->
         <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.TheColor.SmallComponent
