@@ -29,10 +29,9 @@ import com.ordolabs.feature_home.viewmodel.ColorInputViewModel.ColorPreview
 import com.ordolabs.feature_home.viewmodel.HomeViewModel
 import com.ordolabs.thecolor.util.AnimationUtils
 import com.ordolabs.thecolor.util.ColorUtil
-import com.ordolabs.thecolor.util.ColorUtil.isDark
 import com.ordolabs.thecolor.util.ColorUtil.toColorInt
 import com.ordolabs.thecolor.util.ext.createCircularRevealAnimation
-import com.ordolabs.thecolor.util.ext.getBottomVisibleInParent
+import com.ordolabs.thecolor.util.ext.getBottomVisibleInScrollParent
 import com.ordolabs.thecolor.util.ext.getDistanceToViewInParent
 import com.ordolabs.thecolor.util.ext.hideSoftInput
 import com.ordolabs.thecolor.util.ext.longAnimDuration
@@ -40,7 +39,8 @@ import com.ordolabs.thecolor.util.ext.mediumAnimDuration
 import com.ordolabs.thecolor.util.ext.propertyAnimator
 import com.ordolabs.thecolor.util.ext.replaceFragment
 import com.ordolabs.thecolor.util.ext.setFragment
-import com.ordolabs.thecolor.util.setLightNavigationBars
+import com.ordolabs.thecolor.util.restoreNavigationBarColor
+import com.ordolabs.thecolor.util.setNavigationBarColor
 import com.ordolabs.thecolor.util.struct.AnimatorDestination
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.koin.core.context.loadKoinModules
@@ -73,6 +73,12 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     override fun setViews() {
         setColorInputFragment()
         setColorInformationFragment()
+
+        // TODO: get rid of
+        binding.defaultFragmentContainer.setOnLongClickListener {
+            colorInputVM.clearColorPreview()
+            true
+        }
     }
 
     private fun setColorInputFragment() {
@@ -117,7 +123,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
                     makeInfoSheetRevealAnimation(hide = false).apply {
                         doOnStart {
                             setInfoBackgroundColor(color.toColorInt())
-                            activity?.setLightNavigationBars(light = !color.isDark())
+                            activity?.setNavigationBarColor(color)
                         }
                     }
                 )
@@ -149,17 +155,37 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     }
 
     private fun makeInfoSheetCollapsingAnimation(): Animator =
-        AnimatorSet().apply {
-            playSequentially(
-                makeScrollingToTopAnimation(),
+//        AnimatorSet().apply {
+//            playSequentially(
+//                makeScrollingToTopAnimation(),
+//                makeInfoSheetRevealAnimation(hide = true).apply {
+//                    doOnEnd {
+//                        setInfoBackgroundColor(Color.TRANSPARENT)
+//                        activity?.restoreNavigationBarColor()
+//                    }
+//                },
+//                makePreviewRisingAnimation()
+//            )
+//            doOnStart {
+//                homeVM.isInfoSheetShown = false
+//            }
+//        }
+        AnimationUtils.playAndCreateSequentially(
+            {
+                makeScrollingToTopAnimation()
+            },
+            {
                 makeInfoSheetRevealAnimation(hide = true).apply {
                     doOnEnd {
                         setInfoBackgroundColor(Color.TRANSPARENT)
-                        activity?.setLightNavigationBars(light = true)
+                        activity?.restoreNavigationBarColor()
                     }
-                },
+                }
+            },
+            {
                 makePreviewRisingAnimation()
-            )
+            }
+        ).apply {
             doOnStart {
                 homeVM.isInfoSheetShown = false
             }
@@ -310,10 +336,11 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
 
     private fun makeInfoSheetRevealCenter(): Point {
         val info = binding.infoFragmentContainer
-        val bottom = info.getBottomVisibleInParent(view) ?: info.height
+        val bottom = info.getBottomVisibleInScrollParent(binding.root) ?: info.height
         val padding = resources.getDimensionPixelSize(RApp.dimen.offset_32)
+        val previewRadius = binding.preview.height / 2
         val x = info.width / 2
-        val y = bottom - padding
+        val y = bottom - padding - previewRadius
         return Point(x, y)
     }
 

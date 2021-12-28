@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewAnimationUtils
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
+import android.widget.ScrollView
 import android.widget.TextView
 import androidx.core.animation.doOnEnd
 import androidx.core.graphics.minus
@@ -121,6 +122,18 @@ fun View.getBottomVisibleInParent(parent: View?): Int? {
     val absBottom = location.y + this.height
     val clipped = absBottom - parent.height
     return if (clipped > 0) this.height - clipped else this.height
+}
+
+fun View.getBottomVisibleInScrollParent(parent: ScrollView?) : Int? {
+    parent ?: return null
+    val location = this.getLocationInParent(parent) ?: return null
+    val absBottom = location.y + this.height
+    val viewClippedBottom = parent.scrollY + parent.height
+    return if (absBottom > viewClippedBottom) {
+        viewClippedBottom - location.y
+    } else {
+        this.height
+    }
 }
 
 // endregion

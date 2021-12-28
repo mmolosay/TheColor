@@ -1,10 +1,16 @@
 package com.ordolabs.thecolor.util
 
 import android.app.Activity
+import android.graphics.Color
+import android.os.Build
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.res.use
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
+import com.google.android.material.color.MaterialColors
+import com.ordolabs.thecolor.util.ColorUtil.isDark
+import com.ordolabs.thecolor.util.ColorUtil.toColorInt
 
 fun AppCompatActivity.setTransparentSystemBars() {
     WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -17,8 +23,25 @@ fun Activity.setLightStatusBar(light: Boolean) {
     }
 }
 
-fun Activity.setLightNavigationBars(light: Boolean) {
+fun Activity.setLightNavigationBar(light: Boolean) {
     ViewCompat.getWindowInsetsController(window.decorView)?.run {
         isAppearanceLightNavigationBars = light
     }
+}
+
+fun Activity.restoreNavigationBarColor() {
+    val themeColor = MaterialColors.getColor(this, android.R.attr.navigationBarColor, Color.WHITE)
+    window.navigationBarColor = themeColor
+    if (Build.VERSION.SDK_INT >= 27) {
+        val attrs = intArrayOf(android.R.attr.windowLightNavigationBar)
+        val isLightNavBar = this.theme.obtainStyledAttributes(attrs).use {
+            it.getBoolean(0, /*defValue*/ true)
+        }
+        setLightNavigationBar(isLightNavBar)
+    }
+}
+
+fun Activity.setNavigationBarColor(color: ColorUtil.Color) {
+    window.navigationBarColor = color.toColorInt()
+    this.setLightNavigationBar(light = !color.isDark())
 }

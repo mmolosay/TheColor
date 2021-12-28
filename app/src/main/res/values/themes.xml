@@ -71,6 +71,10 @@
         </item>
 
         <!-- widgets -->
+        <item name="android:editTextStyle">@style/Widget.TheColor.EditText</item>
+        <item name="android:scrollViewStyle">@style/Widget.TheColor.ScrollView</item>
+        <item name="android:textViewStyle">@style/Widget.TheColor.TextView</item>
+
         <item name="materialAlertDialogTheme">@style/ThemeOverlay.TheColor.MaterialAlertDialog
         </item>
         <item name="materialButtonStyle">@style/Widget.TheColor.Button</item>
@@ -79,8 +83,6 @@
 
         <item name="buttonStyle">@style/Widget.TheColor.Button</item>
         <item name="toolbarStyle">@style/Widget.MaterialComponents.Toolbar.PrimarySurface</item>
-        <item name="android:textViewStyle">@style/Widget.TheColor.TextView</item>
-        <item name="android:editTextStyle">@style/Widget.TheColor.EditText</item>
         <item name="textInputStyle">@style/Widget.TheColor.TextInputLayout</item>
     </style>
 

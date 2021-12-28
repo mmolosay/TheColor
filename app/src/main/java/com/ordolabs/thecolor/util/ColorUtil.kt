@@ -14,6 +14,8 @@ object ColorUtil {
     /**
      * "Abstract" color model. Actually, holds HEX color value __without number sign__.
      * __Always__ represents a valid color.
+     *
+     * @param [hex] HEX color string __without__ number sign, e.g. "16A8C0".
      */
     @Parcelize
     data class Color(

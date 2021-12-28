@@ -25,6 +25,10 @@
         <item name="dividerColor">@color/material_on_background_disabled</item>
     </style>
 
+    <style name="Widget.TheColor.ScrollView" parent="">
+        <item name="android:overScrollMode">ifContentScrolls</item>
+    </style>
+
     <style name="Widget.TheColor.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
         <item name="materialThemeOverlay">
             @style/Widget.TheColor.TextInputLayout_MaterialThemeOverlay
