@@ -87,7 +87,7 @@ object AnimationUtils {
                 }?.start()
             }
         }
-        return creators[0]().apply {
+        return creators.first().invoke().apply {
             startNextAnimatorOnEndRecursively(1)
         }
     }

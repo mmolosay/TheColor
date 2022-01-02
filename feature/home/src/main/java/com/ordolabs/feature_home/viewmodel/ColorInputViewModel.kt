@@ -91,8 +91,7 @@ class ColorInputViewModel(
         }
     }
 
-    // TODO: restore
-    /*private*/ fun clearColorPreview() {
+    fun clearColorPreview() {
         _colorPreview.setEmpty()
     }
 

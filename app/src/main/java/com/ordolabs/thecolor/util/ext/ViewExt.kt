@@ -205,4 +205,18 @@ fun View.createCircularRevealAnimation(
     return ViewAnimationUtils.createCircularReveal(this, cx, cy, sr, er)
 }
 
+fun View.createCircularRevealAnimation(
+    expand: Boolean,
+    cx: Int = width / 2,
+    cy: Int = height / 2,
+    sr: Float = 0f,
+    er: Float = AnimationUtils.getCircularRevealMaxRadius(this, cx, cy)
+): Animator {
+    return if (expand) {
+        this.createCircularRevealAnimation(cx, cy, sr, er)
+    } else {
+        this.createCircularRevealAnimation(cx, cy, er, sr)
+    }
+}
+
 // endregion

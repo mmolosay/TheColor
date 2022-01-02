@@ -73,12 +73,6 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     override fun setViews() {
         setColorInputFragment()
         setColorInformationFragment()
-
-        // TODO: get rid of
-        binding.defaultFragmentContainer.setOnLongClickListener {
-            colorInputVM.clearColorPreview()
-            true
-        }
     }
 
     private fun setColorInputFragment() {
@@ -155,37 +149,17 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     }
 
     private fun makeInfoSheetCollapsingAnimation(): Animator =
-//        AnimatorSet().apply {
-//            playSequentially(
-//                makeScrollingToTopAnimation(),
-//                makeInfoSheetRevealAnimation(hide = true).apply {
-//                    doOnEnd {
-//                        setInfoBackgroundColor(Color.TRANSPARENT)
-//                        activity?.restoreNavigationBarColor()
-//                    }
-//                },
-//                makePreviewRisingAnimation()
-//            )
-//            doOnStart {
-//                homeVM.isInfoSheetShown = false
-//            }
-//        }
-        AnimationUtils.playAndCreateSequentially(
-            {
-                makeScrollingToTopAnimation()
-            },
-            {
+        AnimatorSet().apply {
+            playSequentially(
+                makeScrollingToTopAnimation(),
                 makeInfoSheetRevealAnimation(hide = true).apply {
                     doOnEnd {
                         setInfoBackgroundColor(Color.TRANSPARENT)
                         activity?.restoreNavigationBarColor()
                     }
-                }
-            },
-            {
+                },
                 makePreviewRisingAnimation()
-            }
-        ).apply {
+            )
             doOnStart {
                 homeVM.isInfoSheetShown = false
             }
@@ -308,13 +282,9 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         val info = binding.infoFragmentContainer
         val preview = binding.previewWrapper
         val center = makeInfoSheetRevealCenter()
-        var sr = preview.width.toFloat() / 2
-        var er = AnimationUtils.getCircularRevealMaxRadius(info, center)
-        if (hide) er.let {
-            er = sr
-            sr = it
-        }
-        return info.createCircularRevealAnimation(center.x, center.y, sr, er).apply {
+        val sr = preview.width.toFloat() / 2
+        val er = AnimationUtils.getCircularRevealMaxRadius(info, center)
+        return info.createCircularRevealAnimation(!hide, center.x, center.y, sr, er).apply {
             duration = longAnimDuration
             interpolator = AccelerateDecelerateInterpolator()
             doOnStart {
@@ -340,7 +310,8 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         val padding = resources.getDimensionPixelSize(RApp.dimen.offset_32)
         val previewRadius = binding.preview.height / 2
         val x = info.width / 2
-        val y = bottom - padding - previewRadius
+        val yApprox = bottom - padding - previewRadius
+        val y = yApprox.coerceIn(0, info.height)
         return Point(x, y)
     }
 
@@ -383,10 +354,6 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
                 replaceColorInformationFragment()
             }
         }
-
-    override fun setSoftInputMode() {
-        // https://yatmanwong.medium.com/android-how-to-pan-the-page-up-more-25fc5c542a97
-    }
 
     companion object {
 

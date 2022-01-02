@@ -35,7 +35,7 @@ abstract class BaseFragment : Fragment {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initialSoftInputMode // initialize
-        setSoftInputMode()
+        updateSoftInputMode()
         parseArguments()
     }
 
@@ -48,12 +48,26 @@ abstract class BaseFragment : Fragment {
 
     override fun onDestroy() {
         super.onDestroy()
-        initialSoftInputMode?.let { activity?.window?.setSoftInputMode(it) }
+        restoreSoftInputMode()
     }
 
-    protected open fun setSoftInputMode() {
-        // override me
+    private fun updateSoftInputMode() {
+        getSoftInputMode()?.let {
+            activity?.window?.setSoftInputMode(it)
+        }
     }
+
+    private fun restoreSoftInputMode() {
+        initialSoftInputMode?.let {
+            activity?.window?.setSoftInputMode(it)
+        }
+    }
+
+    /**
+     * Specifies windoSoftInputMode for `this` fragment.
+     */
+    protected open fun getSoftInputMode(): Int? =
+        null
 
     /**
      * Parses [Fragment.getArguments].
