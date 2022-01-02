@@ -54,7 +54,7 @@ object AnimationUtils {
     @IdRes
     fun getCustomPropertyKey(property: AnimationProperty): Int =
         when (property) {
-            AnimationProperty.CIRCULAR_REVEAL -> R.id.animKeyCircularReveal
+            AnimationProperty.CIRCULAR_REVEAL -> R.id.animPropertyKeyCircularReveal
         }
 
     fun <T : Number> getAnimationEndValue(start: T, current: T, end: T): T {

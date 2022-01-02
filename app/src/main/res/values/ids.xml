@@ -10,6 +10,7 @@
 
     <!-- Animation -->
 
+    <!-- view -->
     <item name="animPropertyKeyTranslationX" type="id" />
     <item name="animPropertyKeyTranslationY" type="id" />
     <item name="animPropertyKeyTranslationZ" type="id" />
@@ -24,6 +25,8 @@
     <item name="animPropertyKeyAlpha" type="id" />
     <item name="animPropertyKeyScrollX" type="id" />
     <item name="animPropertyKeyScrollY" type="id" />
-    <item name="animKeyCircularReveal" type="id" />
+
+    <!-- custom -->
+    <item name="animPropertyKeyCircularReveal" type="id" />
 
 </resources>

@@ -20,6 +20,7 @@ import androidx.dynamicanimation.animation.SpringAnimation
 import androidx.dynamicanimation.animation.SpringForce
 import com.google.android.material.textfield.TextInputLayout
 import com.ordolabs.thecolor.util.AnimationUtils
+import com.ordolabs.thecolor.util.AnimationUtils.AnimationProperty
 
 // region TextView
 
@@ -188,8 +189,26 @@ fun <T : Animator> View.propertyAnimator(property: Property<*, *>, animator: T):
 }
 
 @Suppress("UNCHECKED_CAST")
+fun <T : Animator> View.propertyAnimator(property: AnimationProperty, animator: T): T {
+    val key = AnimationUtils.getCustomPropertyKey(property)
+    return this.getTag(key) as? T
+        ?: animator.also {
+            this.setTag(key, it)
+            it.doOnEnd {
+                this.setTag(key, null)
+            }
+        }
+}
+
+@Suppress("UNCHECKED_CAST")
 fun <T : Animator> View.propertyAnimatorOrNull(property: Property<*, *>): T? {
     val key = AnimationUtils.getViewPropertyKey(property)
+    return (this.getTag(key) as? T)
+}
+
+@Suppress("UNCHECKED_CAST")
+fun <T : Animator> View.propertyAnimatorOrNull(property: AnimationProperty): T? {
+    val key = AnimationUtils.getCustomPropertyKey(property)
     return (this.getTag(key) as? T)
 }
 

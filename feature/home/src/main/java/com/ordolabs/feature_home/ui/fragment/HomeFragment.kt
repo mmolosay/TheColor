@@ -37,6 +37,7 @@ import com.ordolabs.thecolor.util.ext.hideSoftInput
 import com.ordolabs.thecolor.util.ext.longAnimDuration
 import com.ordolabs.thecolor.util.ext.mediumAnimDuration
 import com.ordolabs.thecolor.util.ext.propertyAnimator
+import com.ordolabs.thecolor.util.ext.propertyAnimatorOrNull
 import com.ordolabs.thecolor.util.ext.replaceFragment
 import com.ordolabs.thecolor.util.ext.setFragment
 import com.ordolabs.thecolor.util.restoreNavigationBarColor
@@ -167,7 +168,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
 
     private fun animPreviewColorChanging(@ColorInt color: Int) =
         binding.previewWrapper.doOnLayout {
-            if (color == getPreviewColor()) return@doOnLayout
+//            if (color == getPreviewColor()) return@doOnLayout
             makePreviewColorChangingAnimation(color).start()
         }
 
@@ -230,7 +231,12 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         val preview = binding.preview
         val updated = binding.previewUpdated
         val wrapper = binding.previewWrapper
-        return updated.createCircularRevealAnimation().apply {
+
+        val property = AnimationUtils.AnimationProperty.CIRCULAR_REVEAL
+        val existed = updated.propertyAnimatorOrNull<Animator>(property)
+        existed?.cancel() // will trigger onEnd as well
+
+        val animator = updated.createCircularRevealAnimation().apply {
             duration = if (wrapper.isVisible) mediumAnimDuration else 0L
             interpolator = FastOutSlowInInterpolator()
             doOnStart {
@@ -239,9 +245,15 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
             }
             doOnEnd {
                 preview.backgroundTintList = ColorStateList.valueOf(color)
-                updated.isInvisible = true
+                updated.isInvisible = (existed == null) // otherwise will hide view and this animation
+                // will be played on not visible view
             }
         }
+        // existed may was ended, but not untagged from view
+        updated.propertyAnimatorOrNull<Animator>(property)?.let {
+            if (it != existed) return it
+        }
+        return animator
     }
 
     private fun makePreviewTranslationAnimation(down: Boolean): Animator {
