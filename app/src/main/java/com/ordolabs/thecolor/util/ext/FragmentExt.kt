@@ -83,6 +83,12 @@ fun BaseFragment.hideSoftInput(): Boolean {
     } else false
 }
 
+fun BaseFragment.hideSoftInputAndUnfocus(): Boolean {
+    return this.hideSoftInput().also { wasHidden ->
+        if (wasHidden) this.view?.clearFocus()
+    }
+}
+
 fun BaseFragment.getChildFragmentAt(position: Int): Fragment? {
     return childFragmentManager.fragments.getOrNull(position)
 }

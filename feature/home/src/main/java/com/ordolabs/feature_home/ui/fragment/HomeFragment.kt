@@ -30,16 +30,19 @@ import com.ordolabs.feature_home.viewmodel.HomeViewModel
 import com.ordolabs.thecolor.util.AnimationUtils
 import com.ordolabs.thecolor.util.ColorUtil
 import com.ordolabs.thecolor.util.ColorUtil.toColorInt
+import com.ordolabs.thecolor.util.ext.bindPropertyAnimator
 import com.ordolabs.thecolor.util.ext.createCircularRevealAnimation
 import com.ordolabs.thecolor.util.ext.getBottomVisibleInScrollParent
 import com.ordolabs.thecolor.util.ext.getDistanceToViewInParent
 import com.ordolabs.thecolor.util.ext.hideSoftInput
+import com.ordolabs.thecolor.util.ext.hideSoftInputAndUnfocus
 import com.ordolabs.thecolor.util.ext.longAnimDuration
 import com.ordolabs.thecolor.util.ext.mediumAnimDuration
 import com.ordolabs.thecolor.util.ext.propertyAnimator
 import com.ordolabs.thecolor.util.ext.propertyAnimatorOrNull
 import com.ordolabs.thecolor.util.ext.replaceFragment
 import com.ordolabs.thecolor.util.ext.setFragment
+import com.ordolabs.thecolor.util.ext.shortAnimDuration
 import com.ordolabs.thecolor.util.restoreNavigationBarColor
 import com.ordolabs.thecolor.util.setNavigationBarColor
 import com.ordolabs.thecolor.util.struct.AnimatorDestination
@@ -61,9 +64,9 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         loadKoinModules(featureHomeModule)
     }
 
-    override fun onPause() {
-        super.onPause()
-        view?.clearFocus()
+    override fun onStop() {
+        super.onStop()
+        hideSoftInputAndUnfocus()
     }
 
     override fun collectViewModelsData() {
@@ -232,12 +235,13 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         val updated = binding.previewUpdated
         val wrapper = binding.previewWrapper
 
-        val property = AnimationUtils.AnimationProperty.CIRCULAR_REVEAL
+        val property = AnimationUtils.CustomViewProperty.CIRCULAR_REVEAL
         val existed = updated.propertyAnimatorOrNull<Animator>(property)
         existed?.cancel() // will trigger onEnd as well
 
         val animator = updated.createCircularRevealAnimation().apply {
-            duration = if (wrapper.isVisible) mediumAnimDuration else 0L
+            duration = if (wrapper.isVisible) shortAnimDuration else 0L /* finish instantly,
+             if parent view group is hidden */
             interpolator = FastOutSlowInInterpolator()
             doOnStart {
                 updated.backgroundTintList = ColorStateList.valueOf(color)
@@ -245,14 +249,12 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
             }
             doOnEnd {
                 preview.backgroundTintList = ColorStateList.valueOf(color)
-                updated.isInvisible = (existed == null) // otherwise will hide view and this animation
-                // will be played on not visible view
+                updated.isInvisible = (existed != null) /* otherwise will hide view and animation
+                 will be played on not visible view */
             }
         }
-        // existed may was ended, but not untagged from view
-        updated.propertyAnimatorOrNull<Animator>(property)?.let {
-            if (it != existed) return it
-        }
+        // existed may was canceled, but not unbound from view, thus replace it with new one
+        updated.bindPropertyAnimator(property, animator)
         return animator
     }
 
