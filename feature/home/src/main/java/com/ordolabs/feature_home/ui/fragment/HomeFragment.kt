@@ -31,6 +31,7 @@ import com.ordolabs.thecolor.util.AnimationUtils
 import com.ordolabs.thecolor.util.ColorUtil
 import com.ordolabs.thecolor.util.ColorUtil.toColorInt
 import com.ordolabs.thecolor.util.ext.bindPropertyAnimator
+import com.ordolabs.thecolor.util.ext.by
 import com.ordolabs.thecolor.util.ext.createCircularRevealAnimation
 import com.ordolabs.thecolor.util.ext.getBottomVisibleInScrollParent
 import com.ordolabs.thecolor.util.ext.getDistanceToViewInParent
@@ -92,10 +93,6 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     private fun replaceColorInformationFragment() {
         val fragment = ColorInformationFragment.newInstance()
         replaceFragment(fragment, binding.infoFragmentContainer.id)
-    }
-
-    private fun getPreviewColor(): Int {
-        return binding.preview.backgroundTintList?.defaultColor ?: 0
     }
 
     @ColorInt
@@ -240,7 +237,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         existed?.cancel() // will trigger onEnd as well
 
         val animator = updated.createCircularRevealAnimation().apply {
-            duration = if (wrapper.isVisible) shortAnimDuration else 0L /* finish instantly,
+            duration = 0L to shortAnimDuration by !wrapper.isVisible /* finish instantly,
              if parent view group is hidden */
             interpolator = FastOutSlowInInterpolator()
             doOnStart {

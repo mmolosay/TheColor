@@ -5,6 +5,7 @@ import com.ordolabs.thecolor.mapper.toPresentation
 import com.ordolabs.thecolor.model.ColorInformationPresentation
 import com.ordolabs.thecolor.util.ColorUtil.Color
 import com.ordolabs.thecolor.util.MutableStateResourceFlow
+import com.ordolabs.thecolor.util.ext.catchFailureIn
 import com.ordolabs.thecolor.util.ext.setEmpty
 import com.ordolabs.thecolor.util.ext.setLoading
 import com.ordolabs.thecolor.util.ext.setSuccess
@@ -33,10 +34,12 @@ class ColorInformationViewModel(
     fun fetchColorInformation(color: Color) = launchInIO {
         restartFetchingColorInformation().join()
         fetchColorInformationJob = launch {
-            getColorInformationUseCase.invoke(color.hex).collect { colorInfo ->
+            val flow = getColorInformationUseCase.invoke(color.hex)
+            flow.collect { colorInfo ->
                 val info = colorInfo.toPresentation()
                 _information.setSuccess(info)
             }
+            flow.catchFailureIn(_information)
         }
     }
 

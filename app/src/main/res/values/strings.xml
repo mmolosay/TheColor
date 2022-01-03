@@ -1,14 +1,23 @@
 <resources>
 
-    <!--—————————————————————— APP —————————————————————-->
+    <!-- region App -->
+
     <string name="app_name">TheColor</string>
 
-    <!--———————————————————— GENERIC ———————————————————-->
+    <!-- endregion -->
+
+    <!-- region Generic -->
+
     <string name="generic_yes">Yes</string>
     <string name="generic_no">No</string>
 
-    <!--————————————————————— ERROR ————————————————————-->
+    <!-- endregion -->
+
+    <!-- region Error -->
+
     <string name="error_check_internet_connection">Check Internet connection</string>
     <string name="error_unknown">Sory, an error occurred, try again later</string>
+
+    <!-- endregion -->
 
 </resources>

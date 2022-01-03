@@ -7,6 +7,4 @@
     <dimen name="input_color_width_min">96dp</dimen>
     <dimen name="input_color_width_max">256dp</dimen>
 
-    <dimen name="color_information_root_translationY">8dp</dimen>
-
 </resources>

@@ -185,11 +185,11 @@ class ColorInformationFragment : BaseFragment() {
             deviationValue.text = info.exactNameHexDistance.toString()
         }
 
-    private fun animContentVisibility(visible: Boolean, zeroDuration: Boolean = false) {
-        val translation = resources.getDimension(R.dimen.color_information_root_translationY)
+    private fun animContentVisibility(visible: Boolean, instant: Boolean = false) {
+        val translation = resources.getDimension(RApp.dimen.offset_8)
         val translationY = 0f to translation by visible
         val alpha = 1f to 0f by visible
-        val duration = 0L to mediumAnimDuration by zeroDuration
+        val duration = 0L to mediumAnimDuration by instant
         ViewCompat.animate(binding.content)
             .translationY(translationY)
             .alpha(alpha)
@@ -223,7 +223,8 @@ class ColorInformationFragment : BaseFragment() {
             resource.fold(
                 onEmpty = ::onColorInformationEmpty,
                 onLoading = ::onColorInformationLoading,
-                onSuccess = ::onColorInformationSuccess
+                onSuccess = ::onColorInformationSuccess,
+                onFailure = ::onColorInformationFailure
             )
         }
 
@@ -233,9 +234,9 @@ class ColorInformationFragment : BaseFragment() {
     }
 
     private fun onColorInformationLoading(previous: ColorInformationPresentation?) {
+        binding.progress.isVisible = true
         if (previous != null) {
-            animContentVisibility(visible = false, zeroDuration = true)
-            binding.progress.isVisible = true
+            animContentVisibility(visible = false, instant = true)
         }
     }
 
@@ -252,6 +253,15 @@ class ColorInformationFragment : BaseFragment() {
         populateInformationViews(info)
         binding.progress.isVisible = false
         animContentVisibility(visible = true)
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    private fun onColorInformationFailure(
+        previous: ColorInformationPresentation?,
+        payload: Any?,
+        error: Throwable
+    ) {
+        showToast(error.localizedMessage)
     }
 
     private fun collectCoroutineException() =
