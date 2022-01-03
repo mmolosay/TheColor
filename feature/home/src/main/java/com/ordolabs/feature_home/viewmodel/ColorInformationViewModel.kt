@@ -34,16 +34,12 @@ class ColorInformationViewModel(
     fun fetchColorInformation(color: Color) = launch {
         restartFetchingColorInformation().join()
         fetchColorInformationJob = launchInIO {
-//            try {
-                getColorInformationUseCase.invoke(color.hex)
-                    .catchFailureIn(_information)
-                    .collect { colorInfo ->
-                        val info = colorInfo.toPresentation()
-                        _information.setSuccess(info)
-                    }
-//            } catch (e: IllegalAccessException) {
-//                _information.setFailure(e)
-//            }
+            getColorInformationUseCase.invoke(color.hex)
+                .catchFailureIn(_information)
+                .collect { colorInfo ->
+                    val info = colorInfo.toPresentation()
+                    _information.setSuccess(info)
+                }
         }
     }
 

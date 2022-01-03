@@ -286,9 +286,7 @@ class ColorInformationFragment : BaseFragment() {
         error: Throwable
     ) =
         when (error) {
-            is UnknownHostException -> {
-                showNoContentView()
-            }
+            is UnknownHostException -> showNoContentView()
             else -> showToast(error.localizedMessage)
         }
 
