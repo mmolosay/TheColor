@@ -46,13 +46,6 @@ fun <V> MutableStateFlow<Resource<V>>.setSuccess(value: V) {
     this.value = Resource.Success(value)
 }
 
-fun <V> MutableStateFlow<Resource<V>>.setFailure(message: String) {
-    if (this.value.isFailure) return
-    this.update { resource ->
-        resource.failure(message)
-    }
-}
-
 fun <V> MutableStateFlow<Resource<V>>.setFailure(error: Throwable) {
     if (this.value.isFailure) return
     this.update { resource ->
@@ -60,24 +53,17 @@ fun <V> MutableStateFlow<Resource<V>>.setFailure(error: Throwable) {
     }
 }
 
-fun <V> MutableStateFlow<Resource<V>>.setFailure() {
+fun <V> MutableStateFlow<Resource<V>>.setFailure(message: String) {
     if (this.value.isFailure) return
     this.update { resource ->
-        resource.failure()
+        resource.failure(message)
     }
 }
 
-fun <V> Flow<*>.catchFailureIn(consumer: MutableStateFlow<Resource<V>>) {
-    this.catch { collector ->
-        val message = collector.message
-        val cause = collector.cause
-        when {
-            message != null -> consumer.setFailure(message)
-            cause != null -> consumer.setFailure(cause)
-            else -> consumer.setFailure()
-        }
+fun <R, V> Flow<R>.catchFailureIn(catcher: MutableStateFlow<Resource<V>>): Flow<R> =
+    this.catch { throwable ->
+        catcher.setFailure(throwable)
     }
-}
 
 ///**
 // * Updates [MutableStateFlow]<[Resource]<[V]>> atomically using the specified [function] of its value.

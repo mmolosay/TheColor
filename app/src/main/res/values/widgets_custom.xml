@@ -6,6 +6,10 @@
         Preserve alphabetical order.
     -->
 
+    <style name="Widget.Button.Tonal.SurfaceVariant" parent="Widget.TheColor.Button.Tonal">
+        <item name="materialThemeOverlay">@style/ThemeOverlay.Button.Tonal.SurfaceVariant</item>
+    </style>
+
     <style name="Widget.MaterialDivider.Insets" parent="Widget.TheColor.MaterialDivider">
         <item name="dividerInsetStart">@dimen/offset_content_horizontal</item>
         <item name="dividerInsetEnd">@dimen/offset_content_horizontal</item>

@@ -19,7 +19,7 @@
 
         <!-- color on -->
         <item name="colorOnPrimary">@color/white</item>
-        <item name="colorOnPrimaryContainer">?attr/colorOnPrimary</item>
+        <item name="colorOnPrimaryContainer">@color/black</item>
         <item name="colorOnSecondary">@color/black</item>
         <item name="colorOnSecondaryContainer">?attr/colorOnSecondary</item>
         <item name="colorOnTertiary">?attr/colorDebug</item>
@@ -32,7 +32,7 @@
         <item name="colorOnErrorContainer">?attr/colorDebug</item>
 
         <!-- color container -->
-        <item name="colorPrimaryContainer">?attr/colorPrimary</item>
+        <item name="colorPrimaryContainer">@color/violet</item>
         <item name="colorSecondaryContainer">?attr/colorSecondary</item>
         <item name="colorTertiaryContainer">?attr/colorTertiary</item>
         <item name="colorErrorContainer">?attr/colorError</item>
@@ -79,6 +79,7 @@
         </item>
         <item name="materialButtonStyle">@style/Widget.TheColor.Button</item>
         <item name="materialButtonOutlinedStyle">@style/Widget.TheColor.Button.Outlined</item>
+        <item name="materialButtonTonalStyle">@style/Widget.TheColor.Button.Tonal</item>
         <item name="materialDividerStyle">@style/Widget.TheColor.MaterialDivider</item>
 
         <item name="buttonStyle">@style/Widget.TheColor.Button</item>

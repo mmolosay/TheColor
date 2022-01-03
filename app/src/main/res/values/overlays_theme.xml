@@ -6,17 +6,25 @@
         Preserve alphabetical order.
     -->
 
-    <style name="ThemeOverlay.TheColor.Light" parent="Base.Theme.TheColor">
+    <!-- region View Group overlays -->
+
+    <!-- Light background color -->
+    <style name="ThemeOverlay.TheColor.Light" parent="">
+<!--        <item name="colorSurfaceVariant">@color/cod_gray</item>-->
+<!--        <item name="colorOnSurfaceVariant">@color/gainsboro</item>-->
         <item name="colorControlHighlight">@color/gainsboro</item>
     </style>
 
-    <style name="ThemeOverlay.TheColor.Dark" parent="Base.Theme.TheColor">
-        <item name="android:textColorPrimary">@color/white</item>
+    <!-- Dark background color -->
+    <style name="ThemeOverlay.TheColor.Dark" parent="">
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorOnBackground">@color/white</item>
-        <item name="android:colorBackground">@color/cod_gray</item>
         <item name="colorControlHighlight">@color/silver</item>
+        <item name="android:textColorPrimary">@color/white</item>
+        <item name="android:colorBackground">@color/cod_gray</item>
     </style>
+
+    <!-- endregion -->
 
     <style name="ThemeOverlay.TheColor.MaterialAlertDialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
         <!-- nothing special here -->

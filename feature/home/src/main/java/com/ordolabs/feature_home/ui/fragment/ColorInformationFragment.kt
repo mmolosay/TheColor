@@ -8,7 +8,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.view.ViewCompat
-import androidx.core.view.ViewPropertyAnimatorListenerAdapter
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
@@ -31,6 +30,7 @@ import com.ordolabs.thecolor.util.ext.setTextOrGoneWith
 import com.ordolabs.thecolor.util.ext.showToast
 import com.ordolabs.thecolor.util.struct.getOrNull
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
+import java.net.UnknownHostException
 import com.ordolabs.thecolor.R as RApp
 
 class ColorInformationFragment : BaseFragment() {
@@ -53,12 +53,12 @@ class ColorInformationFragment : BaseFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val theme = if (color?.isDark() == true) {
+        val themeOverlay = if (color?.isDark() == true) {
             RApp.style.ThemeOverlay_TheColor_Dark
         } else {
             RApp.style.ThemeOverlay_TheColor_Light
         }
-        val themedContext = ContextThemeWrapper(activity, theme)
+        val themedContext = ContextThemeWrapper(activity, themeOverlay)
         return inflater.cloneInContext(themedContext)
             .inflate(R.layout.fragment_color_information, container, false)
     }
@@ -75,7 +75,35 @@ class ColorInformationFragment : BaseFragment() {
     }
 
     override fun setViews() {
-        // nothing here
+        setNoContentView()
+    }
+
+    private fun setNoContentView() {
+        setRetryBtn()
+    }
+
+    private fun setRetryBtn() {
+        binding.noContent.retryBtn.setOnClickListener l@{
+            colorInfoVM.fetchColorInformation(color ?: return@l)
+        }
+    }
+
+    private fun showContentView() {
+        binding.content.isInvisible = false
+        binding.progress.isVisible = false
+        binding.noContent.root.isVisible = false
+    }
+
+    private fun showLoadingView() {
+        binding.content.isInvisible = true
+        binding.progress.isVisible = true
+        binding.noContent.root.isVisible = false
+    }
+
+    private fun showNoContentView() {
+        binding.content.isInvisible = true
+        binding.progress.isVisible = false
+        binding.noContent.root.isVisible = true
     }
 
     private fun populateInformationViews(info: ColorInformationPresentation) =
@@ -186,25 +214,22 @@ class ColorInformationFragment : BaseFragment() {
         }
 
     private fun animContentVisibility(visible: Boolean, instant: Boolean = false) {
+        val content = binding.content
         val translation = resources.getDimension(RApp.dimen.offset_8)
         val translationY = 0f to translation by visible
         val alpha = 1f to 0f by visible
         val duration = 0L to mediumAnimDuration by instant
-        ViewCompat.animate(binding.content)
+        ViewCompat.animate(content)
             .translationY(translationY)
             .alpha(alpha)
             .setDuration(duration)
             .setInterpolator(FastOutSlowInInterpolator())
-            .setListener(object : ViewPropertyAnimatorListenerAdapter() {
-
-                override fun onAnimationStart(view: View?) {
-                    view?.isInvisible = false
-                }
-
-                override fun onAnimationEnd(view: View?) {
-                    view?.isInvisible = !visible
-                }
-            })
+            .withStartAction {
+                showContentView()
+            }
+            .withEndAction {
+                content.isInvisible = !visible
+            }
             .start()
     }
 
@@ -234,7 +259,7 @@ class ColorInformationFragment : BaseFragment() {
     }
 
     private fun onColorInformationLoading(previous: ColorInformationPresentation?) {
-        binding.progress.isVisible = true
+        showLoadingView()
         if (previous != null) {
             animContentVisibility(visible = false, instant = true)
         }
@@ -251,7 +276,6 @@ class ColorInformationFragment : BaseFragment() {
         }
 
         populateInformationViews(info)
-        binding.progress.isVisible = false
         animContentVisibility(visible = true)
     }
 
@@ -260,9 +284,13 @@ class ColorInformationFragment : BaseFragment() {
         previous: ColorInformationPresentation?,
         payload: Any?,
         error: Throwable
-    ) {
-        showToast(error.localizedMessage)
-    }
+    ) =
+        when (error) {
+            is UnknownHostException -> {
+                showNoContentView()
+            }
+            else -> showToast(error.localizedMessage)
+        }
 
     private fun collectCoroutineException() =
         colorInfoVM.coroutineExceptionMessageRes.collectOnLifecycle { idres ->

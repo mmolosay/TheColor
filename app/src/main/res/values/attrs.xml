@@ -9,4 +9,6 @@
     <attr name="colorDebug" format="color" />
     <attr name="colorToolsBackground" format="color" />
 
+    <attr name="materialButtonTonalStyle" format="reference" />
+
 </resources>

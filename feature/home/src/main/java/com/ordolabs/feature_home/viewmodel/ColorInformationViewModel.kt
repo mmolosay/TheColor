@@ -31,15 +31,19 @@ class ColorInformationViewModel(
         fetchColorInformationJob?.cancel()
     }
 
-    fun fetchColorInformation(color: Color) = launchInIO {
+    fun fetchColorInformation(color: Color) = launch {
         restartFetchingColorInformation().join()
-        fetchColorInformationJob = launch {
-            val flow = getColorInformationUseCase.invoke(color.hex)
-            flow.collect { colorInfo ->
-                val info = colorInfo.toPresentation()
-                _information.setSuccess(info)
-            }
-            flow.catchFailureIn(_information)
+        fetchColorInformationJob = launchInIO {
+//            try {
+                getColorInformationUseCase.invoke(color.hex)
+                    .catchFailureIn(_information)
+                    .collect { colorInfo ->
+                        val info = colorInfo.toPresentation()
+                        _information.setSuccess(info)
+                    }
+//            } catch (e: IllegalAccessException) {
+//                _information.setFailure(e)
+//            }
         }
     }
 

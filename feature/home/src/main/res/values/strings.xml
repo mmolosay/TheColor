@@ -33,5 +33,7 @@
     <string name="color_information_exact_match_label">Exact match</string>
     <string name="color_information_exact_value_label">Exact value</string>
     <string name="color_information_deviation_label">Deviation</string>
+    <string name="color_information_no_content_message">Can\'t fetch color information :(</string>
+    <string name="color_information_no_content_button">Retry</string>
 
 </resources>

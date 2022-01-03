@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--
+        Theme overlay styles for specific widgets.
+        Preserve alphabetical order.
+    -->
+
+    <style name="ThemeOverlay.Button.Tonal" parent="">
+        <item name="colorOnContainer">?attr/colorOnPrimaryContainer</item>
+        <item name="colorContainer">?attr/colorPrimaryContainer</item>
+    </style>
+
+    <style name="ThemeOverlay.Button.Tonal.SurfaceVariant" parent="">
+        <item name="colorOnContainer">?attr/colorOnSurfaceVariant</item>
+        <item name="colorContainer">?attr/colorSurfaceVariant</item>
+    </style>
+
+</resources>

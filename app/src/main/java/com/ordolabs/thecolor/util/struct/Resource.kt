@@ -50,7 +50,6 @@ sealed class Resource<out V>(open val value: V?) {
     ) : Resource<V>(previous) {
 
         class MessageException(msg: String) : Throwable(msg)
-        class UnknownException() : Throwable()
     }
 
     val isEmpty: Boolean
@@ -130,13 +129,6 @@ fun <V> Resource<V>.loading(): Resource<V> =
 fun <V, P : Any> Resource<V>.failure(payload: P, error: Throwable): Resource<V> =
     Failure(this.value, payload, error)
 
-fun <V> Resource<V>.failure(message: String): Resource<V> =
-    Failure(
-        previous = this.value,
-        payload = null,
-        error = Failure.MessageException(message)
-    )
-
 fun <V> Resource<V>.failure(error: Throwable): Resource<V> =
     Failure(
         previous = this.value,
@@ -144,11 +136,11 @@ fun <V> Resource<V>.failure(error: Throwable): Resource<V> =
         error = error
     )
 
-fun <V> Resource<V>.failure(): Resource<V> =
+fun <V> Resource<V>.failure(message: String): Resource<V> =
     Failure(
         previous = this.value,
         payload = null,
-        error = Failure.UnknownException()
+        error = Failure.MessageException(message)
     )
 
 // endregion
