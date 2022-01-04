@@ -85,6 +85,7 @@ dependencies {
     // Third Party Libraries
     api "com.github.kirich1409:viewbindingpropertydelegate:1.4.7"
     api "com.michael-bull.kotlin-result:kotlin-result:1.1.12"
+    api "com.facebook.shimmer:shimmer:0.5.0"
     implementation "com.github.ajalt.colormath:colormath:2.1.0"
 
     // Testing

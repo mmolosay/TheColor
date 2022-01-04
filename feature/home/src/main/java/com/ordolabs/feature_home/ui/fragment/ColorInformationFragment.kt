@@ -89,19 +89,23 @@ class ColorInformationFragment : BaseFragment() {
 
     private fun showContentView() {
         binding.content.isVisible = true
-        binding.progress.isVisible = false
+//        binding.progress.isVisible = false
+        binding.contentShimmer.root.isVisible = false
         binding.noContent.root.isVisible = false
     }
 
+    // TODO: rename in shimmer
     private fun showLoadingView() {
         binding.content.isVisible = false
-        binding.progress.isVisible = true
+//        binding.progress.isVisible = true
+        binding.contentShimmer.root.isVisible = true
         binding.noContent.root.isVisible = false
     }
 
     private fun showNoContentView() {
         binding.content.isVisible = false
-        binding.progress.isVisible = false
+//        binding.progress.isVisible = false
+        binding.contentShimmer.root.isVisible = false
         binding.noContent.root.isVisible = true
     }
 
@@ -257,14 +261,16 @@ class ColorInformationFragment : BaseFragment() {
         animContentVisibility(visible = false)
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun onColorInformationLoading(previous: ColorInformationPresentation?) {
         showLoadingView()
-        if (previous != null) {
-            animContentVisibility(visible = false, instant = true)
-        }
+//        if (previous != null) {
+//            animContentVisibility(visible = false, instant = true)
+//        }
     }
 
     private fun onColorInformationSuccess(info: ColorInformationPresentation) {
+        return // TODO: remove me
         info.hexClean?.let {
             // update colorPreview if exact color was fetched
             val preview = colorInputVM.colorPreview.value.getOrNull()
