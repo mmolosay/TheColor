@@ -87,15 +87,18 @@
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/infoFragmentContainer"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
             android:layout_marginTop="@dimen/offset_16"
             android:background="@drawable/bg_color_information"
             android:backgroundTint="@color/transparent"
-            android:visibility="gone"
+            android:visibility="invisible"
 
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHeight_min="wrap"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/previewWrapper"
+            app:layout_constraintVertical_bias="0.0"
             tools:backgroundTint="#0047AB"
             tools:layout="@layout/fragment_color_information"
             tools:visibility="visible" />

@@ -8,7 +8,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.view.ViewCompat
-import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import by.kirich1409.viewbindingdelegate.CreateMethod
@@ -89,19 +88,19 @@ class ColorInformationFragment : BaseFragment() {
     }
 
     private fun showContentView() {
-        binding.content.isInvisible = false
+        binding.content.isVisible = true
         binding.progress.isVisible = false
         binding.noContent.root.isVisible = false
     }
 
     private fun showLoadingView() {
-        binding.content.isInvisible = true
+        binding.content.isVisible = false
         binding.progress.isVisible = true
         binding.noContent.root.isVisible = false
     }
 
     private fun showNoContentView() {
-        binding.content.isInvisible = true
+        binding.content.isVisible = false
         binding.progress.isVisible = false
         binding.noContent.root.isVisible = true
     }
@@ -228,7 +227,7 @@ class ColorInformationFragment : BaseFragment() {
                 showContentView()
             }
             .withEndAction {
-                content.isInvisible = !visible
+                content.isVisible = visible
             }
             .start()
     }

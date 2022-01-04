@@ -1,11 +1,9 @@
 package com.ordolabs.thecolor.util
 
-import android.animation.Animator
 import android.graphics.Point
 import android.util.Property
 import android.view.View
 import androidx.annotation.IdRes
-import androidx.core.animation.doOnEnd
 import androidx.dynamicanimation.animation.DynamicAnimation.ViewProperty
 import androidx.dynamicanimation.animation.SpringAnimation
 import com.ordolabs.thecolor.R
@@ -66,20 +64,6 @@ object AnimationUtils {
         center: Point
     ): Float {
         return getCircularRevealMaxRadius(view, center.x, center.y)
-    }
-
-    fun playAndCreateSequentially(vararg creators: () -> Animator): Animator {
-        require(creators.isNotEmpty()) { "creators can not be empty" }
-        fun Animator.startNextAnimatorOnEndRecursively(index: Int) {
-            this.doOnEnd {
-                creators.getOrNull(index)?.invoke()?.apply {
-                    startNextAnimatorOnEndRecursively(index + 1)
-                }?.start()
-            }
-        }
-        return creators.first().invoke().apply {
-            startNextAnimatorOnEndRecursively(1)
-        }
     }
 
     enum class CustomViewProperty(@IdRes val key: Int) {

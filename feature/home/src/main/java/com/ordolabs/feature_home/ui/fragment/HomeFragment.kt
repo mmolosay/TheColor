@@ -78,6 +78,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     override fun setViews() {
         setColorInputFragment()
         setColorInformationFragment()
+        toggleInfoFragmentVisibility(visible = false)
     }
 
     private fun setColorInputFragment() {
@@ -105,12 +106,11 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     }
 
     private fun toggleInfoFragmentVisibility(visible: Boolean) {
-        binding.infoFragmentContainer.isVisible = visible
+        binding.infoFragmentContainer.isInvisible = !visible
     }
 
     private fun animInfoSheetExpanding(color: ColorUtil.Color) {
         if (homeVM.isInfoSheetShown) return
-        toggleInfoFragmentVisibility(visible = true)
         binding.root.post { // when ^ infoFragmentContainer becomes visible
             AnimatorSet().apply {
                 playSequentially(
