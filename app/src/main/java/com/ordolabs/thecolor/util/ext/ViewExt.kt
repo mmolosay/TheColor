@@ -78,6 +78,22 @@ fun EditText.hideSoftInput(): Boolean {
     return true
 }
 
+fun EditText.setTextPreservingSelection(text: String?) {
+    text ?: return
+    val hadSelection = this.hasSelection()
+    val start = this.selectionStart
+    val end = this.selectionEnd
+    this.setText(text)
+    if (hadSelection) {
+        val newStart = start.coerceAtMost(text.length)
+        val newEnd = end.coerceAtMost(text.length)
+        this.setSelection(newStart, newEnd)
+    } else if (start == end) {
+        val index = start.coerceAtMost(text.length)
+        this.setSelection(index)
+    }
+}
+
 // endregion
 
 // region Location

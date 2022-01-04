@@ -11,6 +11,7 @@ import com.ordolabs.thecolor.model.InputHexPresentation
 import com.ordolabs.thecolor.util.ColorUtil.toColorHex
 import com.ordolabs.thecolor.util.ext.getText
 import com.ordolabs.thecolor.util.ext.getTextString
+import com.ordolabs.thecolor.util.ext.setTextPreservingSelection
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 class ColorInputHexFragment : BaseFragment(R.layout.fragment_color_input_hex) {
@@ -63,7 +64,7 @@ class ColorInputHexFragment : BaseFragment(R.layout.fragment_color_input_hex) {
         if (isResumed && colorPreview.isUserInput) return // prevent user interrupting
         val hex = colorPreview.color.toColorHex()
         isTypedByUser = false
-        binding.inputHex.editText?.setText(hex.value)
+        binding.inputHex.editText?.setTextPreservingSelection(hex.value)
         isTypedByUser = true
     }
 

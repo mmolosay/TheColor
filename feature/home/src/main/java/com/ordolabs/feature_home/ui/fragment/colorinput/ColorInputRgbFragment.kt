@@ -14,6 +14,7 @@ import com.ordolabs.thecolor.util.ColorUtil.toColorRgb
 import com.ordolabs.thecolor.util.ext.addFilters
 import com.ordolabs.thecolor.util.ext.getText
 import com.ordolabs.thecolor.util.ext.getTextString
+import com.ordolabs.thecolor.util.ext.setTextPreservingSelection
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 class ColorInputRgbFragment : BaseFragment(R.layout.fragment_color_input_rgb) {
@@ -91,9 +92,9 @@ class ColorInputRgbFragment : BaseFragment(R.layout.fragment_color_input_rgb) {
         if (isResumed && colorPreview.isUserInput) return // prevent user interrupting
         val rgb = colorPreview.color.toColorRgb()
         isTypedByUser = false
-        binding.inputRgbR.editText?.setText(rgb.r.toString())
-        binding.inputRgbG.editText?.setText(rgb.g.toString())
-        binding.inputRgbB.editText?.setText(rgb.b.toString())
+        binding.inputRgbR.editText?.setTextPreservingSelection(rgb.r.toString())
+        binding.inputRgbG.editText?.setTextPreservingSelection(rgb.g.toString())
+        binding.inputRgbB.editText?.setTextPreservingSelection(rgb.b.toString())
         isTypedByUser = true
     }
 
