@@ -260,9 +260,6 @@ class ColorInformationFragment : BaseFragment() {
     @Suppress("UNUSED_PARAMETER")
     private fun onColorInformationLoading(previous: ColorInformationPresentation?) {
         showLoadingView()
-//        if (previous != null) {
-//            animContentVisibility(visible = false, instant = true)
-//        }
     }
 
     private fun onColorInformationSuccess(info: ColorInformationPresentation) {
