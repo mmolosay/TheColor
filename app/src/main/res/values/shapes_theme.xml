@@ -7,15 +7,19 @@
     -->
 
     <style name="ShapeAppearance.TheColor.SmallComponent" parent="ShapeAppearance.Material3.SmallComponent">
-        <!-- nothing is here -->
+        <item name="cornerSize">@dimen/shape_appearance_small_corner_size</item>
     </style>
 
     <style name="ShapeAppearance.TheColor.MediumComponent" parent="ShapeAppearance.Material3.MediumComponent">
-        <!-- nothing is here -->
+        <item name="cornerSize">@dimen/shape_appearance_medium_corner_size</item>
     </style>
 
     <style name="ShapeAppearance.TheColor.LargeComponent" parent="ShapeAppearance.Material3.LargeComponent">
-        <!-- nothing is here -->
+        <item name="cornerSize">@dimen/shape_appearance_large_corner_size</item>
     </style>
+
+    <dimen name="shape_appearance_small_corner_size">@dimen/m3_sys_shape_small_corner_size</dimen>
+    <dimen name="shape_appearance_medium_corner_size">@dimen/m3_sys_shape_medium_corner_size</dimen>
+    <dimen name="shape_appearance_large_corner_size">@dimen/m3_sys_shape_large_corner_size</dimen>
 
 </resources>
