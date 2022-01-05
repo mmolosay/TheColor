@@ -215,6 +215,7 @@ class ColorInformationFragment : BaseFragment() {
     private fun animContentVisibility(visible: Boolean, instant: Boolean = false) {
         val content = binding.content
         val translation = resources.getDimension(RApp.dimen.offset_8)
+        if (visible) content.translationY = translation
         val translationY = 0f to translation by visible
         val alpha = 1f to 0f by visible
         val duration = 0L to mediumAnimDuration by instant
