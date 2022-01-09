@@ -16,6 +16,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 
+// TODO: check and rename all color data names to display their
+//  purpose properly after inplementing schemes feature.
 class ColorInformationViewModel(
     private val getColorInformationUseCase: GetColorInformationBaseUseCase
 ) : BaseViewModel() {
