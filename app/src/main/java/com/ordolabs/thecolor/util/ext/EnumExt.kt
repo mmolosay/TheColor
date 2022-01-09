@@ -8,6 +8,10 @@ inline fun <reified E : Enum<E>> getFromEnumOrNull(ordinal: Int): E? {
     return enumValues<E>().getOrNull(ordinal)
 }
 
+inline fun <reified E : Enum<E>> getFromEnumCoerced(ordinal: Int): E {
+    return enumValues<E>()[ordinal % getEnumSize<E>()]
+}
+
 inline fun <reified E : Enum<E>> getEnumSize(): Int {
     return enumValues<E>().size
 }

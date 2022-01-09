@@ -12,9 +12,11 @@ import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDataFragmentBinding
 import com.ordolabs.feature_home.ui.adapter.pager.ColorDataPagerAdapter
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
+import com.ordolabs.feature_home.viewmodel.ColorDataViewModel
 import com.ordolabs.thecolor.util.ColorUtil
 import com.ordolabs.thecolor.util.ColorUtil.isDark
 import com.ordolabs.thecolor.util.ext.makeArgumentsKey
+import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import com.ordolabs.thecolor.R as RApp
 
 open class ColorDataFragment :
@@ -22,6 +24,7 @@ open class ColorDataFragment :
     IColorThemed {
 
     private val binding: ColorDataFragmentBinding by viewBinding(CreateMethod.BIND)
+    private val colorDataVM: ColorDataViewModel by sharedViewModel()
 
     // TODO: implement trivial no content view, if color is null somehow
     override var color: ColorUtil.Color? = null
@@ -59,7 +62,7 @@ open class ColorDataFragment :
     }
 
     override fun collectViewModelsData() {
-        // nothing is here
+        collectChangePageCommand()
     }
 
     override fun setViews() {
@@ -70,6 +73,13 @@ open class ColorDataFragment :
         binding.pager.let { pager ->
             val adapter = ColorDataPagerAdapter(this)
             pager.adapter = adapter
+        }
+
+    private fun collectChangePageCommand() =
+        colorDataVM.changePageCommand.collectOnLifecycle { resource ->
+            resource.ifSuccess { page ->
+                binding.pager.setCurrentItem(page.ordinal, /*smoothScroll*/ true)
+            }
         }
 
     companion object {

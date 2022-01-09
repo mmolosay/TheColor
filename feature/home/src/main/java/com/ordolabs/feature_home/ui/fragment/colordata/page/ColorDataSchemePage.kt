@@ -10,7 +10,7 @@ class ColorDataSchemePage : BaseColorDataPage() {
 
     // region IColorDataPage
 
-    override val page = ColorDataPagerAdapter.Page.DETAILS
+    override val page = ColorDataPagerAdapter.Page.SCHEME
 
     override fun getContentFragmentNewInstance(): Fragment =
         ColorDataSchemeFragment.newInstance()
