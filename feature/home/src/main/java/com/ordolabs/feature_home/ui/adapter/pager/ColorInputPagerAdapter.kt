@@ -6,22 +6,22 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputHexFragment
 import com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputRgbFragment
-import com.ordolabs.thecolor.ui.adapter.EnumFragmentTab
+import com.ordolabs.thecolor.ui.adapter.EnumFragmentPage
 import com.ordolabs.thecolor.util.ext.getEnumSize
 import com.ordolabs.thecolor.util.ext.getFromEnum
 
 class ColorInputPagerAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
 
     override fun createFragment(position: Int): Fragment =
-        getFromEnum<Tab>(position).getFragmentNewInstance()
+        getFromEnum<Page>(position).getFragmentNewInstance()
 
     override fun getItemCount(): Int =
-        getEnumSize<Tab>()
+        getEnumSize<Page>()
 
     @Suppress("unused")
-    enum class Tab(
+    enum class Page(
         @StringRes val titleRes: Int
-    ) : EnumFragmentTab {
+    ) : EnumFragmentPage {
 
         HEX(
             R.string.color_input_hex_hint,

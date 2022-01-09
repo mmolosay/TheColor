@@ -43,7 +43,7 @@ class ColorInputHostFragment : BaseFragment(R.layout.fragment_color_input_host) 
     }
 
     private fun configureInputTab(tab: TabLayout.Tab, position: Int) {
-        val data = getFromEnumOrNull<ColorInputPagerAdapter.Tab>(position) ?: return
+        val data = getFromEnumOrNull<ColorInputPagerAdapter.Page>(position) ?: return
         tab.setText(data.titleRes)
     }
 

@@ -4,20 +4,20 @@ import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.ordolabs.feature_home.ui.fragment.colordata.ColorDataDetailsFragment
 import com.ordolabs.feature_home.ui.fragment.colordata.ColorDataSchemeFragment
-import com.ordolabs.thecolor.ui.adapter.EnumFragmentTab
+import com.ordolabs.thecolor.ui.adapter.EnumFragmentPage
 import com.ordolabs.thecolor.util.ext.getEnumSize
 import com.ordolabs.thecolor.util.ext.getFromEnum
 
 class ColorDataPagerAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
 
     override fun createFragment(position: Int): Fragment =
-        getFromEnum<Tab>(position).getFragmentNewInstance()
+        getFromEnum<Page>(position).getFragmentNewInstance()
 
     override fun getItemCount(): Int =
-        getEnumSize<Tab>()
+        getEnumSize<Page>()
 
     @Suppress("unused")
-    enum class Tab : EnumFragmentTab {
+    enum class Page : EnumFragmentPage {
 
         DETAILS {
             override fun getFragmentNewInstance(): Fragment =
