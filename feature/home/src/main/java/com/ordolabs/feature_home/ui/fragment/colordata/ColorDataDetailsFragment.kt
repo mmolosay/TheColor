@@ -6,46 +6,34 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.ViewCompat
+import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
-import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
-import com.github.michaelbull.result.Result
-import com.github.michaelbull.result.get
-import com.github.michaelbull.result.runCatching
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDataDetailsFragmentBinding
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.viewmodel.ColorDataViewModel
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
-import com.ordolabs.thecolor.model.ColorInformationPresentation
+import com.ordolabs.thecolor.model.ColorDetailsPresentation
 import com.ordolabs.thecolor.util.ColorUtil
-import com.ordolabs.thecolor.util.ext.by
 import com.ordolabs.thecolor.util.ext.getStringYesOrNo
-import com.ordolabs.thecolor.util.ext.mediumAnimDuration
+import com.ordolabs.thecolor.util.ext.makeArgumentsKey
 import com.ordolabs.thecolor.util.ext.setTextOrGoneWith
-import com.ordolabs.thecolor.util.ext.showToast
 import com.ordolabs.thecolor.util.struct.getOrNull
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
-import java.net.UnknownHostException
-import com.ordolabs.thecolor.R as RApp
 
-// TODO: fragment should only display data; make ColorDataFragment obtain all data and pass to there
 class ColorDataDetailsFragment : BaseFragment() {
 
     private val binding: ColorDataDetailsFragmentBinding by viewBinding(CreateMethod.BIND)
     private val colorInputVM: ColorInputViewModel by sharedViewModel()
     private val colorInfoVM: ColorDataViewModel by sharedViewModel()
 
-    // TODO: should be passed as argument
-    private val color: ColorUtil.Color? by lazy {
-        colorInputVM.colorPreview.value.getOrNull()?.color
-    }
+    private var colorDetails: ColorDetailsPresentation? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        colorInfoVM.fetchColorInformation(color ?: return)
+        parseArguments()
     }
 
     override fun onCreateView(
@@ -67,235 +55,154 @@ class ColorDataDetailsFragment : BaseFragment() {
         colorInfoVM.clearColorInformation()
     }
 
+    private fun parseArguments() {
+        parseColorDetailsArg()
+    }
+
+    private fun parseColorDetailsArg() {
+        val key = ARGUMENT_KEY_COLOR_DETAILS
+        val args = arguments ?: return
+        if (!args.containsKey(key)) return
+        this.colorDetails = args.getParcelable(key)
+    }
+
     override fun collectViewModelsData() {
         collectColorPreview()
-        collectColorInformation()
-        collectCoroutineException()
     }
 
     override fun setViews() {
-        setNoContentView()
-    }
-
-    private fun setNoContentView() {
-        setRetryBtn()
-    }
-
-    private fun setRetryBtn() {
-        binding.noContent.retryBtn.setOnClickListener l@{
-            colorInfoVM.fetchColorInformation(color ?: return@l)
+        colorDetails?.let { details ->
+            populateDetailsViews(details)
         }
     }
 
-    private fun showContentView() {
-        binding.content.isVisible = true
-        binding.contentShimmer.root.isVisible = false
-        binding.noContent.root.isVisible = false
-    }
-
-    private fun showLoadingView() {
-        binding.content.isVisible = false
-        binding.contentShimmer.root.isVisible = true
-        binding.noContent.root.isVisible = false
-    }
-
-    private fun showNoContentView() {
-        binding.content.isVisible = false
-        binding.contentShimmer.root.isVisible = false
-        binding.noContent.root.isVisible = true
-    }
-
-    private fun populateInformationViews(info: ColorInformationPresentation) =
+    private fun populateDetailsViews(details: ColorDetailsPresentation) =
         binding.run {
-            nameHeadline.text = info.name
-            populateHexGroup(info)
-            populateRgbGroup(info)
-            populateHslGroup(info)
-            populateHsvGroup(info)
-            populateCmykGroup(info)
-            populateNameGroup(info)
-            populateMatchGroup(info)
+            nameHeadline.text = details.name
+            populateHexGroup(details)
+            populateRgbGroup(details)
+            populateHslGroup(details)
+            populateHsvGroup(details)
+            populateCmykGroup(details)
+            populateNameGroup(details)
+            populateMatchGroup(details)
         }
 
-    private fun populateHexGroup(info: ColorInformationPresentation) =
+    private fun populateHexGroup(details: ColorDetailsPresentation) =
         binding.run {
-            val hasData = (info.hexValue != null)
+            val hasData = (details.hexValue != null)
             hexGroup.isVisible = hasData
             if (!hasData) return
-            hexValue.text = info.hexValue
+            hexValue.text = details.hexValue
         }
 
-    private fun populateRgbGroup(info: ColorInformationPresentation) =
+    private fun populateRgbGroup(details: ColorDetailsPresentation) =
         binding.run {
-            val hasData = (info.rgbR != null && info.rgbG != null && info.rgbB != null)
+            val hasData = (details.rgbR != null && details.rgbG != null && details.rgbB != null)
             rgbGroup.isVisible = hasData
             if (!hasData) return
-            rgbValueR.text = info.rgbR.toString()
-            rgbValueG.text = info.rgbG.toString()
-            rgbValueB.text = info.rgbB.toString()
+            rgbValueR.text = details.rgbR.toString()
+            rgbValueG.text = details.rgbG.toString()
+            rgbValueB.text = details.rgbB.toString()
         }
 
-    private fun populateHslGroup(info: ColorInformationPresentation) =
+    private fun populateHslGroup(details: ColorDetailsPresentation) =
         binding.run {
-            val hasData = (info.hslH != null && info.hslS != null && info.hslL != null)
+            val hasData = (details.hslH != null && details.hslS != null && details.hslL != null)
             hslGroup.isVisible = hasData
             if (!hasData) return
-            hslValueH.text = info.hslH.toString()
-            hslValueS.text = info.hslS.toString()
-            hslValueL.text = info.hslL.toString()
+            hslValueH.text = details.hslH.toString()
+            hslValueS.text = details.hslS.toString()
+            hslValueL.text = details.hslL.toString()
         }
 
-    private fun populateHsvGroup(info: ColorInformationPresentation) =
+    private fun populateHsvGroup(details: ColorDetailsPresentation) =
         binding.run {
-            val hasData = (info.hsvH != null && info.hsvS != null && info.hsvV != null)
+            val hasData = (details.hsvH != null && details.hsvS != null && details.hsvV != null)
             hsvGroup.isVisible = hasData
             if (!hasData) return
-            hsvValueH.text = info.hsvH.toString()
-            hsvValueS.text = info.hsvS.toString()
-            hsvValueV.text = info.hsvV.toString()
+            hsvValueH.text = details.hsvH.toString()
+            hsvValueS.text = details.hsvS.toString()
+            hsvValueV.text = details.hsvV.toString()
         }
 
-    private fun populateCmykGroup(info: ColorInformationPresentation) =
+    private fun populateCmykGroup(details: ColorDetailsPresentation) =
         binding.run {
             val hasData =
-                (info.cmykC != null && info.cmykM != null && info.cmykY != null && info.cmykK != null)
+                (details.cmykC != null && details.cmykM != null && details.cmykY != null && details.cmykK != null)
             cmykGroup.isVisible = hasData
             if (!hasData) return
-            cmykValueC.text = info.cmykC.toString()
-            cmykValueM.text = info.cmykM.toString()
-            cmykValueY.text = info.cmykY.toString()
-            cmykValueK.text = info.cmykK.toString()
+            cmykValueC.text = details.cmykC.toString()
+            cmykValueM.text = details.cmykM.toString()
+            cmykValueY.text = details.cmykY.toString()
+            cmykValueK.text = details.cmykK.toString()
         }
 
-    private fun populateNameGroup(info: ColorInformationPresentation) =
+    private fun populateNameGroup(details: ColorDetailsPresentation) =
         binding.run {
-            val hasData = (info.name != null)
+            val hasData = (details.name != null)
             nameGroup.isVisible = hasData
             if (!hasData) return
-            nameValue.text = info.name
+            nameValue.text = details.name
         }
 
-    private fun populateMatchGroup(info: ColorInformationPresentation) =
+    private fun populateMatchGroup(details: ColorDetailsPresentation) =
         binding.run {
-            val hasData = (info.isNameMatchExact != null)
-            val exactMatch = (info.isNameMatchExact == true)
+            val hasData = (details.isNameMatchExact != null)
+            val exactMatch = (details.isNameMatchExact == true)
             matchGroup.isVisible = hasData
             if (!hasData) return
             matchValue.text = resources.getStringYesOrNo(yes = exactMatch)
             matchGroups.isVisible = !exactMatch
             if (exactMatch) return
-            populateExactGroup(info)
-            populateDeviationGroup(info)
+            populateExactGroup(details)
+            populateDeviationGroup(details)
         }
 
-    private fun populateExactGroup(info: ColorInformationPresentation) =
+    private fun populateExactGroup(details: ColorDetailsPresentation) =
         binding.run {
-            val hasData = (info.exactNameHex != null)
+            val hasData = (details.exactNameHex != null)
             exactGroup.isVisible = hasData
             if (!hasData) return
-            val exact = info.exactNameHex
-            val color = Color.parseColor(info.exactNameHex)
+            val exact = details.exactNameHex
+            val color = Color.parseColor(details.exactNameHex)
             exactValue.setTextOrGoneWith(exact, exactGroup)
             exactColor.backgroundTintList = ColorStateList.valueOf(color)
             exactLink.setOnClickListener {
                 exact ?: return@setOnClickListener
                 val exactColor = ColorUtil.Color(hex = exact)
-                colorInfoVM.fetchColorInformation(exactColor)
+                colorInfoVM.fetchColorDetails(exactColor)
             }
         }
 
-    private fun populateDeviationGroup(info: ColorInformationPresentation) =
+    private fun populateDeviationGroup(details: ColorDetailsPresentation) =
         binding.run {
-            val hasData = (info.exactNameHexDistance != null)
+            val hasData = (details.exactNameHexDistance != null)
             deviationGroup.isVisible = hasData
             if (!hasData) return
-            deviationValue.text = info.exactNameHexDistance.toString()
+            deviationValue.text = details.exactNameHexDistance.toString()
         }
-
-    private fun animContentVisibility(visible: Boolean, instant: Boolean = false) {
-        val content = binding.content
-        val translation = resources.getDimension(RApp.dimen.offset_8)
-        if (visible) content.translationY = translation
-        val translationY = 0f to translation by visible
-        val alpha = 1f to 0f by visible
-        val duration = 0L to mediumAnimDuration by instant
-        ViewCompat.animate(content)
-            .translationY(translationY)
-            .alpha(alpha)
-            .setDuration(duration)
-            .setInterpolator(FastOutSlowInInterpolator())
-            .withStartAction {
-                showContentView()
-            }
-            .withEndAction {
-                content.isVisible = visible
-            }
-            .start()
-    }
 
     private fun collectColorPreview() =
         colorInputVM.colorPreview.collectOnLifecycle { resource ->
             resource.ifSuccess { colorPreview ->
-                val info = colorInfoVM.information.value.getOrNull() ?: return@ifSuccess
-                if (!colorPreview.color.equals(info.hexValue)) { // info for another color
+                val info = colorInfoVM.details.value.getOrNull() ?: return@ifSuccess
+                if (!colorPreview.color.equals(colorDetails?.hexValue)) { // info for another color
                     colorInfoVM.clearColorInformation()
                 }
             }
         }
 
-    private fun collectColorInformation() =
-        colorInfoVM.information.collectOnLifecycle { resource ->
-            resource.fold(
-                onEmpty = ::onColorInformationEmpty,
-                onLoading = ::onColorInformationLoading,
-                onSuccess = ::onColorInformationSuccess,
-                onFailure = ::onColorInformationFailure
-            )
-        }
-
-    @Suppress("UNUSED_PARAMETER")
-    private fun onColorInformationEmpty(previous: ColorInformationPresentation?) {
-        animContentVisibility(visible = false)
-    }
-
-    @Suppress("UNUSED_PARAMETER")
-    private fun onColorInformationLoading(previous: ColorInformationPresentation?) {
-        showLoadingView()
-    }
-
-    private fun onColorInformationSuccess(info: ColorInformationPresentation) {
-        info.hexClean?.let {
-            // update colorPreview if exact color was fetched
-            val preview = colorInputVM.colorPreview.value.getOrNull()
-            if (preview?.color?.hex == it) return@let
-            val color = ColorUtil.Color(hex = it)
-            val new = ColorInputViewModel.ColorPreview(color, isUserInput = false)
-            colorInputVM.updateColorPreview(new)
-        }
-
-        populateInformationViews(info)
-        animContentVisibility(visible = true)
-    }
-
-    @Suppress("UNUSED_PARAMETER")
-    private fun onColorInformationFailure(
-        previous: ColorInformationPresentation?,
-        payload: Any?,
-        error: Throwable
-    ) =
-        when (error) {
-            is UnknownHostException -> showNoContentView()
-            else -> showToast(error.localizedMessage)
-        }
-
-    private fun collectCoroutineException() =
-        colorInfoVM.coroutineExceptionMessageRes.collectOnLifecycle { idres ->
-            val text = Result.runCatching { getString(idres) }.get() ?: return@collectOnLifecycle
-            showToast(text)
-        }
-
     companion object {
-        fun newInstance() =
-            ColorDataDetailsFragment()
+
+        private val ARGUMENT_KEY_COLOR_DETAILS =
+            "ARGUMENT_KEY_COLOR_DETAILS".makeArgumentsKey<ColorDataDetailsFragment>()
+
+        fun newInstance(colorDetails: ColorDetailsPresentation) =
+            ColorDataDetailsFragment().apply {
+                arguments = bundleOf(
+                    ARGUMENT_KEY_COLOR_DETAILS to colorDetails
+                )
+            }
     }
 }

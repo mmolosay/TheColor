@@ -16,6 +16,7 @@ import com.ordolabs.feature_home.viewmodel.ColorDataViewModel
 import com.ordolabs.thecolor.util.ColorUtil
 import com.ordolabs.thecolor.util.ColorUtil.isDark
 import com.ordolabs.thecolor.util.ext.makeArgumentsKey
+import com.ordolabs.thecolor.util.ext.showToast
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import com.ordolabs.thecolor.R as RApp
 
@@ -32,6 +33,7 @@ class ColorDataFragment :
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         parseArguments()
+        fetchColorData()
     }
 
     override fun onCreateView(
@@ -61,8 +63,16 @@ class ColorDataFragment :
         this.color = args.getParcelable(key)
     }
 
+    private fun fetchColorData() =
+        color?.let { color ->
+            colorDataVM.fetchColorData(color)
+        }
+
     override fun collectViewModelsData() {
+        collectColorDetails()
+        collectColorScheme()
         collectChangePageCommand()
+        collectCoroutineException()
     }
 
     override fun setViews() {
@@ -75,11 +85,35 @@ class ColorDataFragment :
             pager.adapter = adapter
         }
 
+    private fun collectColorDetails() =
+        colorDataVM.details.collectOnLifecycle { resource ->
+            resource.ifSuccess {
+                val position = ColorDataPagerAdapter.Page.DETAILS.ordinal
+                binding.pager.adapter?.notifyItemChanged(position)
+            }
+        }
+
+    private fun collectColorScheme() =
+        colorDataVM.scheme.collectOnLifecycle { resource ->
+            resource.ifSuccess {
+                val position = ColorDataPagerAdapter.Page.SCHEME.ordinal
+                binding.pager.adapter?.notifyItemChanged(position)
+            }
+        }
+
     private fun collectChangePageCommand() =
         colorDataVM.changePageCommand.collectOnLifecycle { resource ->
             resource.ifSuccess { page ->
                 binding.pager.setCurrentItem(page.ordinal, /*smoothScroll*/ true)
             }
+        }
+
+    private fun collectCoroutineException() =
+        colorDataVM.coroutineExceptionMessageRes.collectOnLifecycle { idres ->
+            val text = Result.runCatching {
+                getString(idres)
+            }.getOrNull() ?: return@collectOnLifecycle
+            showToast(text)
         }
 
     companion object {

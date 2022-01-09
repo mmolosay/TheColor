@@ -1,493 +1,467 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     tools:background="#0047AB"
     tools:layout_height="wrap_content"
     tools:theme="@style/ThemeOverlay.TheColor.Dark">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/content"
-        android:layout_width="match_parent"
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/glStart"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        app:layout_constraintGuide_begin="@dimen/offset_content_horizontal" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/glEnd"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        app:layout_constraintGuide_end="@dimen/offset_content_horizontal" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/hexGroup"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:visibility="gone"
-        tools:visibility="visible">
+        app:constraint_referenced_ids="hexLabel,hexValue" />
 
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/glStart"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            app:layout_constraintGuide_begin="@dimen/offset_content_horizontal" />
-
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/glEnd"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            app:layout_constraintGuide_end="@dimen/offset_content_horizontal" />
-
-        <androidx.constraintlayout.widget.Group
-            android:id="@+id/hexGroup"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:constraint_referenced_ids="hexLabel,hexValue" />
-
-        <androidx.constraintlayout.widget.Group
-            android:id="@+id/rgbGroup"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:constraint_referenced_ids="rgbValueB,rgbValueR,rgbValueG,rgbLabel" />
-
-        <androidx.constraintlayout.widget.Group
-            android:id="@+id/hslGroup"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:constraint_referenced_ids="hslValueL,hslValueH,hslLabel,hslValueS" />
-
-        <androidx.constraintlayout.widget.Group
-            android:id="@+id/hsvGroup"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:constraint_referenced_ids="hsvValueH,hsvValueS,hsvLabel,hsvValueV" />
-
-        <androidx.constraintlayout.widget.Group
-            android:id="@+id/cmykGroup"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:constraint_referenced_ids="cmykValueM,cmykValueY,cmykValueC,cmykLabel,cmykValueK" />
-
-        <androidx.constraintlayout.widget.Group
-            android:id="@+id/nameGroup"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:constraint_referenced_ids="nameLabel,nameValue" />
-
-        <androidx.constraintlayout.widget.Group
-            android:id="@+id/matchGroup"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:constraint_referenced_ids="matchLabel,matchValue" />
-
-        <androidx.constraintlayout.widget.Group
-            android:id="@+id/matchGroups"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:constraint_referenced_ids="exactGroup, deviationGroup" />
-
-        <androidx.constraintlayout.widget.Group
-            android:id="@+id/exactGroup"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:constraint_referenced_ids="exactLabel,exactValue,exactColor,exactLink" />
-
-        <androidx.constraintlayout.widget.Group
-            android:id="@+id/deviationGroup"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:constraint_referenced_ids="deviationValue,deviationLabel" />
-
-        <TextView
-            android:id="@+id/nameHeadline"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:textAppearance="?attr/textAppearanceDisplayLarge"
-            android:textColor="@color/material_on_background_emphasis_high_type"
-
-            app:layout_constraintEnd_toStartOf="@+id/glEnd"
-            app:layout_constraintStart_toStartOf="@+id/glStart"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="Cobalt" />
-
-        <TextView
-            android:id="@+id/hexLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/offset_12"
-            android:layout_marginTop="@dimen/offset_24"
-            android:text="@string/color_information_hex_label"
-            android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="@color/material_on_background_emphasis_medium"
-
-            app:layout_constraintEnd_toStartOf="@id/hexValue"
-            app:layout_constraintHorizontal_chainStyle="packed"
-            app:layout_constraintStart_toStartOf="@+id/glStart"
-            app:layout_constraintTop_toBottomOf="@+id/nameHeadline" />
-
-        <TextView
-            android:id="@+id/hexValue"
-            style="@style/Widget.TextView.Value"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            app:layout_constraintBaseline_toBaselineOf="@id/hexLabel"
-            app:layout_constraintEnd_toStartOf="@+id/glEnd"
-            app:layout_constraintStart_toEndOf="@+id/hexLabel"
-            tools:text="#0047AB" />
-
-        <TextView
-            android:id="@+id/rgbLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/offset_12"
-            android:layout_marginTop="@dimen/offset_16"
-            android:text="@string/color_information_rgb_label"
-            android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="@color/material_on_background_emphasis_medium"
-
-            app:layout_constraintEnd_toStartOf="@id/rgbValueR"
-            app:layout_constraintHorizontal_chainStyle="packed"
-            app:layout_constraintStart_toStartOf="@+id/glStart"
-            app:layout_constraintTop_toBottomOf="@+id/hexLabel" />
-
-        <TextView
-            android:id="@+id/rgbValueR"
-            style="@style/Widget.TextView.Value"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            app:layout_constraintBaseline_toBaselineOf="@id/rgbLabel"
-            app:layout_constraintEnd_toStartOf="@+id/rgbValueG"
-            app:layout_constraintStart_toEndOf="@id/rgbLabel"
-            tools:text="0" />
-
-        <TextView
-            android:id="@+id/rgbValueG"
-            style="@style/Widget.TextView.Value"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/offset_8"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            app:layout_constraintBaseline_toBaselineOf="@id/rgbLabel"
-            app:layout_constraintEnd_toStartOf="@+id/rgbValueB"
-            app:layout_constraintStart_toEndOf="@id/rgbValueR"
-            tools:text="71" />
-
-        <TextView
-            android:id="@+id/rgbValueB"
-            style="@style/Widget.TextView.Value"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            app:layout_constraintBaseline_toBaselineOf="@id/rgbLabel"
-            app:layout_constraintEnd_toStartOf="@+id/glEnd"
-            app:layout_constraintStart_toEndOf="@id/rgbValueG"
-            tools:text="171" />
-
-        <TextView
-            android:id="@+id/hslLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/offset_12"
-            android:layout_marginTop="@dimen/offset_16"
-            android:text="@string/color_information_hsl_label"
-            android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="@color/material_on_background_emphasis_medium"
-
-            app:layout_constraintEnd_toStartOf="@id/hslValueH"
-            app:layout_constraintHorizontal_chainStyle="packed"
-            app:layout_constraintStart_toStartOf="@+id/glStart"
-            app:layout_constraintTop_toBottomOf="@+id/rgbLabel" />
-
-        <TextView
-            android:id="@+id/hslValueH"
-            style="@style/Widget.TextView.Value"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            app:layout_constraintBaseline_toBaselineOf="@id/hslLabel"
-            app:layout_constraintEnd_toStartOf="@+id/hslValueS"
-            app:layout_constraintStart_toEndOf="@id/hslLabel"
-            tools:text="215" />
-
-        <TextView
-            android:id="@+id/hslValueS"
-            style="@style/Widget.TextView.Value"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/offset_8"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            app:layout_constraintBaseline_toBaselineOf="@id/hslLabel"
-            app:layout_constraintEnd_toStartOf="@+id/hslValueL"
-            app:layout_constraintStart_toEndOf="@id/hslValueH"
-            tools:text="100" />
-
-        <TextView
-            android:id="@+id/hslValueL"
-            style="@style/Widget.TextView.Value"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            app:layout_constraintBaseline_toBaselineOf="@id/hslLabel"
-            app:layout_constraintEnd_toStartOf="@+id/glEnd"
-            app:layout_constraintStart_toEndOf="@id/hslValueS"
-            tools:text="34" />
-
-        <TextView
-            android:id="@+id/hsvLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/offset_12"
-            android:layout_marginTop="@dimen/offset_16"
-            android:text="@string/color_information_hsv_label"
-            android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="@color/material_on_background_emphasis_medium"
-
-            app:layout_constraintEnd_toStartOf="@id/hsvValueH"
-            app:layout_constraintHorizontal_chainStyle="packed"
-            app:layout_constraintStart_toStartOf="@+id/glStart"
-            app:layout_constraintTop_toBottomOf="@+id/hslLabel" />
-
-        <TextView
-            android:id="@+id/hsvValueH"
-            style="@style/Widget.TextView.Value"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            app:layout_constraintBaseline_toBaselineOf="@id/hsvLabel"
-            app:layout_constraintEnd_toStartOf="@+id/hsvValueS"
-            app:layout_constraintStart_toEndOf="@id/hsvLabel"
-            tools:text="215" />
-
-        <TextView
-            android:id="@+id/hsvValueS"
-            style="@style/Widget.TextView.Value"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/offset_8"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            app:layout_constraintBaseline_toBaselineOf="@id/hsvLabel"
-            app:layout_constraintEnd_toStartOf="@+id/hsvValueV"
-            app:layout_constraintStart_toEndOf="@id/hsvValueH"
-            tools:text="100" />
-
-        <TextView
-            android:id="@+id/hsvValueV"
-            style="@style/Widget.TextView.Value"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            app:layout_constraintBaseline_toBaselineOf="@id/hsvLabel"
-            app:layout_constraintEnd_toStartOf="@+id/glEnd"
-            app:layout_constraintStart_toEndOf="@id/hsvValueS"
-            tools:text="67" />
-
-        <TextView
-            android:id="@+id/cmykLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/offset_12"
-            android:layout_marginTop="@dimen/offset_16"
-            android:text="@string/color_information_cmyk_label"
-            android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="@color/material_on_background_emphasis_medium"
-
-            app:layout_constraintEnd_toStartOf="@id/cmykValueC"
-            app:layout_constraintHorizontal_chainStyle="packed"
-            app:layout_constraintStart_toStartOf="@+id/glStart"
-            app:layout_constraintTop_toBottomOf="@+id/hsvLabel" />
-
-        <TextView
-            android:id="@+id/cmykValueC"
-            style="@style/Widget.TextView.Value"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            app:layout_constraintBaseline_toBaselineOf="@id/cmykLabel"
-            app:layout_constraintEnd_toStartOf="@+id/cmykValueM"
-            app:layout_constraintStart_toEndOf="@id/cmykLabel"
-            tools:text="100" />
-
-        <TextView
-            android:id="@+id/cmykValueM"
-            style="@style/Widget.TextView.Value"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/offset_8"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            app:layout_constraintBaseline_toBaselineOf="@id/cmykLabel"
-            app:layout_constraintEnd_toStartOf="@+id/cmykValueY"
-            app:layout_constraintStart_toEndOf="@id/cmykValueC"
-            tools:text="58" />
-
-        <TextView
-            android:id="@+id/cmykValueY"
-            style="@style/Widget.TextView.Value"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/offset_8"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            app:layout_constraintBaseline_toBaselineOf="@id/cmykLabel"
-            app:layout_constraintEnd_toStartOf="@+id/cmykValueK"
-            app:layout_constraintStart_toEndOf="@id/cmykValueM"
-            tools:text="0" />
-
-        <TextView
-            android:id="@+id/cmykValueK"
-            style="@style/Widget.TextView.Value"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            app:layout_constraintBaseline_toBaselineOf="@id/cmykLabel"
-            app:layout_constraintEnd_toStartOf="@+id/glEnd"
-            app:layout_constraintStart_toEndOf="@id/cmykValueY"
-            tools:text="33" />
-
-        <com.google.android.material.divider.MaterialDivider
-            android:id="@+id/divider"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/offset_24"
-            app:layout_constraintEnd_toStartOf="@id/glEnd"
-            app:layout_constraintStart_toEndOf="@id/glStart"
-            app:layout_constraintTop_toBottomOf="@id/cmykLabel"
-            app:layout_constraintWidth_percent="0.75" />
-
-        <TextView
-            android:id="@+id/nameLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/offset_16"
-            android:text="@string/color_information_name_label"
-            android:textAppearance="?attr/textAppearanceOverline"
-            android:textColor="@color/material_on_background_emphasis_medium"
-
-            app:layout_constraintStart_toStartOf="@+id/divider"
-            app:layout_constraintTop_toBottomOf="@+id/divider" />
-
-        <TextView
-            android:id="@+id/nameValue"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textColor="@color/material_on_background_emphasis_high_type"
-
-            app:layout_constraintStart_toStartOf="@+id/nameLabel"
-            app:layout_constraintTop_toBottomOf="@+id/nameLabel"
-            tools:text="Cobalt" />
-
-        <TextView
-            android:id="@+id/matchLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/offset_16"
-            android:text="@string/color_information_exact_match_label"
-            android:textAppearance="?attr/textAppearanceOverline"
-            android:textColor="@color/material_on_background_emphasis_medium"
-
-            app:layout_constraintStart_toStartOf="@+id/divider"
-            app:layout_constraintTop_toBottomOf="@+id/nameValue" />
-
-        <TextView
-            android:id="@+id/matchValue"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textColor="@color/material_on_background_emphasis_high_type"
-
-            app:layout_constraintStart_toStartOf="@+id/matchLabel"
-            app:layout_constraintTop_toBottomOf="@+id/matchLabel"
-            tools:text="No" />
-
-        <TextView
-            android:id="@+id/exactLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/offset_16"
-            android:text="@string/color_information_exact_value_label"
-            android:textAppearance="?attr/textAppearanceOverline"
-            android:textColor="@color/material_on_background_emphasis_medium"
-
-            app:layout_constraintStart_toStartOf="@+id/divider"
-            app:layout_constraintTop_toBottomOf="@+id/matchValue" />
-
-        <TextView
-            android:id="@+id/exactValue"
-            style="@style/Widget.TextView.Value"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textColor="@color/material_on_background_emphasis_high_type"
-
-            app:layout_constraintStart_toStartOf="@+id/exactLabel"
-            app:layout_constraintTop_toBottomOf="@+id/exactLabel"
-            tools:text="#0047AB" />
-
-        <View
-            android:id="@+id/exactColor"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_marginHorizontal="@dimen/offset_8"
-            android:layout_marginVertical="@dimen/offset_4"
-            android:background="@drawable/bg_shape_round"
-
-            app:layout_constraintBottom_toBottomOf="@id/exactValue"
-            app:layout_constraintDimensionRatio="1:1"
-            app:layout_constraintStart_toEndOf="@id/exactValue"
-            app:layout_constraintTop_toTopOf="@id/exactValue"
-            tools:backgroundTint="#000000" />
-
-        <ImageButton
-            android:id="@+id/exactLink"
-            android:layout_width="16dp"
-            android:layout_height="16dp"
-            android:layout_marginHorizontal="@dimen/offset_4"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="@dimen/offset_2"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_open_in_new"
-
-            app:layout_constraintBottom_toBottomOf="@+id/exactLabel"
-            app:layout_constraintDimensionRatio="1:1"
-            app:layout_constraintStart_toEndOf="@+id/exactLabel"
-            app:layout_constraintTop_toTopOf="@+id/exactLabel"
-            app:tint="@color/material_on_background_emphasis_high_type"
-            tools:ignore="ContentDescription" />
-
-        <TextView
-            android:id="@+id/deviationLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/offset_16"
-            android:text="@string/color_information_deviation_label"
-            android:textAppearance="?attr/textAppearanceOverline"
-            android:textColor="@color/material_on_background_emphasis_medium"
-
-            app:layout_constraintStart_toStartOf="@+id/divider"
-            app:layout_constraintTop_toBottomOf="@+id/exactValue" />
-
-        <TextView
-            android:id="@+id/deviationValue"
-            style="@style/Widget.TextView.Value"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textColor="@color/material_on_background_emphasis_high_type"
-
-            app:layout_constraintStart_toStartOf="@+id/deviationLabel"
-            app:layout_constraintTop_toBottomOf="@+id/deviationLabel"
-            tools:text="0" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <include
-        android:id="@+id/noContent"
-        layout="@layout/include_color_information_no_content"
-        android:layout_width="match_parent"
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/rgbGroup"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginHorizontal="@dimen/offset_32"
-        android:visibility="gone"
-        tools:visibility="visible" />
+        app:constraint_referenced_ids="rgbValueB,rgbValueR,rgbValueG,rgbLabel" />
 
-    <include
-        android:id="@+id/contentShimmer"
-        layout="@layout/include_color_information_shimmer"
-        android:layout_width="match_parent"
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/hslGroup"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:visibility="gone" />
+        app:constraint_referenced_ids="hslValueL,hslValueH,hslLabel,hslValueS" />
 
-</FrameLayout>
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/hsvGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="hsvValueH,hsvValueS,hsvLabel,hsvValueV" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/cmykGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="cmykValueM,cmykValueY,cmykValueC,cmykLabel,cmykValueK" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/nameGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="nameLabel,nameValue" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/matchGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="matchLabel,matchValue" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/matchGroups"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="exactGroup, deviationGroup" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/exactGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="exactLabel,exactValue,exactColor,exactLink" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/deviationGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="deviationValue,deviationLabel" />
+
+    <TextView
+        android:id="@+id/nameHeadline"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textAppearance="?attr/textAppearanceDisplayLarge"
+        android:textColor="@color/material_on_background_emphasis_high_type"
+
+        app:layout_constraintEnd_toStartOf="@+id/glEnd"
+        app:layout_constraintStart_toStartOf="@+id/glStart"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Cobalt" />
+
+    <TextView
+        android:id="@+id/hexLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/offset_12"
+        android:layout_marginTop="@dimen/offset_24"
+        android:text="@string/color_information_hex_label"
+        android:textAppearance="?attr/textAppearanceLabelLarge"
+        android:textColor="@color/material_on_background_emphasis_medium"
+
+        app:layout_constraintEnd_toStartOf="@id/hexValue"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintStart_toStartOf="@+id/glStart"
+        app:layout_constraintTop_toBottomOf="@+id/nameHeadline" />
+
+    <TextView
+        android:id="@+id/hexValue"
+        style="@style/Widget.TextView.Value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        app:layout_constraintBaseline_toBaselineOf="@id/hexLabel"
+        app:layout_constraintEnd_toStartOf="@+id/glEnd"
+        app:layout_constraintStart_toEndOf="@+id/hexLabel"
+        tools:text="#0047AB" />
+
+    <TextView
+        android:id="@+id/rgbLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/offset_12"
+        android:layout_marginTop="@dimen/offset_16"
+        android:text="@string/color_information_rgb_label"
+        android:textAppearance="?attr/textAppearanceLabelLarge"
+        android:textColor="@color/material_on_background_emphasis_medium"
+
+        app:layout_constraintEnd_toStartOf="@id/rgbValueR"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintStart_toStartOf="@+id/glStart"
+        app:layout_constraintTop_toBottomOf="@+id/hexLabel" />
+
+    <TextView
+        android:id="@+id/rgbValueR"
+        style="@style/Widget.TextView.Value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        app:layout_constraintBaseline_toBaselineOf="@id/rgbLabel"
+        app:layout_constraintEnd_toStartOf="@+id/rgbValueG"
+        app:layout_constraintStart_toEndOf="@id/rgbLabel"
+        tools:text="0" />
+
+    <TextView
+        android:id="@+id/rgbValueG"
+        style="@style/Widget.TextView.Value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/offset_8"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        app:layout_constraintBaseline_toBaselineOf="@id/rgbLabel"
+        app:layout_constraintEnd_toStartOf="@+id/rgbValueB"
+        app:layout_constraintStart_toEndOf="@id/rgbValueR"
+        tools:text="71" />
+
+    <TextView
+        android:id="@+id/rgbValueB"
+        style="@style/Widget.TextView.Value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        app:layout_constraintBaseline_toBaselineOf="@id/rgbLabel"
+        app:layout_constraintEnd_toStartOf="@+id/glEnd"
+        app:layout_constraintStart_toEndOf="@id/rgbValueG"
+        tools:text="171" />
+
+    <TextView
+        android:id="@+id/hslLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/offset_12"
+        android:layout_marginTop="@dimen/offset_16"
+        android:text="@string/color_information_hsl_label"
+        android:textAppearance="?attr/textAppearanceLabelLarge"
+        android:textColor="@color/material_on_background_emphasis_medium"
+
+        app:layout_constraintEnd_toStartOf="@id/hslValueH"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintStart_toStartOf="@+id/glStart"
+        app:layout_constraintTop_toBottomOf="@+id/rgbLabel" />
+
+    <TextView
+        android:id="@+id/hslValueH"
+        style="@style/Widget.TextView.Value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        app:layout_constraintBaseline_toBaselineOf="@id/hslLabel"
+        app:layout_constraintEnd_toStartOf="@+id/hslValueS"
+        app:layout_constraintStart_toEndOf="@id/hslLabel"
+        tools:text="215" />
+
+    <TextView
+        android:id="@+id/hslValueS"
+        style="@style/Widget.TextView.Value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/offset_8"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        app:layout_constraintBaseline_toBaselineOf="@id/hslLabel"
+        app:layout_constraintEnd_toStartOf="@+id/hslValueL"
+        app:layout_constraintStart_toEndOf="@id/hslValueH"
+        tools:text="100" />
+
+    <TextView
+        android:id="@+id/hslValueL"
+        style="@style/Widget.TextView.Value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        app:layout_constraintBaseline_toBaselineOf="@id/hslLabel"
+        app:layout_constraintEnd_toStartOf="@+id/glEnd"
+        app:layout_constraintStart_toEndOf="@id/hslValueS"
+        tools:text="34" />
+
+    <TextView
+        android:id="@+id/hsvLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/offset_12"
+        android:layout_marginTop="@dimen/offset_16"
+        android:text="@string/color_information_hsv_label"
+        android:textAppearance="?attr/textAppearanceLabelLarge"
+        android:textColor="@color/material_on_background_emphasis_medium"
+
+        app:layout_constraintEnd_toStartOf="@id/hsvValueH"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintStart_toStartOf="@+id/glStart"
+        app:layout_constraintTop_toBottomOf="@+id/hslLabel" />
+
+    <TextView
+        android:id="@+id/hsvValueH"
+        style="@style/Widget.TextView.Value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        app:layout_constraintBaseline_toBaselineOf="@id/hsvLabel"
+        app:layout_constraintEnd_toStartOf="@+id/hsvValueS"
+        app:layout_constraintStart_toEndOf="@id/hsvLabel"
+        tools:text="215" />
+
+    <TextView
+        android:id="@+id/hsvValueS"
+        style="@style/Widget.TextView.Value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/offset_8"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        app:layout_constraintBaseline_toBaselineOf="@id/hsvLabel"
+        app:layout_constraintEnd_toStartOf="@+id/hsvValueV"
+        app:layout_constraintStart_toEndOf="@id/hsvValueH"
+        tools:text="100" />
+
+    <TextView
+        android:id="@+id/hsvValueV"
+        style="@style/Widget.TextView.Value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        app:layout_constraintBaseline_toBaselineOf="@id/hsvLabel"
+        app:layout_constraintEnd_toStartOf="@+id/glEnd"
+        app:layout_constraintStart_toEndOf="@id/hsvValueS"
+        tools:text="67" />
+
+    <TextView
+        android:id="@+id/cmykLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/offset_12"
+        android:layout_marginTop="@dimen/offset_16"
+        android:text="@string/color_information_cmyk_label"
+        android:textAppearance="?attr/textAppearanceLabelLarge"
+        android:textColor="@color/material_on_background_emphasis_medium"
+
+        app:layout_constraintEnd_toStartOf="@id/cmykValueC"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintStart_toStartOf="@+id/glStart"
+        app:layout_constraintTop_toBottomOf="@+id/hsvLabel" />
+
+    <TextView
+        android:id="@+id/cmykValueC"
+        style="@style/Widget.TextView.Value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        app:layout_constraintBaseline_toBaselineOf="@id/cmykLabel"
+        app:layout_constraintEnd_toStartOf="@+id/cmykValueM"
+        app:layout_constraintStart_toEndOf="@id/cmykLabel"
+        tools:text="100" />
+
+    <TextView
+        android:id="@+id/cmykValueM"
+        style="@style/Widget.TextView.Value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/offset_8"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        app:layout_constraintBaseline_toBaselineOf="@id/cmykLabel"
+        app:layout_constraintEnd_toStartOf="@+id/cmykValueY"
+        app:layout_constraintStart_toEndOf="@id/cmykValueC"
+        tools:text="58" />
+
+    <TextView
+        android:id="@+id/cmykValueY"
+        style="@style/Widget.TextView.Value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/offset_8"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        app:layout_constraintBaseline_toBaselineOf="@id/cmykLabel"
+        app:layout_constraintEnd_toStartOf="@+id/cmykValueK"
+        app:layout_constraintStart_toEndOf="@id/cmykValueM"
+        tools:text="0" />
+
+    <TextView
+        android:id="@+id/cmykValueK"
+        style="@style/Widget.TextView.Value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        app:layout_constraintBaseline_toBaselineOf="@id/cmykLabel"
+        app:layout_constraintEnd_toStartOf="@+id/glEnd"
+        app:layout_constraintStart_toEndOf="@id/cmykValueY"
+        tools:text="33" />
+
+    <com.google.android.material.divider.MaterialDivider
+        android:id="@+id/divider"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/offset_24"
+        app:layout_constraintEnd_toStartOf="@id/glEnd"
+        app:layout_constraintStart_toEndOf="@id/glStart"
+        app:layout_constraintTop_toBottomOf="@id/cmykLabel"
+        app:layout_constraintWidth_percent="0.75" />
+
+    <TextView
+        android:id="@+id/nameLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/offset_16"
+        android:text="@string/color_information_name_label"
+        android:textAppearance="?attr/textAppearanceOverline"
+        android:textColor="@color/material_on_background_emphasis_medium"
+
+        app:layout_constraintStart_toStartOf="@+id/divider"
+        app:layout_constraintTop_toBottomOf="@+id/divider" />
+
+    <TextView
+        android:id="@+id/nameValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceBodyLarge"
+        android:textColor="@color/material_on_background_emphasis_high_type"
+
+        app:layout_constraintStart_toStartOf="@+id/nameLabel"
+        app:layout_constraintTop_toBottomOf="@+id/nameLabel"
+        tools:text="Cobalt" />
+
+    <TextView
+        android:id="@+id/matchLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/offset_16"
+        android:text="@string/color_information_exact_match_label"
+        android:textAppearance="?attr/textAppearanceOverline"
+        android:textColor="@color/material_on_background_emphasis_medium"
+
+        app:layout_constraintStart_toStartOf="@+id/divider"
+        app:layout_constraintTop_toBottomOf="@+id/nameValue" />
+
+    <TextView
+        android:id="@+id/matchValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceBodyLarge"
+        android:textColor="@color/material_on_background_emphasis_high_type"
+
+        app:layout_constraintStart_toStartOf="@+id/matchLabel"
+        app:layout_constraintTop_toBottomOf="@+id/matchLabel"
+        tools:text="No" />
+
+    <TextView
+        android:id="@+id/exactLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/offset_16"
+        android:text="@string/color_information_exact_value_label"
+        android:textAppearance="?attr/textAppearanceOverline"
+        android:textColor="@color/material_on_background_emphasis_medium"
+
+        app:layout_constraintStart_toStartOf="@+id/divider"
+        app:layout_constraintTop_toBottomOf="@+id/matchValue" />
+
+    <TextView
+        android:id="@+id/exactValue"
+        style="@style/Widget.TextView.Value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceBodyLarge"
+        android:textColor="@color/material_on_background_emphasis_high_type"
+
+        app:layout_constraintStart_toStartOf="@+id/exactLabel"
+        app:layout_constraintTop_toBottomOf="@+id/exactLabel"
+        tools:text="#0047AB" />
+
+    <View
+        android:id="@+id/exactColor"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginHorizontal="@dimen/offset_8"
+        android:layout_marginVertical="@dimen/offset_4"
+        android:background="@drawable/bg_shape_round"
+
+        app:layout_constraintBottom_toBottomOf="@id/exactValue"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintStart_toEndOf="@id/exactValue"
+        app:layout_constraintTop_toTopOf="@id/exactValue"
+        tools:backgroundTint="#000000" />
+
+    <ImageButton
+        android:id="@+id/exactLink"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:layout_marginHorizontal="@dimen/offset_4"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:padding="@dimen/offset_2"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_open_in_new"
+
+        app:layout_constraintBottom_toBottomOf="@+id/exactLabel"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintStart_toEndOf="@+id/exactLabel"
+        app:layout_constraintTop_toTopOf="@+id/exactLabel"
+        app:tint="@color/material_on_background_emphasis_high_type"
+        tools:ignore="ContentDescription" />
+
+    <TextView
+        android:id="@+id/deviationLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/offset_16"
+        android:text="@string/color_information_deviation_label"
+        android:textAppearance="?attr/textAppearanceOverline"
+        android:textColor="@color/material_on_background_emphasis_medium"
+
+        app:layout_constraintStart_toStartOf="@+id/divider"
+        app:layout_constraintTop_toBottomOf="@+id/exactValue" />
+
+    <TextView
+        android:id="@+id/deviationValue"
+        style="@style/Widget.TextView.Value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceBodyLarge"
+        android:textColor="@color/material_on_background_emphasis_high_type"
+
+        app:layout_constraintStart_toStartOf="@+id/deviationLabel"
+        app:layout_constraintTop_toBottomOf="@+id/deviationLabel"
+        tools:text="0" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

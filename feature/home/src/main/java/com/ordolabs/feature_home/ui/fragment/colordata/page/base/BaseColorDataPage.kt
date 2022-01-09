@@ -5,6 +5,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.view.ContextThemeWrapper
+import androidx.core.view.ViewCompat
+import androidx.core.view.isVisible
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
@@ -14,19 +17,23 @@ import com.ordolabs.feature_home.ui.fragment.colordata.IColorThemed
 import com.ordolabs.feature_home.viewmodel.ColorDataViewModel
 import com.ordolabs.thecolor.util.ColorUtil
 import com.ordolabs.thecolor.util.ColorUtil.isDark
+import com.ordolabs.thecolor.util.ext.by
 import com.ordolabs.thecolor.util.ext.getNextFor
-import com.ordolabs.thecolor.util.ext.setFragment
+import com.ordolabs.thecolor.util.ext.mediumAnimDuration
+import com.ordolabs.thecolor.util.ext.replaceFragment
+import com.ordolabs.thecolor.util.ext.showToast
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
+import java.net.UnknownHostException
 import com.ordolabs.thecolor.R as RApp
 
-abstract class BaseColorDataPage :
+abstract class BaseColorDataPage<D> :
     BaseFragment(),
-    IColorDataPage {
+    IColorDataPage<D> {
 
     private val binding: ColorDataPageBinding by viewBinding(CreateMethod.BIND)
-    private val colorDataVM: ColorDataViewModel by sharedViewModel()
+    protected val colorDataVM: ColorDataViewModel by sharedViewModel()
 
-    val color: ColorUtil.Color?
+    protected val color: ColorUtil.Color?
         get() = (parentFragment as? IColorThemed)?.color
 
     override fun onCreateView(
@@ -48,17 +55,16 @@ abstract class BaseColorDataPage :
     }
 
     override fun collectViewModelsData() {
-        // nothing is here
+        collectPageData()
     }
 
     override fun setViews() {
-        setFragment()
-        setChangePageBtn()
+        setContentView()
+        setNoContentView()
     }
 
-    private fun setFragment() {
-        val fragment = getContentFragmentNewInstance()
-        setFragment(fragment)
+    private fun setContentView() {
+        setChangePageBtn()
     }
 
     private fun setChangePageBtn() =
@@ -68,5 +74,95 @@ abstract class BaseColorDataPage :
                 colorDataVM.changeDataPage(dest)
             }
             button.text = getChangePageBtnText()
+        }
+
+    private fun setNoContentView() {
+        setRetryBtn()
+    }
+
+    private fun setRetryBtn() {
+        binding.noContent.retryBtn.setOnClickListener l@{
+            colorDataVM.fetchColorDetails(color ?: return@l)
+        }
+    }
+
+    private fun showColorDataFragment(data: D) {
+        val fragment = makeColorDataFragmentNewInstance(data)
+        replaceFragment(fragment)
+    }
+
+    private fun showContentView() {
+        binding.content.isVisible = true
+        binding.contentShimmer.root.isVisible = false
+        binding.noContent.root.isVisible = false
+    }
+
+    private fun showLoadingView() {
+        binding.content.isVisible = false
+        binding.contentShimmer.root.isVisible = true
+        binding.noContent.root.isVisible = false
+    }
+
+    private fun showNoContentView() {
+        binding.content.isVisible = false
+        binding.contentShimmer.root.isVisible = false
+        binding.noContent.root.isVisible = true
+    }
+
+    private fun animContentVisibility(visible: Boolean, instant: Boolean = false) {
+        val content = binding.content
+        val translation = resources.getDimension(RApp.dimen.offset_8)
+        if (visible) content.translationY = translation
+        val translationY = 0f to translation by visible
+        val alpha = 1f to 0f by visible
+        val duration = 0L to mediumAnimDuration by instant
+        ViewCompat.animate(content)
+            .translationY(translationY)
+            .alpha(alpha)
+            .setDuration(duration)
+            .setInterpolator(FastOutSlowInInterpolator())
+            .withStartAction {
+                showContentView()
+            }
+            .withEndAction {
+                content.isVisible = visible
+            }
+            .start()
+    }
+
+    private fun collectPageData() =
+        getPageDataFlow().collectOnLifecycle { resource ->
+            resource.fold(
+                onEmpty = ::onPageDataEmpty,
+                onLoading = ::onPageDataLoading,
+                onSuccess = ::onPageDataSuccess,
+                onFailure = ::onPageDataFailure
+            )
+        }
+
+    @Suppress("UNUSED_PARAMETER")
+    private fun onPageDataEmpty(previous: D?) {
+        animContentVisibility(visible = false)
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    private fun onPageDataLoading(previous: D?) {
+        showLoadingView()
+    }
+
+    private fun onPageDataSuccess(data: D) {
+        showColorDataFragment(data)
+        animContentVisibility(visible = true)
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    private fun onPageDataFailure(
+        previous: D?,
+        payload: Any?,
+        error: Throwable
+    ) =
+        when (error) {
+            is UnknownHostException -> showNoContentView()
+            else -> showToast(error.localizedMessage)
         }
 }
