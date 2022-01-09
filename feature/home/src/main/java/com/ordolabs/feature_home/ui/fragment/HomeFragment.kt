@@ -88,12 +88,12 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     }
 
     private fun setColorDataFragment() {
-        val fragment = ColorDataFragment.newInstance()
+        val fragment = ColorDataFragment.newInstance(color = null)
         setFragment(fragment, binding.colorDataFragmentContainer.id)
     }
 
-    private fun replaceColorDataFragment() {
-        val fragment = ColorDataFragment.newInstance()
+    private fun replaceColorDataFragment(color: ColorUtil.Color) {
+        val fragment = ColorDataFragment.newInstance(color)
         replaceFragment(fragment, binding.colorDataFragmentContainer.id)
     }
 
@@ -364,7 +364,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
             resource.ifSuccess { color ->
                 hideSoftInput()
                 animInfoSheetExpanding(color)
-                replaceColorDataFragment()
+                replaceColorDataFragment(color)
             }
         }
 

@@ -8,7 +8,6 @@
     <dimen name="offset_8">8dp</dimen>
     <dimen name="offset_12">12dp</dimen>
     <dimen name="offset_16">16dp</dimen>
-    <dimen name="offset_20">20dp</dimen>
     <dimen name="offset_24">24dp</dimen>
     <dimen name="offset_32">32dp</dimen>
     <dimen name="offset_48">48dp</dimen>

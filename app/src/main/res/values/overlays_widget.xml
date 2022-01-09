@@ -6,12 +6,20 @@
         Preserve alphabetical order.
     -->
 
-    <style name="ThemeOverlay.Button.Tonal" parent="">
+    <style name="MaterialThemeOverlay.Button.Outlined" parent="ThemeOverlay.Material3.Button.TextButton">
+        <!-- nothing special here -->
+    </style>
+
+    <style name="MaterialThemeOverlay.Button.Outlined.OnBackground">
+        <item name="colorOnContainer">?attr/colorOnBackground</item>
+    </style>
+
+    <style name="MaterialThemeOverlay.Button.Tonal" parent="">
         <item name="colorOnContainer">?attr/colorOnPrimaryContainer</item>
         <item name="colorContainer">?attr/colorPrimaryContainer</item>
     </style>
 
-    <style name="ThemeOverlay.Button.Tonal.SurfaceVariant" parent="">
+    <style name="MaterialThemeOverlay.Button.Tonal.SurfaceVariant" parent="">
         <item name="colorOnContainer">?attr/colorOnSurfaceVariant</item>
         <item name="colorContainer">?attr/colorSurfaceVariant</item>
     </style>

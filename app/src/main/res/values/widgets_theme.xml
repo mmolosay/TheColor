@@ -11,11 +11,11 @@
     </style>
 
     <style name="Widget.TheColor.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
-        <!-- nothing special here -->
+        <item name="materialThemeOverlay">@style/MaterialThemeOverlay.Button.Outlined</item>
     </style>
 
     <style name="Widget.TheColor.Button.Tonal" parent="Widget.Material3.Button.TonalButton">
-        <item name="materialThemeOverlay">@style/ThemeOverlay.Button.Tonal</item>
+        <item name="materialThemeOverlay">@style/MaterialThemeOverlay.Button.Tonal</item>
     </style>
 
     <style name="Widget.TheColor.EditText" parent="Widget.AppCompat.EditText">

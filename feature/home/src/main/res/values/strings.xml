@@ -25,6 +25,11 @@
 
     <!-- region Color Data -->
 
+    <string name="color_data_details_page_change_page_btn">View color scheme</string>
+    <string name="color_data_scheme_page_change_page_btn">View color details</string>
+
+    <!-- endregion -->
+
     <!-- region Color Details -->
 
     <!-- TODO: rename us -->
@@ -43,8 +48,6 @@
     <!-- endregion -->
 
     <!-- region Color Scheme -->
-
-    <!-- endregion -->
 
     <!-- endregion -->
 

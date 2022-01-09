@@ -4,7 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import com.ordolabs.di.GET_COLOR_INFORMATION_USE_CASE
 import com.ordolabs.di.VALIDATE_COLOR_HEX_USE_CASE
 import com.ordolabs.di.VALIDATE_COLOR_RGB_USE_CASE
-import com.ordolabs.feature_home.viewmodel.ColorInformationViewModel
+import com.ordolabs.feature_home.viewmodel.ColorDataViewModel
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
 import com.ordolabs.feature_home.viewmodel.HomeViewModel
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -27,7 +27,7 @@ val featureHomeModule = module {
     }
 
     viewModel {
-        ColorInformationViewModel(
+        ColorDataViewModel(
             getColorInformationUseCase = get(named(GET_COLOR_INFORMATION_USE_CASE))
         )
     }

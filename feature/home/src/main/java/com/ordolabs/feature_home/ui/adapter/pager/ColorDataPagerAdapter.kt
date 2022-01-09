@@ -2,8 +2,8 @@ package com.ordolabs.feature_home.ui.adapter.pager
 
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import com.ordolabs.feature_home.ui.fragment.colordata.ColorDataDetailsFragment
-import com.ordolabs.feature_home.ui.fragment.colordata.ColorDataSchemeFragment
+import com.ordolabs.feature_home.ui.fragment.colordata.page.ColorDataDetailsPage
+import com.ordolabs.feature_home.ui.fragment.colordata.page.ColorDataSchemePage
 import com.ordolabs.thecolor.ui.adapter.EnumFragmentPage
 import com.ordolabs.thecolor.util.ext.getEnumSize
 import com.ordolabs.thecolor.util.ext.getFromEnum
@@ -21,11 +21,11 @@ class ColorDataPagerAdapter(fragment: Fragment) : FragmentStateAdapter(fragment)
 
         DETAILS {
             override fun getFragmentNewInstance(): Fragment =
-                ColorDataDetailsFragment.newInstance()
+                ColorDataDetailsPage.newInstance()
         },
         SCHEME {
             override fun getFragmentNewInstance(): Fragment =
-                ColorDataSchemeFragment.newInstance()
+                ColorDataSchemePage.newInstance()
         }
     }
 }

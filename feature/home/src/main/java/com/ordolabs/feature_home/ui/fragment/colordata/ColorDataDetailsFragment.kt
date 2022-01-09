@@ -17,7 +17,7 @@ import com.github.michaelbull.result.get
 import com.github.michaelbull.result.runCatching
 import com.ordolabs.feature_home.databinding.ColorDataDetailsFragmentBinding
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
-import com.ordolabs.feature_home.viewmodel.ColorInformationViewModel
+import com.ordolabs.feature_home.viewmodel.ColorDataViewModel
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
 import com.ordolabs.thecolor.R
 import com.ordolabs.thecolor.model.ColorInformationPresentation
@@ -32,13 +32,14 @@ import com.ordolabs.thecolor.util.struct.getOrNull
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import java.net.UnknownHostException
 
+// TODO: fragment should only display data; make ColorDataFragment obtain all data and pass to there
 class ColorDataDetailsFragment : BaseFragment() {
 
     private val binding: ColorDataDetailsFragmentBinding by viewBinding(CreateMethod.BIND)
     private val colorInputVM: ColorInputViewModel by sharedViewModel()
-    private val colorInfoVM: ColorInformationViewModel by sharedViewModel()
+    private val colorInfoVM: ColorDataViewModel by sharedViewModel()
 
-    // TODO: move in ColorDataFragment
+    // TODO: should be passed as argument
     private val color: ColorUtil.Color? by lazy {
         colorInputVM.colorPreview.value.getOrNull()?.color
     }

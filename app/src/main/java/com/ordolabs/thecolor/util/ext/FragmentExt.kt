@@ -28,26 +28,28 @@ fun BaseFragment.findFragmentById(
 }
 
 fun BaseFragment.setFragment(
-    fragment: BaseFragment,
-    @IdRes containerId: Int = this.defaultFragmentContainerId
+    fragment: Fragment,
+    @IdRes containerId: Int = this.defaultFragmentContainerId,
+    transactionTag: String = fragment.getDefaultTransactionTag()
 ): Result<Int, Throwable> {
     return ContextUtil.setFragment(
         this.childFragmentManager,
         fragment,
         containerId,
-        fragment.transactionTag
+        transactionTag
     )
 }
 
 fun BaseFragment.replaceFragment(
-    fragment: BaseFragment,
-    @IdRes containerId: Int = this.defaultFragmentContainerId
+    fragment: Fragment,
+    @IdRes containerId: Int = this.defaultFragmentContainerId,
+    transactionTag: String = fragment.getDefaultTransactionTag()
 ): Result<Int, Throwable> {
     return ContextUtil.replaceFragment(
         this.childFragmentManager,
         fragment,
         containerId,
-        fragment.transactionTag
+        transactionTag
     )
 }
 
@@ -59,6 +61,9 @@ fun BaseFragment.removeFragment(
         fragment
     )
 }
+
+fun Fragment.getDefaultTransactionTag(): String =
+    this::class.java.simpleName
 
 fun BaseFragment.showToast(
     text: String?,

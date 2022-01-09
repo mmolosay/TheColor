@@ -6,7 +6,6 @@ import androidx.annotation.IdRes
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import com.github.michaelbull.result.Result
-import com.ordolabs.thecolor.ui.fragment.BaseFragment
 import com.ordolabs.thecolor.util.ext.commit
 import com.ordolabs.thecolor.util.ext.error
 import com.ordolabs.thecolor.util.ext.success
@@ -47,7 +46,7 @@ object ContextUtil {
 
     fun setFragment(
         fm: FragmentManager,
-        fragment: BaseFragment,
+        fragment: Fragment,
         @IdRes containerId: Int,
         transactionTag: String
     ): Result<Int, Throwable> {
@@ -62,7 +61,7 @@ object ContextUtil {
 
     fun replaceFragment(
         fm: FragmentManager,
-        fragment: BaseFragment,
+        fragment: Fragment,
         @IdRes containerId: Int,
         transactionTag: String
     ): Result<Int, Throwable> {

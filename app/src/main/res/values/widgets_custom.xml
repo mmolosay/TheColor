@@ -6,8 +6,15 @@
         Preserve alphabetical order.
     -->
 
+    <style name="Widget.Button.Outlined.OnBackground" parent="Widget.TheColor.Button.Outlined">
+        <item name="materialThemeOverlay">@style/MaterialThemeOverlay.Button.Outlined.OnBackground
+        </item>
+        <item name="strokeColor">?attr/colorOnBackground</item>
+    </style>
+
     <style name="Widget.Button.Tonal.SurfaceVariant" parent="Widget.TheColor.Button.Tonal">
-        <item name="materialThemeOverlay">@style/ThemeOverlay.Button.Tonal.SurfaceVariant</item>
+        <item name="materialThemeOverlay">@style/MaterialThemeOverlay.Button.Tonal.SurfaceVariant
+        </item>
     </style>
 
     <style name="Widget.MaterialDivider.Insets" parent="Widget.TheColor.MaterialDivider">

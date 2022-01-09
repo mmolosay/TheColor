@@ -20,8 +20,6 @@ abstract class BaseFragment : Fragment {
 
     constructor(@LayoutRes layoutRes: Int) : super(layoutRes)
 
-    val transactionTag: String = this::class.java.simpleName
-
     @IdRes
     open val defaultFragmentContainerId: Int = R.id.defaultFragmentContainer
 

@@ -4,8 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:background="@drawable/bg_color_information"
-    tools:backgroundTint="#0047AB"
+    tools:background="#0047AB"
     tools:layout_height="wrap_content"
     tools:theme="@style/ThemeOverlay.TheColor.Dark">
 
@@ -94,7 +93,6 @@
             android:id="@+id/nameHeadline"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/offset_content_vertical"
             android:gravity="center"
             android:textAppearance="?attr/textAppearanceDisplayLarge"
             android:textColor="@color/material_on_background_emphasis_high_type"
