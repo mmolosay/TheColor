@@ -1,16 +1,14 @@
 package com.ordolabs.feature_home.ui.adapter.pager
 
-import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import com.ordolabs.feature_home.R
-import com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputHexFragment
-import com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputRgbFragment
+import com.ordolabs.feature_home.ui.fragment.colordata.ColorDataDetailsFragment
+import com.ordolabs.feature_home.ui.fragment.colordata.ColorDataSchemeFragment
 import com.ordolabs.thecolor.ui.adapter.EnumFragmentTab
 import com.ordolabs.thecolor.util.ext.getEnumSize
 import com.ordolabs.thecolor.util.ext.getFromEnum
 
-class ColorInputPagerAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
+class ColorDataPagerAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
 
     override fun createFragment(position: Int): Fragment =
         getFromEnum<Tab>(position).getFragmentNewInstance()
@@ -19,22 +17,15 @@ class ColorInputPagerAdapter(fragment: Fragment) : FragmentStateAdapter(fragment
         getEnumSize<Tab>()
 
     @Suppress("unused")
-    enum class Tab(
-        @StringRes val titleRes: Int
-    ) : EnumFragmentTab {
+    enum class Tab : EnumFragmentTab {
 
-        HEX(
-            R.string.color_input_hex_hint,
-        ) {
+        DETAILS {
             override fun getFragmentNewInstance(): Fragment =
-                ColorInputHexFragment.newInstance()
+                ColorDataDetailsFragment.newInstance()
         },
-        RGB(
-            R.string.color_input_rgb_hint,
-        ) {
+        SCHEME {
             override fun getFragmentNewInstance(): Fragment =
-                ColorInputRgbFragment.newInstance()
+                ColorDataSchemeFragment.newInstance()
         }
     }
-
 }

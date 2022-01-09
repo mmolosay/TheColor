@@ -23,6 +23,7 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.FragmentHomeBinding
 import com.ordolabs.feature_home.di.featureHomeModule
+import com.ordolabs.feature_home.ui.fragment.colordata.ColorDataFragment
 import com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputHostFragment
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel.ColorPreview
@@ -77,8 +78,8 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
 
     override fun setViews() {
         setColorInputFragment()
-        setColorInformationFragment()
-        toggleInfoFragmentVisibility(visible = false)
+        setColorDataFragment()
+        toggleDataFragmentVisibility(visible = false)
     }
 
     private fun setColorInputFragment() {
@@ -86,27 +87,27 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
         setFragment(fragment)
     }
 
-    private fun setColorInformationFragment() {
-        val fragment = ColorInformationFragment.newInstance()
-        setFragment(fragment, binding.infoFragmentContainer.id)
+    private fun setColorDataFragment() {
+        val fragment = ColorDataFragment.newInstance()
+        setFragment(fragment, binding.colorDataFragmentContainer.id)
     }
 
-    private fun replaceColorInformationFragment() {
-        val fragment = ColorInformationFragment.newInstance()
-        replaceFragment(fragment, binding.infoFragmentContainer.id)
+    private fun replaceColorDataFragment() {
+        val fragment = ColorDataFragment.newInstance()
+        replaceFragment(fragment, binding.colorDataFragmentContainer.id)
     }
 
     @ColorInt
-    private fun getInfoBackgroundColor(): Int? {
-        return binding.infoFragmentContainer.backgroundTintList?.defaultColor
+    private fun getColorDataContainerBackgroundColor(): Int? {
+        return binding.colorDataFragmentContainer.backgroundTintList?.defaultColor
     }
 
-    private fun setInfoBackgroundColor(@ColorInt color: Int) {
-        binding.infoFragmentContainer.backgroundTintList = ColorStateList.valueOf(color)
+    private fun setColorDataContainerBackgroundColor(@ColorInt color: Int) {
+        binding.colorDataFragmentContainer.backgroundTintList = ColorStateList.valueOf(color)
     }
 
-    private fun toggleInfoFragmentVisibility(visible: Boolean) {
-        binding.infoFragmentContainer.isInvisible = !visible
+    private fun toggleDataFragmentVisibility(visible: Boolean) {
+        binding.colorDataFragmentContainer.isInvisible = !visible
     }
 
     private fun animInfoSheetExpanding(color: ColorUtil.Color) {
@@ -117,7 +118,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
                     makePreviewFallingAnimation(),
                     makeInfoSheetRevealAnimation(hide = false).apply {
                         doOnStart {
-                            setInfoBackgroundColor(color.toColorInt())
+                            setColorDataContainerBackgroundColor(color.toColorInt())
                             activity?.setNavigationBarColor(color)
                         }
                     }
@@ -155,7 +156,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
                 makeScrollingToTopAnimation(),
                 makeInfoSheetRevealAnimation(hide = true).apply {
                     doOnEnd {
-                        setInfoBackgroundColor(Color.TRANSPARENT)
+                        setColorDataContainerBackgroundColor(Color.TRANSPARENT)
                         activity?.restoreNavigationBarColor()
                     }
                 },
@@ -257,7 +258,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
 
     private fun makePreviewTranslationAnimation(down: Boolean): Animator {
         val preview = binding.previewWrapper
-        val info = binding.infoFragmentContainer
+        val info = binding.colorDataFragmentContainer
         val translation = if (down) {
             val distance = preview.getDistanceToViewInParent(info, view)?.y ?: 0
             val addend = makeInfoSheetRevealCenter().y
@@ -290,7 +291,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     }
 
     private fun makeInfoSheetRevealAnimation(hide: Boolean): Animator {
-        val info = binding.infoFragmentContainer
+        val info = binding.colorDataFragmentContainer
         val preview = binding.previewWrapper
         val center = makeInfoSheetRevealCenter()
         val sr = preview.width.toFloat() / 2
@@ -299,10 +300,10 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
             duration = longAnimDuration
             interpolator = AccelerateDecelerateInterpolator()
             doOnStart {
-                toggleInfoFragmentVisibility(visible = true)
+                toggleDataFragmentVisibility(visible = true)
             }
             doOnEnd {
-                toggleInfoFragmentVisibility(visible = !hide)
+                toggleDataFragmentVisibility(visible = !hide)
             }
         }
     }
@@ -316,7 +317,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     }
 
     private fun makeInfoSheetRevealCenter(): Point {
-        val info = binding.infoFragmentContainer
+        val info = binding.colorDataFragmentContainer
         val bottom = info.getBottomVisibleInScrollParent(binding.root) ?: info.height
         val padding = resources.getDimensionPixelSize(RApp.dimen.offset_32)
         val previewRadius = binding.preview.height / 2
@@ -348,11 +349,12 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     private fun onColorPreviewSuccess(colorPreview: ColorPreview) {
         binding.previewWrapper.doOnLayout {
             if (!colorPreview.isUserInput) return@doOnLayout // ignore not user-inputted colors
-            val colorInt = colorPreview.color.toColorInt()
-            if (getInfoBackgroundColor() != colorInt) {
+            val colorPreviewInt = colorPreview.color.toColorInt()
+            val colorDataContainerInt = getColorDataContainerBackgroundColor()
+            if (colorPreviewInt != colorDataContainerInt) {
                 animInfoSheetCollapsingOnPreviewSuccess()
             }
-            animPreviewColorChanging(colorInt)
+            animPreviewColorChanging(colorPreviewInt)
             animPreviewResize(collapse = false)
         }
     }
@@ -362,7 +364,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
             resource.ifSuccess { color ->
                 hideSoftInput()
                 animInfoSheetExpanding(color)
-                replaceColorInformationFragment()
+                replaceColorDataFragment()
             }
         }
 

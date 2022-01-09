@@ -23,7 +23,11 @@
 
     <string name="color_input_procceed">Procceed</string>
 
-    <!--——————————————— COLOR INFORMATION ——————————————-->
+    <!-- region Color Data -->
+
+    <!-- region Color Details -->
+
+    <!-- TODO: rename us -->
     <string name="color_information_hex_label">HEX</string>
     <string name="color_information_rgb_label">RGB</string>
     <string name="color_information_hsl_label">HSL</string>
@@ -35,5 +39,13 @@
     <string name="color_information_deviation_label">Deviation</string>
     <string name="color_information_no_content_message">Can\'t fetch color information :(</string>
     <string name="color_information_no_content_button">Retry</string>
+
+    <!-- endregion -->
+
+    <!-- region Color Scheme -->
+
+    <!-- endregion -->
+
+    <!-- endregion -->
 
 </resources>

@@ -1,4 +1,4 @@
-package com.ordolabs.feature_home.ui.fragment
+package com.ordolabs.feature_home.ui.fragment.colordata
 
 import android.content.res.ColorStateList
 import android.graphics.Color
@@ -15,10 +15,11 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.get
 import com.github.michaelbull.result.runCatching
-import com.ordolabs.feature_home.R
-import com.ordolabs.feature_home.databinding.FragmentColorInformationBinding
+import com.ordolabs.feature_home.databinding.ColorDataDetailsFragmentBinding
+import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.viewmodel.ColorInformationViewModel
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
+import com.ordolabs.thecolor.R
 import com.ordolabs.thecolor.model.ColorInformationPresentation
 import com.ordolabs.thecolor.util.ColorUtil
 import com.ordolabs.thecolor.util.ColorUtil.isDark
@@ -30,14 +31,14 @@ import com.ordolabs.thecolor.util.ext.showToast
 import com.ordolabs.thecolor.util.struct.getOrNull
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import java.net.UnknownHostException
-import com.ordolabs.thecolor.R as RApp
 
-class ColorInformationFragment : BaseFragment() {
+class ColorDataDetailsFragment : BaseFragment() {
 
-    private val binding: FragmentColorInformationBinding by viewBinding(CreateMethod.BIND)
+    private val binding: ColorDataDetailsFragmentBinding by viewBinding(CreateMethod.BIND)
     private val colorInputVM: ColorInputViewModel by sharedViewModel()
     private val colorInfoVM: ColorInformationViewModel by sharedViewModel()
 
+    // TODO: move in ColorDataFragment
     private val color: ColorUtil.Color? by lazy {
         colorInputVM.colorPreview.value.getOrNull()?.color
     }
@@ -53,13 +54,17 @@ class ColorInformationFragment : BaseFragment() {
         savedInstanceState: Bundle?
     ): View? {
         val themeOverlay = if (color?.isDark() == true) {
-            RApp.style.ThemeOverlay_TheColor_Dark
+            R.style.ThemeOverlay_TheColor_Dark
         } else {
-            RApp.style.ThemeOverlay_TheColor_Light
+            R.style.ThemeOverlay_TheColor_Light
         }
         val themedContext = ContextThemeWrapper(activity, themeOverlay)
         return inflater.cloneInContext(themedContext)
-            .inflate(R.layout.fragment_color_information, container, false)
+            .inflate(
+                com.ordolabs.feature_home.R.layout.color_data_details_fragment,
+                container,
+                false
+            )
     }
 
     override fun onDestroy() {
@@ -214,7 +219,7 @@ class ColorInformationFragment : BaseFragment() {
 
     private fun animContentVisibility(visible: Boolean, instant: Boolean = false) {
         val content = binding.content
-        val translation = resources.getDimension(RApp.dimen.offset_8)
+        val translation = resources.getDimension(R.dimen.offset_8)
         if (visible) content.translationY = translation
         val translationY = 0f to translation by visible
         val alpha = 1f to 0f by visible
@@ -295,7 +300,7 @@ class ColorInformationFragment : BaseFragment() {
         }
 
     companion object {
-
-        fun newInstance() = ColorInformationFragment()
+        fun newInstance() =
+            ColorDataDetailsFragment()
     }
 }

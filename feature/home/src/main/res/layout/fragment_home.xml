@@ -85,7 +85,7 @@
         </com.google.android.material.card.MaterialCardView>
 
         <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/infoFragmentContainer"
+            android:id="@+id/colorDataFragmentContainer"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_marginTop="@dimen/offset_16"
@@ -100,7 +100,7 @@
             app:layout_constraintTop_toBottomOf="@+id/previewWrapper"
             app:layout_constraintVertical_bias="0.0"
             tools:backgroundTint="#0047AB"
-            tools:layout="@layout/fragment_color_information"
+            tools:layout="@layout/color_data_fragment"
             tools:visibility="visible" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
