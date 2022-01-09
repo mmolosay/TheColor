@@ -9,13 +9,12 @@ import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDataPageBinding
-import com.ordolabs.feature_home.ui.adapter.pager.ColorDataPagerAdapter
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.ui.fragment.colordata.IColorThemed
 import com.ordolabs.feature_home.viewmodel.ColorDataViewModel
 import com.ordolabs.thecolor.util.ColorUtil
 import com.ordolabs.thecolor.util.ColorUtil.isDark
-import com.ordolabs.thecolor.util.ext.getFromEnumCoerced
+import com.ordolabs.thecolor.util.ext.getNextFor
 import com.ordolabs.thecolor.util.ext.setFragment
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import com.ordolabs.thecolor.R as RApp
@@ -65,13 +64,9 @@ abstract class BaseColorDataPage :
     private fun setChangePageBtn() =
         binding.changePageBtn.let { button ->
             button.setOnClickListener {
-                val dest = getFromEnumCoerced<ColorDataPagerAdapter.Page>(page.ordinal + 1)
+                val dest = getNextFor(page)
                 colorDataVM.changeDataPage(dest)
             }
             button.text = getChangePageBtnText()
         }
-
-    companion object {
-
-    }
 }

@@ -62,6 +62,15 @@ fun BaseFragment.removeFragment(
     )
 }
 
+fun BaseFragment.removeFragment(
+    @IdRes containerId: Int
+): Result<Int, Throwable> {
+    return ContextUtil.removeFragment(
+        this.childFragmentManager,
+        containerId
+    )
+}
+
 fun Fragment.getDefaultTransactionTag(): String =
     this::class.java.simpleName
 
@@ -88,7 +97,7 @@ fun BaseFragment.hideSoftInput(): Boolean {
     } else false
 }
 
-fun BaseFragment.hideSoftInputAndUnfocus(): Boolean {
+fun BaseFragment.hideSoftInputAndClearFocus(): Boolean {
     return this.hideSoftInput().also { wasHidden ->
         if (wasHidden) this.view?.clearFocus()
     }

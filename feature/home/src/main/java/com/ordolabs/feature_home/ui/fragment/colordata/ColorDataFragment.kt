@@ -19,7 +19,7 @@ import com.ordolabs.thecolor.util.ext.makeArgumentsKey
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import com.ordolabs.thecolor.R as RApp
 
-open class ColorDataFragment :
+class ColorDataFragment :
     BaseFragment(),
     IColorThemed {
 

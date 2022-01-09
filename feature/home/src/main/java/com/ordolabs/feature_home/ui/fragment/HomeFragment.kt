@@ -37,7 +37,7 @@ import com.ordolabs.thecolor.util.ext.createCircularRevealAnimation
 import com.ordolabs.thecolor.util.ext.getBottomVisibleInScrollParent
 import com.ordolabs.thecolor.util.ext.getDistanceToViewInParent
 import com.ordolabs.thecolor.util.ext.hideSoftInput
-import com.ordolabs.thecolor.util.ext.hideSoftInputAndUnfocus
+import com.ordolabs.thecolor.util.ext.hideSoftInputAndClearFocus
 import com.ordolabs.thecolor.util.ext.longAnimDuration
 import com.ordolabs.thecolor.util.ext.mediumAnimDuration
 import com.ordolabs.thecolor.util.ext.propertyAnimator
@@ -68,7 +68,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
 
     override fun onStop() {
         super.onStop()
-        hideSoftInputAndUnfocus()
+        hideSoftInputAndClearFocus()
     }
 
     override fun collectViewModelsData() {
@@ -113,6 +113,7 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     private fun animInfoSheetExpanding(color: ColorUtil.Color) {
         if (homeVM.isInfoSheetShown) return
         binding.root.post { // when ^ infoFragmentContainer becomes visible
+            binding.scrollview.isScrollable = true
             AnimatorSet().apply {
                 playSequentially(
                     makePreviewFallingAnimation(),
@@ -158,6 +159,10 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
                     doOnEnd {
                         setColorDataContainerBackgroundColor(Color.TRANSPARENT)
                         activity?.restoreNavigationBarColor()
+                        binding.scrollview.run {
+                            scrollTo(0, 0)
+                            isScrollable = false
+                        }
                     }
                 },
                 makePreviewRisingAnimation()
