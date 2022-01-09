@@ -12,7 +12,6 @@ import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDataDetailsFragmentBinding
-import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.viewmodel.ColorDataViewModel
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
 import com.ordolabs.thecolor.model.ColorDetailsPresentation
@@ -23,7 +22,7 @@ import com.ordolabs.thecolor.util.ext.setTextOrGoneWith
 import com.ordolabs.thecolor.util.struct.getOrNull
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
-class ColorDataDetailsFragment : BaseFragment() {
+class ColorDataDetailsFragment : BaseColorDataFragment<ColorDetailsPresentation>() {
 
     private val binding: ColorDataDetailsFragmentBinding by viewBinding(CreateMethod.BIND)
     private val colorInputVM: ColorInputViewModel by sharedViewModel()
@@ -72,20 +71,20 @@ class ColorDataDetailsFragment : BaseFragment() {
 
     override fun setViews() {
         colorDetails?.let { details ->
-            populateDetailsViews(details)
+            populateViews(details)
         }
     }
 
-    private fun populateDetailsViews(details: ColorDetailsPresentation) =
+    override fun populateViews(data: ColorDetailsPresentation) =
         binding.run {
-            nameHeadline.text = details.name
-            populateHexGroup(details)
-            populateRgbGroup(details)
-            populateHslGroup(details)
-            populateHsvGroup(details)
-            populateCmykGroup(details)
-            populateNameGroup(details)
-            populateMatchGroup(details)
+            nameHeadline.text = data.name
+            populateHexGroup(data)
+            populateRgbGroup(data)
+            populateHslGroup(data)
+            populateHsvGroup(data)
+            populateCmykGroup(data)
+            populateNameGroup(data)
+            populateMatchGroup(data)
         }
 
     private fun populateHexGroup(details: ColorDetailsPresentation) =
@@ -198,7 +197,7 @@ class ColorDataDetailsFragment : BaseFragment() {
         private val ARGUMENT_KEY_COLOR_DETAILS =
             "ARGUMENT_KEY_COLOR_DETAILS".makeArgumentsKey<ColorDataDetailsFragment>()
 
-        fun newInstance(colorDetails: ColorDetailsPresentation) =
+        fun newInstance(colorDetails: ColorDetailsPresentation?) =
             ColorDataDetailsFragment().apply {
                 arguments = bundleOf(
                     ARGUMENT_KEY_COLOR_DETAILS to colorDetails

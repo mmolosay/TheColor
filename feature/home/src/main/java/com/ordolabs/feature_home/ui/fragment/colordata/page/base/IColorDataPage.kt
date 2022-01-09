@@ -8,9 +8,9 @@ import kotlinx.coroutines.flow.Flow
 interface IColorDataPage<D> {
 
     val page: ColorDataPagerAdapter.Page
+    val data: Flow<Resource<D>>
 
-    fun getPageDataFlow(): Flow<Resource<D>>
-    fun makeColorDataFragmentNewInstance(data: D): Fragment
+    fun makeColorDataFragmentNewInstance(): Fragment
     fun retryDataFetch()
     fun getChangePageBtnText(): String
 }

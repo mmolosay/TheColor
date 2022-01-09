@@ -23,7 +23,7 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.FragmentHomeBinding
 import com.ordolabs.feature_home.di.featureHomeModule
-import com.ordolabs.feature_home.ui.fragment.colordata.ColorDataFragment
+import com.ordolabs.feature_home.ui.fragment.colordata.ColorDataPagerFragment
 import com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputHostFragment
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel.ColorPreview
@@ -88,12 +88,12 @@ class HomeFragment : BaseFragment(R.layout.fragment_home) {
     }
 
     private fun setColorDataFragment() {
-        val fragment = ColorDataFragment.newInstance(color = null)
+        val fragment = ColorDataPagerFragment.newInstance(color = null)
         setFragment(fragment, binding.colorDataFragmentContainer.id)
     }
 
     private fun replaceColorDataFragment(color: ColorUtil.Color) {
-        val fragment = ColorDataFragment.newInstance(color)
+        val fragment = ColorDataPagerFragment.newInstance(color)
         replaceFragment(fragment, binding.colorDataFragmentContainer.id)
     }
 

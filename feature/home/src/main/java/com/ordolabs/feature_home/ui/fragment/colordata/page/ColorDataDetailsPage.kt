@@ -6,8 +6,6 @@ import com.ordolabs.feature_home.ui.adapter.pager.ColorDataPagerAdapter
 import com.ordolabs.feature_home.ui.fragment.colordata.ColorDataDetailsFragment
 import com.ordolabs.feature_home.ui.fragment.colordata.page.base.BaseColorDataPage
 import com.ordolabs.thecolor.model.ColorDetailsPresentation
-import com.ordolabs.thecolor.util.struct.Resource
-import kotlinx.coroutines.flow.Flow
 
 class ColorDataDetailsPage : BaseColorDataPage<ColorDetailsPresentation>() {
 
@@ -25,12 +23,10 @@ class ColorDataDetailsPage : BaseColorDataPage<ColorDetailsPresentation>() {
     // region IColorDataPage
 
     override val page = ColorDataPagerAdapter.Page.DETAILS
+    override val data by lazy { colorDataVM.details }
 
-    override fun getPageDataFlow(): Flow<Resource<ColorDetailsPresentation>> =
-        colorDataVM.details
-
-    override fun makeColorDataFragmentNewInstance(data: ColorDetailsPresentation): Fragment =
-        ColorDataDetailsFragment.newInstance(data)
+    override fun makeColorDataFragmentNewInstance(): Fragment =
+        ColorDataDetailsFragment.newInstance(colorDetails = null)
 
     override fun retryDataFetch() {
         color?.let { color ->

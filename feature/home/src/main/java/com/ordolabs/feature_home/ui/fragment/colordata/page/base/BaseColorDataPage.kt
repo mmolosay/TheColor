@@ -10,17 +10,20 @@ import androidx.core.view.isVisible
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
+import com.github.michaelbull.result.get
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDataPageBinding
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
+import com.ordolabs.feature_home.ui.fragment.colordata.IColorDataFragment
 import com.ordolabs.feature_home.ui.fragment.colordata.IColorThemed
 import com.ordolabs.feature_home.viewmodel.ColorDataViewModel
 import com.ordolabs.thecolor.util.ColorUtil
 import com.ordolabs.thecolor.util.ColorUtil.isDark
 import com.ordolabs.thecolor.util.ext.by
+import com.ordolabs.thecolor.util.ext.findFragmentById
 import com.ordolabs.thecolor.util.ext.getNextFor
 import com.ordolabs.thecolor.util.ext.mediumAnimDuration
-import com.ordolabs.thecolor.util.ext.replaceFragment
+import com.ordolabs.thecolor.util.ext.setFragment
 import com.ordolabs.thecolor.util.ext.showToast
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import java.net.UnknownHostException
@@ -28,7 +31,8 @@ import com.ordolabs.thecolor.R as RApp
 
 abstract class BaseColorDataPage<D> :
     BaseFragment(),
-    IColorDataPage<D> {
+    IColorDataPage<D>,
+    IColorDataFragment<D> {
 
     private val binding: ColorDataPageBinding by viewBinding(CreateMethod.BIND)
     protected val colorDataVM: ColorDataViewModel by sharedViewModel()
@@ -64,6 +68,7 @@ abstract class BaseColorDataPage<D> :
     }
 
     private fun setContentView() {
+        setColorDataFragment()
         setChangePageBtn()
     }
 
@@ -76,6 +81,11 @@ abstract class BaseColorDataPage<D> :
             button.text = getChangePageBtnText()
         }
 
+    private fun setColorDataFragment() {
+        val fragment = makeColorDataFragmentNewInstance()
+        setFragment(fragment)
+    }
+
     private fun setNoContentView() {
         setRetryBtn()
     }
@@ -86,9 +96,11 @@ abstract class BaseColorDataPage<D> :
         }
     }
 
-    private fun showColorDataFragment(data: D) {
-        val fragment = makeColorDataFragmentNewInstance(data)
-        replaceFragment(fragment)
+    // delegates
+    @Suppress("UNCHECKED_CAST")
+    override fun populateViews(data: D) {
+        val fragment = findFragmentById().get() as? IColorDataFragment<D> ?: return
+        fragment.populateViews(data)
     }
 
     private fun showContentView() {
@@ -131,7 +143,7 @@ abstract class BaseColorDataPage<D> :
     }
 
     private fun collectPageData() =
-        getPageDataFlow().collectOnLifecycle { resource ->
+        data.collectOnLifecycle { resource ->
             resource.fold(
                 onEmpty = ::onPageDataEmpty,
                 onLoading = ::onPageDataLoading,
@@ -151,7 +163,7 @@ abstract class BaseColorDataPage<D> :
     }
 
     private fun onPageDataSuccess(data: D) {
-        showColorDataFragment(data)
+        populateViews(data)
         animContentVisibility(visible = true)
     }
 

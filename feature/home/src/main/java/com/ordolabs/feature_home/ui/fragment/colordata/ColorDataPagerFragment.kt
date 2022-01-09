@@ -20,7 +20,7 @@ import com.ordolabs.thecolor.util.ext.showToast
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import com.ordolabs.thecolor.R as RApp
 
-class ColorDataFragment :
+class ColorDataPagerFragment :
     BaseFragment(),
     IColorThemed {
 
@@ -119,10 +119,10 @@ class ColorDataFragment :
     companion object {
 
         private val ARGUMENTS_KEY_COLOR =
-            "ARGUMENTS_KEY_COLOR".makeArgumentsKey<ColorDataFragment>()
+            "ARGUMENTS_KEY_COLOR".makeArgumentsKey<ColorDataPagerFragment>()
 
         fun newInstance(color: ColorUtil.Color?) =
-            ColorDataFragment().apply {
+            ColorDataPagerFragment().apply {
                 arguments = bundleOf(
                     ARGUMENTS_KEY_COLOR to color
                 )
