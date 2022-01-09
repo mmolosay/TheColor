@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
@@ -15,14 +14,13 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.get
 import com.github.michaelbull.result.runCatching
+import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDataDetailsFragmentBinding
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.viewmodel.ColorDataViewModel
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
-import com.ordolabs.thecolor.R
 import com.ordolabs.thecolor.model.ColorInformationPresentation
 import com.ordolabs.thecolor.util.ColorUtil
-import com.ordolabs.thecolor.util.ColorUtil.isDark
 import com.ordolabs.thecolor.util.ext.by
 import com.ordolabs.thecolor.util.ext.getStringYesOrNo
 import com.ordolabs.thecolor.util.ext.mediumAnimDuration
@@ -31,6 +29,7 @@ import com.ordolabs.thecolor.util.ext.showToast
 import com.ordolabs.thecolor.util.struct.getOrNull
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import java.net.UnknownHostException
+import com.ordolabs.thecolor.R as RApp
 
 // TODO: fragment should only display data; make ColorDataFragment obtain all data and pass to there
 class ColorDataDetailsFragment : BaseFragment() {
@@ -54,18 +53,13 @@ class ColorDataDetailsFragment : BaseFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val themeOverlay = if (color?.isDark() == true) {
-            R.style.ThemeOverlay_TheColor_Dark
+        // inherit container view group theme
+        val fInflater = if (container != null) {
+            inflater.cloneInContext(container.context)
         } else {
-            R.style.ThemeOverlay_TheColor_Light
+            inflater
         }
-        val themedContext = ContextThemeWrapper(activity, themeOverlay)
-        return inflater.cloneInContext(themedContext)
-            .inflate(
-                com.ordolabs.feature_home.R.layout.color_data_details_fragment,
-                container,
-                false
-            )
+        return fInflater.inflate(R.layout.color_data_details_fragment, container, false)
     }
 
     override fun onDestroy() {
@@ -220,7 +214,7 @@ class ColorDataDetailsFragment : BaseFragment() {
 
     private fun animContentVisibility(visible: Boolean, instant: Boolean = false) {
         val content = binding.content
-        val translation = resources.getDimension(R.dimen.offset_8)
+        val translation = resources.getDimension(RApp.dimen.offset_8)
         if (visible) content.translationY = translation
         val translationY = 0f to translation by visible
         val alpha = 1f to 0f by visible

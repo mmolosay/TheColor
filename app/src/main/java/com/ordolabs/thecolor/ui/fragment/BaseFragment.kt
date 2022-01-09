@@ -34,12 +34,10 @@ abstract class BaseFragment : Fragment {
         super.onCreate(savedInstanceState)
         initialSoftInputMode // initialize
         updateSoftInputMode()
-        parseArguments()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         setUp()
         setViews()
     }
@@ -66,14 +64,6 @@ abstract class BaseFragment : Fragment {
      */
     protected open fun getSoftInputMode(): Int? =
         null
-
-    /**
-     * Parses [Fragment.getArguments].
-     * Being called in [Fragment.onCreate] method.
-     */
-    protected open fun parseArguments() {
-        // override me
-    }
 
     /**
      * Configures non-view components.
