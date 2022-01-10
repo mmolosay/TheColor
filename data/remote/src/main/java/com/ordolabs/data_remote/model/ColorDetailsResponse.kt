@@ -2,7 +2,7 @@
 
 package com.ordolabs.data_remote.model
 
-data class GetColorInformationResponse(
+data class ColorDetailsResponse(
     val hex: HexModelResponse?,
     val rgb: RgbModelResponse?,
     val hsl: HslModelResponse?,

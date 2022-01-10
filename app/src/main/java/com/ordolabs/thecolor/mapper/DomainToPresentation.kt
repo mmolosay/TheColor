@@ -1,7 +1,9 @@
 package com.ordolabs.thecolor.mapper
 
 import com.ordolabs.domain.model.ColorDetails
+import com.ordolabs.domain.model.ColorScheme
 import com.ordolabs.thecolor.model.ColorDetailsPresentation
+import com.ordolabs.thecolor.model.ColorSchemePresentation
 
 fun ColorDetails.toPresentation() = ColorDetailsPresentation(
     hexValue = this.hexValue,
@@ -59,3 +61,12 @@ fun ColorDetails.toPresentation() = ColorDetailsPresentation(
 
     contrastHex = this.contrastHex
 )
+
+fun ColorScheme.toPresentation() = ColorSchemePresentation(
+    mode = this.mode?.toPresentation(),
+    colors = this.colors?.map { it.toPresentation() },
+    seed = this.seed?.toPresentation()
+)
+
+fun ColorScheme.SchemeMode.toPresentation() =
+    ColorSchemePresentation.SchemeMode.values()[this.ordinal]

@@ -4,15 +4,18 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDataSchemeFragmentBinding
 import com.ordolabs.feature_home.ui.fragment.colordata.base.BaseColorDataFragment
+import com.ordolabs.thecolor.model.ColorSchemePresentation
 import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
 
-class ColorDataSchemeFragment : BaseColorDataFragment<Unit /* TODO: type */>() {
+class ColorDataSchemeFragment :
+    BaseColorDataFragment<ColorSchemePresentation>() {
 
-    private val binding: ColorDataSchemeFragmentBinding by viewBinding()
+    private val binding: ColorDataSchemeFragmentBinding by viewBinding(CreateMethod.BIND)
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -32,8 +35,8 @@ class ColorDataSchemeFragment : BaseColorDataFragment<Unit /* TODO: type */>() {
         // impl me
     }
 
-    override fun populateViews(data: Unit) {
-        // TODO: impl me
+    override fun populateViews(data: ColorSchemePresentation) {
+        binding.text.text = "It works!"
     }
 
     companion object {
