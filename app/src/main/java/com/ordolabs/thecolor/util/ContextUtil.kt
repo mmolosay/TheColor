@@ -6,6 +6,7 @@ import androidx.annotation.IdRes
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import com.github.michaelbull.result.Result
+import com.github.michaelbull.result.get
 import com.github.michaelbull.result.getOrElse
 import com.ordolabs.thecolor.util.ext.commit
 import com.ordolabs.thecolor.util.ext.error
@@ -35,6 +36,13 @@ object ContextUtil {
     ): Result<Fragment, Throwable> {
         return fm.findFragmentById(containerId)
             .toResultOrError { "no fragment with id=$containerId" }
+    }
+
+    fun findFragmentByIdOrNull(
+        fm: FragmentManager,
+        @IdRes containerId: Int
+    ): Fragment? {
+        return findFragmentById(fm, containerId).get()
     }
 
     fun findFragmentByTag(

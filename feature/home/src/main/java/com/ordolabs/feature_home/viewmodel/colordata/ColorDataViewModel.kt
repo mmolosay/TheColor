@@ -1,14 +1,9 @@
-package com.ordolabs.feature_home.viewmodel
+package com.ordolabs.feature_home.viewmodel.colordata
 
 import androidx.lifecycle.viewModelScope
-import com.ordolabs.domain.usecase.remote.GetColorInformationBaseUseCase
 import com.ordolabs.feature_home.ui.adapter.pager.ColorDataPagerAdapter
-import com.ordolabs.thecolor.mapper.toPresentation
-import com.ordolabs.thecolor.model.ColorDetailsPresentation
 import com.ordolabs.thecolor.util.ColorUtil.Color
 import com.ordolabs.thecolor.util.MutableStateResourceFlow
-import com.ordolabs.thecolor.util.ext.catchFailureIn
-import com.ordolabs.thecolor.util.ext.setEmpty
 import com.ordolabs.thecolor.util.ext.setLoading
 import com.ordolabs.thecolor.util.ext.setSuccess
 import com.ordolabs.thecolor.util.ext.shareOnceIn
@@ -19,17 +14,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 
 // TODO: check and rename all color data names to display their
 //  purpose properly after inplementing schemes feature.
-class ColorDataViewModel(
-    private val getColorInformationUseCase: GetColorInformationBaseUseCase
-) : BaseViewModel() {
-
-    private val _details =
-        MutableStateResourceFlow<ColorDetailsPresentation>(Resource.empty())
-    val details = _details.asStateFlow()
+class ColorDataViewModel : BaseViewModel() {
 
     private val _scheme =
         MutableStateResourceFlow<Unit>(Resource.empty()) // TODO: type
@@ -38,7 +26,6 @@ class ColorDataViewModel(
     private val _changePageCommand: MutableStateFlow<Resource<ColorDataPagerAdapter.Page>>
     val changePageCommand: SharedFlow<Resource<ColorDataPagerAdapter.Page>>
 
-    private var fetchColorDetailsJob: Job? = null
     private var fetchColorSchemeJob: Job? = null
 
     init {
@@ -48,25 +35,7 @@ class ColorDataViewModel(
 
     override fun onCleared() {
         super.onCleared()
-        fetchColorDetailsJob?.cancel()
         fetchColorSchemeJob?.cancel()
-    }
-
-    fun fetchColorData(color: Color) {
-        fetchColorDetails(color)
-        fetchColorScheme(color)
-    }
-
-    fun fetchColorDetails(color: Color) = launch {
-        restartFetchingColorInformation().join()
-        fetchColorDetailsJob = launchInIO {
-            getColorInformationUseCase.invoke(color.hex)
-                .catchFailureIn(_details)
-                .collect { colorInfo ->
-                    val info = colorInfo.toPresentation()
-                    _details.setSuccess(info)
-                }
-        }
     }
 
     fun fetchColorScheme(color: Color) = launch {
@@ -78,15 +47,6 @@ class ColorDataViewModel(
 
     fun changeDataPage(dest: ColorDataPagerAdapter.Page) {
         _changePageCommand.setSuccess(dest)
-    }
-
-    fun clearColorInformation() {
-        _details.setEmpty()
-    }
-
-    private fun restartFetchingColorInformation() = launchInMain {
-        fetchColorDetailsJob?.cancel()
-        _details.setLoading()
     }
 
     private fun restartFetchingColorScheme() = launchInMain {

@@ -1,15 +1,15 @@
 package com.ordolabs.domain.usecase.remote
 
-import com.ordolabs.domain.model.ColorInformation
+import com.ordolabs.domain.model.ColorDetails
 import com.ordolabs.domain.repository.IColorRemoteRepository
 import com.ordolabs.domain.usecase.BaseUseCase
 
-typealias GetColorInformationBaseUseCase = BaseUseCase<String, ColorInformation>
+typealias GetColorDetailsBaseUseCase = BaseUseCase<String, ColorDetails>
 
-class GetColorInformationUseCase(
+class GetColorDetailsUseCase(
     private val colorRemoteRepository: IColorRemoteRepository
-) : GetColorInformationBaseUseCase {
+) : GetColorDetailsBaseUseCase {
 
     override suspend fun invoke(param: String) =
-        colorRemoteRepository.fetchColorInformation(param)
+        colorRemoteRepository.fetchColorDetails(param)
 }

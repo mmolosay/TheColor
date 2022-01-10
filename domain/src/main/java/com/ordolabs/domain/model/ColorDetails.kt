@@ -1,6 +1,6 @@
 package com.ordolabs.domain.model
 
-data class ColorInformation(
+data class ColorDetails(
     val hexValue: String?,
     val hexClean: String?,
 

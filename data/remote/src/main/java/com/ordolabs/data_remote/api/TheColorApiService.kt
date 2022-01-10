@@ -13,7 +13,7 @@ import retrofit2.http.Query
 interface TheColorApiService {
 
     @GET("id")
-    suspend fun getColorInformation(
+    suspend fun getColorDetails(
         @Query("hex") hex: String? = null,
         @Query("rgb") rgb: String? = null,
         @Query("hsl") hsl: String? = null,

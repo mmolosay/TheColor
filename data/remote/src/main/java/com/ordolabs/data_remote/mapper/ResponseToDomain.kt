@@ -1,9 +1,9 @@
 package com.ordolabs.data_remote.mapper
 
 import com.ordolabs.data_remote.model.GetColorInformationResponse
-import com.ordolabs.domain.model.ColorInformation
+import com.ordolabs.domain.model.ColorDetails
 
-fun GetColorInformationResponse.toDomain() = ColorInformation(
+fun GetColorInformationResponse.toDomain() = ColorDetails(
     hexValue = this.hex?.value,
     hexClean = this.hex?.clean,
 

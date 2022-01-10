@@ -1,12 +1,14 @@
 package com.ordolabs.feature_home.di
 
 import androidx.lifecycle.SavedStateHandle
-import com.ordolabs.di.GET_COLOR_INFORMATION_USE_CASE
+import com.ordolabs.di.GET_COLOR_DETAILS_USE_CASE
 import com.ordolabs.di.VALIDATE_COLOR_HEX_USE_CASE
 import com.ordolabs.di.VALIDATE_COLOR_RGB_USE_CASE
-import com.ordolabs.feature_home.viewmodel.ColorDataViewModel
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
 import com.ordolabs.feature_home.viewmodel.HomeViewModel
+import com.ordolabs.feature_home.viewmodel.colordata.ColorDataViewModel
+import com.ordolabs.feature_home.viewmodel.colordata.details.ColorDetailsObtainViewModel
+import com.ordolabs.feature_home.viewmodel.colordata.details.ColorDetailsViewModel
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -26,9 +28,21 @@ val featureHomeModule = module {
         )
     }
 
+    // region Color Data
+
     viewModel {
-        ColorDataViewModel(
-            getColorInformationUseCase = get(named(GET_COLOR_INFORMATION_USE_CASE))
+        ColorDataViewModel()
+    }
+
+    viewModel {
+        ColorDetailsObtainViewModel(
+            getColorDetailsUseCase = get(named(GET_COLOR_DETAILS_USE_CASE))
         )
     }
+
+    viewModel {
+        ColorDetailsViewModel()
+    }
+
+    // endregion
 }

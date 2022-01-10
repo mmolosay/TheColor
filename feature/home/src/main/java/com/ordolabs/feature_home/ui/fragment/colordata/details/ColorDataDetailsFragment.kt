@@ -1,4 +1,4 @@
-package com.ordolabs.feature_home.ui.fragment.colordata
+package com.ordolabs.feature_home.ui.fragment.colordata.details
 
 import android.content.res.ColorStateList
 import android.graphics.Color
@@ -12,22 +12,23 @@ import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDataDetailsFragmentBinding
-import com.ordolabs.feature_home.viewmodel.ColorDataViewModel
-import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
+import com.ordolabs.feature_home.ui.fragment.colordata.base.BaseColorDataFragment
+import com.ordolabs.feature_home.viewmodel.colordata.details.ColorDetailsViewModel
 import com.ordolabs.thecolor.model.ColorDetailsPresentation
-import com.ordolabs.thecolor.util.ColorUtil
+import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
 import com.ordolabs.thecolor.util.ext.getStringYesOrNo
 import com.ordolabs.thecolor.util.ext.makeArgumentsKey
 import com.ordolabs.thecolor.util.ext.setTextOrGoneWith
-import com.ordolabs.thecolor.util.struct.getOrNull
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
-// TODO: move "exact value" functionallity out from fragment; should only display passed data
-class ColorDataDetailsFragment : BaseColorDataFragment<ColorDetailsPresentation>() {
+/**
+ * [BaseColorDataFragment] that displays [ColorDetailsPresentation] data.
+ */
+class ColorDataDetailsFragment :
+    BaseColorDataFragment<ColorDetailsPresentation>() {
 
     private val binding: ColorDataDetailsFragmentBinding by viewBinding(CreateMethod.BIND)
-    private val colorInputVM: ColorInputViewModel by sharedViewModel()
-    private val colorInfoVM: ColorDataViewModel by sharedViewModel()
+    private val colorDetailsVM: ColorDetailsViewModel by sharedViewModel()
 
     private var colorDetails: ColorDetailsPresentation? = null
 
@@ -42,17 +43,8 @@ class ColorDataDetailsFragment : BaseColorDataFragment<ColorDetailsPresentation>
         savedInstanceState: Bundle?
     ): View? {
         // inherit container view group theme
-        val fInflater = if (container != null) {
-            inflater.cloneInContext(container.context)
-        } else {
-            inflater
-        }
-        return fInflater.inflate(R.layout.color_data_details_fragment, container, false)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        colorInfoVM.clearColorInformation()
+        return inflater.cloneInViewContext(container)
+            .inflate(R.layout.color_data_details_fragment, container, false)
     }
 
     private fun parseArguments() {
@@ -67,7 +59,7 @@ class ColorDataDetailsFragment : BaseColorDataFragment<ColorDetailsPresentation>
     }
 
     override fun collectViewModelsData() {
-        collectColorPreview()
+        // nothing is here
     }
 
     override fun setViews() {
@@ -170,8 +162,7 @@ class ColorDataDetailsFragment : BaseColorDataFragment<ColorDetailsPresentation>
             exactColor.backgroundTintList = ColorStateList.valueOf(color)
             exactLink.setOnClickListener {
                 exact ?: return@setOnClickListener
-                val exactColor = ColorUtil.Color(hex = exact)
-                colorInfoVM.fetchColorDetails(exactColor)
+                colorDetailsVM.getExactColor(exact)
             }
         }
 
@@ -181,16 +172,6 @@ class ColorDataDetailsFragment : BaseColorDataFragment<ColorDetailsPresentation>
             deviationGroup.isVisible = hasData
             if (!hasData) return
             deviationValue.text = details.exactNameHexDistance.toString()
-        }
-
-    private fun collectColorPreview() =
-        colorInputVM.colorPreview.collectOnLifecycle { resource ->
-            resource.ifSuccess { colorPreview ->
-                val info = colorInfoVM.details.value.getOrNull() ?: return@ifSuccess
-                if (!colorPreview.color.equals(colorDetails?.hexValue)) { // info for another color
-                    colorInfoVM.clearColorInformation()
-                }
-            }
         }
 
     companion object {

@@ -10,3 +10,8 @@ fun Resources.getStringYesOrNo(yes: Boolean): String {
         getString(R.string.generic_no)
     }
 }
+
+fun Resources.getStringOrNull(res: Int): String? =
+    Result.runCatching {
+        getString(res)
+    }.getOrNull()

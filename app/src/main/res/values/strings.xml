@@ -15,8 +15,8 @@
 
     <!-- region Error -->
 
-    <string name="error_check_internet_connection">Check Internet connection</string>
-    <string name="error_unknown">Sory, an error occurred, try again later</string>
+    <string name="error_lost_internet_connection">Check Internet connection</string>
+    <string name="error_unhandled">Sory, an unhandled error occurred :&lt;</string> <!-- :< -->
 
     <!-- endregion -->
 

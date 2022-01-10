@@ -1,9 +1,9 @@
 package com.ordolabs.thecolor.mapper
 
-import com.ordolabs.domain.model.ColorInformation
+import com.ordolabs.domain.model.ColorDetails
 import com.ordolabs.thecolor.model.ColorDetailsPresentation
 
-fun ColorInformation.toPresentation() = ColorDetailsPresentation(
+fun ColorDetails.toPresentation() = ColorDetailsPresentation(
     hexValue = this.hexValue,
     hexClean = this.hexClean,
 

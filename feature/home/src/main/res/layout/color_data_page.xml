@@ -1,54 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/content"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
     tools:background="#0047AB"
     tools:layout_height="wrap_content"
     tools:theme="@style/ThemeOverlay.TheColor.Dark">
 
-    <androidx.appcompat.widget.LinearLayoutCompat
-        android:id="@+id/content"
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@id/defaultFragmentContainer"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center_horizontal"
-        android:orientation="vertical">
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        tools:layout="@layout/color_data_details_obtain_fragment" />
 
-        <androidx.fragment.app.FragmentContainerView
-            android:id="@id/defaultFragmentContainer"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            tools:layout="@layout/color_data_details_fragment" />
-
-        <Button
-            android:id="@+id/changePageBtn"
-            style="@style/Widget.Button.Outlined.OnBackground"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/offset_16"
-            android:layout_marginTop="@dimen/offset_16"
-            android:layout_marginBottom="@dimen/offset_16"
-            tools:text="@string/color_data_details_page_change_page_btn" />
-
-    </androidx.appcompat.widget.LinearLayoutCompat>
-
-    <include
-        android:id="@+id/noContent"
-        layout="@layout/include_color_information_no_content"
-        android:layout_width="match_parent"
+    <Button
+        android:id="@+id/changePageBtn"
+        style="@style/Widget.Button.Outlined.OnBackground"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginHorizontal="@dimen/offset_32"
-        android:visibility="gone"
-        tools:visibility="visible" />
+        android:layout_marginHorizontal="@dimen/offset_16"
+        android:layout_marginTop="@dimen/offset_16"
+        android:layout_marginBottom="@dimen/offset_16"
+        tools:text="@string/color_data_details_page_change_page_btn" />
 
-    <!-- TODO: change shimmer layout for each page -->
-    <include
-        android:id="@+id/contentShimmer"
-        layout="@layout/color_data_details_shimmer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone" />
-
-</FrameLayout>
+</androidx.appcompat.widget.LinearLayoutCompat>

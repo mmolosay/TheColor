@@ -5,6 +5,7 @@ import android.view.View
 import androidx.annotation.CallSuper
 import androidx.annotation.IdRes
 import androidx.annotation.LayoutRes
+import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -22,6 +23,9 @@ abstract class BaseFragment : Fragment {
 
     @IdRes
     open val defaultFragmentContainerId: Int = R.id.defaultFragmentContainer
+
+    @StringRes
+    open val defaultUnhandledErrorTextRes = R.string.error_unhandled
 
     /**
      * Initial soft input mode, which `activity` had before adding `this` fragment.

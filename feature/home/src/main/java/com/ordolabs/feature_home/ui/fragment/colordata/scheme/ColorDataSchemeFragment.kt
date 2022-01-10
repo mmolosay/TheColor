@@ -1,4 +1,4 @@
-package com.ordolabs.feature_home.ui.fragment.colordata
+package com.ordolabs.feature_home.ui.fragment.colordata.scheme
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -7,6 +7,8 @@ import android.view.ViewGroup
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDataSchemeFragmentBinding
+import com.ordolabs.feature_home.ui.fragment.colordata.base.BaseColorDataFragment
+import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
 
 class ColorDataSchemeFragment : BaseColorDataFragment<Unit /* TODO: type */>() {
 
@@ -18,12 +20,8 @@ class ColorDataSchemeFragment : BaseColorDataFragment<Unit /* TODO: type */>() {
         savedInstanceState: Bundle?
     ): View? {
         // inherit container view group theme
-        val fInflater = if (container != null) {
-            inflater.cloneInContext(container.context)
-        } else {
-            inflater
-        }
-        return fInflater.inflate(R.layout.color_data_scheme_fragment, container, false)
+        return inflater.cloneInViewContext(container)
+            .inflate(R.layout.color_data_scheme_fragment, container, false)
     }
 
     override fun collectViewModelsData() {
