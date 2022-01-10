@@ -22,6 +22,7 @@ import com.ordolabs.thecolor.util.ext.setTextOrGoneWith
 import com.ordolabs.thecolor.util.struct.getOrNull
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
+// TODO: move "exact value" functionallity out from fragment; should only display passed data
 class ColorDataDetailsFragment : BaseColorDataFragment<ColorDetailsPresentation>() {
 
     private val binding: ColorDataDetailsFragmentBinding by viewBinding(CreateMethod.BIND)
