@@ -1,4 +1,4 @@
-package com.ordolabs.feature_home.ui.fragment.colordata.details
+package com.ordolabs.feature_home.ui.fragment.colordata
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -6,23 +6,22 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
+import androidx.fragment.app.Fragment
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
-import com.ordolabs.feature_home.databinding.ColorDataDetailsObtainFragmentBinding
-import com.ordolabs.feature_home.ui.fragment.colordata.IColorThemed
+import com.ordolabs.feature_home.databinding.ColorDataObtainFragmentBinding
 import com.ordolabs.feature_home.ui.fragment.colordata.base.BaseColorDataFragment
 import com.ordolabs.feature_home.ui.fragment.colordata.base.IColorDataFragment
-import com.ordolabs.feature_home.viewmodel.colordata.details.ColorDetailsObtainViewModel
-import com.ordolabs.thecolor.model.ColorDetailsPresentation
 import com.ordolabs.thecolor.util.ColorUtil
 import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
 import com.ordolabs.thecolor.util.ext.by
 import com.ordolabs.thecolor.util.ext.mediumAnimDuration
 import com.ordolabs.thecolor.util.ext.setFragment
 import com.ordolabs.thecolor.util.ext.showToast
-import org.koin.androidx.viewmodel.ext.android.viewModel
+import com.ordolabs.thecolor.util.struct.Resource
+import kotlinx.coroutines.flow.Flow
 import java.net.UnknownHostException
 
 /**
@@ -30,17 +29,25 @@ import java.net.UnknownHostException
  * and passes it to child 'display-data-only' Fragment.
  * Displays loading, failure and success obtaining states.
  */
-class ColorDataDetailsObtainFragment :
-    BaseColorDataFragment<ColorDetailsPresentation>(),
+abstract class ColorDataObtainFragment<D> :
+    BaseColorDataFragment<D>(),
     IColorThemed {
 
     override val color: ColorUtil.Color?
         get() = (parentFragment as? IColorThemed)?.color
 
-    private val binding: ColorDataDetailsObtainFragmentBinding by viewBinding(CreateMethod.BIND)
-    private val colorDetailsObtainVM: ColorDetailsObtainViewModel by viewModel() // independent, brand new ViewModel
+    private val binding: ColorDataObtainFragmentBinding by viewBinding(CreateMethod.BIND)
 
-    private var dataFragment: IColorDataFragment<ColorDetailsPresentation>? = null
+    private var dataFragment: IColorDataFragment<D>? = null
+
+    // region Abstract
+
+    abstract fun getColorDataFlow(): Flow<Resource<D>>
+    abstract fun obtainColorData()
+    abstract fun makeColorDataFragment(): BaseColorDataFragment<D>
+    abstract fun makeContentShimmerFragment(): Fragment
+
+    // endregion
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,7 +60,7 @@ class ColorDataDetailsObtainFragment :
         savedInstanceState: Bundle?
     ): View? {
         return inflater.cloneInViewContext(container)
-            .inflate(R.layout.color_data_details_obtain_fragment, container, false)
+            .inflate(R.layout.color_data_obtain_fragment, container, false)
     }
 
     override fun onDestroy() {
@@ -62,21 +69,26 @@ class ColorDataDetailsObtainFragment :
     }
 
     override fun collectViewModelsData() {
-        collectColorDetails()
-        collectCoroutineException()
+        collectColorData()
     }
 
     override fun setViews() {
-        setColorDataDetailsFragment()
+        setColorDataFragment()
+        setContentShimmerFragment()
         setRetryBtn()
     }
 
     // region Settings views
 
-    private fun setColorDataDetailsFragment() {
-        val fragment = ColorDataDetailsFragment.newInstance(colorDetails = null)
+    private fun setColorDataFragment() {
+        val fragment = makeColorDataFragment()
         setFragment(fragment)
         this.dataFragment = fragment
+    }
+
+    private fun setContentShimmerFragment() {
+        val fragment = makeContentShimmerFragment()
+        setFragment(fragment, binding.contentShimmerFragmentContainer.id)
     }
 
     private fun setRetryBtn() {
@@ -91,19 +103,19 @@ class ColorDataDetailsObtainFragment :
 
     private fun showContentView() {
         binding.defaultFragmentContainer.isVisible = true
-        binding.contentShimmer.root.isVisible = false
+        binding.contentShimmerFragmentContainer.isVisible = false
         binding.noContent.root.isVisible = false
     }
 
     private fun showLoadingView() {
         binding.defaultFragmentContainer.isVisible = false
-        binding.contentShimmer.root.isVisible = true
+        binding.contentShimmerFragmentContainer.isVisible = true
         binding.noContent.root.isVisible = false
     }
 
     private fun showNoContentView() {
         binding.defaultFragmentContainer.isVisible = false
-        binding.contentShimmer.root.isVisible = false
+        binding.contentShimmerFragmentContainer.isVisible = false
         binding.noContent.root.isVisible = true
     }
 
@@ -130,43 +142,43 @@ class ColorDataDetailsObtainFragment :
 
     // endregion
 
-    // region Other
+    // region IColorDataFragment
 
-    private fun obtainColorData() {
-        val color = color ?: return
-        colorDetailsObtainVM.getColorDetails(color)
+    // delegates
+    override fun populateViews(data: D) {
+        dataFragment?.populateViews(data)
     }
 
     // endregion
 
-    private fun collectColorDetails() =
-        colorDetailsObtainVM.details.collectOnLifecycle { resource ->
+    private fun collectColorData() =
+        getColorDataFlow().collectOnLifecycle { resource ->
             resource.fold(
-                onEmpty = ::onColorDetailsEmpty,
-                onLoading = ::onColorDetailsLoading,
-                onSuccess = ::onColorDetailsSuccess,
-                onFailure = ::onColorDetailsFailure
+                onEmpty = ::onColorDataEmpty,
+                onLoading = ::onColorDataLoading,
+                onSuccess = ::onColorDataSuccess,
+                onFailure = ::onColorDataFailure
             )
         }
 
     @Suppress("UNUSED_PARAMETER")
-    private fun onColorDetailsEmpty(previous: ColorDetailsPresentation?) {
+    private fun onColorDataEmpty(previous: D?) {
         animContentVisibility(visible = false)
     }
 
     @Suppress("UNUSED_PARAMETER")
-    private fun onColorDetailsLoading(previous: ColorDetailsPresentation?) {
+    private fun onColorDataLoading(previous: D?) {
         showLoadingView()
     }
 
-    private fun onColorDetailsSuccess(data: ColorDetailsPresentation) {
+    private fun onColorDataSuccess(data: D) {
         populateViews(data)
         animContentVisibility(visible = true)
     }
 
     @Suppress("UNUSED_PARAMETER")
-    private fun onColorDetailsFailure(
-        previous: ColorDetailsPresentation?,
+    private fun onColorDataFailure(
+        previous: D?,
         payload: Any?,
         error: Throwable
     ) {
@@ -174,24 +186,5 @@ class ColorDataDetailsObtainFragment :
             is UnknownHostException -> showNoContentView()
             else -> showToast(error.localizedMessage)
         }
-    }
-
-    private fun collectCoroutineException() =
-        colorDetailsObtainVM.coroutineExceptionMessageRes.collectOnLifecycle { stringRes ->
-            showToast(stringRes)
-        }
-
-    // region IColorDataFragment
-
-    // delegates
-    override fun populateViews(data: ColorDetailsPresentation) {
-        dataFragment?.populateViews(data)
-    }
-
-    // endregion
-
-    companion object {
-        fun newInstance() =
-            ColorDataDetailsObtainFragment()
     }
 }

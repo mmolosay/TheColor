@@ -6,7 +6,7 @@ import com.ordolabs.feature_home.ui.adapter.pager.ColorDataPagerAdapter
 /**
  * Interface for color data page fragment.
  */
-interface IColorDataPage<D> {
+interface IColorDataPage {
 
     val page: ColorDataPagerAdapter.Page
 

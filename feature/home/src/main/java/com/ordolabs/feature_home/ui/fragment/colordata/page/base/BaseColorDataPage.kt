@@ -19,9 +19,9 @@ import com.ordolabs.thecolor.util.ext.setFragment
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import com.ordolabs.thecolor.R as RApp
 
-abstract class BaseColorDataPage<D> :
+abstract class BaseColorDataPage :
     BaseFragment(),
-    IColorDataPage<D>,
+    IColorDataPage,
     IColorThemed {
 
     private val binding: ColorDataPageBinding by viewBinding(CreateMethod.BIND)

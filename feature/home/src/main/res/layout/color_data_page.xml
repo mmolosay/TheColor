@@ -15,7 +15,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        tools:layout="@layout/color_data_details_obtain_fragment" />
+        tools:layout="@layout/color_data_obtain_fragment" />
 
     <Button
         android:id="@+id/changePageBtn"

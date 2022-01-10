@@ -8,11 +8,11 @@
         android:id="@id/defaultFragmentContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        tools:layout="@layout/color_data_details_fragment" />
+        tools:layout="@layout/color_details_fragment" />
 
     <include
         android:id="@+id/noContent"
-        layout="@layout/include_color_data_no_content"
+        layout="@layout/color_data_obtain_no_content_include"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
@@ -20,13 +20,13 @@
         android:visibility="gone"
         tools:visibility="visible" />
 
-    <include
-        android:id="@+id/contentShimmer"
-        layout="@layout/color_data_details_shimmer"
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/contentShimmerFragmentContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="top|center_horizontal"
         android:visibility="gone"
+        tools:layout="@layout/color_details_shimmer_fragment"
         tools:visibility="gone" />
 
 </FrameLayout>

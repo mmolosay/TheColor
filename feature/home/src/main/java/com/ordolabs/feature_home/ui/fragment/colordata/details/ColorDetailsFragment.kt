@@ -11,7 +11,7 @@ import androidx.core.view.isVisible
 import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
-import com.ordolabs.feature_home.databinding.ColorDataDetailsFragmentBinding
+import com.ordolabs.feature_home.databinding.ColorDetailsFragmentBinding
 import com.ordolabs.feature_home.ui.fragment.colordata.base.BaseColorDataFragment
 import com.ordolabs.feature_home.viewmodel.colordata.details.ColorDetailsViewModel
 import com.ordolabs.thecolor.model.ColorDetailsPresentation
@@ -24,10 +24,10 @@ import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 /**
  * [BaseColorDataFragment] that displays [ColorDetailsPresentation] data.
  */
-class ColorDataDetailsFragment :
+class ColorDetailsFragment :
     BaseColorDataFragment<ColorDetailsPresentation>() {
 
-    private val binding: ColorDataDetailsFragmentBinding by viewBinding(CreateMethod.BIND)
+    private val binding: ColorDetailsFragmentBinding by viewBinding(CreateMethod.BIND)
     private val colorDetailsVM: ColorDetailsViewModel by sharedViewModel()
 
     private var colorDetails: ColorDetailsPresentation? = null
@@ -44,7 +44,7 @@ class ColorDataDetailsFragment :
     ): View? {
         // inherit container view group theme
         return inflater.cloneInViewContext(container)
-            .inflate(R.layout.color_data_details_fragment, container, false)
+            .inflate(R.layout.color_details_fragment, container, false)
     }
 
     private fun parseArguments() {
@@ -177,10 +177,10 @@ class ColorDataDetailsFragment :
     companion object {
 
         private val ARGUMENT_KEY_COLOR_DETAILS =
-            "ARGUMENT_KEY_COLOR_DETAILS".makeArgumentsKey<ColorDataDetailsFragment>()
+            "ARGUMENT_KEY_COLOR_DETAILS".makeArgumentsKey<ColorDetailsFragment>()
 
         fun newInstance(colorDetails: ColorDetailsPresentation?) =
-            ColorDataDetailsFragment().apply {
+            ColorDetailsFragment().apply {
                 arguments = bundleOf(
                     ARGUMENT_KEY_COLOR_DETAILS to colorDetails
                 )
