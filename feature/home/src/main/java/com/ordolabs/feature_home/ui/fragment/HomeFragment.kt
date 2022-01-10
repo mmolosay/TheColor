@@ -21,7 +21,7 @@ import androidx.core.view.isVisible
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
-import com.ordolabs.feature_home.databinding.FragmentHomeBinding
+import com.ordolabs.feature_home.databinding.HomeFragmentBinding
 import com.ordolabs.feature_home.di.featureHomeModule
 import com.ordolabs.feature_home.ui.fragment.colordata.ColorDataPagerFragment
 import com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputHostFragment
@@ -53,9 +53,9 @@ import org.koin.core.context.loadKoinModules
 import com.google.android.material.R as RMaterial
 import com.ordolabs.thecolor.R as RApp
 
-class HomeFragment : BaseFragment(R.layout.fragment_home) {
+class HomeFragment : BaseFragment(R.layout.home_fragment) {
 
-    private val binding: FragmentHomeBinding by viewBinding()
+    private val binding: HomeFragmentBinding by viewBinding()
     private val homeVM: HomeViewModel by sharedViewModel()
     private val colorInputVM: ColorInputViewModel by sharedViewModel()
 
