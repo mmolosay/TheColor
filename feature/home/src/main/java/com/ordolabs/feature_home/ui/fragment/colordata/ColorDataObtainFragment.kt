@@ -25,8 +25,7 @@ import kotlinx.coroutines.flow.Flow
 import java.net.UnknownHostException
 
 /**
- * Fragment that obtains [color] data in `ViewModel`
- * and passes it to child 'display-data-only' Fragment.
+ * Obtains [color] data of type [D] and passes it to child 'display-data-only' Fragment.
  * Displays loading, failure and success obtaining states.
  */
 abstract class ColorDataObtainFragment<D> :
@@ -39,6 +38,7 @@ abstract class ColorDataObtainFragment<D> :
     private val binding: ColorDataObtainFragmentBinding by viewBinding(CreateMethod.BIND)
 
     private var dataFragment: IColorDataFragment<D>? = null
+    private var wasOnResumeCalled: Boolean = false
 
     // region Abstract
 
@@ -49,11 +49,6 @@ abstract class ColorDataObtainFragment<D> :
 
     // endregion
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        obtainColorData()
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -61,6 +56,14 @@ abstract class ColorDataObtainFragment<D> :
     ): View? {
         return inflater.cloneInViewContext(container)
             .inflate(R.layout.color_data_obtain_fragment, container, false)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (!wasOnResumeCalled) {
+            obtainColorData()
+            this.wasOnResumeCalled = true
+        }
     }
 
     override fun onDestroy() {
