@@ -23,11 +23,11 @@ import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.HomeFragmentBinding
 import com.ordolabs.feature_home.di.featureHomeModule
 import com.ordolabs.feature_home.ui.fragment.colordata.ColorDataPagerFragment
-import com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputHostFragment
-import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
-import com.ordolabs.feature_home.viewmodel.ColorInputViewModel.ColorPreview
+import com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputPagerFragment
 import com.ordolabs.feature_home.viewmodel.HomeViewModel
 import com.ordolabs.feature_home.viewmodel.colordata.details.ColorDetailsViewModel
+import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
+import com.ordolabs.thecolor.model.color.ColorPreview
 import com.ordolabs.thecolor.util.AnimationUtils
 import com.ordolabs.thecolor.util.ext.bindPropertyAnimator
 import com.ordolabs.thecolor.util.ext.by
@@ -86,7 +86,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
     }
 
     private fun setColorInputFragment() {
-        val fragment = ColorInputHostFragment.newInstance()
+        val fragment = ColorInputPagerFragment.newInstance()
         setFragment(fragment)
     }
 
@@ -359,17 +359,17 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
         }
     }
 
-    private fun onColorPreviewSuccess(colorPreview: ColorPreview) {
+    private fun onColorPreviewSuccess(preview: ColorPreview) {
         binding.previewWrapper.doOnLayout {
-            val color = colorPreview.color
+            val color = preview.color.color
             val colorInt = color.toColorInt()
-            if (colorPreview.isUserInput) { // collapse only if user changed color manually
+            if (preview.isUserInput) { // collapse only if user changed color manually
                 val colorDataBg = getColorDataContainerBackgroundColor()
                 if (colorInt != colorDataBg) {
                     animColorDataCollapsingOnPreviewSuccess()
                 }
             } else {
-                tintColorDataContanerBackground(colorPreview.color)
+                tintColorDataContanerBackground(color)
             }
             animPreviewColorChanging(colorInt)
             animPreviewResize(collapse = false)
@@ -380,8 +380,8 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
         colorInputVM.procceedCommand.collectOnLifecycle { resource ->
             resource.ifSuccess { color ->
                 hideSoftInput()
-                animInfoSheetExpanding(color)
-                replaceColorDataFragment(color)
+                animInfoSheetExpanding(color.color)
+                replaceColorDataFragment(color.color)
             }
         }
 
@@ -390,7 +390,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
             resource.ifSuccess { exactColor ->
                 val preview = ColorPreview(exactColor, isUserInput = false)
                 colorInputVM.updateColorPreview(preview)
-                replaceColorDataFragment(exactColor)
+                replaceColorDataFragment(exactColor.color)
             }
         }
 

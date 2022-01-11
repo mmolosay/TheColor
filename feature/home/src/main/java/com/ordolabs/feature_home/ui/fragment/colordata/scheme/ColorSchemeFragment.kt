@@ -9,7 +9,7 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorSchemeFragmentBinding
 import com.ordolabs.feature_home.ui.fragment.colordata.base.BaseColorDataFragment
-import com.ordolabs.thecolor.model.ColorSchemePresentation
+import com.ordolabs.thecolor.model.colordata.ColorSchemePresentation
 import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
 
 class ColorSchemeFragment :

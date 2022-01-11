@@ -14,7 +14,7 @@ import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDetailsFragmentBinding
 import com.ordolabs.feature_home.ui.fragment.colordata.base.BaseColorDataFragment
 import com.ordolabs.feature_home.viewmodel.colordata.details.ColorDetailsViewModel
-import com.ordolabs.thecolor.model.ColorDetailsPresentation
+import com.ordolabs.thecolor.model.colordata.ColorDetailsPresentation
 import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
 import com.ordolabs.thecolor.util.ext.getStringYesOrNo
 import com.ordolabs.thecolor.util.ext.makeArgumentsKey

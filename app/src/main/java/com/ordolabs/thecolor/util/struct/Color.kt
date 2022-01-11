@@ -4,29 +4,35 @@ import android.os.Parcelable
 import androidx.annotation.ColorInt
 import androidx.annotation.IntRange
 import com.github.ajalt.colormath.RGB
-import com.ordolabs.thecolor.model.InputHexPresentation
-import com.ordolabs.thecolor.model.InputRgbPresentation
+import com.ordolabs.thecolor.util.ColorUtil.colorHexSignless
+import com.ordolabs.thecolor.util.ColorUtil.isColorHexSigned
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
 /**
- * "Abstract" color model. Actually, holds HEX color value __without number sign__.
- * __Always__ represents a valid color.
+ * __Valid__ color of immaterial color space.
+ * Actually, holds HEX color value __with number sign__.
  *
- * @param [hex] HEX color string __without__ number sign, e.g. "16A8C0".
+ * @param [hex] HEX color string __with__ number sign, e.g. "#16A8C0".
  */
 @Parcelize
 data class Color(
     val hex: String
 ) : Parcelable {
 
+    init {
+        require(hex.isColorHexSigned() == true) { "$hex is not signed HEX color" }
+    }
+
     @IgnoredOnParcel
-    val hexWithNumberSign: String by lazy { '#' + this.hex }
+    val hexSignless: String by lazy {
+        hex.colorHexSignless()!! // already checked that .isColorHex() in init block
+    }
 
     override fun equals(other: Any?): Boolean {
         other ?: return false
         if (other is String) {
-            return (other == hex || other == hexWithNumberSign)
+            return (other == hex || other == hexSignless)
         }
         if (other is Color) {
             return super.equals(other)
@@ -41,39 +47,30 @@ data class Color(
     companion object
 }
 
-fun Color.Companion.from(input: InputHexPresentation): Color? {
-    input.value ?: return null
-    val expanded = when (input.value.length) {
-        3 -> input.value.map { it.toString().repeat(2) }.joinToString(separator = "")
-        6 -> input.value
-        else -> return null
-    }
+fun Color.Companion.fromHex(hex: String?): Color? {
+    hex ?: return null
+    val expanded = RGB(hex).toHex(withNumberSign = true).uppercase()
     return Color(hex = expanded)
 }
 
-fun Color.Companion.from(input: InputRgbPresentation): Color? {
-    if (input.r == null || input.g == null || input.b == null) return null
-    val rgb = RGB(input.r, input.g, input.b)
-    val value = rgb.toHex(withNumberSign = false).uppercase()
+fun Color.Companion.fromRgb(r: Int?, g: Int?, b: Int?): Color? {
+    if (r == null || g == null || b == null) return null
+    val rgb = RGB(r, g, b)
+    val value = rgb.toHex(withNumberSign = true).uppercase()
     return Color(hex = value)
 }
 
-fun Color.toColorHex(): InputHexPresentation {
-    return InputHexPresentation(value = this.hex)
+fun Color.toColorHex(): String {
+    return this.hex
 }
 
-fun Color.toColorRgb(): InputRgbPresentation {
-    val color = RGB(this.hex)
-    return InputRgbPresentation(
-        r = color.r,
-        g = color.g,
-        b = color.b
-    )
+fun Color.toColorRgb(): RGB {
+    return RGB(this.hex)
 }
 
 @ColorInt
 fun Color.toColorInt(): Int {
-    return android.graphics.Color.parseColor(this.hexWithNumberSign)
+    return android.graphics.Color.parseColor(this.hex)
 }
 
 fun Color.isDark(

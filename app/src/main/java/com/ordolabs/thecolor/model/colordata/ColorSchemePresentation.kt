@@ -1,4 +1,4 @@
-package com.ordolabs.thecolor.model
+package com.ordolabs.thecolor.model.colordata
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize

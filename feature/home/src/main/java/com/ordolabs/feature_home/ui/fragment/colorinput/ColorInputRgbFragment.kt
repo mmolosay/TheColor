@@ -5,27 +5,28 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.FragmentColorInputRgbBinding
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
-import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
-import com.ordolabs.feature_home.viewmodel.ColorInputViewModel.ColorPreview
-import com.ordolabs.thecolor.model.InputRgbPresentation
+import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputRgbViewModel
+import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
+import com.ordolabs.thecolor.model.color.ColorRgbPresentation
+import com.ordolabs.thecolor.model.colorinput.ColorInputRgbPresentation
 import com.ordolabs.thecolor.ui.util.inputfilter.PreventingInputFilter
 import com.ordolabs.thecolor.ui.util.inputfilter.RangeInputFilter
 import com.ordolabs.thecolor.util.ext.addFilters
 import com.ordolabs.thecolor.util.ext.getText
 import com.ordolabs.thecolor.util.ext.getTextString
 import com.ordolabs.thecolor.util.ext.setTextPreservingSelection
-import com.ordolabs.thecolor.util.struct.toColorRgb
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 class ColorInputRgbFragment : BaseFragment(R.layout.fragment_color_input_rgb) {
 
     private val binding: FragmentColorInputRgbBinding by viewBinding()
     private val colorInputVM: ColorInputViewModel by sharedViewModel()
+    private val colorInputRgbVM: ColorInputRgbViewModel by sharedViewModel()
 
     private var isTypedByUser = true
 
     override fun collectViewModelsData() {
-        collectColorPreview()
+        collectColorInput()
     }
 
     override fun setViews() {
@@ -59,43 +60,43 @@ class ColorInputRgbFragment : BaseFragment(R.layout.fragment_color_input_rgb) {
         }
 
     private fun validateColorInput() {
-        val color = collectColorInput()
+        val color = makeColorRgbPresentation()
         colorInputVM.validateColor(color)
     }
 
-    private fun collectColorInput(): InputRgbPresentation {
+    private fun makeColorRgbPresentation(): ColorRgbPresentation {
         val r = binding.inputRgbR.getTextString()?.toIntOrNull()
         val g = binding.inputRgbG.getTextString()?.toIntOrNull()
         val b = binding.inputRgbB.getTextString()?.toIntOrNull()
-        return InputRgbPresentation(r, g, b)
+        return ColorRgbPresentation(r, g, b)
     }
 
-    private fun collectColorPreview() =
-        colorInputVM.colorPreview.collectOnLifecycle { resource ->
+    private fun collectColorInput() =
+        colorInputRgbVM.colorRgb.collectOnLifecycle { resource ->
             resource.fold(
-                onEmpty = ::onColorPreviewEmpty,
-                onSuccess = ::onColorPreviewSuccess
+                onEmpty = ::onColorInputEmpty,
+                onSuccess = ::onColorInputSuccess
             )
         }
 
     @Suppress("UNUSED_PARAMETER")
-    private fun onColorPreviewEmpty(previous: ColorPreview?) {
+    private fun onColorInputEmpty(previous: ColorInputRgbPresentation?) {
         if (isResumed) return // prevent user interrupting
-        isTypedByUser = false
+        this.isTypedByUser = false
         binding.inputRgbR.getText()?.clear()
         binding.inputRgbG.getText()?.clear()
         binding.inputRgbB.getText()?.clear()
-        isTypedByUser = true
+        this.isTypedByUser = true
     }
 
-    private fun onColorPreviewSuccess(colorPreview: ColorPreview) {
-        if (isResumed && colorPreview.isUserInput) return // prevent user interrupting
-        val rgb = colorPreview.color.toColorRgb()
-        isTypedByUser = false
-        binding.inputRgbR.editText?.setTextPreservingSelection(rgb.r.toString())
-        binding.inputRgbG.editText?.setTextPreservingSelection(rgb.g.toString())
-        binding.inputRgbB.editText?.setTextPreservingSelection(rgb.b.toString())
-        isTypedByUser = true
+    private fun onColorInputSuccess(input: ColorInputRgbPresentation) {
+        if (isResumed && input.isUserInput) return // prevent user interrupting
+        val color = input.color
+        this.isTypedByUser = false
+        binding.inputRgbR.editText?.setTextPreservingSelection(color.r.toString())
+        binding.inputRgbG.editText?.setTextPreservingSelection(color.g.toString())
+        binding.inputRgbB.editText?.setTextPreservingSelection(color.b.toString())
+        this.isTypedByUser = true
     }
 
     companion object {

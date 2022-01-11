@@ -1,19 +1,20 @@
-package com.ordolabs.feature_home.viewmodel
+package com.ordolabs.feature_home.viewmodel.colorinput
 
 import androidx.lifecycle.viewModelScope
 import com.ordolabs.domain.usecase.local.ValidateColorHexBaseUseCase
 import com.ordolabs.domain.usecase.local.ValidateColorRgbBaseUseCase
 import com.ordolabs.thecolor.mapper.toDomain
-import com.ordolabs.thecolor.model.InputHexPresentation
-import com.ordolabs.thecolor.model.InputRgbPresentation
+import com.ordolabs.thecolor.model.color.ColorHexPresentation
+import com.ordolabs.thecolor.model.color.ColorPresentation
+import com.ordolabs.thecolor.model.color.ColorPreview
+import com.ordolabs.thecolor.model.color.ColorRgbPresentation
+import com.ordolabs.thecolor.model.color.from
 import com.ordolabs.thecolor.util.MutableStateResourceFlow
 import com.ordolabs.thecolor.util.ext.setEmpty
 import com.ordolabs.thecolor.util.ext.setSuccess
 import com.ordolabs.thecolor.util.ext.shareOnceIn
-import com.ordolabs.thecolor.util.struct.Color
 import com.ordolabs.thecolor.util.struct.Resource
 import com.ordolabs.thecolor.util.struct.empty
-import com.ordolabs.thecolor.util.struct.from
 import com.ordolabs.thecolor.util.struct.getOrNull
 import com.ordolabs.thecolor.viewmodel.BaseViewModel
 import kotlinx.coroutines.Job
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 
 class ColorInputViewModel(
+    // TODO: color validation should be performed in separate ViewModel
     private val validateColorHexUseCase: ValidateColorHexBaseUseCase,
     private val validateColorRgbUseCase: ValidateColorRgbBaseUseCase
 ) : BaseViewModel() {
@@ -30,7 +32,7 @@ class ColorInputViewModel(
     private val _colorPreview: MutableStateFlow<Resource<ColorPreview>>
     val colorPreview: StateFlow<Resource<ColorPreview>>
 
-    private val _procceedCommand = MutableStateResourceFlow<Color>(Resource.empty())
+    private val _procceedCommand = MutableStateResourceFlow<ColorPresentation>(Resource.empty())
     val procceedCommand = _procceedCommand.shareOnceIn(viewModelScope)
 
     private var colorValidationJob: Job? = null
@@ -43,25 +45,26 @@ class ColorInputViewModel(
     override fun onCleared() {
         super.onCleared()
         colorValidationJob?.cancel()
-        colorValidationJob = null
     }
 
-    fun validateColor(input: InputHexPresentation) = launch {
-        restartColorValidation().join()
+    fun validateColor(input: ColorHexPresentation) {
+        restartColorValidation()
         val domain = input.toDomain()
-        colorValidationJob = launch {
+        this.colorValidationJob = launch {
             validateColorHexUseCase.invoke(domain).collect { valid ->
-                onColorValidated(valid, Color.from(input))
+                val color = ColorPresentation.from(input)
+                onColorValidated(color, valid)
             }
         }
     }
 
-    fun validateColor(input: InputRgbPresentation) = launch {
-        restartColorValidation().join()
+    fun validateColor(input: ColorRgbPresentation) {
+        restartColorValidation()
         val domain = input.toDomain()
-        colorValidationJob = launch {
+        this.colorValidationJob = launch {
             validateColorRgbUseCase.invoke(domain).collect { valid ->
-                onColorValidated(valid, Color.from(input))
+                val color = ColorPresentation.from(input)
+                onColorValidated(color, valid)
             }
         }
     }
@@ -75,13 +78,17 @@ class ColorInputViewModel(
         _colorPreview.setSuccess(new)
     }
 
-    private fun restartColorValidation() = launchInMain {
+    private fun clearColorPreview() {
+        _colorPreview.setEmpty()
+    }
+
+    private fun restartColorValidation() {
         colorValidationJob?.cancel()
     }
 
     private fun onColorValidated(
-        valid: Boolean,
-        color: Color? = null
+        color: ColorPresentation? = null,
+        valid: Boolean
     ) {
         if (valid && color != null) {
             val new = ColorPreview(color, isUserInput = true)
@@ -90,13 +97,4 @@ class ColorInputViewModel(
             clearColorPreview()
         }
     }
-
-    fun clearColorPreview() {
-        _colorPreview.setEmpty()
-    }
-
-    data class ColorPreview(
-        val color: Color,
-        val isUserInput: Boolean
-    )
 }

@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="@dimen/color_input_pager_height"
     android:clipToPadding="false"
-    tools:context="com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputHostFragment">
+    tools:context="com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputPagerFragment">
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/glStart"
