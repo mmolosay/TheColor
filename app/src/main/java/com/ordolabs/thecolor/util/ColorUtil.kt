@@ -6,6 +6,7 @@ import androidx.annotation.IntRange
 import com.github.ajalt.colormath.RGB
 import com.ordolabs.thecolor.model.InputHexPresentation
 import com.ordolabs.thecolor.model.InputRgbPresentation
+import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 import android.graphics.Color as ColorAndroid
 
@@ -17,11 +18,14 @@ object ColorUtil {
      *
      * @param [hex] HEX color string __without__ number sign, e.g. "16A8C0".
      */
+    // TODO: extract in separate file
     @Parcelize
     data class Color(
         val hex: String
     ) : Parcelable {
-        val hexWithNumberSign: String get() = '#' + this.hex
+
+        @IgnoredOnParcel
+        val hexWithNumberSign: String by lazy { '#' + this.hex }
 
         override fun equals(other: Any?): Boolean {
             other ?: return false

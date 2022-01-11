@@ -28,6 +28,7 @@ import com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputHostFragment
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel.ColorPreview
 import com.ordolabs.feature_home.viewmodel.HomeViewModel
+import com.ordolabs.feature_home.viewmodel.colordata.details.ColorDetailsViewModel
 import com.ordolabs.thecolor.util.AnimationUtils
 import com.ordolabs.thecolor.util.ColorUtil
 import com.ordolabs.thecolor.util.ColorUtil.toColorInt
@@ -58,6 +59,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
     private val binding: HomeFragmentBinding by viewBinding()
     private val homeVM: HomeViewModel by sharedViewModel()
     private val colorInputVM: ColorInputViewModel by sharedViewModel()
+    private val colorDetailsVM: ColorDetailsViewModel by sharedViewModel()
 
     private val previewResizeDest = AnimatorDestination()
 
@@ -74,6 +76,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
     override fun collectViewModelsData() {
         collectColorPreview()
         collectProcceedCommand()
+        collectGetExactColorCommand()
     }
 
     override fun setViews() {
@@ -102,8 +105,16 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
         return binding.colorDataFragmentContainer.backgroundTintList?.defaultColor
     }
 
-    private fun setColorDataContainerBackgroundColor(@ColorInt color: Int) {
-        binding.colorDataFragmentContainer.backgroundTintList = ColorStateList.valueOf(color)
+    private fun tintColorDataContanerBackground(color: ColorUtil.Color) {
+        binding.colorDataFragmentContainer.backgroundTintList =
+            ColorStateList.valueOf(color.toColorInt())
+        activity?.setNavigationBarColor(color)
+    }
+
+    private fun clearColorDataContainerBackground() {
+        binding.colorDataFragmentContainer.backgroundTintList =
+            ColorStateList.valueOf(Color.TRANSPARENT)
+        activity?.restoreNavigationBarColor()
     }
 
     private fun toggleDataFragmentVisibility(visible: Boolean) {
@@ -119,8 +130,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
                     makePreviewFallingAnimation(),
                     makeInfoSheetRevealAnimation(hide = false).apply {
                         doOnStart {
-                            setColorDataContainerBackgroundColor(color.toColorInt())
-                            activity?.setNavigationBarColor(color)
+                            tintColorDataContanerBackground(color)
                         }
                     }
                 )
@@ -146,7 +156,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
         }.start()
     }
 
-    private fun animInfoSheetCollapsingOnPreviewSuccess() {
+    private fun animColorDataCollapsingOnPreviewSuccess() {
         if (!homeVM.isInfoSheetShown) return
         makeInfoSheetCollapsingAnimation().start()
     }
@@ -157,8 +167,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
                 makeScrollingToTopAnimation(),
                 makeInfoSheetRevealAnimation(hide = true).apply {
                     doOnEnd {
-                        setColorDataContainerBackgroundColor(Color.TRANSPARENT)
-                        activity?.restoreNavigationBarColor()
+                        clearColorDataContainerBackground()
                         binding.scrollview.run {
                             scrollTo(0, 0)
                             isScrollable = false
@@ -174,7 +183,6 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
 
     private fun animPreviewColorChanging(@ColorInt color: Int) =
         binding.previewWrapper.doOnLayout {
-//            if (color == getPreviewColor()) return@doOnLayout
             makePreviewColorChangingAnimation(color).start()
         }
 
@@ -353,13 +361,17 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
 
     private fun onColorPreviewSuccess(colorPreview: ColorPreview) {
         binding.previewWrapper.doOnLayout {
-            if (!colorPreview.isUserInput) return@doOnLayout // ignore not user-inputted colors
-            val colorPreviewInt = colorPreview.color.toColorInt()
-            val colorDataContainerInt = getColorDataContainerBackgroundColor()
-            if (colorPreviewInt != colorDataContainerInt) {
-                animInfoSheetCollapsingOnPreviewSuccess()
+            val color = colorPreview.color
+            val colorInt = color.toColorInt()
+            if (colorPreview.isUserInput) { // collapse only if user changed color manually
+                val colorDataBg = getColorDataContainerBackgroundColor()
+                if (colorInt != colorDataBg) {
+                    animColorDataCollapsingOnPreviewSuccess()
+                }
+            } else {
+                tintColorDataContanerBackground(colorPreview.color)
             }
-            animPreviewColorChanging(colorPreviewInt)
+            animPreviewColorChanging(colorInt)
             animPreviewResize(collapse = false)
         }
     }
@@ -370,6 +382,15 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
                 hideSoftInput()
                 animInfoSheetExpanding(color)
                 replaceColorDataFragment(color)
+            }
+        }
+
+    private fun collectGetExactColorCommand() =
+        colorDetailsVM.getExactColorCommand.collectOnLifecycle { resource ->
+            resource.ifSuccess { exactColor ->
+                val preview = ColorPreview(exactColor, isUserInput = false)
+                colorInputVM.updateColorPreview(preview)
+                replaceColorDataFragment(exactColor)
             }
         }
 
