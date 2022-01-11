@@ -162,7 +162,7 @@ class ColorDetailsFragment :
             exactColor.backgroundTintList = ColorStateList.valueOf(color)
             exactLink.setOnClickListener {
                 exact ?: return@setOnClickListener
-                colorDetailsVM.getExactColor(/*exact*/ "#131344")
+                colorDetailsVM.getExactColor(exact)
             }
         }
 
