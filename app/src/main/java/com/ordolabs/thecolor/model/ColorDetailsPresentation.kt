@@ -52,6 +52,7 @@ data class ColorDetailsPresentation(
 
     val name: String?,
     val exactNameHex: String?,
+    val exactNameHexSigned: String?,
     val isNameMatchExact: Boolean?,
     val exactNameHexDistance: Int?,
 
@@ -111,6 +112,7 @@ data class ColorDetailsPresentation(
         result = 31 * result + (cmykValue?.hashCode() ?: 0)
         result = 31 * result + (name?.hashCode() ?: 0)
         result = 31 * result + (exactNameHex?.hashCode() ?: 0)
+        result = 31 * result + (exactNameHexSigned?.hashCode() ?: 0)
         result = 31 * result + (isNameMatchExact?.hashCode() ?: 0)
         result = 31 * result + (exactNameHexDistance ?: 0)
         result = 31 * result + (imageBareUrl?.hashCode() ?: 0)

@@ -153,16 +153,16 @@ class ColorDetailsFragment :
 
     private fun populateExactGroup(details: ColorDetailsPresentation) =
         binding.run {
-            val hasData = (details.exactNameHex != null)
+            val hasData = (details.exactNameHexSigned != null)
             exactGroup.isVisible = hasData
             if (!hasData) return
-            val exact = details.exactNameHex
-            val color = Color.parseColor(details.exactNameHex)
-            exactValue.setTextOrGoneWith(exact, exactGroup)
+            val exactSigned = details.exactNameHexSigned
+            val color = Color.parseColor(details.exactNameHexSigned)
+            exactValue.setTextOrGoneWith(exactSigned, exactGroup)
             exactColor.backgroundTintList = ColorStateList.valueOf(color)
             exactLink.setOnClickListener {
-                exact ?: return@setOnClickListener
-                colorDetailsVM.getExactColor(exact)
+                val exactHex = details.exactNameHex ?: return@setOnClickListener
+                colorDetailsVM.getExactColor(exactHex)
             }
         }
 

@@ -20,9 +20,8 @@ class ColorDetailsViewModel : ViewModel() {
         super.onCleared()
     }
 
-    fun getExactColor(exactHexWithNumberSign: String) {
-        val hex = exactHexWithNumberSign.substring(1)
-        val color = Color(hex)
+    fun getExactColor(exactHex: String) {
+        val color = Color(exactHex)
         _getExactColorCommand.setSuccess(color)
     }
 }

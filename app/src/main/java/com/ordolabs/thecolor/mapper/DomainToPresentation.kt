@@ -52,7 +52,8 @@ fun ColorDetails.toPresentation() = ColorDetailsPresentation(
     cmykValue = this.cmykValue,
 
     name = this.name,
-    exactNameHex = this.exactNameHex,
+    exactNameHex = this.exactNameHex?.substring(1),
+    exactNameHexSigned = this.exactNameHex,
     isNameMatchExact = this.isNameMatchExact,
     exactNameHexDistance = this.exactNameHexDistance,
 
