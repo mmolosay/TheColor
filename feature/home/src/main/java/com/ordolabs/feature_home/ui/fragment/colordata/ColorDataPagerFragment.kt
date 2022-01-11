@@ -72,6 +72,7 @@ class ColorDataPagerFragment :
         binding.pager.let { pager ->
             val adapter = ColorDataPagerAdapter(this)
             pager.adapter = adapter
+            pager.offscreenPageLimit = adapter.itemCount
         }
 
     private fun collectChangePageCommand() =
