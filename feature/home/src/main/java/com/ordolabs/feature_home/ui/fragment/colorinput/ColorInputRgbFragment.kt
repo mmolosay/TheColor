@@ -10,11 +10,11 @@ import com.ordolabs.feature_home.viewmodel.ColorInputViewModel.ColorPreview
 import com.ordolabs.thecolor.model.InputRgbPresentation
 import com.ordolabs.thecolor.ui.util.inputfilter.PreventingInputFilter
 import com.ordolabs.thecolor.ui.util.inputfilter.RangeInputFilter
-import com.ordolabs.thecolor.util.ColorUtil.toColorRgb
 import com.ordolabs.thecolor.util.ext.addFilters
 import com.ordolabs.thecolor.util.ext.getText
 import com.ordolabs.thecolor.util.ext.getTextString
 import com.ordolabs.thecolor.util.ext.setTextPreservingSelection
+import com.ordolabs.thecolor.util.struct.toColorRgb
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 class ColorInputRgbFragment : BaseFragment(R.layout.fragment_color_input_rgb) {

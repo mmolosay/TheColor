@@ -6,14 +6,14 @@ import com.ordolabs.domain.usecase.local.ValidateColorRgbBaseUseCase
 import com.ordolabs.thecolor.mapper.toDomain
 import com.ordolabs.thecolor.model.InputHexPresentation
 import com.ordolabs.thecolor.model.InputRgbPresentation
-import com.ordolabs.thecolor.util.ColorUtil.Color
-import com.ordolabs.thecolor.util.ColorUtil.from
 import com.ordolabs.thecolor.util.MutableStateResourceFlow
 import com.ordolabs.thecolor.util.ext.setEmpty
 import com.ordolabs.thecolor.util.ext.setSuccess
 import com.ordolabs.thecolor.util.ext.shareOnceIn
+import com.ordolabs.thecolor.util.struct.Color
 import com.ordolabs.thecolor.util.struct.Resource
 import com.ordolabs.thecolor.util.struct.empty
+import com.ordolabs.thecolor.util.struct.from
 import com.ordolabs.thecolor.util.struct.getOrNull
 import com.ordolabs.thecolor.viewmodel.BaseViewModel
 import kotlinx.coroutines.Job

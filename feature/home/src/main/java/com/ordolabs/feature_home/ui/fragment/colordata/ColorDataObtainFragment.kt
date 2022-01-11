@@ -14,12 +14,12 @@ import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDataObtainFragmentBinding
 import com.ordolabs.feature_home.ui.fragment.colordata.base.BaseColorDataFragment
 import com.ordolabs.feature_home.ui.fragment.colordata.base.IColorDataFragment
-import com.ordolabs.thecolor.util.ColorUtil
 import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
 import com.ordolabs.thecolor.util.ext.by
 import com.ordolabs.thecolor.util.ext.mediumAnimDuration
 import com.ordolabs.thecolor.util.ext.setFragment
 import com.ordolabs.thecolor.util.ext.showToast
+import com.ordolabs.thecolor.util.struct.Color
 import com.ordolabs.thecolor.util.struct.Resource
 import kotlinx.coroutines.flow.Flow
 import java.net.UnknownHostException
@@ -32,7 +32,7 @@ abstract class ColorDataObtainFragment<D> :
     BaseColorDataFragment<D>(),
     IColorThemed {
 
-    override val color: ColorUtil.Color?
+    override val color: Color?
         get() = (parentFragment as? IColorThemed)?.color
 
     private val binding: ColorDataObtainFragmentBinding by viewBinding(CreateMethod.BIND)

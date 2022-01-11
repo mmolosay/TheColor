@@ -3,11 +3,11 @@ package com.ordolabs.feature_home.viewmodel.colordata.scheme
 import com.ordolabs.domain.usecase.remote.GetColorSchemeBaseUseCase
 import com.ordolabs.thecolor.mapper.toPresentation
 import com.ordolabs.thecolor.model.ColorSchemePresentation
-import com.ordolabs.thecolor.util.ColorUtil
 import com.ordolabs.thecolor.util.MutableStateResourceFlow
 import com.ordolabs.thecolor.util.ext.catchFailureIn
 import com.ordolabs.thecolor.util.ext.setLoading
 import com.ordolabs.thecolor.util.ext.setSuccess
+import com.ordolabs.thecolor.util.struct.Color
 import com.ordolabs.thecolor.util.struct.Resource
 import com.ordolabs.thecolor.util.struct.empty
 import com.ordolabs.thecolor.viewmodel.BaseViewModel
@@ -30,7 +30,7 @@ class ColorSchemeObtainViewModel(
         getColorSchemeJob?.cancel()
     }
 
-    fun getColorScheme(seed: ColorUtil.Color) {
+    fun getColorScheme(seed: Color) {
         restartGettingColorScheme()
         this.getColorSchemeJob = performGetColorScheme(seed.hex)
     }

@@ -8,10 +8,10 @@ import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel
 import com.ordolabs.feature_home.viewmodel.ColorInputViewModel.ColorPreview
 import com.ordolabs.thecolor.model.InputHexPresentation
-import com.ordolabs.thecolor.util.ColorUtil.toColorHex
 import com.ordolabs.thecolor.util.ext.getText
 import com.ordolabs.thecolor.util.ext.getTextString
 import com.ordolabs.thecolor.util.ext.setTextPreservingSelection
+import com.ordolabs.thecolor.util.struct.toColorHex
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 class ColorInputHexFragment : BaseFragment(R.layout.fragment_color_input_hex) {

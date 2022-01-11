@@ -5,7 +5,6 @@ import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.graphics.Point
 import android.os.Bundle
 import android.view.View
@@ -30,8 +29,6 @@ import com.ordolabs.feature_home.viewmodel.ColorInputViewModel.ColorPreview
 import com.ordolabs.feature_home.viewmodel.HomeViewModel
 import com.ordolabs.feature_home.viewmodel.colordata.details.ColorDetailsViewModel
 import com.ordolabs.thecolor.util.AnimationUtils
-import com.ordolabs.thecolor.util.ColorUtil
-import com.ordolabs.thecolor.util.ColorUtil.toColorInt
 import com.ordolabs.thecolor.util.ext.bindPropertyAnimator
 import com.ordolabs.thecolor.util.ext.by
 import com.ordolabs.thecolor.util.ext.createCircularRevealAnimation
@@ -49,8 +46,11 @@ import com.ordolabs.thecolor.util.ext.shortAnimDuration
 import com.ordolabs.thecolor.util.restoreNavigationBarColor
 import com.ordolabs.thecolor.util.setNavigationBarColor
 import com.ordolabs.thecolor.util.struct.AnimatorDestination
+import com.ordolabs.thecolor.util.struct.Color
+import com.ordolabs.thecolor.util.struct.toColorInt
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.koin.core.context.loadKoinModules
+import android.graphics.Color as ColorAndroid
 import com.google.android.material.R as RMaterial
 import com.ordolabs.thecolor.R as RApp
 
@@ -95,7 +95,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
         setFragment(fragment, binding.colorDataFragmentContainer.id)
     }
 
-    private fun replaceColorDataFragment(color: ColorUtil.Color) {
+    private fun replaceColorDataFragment(color: Color) {
         val fragment = ColorDataPagerFragment.newInstance(color)
         replaceFragment(fragment, binding.colorDataFragmentContainer.id)
     }
@@ -105,7 +105,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
         return binding.colorDataFragmentContainer.backgroundTintList?.defaultColor
     }
 
-    private fun tintColorDataContanerBackground(color: ColorUtil.Color) {
+    private fun tintColorDataContanerBackground(color: Color) {
         binding.colorDataFragmentContainer.backgroundTintList =
             ColorStateList.valueOf(color.toColorInt())
         activity?.setNavigationBarColor(color)
@@ -113,7 +113,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
 
     private fun clearColorDataContainerBackground() {
         binding.colorDataFragmentContainer.backgroundTintList =
-            ColorStateList.valueOf(Color.TRANSPARENT)
+            ColorStateList.valueOf(ColorAndroid.TRANSPARENT)
         activity?.restoreNavigationBarColor()
     }
 
@@ -121,7 +121,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
         binding.colorDataFragmentContainer.isInvisible = !visible
     }
 
-    private fun animInfoSheetExpanding(color: ColorUtil.Color) {
+    private fun animInfoSheetExpanding(color: Color) {
         if (homeVM.isInfoSheetShown) return
         binding.root.post { // when ^ infoFragmentContainer becomes visible
             binding.scrollview.isScrollable = true

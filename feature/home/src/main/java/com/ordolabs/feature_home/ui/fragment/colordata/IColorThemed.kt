@@ -1,6 +1,6 @@
 package com.ordolabs.feature_home.ui.fragment.colordata
 
-import com.ordolabs.thecolor.util.ColorUtil
+import com.ordolabs.thecolor.util.struct.Color
 
 /**
  * Interface for fragment, which is ment to be shown on top of [color] and
@@ -8,5 +8,5 @@ import com.ordolabs.thecolor.util.ColorUtil
  */
 interface IColorThemed {
 
-    val color: ColorUtil.Color?
+    val color: Color?
 }
