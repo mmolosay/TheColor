@@ -14,7 +14,7 @@ import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDataObtainFragmentBinding
 import com.ordolabs.feature_home.ui.fragment.colordata.base.BaseColorDataFragment
 import com.ordolabs.feature_home.ui.fragment.colordata.base.IColorDataFragment
-import com.ordolabs.thecolor.model.color.ColorPresentation
+import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
 import com.ordolabs.thecolor.util.ext.by
 import com.ordolabs.thecolor.util.ext.mediumAnimDuration
@@ -32,7 +32,7 @@ abstract class ColorDataObtainFragment<D> :
     BaseColorDataFragment<D>(),
     IColorThemed {
 
-    override val color: ColorPresentation?
+    override val color: Color?
         get() = (parentFragment as? IColorThemed)?.color
 
     private val binding: ColorDataObtainFragmentBinding by viewBinding(CreateMethod.BIND)

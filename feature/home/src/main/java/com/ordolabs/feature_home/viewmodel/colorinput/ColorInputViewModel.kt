@@ -4,8 +4,8 @@ import androidx.lifecycle.viewModelScope
 import com.ordolabs.domain.usecase.local.ValidateColorHexBaseUseCase
 import com.ordolabs.domain.usecase.local.ValidateColorRgbBaseUseCase
 import com.ordolabs.thecolor.mapper.toDomain
+import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.ColorHex
-import com.ordolabs.thecolor.model.color.ColorPresentation
 import com.ordolabs.thecolor.model.color.ColorPreview
 import com.ordolabs.thecolor.model.color.ColorRgb
 import com.ordolabs.thecolor.model.color.from
@@ -32,7 +32,7 @@ class ColorInputViewModel(
     private val _colorPreview: MutableStateFlow<Resource<ColorPreview>>
     val colorPreview: StateFlow<Resource<ColorPreview>>
 
-    private val _procceedCommand = MutableStateResourceFlow<ColorPresentation>(Resource.empty())
+    private val _procceedCommand = MutableStateResourceFlow<Color>(Resource.empty())
     val procceedCommand = _procceedCommand.shareOnceIn(viewModelScope)
 
     private var colorValidationJob: Job? = null
@@ -52,7 +52,7 @@ class ColorInputViewModel(
         val domain = input.toDomain()
         this.colorValidationJob = launch {
             validateColorHexUseCase.invoke(domain).collect { valid ->
-                val color = ColorPresentation.from(input)
+                val color = Color.from(input)
                 onColorValidated(color, valid)
             }
         }
@@ -63,7 +63,7 @@ class ColorInputViewModel(
         val domain = input.toDomain()
         this.colorValidationJob = launch {
             validateColorRgbUseCase.invoke(domain).collect { valid ->
-                val color = ColorPresentation.from(input)
+                val color = Color.from(input)
                 onColorValidated(color, valid)
             }
         }
@@ -87,7 +87,7 @@ class ColorInputViewModel(
     }
 
     private fun onColorValidated(
-        color: ColorPresentation? = null,
+        color: Color? = null,
         valid: Boolean
     ) {
         if (valid && color != null) {

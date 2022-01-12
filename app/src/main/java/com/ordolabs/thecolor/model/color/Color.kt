@@ -14,32 +14,32 @@ import kotlinx.parcelize.Parcelize
  */
 // TODO: move all Color functionality into this and get rid of Color?
 @Parcelize
-data class ColorPresentation(
+data class Color(
     val hex: String
 ) : IAbstractColor {
 
     companion object
 }
 
-fun ColorPresentation.Companion.from(color: ColorHex): ColorPresentation? {
+fun Color.Companion.from(color: ColorHex): Color? {
     val value = color.value ?: return null
     val hex = value.toColorHexFullForm() ?: return null
-    return ColorPresentation(hex)
+    return Color(hex)
 }
 
-fun ColorPresentation.Companion.from(color: ColorRgb): ColorPresentation? {
+fun Color.Companion.from(color: ColorRgb): Color? {
     val (r, g, b) = color
     if (r == null || g == null || b == null) return null
     val hex = ColorUtil.rgbToHex(r, g, b)
-    return ColorPresentation(hex)
+    return Color(hex)
 }
 
-fun ColorPresentation.toColorHexPresentation() =
+fun Color.toColorHexPresentation() =
     ColorHex(
         value = this.hex.colorHexSignless()!!
     )
 
-fun ColorPresentation.toColorRgbPresentation(): ColorRgb {
+fun Color.toColorRgbPresentation(): ColorRgb {
     val rgb = ColorUtil.hexToRgb(this.hex)
     return ColorRgb(
         r = rgb.r,
@@ -49,11 +49,11 @@ fun ColorPresentation.toColorRgbPresentation(): ColorRgb {
 }
 
 @ColorInt
-fun ColorPresentation.toColorInt(): Int {
+fun Color.toColorInt(): Int {
     return android.graphics.Color.parseColor(this.hex)
 }
 
-fun ColorPresentation.isDark(
+fun Color.isDark(
     @IntRange(from = 0, to = 100) threshold: Int = 60
 ): Boolean =
     ColorUtil.isDark(this.hex, threshold)

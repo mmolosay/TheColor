@@ -2,7 +2,7 @@ package com.ordolabs.feature_home.viewmodel.colordata.details
 
 import com.ordolabs.domain.usecase.remote.GetColorDetailsBaseUseCase
 import com.ordolabs.thecolor.mapper.toPresentation
-import com.ordolabs.thecolor.model.color.ColorPresentation
+import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.colordata.ColorDetails
 import com.ordolabs.thecolor.util.MutableStateResourceFlow
 import com.ordolabs.thecolor.util.ext.catchFailureIn
@@ -30,7 +30,7 @@ class ColorDetailsObtainViewModel(
         getColorDetailsJob?.cancel()
     }
 
-    fun getColorDetails(color: ColorPresentation) {
+    fun getColorDetails(color: Color) {
         restartGettingColorDetails()
         this.getColorDetailsJob = performGetColorDetails(color.hex)
     }

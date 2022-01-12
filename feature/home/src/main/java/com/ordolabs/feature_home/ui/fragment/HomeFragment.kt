@@ -27,7 +27,7 @@ import com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputPagerFragment
 import com.ordolabs.feature_home.viewmodel.HomeViewModel
 import com.ordolabs.feature_home.viewmodel.colordata.details.ColorDetailsViewModel
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
-import com.ordolabs.thecolor.model.color.ColorPresentation
+import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.ColorPreview
 import com.ordolabs.thecolor.model.color.toColorInt
 import com.ordolabs.thecolor.util.AnimationUtils
@@ -95,7 +95,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
         setFragment(fragment, binding.colorDataFragmentContainer.id)
     }
 
-    private fun replaceColorDataFragment(color: ColorPresentation) {
+    private fun replaceColorDataFragment(color: Color) {
         val fragment = ColorDataPagerFragment.newInstance(color)
         replaceFragment(fragment, binding.colorDataFragmentContainer.id)
     }
@@ -105,7 +105,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
         return binding.colorDataFragmentContainer.backgroundTintList?.defaultColor
     }
 
-    private fun tintColorDataContanerBackground(color: ColorPresentation) {
+    private fun tintColorDataContanerBackground(color: Color) {
         binding.colorDataFragmentContainer.backgroundTintList =
             ColorStateList.valueOf(color.toColorInt())
         activity?.setNavigationBarColor(color)
@@ -121,7 +121,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
         binding.colorDataFragmentContainer.isInvisible = !visible
     }
 
-    private fun animInfoSheetExpanding(color: ColorPresentation) {
+    private fun animInfoSheetExpanding(color: Color) {
         if (homeVM.isInfoSheetShown) return
         binding.root.post { // when ^ infoFragmentContainer becomes visible
             binding.scrollview.isScrollable = true

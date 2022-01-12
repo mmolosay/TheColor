@@ -12,7 +12,7 @@ import com.ordolabs.feature_home.databinding.ColorDataPageBinding
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.ui.fragment.colordata.IColorThemed
 import com.ordolabs.feature_home.viewmodel.colordata.ColorDataViewModel
-import com.ordolabs.thecolor.model.color.ColorPresentation
+import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.isDark
 import com.ordolabs.thecolor.util.ext.getNextFor
 import com.ordolabs.thecolor.util.ext.setFragment
@@ -27,7 +27,7 @@ abstract class BaseColorDataPage :
     private val binding: ColorDataPageBinding by viewBinding(CreateMethod.BIND)
     private val colorDataVM: ColorDataViewModel by sharedViewModel()
 
-    override val color: ColorPresentation?
+    override val color: Color?
         get() = (parentFragment as? IColorThemed)?.color
 
     override fun onCreateView(

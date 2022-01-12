@@ -2,8 +2,8 @@ package com.ordolabs.feature_home.viewmodel.colordata.details
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.ColorHex
-import com.ordolabs.thecolor.model.color.ColorPresentation
 import com.ordolabs.thecolor.model.color.from
 import com.ordolabs.thecolor.util.MutableStateResourceFlow
 import com.ordolabs.thecolor.util.ext.setSuccess
@@ -15,7 +15,7 @@ class ColorDetailsViewModel : ViewModel() {
 
     // TODO: implement Command class, similar to Resource?
     private val _getExactColorCommand =
-        MutableStateResourceFlow<ColorPresentation>(Resource.empty())
+        MutableStateResourceFlow<Color>(Resource.empty())
     val getExactColorCommand = _getExactColorCommand.shareOnceIn(viewModelScope)
 
     override fun onCleared() {
@@ -24,7 +24,7 @@ class ColorDetailsViewModel : ViewModel() {
 
     fun getExactColor(exactHex: String) {
         val presentation = ColorHex(value = exactHex)
-        val color = ColorPresentation.from(presentation)!! // exactHex is always valid
+        val color = Color.from(presentation)!! // exactHex is always valid
         _getExactColorCommand.setSuccess(color)
     }
 }

@@ -13,7 +13,7 @@ import com.ordolabs.feature_home.databinding.ColorDataFragmentBinding
 import com.ordolabs.feature_home.ui.adapter.pager.ColorDataPagerAdapter
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.viewmodel.colordata.ColorDataViewModel
-import com.ordolabs.thecolor.model.color.ColorPresentation
+import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.isDark
 import com.ordolabs.thecolor.util.ext.makeArgumentsKey
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
@@ -26,7 +26,7 @@ class ColorDataPagerFragment :
     private val binding: ColorDataFragmentBinding by viewBinding(CreateMethod.BIND)
     private val colorDataVM: ColorDataViewModel by sharedViewModel()
 
-    override var color: ColorPresentation? = null
+    override var color: Color? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -87,7 +87,7 @@ class ColorDataPagerFragment :
         private val ARGUMENTS_KEY_COLOR =
             "ARGUMENTS_KEY_COLOR".makeArgumentsKey<ColorDataPagerFragment>()
 
-        fun newInstance(color: ColorPresentation?) =
+        fun newInstance(color: Color?) =
             ColorDataPagerFragment().apply {
                 arguments = bundleOf(
                     ARGUMENTS_KEY_COLOR to color

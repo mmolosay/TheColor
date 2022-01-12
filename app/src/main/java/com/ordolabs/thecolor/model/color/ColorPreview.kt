@@ -11,7 +11,7 @@ import kotlinx.parcelize.Parcelize
 // TODO: not val color, but inherit ColorPresentation
 @Parcelize
 data class ColorPreview(
-    val color: ColorPresentation,
+    val color: Color,
     val isUserInput: Boolean
 ) : Parcelable
 
