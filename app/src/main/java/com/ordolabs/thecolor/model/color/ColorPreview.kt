@@ -1,7 +1,5 @@
 package com.ordolabs.thecolor.model.color
 
-import com.ordolabs.thecolor.model.colorinput.ColorInputHex
-import com.ordolabs.thecolor.model.colorinput.ColorInputRgb
 import kotlinx.parcelize.Parcelize
 
 /**
@@ -15,15 +13,3 @@ class ColorPreview(
 
     constructor(color: Color, isUserInput: Boolean) : this(color.hex, isUserInput)
 }
-
-fun ColorPreview.toColorInputHexPresentation() =
-    ColorInputHex(
-        color = this.toColorHexPresentation(),
-        isUserInput = this.isUserInput
-    )
-
-fun ColorPreview.toColorInputRgbPresentation() =
-    ColorInputRgb(
-        color = this.toColorRgbPresentation(),
-        isUserInput = this.isUserInput
-    )

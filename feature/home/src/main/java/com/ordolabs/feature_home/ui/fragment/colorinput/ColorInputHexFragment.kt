@@ -8,18 +8,20 @@ import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputHexViewModel
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
 import com.ordolabs.thecolor.model.color.ColorHex
-import com.ordolabs.thecolor.model.colorinput.ColorInputHex
+import com.ordolabs.thecolor.model.color.empty
 import com.ordolabs.thecolor.util.ext.getText
 import com.ordolabs.thecolor.util.ext.getTextString
 import com.ordolabs.thecolor.util.ext.setTextPreservingSelection
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
+// TODO: Extract BaseColorInputFragment?
 class ColorInputHexFragment : BaseFragment(R.layout.fragment_color_input_hex) {
 
     private val binding: FragmentColorInputHexBinding by viewBinding()
     private val colorInputVM: ColorInputViewModel by sharedViewModel()
     private val colorInputHexVM: ColorInputHexViewModel by sharedViewModel()
 
+    private var latestColor = ColorHex.empty()
     private var isTypedByUser = true
 
     override fun collectViewModelsData() {
@@ -36,13 +38,15 @@ class ColorInputHexFragment : BaseFragment(R.layout.fragment_color_input_hex) {
         }
 
     private fun validateColorInput() {
-        val color = makeColorHexPresentation()
+        val color = assembleColor()
         colorInputVM.validateColor(color)
     }
 
-    private fun makeColorHexPresentation(): ColorHex {
+    private fun assembleColor(): ColorHex {
         val input = binding.inputHex.getTextString()
-        return ColorHex(value = input)
+        return ColorHex(value = input).also {
+            this.latestColor = it
+        }
     }
 
     private fun collectColorInput() =
@@ -54,16 +58,15 @@ class ColorInputHexFragment : BaseFragment(R.layout.fragment_color_input_hex) {
         }
 
     @Suppress("UNUSED_PARAMETER")
-    private fun onColorInputEmpty(previous: ColorInputHex?) {
+    private fun onColorInputEmpty(previous: ColorHex?) {
         if (isResumed) return // prevent user interrupting
         this.isTypedByUser = false
         binding.inputHex.getText()?.clear()
         this.isTypedByUser = true
     }
 
-    private fun onColorInputSuccess(input: ColorInputHex) {
-        if (isResumed && input.isUserInput) return // prevent user interrupting
-        val color = input.color
+    private fun onColorInputSuccess(color: ColorHex) {
+        if (isResumed && color == latestColor) return // prevent user interrupting
         this.isTypedByUser = false
         binding.inputHex.editText?.setTextPreservingSelection(color.value)
         this.isTypedByUser = true

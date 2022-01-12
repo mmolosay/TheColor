@@ -8,7 +8,7 @@ import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputRgbViewModel
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
 import com.ordolabs.thecolor.model.color.ColorRgb
-import com.ordolabs.thecolor.model.colorinput.ColorInputRgb
+import com.ordolabs.thecolor.model.color.empty
 import com.ordolabs.thecolor.ui.util.inputfilter.PreventingInputFilter
 import com.ordolabs.thecolor.ui.util.inputfilter.RangeInputFilter
 import com.ordolabs.thecolor.util.ext.addFilters
@@ -23,6 +23,7 @@ class ColorInputRgbFragment : BaseFragment(R.layout.fragment_color_input_rgb) {
     private val colorInputVM: ColorInputViewModel by sharedViewModel()
     private val colorInputRgbVM: ColorInputRgbViewModel by sharedViewModel()
 
+    private var latestColor = ColorRgb.empty()
     private var isTypedByUser = true
 
     override fun collectViewModelsData() {
@@ -60,15 +61,17 @@ class ColorInputRgbFragment : BaseFragment(R.layout.fragment_color_input_rgb) {
         }
 
     private fun validateColorInput() {
-        val color = makeColorRgbPresentation()
+        val color = assembleColor()
         colorInputVM.validateColor(color)
     }
 
-    private fun makeColorRgbPresentation(): ColorRgb {
+    private fun assembleColor(): ColorRgb {
         val r = binding.inputRgbR.getTextString()?.toIntOrNull()
         val g = binding.inputRgbG.getTextString()?.toIntOrNull()
         val b = binding.inputRgbB.getTextString()?.toIntOrNull()
-        return ColorRgb(r, g, b)
+        return ColorRgb(r, g, b).also {
+            this.latestColor = it
+        }
     }
 
     private fun collectColorInput() =
@@ -80,7 +83,7 @@ class ColorInputRgbFragment : BaseFragment(R.layout.fragment_color_input_rgb) {
         }
 
     @Suppress("UNUSED_PARAMETER")
-    private fun onColorInputEmpty(previous: ColorInputRgb?) {
+    private fun onColorInputEmpty(previous: ColorRgb?) {
         if (isResumed) return // prevent user interrupting
         this.isTypedByUser = false
         binding.inputRgbR.getText()?.clear()
@@ -89,9 +92,8 @@ class ColorInputRgbFragment : BaseFragment(R.layout.fragment_color_input_rgb) {
         this.isTypedByUser = true
     }
 
-    private fun onColorInputSuccess(input: ColorInputRgb) {
-        if (isResumed && input.isUserInput) return // prevent user interrupting
-        val color = input.color
+    private fun onColorInputSuccess(color: ColorRgb) {
+        if (isResumed && color == latestColor) return // prevent user interrupting
         this.isTypedByUser = false
         binding.inputRgbR.editText?.setTextPreservingSelection(color.r.toString())
         binding.inputRgbG.editText?.setTextPreservingSelection(color.g.toString())

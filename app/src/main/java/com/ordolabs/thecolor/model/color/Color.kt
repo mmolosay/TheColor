@@ -12,14 +12,33 @@ import kotlinx.parcelize.Parcelize
  *
  * @param hex HEX color string __with__ number sign, e.g. "#16A8C0".
  */
-// TODO: move all Color functionality into this and get rid of Color?
 @Parcelize
 open class Color(
     open val hex: String
-) : IAbstractColor {
+) : AbstractColor() {
+
+    override fun equals(other: Any?): Boolean {
+        other ?: return false
+        return when (other) {
+            is Color -> (this.hex == other.hex)
+            is AbstractColor -> super.equals(other)
+            else -> false
+        }
+    }
+
+    override fun hashCode(): Int {
+        return hex.hashCode()
+    }
 
     companion object
 }
+
+fun Color.Companion.from(color: AbstractColor): Color? =
+    when (color) {
+        is Color -> color
+        is ColorHex -> Color.from(color)
+        is ColorRgb -> Color.from(color)
+    }
 
 fun Color.Companion.from(color: ColorHex): Color? {
     val value = color.value ?: return null
@@ -34,12 +53,12 @@ fun Color.Companion.from(color: ColorRgb): Color? {
     return Color(hex)
 }
 
-fun Color.toColorHexPresentation() =
+fun Color.toColorHex() =
     ColorHex(
         value = this.hex.colorHexSignless()!!
     )
 
-fun Color.toColorRgbPresentation(): ColorRgb {
+fun Color.toColorRgb(): ColorRgb {
     val rgb = ColorUtil.hexToRgb(this.hex)
     return ColorRgb(
         r = rgb.r,

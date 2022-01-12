@@ -10,4 +10,20 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 data class ColorHex(
     val value: String?
-) : IAbstractColor
+) : AbstractColor() {
+
+    override fun equals(other: Any?): Boolean {
+        return super.equals(other)
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + (value?.hashCode() ?: 0)
+        return result
+    }
+
+    companion object
+}
+
+fun ColorHex.Companion.empty() =
+    ColorHex(null)

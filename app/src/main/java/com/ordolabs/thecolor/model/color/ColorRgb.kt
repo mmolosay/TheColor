@@ -14,4 +14,22 @@ data class ColorRgb(
     val r: Int?,
     val g: Int?,
     val b: Int?
-) : IAbstractColor
+) : AbstractColor() {
+
+    override fun equals(other: Any?): Boolean {
+        return super.equals(other)
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + (r ?: 0)
+        result = 31 * result + (g ?: 0)
+        result = 31 * result + (b ?: 0)
+        return result
+    }
+
+    companion object
+}
+
+fun ColorRgb.Companion.empty() =
+    ColorRgb(null, null, null)
