@@ -361,15 +361,14 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
 
     private fun onColorPreviewSuccess(preview: ColorPreview) {
         binding.previewWrapper.doOnLayout {
-            val color = preview.color
-            val colorInt = color.toColorInt()
+            val colorInt = preview.toColorInt()
             if (preview.isUserInput) { // collapse only if user changed color manually
                 val colorDataBg = getColorDataContainerBackgroundColor()
                 if (colorInt != colorDataBg) {
                     animColorDataCollapsingOnPreviewSuccess()
                 }
             } else {
-                tintColorDataContanerBackground(color)
+                tintColorDataContanerBackground(preview)
             }
             animPreviewColorChanging(colorInt)
             animPreviewResize(collapse = false)

@@ -14,8 +14,8 @@ import kotlinx.parcelize.Parcelize
  */
 // TODO: move all Color functionality into this and get rid of Color?
 @Parcelize
-data class Color(
-    val hex: String
+open class Color(
+    open val hex: String
 ) : IAbstractColor {
 
     companion object

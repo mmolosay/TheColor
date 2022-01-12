@@ -71,7 +71,7 @@ class ColorInputViewModel(
 
     fun procceedInput() {
         val preview = _colorPreview.value.getOrNull() ?: return
-        _procceedCommand.setSuccess(preview.color)
+        _procceedCommand.setSuccess(preview)
     }
 
     fun updateColorPreview(new: ColorPreview) {
