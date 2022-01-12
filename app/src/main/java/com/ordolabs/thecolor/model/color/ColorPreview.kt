@@ -3,7 +3,7 @@ package com.ordolabs.thecolor.model.color
 import kotlinx.parcelize.Parcelize
 
 /**
- * __Valid__ color of immaterial color space, whether obtained from user input or not.
+ * __Valid__ color, displayed on UI as a current one to be previewed.
  */
 @Parcelize
 class ColorPreview(
