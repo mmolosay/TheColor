@@ -14,7 +14,7 @@ import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDetailsFragmentBinding
 import com.ordolabs.feature_home.ui.fragment.colordata.base.BaseColorDataFragment
 import com.ordolabs.feature_home.viewmodel.colordata.details.ColorDetailsViewModel
-import com.ordolabs.thecolor.model.colordata.ColorDetailsPresentation
+import com.ordolabs.thecolor.model.colordata.ColorDetails
 import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
 import com.ordolabs.thecolor.util.ext.getStringYesOrNo
 import com.ordolabs.thecolor.util.ext.makeArgumentsKey
@@ -22,15 +22,15 @@ import com.ordolabs.thecolor.util.ext.setTextOrGoneWith
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 /**
- * [BaseColorDataFragment] that displays [ColorDetailsPresentation] data.
+ * [BaseColorDataFragment] that displays [ColorDetails] data.
  */
 class ColorDetailsFragment :
-    BaseColorDataFragment<ColorDetailsPresentation>() {
+    BaseColorDataFragment<ColorDetails>() {
 
     private val binding: ColorDetailsFragmentBinding by viewBinding(CreateMethod.BIND)
     private val colorDetailsVM: ColorDetailsViewModel by sharedViewModel()
 
-    private var colorDetails: ColorDetailsPresentation? = null
+    private var colorDetails: ColorDetails? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,7 +68,7 @@ class ColorDetailsFragment :
         }
     }
 
-    override fun populateViews(data: ColorDetailsPresentation) =
+    override fun populateViews(data: ColorDetails) =
         binding.run {
             nameHeadline.text = data.name
             populateHexGroup(data)
@@ -80,7 +80,7 @@ class ColorDetailsFragment :
             populateMatchGroup(data)
         }
 
-    private fun populateHexGroup(details: ColorDetailsPresentation) =
+    private fun populateHexGroup(details: ColorDetails) =
         binding.run {
             val hasData = (details.hexValue != null)
             hexGroup.isVisible = hasData
@@ -88,7 +88,7 @@ class ColorDetailsFragment :
             hexValue.text = details.hexValue
         }
 
-    private fun populateRgbGroup(details: ColorDetailsPresentation) =
+    private fun populateRgbGroup(details: ColorDetails) =
         binding.run {
             val hasData = (details.rgbR != null && details.rgbG != null && details.rgbB != null)
             rgbGroup.isVisible = hasData
@@ -98,7 +98,7 @@ class ColorDetailsFragment :
             rgbValueB.text = details.rgbB.toString()
         }
 
-    private fun populateHslGroup(details: ColorDetailsPresentation) =
+    private fun populateHslGroup(details: ColorDetails) =
         binding.run {
             val hasData = (details.hslH != null && details.hslS != null && details.hslL != null)
             hslGroup.isVisible = hasData
@@ -108,7 +108,7 @@ class ColorDetailsFragment :
             hslValueL.text = details.hslL.toString()
         }
 
-    private fun populateHsvGroup(details: ColorDetailsPresentation) =
+    private fun populateHsvGroup(details: ColorDetails) =
         binding.run {
             val hasData = (details.hsvH != null && details.hsvS != null && details.hsvV != null)
             hsvGroup.isVisible = hasData
@@ -118,7 +118,7 @@ class ColorDetailsFragment :
             hsvValueV.text = details.hsvV.toString()
         }
 
-    private fun populateCmykGroup(details: ColorDetailsPresentation) =
+    private fun populateCmykGroup(details: ColorDetails) =
         binding.run {
             val hasData =
                 (details.cmykC != null && details.cmykM != null && details.cmykY != null && details.cmykK != null)
@@ -130,7 +130,7 @@ class ColorDetailsFragment :
             cmykValueK.text = details.cmykK.toString()
         }
 
-    private fun populateNameGroup(details: ColorDetailsPresentation) =
+    private fun populateNameGroup(details: ColorDetails) =
         binding.run {
             val hasData = (details.name != null)
             nameGroup.isVisible = hasData
@@ -138,7 +138,7 @@ class ColorDetailsFragment :
             nameValue.text = details.name
         }
 
-    private fun populateMatchGroup(details: ColorDetailsPresentation) =
+    private fun populateMatchGroup(details: ColorDetails) =
         binding.run {
             val hasData = (details.isNameMatchExact != null)
             val exactMatch = (details.isNameMatchExact == true)
@@ -151,7 +151,7 @@ class ColorDetailsFragment :
             populateDeviationGroup(details)
         }
 
-    private fun populateExactGroup(details: ColorDetailsPresentation) =
+    private fun populateExactGroup(details: ColorDetails) =
         binding.run {
             val hasData = (details.exactNameHexSigned != null)
             exactGroup.isVisible = hasData
@@ -166,7 +166,7 @@ class ColorDetailsFragment :
             }
         }
 
-    private fun populateDeviationGroup(details: ColorDetailsPresentation) =
+    private fun populateDeviationGroup(details: ColorDetails) =
         binding.run {
             val hasData = (details.exactNameHexDistance != null)
             deviationGroup.isVisible = hasData
@@ -179,7 +179,7 @@ class ColorDetailsFragment :
         private val ARGUMENT_KEY_COLOR_DETAILS =
             "ARGUMENT_KEY_COLOR_DETAILS".makeArgumentsKey<ColorDetailsFragment>()
 
-        fun newInstance(colorDetails: ColorDetailsPresentation?) =
+        fun newInstance(colorDetails: ColorDetails?) =
             ColorDetailsFragment().apply {
                 arguments = bundleOf(
                     ARGUMENT_KEY_COLOR_DETAILS to colorDetails

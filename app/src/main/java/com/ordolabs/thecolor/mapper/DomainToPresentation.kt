@@ -1,11 +1,12 @@
 package com.ordolabs.thecolor.mapper
 
-import com.ordolabs.domain.model.ColorDetails
-import com.ordolabs.domain.model.ColorScheme
-import com.ordolabs.thecolor.model.colordata.ColorDetailsPresentation
-import com.ordolabs.thecolor.model.colordata.ColorSchemePresentation
+import com.ordolabs.thecolor.model.colordata.ColorDetails
+import com.ordolabs.thecolor.model.colordata.ColorScheme
+import com.ordolabs.domain.model.ColorDetails as ColorDetailsDomain
+import com.ordolabs.domain.model.ColorScheme as ColorSchemeDomain
 
-fun ColorDetails.toPresentation() = ColorDetailsPresentation(
+
+fun ColorDetailsDomain.toPresentation() = ColorDetails(
     hexValue = this.hexValue,
     hexClean = this.hexClean,
 
@@ -63,11 +64,11 @@ fun ColorDetails.toPresentation() = ColorDetailsPresentation(
     contrastHex = this.contrastHex
 )
 
-fun ColorScheme.toPresentation() = ColorSchemePresentation(
+fun ColorSchemeDomain.toPresentation() = ColorScheme(
     mode = this.mode?.toPresentation(),
     colors = this.colors?.map { it.toPresentation() },
     seed = this.seed?.toPresentation()
 )
 
-fun ColorScheme.SchemeMode.toPresentation() =
-    ColorSchemePresentation.SchemeMode.values()[this.ordinal]
+fun ColorSchemeDomain.SchemeMode.toPresentation() =
+    ColorScheme.SchemeMode.values()[this.ordinal]

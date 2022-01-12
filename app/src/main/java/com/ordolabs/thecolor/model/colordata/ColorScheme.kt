@@ -4,10 +4,10 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-data class ColorSchemePresentation(
+data class ColorScheme(
     val mode: SchemeMode?,
-    val colors: List<ColorDetailsPresentation>?,
-    val seed: ColorDetailsPresentation?
+    val colors: List<ColorDetails>?,
+    val seed: ColorDetails?
 ) : Parcelable {
 
     enum class SchemeMode {

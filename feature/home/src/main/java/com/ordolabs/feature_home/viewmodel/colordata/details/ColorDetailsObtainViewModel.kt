@@ -2,7 +2,7 @@ package com.ordolabs.feature_home.viewmodel.colordata.details
 
 import com.ordolabs.domain.usecase.remote.GetColorDetailsBaseUseCase
 import com.ordolabs.thecolor.mapper.toPresentation
-import com.ordolabs.thecolor.model.colordata.ColorDetailsPresentation
+import com.ordolabs.thecolor.model.colordata.ColorDetails
 import com.ordolabs.thecolor.util.MutableStateResourceFlow
 import com.ordolabs.thecolor.util.ext.catchFailureIn
 import com.ordolabs.thecolor.util.ext.setLoading
@@ -20,7 +20,7 @@ class ColorDetailsObtainViewModel(
 ) : BaseViewModel() {
 
     private val _details =
-        MutableStateResourceFlow<ColorDetailsPresentation>(Resource.empty())
+        MutableStateResourceFlow<ColorDetails>(Resource.empty())
     val details = _details.asStateFlow()
 
     private var getColorDetailsJob: Job? = null

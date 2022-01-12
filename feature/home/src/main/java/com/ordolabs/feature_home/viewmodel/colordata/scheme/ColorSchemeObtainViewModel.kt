@@ -2,7 +2,7 @@ package com.ordolabs.feature_home.viewmodel.colordata.scheme
 
 import com.ordolabs.domain.usecase.remote.GetColorSchemeBaseUseCase
 import com.ordolabs.thecolor.mapper.toPresentation
-import com.ordolabs.thecolor.model.colordata.ColorSchemePresentation
+import com.ordolabs.thecolor.model.colordata.ColorScheme
 import com.ordolabs.thecolor.util.MutableStateResourceFlow
 import com.ordolabs.thecolor.util.ext.catchFailureIn
 import com.ordolabs.thecolor.util.ext.setLoading
@@ -20,7 +20,7 @@ class ColorSchemeObtainViewModel(
 ) : BaseViewModel() {
 
     private val _scheme =
-        MutableStateResourceFlow<ColorSchemePresentation>(Resource.empty())
+        MutableStateResourceFlow<ColorScheme>(Resource.empty())
     val scheme = _scheme.asStateFlow()
 
     private var getColorSchemeJob: Job? = null

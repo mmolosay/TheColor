@@ -4,7 +4,7 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-data class ColorDetailsPresentation(
+data class ColorDetails(
     val hexValue: String?,
     val hexClean: String?,
 
@@ -63,7 +63,7 @@ data class ColorDetailsPresentation(
 ) : Parcelable {
 
     override fun equals(other: Any?): Boolean {
-        if (other !is ColorDetailsPresentation) return false
+        if (other !is ColorDetails) return false
         other.hexValue?.let {
             if (this.hexValue == other.hexValue) return true
         }

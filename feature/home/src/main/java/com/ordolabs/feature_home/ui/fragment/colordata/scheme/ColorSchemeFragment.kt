@@ -9,11 +9,11 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorSchemeFragmentBinding
 import com.ordolabs.feature_home.ui.fragment.colordata.base.BaseColorDataFragment
-import com.ordolabs.thecolor.model.colordata.ColorSchemePresentation
+import com.ordolabs.thecolor.model.colordata.ColorScheme
 import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
 
 class ColorSchemeFragment :
-    BaseColorDataFragment<ColorSchemePresentation>() {
+    BaseColorDataFragment<ColorScheme>() {
 
     private val binding: ColorSchemeFragmentBinding by viewBinding(CreateMethod.BIND)
 
@@ -35,7 +35,7 @@ class ColorSchemeFragment :
         // impl me
     }
 
-    override fun populateViews(data: ColorSchemePresentation) {
+    override fun populateViews(data: ColorScheme) {
         binding.text.text = "It works!"
     }
 
