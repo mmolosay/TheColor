@@ -24,7 +24,7 @@ class ColorDetailsViewModel : ViewModel() {
 
     fun getExactColor(exactHex: String) {
         val presentation = ColorHex(value = exactHex)
-        val color = ColorPresentation.from(presentation)
+        val color = ColorPresentation.from(presentation)!! // exactHex is always valid
         _getExactColorCommand.setSuccess(color)
     }
 }

@@ -8,9 +8,9 @@ import androidx.core.content.res.use
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import com.google.android.material.color.MaterialColors
-import com.ordolabs.thecolor.util.struct.Color
-import com.ordolabs.thecolor.util.struct.isDark
-import com.ordolabs.thecolor.util.struct.toColorInt
+import com.ordolabs.thecolor.model.color.ColorPresentation
+import com.ordolabs.thecolor.model.color.isDark
+import com.ordolabs.thecolor.model.color.toColorInt
 import android.graphics.Color as ColorAndroid
 
 fun AppCompatActivity.setTransparentSystemBars() {
@@ -43,7 +43,7 @@ fun Activity.restoreNavigationBarColor() {
     }
 }
 
-fun Activity.setNavigationBarColor(color: Color) {
+fun Activity.setNavigationBarColor(color: ColorPresentation) {
     window.navigationBarColor = color.toColorInt()
     this.setLightNavigationBar(light = !color.isDark())
 }

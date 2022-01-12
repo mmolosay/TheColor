@@ -27,7 +27,9 @@ import com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputPagerFragment
 import com.ordolabs.feature_home.viewmodel.HomeViewModel
 import com.ordolabs.feature_home.viewmodel.colordata.details.ColorDetailsViewModel
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
+import com.ordolabs.thecolor.model.color.ColorPresentation
 import com.ordolabs.thecolor.model.color.ColorPreview
+import com.ordolabs.thecolor.model.color.toColorInt
 import com.ordolabs.thecolor.util.AnimationUtils
 import com.ordolabs.thecolor.util.ext.bindPropertyAnimator
 import com.ordolabs.thecolor.util.ext.by
@@ -46,8 +48,6 @@ import com.ordolabs.thecolor.util.ext.shortAnimDuration
 import com.ordolabs.thecolor.util.restoreNavigationBarColor
 import com.ordolabs.thecolor.util.setNavigationBarColor
 import com.ordolabs.thecolor.util.struct.AnimatorDestination
-import com.ordolabs.thecolor.util.struct.Color
-import com.ordolabs.thecolor.util.struct.toColorInt
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.koin.core.context.loadKoinModules
 import android.graphics.Color as ColorAndroid
@@ -95,7 +95,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
         setFragment(fragment, binding.colorDataFragmentContainer.id)
     }
 
-    private fun replaceColorDataFragment(color: Color) {
+    private fun replaceColorDataFragment(color: ColorPresentation) {
         val fragment = ColorDataPagerFragment.newInstance(color)
         replaceFragment(fragment, binding.colorDataFragmentContainer.id)
     }
@@ -105,7 +105,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
         return binding.colorDataFragmentContainer.backgroundTintList?.defaultColor
     }
 
-    private fun tintColorDataContanerBackground(color: Color) {
+    private fun tintColorDataContanerBackground(color: ColorPresentation) {
         binding.colorDataFragmentContainer.backgroundTintList =
             ColorStateList.valueOf(color.toColorInt())
         activity?.setNavigationBarColor(color)
@@ -121,7 +121,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
         binding.colorDataFragmentContainer.isInvisible = !visible
     }
 
-    private fun animInfoSheetExpanding(color: Color) {
+    private fun animInfoSheetExpanding(color: ColorPresentation) {
         if (homeVM.isInfoSheetShown) return
         binding.root.post { // when ^ infoFragmentContainer becomes visible
             binding.scrollview.isScrollable = true
@@ -361,7 +361,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
 
     private fun onColorPreviewSuccess(preview: ColorPreview) {
         binding.previewWrapper.doOnLayout {
-            val color = preview.color.color
+            val color = preview.color
             val colorInt = color.toColorInt()
             if (preview.isUserInput) { // collapse only if user changed color manually
                 val colorDataBg = getColorDataContainerBackgroundColor()
@@ -380,8 +380,8 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
         colorInputVM.procceedCommand.collectOnLifecycle { resource ->
             resource.ifSuccess { color ->
                 hideSoftInput()
-                animInfoSheetExpanding(color.color)
-                replaceColorDataFragment(color.color)
+                animInfoSheetExpanding(color)
+                replaceColorDataFragment(color)
             }
         }
 
@@ -390,7 +390,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
             resource.ifSuccess { exactColor ->
                 val preview = ColorPreview(exactColor, isUserInput = false)
                 colorInputVM.updateColorPreview(preview)
-                replaceColorDataFragment(exactColor.color)
+                replaceColorDataFragment(exactColor)
             }
         }
 

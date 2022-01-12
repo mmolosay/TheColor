@@ -1,45 +1,59 @@
 package com.ordolabs.thecolor.model.color
 
-import com.ordolabs.thecolor.util.struct.Color
-import com.ordolabs.thecolor.util.struct.fromHex
-import com.ordolabs.thecolor.util.struct.fromRgb
-import com.ordolabs.thecolor.util.struct.toColorRgb
+import androidx.annotation.ColorInt
+import androidx.annotation.IntRange
+import com.ordolabs.thecolor.util.ColorUtil
+import com.ordolabs.thecolor.util.ColorUtil.colorHexSignless
+import com.ordolabs.thecolor.util.ColorUtil.toColorHexFullForm
 import kotlinx.parcelize.Parcelize
 
 /**
- * Presentation of __valid__ color of immaterial color space.
+ * Presentation of __valid__ abstract color of some color space.
+ *
+ * @param hex HEX color string __with__ number sign, e.g. "#16A8C0".
  */
 // TODO: move all Color functionality into this and get rid of Color?
 @Parcelize
 data class ColorPresentation(
-    val color: Color
+    val hex: String
 ) : IAbstractColor {
 
     companion object
 }
 
-fun ColorPresentation.Companion.from(color: ColorHex) =
-    ColorPresentation(
-        color = Color.fromHex(color.value)
-            ?: error("ColorPresentation must contain valid color")
-    )
+fun ColorPresentation.Companion.from(color: ColorHex): ColorPresentation? {
+    val value = color.value ?: return null
+    val hex = value.toColorHexFullForm() ?: return null
+    return ColorPresentation(hex)
+}
 
-fun ColorPresentation.Companion.from(color: ColorRgb) =
-    ColorPresentation(
-        color = Color.fromRgb(color.r, color.g, color.b)
-            ?: error("ColorPresentation must contain valid color")
-    )
+fun ColorPresentation.Companion.from(color: ColorRgb): ColorPresentation? {
+    val (r, g, b) = color
+    if (r == null || g == null || b == null) return null
+    val hex = ColorUtil.rgbToHex(r, g, b)
+    return ColorPresentation(hex)
+}
 
 fun ColorPresentation.toColorHexPresentation() =
     ColorHex(
-        value = this.color.hexSignless
+        value = this.hex.colorHexSignless()!!
     )
 
 fun ColorPresentation.toColorRgbPresentation(): ColorRgb {
-    val rgb = color.toColorRgb()
+    val rgb = ColorUtil.hexToRgb(this.hex)
     return ColorRgb(
         r = rgb.r,
         g = rgb.g,
         b = rgb.b
     )
 }
+
+@ColorInt
+fun ColorPresentation.toColorInt(): Int {
+    return android.graphics.Color.parseColor(this.hex)
+}
+
+fun ColorPresentation.isDark(
+    @IntRange(from = 0, to = 100) threshold: Int = 60
+): Boolean =
+    ColorUtil.isDark(this.hex, threshold)
