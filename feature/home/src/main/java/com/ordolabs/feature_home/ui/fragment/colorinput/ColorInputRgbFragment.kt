@@ -7,8 +7,8 @@ import com.ordolabs.feature_home.databinding.FragmentColorInputRgbBinding
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputRgbViewModel
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
-import com.ordolabs.thecolor.model.color.ColorRgbPresentation
-import com.ordolabs.thecolor.model.colorinput.ColorInputRgbPresentation
+import com.ordolabs.thecolor.model.color.ColorRgb
+import com.ordolabs.thecolor.model.colorinput.ColorInputRgb
 import com.ordolabs.thecolor.ui.util.inputfilter.PreventingInputFilter
 import com.ordolabs.thecolor.ui.util.inputfilter.RangeInputFilter
 import com.ordolabs.thecolor.util.ext.addFilters
@@ -64,11 +64,11 @@ class ColorInputRgbFragment : BaseFragment(R.layout.fragment_color_input_rgb) {
         colorInputVM.validateColor(color)
     }
 
-    private fun makeColorRgbPresentation(): ColorRgbPresentation {
+    private fun makeColorRgbPresentation(): ColorRgb {
         val r = binding.inputRgbR.getTextString()?.toIntOrNull()
         val g = binding.inputRgbG.getTextString()?.toIntOrNull()
         val b = binding.inputRgbB.getTextString()?.toIntOrNull()
-        return ColorRgbPresentation(r, g, b)
+        return ColorRgb(r, g, b)
     }
 
     private fun collectColorInput() =
@@ -80,7 +80,7 @@ class ColorInputRgbFragment : BaseFragment(R.layout.fragment_color_input_rgb) {
         }
 
     @Suppress("UNUSED_PARAMETER")
-    private fun onColorInputEmpty(previous: ColorInputRgbPresentation?) {
+    private fun onColorInputEmpty(previous: ColorInputRgb?) {
         if (isResumed) return // prevent user interrupting
         this.isTypedByUser = false
         binding.inputRgbR.getText()?.clear()
@@ -89,7 +89,7 @@ class ColorInputRgbFragment : BaseFragment(R.layout.fragment_color_input_rgb) {
         this.isTypedByUser = true
     }
 
-    private fun onColorInputSuccess(input: ColorInputRgbPresentation) {
+    private fun onColorInputSuccess(input: ColorInputRgb) {
         if (isResumed && input.isUserInput) return // prevent user interrupting
         val color = input.color
         this.isTypedByUser = false

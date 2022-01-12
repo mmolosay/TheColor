@@ -4,10 +4,10 @@ import androidx.lifecycle.viewModelScope
 import com.ordolabs.domain.usecase.local.ValidateColorHexBaseUseCase
 import com.ordolabs.domain.usecase.local.ValidateColorRgbBaseUseCase
 import com.ordolabs.thecolor.mapper.toDomain
-import com.ordolabs.thecolor.model.color.ColorHexPresentation
+import com.ordolabs.thecolor.model.color.ColorHex
 import com.ordolabs.thecolor.model.color.ColorPresentation
 import com.ordolabs.thecolor.model.color.ColorPreview
-import com.ordolabs.thecolor.model.color.ColorRgbPresentation
+import com.ordolabs.thecolor.model.color.ColorRgb
 import com.ordolabs.thecolor.model.color.from
 import com.ordolabs.thecolor.util.MutableStateResourceFlow
 import com.ordolabs.thecolor.util.ext.setEmpty
@@ -47,7 +47,7 @@ class ColorInputViewModel(
         colorValidationJob?.cancel()
     }
 
-    fun validateColor(input: ColorHexPresentation) {
+    fun validateColor(input: ColorHex) {
         restartColorValidation()
         val domain = input.toDomain()
         this.colorValidationJob = launch {
@@ -58,7 +58,7 @@ class ColorInputViewModel(
         }
     }
 
-    fun validateColor(input: ColorRgbPresentation) {
+    fun validateColor(input: ColorRgb) {
         restartColorValidation()
         val domain = input.toDomain()
         this.colorValidationJob = launch {

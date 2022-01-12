@@ -2,9 +2,10 @@ package com.ordolabs.thecolor.mapper
 
 import com.ordolabs.domain.model.ColorHex
 import com.ordolabs.domain.model.ColorRgb
-import com.ordolabs.thecolor.model.color.ColorHexPresentation
-import com.ordolabs.thecolor.model.color.ColorRgbPresentation
+import com.ordolabs.thecolor.model.color.ColorHex as ColorHexPresentation
+import com.ordolabs.thecolor.model.color.ColorRgb as ColorRgbPresentation
 
+// TODO: rewrite
 fun ColorHexPresentation.toDomain(): ColorHex? {
     this.value ?: return null
     val string = this.value.let {

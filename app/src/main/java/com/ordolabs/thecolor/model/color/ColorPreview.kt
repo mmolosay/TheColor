@@ -1,8 +1,8 @@
 package com.ordolabs.thecolor.model.color
 
 import android.os.Parcelable
-import com.ordolabs.thecolor.model.colorinput.ColorInputHexPresentation
-import com.ordolabs.thecolor.model.colorinput.ColorInputRgbPresentation
+import com.ordolabs.thecolor.model.colorinput.ColorInputHex
+import com.ordolabs.thecolor.model.colorinput.ColorInputRgb
 import kotlinx.parcelize.Parcelize
 
 /**
@@ -16,13 +16,13 @@ data class ColorPreview(
 ) : Parcelable
 
 fun ColorPreview.toColorInputHexPresentation() =
-    ColorInputHexPresentation(
+    ColorInputHex(
         color = this.color.toColorHexPresentation(),
         isUserInput = this.isUserInput
     )
 
 fun ColorPreview.toColorInputRgbPresentation() =
-    ColorInputRgbPresentation(
+    ColorInputRgb(
         color = this.color.toColorRgbPresentation(),
         isUserInput = this.isUserInput
     )
