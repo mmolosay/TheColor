@@ -19,8 +19,7 @@ class ColorSchemeObtainViewModel(
     private val getColorSchemeUseCase: GetColorSchemeBaseUseCase
 ) : BaseViewModel() {
 
-    private val _scheme =
-        MutableStateResourceFlow<ColorScheme>(Resource.empty())
+    private val _scheme = MutableStateResourceFlow<ColorScheme>(Resource.empty())
     val scheme = _scheme.asStateFlow()
 
     private var getColorSchemeJob: Job? = null

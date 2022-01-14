@@ -19,8 +19,7 @@ class ColorDetailsObtainViewModel(
     private val getColorDetailsUseCase: GetColorDetailsBaseUseCase
 ) : BaseViewModel() {
 
-    private val _details =
-        MutableStateResourceFlow<ColorDetails>(Resource.empty())
+    private val _details = MutableStateResourceFlow<ColorDetails>(Resource.empty())
     val details = _details.asStateFlow()
 
     private var getColorDetailsJob: Job? = null

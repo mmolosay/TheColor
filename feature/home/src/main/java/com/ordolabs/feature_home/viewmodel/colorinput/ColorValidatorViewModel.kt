@@ -9,10 +9,11 @@ import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.ColorPreview
 import com.ordolabs.thecolor.model.color.ColorPrototype
 import com.ordolabs.thecolor.model.color.from
+import com.ordolabs.thecolor.util.MutableCommandFlow
 import com.ordolabs.thecolor.util.MutableStateResourceFlow
+import com.ordolabs.thecolor.util.ext.asCommand
 import com.ordolabs.thecolor.util.ext.setEmpty
 import com.ordolabs.thecolor.util.ext.setSuccess
-import com.ordolabs.thecolor.util.ext.shareOnceIn
 import com.ordolabs.thecolor.util.struct.Resource
 import com.ordolabs.thecolor.util.struct.empty
 import com.ordolabs.thecolor.util.struct.getOrNull
@@ -31,8 +32,9 @@ class ColorValidatorViewModel(
     private val _colorPreview: MutableStateFlow<Resource<ColorPreview>>
     val colorPreview: StateFlow<Resource<ColorPreview>>
 
-    private val _procceedCommand = MutableStateResourceFlow<Color>(Resource.empty())
-    val procceedCommand = _procceedCommand.shareOnceIn(viewModelScope)
+    // TODO: create ColorInputPagerViewModel and move into there, when 'Procceed' button is extracted out of fragment
+    private val _procceedCommand = MutableCommandFlow<Color>()
+    val procceedCommand = _procceedCommand.asCommand(viewModelScope)
 
     private var colorValidationJob: Job? = null
 

@@ -5,18 +5,14 @@ import androidx.lifecycle.viewModelScope
 import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.ColorPrototype
 import com.ordolabs.thecolor.model.color.from
-import com.ordolabs.thecolor.util.MutableStateResourceFlow
+import com.ordolabs.thecolor.util.MutableCommandFlow
+import com.ordolabs.thecolor.util.ext.asCommand
 import com.ordolabs.thecolor.util.ext.setSuccess
-import com.ordolabs.thecolor.util.ext.shareOnceIn
-import com.ordolabs.thecolor.util.struct.Resource
-import com.ordolabs.thecolor.util.struct.empty
 
 class ColorDetailsViewModel : ViewModel() {
 
-    // TODO: implement Command class, similar to Resource?
-    private val _getExactColorCommand =
-        MutableStateResourceFlow<Color>(Resource.empty())
-    val getExactColorCommand = _getExactColorCommand.shareOnceIn(viewModelScope)
+    private val _getExactColorCommand = MutableCommandFlow<Color>()
+    val getExactColorCommand = _getExactColorCommand.asCommand(viewModelScope)
 
     override fun onCleared() {
         super.onCleared()

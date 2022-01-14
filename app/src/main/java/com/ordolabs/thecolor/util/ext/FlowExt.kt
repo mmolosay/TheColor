@@ -65,16 +65,8 @@ fun <R, V> Flow<R>.catchFailureIn(catcher: MutableStateFlow<Resource<V>>): Flow<
         catcher.setFailure(throwable)
     }
 
-///**
-// * Updates [MutableStateFlow]<[Resource]<[V]>> atomically using the specified [function] of its value.
-// * Due to [StateFlow]'s __strong equality-based conflation__, if current `value` is equal to new
-// * value from [function], then `value` is first updated with [Resource].[empty] value.
-// */
-//fun <V : Any> MutableStateFlow<Resource<V>>.updateGuaranteed(
-//    function: (Resource<V>) -> Resource<V>
-//) {
-//    val oldValue = this.value
-//    val newValue = function(oldValue)
-//    if (newValue == oldValue) this.update { Resource.empty() }
-//    this.update { newValue }
-//}
+/**
+ * @see shareOnceIn
+ */
+fun <V> Flow<Resource<V>>.asCommand(scope: CoroutineScope): SharedFlow<Resource<V>> =
+    this.shareOnceIn(scope)

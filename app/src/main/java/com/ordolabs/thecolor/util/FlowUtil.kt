@@ -1,6 +1,7 @@
 package com.ordolabs.thecolor.util
 
 import com.ordolabs.thecolor.util.struct.Resource
+import com.ordolabs.thecolor.util.struct.empty
 import com.ordolabs.thecolor.util.struct.success
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,3 +17,7 @@ fun <V : Any> MutableStateResourceFlow(value: Resource<V>) =
 @Suppress("FunctionName")
 fun <V : Any> MutableStateResourceFlow(value: V) =
     MutableStateFlow(Resource.success(value))
+
+@Suppress("FunctionName")
+fun <V : Any> MutableCommandFlow() =
+    MutableStateFlow<Resource<V>>(Resource.empty())
