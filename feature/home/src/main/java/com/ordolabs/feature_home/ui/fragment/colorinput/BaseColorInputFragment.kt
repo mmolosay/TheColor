@@ -5,7 +5,7 @@ import androidx.annotation.LayoutRes
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorValidatorViewModel
-import com.ordolabs.thecolor.model.color.AbstractColor
+import com.ordolabs.thecolor.model.color.ColorPrototype
 import com.ordolabs.thecolor.util.struct.Resource
 import kotlinx.coroutines.flow.Flow
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
@@ -20,7 +20,7 @@ import org.koin.androidx.viewmodel.ext.android.sharedViewModel
  *
  * Color collected from [getColorInputFlow] will be used to [populateViews] and [clearViews].
  */
-abstract class BaseColorInputFragment<C : AbstractColor> : BaseFragment {
+abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment {
 
     constructor() : super()
     constructor(@LayoutRes layoutRes: Int) : super(layoutRes)

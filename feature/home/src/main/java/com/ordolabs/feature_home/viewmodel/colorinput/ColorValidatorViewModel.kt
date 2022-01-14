@@ -6,9 +6,8 @@ import com.ordolabs.domain.usecase.local.ValidateColorRgbBaseUseCase
 import com.ordolabs.thecolor.mapper.toDomain
 import com.ordolabs.thecolor.model.color.AbstractColor
 import com.ordolabs.thecolor.model.color.Color
-import com.ordolabs.thecolor.model.color.ColorHex
 import com.ordolabs.thecolor.model.color.ColorPreview
-import com.ordolabs.thecolor.model.color.ColorRgb
+import com.ordolabs.thecolor.model.color.ColorPrototype
 import com.ordolabs.thecolor.model.color.from
 import com.ordolabs.thecolor.util.MutableStateResourceFlow
 import com.ordolabs.thecolor.util.ext.setEmpty
@@ -50,11 +49,11 @@ class ColorValidatorViewModel(
     fun validateColor(input: AbstractColor) =
         when (input) {
             is Color -> error("you can't validate Color (valid asserted)")
-            is ColorHex -> validateColor(input)
-            is ColorRgb -> validateColor(input)
+            is ColorPrototype.Hex -> validateColor(input)
+            is ColorPrototype.Rgb -> validateColor(input)
         }
 
-    private fun validateColor(input: ColorHex) {
+    private fun validateColor(input: ColorPrototype.Hex) {
         restartColorValidation()
         val domain = input.toDomain()
         this.colorValidationJob = launch {
@@ -65,7 +64,7 @@ class ColorValidatorViewModel(
         }
     }
 
-    private fun validateColor(input: ColorRgb) {
+    private fun validateColor(input: ColorPrototype.Rgb) {
         restartColorValidation()
         val domain = input.toDomain()
         this.colorValidationJob = launch {

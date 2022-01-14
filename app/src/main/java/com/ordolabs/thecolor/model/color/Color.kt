@@ -36,31 +36,37 @@ open class Color(
 fun Color.Companion.from(color: AbstractColor): Color? =
     when (color) {
         is Color -> color
-        is ColorHex -> Color.from(color)
-        is ColorRgb -> Color.from(color)
+        is ColorPrototype -> this.from(color)
+        else -> error("compilator bug requires this unreachable branch")
     }
 
-fun Color.Companion.from(color: ColorHex): Color? {
+fun Color.Companion.from(color: ColorPrototype): Color? =
+    when (color) {
+        is ColorPrototype.Hex -> Color.from(color)
+        is ColorPrototype.Rgb -> Color.from(color)
+    }
+
+fun Color.Companion.from(color: ColorPrototype.Hex): Color? {
     val value = color.value ?: return null
     val hex = value.toColorHexFullForm() ?: return null
     return Color(hex)
 }
 
-fun Color.Companion.from(color: ColorRgb): Color? {
+fun Color.Companion.from(color: ColorPrototype.Rgb): Color? {
     val (r, g, b) = color
     if (r == null || g == null || b == null) return null
     val hex = ColorUtil.rgbToHex(r, g, b)
     return Color(hex)
 }
 
-fun Color.toColorHex() =
-    ColorHex(
+fun Color.toHex() =
+    ColorPrototype.Hex(
         value = this.hex.colorHexSignless()!!
     )
 
-fun Color.toColorRgb(): ColorRgb {
+fun Color.toRgb(): ColorPrototype.Rgb {
     val rgb = ColorUtil.hexToRgb(this.hex)
-    return ColorRgb(
+    return ColorPrototype.Rgb(
         r = rgb.r,
         g = rgb.g,
         b = rgb.b

@@ -122,7 +122,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
     }
 
     private fun animInfoSheetExpanding(color: Color) {
-        if (homeVM.isInfoSheetShown) return
+        if (homeVM.isColorDataShown) return
         binding.root.post { // when ^ infoFragmentContainer becomes visible
             binding.scrollview.isScrollable = true
             AnimatorSet().apply {
@@ -135,7 +135,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
                     }
                 )
                 doOnEnd {
-                    homeVM.isInfoSheetShown = true
+                    homeVM.isColorDataShown = true
                 }
             }.start()
         }
@@ -157,7 +157,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
     }
 
     private fun animColorDataCollapsingOnPreviewSuccess() {
-        if (!homeVM.isInfoSheetShown) return
+        if (!homeVM.isColorDataShown) return
         makeInfoSheetCollapsingAnimation().start()
     }
 
@@ -177,7 +177,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
                 makePreviewRisingAnimation()
             )
             doOnStart {
-                homeVM.isInfoSheetShown = false
+                homeVM.isColorDataShown = false
             }
         }
 
@@ -351,7 +351,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
     @Suppress("UNUSED_PARAMETER")
     private fun onColorPreviewEmpty(previous: ColorPreview?) {
         binding.previewWrapper.doOnLayout {
-            if (homeVM.isInfoSheetShown) {
+            if (homeVM.isColorDataShown) {
                 animInfoSheetCollapsingOnPreviewEmpty()
             } else {
                 animPreviewResize(collapse = true)

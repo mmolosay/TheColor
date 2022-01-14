@@ -4,7 +4,7 @@ import androidx.core.widget.doOnTextChanged
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.FragmentColorInputRgbBinding
-import com.ordolabs.thecolor.model.color.ColorRgb
+import com.ordolabs.thecolor.model.color.ColorPrototype
 import com.ordolabs.thecolor.ui.util.inputfilter.PreventingInputFilter
 import com.ordolabs.thecolor.ui.util.inputfilter.RangeInputFilter
 import com.ordolabs.thecolor.util.ext.addFilters
@@ -15,7 +15,7 @@ import com.ordolabs.thecolor.util.struct.Resource
 import kotlinx.coroutines.flow.Flow
 
 class ColorInputRgbFragment :
-    BaseColorInputFragment<ColorRgb>(R.layout.fragment_color_input_rgb) {
+    BaseColorInputFragment<ColorPrototype.Rgb>(R.layout.fragment_color_input_rgb) {
 
     private val binding: FragmentColorInputRgbBinding by viewBinding()
 
@@ -51,14 +51,14 @@ class ColorInputRgbFragment :
 
     // region BaseColorInputFragment
 
-    override fun assembleColor(): ColorRgb {
+    override fun assembleColor(): ColorPrototype.Rgb {
         val r = binding.inputRgbR.getTextString()?.toIntOrNull()
         val g = binding.inputRgbG.getTextString()?.toIntOrNull()
         val b = binding.inputRgbB.getTextString()?.toIntOrNull()
-        return ColorRgb(r, g, b)
+        return ColorPrototype.Rgb(r, g, b)
     }
 
-    override fun populateViews(color: ColorRgb): Unit =
+    override fun populateViews(color: ColorPrototype.Rgb): Unit =
         binding.run {
             inputRgbR.editText?.setTextPreservingSelection(color.r.toString())
             inputRgbG.editText?.setTextPreservingSelection(color.g.toString())
@@ -72,13 +72,14 @@ class ColorInputRgbFragment :
             binding.inputRgbB.getText()?.clear()
         }
 
-    override fun getColorInputFlow(): Flow<Resource<ColorRgb>> =
+    override fun getColorInputFlow(): Flow<Resource<ColorPrototype.Rgb>> =
         colorInputVM.colorRgb
 
     // endregion
 
     companion object {
 
-        fun newInstance() = ColorInputRgbFragment()
+        fun newInstance() =
+            ColorInputRgbFragment()
     }
 }

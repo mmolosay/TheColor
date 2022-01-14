@@ -3,7 +3,7 @@ package com.ordolabs.feature_home.viewmodel.colordata.details
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ordolabs.thecolor.model.color.Color
-import com.ordolabs.thecolor.model.color.ColorHex
+import com.ordolabs.thecolor.model.color.ColorPrototype
 import com.ordolabs.thecolor.model.color.from
 import com.ordolabs.thecolor.util.MutableStateResourceFlow
 import com.ordolabs.thecolor.util.ext.setSuccess
@@ -23,8 +23,8 @@ class ColorDetailsViewModel : ViewModel() {
     }
 
     fun getExactColor(exactHex: String) {
-        val presentation = ColorHex(value = exactHex)
-        val color = Color.from(presentation)!! // exactHex is always valid
+        val proto = ColorPrototype.Hex(value = exactHex)
+        val color = Color.from(proto)!! // exactHex is always valid
         _getExactColorCommand.setSuccess(color)
     }
 }
