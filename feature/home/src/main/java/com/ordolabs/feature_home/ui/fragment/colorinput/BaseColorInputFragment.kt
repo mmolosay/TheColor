@@ -12,7 +12,12 @@ import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 /**
  * Base Fragment, that can obtain input from UI and [assembleColor] of type [C].
+ *
  * Color should be assembled and validated every time input changes.
+ *
+ * All derivered classes are designed to work together simultaneously (for example, in ViewPager),
+ * thus if color changes in any of them, changes should be reflected in all others.
+ *
  * Color collected from [getColorInputFlow] will be used to [populateViews] and [clearViews].
  *
  * @see validateColorInput
@@ -59,11 +64,11 @@ abstract class BaseColorInputFragment<C : AbstractColor> : BaseFragment {
 
     private fun collectColorInput() =
         getColorInputFlow().collectOnLifecycle { resource ->
-        resource.fold(
-            onEmpty = ::onColorInputEmpty,
-            onSuccess = ::onColorInputSuccess
-        )
-    }
+            resource.fold(
+                onEmpty = ::onColorInputEmpty,
+                onSuccess = ::onColorInputSuccess
+            )
+        }
 
     /**
      * Validates color, provided by [assembleColor].
