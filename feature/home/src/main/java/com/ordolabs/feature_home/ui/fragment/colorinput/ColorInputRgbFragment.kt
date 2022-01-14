@@ -4,31 +4,23 @@ import androidx.core.widget.doOnTextChanged
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.FragmentColorInputRgbBinding
-import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputRgbViewModel
-import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
 import com.ordolabs.thecolor.model.color.ColorRgb
-import com.ordolabs.thecolor.model.color.empty
 import com.ordolabs.thecolor.ui.util.inputfilter.PreventingInputFilter
 import com.ordolabs.thecolor.ui.util.inputfilter.RangeInputFilter
 import com.ordolabs.thecolor.util.ext.addFilters
 import com.ordolabs.thecolor.util.ext.getText
 import com.ordolabs.thecolor.util.ext.getTextString
 import com.ordolabs.thecolor.util.ext.setTextPreservingSelection
+import com.ordolabs.thecolor.util.struct.Resource
+import kotlinx.coroutines.flow.Flow
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
-class ColorInputRgbFragment : BaseFragment(R.layout.fragment_color_input_rgb) {
+class ColorInputRgbFragment :
+    BaseColorInputFragment<ColorRgb>(R.layout.fragment_color_input_rgb) {
 
     private val binding: FragmentColorInputRgbBinding by viewBinding()
-    private val colorInputVM: ColorInputViewModel by sharedViewModel()
     private val colorInputRgbVM: ColorInputRgbViewModel by sharedViewModel()
-
-    private var latestColor = ColorRgb.empty()
-    private var isTypedByUser = true
-
-    override fun collectViewModelsData() {
-        collectColorInput()
-    }
 
     override fun setViews() {
         setComponentInputsFilters()
@@ -60,46 +52,33 @@ class ColorInputRgbFragment : BaseFragment(R.layout.fragment_color_input_rgb) {
             if (isTypedByUser) validateColorInput()
         }
 
-    private fun validateColorInput() {
-        val color = assembleColor()
-        colorInputVM.validateColor(color)
-    }
+    // region BaseColorInputFragment
 
-    private fun assembleColor(): ColorRgb {
+    override fun assembleColor(): ColorRgb {
         val r = binding.inputRgbR.getTextString()?.toIntOrNull()
         val g = binding.inputRgbG.getTextString()?.toIntOrNull()
         val b = binding.inputRgbB.getTextString()?.toIntOrNull()
-        return ColorRgb(r, g, b).also {
-            this.latestColor = it
-        }
+        return ColorRgb(r, g, b)
     }
 
-    private fun collectColorInput() =
-        colorInputRgbVM.colorRgb.collectOnLifecycle { resource ->
-            resource.fold(
-                onEmpty = ::onColorInputEmpty,
-                onSuccess = ::onColorInputSuccess
-            )
+    override fun populateViews(color: ColorRgb): Unit =
+        binding.run {
+            inputRgbR.editText?.setTextPreservingSelection(color.r.toString())
+            inputRgbG.editText?.setTextPreservingSelection(color.g.toString())
+            inputRgbB.editText?.setTextPreservingSelection(color.b.toString())
         }
 
-    @Suppress("UNUSED_PARAMETER")
-    private fun onColorInputEmpty(previous: ColorRgb?) {
-        if (isResumed) return // prevent user interrupting
-        this.isTypedByUser = false
-        binding.inputRgbR.getText()?.clear()
-        binding.inputRgbG.getText()?.clear()
-        binding.inputRgbB.getText()?.clear()
-        this.isTypedByUser = true
-    }
+    override fun clearViews(): Unit =
+        binding.run {
+            binding.inputRgbR.getText()?.clear()
+            binding.inputRgbG.getText()?.clear()
+            binding.inputRgbB.getText()?.clear()
+        }
 
-    private fun onColorInputSuccess(color: ColorRgb) {
-        if (isResumed && color == latestColor) return // prevent user interrupting
-        this.isTypedByUser = false
-        binding.inputRgbR.editText?.setTextPreservingSelection(color.r.toString())
-        binding.inputRgbG.editText?.setTextPreservingSelection(color.g.toString())
-        binding.inputRgbB.editText?.setTextPreservingSelection(color.b.toString())
-        this.isTypedByUser = true
-    }
+    override fun getColorInputFlow(): Flow<Resource<ColorRgb>> =
+        colorInputRgbVM.colorRgb
+
+    // endregion
 
     companion object {
 

@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.ordolabs.domain.usecase.local.ValidateColorHexBaseUseCase
 import com.ordolabs.domain.usecase.local.ValidateColorRgbBaseUseCase
 import com.ordolabs.thecolor.mapper.toDomain
+import com.ordolabs.thecolor.model.color.AbstractColor
 import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.ColorHex
 import com.ordolabs.thecolor.model.color.ColorPreview
@@ -47,7 +48,14 @@ class ColorInputViewModel(
         colorValidationJob?.cancel()
     }
 
-    fun validateColor(input: ColorHex) {
+    fun validateColor(input: AbstractColor) =
+        when (input) {
+            is Color -> error("you can't validate Color (valid asserted)")
+            is ColorHex -> validateColor(input)
+            is ColorRgb -> validateColor(input)
+        }
+
+    private fun validateColor(input: ColorHex) {
         restartColorValidation()
         val domain = input.toDomain()
         this.colorValidationJob = launch {
@@ -58,7 +66,7 @@ class ColorInputViewModel(
         }
     }
 
-    fun validateColor(input: ColorRgb) {
+    private fun validateColor(input: ColorRgb) {
         restartColorValidation()
         val domain = input.toDomain()
         this.colorValidationJob = launch {

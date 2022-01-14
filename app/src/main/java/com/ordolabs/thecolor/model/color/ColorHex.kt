@@ -7,6 +7,8 @@ import kotlinx.parcelize.Parcelize
  *
  * @param value __signless__ HEX color `String`, e.g. "16A8C0".
  */
+// TODO: rename ColorHex and other Color* classes into just * (Hex), introduce class ColorPrototype
+//  and make them a part of it (ColorPrototype.Hex)
 @Parcelize
 data class ColorHex(
     val value: String?
