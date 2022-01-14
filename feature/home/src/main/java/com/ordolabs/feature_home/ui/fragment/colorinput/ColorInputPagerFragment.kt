@@ -7,9 +7,8 @@ import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.FragmentColorInputPagerBinding
 import com.ordolabs.feature_home.ui.adapter.pager.ColorInputPagerAdapter
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
-import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputHexViewModel
-import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputRgbViewModel
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
+import com.ordolabs.feature_home.viewmodel.colorinput.ColorValidatorViewModel
 import com.ordolabs.thecolor.util.ext.getFromEnumOrNull
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
@@ -17,8 +16,7 @@ class ColorInputPagerFragment : BaseFragment(R.layout.fragment_color_input_pager
 
     private val binding: FragmentColorInputPagerBinding by viewBinding()
     private val colorInputVM: ColorInputViewModel by sharedViewModel()
-    private val colorInputHexVM: ColorInputHexViewModel by sharedViewModel()
-    private val colorInputRgbVM: ColorInputRgbViewModel by sharedViewModel()
+    private val colorValidatorVM: ColorValidatorViewModel by sharedViewModel()
 
     override fun collectViewModelsData() {
         collectColorPreview()
@@ -42,7 +40,7 @@ class ColorInputPagerFragment : BaseFragment(R.layout.fragment_color_input_pager
 
     private fun setProcceedBtn() = binding.run {
         procceedBtn.setOnClickListener {
-            colorInputVM.procceedInput()
+            colorValidatorVM.procceedInput()
         }
     }
 
@@ -52,11 +50,10 @@ class ColorInputPagerFragment : BaseFragment(R.layout.fragment_color_input_pager
     }
 
     private fun collectColorPreview() =
-        colorInputVM.colorPreview.collectOnLifecycle { resource ->
+        colorValidatorVM.colorPreview.collectOnLifecycle { resource ->
             binding.procceedBtn.isEnabled = resource.isSuccess
             resource.ifSuccess { preview ->
-                colorInputHexVM.updateColorInput(preview)
-                colorInputRgbVM.updateColorInput(preview)
+                colorInputVM.updateColorInput(preview)
             }
         }
 

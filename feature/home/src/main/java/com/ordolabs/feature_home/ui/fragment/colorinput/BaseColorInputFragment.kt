@@ -4,6 +4,7 @@ import androidx.annotation.CallSuper
 import androidx.annotation.LayoutRes
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
+import com.ordolabs.feature_home.viewmodel.colorinput.ColorValidatorViewModel
 import com.ordolabs.thecolor.model.color.AbstractColor
 import com.ordolabs.thecolor.util.struct.Resource
 import kotlinx.coroutines.flow.Flow
@@ -21,9 +22,10 @@ abstract class BaseColorInputFragment<C : AbstractColor> : BaseFragment {
     constructor() : super()
     constructor(@LayoutRes layoutRes: Int) : super(layoutRes)
 
+    protected val colorInputVM: ColorInputViewModel by sharedViewModel()
     protected var isTypedByUser: Boolean = true
 
-    private val colorInputVM: ColorInputViewModel by sharedViewModel()
+    private val colorValidatorVM: ColorValidatorViewModel by sharedViewModel()
     private var latestColor: C? = null
 
     // region Abstract
@@ -44,7 +46,7 @@ abstract class BaseColorInputFragment<C : AbstractColor> : BaseFragment {
     protected abstract fun clearViews()
 
     /**
-     * Returns flow to be collected.
+     * Returns flow to be collected from [colorInputVM].
      */
     protected abstract fun getColorInputFlow(): Flow<Resource<C>>
 
@@ -69,7 +71,7 @@ abstract class BaseColorInputFragment<C : AbstractColor> : BaseFragment {
      */
     protected fun validateColorInput() {
         val color = assembleAndMementoColor()
-        colorInputVM.validateColor(color)
+        colorValidatorVM.validateColor(color)
     }
 
     @Suppress("UNUSED_PARAMETER")

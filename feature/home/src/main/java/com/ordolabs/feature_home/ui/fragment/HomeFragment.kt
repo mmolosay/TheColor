@@ -26,7 +26,7 @@ import com.ordolabs.feature_home.ui.fragment.colordata.ColorDataPagerFragment
 import com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputPagerFragment
 import com.ordolabs.feature_home.viewmodel.HomeViewModel
 import com.ordolabs.feature_home.viewmodel.colordata.details.ColorDetailsViewModel
-import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
+import com.ordolabs.feature_home.viewmodel.colorinput.ColorValidatorViewModel
 import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.ColorPreview
 import com.ordolabs.thecolor.model.color.toColorInt
@@ -58,7 +58,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
 
     private val binding: HomeFragmentBinding by viewBinding()
     private val homeVM: HomeViewModel by sharedViewModel()
-    private val colorInputVM: ColorInputViewModel by sharedViewModel()
+    private val colorValidatorVM: ColorValidatorViewModel by sharedViewModel()
     private val colorDetailsVM: ColorDetailsViewModel by sharedViewModel()
 
     private val previewResizeDest = AnimatorDestination()
@@ -147,7 +147,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
                 makeInfoSheetCollapsingAnimation(),
                 makePreviewTogglingAnimation(collapse = true).apply {
                     doOnStart {
-                        colorInputVM.colorPreview.value.ifSuccess {
+                        colorValidatorVM.colorPreview.value.ifSuccess {
                             cancel()
                         }
                     }
@@ -341,7 +341,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
     }
 
     private fun collectColorPreview() =
-        colorInputVM.colorPreview.collectOnLifecycle { resource ->
+        colorValidatorVM.colorPreview.collectOnLifecycle { resource ->
             resource.fold(
                 onEmpty = ::onColorPreviewEmpty,
                 onSuccess = ::onColorPreviewSuccess
@@ -376,7 +376,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
     }
 
     private fun collectProcceedCommand() =
-        colorInputVM.procceedCommand.collectOnLifecycle { resource ->
+        colorValidatorVM.procceedCommand.collectOnLifecycle { resource ->
             resource.ifSuccess { color ->
                 hideSoftInput()
                 animInfoSheetExpanding(color)
@@ -388,7 +388,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
         colorDetailsVM.getExactColorCommand.collectOnLifecycle { resource ->
             resource.ifSuccess { exactColor ->
                 val preview = ColorPreview(exactColor, isUserInput = false)
-                colorInputVM.updateColorPreview(preview)
+                colorValidatorVM.updateColorPreview(preview)
                 replaceColorDataFragment(exactColor)
             }
         }

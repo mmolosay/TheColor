@@ -4,20 +4,17 @@ import androidx.core.widget.doOnTextChanged
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.FragmentColorInputHexBinding
-import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputHexViewModel
 import com.ordolabs.thecolor.model.color.ColorHex
 import com.ordolabs.thecolor.util.ext.getText
 import com.ordolabs.thecolor.util.ext.getTextString
 import com.ordolabs.thecolor.util.ext.setTextPreservingSelection
 import com.ordolabs.thecolor.util.struct.Resource
 import kotlinx.coroutines.flow.Flow
-import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 class ColorInputHexFragment :
     BaseColorInputFragment<ColorHex>(R.layout.fragment_color_input_hex) {
 
     private val binding: FragmentColorInputHexBinding by viewBinding()
-    private val colorInputHexVM: ColorInputHexViewModel by sharedViewModel()
 
     override fun setViews() {
         setInputTextWatcher()
@@ -46,7 +43,7 @@ class ColorInputHexFragment :
         }
 
     override fun getColorInputFlow(): Flow<Resource<ColorHex>> =
-        colorInputHexVM.colorHex
+        colorInputVM.colorHex
 
     // endregion
 
