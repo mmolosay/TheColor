@@ -22,7 +22,7 @@ class ColorInputHexFragment :
 
     private fun setInputTextWatcher() =
         binding.inputHex.editText?.doOnTextChanged { _, _, _, _ ->
-            if (isTypedByUser) validateColorInput()
+            validateOnInputChanges()
         }
 
     // region BaseColorInputFragment

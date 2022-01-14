@@ -36,17 +36,17 @@ class ColorInputRgbFragment :
 
     private fun setComponentRTextWatcher() =
         binding.inputRgbR.editText?.doOnTextChanged { _, _, _, _ ->
-            if (isTypedByUser) validateColorInput()
+            validateOnInputChanges()
         }
 
     private fun setComponentGTextWatcher() =
         binding.inputRgbG.editText?.doOnTextChanged { _, _, _, _ ->
-            if (isTypedByUser) validateColorInput()
+            validateOnInputChanges()
         }
 
     private fun setComponentBTextWatcher() =
         binding.inputRgbB.editText?.doOnTextChanged { _, _, _, _ ->
-            if (isTypedByUser) validateColorInput()
+            validateOnInputChanges()
         }
 
     // region BaseColorInputFragment

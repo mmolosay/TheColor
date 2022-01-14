@@ -13,14 +13,12 @@ import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 /**
  * Base Fragment, that can obtain input from UI and [assembleColor] of type [C].
  *
- * Color should be assembled and validated every time input changes.
+ * Derived class should call [validateOnInputChanges] every time data in UI input(s) was changed.
  *
- * All derivered classes are designed to work together simultaneously (for example, in ViewPager),
+ * All derived classes are designed to work together simultaneously (for example, in ViewPager),
  * thus if color changes in any of them, changes should be reflected in all others.
  *
  * Color collected from [getColorInputFlow] will be used to [populateViews] and [clearViews].
- *
- * @see validateColorInput
  */
 abstract class BaseColorInputFragment<C : AbstractColor> : BaseFragment {
 
@@ -28,10 +26,10 @@ abstract class BaseColorInputFragment<C : AbstractColor> : BaseFragment {
     constructor(@LayoutRes layoutRes: Int) : super(layoutRes)
 
     protected val colorInputVM: ColorInputViewModel by sharedViewModel()
-    protected var isTypedByUser: Boolean = true
 
     private val colorValidatorVM: ColorValidatorViewModel by sharedViewModel()
     private var latestColor: C? = null
+    private var isTypedByUser: Boolean = true
 
     // region Abstract
 
@@ -71,13 +69,21 @@ abstract class BaseColorInputFragment<C : AbstractColor> : BaseFragment {
         }
 
     /**
-     * Validates color, provided by [assembleColor].
-     * Should be called by derived class when input changes.
+     * Performs [assembleColor] and sends acquired color on validation,
+     * if data in UI input(s) was changed by user.
+     *
+     * Must be called in UI input(s) observers of derived class.
      */
-    protected fun validateColorInput() {
+    protected fun validateOnInputChanges() {
+        if (!isTypedByUser) return
         val color = assembleAndMementoColor()
         colorValidatorVM.validateColor(color)
     }
+
+    private fun assembleAndMementoColor(): C =
+        assembleColor().also { color ->
+            this.latestColor = color
+        }
 
     @Suppress("UNUSED_PARAMETER")
     private fun onColorInputEmpty(previous: C?) {
@@ -93,9 +99,4 @@ abstract class BaseColorInputFragment<C : AbstractColor> : BaseFragment {
         populateViews(color)
         this.isTypedByUser = true
     }
-
-    private fun assembleAndMementoColor(): C =
-        assembleColor().also { color ->
-            this.latestColor = color
-        }
 }
