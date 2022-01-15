@@ -14,11 +14,15 @@ object ColorUtil {
 
     private val hexFormatRegex = Regex("^#?(?:[0-9a-fA-F]{3}){1,2}\$")
 
+    // region Convertion
+
     fun hexToRgb(hex: String) =
         RGB(hex)
 
     fun rgbToHex(r: Int, g: Int, b: Int) =
         rgbToHex(RGB(r, g, b))
+
+    // endregion
 
     fun isDark(
         hex: String,
@@ -27,6 +31,8 @@ object ColorUtil {
         val hsl = RGB(hex).toHSL()
         return (hsl.l <= threshold)
     }
+
+    // region Extensions
 
     fun String.colorHexSigned(): String? {
         if (!this.isColorHex()) return null
@@ -55,6 +61,8 @@ object ColorUtil {
         if (!this.isColorHex()) return null
         return rgbToHex(RGB(this))
     }
+
+    // endregion
 
     private fun rgbToHex(color: RGB): String =
         color.toHex(withNumberSign = true).uppercase()
