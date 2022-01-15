@@ -48,6 +48,7 @@ import com.ordolabs.thecolor.util.ext.shortAnimDuration
 import com.ordolabs.thecolor.util.restoreNavigationBarColor
 import com.ordolabs.thecolor.util.setNavigationBarColor
 import com.ordolabs.thecolor.util.struct.AnimatorDestination
+import com.ordolabs.thecolor.util.struct.getOrNull
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.koin.core.context.loadKoinModules
 import android.graphics.Color as ColorAndroid
@@ -75,13 +76,13 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
 
     override fun collectViewModelsData() {
         collectColorPreview()
-        collectProcceedCommand()
         collectGetExactColorCommand()
     }
 
     override fun setViews() {
         setColorInputFragment()
         setColorDataFragment()
+        setProcceedBtn()
         toggleDataFragmentVisibility(visible = false)
     }
 
@@ -98,6 +99,15 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
     private fun replaceColorDataFragment(color: Color) {
         val fragment = ColorDataPagerFragment.newInstance(color)
         replaceFragment(fragment, binding.colorDataFragmentContainer.id)
+    }
+
+    private fun setProcceedBtn() = binding.run {
+        procceedBtn.setOnClickListener l@{
+            val color = colorValidatorVM.colorPreview.value.getOrNull() ?: return@l
+            hideSoftInput()
+            animInfoSheetExpanding(color)
+            replaceColorDataFragment(color)
+        }
     }
 
     @ColorInt
@@ -342,6 +352,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
 
     private fun collectColorPreview() =
         colorValidatorVM.colorPreview.collectOnLifecycle { resource ->
+            binding.procceedBtn.isEnabled = resource.isSuccess
             resource.fold(
                 onEmpty = ::onColorPreviewEmpty,
                 onSuccess = ::onColorPreviewSuccess
@@ -374,15 +385,6 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
             animPreviewResize(collapse = false)
         }
     }
-
-    private fun collectProcceedCommand() =
-        colorValidatorVM.procceedCommand.collectOnLifecycle { resource ->
-            resource.ifSuccess { color ->
-                hideSoftInput()
-                animInfoSheetExpanding(color)
-                replaceColorDataFragment(color)
-            }
-        }
 
     private fun collectGetExactColorCommand() =
         colorDetailsVM.getExactColorCommand.collectOnLifecycle { resource ->

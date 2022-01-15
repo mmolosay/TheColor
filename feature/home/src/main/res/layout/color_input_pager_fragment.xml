@@ -3,9 +3,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="@dimen/color_input_pager_height"
+    android:layout_height="match_parent"
     android:clipToPadding="false"
-    tools:context="com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputPagerFragment">
+    tools:context="com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputPagerFragment"
+    tools:layout_height="@dimen/color_input_pager_fragment_height">
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/glStart"
@@ -22,23 +23,24 @@
         app:layout_constraintGuide_end="@dimen/offset_content_horizontal" />
 
     <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/inputPager"
+        android:id="@+id/pager"
         android:layout_width="match_parent"
         android:layout_height="0dp"
 
-        app:layout_constraintBottom_toTopOf="@+id/inputTabs"
+        app:layout_constraintBottom_toTopOf="@id/tabs"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:background="?attr/colorToolsBackground" />
+        tools:background="?attr/colorToolsBackground"
+        tools:paddingHorizontal="@dimen/offset_content_horizontal" />
 
     <com.google.android.material.tabs.TabLayout
-        android:id="@+id/inputTabs"
+        android:id="@+id/tabs"
         style="@style/Widget.TheColor.TabLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
 
-        app:layout_constraintBottom_toTopOf="@+id/procceedBtn"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@id/glEnd"
         app:layout_constraintStart_toStartOf="@id/glStart"
         app:tabGravity="center"
@@ -58,19 +60,5 @@
             android:text="@string/color_input_rgb_hint" />
 
     </com.google.android.material.tabs.TabLayout>
-
-    <!-- TODO: should 'procceed' button really be a part of color input fragment?; move in fragment_home -->
-
-    <Button
-        android:id="@+id/procceedBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/offset_8"
-        android:enabled="false"
-        android:text="@string/color_input_procceed"
-
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@id/glEnd"
-        app:layout_constraintStart_toStartOf="@id/glStart" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -30,7 +30,7 @@
             android:id="@+id/headline"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="192dp"
+            android:layout_marginTop="160dp"
             android:text="@string/home_find_your_color"
             android:textAppearance="?attr/textAppearanceTitleLarge"
             android:textColor="@color/material_on_background_emphasis_medium"
@@ -39,10 +39,11 @@
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <!-- TODO: use concrete name in id -->
         <androidx.fragment.app.FragmentContainerView
             android:id="@id/defaultFragmentContainer"
             android:layout_width="0dp"
-            android:layout_height="@dimen/color_input_pager_height"
+            android:layout_height="@dimen/color_input_pager_fragment_height"
             android:layout_marginTop="@dimen/offset_16"
 
             app:layout_constraintEnd_toEndOf="parent"
@@ -50,18 +51,30 @@
             app:layout_constraintTop_toBottomOf="@id/headline"
             tools:layout="@layout/color_input_pager_fragment" />
 
+        <Button
+            android:id="@+id/procceedBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:enabled="false"
+            android:text="@string/color_input_procceed"
+
+            app:layout_constraintEnd_toEndOf="@id/glEnd"
+            app:layout_constraintStart_toStartOf="@id/glStart"
+            app:layout_constraintTop_toBottomOf="@id/defaultFragmentContainer" />
+
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/previewWrapper"
             style="?attr/materialCardViewElevatedStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/offset_8"
             android:scaleX="0"
             android:scaleY="0"
             android:visibility="invisible"
 
             app:layout_constraintEnd_toStartOf="@+id/glEnd"
             app:layout_constraintStart_toStartOf="@+id/glStart"
-            app:layout_constraintTop_toBottomOf="@+id/defaultFragmentContainer"
+            app:layout_constraintTop_toBottomOf="@+id/procceedBtn"
             app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.FullRound"
             tools:scaleX="1"
             tools:scaleY="1"

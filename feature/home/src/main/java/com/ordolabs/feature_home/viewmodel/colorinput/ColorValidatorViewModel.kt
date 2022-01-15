@@ -1,6 +1,5 @@
 package com.ordolabs.feature_home.viewmodel.colorinput
 
-import androidx.lifecycle.viewModelScope
 import com.ordolabs.domain.usecase.local.ValidateColorHexBaseUseCase
 import com.ordolabs.domain.usecase.local.ValidateColorRgbBaseUseCase
 import com.ordolabs.thecolor.mapper.toDomain
@@ -9,14 +8,11 @@ import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.ColorPreview
 import com.ordolabs.thecolor.model.color.ColorPrototype
 import com.ordolabs.thecolor.model.color.from
-import com.ordolabs.thecolor.util.MutableCommandFlow
 import com.ordolabs.thecolor.util.MutableStateResourceFlow
-import com.ordolabs.thecolor.util.ext.asCommand
 import com.ordolabs.thecolor.util.ext.setEmpty
 import com.ordolabs.thecolor.util.ext.setSuccess
 import com.ordolabs.thecolor.util.struct.Resource
 import com.ordolabs.thecolor.util.struct.empty
-import com.ordolabs.thecolor.util.struct.getOrNull
 import com.ordolabs.thecolor.viewmodel.BaseViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,10 +27,6 @@ class ColorValidatorViewModel(
 
     private val _colorPreview: MutableStateFlow<Resource<ColorPreview>>
     val colorPreview: StateFlow<Resource<ColorPreview>>
-
-    // TODO: create ColorInputPagerViewModel and move into there, when 'Procceed' button is extracted out of fragment
-    private val _procceedCommand = MutableCommandFlow<Color>()
-    val procceedCommand = _procceedCommand.asCommand(viewModelScope)
 
     private var colorValidationJob: Job? = null
 
@@ -75,11 +67,6 @@ class ColorValidatorViewModel(
                 onColorValidated(color, valid)
             }
         }
-    }
-
-    fun procceedInput() {
-        val preview = _colorPreview.value.getOrNull() ?: return
-        _procceedCommand.setSuccess(preview)
     }
 
     fun updateColorPreview(new: ColorPreview) {
