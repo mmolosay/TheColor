@@ -88,7 +88,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
 
     private fun setColorInputFragment() {
         val fragment = ColorInputPagerFragment.newInstance()
-        setFragment(fragment)
+        setFragment(fragment, binding.colorInputFragmentContainer.id)
     }
 
     private fun setColorDataFragment() {

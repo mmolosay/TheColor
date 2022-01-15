@@ -39,9 +39,8 @@
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- TODO: use concrete name in id -->
         <androidx.fragment.app.FragmentContainerView
-            android:id="@id/defaultFragmentContainer"
+            android:id="@+id/colorInputFragmentContainer"
             android:layout_width="0dp"
             android:layout_height="@dimen/color_input_pager_fragment_height"
             android:layout_marginTop="@dimen/offset_16"
@@ -60,7 +59,7 @@
 
             app:layout_constraintEnd_toEndOf="@id/glEnd"
             app:layout_constraintStart_toStartOf="@id/glStart"
-            app:layout_constraintTop_toBottomOf="@id/defaultFragmentContainer" />
+            app:layout_constraintTop_toBottomOf="@id/colorInputFragmentContainer" />
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/previewWrapper"
