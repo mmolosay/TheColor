@@ -1,7 +1,7 @@
 package com.ordolabs.thecolor.mapper
 
-import com.ordolabs.thecolor.model.colordata.ColorDetails
-import com.ordolabs.thecolor.model.colordata.ColorScheme
+import com.ordolabs.thecolor.model.color.data.ColorDetails
+import com.ordolabs.thecolor.model.color.data.ColorScheme
 import com.ordolabs.domain.model.ColorDetails as ColorDetailsDomain
 import com.ordolabs.domain.model.ColorScheme as ColorSchemeDomain
 
@@ -71,4 +71,4 @@ fun ColorSchemeDomain.toPresentation() = ColorScheme(
 )
 
 fun ColorSchemeDomain.SchemeMode.toPresentation() =
-    ColorScheme.SchemeMode.values()[this.ordinal]
+    ColorScheme.Mode.values()[this.ordinal]
