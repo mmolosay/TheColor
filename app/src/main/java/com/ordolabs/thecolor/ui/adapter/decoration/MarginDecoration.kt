@@ -6,8 +6,15 @@ import android.view.View
 import androidx.annotation.DimenRes
 import androidx.annotation.Px
 import androidx.recyclerview.widget.RecyclerView
+import com.ordolabs.thecolor.ui.adapter.decoration.MarginDecoration.Combined
+import com.ordolabs.thecolor.ui.adapter.decoration.MarginDecoration.Horizontal
+import com.ordolabs.thecolor.ui.adapter.decoration.MarginDecoration.Vertical
 
-// TODO: add KDoc
+/**
+ * Adds [horizontal] and [vertical] margin to each `RecyclerView` item.
+ *
+ * Either one of derived classes [Vertical], [Horizontal] or [Combined] should be used.
+ */
 sealed class MarginDecoration(
     @Px private val horizontal: Int,
     @Px private val vertical: Int
@@ -23,7 +30,7 @@ sealed class MarginDecoration(
     }
 
     class Vertical(
-        @Px private val margin: Int
+        @Px margin: Int
     ) : MarginDecoration(
         horizontal = 0,
         vertical = margin
@@ -37,7 +44,7 @@ sealed class MarginDecoration(
     }
 
     class Horizontal(
-        @Px private val margin: Int
+        @Px margin: Int
     ) : MarginDecoration(
         horizontal = margin,
         vertical = 0
