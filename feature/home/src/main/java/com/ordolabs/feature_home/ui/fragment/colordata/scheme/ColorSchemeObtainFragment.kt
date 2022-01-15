@@ -3,7 +3,6 @@ package com.ordolabs.feature_home.ui.fragment.colordata.scheme
 import androidx.fragment.app.Fragment
 import com.ordolabs.feature_home.ui.fragment.colordata.ColorDataObtainFragment
 import com.ordolabs.feature_home.ui.fragment.colordata.base.BaseColorDataFragment
-import com.ordolabs.feature_home.ui.fragment.colordata.details.ColorDetailsShimmerFragment
 import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeObtainViewModel
 import com.ordolabs.thecolor.model.colordata.ColorScheme
 import com.ordolabs.thecolor.util.struct.Resource
@@ -30,7 +29,7 @@ class ColorSchemeObtainFragment :
         ColorSchemeFragment.newInstance()
 
     override fun makeContentShimmerFragment(): Fragment =
-        ColorDetailsShimmerFragment.newInstance() // TODO: create and use distinct one for scheme
+        ColorSchemeShimmerFragment.newInstance()
 
     // endregion
 

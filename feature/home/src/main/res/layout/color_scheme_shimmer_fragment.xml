@@ -8,4 +8,7 @@
     android:layout_height="match_parent"
     tools:context="com.ordolabs.feature_home.ui.fragment.colordata.scheme.ColorSchemeShimmerFragment">
 
+    <!-- TODO: implement, when color_scheme_fragment.xml is done
+     -->
+
 </androidx.constraintlayout.widget.ConstraintLayout>
