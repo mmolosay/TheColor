@@ -77,7 +77,9 @@ data class ColorScheme(
         data class Partition(
             val sampleCount: Int,
             val setCount: Int
-        )
+        ) {
+            val samplesPerSet = sampleCount / setCount
+        }
 
         protected infix fun Int.into(setCount: Int): Partition {
             require(this % setCount == 0) { "can't split $this samples into $setCount groups" }
