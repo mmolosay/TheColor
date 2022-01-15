@@ -7,4 +7,6 @@
     <dimen name="input_color_width_min">96dp</dimen>
     <dimen name="input_color_width_max">256dp</dimen>
 
+    <dimen name="color_scheme_sample_size">64dp</dimen>
+
 </resources>

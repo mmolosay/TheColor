@@ -14,6 +14,7 @@ import com.ordolabs.feature_home.ui.adapter.recycler.ColorSchemeSamplesAdapter
 import com.ordolabs.feature_home.ui.fragment.colordata.base.BaseColorDataFragment
 import com.ordolabs.thecolor.model.color.data.ColorScheme
 import com.ordolabs.thecolor.ui.adapter.base.OnRecyclerItemClicksListener
+import com.ordolabs.thecolor.ui.util.itemdecoration.OverlapingDecoration
 import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
 
 class ColorSchemeFragment :
@@ -47,8 +48,11 @@ class ColorSchemeFragment :
 
     private fun setSamplesRecycler() {
         val recycler = binding.samples
+        val offset = resources.getDimensionPixelOffset(R.dimen.color_scheme_sample_size) / 2
+        val decoration = OverlapingDecoration.Horizontal(offset)
         recycler.layoutManager = LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
         recycler.adapter = samplesAdapter
+        recycler.addItemDecoration(decoration)
     }
 
     // region IColorDataFragment
