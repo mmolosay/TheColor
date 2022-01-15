@@ -3,6 +3,7 @@ package com.ordolabs.thecolor.model.color.data
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
+// TODO: split into subclasses
 @Parcelize
 data class ColorDetails(
     val hexValue: String?,

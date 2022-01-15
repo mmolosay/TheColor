@@ -4,7 +4,8 @@ inline fun <reified E : Enum<E>> getFromEnum(ordinal: Int): E {
     return enumValues<E>()[ordinal]
 }
 
-inline fun <reified E : Enum<E>> getFromEnumOrNull(ordinal: Int): E? {
+inline fun <reified E : Enum<E>> getFromEnumOrNull(ordinal: Int?): E? {
+    ordinal ?: return null
     return enumValues<E>().getOrNull(ordinal)
 }
 

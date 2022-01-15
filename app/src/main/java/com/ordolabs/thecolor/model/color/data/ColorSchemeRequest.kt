@@ -2,10 +2,10 @@ package com.ordolabs.thecolor.model.color.data
 
 import com.ordolabs.thecolor.model.color.Color
 
-data class ColorSchemeInput(
+data class ColorSchemeRequest(
     val seed: Color,
     val mode: ColorScheme.Mode,
-    val partitionIndex: Int
+    val sampleCount: Int
 ) {
 
     companion object {

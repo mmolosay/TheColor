@@ -2,6 +2,7 @@ package com.ordolabs.thecolor.mapper
 
 import com.ordolabs.thecolor.model.color.data.ColorDetails
 import com.ordolabs.thecolor.model.color.data.ColorScheme
+import com.ordolabs.thecolor.util.ext.getFromEnumOrNull
 import com.ordolabs.domain.model.ColorDetails as ColorDetailsDomain
 import com.ordolabs.domain.model.ColorScheme as ColorSchemeDomain
 
@@ -65,10 +66,11 @@ fun ColorDetailsDomain.toPresentation() = ColorDetails(
 )
 
 fun ColorSchemeDomain.toPresentation() = ColorScheme(
-    mode = this.mode?.toPresentation(),
-    colors = this.colors?.map { it.toPresentation() },
+    mode = getFromEnumOrNull<ColorScheme.Mode>(this.modeOrdinal),
+    samples = this.colors?.mapNotNull m@{
+        val details = it.toPresentation()
+        val hex = details.hexValue ?: return@m null
+        ColorScheme.Sample(hex, details)
+    },
     seed = this.seed?.toPresentation()
 )
-
-fun ColorSchemeDomain.SchemeMode.toPresentation() =
-    ColorScheme.Mode.values()[this.ordinal]

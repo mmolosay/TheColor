@@ -10,9 +10,10 @@ import androidx.recyclerview.widget.RecyclerView
 /**
  * An abstract implementation of [RecyclerView.Adapter].
  */
-abstract class BaseAdapter<T : Any, VH : BaseViewHolder<T>>(
-    var clicksListener: OnRecyclerItemClicksListener
-) : RecyclerView.Adapter<VH>() {
+abstract class BaseAdapter<T : Any, VH : BaseViewHolder<T>> :
+    RecyclerView.Adapter<VH>() {
+
+    var clicksListener: OnRecyclerItemClicksListener? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
         val root = createItemView(parent, viewType)
@@ -51,13 +52,21 @@ abstract class BaseAdapter<T : Any, VH : BaseViewHolder<T>>(
     }
 
     /**
+     * Sets [l] as current [clicksListener] object.
+     * If [l] is `null`, it will be cleared.
+     */
+    fun setOnClicksListener(l: OnRecyclerItemClicksListener?) {
+        this.clicksListener = l
+    }
+
+    /**
      * Would be called on [VH]'s view click.
      */
     private fun performOnItemViewClick(holder: VH) {
         val position = holder.bindingAdapterPosition
         onItemViewClick(holder)
         holder.onClick(holder.itemView)
-        clicksListener.onRecyclerItemClick(position)
+        clicksListener?.onRecyclerItemClick(position)
     }
 
     /**
@@ -67,7 +76,7 @@ abstract class BaseAdapter<T : Any, VH : BaseViewHolder<T>>(
         val position = holder.bindingAdapterPosition
         onItemViewLongClick(holder)
         val consumed = holder.onLongClick(holder.itemView)
-        clicksListener.onRecyclerItemLongClick(position)
+        clicksListener?.onRecyclerItemLongClick(position)
         return consumed
     }
 

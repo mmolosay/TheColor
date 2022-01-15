@@ -1,9 +1,10 @@
 package com.ordolabs.feature_home.viewmodel.colordata.scheme
 
 import com.ordolabs.domain.usecase.remote.GetColorSchemeBaseUseCase
+import com.ordolabs.thecolor.mapper.toDomain
 import com.ordolabs.thecolor.mapper.toPresentation
-import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.data.ColorScheme
+import com.ordolabs.thecolor.model.color.data.ColorSchemeRequest
 import com.ordolabs.thecolor.util.MutableStateResourceFlow
 import com.ordolabs.thecolor.util.ext.catchFailureIn
 import com.ordolabs.thecolor.util.ext.setLoading
@@ -14,6 +15,7 @@ import com.ordolabs.thecolor.viewmodel.BaseViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
+import com.ordolabs.domain.model.ColorSchemeRequest as ColorSchemeRequestDomain
 
 class ColorSchemeObtainViewModel(
     private val getColorSchemeUseCase: GetColorSchemeBaseUseCase
@@ -29,14 +31,15 @@ class ColorSchemeObtainViewModel(
         getColorSchemeJob?.cancel()
     }
 
-    fun getColorScheme(seed: Color) {
+    fun getColorScheme(request: ColorSchemeRequest) {
         restartGettingColorScheme()
-        this.getColorSchemeJob = performGetColorScheme(seed.hex)
+        val domain = request.toDomain()
+        this.getColorSchemeJob = performGetColorScheme(domain)
     }
 
-    private fun performGetColorScheme(seedHex: String) =
+    private fun performGetColorScheme(request: ColorSchemeRequestDomain) =
         launchInIO {
-            getColorSchemeUseCase.invoke(seedHex)
+            getColorSchemeUseCase.invoke(request)
                 .catchFailureIn(_scheme)
                 .collect { schemeDomain ->
                     val scheme = schemeDomain.toPresentation()

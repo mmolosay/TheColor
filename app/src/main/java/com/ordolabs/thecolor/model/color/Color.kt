@@ -5,6 +5,7 @@ import androidx.annotation.IntRange
 import com.ordolabs.thecolor.util.ColorUtil
 import com.ordolabs.thecolor.util.ColorUtil.colorHexSignless
 import com.ordolabs.thecolor.util.ColorUtil.toColorHexFullForm
+import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
 /**
@@ -16,6 +17,9 @@ import kotlinx.parcelize.Parcelize
 open class Color(
     open val hex: String
 ) : AbstractColor() {
+
+    @IgnoredOnParcel
+    val hexSignless: String by lazy { hex.colorHexSignless()!! }
 
     override fun equals(other: Any?): Boolean {
         other ?: return false

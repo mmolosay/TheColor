@@ -1,14 +1,27 @@
 package com.ordolabs.thecolor.model.color.data
 
 import android.os.Parcelable
+import com.ordolabs.thecolor.model.color.Color
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class ColorScheme(
     val mode: Mode?,
-    val colors: List<ColorDetails>?,
+    val samples: List<Sample>?,
     val seed: ColorDetails?
 ) : Parcelable {
+
+    @Parcelize
+    data class Sample(
+        val color: Color,
+        val details: ColorDetails
+    ) : Parcelable {
+
+        constructor(hex: String, details: ColorDetails) : this(
+            color = Color(hex),
+            details = details
+        )
+    }
 
     enum class Mode {
         MONOCHROME,
