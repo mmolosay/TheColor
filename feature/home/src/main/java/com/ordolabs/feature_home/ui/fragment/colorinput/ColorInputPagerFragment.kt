@@ -9,7 +9,7 @@ import com.ordolabs.feature_home.ui.adapter.pager.ColorInputPagerAdapter
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorValidatorViewModel
-import com.ordolabs.thecolor.ui.adapter.decoration.MarginDecoration
+import com.ordolabs.thecolor.ui.util.itemdecoration.MarginDecoration
 import com.ordolabs.thecolor.util.ext.getFromEnumOrNull
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import com.ordolabs.thecolor.R as RApp

@@ -1,4 +1,4 @@
-package com.ordolabs.thecolor.ui.adapter.decoration
+package com.ordolabs.thecolor.ui.util.itemdecoration
 
 import android.content.res.Resources
 import android.graphics.Rect
@@ -6,9 +6,9 @@ import android.view.View
 import androidx.annotation.DimenRes
 import androidx.annotation.Px
 import androidx.recyclerview.widget.RecyclerView
-import com.ordolabs.thecolor.ui.adapter.decoration.MarginDecoration.Combined
-import com.ordolabs.thecolor.ui.adapter.decoration.MarginDecoration.Horizontal
-import com.ordolabs.thecolor.ui.adapter.decoration.MarginDecoration.Vertical
+import com.ordolabs.thecolor.ui.util.itemdecoration.MarginDecoration.Combined
+import com.ordolabs.thecolor.ui.util.itemdecoration.MarginDecoration.Horizontal
+import com.ordolabs.thecolor.ui.util.itemdecoration.MarginDecoration.Vertical
 
 /**
  * Adds [horizontal] and [vertical] margin to each `RecyclerView` item.

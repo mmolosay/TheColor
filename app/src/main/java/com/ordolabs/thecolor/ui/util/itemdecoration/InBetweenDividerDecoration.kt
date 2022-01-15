@@ -1,4 +1,4 @@
-package com.ordolabs.thecolor.ui.adapter.decoration
+package com.ordolabs.thecolor.ui.util.itemdecoration
 
 import android.content.Context
 import android.graphics.Canvas
