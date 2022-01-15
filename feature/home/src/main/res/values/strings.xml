@@ -3,27 +3,27 @@
 
     <string name="feature_home">Home</string>
 
-    <string name="home_find_your_color">Find your color</string>
+    <!-- region Home -->
 
-    <!--————————————— COLOR INPUT FRAGMENT —————————————-->
-    <string name="color_input_hex_number_sign">#</string>
-    <string name="color_input_hex_hint">HEX</string>
+    <string name="home_headline">Find your color</string>
+    <string name="home_procceed_btn">Procceed</string>
+
+    <!-- endregion -->
+
+    <!-- region Color Input -->
+
     <string name="color_input_hex_placeholder">000000</string>
 
-    <string name="color_input_rgb_hint">RGB</string>
-    <string name="color_input_rgb_hint_r">R</string>
-    <string name="color_input_rgb_hint_g">G</string>
-    <string name="color_input_rgb_hint_b">B</string>
     <string name="color_input_rgb_placeholder_r">0</string>
     <string name="color_input_rgb_placeholder_g">0</string>
     <string name="color_input_rgb_placeholder_b">0</string>
 
-    <string name="color_input_cmyk_hint">CMYK</string>
-    <string name="color_input_hsv_hint">HSV</string>
-
-    <string name="color_input_procceed">Procceed</string>
+    <!-- endregion -->
 
     <!-- region Color Data -->
+
+    <string name="color_data_no_content_message">Can\'t fetch color information :(</string>
+    <string name="color_data_no_content_button">Retry</string>
 
     <string name="color_data_details_page_change_page_btn">View color scheme</string>
     <string name="color_data_scheme_page_change_page_btn">View color details</string>
@@ -32,18 +32,10 @@
 
     <!-- region Color Details -->
 
-    <!-- TODO: rename us -->
-    <string name="color_information_hex_label">HEX</string>
-    <string name="color_information_rgb_label">RGB</string>
-    <string name="color_information_hsl_label">HSL</string>
-    <string name="color_information_hsv_label">HSV</string>
-    <string name="color_information_cmyk_label">CMYK</string>
-    <string name="color_information_name_label">Name</string>
-    <string name="color_information_exact_match_label">Exact match</string>
-    <string name="color_information_exact_value_label">Exact value</string>
-    <string name="color_information_deviation_label">Deviation</string>
-    <string name="color_information_no_content_message">Can\'t fetch color information :(</string>
-    <string name="color_information_no_content_button">Retry</string>
+    <string name="color_details_name_label">Name</string>
+    <string name="color_details_exact_match_label">Exact match</string>
+    <string name="color_details_exact_value_label">Exact value</string>
+    <string name="color_details_deviation_label">Deviation</string>
 
     <!-- endregion -->
 

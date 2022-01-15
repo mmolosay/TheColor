@@ -52,12 +52,12 @@
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/color_input_hex_hint" />
+            android:text="@string/color_hex_label" />
 
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/color_input_rgb_hint" />
+            android:text="@string/color_rgb_label" />
 
     </com.google.android.material.tabs.TabLayout>
 

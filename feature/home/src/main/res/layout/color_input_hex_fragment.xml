@@ -10,7 +10,7 @@
         android:id="@+id/inputHex"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:hint="@string/color_input_hex_hint"
+        android:hint="@string/color_hex_label"
         android:maxWidth="@dimen/input_color_width_max"
         android:minWidth="@dimen/input_color_width_min"
 
@@ -19,7 +19,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintWidth_percent="0.5"
         app:placeholderText="@string/color_input_hex_placeholder"
-        app:prefixText="@string/color_input_hex_number_sign">
+        app:prefixText="@string/color_hex_numbersign">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/edittext"

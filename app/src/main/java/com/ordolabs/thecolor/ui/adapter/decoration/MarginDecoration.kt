@@ -7,6 +7,7 @@ import androidx.annotation.DimenRes
 import androidx.annotation.Px
 import androidx.recyclerview.widget.RecyclerView
 
+// TODO: add KDoc
 sealed class MarginDecoration(
     @Px private val horizontal: Int,
     @Px private val vertical: Int

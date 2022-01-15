@@ -10,7 +10,7 @@
         android:id="@+id/inputRgbR"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:hint="@string/color_input_rgb_hint_r"
+        android:hint="@string/color_rgb_component_r_label"
         android:minWidth="@dimen/input_color_width_min"
 
         app:layout_constraintEnd_toStartOf="@+id/inputRgbG"
@@ -34,7 +34,7 @@
         android:id="@+id/inputRgbG"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:hint="@string/color_input_rgb_hint_g"
+        android:hint="@string/color_rgb_component_g_label"
         android:minWidth="@dimen/input_color_width_min"
 
         app:layout_constraintEnd_toStartOf="@id/inputRgbB"
@@ -58,7 +58,7 @@
         android:id="@+id/inputRgbB"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:hint="@string/color_input_rgb_hint_b"
+        android:hint="@string/color_rgb_component_b_label"
         android:minWidth="@dimen/input_color_width_min"
 
         app:layout_constraintEnd_toEndOf="parent"

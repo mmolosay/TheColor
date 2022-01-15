@@ -44,8 +44,7 @@
             android:backgroundTint="?attr/colorOnBackground"
             android:ems="7"
             android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="@color/material_on_background_emphasis_medium"
-            tools:text="@string/color_information_hex_label" />
+            android:textColor="@color/material_on_background_emphasis_medium" />
 
         <TextView
             android:id="@+id/rgbLabel"
@@ -58,8 +57,7 @@
             android:backgroundTint="?attr/colorOnBackground"
             android:ems="8"
             android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="@color/material_on_background_emphasis_medium"
-            tools:text="@string/color_information_rgb_label" />
+            android:textColor="@color/material_on_background_emphasis_medium" />
 
         <TextView
             android:id="@+id/hslLabel"
@@ -72,8 +70,7 @@
             android:backgroundTint="?attr/colorOnBackground"
             android:ems="10"
             android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="@color/material_on_background_emphasis_medium"
-            tools:text="@string/color_information_hsl_label" />
+            android:textColor="@color/material_on_background_emphasis_medium" />
 
         <TextView
             android:id="@+id/hsvLabel"
@@ -86,8 +83,7 @@
             android:backgroundTint="?attr/colorOnBackground"
             android:ems="6"
             android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="@color/material_on_background_emphasis_medium"
-            tools:text="@string/color_information_hsv_label" />
+            android:textColor="@color/material_on_background_emphasis_medium" />
 
         <TextView
             android:id="@+id/cmykLabel"
@@ -100,8 +96,7 @@
             android:backgroundTint="?attr/colorOnBackground"
             android:ems="8"
             android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="@color/material_on_background_emphasis_medium"
-            tools:text="@string/color_information_cmyk_label" />
+            android:textColor="@color/material_on_background_emphasis_medium" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 

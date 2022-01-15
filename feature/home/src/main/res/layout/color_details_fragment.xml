@@ -102,7 +102,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/offset_12"
         android:layout_marginTop="@dimen/offset_24"
-        android:text="@string/color_information_hex_label"
+        android:text="@string/color_hex_label"
         android:textAppearance="?attr/textAppearanceLabelLarge"
         android:textColor="@color/material_on_background_emphasis_medium"
 
@@ -128,7 +128,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/offset_12"
         android:layout_marginTop="@dimen/offset_16"
-        android:text="@string/color_information_rgb_label"
+        android:text="@string/color_rgb_label"
         android:textAppearance="?attr/textAppearanceLabelLarge"
         android:textColor="@color/material_on_background_emphasis_medium"
 
@@ -177,7 +177,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/offset_12"
         android:layout_marginTop="@dimen/offset_16"
-        android:text="@string/color_information_hsl_label"
+        android:text="@string/color_hsl_label"
         android:textAppearance="?attr/textAppearanceLabelLarge"
         android:textColor="@color/material_on_background_emphasis_medium"
 
@@ -226,7 +226,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/offset_12"
         android:layout_marginTop="@dimen/offset_16"
-        android:text="@string/color_information_hsv_label"
+        android:text="@string/color_hsv_label"
         android:textAppearance="?attr/textAppearanceLabelLarge"
         android:textColor="@color/material_on_background_emphasis_medium"
 
@@ -275,7 +275,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/offset_12"
         android:layout_marginTop="@dimen/offset_16"
-        android:text="@string/color_information_cmyk_label"
+        android:text="@string/color_cmyk_label"
         android:textAppearance="?attr/textAppearanceLabelLarge"
         android:textColor="@color/material_on_background_emphasis_medium"
 
@@ -345,7 +345,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/offset_16"
-        android:text="@string/color_information_name_label"
+        android:text="@string/color_details_name_label"
         android:textAppearance="?attr/textAppearanceOverline"
         android:textColor="@color/material_on_background_emphasis_medium"
 
@@ -368,7 +368,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/offset_16"
-        android:text="@string/color_information_exact_match_label"
+        android:text="@string/color_details_exact_match_label"
         android:textAppearance="?attr/textAppearanceOverline"
         android:textColor="@color/material_on_background_emphasis_medium"
 
@@ -391,7 +391,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/offset_16"
-        android:text="@string/color_information_exact_value_label"
+        android:text="@string/color_details_exact_value_label"
         android:textAppearance="?attr/textAppearanceOverline"
         android:textColor="@color/material_on_background_emphasis_medium"
 
@@ -446,7 +446,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/offset_16"
-        android:text="@string/color_information_deviation_label"
+        android:text="@string/color_details_deviation_label"
         android:textAppearance="?attr/textAppearanceOverline"
         android:textColor="@color/material_on_background_emphasis_medium"
 
