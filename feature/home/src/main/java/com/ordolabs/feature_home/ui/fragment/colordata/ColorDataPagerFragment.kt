@@ -9,7 +9,7 @@ import androidx.core.os.bundleOf
 import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
-import com.ordolabs.feature_home.databinding.ColorDataFragmentBinding
+import com.ordolabs.feature_home.databinding.ColorDataPagerFragmentBinding
 import com.ordolabs.feature_home.ui.adapter.pager.ColorDataPagerAdapter
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.viewmodel.colordata.ColorDataViewModel
@@ -23,7 +23,7 @@ class ColorDataPagerFragment :
     BaseFragment(),
     IColorThemed {
 
-    private val binding: ColorDataFragmentBinding by viewBinding(CreateMethod.BIND)
+    private val binding: ColorDataPagerFragmentBinding by viewBinding(CreateMethod.BIND)
     private val colorDataVM: ColorDataViewModel by sharedViewModel()
 
     override var color: Color? = null
@@ -46,7 +46,7 @@ class ColorDataPagerFragment :
         val themedContext = ContextThemeWrapper(context, themeOverlay)
         return inflater
             .cloneInContext(themedContext)
-            .inflate(R.layout.color_data_fragment, container, false)
+            .inflate(R.layout.color_data_pager_fragment, container, false)
     }
 
     private fun parseArguments() {

@@ -3,7 +3,7 @@ package com.ordolabs.feature_home.ui.fragment.colorinput
 import androidx.core.widget.doOnTextChanged
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
-import com.ordolabs.feature_home.databinding.FragmentColorInputRgbBinding
+import com.ordolabs.feature_home.databinding.ColorInputRgbFragmentBinding
 import com.ordolabs.thecolor.model.color.ColorPrototype
 import com.ordolabs.thecolor.ui.util.inputfilter.PreventingInputFilter
 import com.ordolabs.thecolor.ui.util.inputfilter.RangeInputFilter
@@ -15,9 +15,9 @@ import com.ordolabs.thecolor.util.struct.Resource
 import kotlinx.coroutines.flow.Flow
 
 class ColorInputRgbFragment :
-    BaseColorInputFragment<ColorPrototype.Rgb>(R.layout.fragment_color_input_rgb) {
+    BaseColorInputFragment<ColorPrototype.Rgb>(R.layout.color_input_rgb_fragment) {
 
-    private val binding: FragmentColorInputRgbBinding by viewBinding()
+    private val binding: ColorInputRgbFragmentBinding by viewBinding()
 
     override fun setViews() {
         setComponentInputsFilters()

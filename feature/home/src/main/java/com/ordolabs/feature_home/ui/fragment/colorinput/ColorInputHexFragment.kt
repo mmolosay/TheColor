@@ -3,7 +3,7 @@ package com.ordolabs.feature_home.ui.fragment.colorinput
 import androidx.core.widget.doOnTextChanged
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
-import com.ordolabs.feature_home.databinding.FragmentColorInputHexBinding
+import com.ordolabs.feature_home.databinding.ColorInputHexFragmentBinding
 import com.ordolabs.thecolor.model.color.ColorPrototype
 import com.ordolabs.thecolor.util.ext.getText
 import com.ordolabs.thecolor.util.ext.getTextString
@@ -12,9 +12,9 @@ import com.ordolabs.thecolor.util.struct.Resource
 import kotlinx.coroutines.flow.Flow
 
 class ColorInputHexFragment :
-    BaseColorInputFragment<ColorPrototype.Hex>(R.layout.fragment_color_input_hex) {
+    BaseColorInputFragment<ColorPrototype.Hex>(R.layout.color_input_hex_fragment) {
 
-    private val binding: FragmentColorInputHexBinding by viewBinding()
+    private val binding: ColorInputHexFragmentBinding by viewBinding()
 
     override fun setViews() {
         setInputTextWatcher()

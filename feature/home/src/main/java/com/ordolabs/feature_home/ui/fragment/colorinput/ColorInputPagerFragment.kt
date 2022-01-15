@@ -4,7 +4,7 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.ordolabs.feature_home.R
-import com.ordolabs.feature_home.databinding.FragmentColorInputPagerBinding
+import com.ordolabs.feature_home.databinding.ColorInputPagerFragmentBinding
 import com.ordolabs.feature_home.ui.adapter.pager.ColorInputPagerAdapter
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
@@ -12,9 +12,9 @@ import com.ordolabs.feature_home.viewmodel.colorinput.ColorValidatorViewModel
 import com.ordolabs.thecolor.util.ext.getFromEnumOrNull
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
-class ColorInputPagerFragment : BaseFragment(R.layout.fragment_color_input_pager) {
+class ColorInputPagerFragment : BaseFragment(R.layout.color_input_pager_fragment) {
 
-    private val binding: FragmentColorInputPagerBinding by viewBinding()
+    private val binding: ColorInputPagerFragmentBinding by viewBinding()
     private val colorInputVM: ColorInputViewModel by sharedViewModel()
     private val colorValidatorVM: ColorValidatorViewModel by sharedViewModel()
 
