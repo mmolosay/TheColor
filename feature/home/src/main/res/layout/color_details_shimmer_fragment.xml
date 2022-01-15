@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?><!--
 
-    Copy of fragment_color_information.xml content with simplifications
+    Copy of color_details_fragment.xml content with simplifications
 -->
 <com.facebook.shimmer.ShimmerFrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -10,7 +10,8 @@
     app:shimmer_auto_start="true"
     app:shimmer_base_alpha="0.12"
     app:shimmer_highlight_alpha="0.25"
-    app:shimmer_repeat_delay="@android:integer/config_longAnimTime">
+    app:shimmer_repeat_delay="@android:integer/config_longAnimTime"
+    tools:context="com.ordolabs.feature_home.ui.fragment.colordata.details.ColorDetailsShimmerFragment">
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"

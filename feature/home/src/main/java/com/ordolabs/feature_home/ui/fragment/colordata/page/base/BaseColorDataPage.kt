@@ -8,7 +8,7 @@ import androidx.appcompat.view.ContextThemeWrapper
 import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
-import com.ordolabs.feature_home.databinding.ColorDataPageBinding
+import com.ordolabs.feature_home.databinding.ColorDataPageFragmentBinding
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.ui.fragment.colordata.IColorThemed
 import com.ordolabs.feature_home.viewmodel.colordata.ColorDataViewModel
@@ -24,7 +24,7 @@ abstract class BaseColorDataPage :
     IColorDataPage,
     IColorThemed {
 
-    private val binding: ColorDataPageBinding by viewBinding(CreateMethod.BIND)
+    private val binding: ColorDataPageFragmentBinding by viewBinding(CreateMethod.BIND)
     private val colorDataVM: ColorDataViewModel by sharedViewModel()
 
     override val color: Color?
@@ -45,7 +45,7 @@ abstract class BaseColorDataPage :
         val themedContext = ContextThemeWrapper(context, themeOverlay)
         return inflater
             .cloneInContext(themedContext)
-            .inflate(R.layout.color_data_page, container, false)
+            .inflate(R.layout.color_data_page_fragment, container, false)
     }
 
     override fun collectViewModelsData() {

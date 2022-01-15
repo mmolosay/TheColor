@@ -5,4 +5,5 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_marginTop="@dimen/offset_content_vertical"
-    tools:background="?attr/colorToolsBackground" />
+    tools:background="?attr/colorToolsBackground"
+    tools:context="com.ordolabs.feature_home.ui.fragment.colordata.ColorDataPagerFragment" />
