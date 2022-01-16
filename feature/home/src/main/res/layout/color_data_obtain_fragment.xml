@@ -9,7 +9,7 @@
         android:id="@id/defaultFragmentContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:layout="@layout/color_scheme_editor_fragment" />
+        tools:layout="@layout/color_details_fragment" />
 
     <include
         android:id="@+id/noContent"

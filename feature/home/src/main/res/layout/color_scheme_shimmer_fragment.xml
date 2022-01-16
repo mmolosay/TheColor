@@ -2,13 +2,96 @@
 
     Copy of color_scheme_fragment.xml content with simplifications
 -->
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.facebook.shimmer.ShimmerFrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="com.ordolabs.feature_home.ui.fragment.colordata.scheme.ColorSchemeShimmerFragment">
+    android:layout_height="wrap_content"
+    app:shimmer_auto_start="true"
+    app:shimmer_base_alpha="0.12"
+    app:shimmer_highlight_alpha="0.25"
+    app:shimmer_repeat_delay="@android:integer/config_longAnimTime"
+    tools:context="com.ordolabs.feature_home.ui.fragment.colordata.details.ColorDetailsShimmerFragment">
 
-    <!-- TODO: implement, when color_scheme_fragment.xml is done
-     -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="@dimen/offset_content_horizontal"
+        android:paddingBottom="@dimen/offset_content_vertical">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <com.google.android.material.card.MaterialCardView
+                style="?attr/materialCardViewElevatedStyle"
+                android:layout_width="@dimen/color_scheme_sample_size"
+                android:layout_height="@dimen/color_scheme_sample_size"
+                app:cardBackgroundColor="?attr/colorOnBackground"
+                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.FullRound" />
+
+            <com.google.android.material.card.MaterialCardView
+                style="?attr/materialCardViewElevatedStyle"
+                android:layout_width="@dimen/color_scheme_sample_size"
+                android:layout_height="@dimen/color_scheme_sample_size"
+                android:layout_marginStart="-32dp"
+                app:cardBackgroundColor="?attr/colorOnBackground"
+                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.FullRound" />
+
+            <com.google.android.material.card.MaterialCardView
+                style="?attr/materialCardViewElevatedStyle"
+                android:layout_width="@dimen/color_scheme_sample_size"
+                android:layout_height="@dimen/color_scheme_sample_size"
+                android:layout_marginStart="-32dp"
+                app:cardBackgroundColor="?attr/colorOnBackground"
+                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.FullRound" />
+
+            <com.google.android.material.card.MaterialCardView
+                style="?attr/materialCardViewElevatedStyle"
+                android:layout_width="@dimen/color_scheme_sample_size"
+                android:layout_height="@dimen/color_scheme_sample_size"
+                android:layout_marginStart="-32dp"
+                app:cardBackgroundColor="?attr/colorOnBackground"
+                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.FullRound" />
+
+            <com.google.android.material.card.MaterialCardView
+                style="?attr/materialCardViewElevatedStyle"
+                android:layout_width="@dimen/color_scheme_sample_size"
+                android:layout_height="@dimen/color_scheme_sample_size"
+                android:layout_marginStart="-32dp"
+                app:cardBackgroundColor="?attr/colorOnBackground"
+                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.FullRound" />
+
+            <com.google.android.material.card.MaterialCardView
+                style="?attr/materialCardViewElevatedStyle"
+                android:layout_width="@dimen/color_scheme_sample_size"
+                android:layout_height="@dimen/color_scheme_sample_size"
+                android:layout_marginStart="-32dp"
+                app:cardBackgroundColor="?attr/colorOnBackground"
+                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.FullRound" />
+
+            <com.google.android.material.card.MaterialCardView
+                style="?attr/materialCardViewElevatedStyle"
+                android:layout_width="@dimen/color_scheme_sample_size"
+                android:layout_height="@dimen/color_scheme_sample_size"
+                android:layout_marginStart="-32dp"
+                app:cardBackgroundColor="?attr/colorOnBackground"
+                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.FullRound" />
+
+            <com.google.android.material.card.MaterialCardView
+                style="?attr/materialCardViewElevatedStyle"
+                android:layout_width="@dimen/color_scheme_sample_size"
+                android:layout_height="@dimen/color_scheme_sample_size"
+                android:layout_marginStart="-32dp"
+                app:cardBackgroundColor="?attr/colorOnBackground"
+                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.FullRound" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.facebook.shimmer.ShimmerFrameLayout>

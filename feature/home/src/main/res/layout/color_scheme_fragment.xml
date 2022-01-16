@@ -27,6 +27,8 @@
         app:layout_constraintEnd_toStartOf="@id/glEnd"
         app:layout_constraintStart_toEndOf="@id/glStart"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintWidth="wrap_content_constrained"
+        tools:itemCount="5"
         tools:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         tools:listitem="@layout/color_scheme_sample_item"
         tools:orientation="horizontal" />
