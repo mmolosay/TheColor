@@ -4,10 +4,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CompoundButton
+import androidx.core.view.children
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
+import com.google.android.material.chip.Chip
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorSchemeFragmentBinding
 import com.ordolabs.feature_home.ui.adapter.recycler.ColorSchemeSamplesAdapter
@@ -44,6 +47,7 @@ class ColorSchemeFragment :
 
     override fun setViews() {
         setSamplesRecycler()
+        setSchemeModeChipGroup()
     }
 
     private fun setSamplesRecycler() {
@@ -53,6 +57,26 @@ class ColorSchemeFragment :
         recycler.layoutManager = LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
         recycler.adapter = samplesAdapter
         recycler.addItemDecoration(decoration)
+    }
+
+    private fun setSchemeModeChipGroup() {
+        val layout = R.layout.color_scheme_mode_chip
+        val group = binding.modeChips
+        val inflater = layoutInflater.cloneInViewContext(group)
+        enumValues<ColorScheme.Mode>().forEach { mode ->
+            val chip = inflater.inflate(layout, group, false) as Chip
+            chip.setText(mode.labelRes)
+            chip.setOnCheckedChangeListener(::onSchemeModeChipChecked)
+            group.addView(chip)
+        }
+    }
+
+    private fun onSchemeModeChipChecked(chip: CompoundButton, isChecked: Boolean) {
+        if (!isChecked) return // do nothing
+        binding.modeChips.children.forEach { child ->
+            if (child == chip) return@forEach
+            (child as CompoundButton).isChecked = false
+        }
     }
 
     // region IColorDataFragment

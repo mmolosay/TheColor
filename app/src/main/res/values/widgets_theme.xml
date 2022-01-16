@@ -18,6 +18,14 @@
         <item name="materialThemeOverlay">@style/MaterialThemeOverlay.Button.Tonal</item>
     </style>
 
+    <style name="Widget.TheColor.Chip" parent="Widget.Material3.Chip.Suggestion">
+        <!-- nothing special here -->
+    </style>
+
+    <style name="Widget.TheColor.ChipGroup" parent="Widget.Material3.ChipGroup">
+        <!-- nothing special here -->
+    </style>
+
     <style name="Widget.TheColor.EditText" parent="Widget.AppCompat.EditText">
         <item name="android:textAppearance">@style/TextAppearance.EditText</item>
         <item name="android:gravity">left|center_vertical</item>

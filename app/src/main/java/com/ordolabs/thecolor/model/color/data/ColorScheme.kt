@@ -1,6 +1,8 @@
 package com.ordolabs.thecolor.model.color.data
 
 import android.os.Parcelable
+import androidx.annotation.StringRes
+import com.ordolabs.thecolor.R
 import com.ordolabs.thecolor.model.color.Color
 import kotlinx.parcelize.Parcelize
 
@@ -23,11 +25,11 @@ data class ColorScheme(
         )
     }
 
-    enum class Mode {
-        MONOCHROME,
-        MONOCHROME_DARK,
-        MONOCHROME_LIGHT,
-        ANALOGIC {
+    enum class Mode(@StringRes val labelRes: Int) {
+        MONOCHROME(R.string.color_scheme_mode_monochrome),
+        MONOCHROME_DARK(R.string.color_scheme_mode_monochrome_dark),
+        MONOCHROME_LIGHT(R.string.color_scheme_mode_monochrome_light),
+        ANALOGIC(R.string.color_scheme_mode_analogic) {
             override fun getPartitions(): List<Partition> =
                 listOf(
                     2 into 1,
@@ -39,7 +41,7 @@ data class ColorScheme(
                     12 into 4
                 )
         },
-        COMPLEMENT {
+        COMPLEMENT(R.string.color_scheme_mode_complement) {
             override fun getPartitions(): List<Partition> =
                 listOf(
                     2 into 2,
@@ -50,7 +52,7 @@ data class ColorScheme(
                     12 into 2
                 )
         },
-        ANALOGIC_COMPLEMENT {
+        ANALOGIC_COMPLEMENT(R.string.color_scheme_mode_analogic_complement) {
             override fun getPartitions(): List<Partition> =
                 listOf(
                     2 into 1,
@@ -62,7 +64,7 @@ data class ColorScheme(
                     12 into 4
                 )
         },
-        TRIAD {
+        TRIAD(R.string.color_scheme_mode_triad) {
             override fun getPartitions(): List<Partition> =
                 listOf(
                     3 into 3,
@@ -72,7 +74,7 @@ data class ColorScheme(
                     15 into 3
                 )
         },
-        QUAD {
+        QUAD(R.string.color_scheme_mode_quad) {
             override fun getPartitions(): List<Partition> =
                 listOf(
                     4 into 4,

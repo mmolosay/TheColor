@@ -27,6 +27,15 @@
     <string name="color_hsv_label" translatable="false">HSV</string>
     <string name="color_cmyk_label" translatable="false">CMYK</string>
 
+    <string name="color_scheme_mode_monochrome">monochrome</string>
+    <string name="color_scheme_mode_monochrome_dark">monochrome-dark</string>
+    <string name="color_scheme_mode_monochrome_light">monochrome-light</string>
+    <string name="color_scheme_mode_analogic">analogic</string>
+    <string name="color_scheme_mode_complement">complement</string>
+    <string name="color_scheme_mode_analogic_complement">analogic-complement</string>
+    <string name="color_scheme_mode_triad">triad</string>
+    <string name="color_scheme_mode_quad">quad</string>
+
     <!-- endregion -->
 
     <!-- region Error -->

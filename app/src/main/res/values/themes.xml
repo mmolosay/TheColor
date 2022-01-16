@@ -48,7 +48,8 @@
         <item name="textAppearanceDisplayMedium">@style/TextAppearance.TheColor.DisplayMedium</item>
         <item name="textAppearanceDisplaySmall">@style/TextAppearance.TheColor.DisplaySmall</item>
         <item name="textAppearanceHeadlineLarge">@style/TextAppearance.TheColor.HeadlineLarge</item>
-        <item name="textAppearanceHeadlineMedium">@style/TextAppearance.TheColor.HeadlineMedium</item>
+        <item name="textAppearanceHeadlineMedium">@style/TextAppearance.TheColor.HeadlineMedium
+        </item>
         <item name="textAppearanceHeadlineSmall">@style/TextAppearance.TheColor.HeadlineSmall</item>
         <item name="textAppearanceTitleLarge">@style/TextAppearance.TheColor.TitleLarge</item>
         <item name="textAppearanceTitleMedium">@style/TextAppearance.TheColor.TitleMedium</item>
@@ -83,6 +84,8 @@
         <item name="materialDividerStyle">@style/Widget.TheColor.MaterialDivider</item>
 
         <item name="buttonStyle">@style/Widget.TheColor.Button</item>
+        <item name="chipStyle">@style/Widget.TheColor.Chip</item>
+        <item name="chipGroupStyle">@style/Widget.TheColor.ChipGroup</item>
         <item name="toolbarStyle">@style/Widget.MaterialComponents.Toolbar.PrimarySurface</item>
         <item name="textInputStyle">@style/Widget.TheColor.TextInputLayout</item>
     </style>

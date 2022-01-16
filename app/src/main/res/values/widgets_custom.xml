@@ -17,6 +17,10 @@
         </item>
     </style>
 
+    <style name="Widget.Chip.Outlined" parent="Widget.Material3.Chip.Suggestion">
+        <item name="materialThemeOverlay">@style/MaterialThemeOverlay.Chip.Outlined</item>
+    </style>
+
     <style name="Widget.MaterialDivider.Insets" parent="Widget.TheColor.MaterialDivider">
         <item name="dividerInsetStart">@dimen/offset_content_horizontal</item>
         <item name="dividerInsetEnd">@dimen/offset_content_horizontal</item>
