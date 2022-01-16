@@ -4,7 +4,7 @@ import com.ordolabs.thecolor.model.color.Color
 
 data class ColorSchemeRequest(
     val seed: Color,
-    val mode: ColorScheme.Mode,
+    val modeOrdinal: Int,
     val sampleCount: Int
 ) {
 

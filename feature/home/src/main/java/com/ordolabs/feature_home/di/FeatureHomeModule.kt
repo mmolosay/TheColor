@@ -62,8 +62,10 @@ val featureHomeModule = module {
         )
     }
 
-    viewModel {
-        ColorSchemeSettingsViewModel()
+    viewModel { parameters ->
+        ColorSchemeSettingsViewModel(
+            seed = parameters.get()
+        )
     }
 
     // endregion

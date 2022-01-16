@@ -8,25 +8,17 @@ import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorSchemeConfigureFragmentBinding
-import com.ordolabs.feature_home.ui.fragment.colordata.IColorThemed
 import com.ordolabs.feature_home.ui.fragment.colordata.base.BaseColorDataFragment
 import com.ordolabs.feature_home.ui.fragment.colordata.base.IColorDataFragment
 import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeObtainViewModel
 import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeSettingsViewModel
-import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.data.ColorScheme
-import com.ordolabs.thecolor.model.color.data.ColorSchemeRequest
 import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
 import com.ordolabs.thecolor.util.ext.setFragment
-import com.ordolabs.thecolor.util.struct.getOrNull
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 class ColorSchemeConfigureFragment :
-    BaseColorDataFragment<ColorScheme>(),
-    IColorThemed {
-
-    override val color: Color?
-        get() = (parentFragment as? IColorThemed)?.color
+    BaseColorDataFragment<ColorScheme>() {
 
     private val binding: ColorSchemeConfigureFragmentBinding by viewBinding(CreateMethod.BIND)
     private val colorSchemeObtainVM: ColorSchemeObtainViewModel by sharedViewModel()
@@ -71,20 +63,9 @@ class ColorSchemeConfigureFragment :
 
     private fun setFetchColorSchemeBtn() =
         binding.fetchColorSchemeBtn.setOnClickListener l@{
-            val request = assembleColorSchemeRequest() ?: return@l
+            val request = colorSchemeSettingsVM.assembleColorSchemeRequest()
             colorSchemeObtainVM.getColorScheme(request)
         }
-
-    private fun assembleColorSchemeRequest(): ColorSchemeRequest? {
-        val seed = color ?: return null
-        val modeOrdinal = colorSchemeSettingsVM.schemeModeOrdinal.value.getOrNull() ?: return null
-        val mode = enumValues<ColorScheme.Mode>()[modeOrdinal]
-        return ColorSchemeRequest(
-            seed = seed,
-            mode = mode,
-            sampleCount = 8
-        )
-    }
 
     // region IColorDataFragment
 

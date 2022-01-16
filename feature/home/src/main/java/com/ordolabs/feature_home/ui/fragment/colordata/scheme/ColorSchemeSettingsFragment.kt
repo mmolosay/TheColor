@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.CompoundButton
 import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.chip.Chip
@@ -47,8 +46,8 @@ class ColorSchemeSettingsFragment : BaseFragment() {
         enumValues<ColorScheme.Mode>().forEach { mode ->
             val chip = inflater.inflate(layout, group, false) as Chip
             chip.setText(mode.labelRes)
-            chip.setOnCheckedChangeListener { buttonView, isChecked ->
-                onSchemeModeChipChecked(buttonView, isChecked, mode)
+            chip.setOnCheckedChangeListener { _, isChecked ->
+                onSchemeModeChipChecked(isChecked, mode)
             }
             group.addView(chip)
         }
@@ -58,7 +57,6 @@ class ColorSchemeSettingsFragment : BaseFragment() {
     }
 
     private fun onSchemeModeChipChecked(
-        chip: CompoundButton,
         isChecked: Boolean,
         mode: ColorScheme.Mode
     ) {
