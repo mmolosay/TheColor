@@ -9,8 +9,9 @@ import com.ordolabs.feature_home.viewmodel.HomeViewModel
 import com.ordolabs.feature_home.viewmodel.colordata.ColorDataViewModel
 import com.ordolabs.feature_home.viewmodel.colordata.details.ColorDetailsObtainViewModel
 import com.ordolabs.feature_home.viewmodel.colordata.details.ColorDetailsViewModel
+import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeConfigViewModel
+import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeEditorViewModel
 import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeObtainViewModel
-import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeSettingsViewModel
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorValidatorViewModel
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -62,10 +63,12 @@ val featureHomeModule = module {
         )
     }
 
-    viewModel { parameters ->
-        ColorSchemeSettingsViewModel(
-            seed = parameters.get()
-        )
+    viewModel {
+        ColorSchemeEditorViewModel()
+    }
+
+    viewModel {
+        ColorSchemeConfigViewModel()
     }
 
     // endregion

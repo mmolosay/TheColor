@@ -100,5 +100,9 @@ data class ColorScheme(
             require(this % setCount == 0) { "can't split $this samples into $setCount groups" }
             return Partition(this, setCount)
         }
+
+        companion object {
+            val DEFAULT: Mode = MONOCHROME
+        }
     }
 }

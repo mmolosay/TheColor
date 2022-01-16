@@ -1,4 +1,4 @@
-package com.ordolabs.feature_home.ui.fragment.colordata.scheme
+package com.ordolabs.feature_home.ui.fragment.colordata.scheme.editor
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -7,22 +7,29 @@ import android.view.ViewGroup
 import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
-import com.ordolabs.feature_home.databinding.ColorSchemeConfigureFragmentBinding
+import com.ordolabs.feature_home.databinding.ColorSchemeEditorFragmentBinding
 import com.ordolabs.feature_home.ui.fragment.colordata.base.BaseColorDataFragment
 import com.ordolabs.feature_home.ui.fragment.colordata.base.IColorDataFragment
-import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeObtainViewModel
-import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeSettingsViewModel
+import com.ordolabs.feature_home.ui.fragment.colordata.scheme.ColorSchemeFragment
+import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeConfigViewModel
+import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeEditorViewModel
 import com.ordolabs.thecolor.model.color.data.ColorScheme
 import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
 import com.ordolabs.thecolor.util.ext.setFragment
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
-class ColorSchemeConfigureFragment :
+/**
+ * Editor fragment for color scheme. It can:
+ *  1. configure color scheme via [ColorSchemeFragment];
+ *  2. dispatch the configuration to [ColorSchemeEditorViewModel];
+ *  3. display scheme in [ColorSchemeFragment].
+ */
+class ColorSchemeEditorFragment :
     BaseColorDataFragment<ColorScheme>() {
 
-    private val binding: ColorSchemeConfigureFragmentBinding by viewBinding(CreateMethod.BIND)
-    private val colorSchemeObtainVM: ColorSchemeObtainViewModel by sharedViewModel()
-    private val colorSchemeSettingsVM: ColorSchemeSettingsViewModel by sharedViewModel()
+    private val binding: ColorSchemeEditorFragmentBinding by viewBinding(CreateMethod.BIND)
+    private val schemeEditorVM: ColorSchemeEditorViewModel by sharedViewModel()
+    private val schemeConfigVM: ColorSchemeConfigViewModel by sharedViewModel()
 
     private var schemeFragment: IColorDataFragment<ColorScheme>? = null
 
@@ -32,12 +39,18 @@ class ColorSchemeConfigureFragment :
         savedInstanceState: Bundle?
     ): View {
         return inflater.cloneInViewContext(container)
-            .inflate(R.layout.color_scheme_configure_fragment, container, false)
+            .inflate(R.layout.color_scheme_editor_fragment, container, false)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         this.schemeFragment = null
+    }
+
+    override fun setUp() {
+        super.setUp()
+        val defaultConfig = schemeConfigVM.assembleConfig()
+        schemeEditorVM.dispatchConfig(defaultConfig)
     }
 
     override fun collectViewModelsData() {
@@ -47,7 +60,7 @@ class ColorSchemeConfigureFragment :
     override fun setViews() {
         setColorShemeFragment()
         setColorSchemeSettingsFragment()
-        setFetchColorSchemeBtn()
+        setDispatchChangesBtn()
     }
 
     private fun setColorShemeFragment() {
@@ -57,14 +70,14 @@ class ColorSchemeConfigureFragment :
     }
 
     private fun setColorSchemeSettingsFragment() {
-        val fragment = ColorSchemeSettingsFragment()
+        val fragment = ColorSchemeConfigFragment()
         setFragment(fragment, binding.colorSchemeSettingsFragmnetContainer.id)
     }
 
-    private fun setFetchColorSchemeBtn() =
+    private fun setDispatchChangesBtn() =
         binding.fetchColorSchemeBtn.setOnClickListener l@{
-            val request = colorSchemeSettingsVM.assembleColorSchemeRequest()
-            colorSchemeObtainVM.getColorScheme(request)
+            val options = schemeConfigVM.assembleConfig()
+            schemeEditorVM.dispatchConfig(options)
         }
 
     // region IColorDataFragment
@@ -78,6 +91,6 @@ class ColorSchemeConfigureFragment :
 
     companion object {
         fun newInstance() =
-            ColorSchemeConfigureFragment()
+            ColorSchemeEditorFragment()
     }
 }

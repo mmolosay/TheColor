@@ -28,7 +28,7 @@ fun ColorPrototype.Rgb.toDomain(): ColorRgb? {
 fun ColorSchemeRequest.toDomain(): ColorSchemeRequestDomain {
     return ColorSchemeRequestDomain(
         seedHex = this.seed.toHex().value!!,
-        modeOrdinal = this.modeOrdinal,
-        sampleCount = this.sampleCount
+        modeOrdinal = this.config.modeOrdinal,
+        sampleCount = this.config.sampleCount
     )
 }

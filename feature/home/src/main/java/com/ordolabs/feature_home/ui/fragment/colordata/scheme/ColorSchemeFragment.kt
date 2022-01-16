@@ -17,6 +17,9 @@ import com.ordolabs.thecolor.ui.adapter.base.OnRecyclerItemClicksListener
 import com.ordolabs.thecolor.ui.util.itemdecoration.OverlapingDecoration
 import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
 
+/**
+ * [BaseColorDataFragment] that displays [ColorScheme] data.
+ */
 class ColorSchemeFragment :
     BaseColorDataFragment<ColorScheme>(),
     OnRecyclerItemClicksListener {

@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.CallSuper
 import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -71,6 +72,7 @@ abstract class ColorDataObtainFragment<D> :
         this.dataFragment = null
     }
 
+    @CallSuper
     override fun collectViewModelsData() {
         collectColorData()
     }

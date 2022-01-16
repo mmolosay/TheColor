@@ -21,3 +21,7 @@ fun <V : Any> MutableStateResourceFlow(value: V) =
 @Suppress("FunctionName")
 fun <V : Any> MutableCommandFlow() =
     MutableStateFlow<Resource<V>>(Resource.empty())
+
+@Suppress("FunctionName")
+fun <V : Any> MutableCommandFlow(value: V) =
+    MutableStateFlow(Resource.success(value))

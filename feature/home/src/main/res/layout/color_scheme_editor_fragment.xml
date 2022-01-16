@@ -16,7 +16,7 @@
         android:id="@+id/colorSchemeSettingsFragmnetContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        tools:layout="@layout/color_scheme_settings_fragment" />
+        tools:layout="@layout/color_scheme_config_fragment" />
 
     <Button
         android:id="@+id/fetchColorSchemeBtn"

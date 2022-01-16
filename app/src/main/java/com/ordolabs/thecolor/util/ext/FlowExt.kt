@@ -16,9 +16,13 @@ import kotlinx.coroutines.flow.update
 /**
  * Converts [Flow] in [SharedFlow] with `replay` parameter equal to __zero__,
  * so it doesn't re-emit last values for new collectors.
- * It is usefull, when you want display some UI error state,
- * but it should not be collected again on UI lifecycle restart, when old collectors
+ *
+ * It is usefull, when you want to observe some command-like `Flow`, but it
+ * should not be collected again on UI lifecycle restart, when old collectors
  * are being re-attached to `this` `Flow`.
+ *
+ * Can be useful for displaying single-time messages (toasts and snackbars),
+ * different types of commands and so on.
  *
  * @see Flow.shareIn
  */
@@ -66,7 +70,9 @@ fun <R, V> Flow<R>.catchFailureIn(catcher: MutableStateFlow<Resource<V>>): Flow<
     }
 
 /**
+ * Converts (mutable) [Flow] into immutable one by calling [shareOnceIn].
+ *
  * @see shareOnceIn
  */
-fun <V> Flow<Resource<V>>.asCommand(scope: CoroutineScope): SharedFlow<Resource<V>> =
+fun <V> Flow<Resource<V>>.asCommand(scope: CoroutineScope): Flow<Resource<V>> =
     this.shareOnceIn(scope)
