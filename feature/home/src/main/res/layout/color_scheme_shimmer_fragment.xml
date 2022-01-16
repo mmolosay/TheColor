@@ -13,85 +13,77 @@
     app:shimmer_repeat_delay="@android:integer/config_longAnimTime"
     tools:context="com.ordolabs.feature_home.ui.fragment.colordata.details.ColorDetailsShimmerFragment">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:orientation="horizontal"
         android:paddingHorizontal="@dimen/offset_content_horizontal"
         android:paddingBottom="@dimen/offset_content_vertical">
 
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+        <com.google.android.material.card.MaterialCardView
+            style="?attr/materialCardViewElevatedStyle"
+            android:layout_width="@dimen/color_scheme_sample_size"
+            android:layout_height="@dimen/color_scheme_sample_size"
+            app:cardBackgroundColor="?attr/colorOnBackground"
+            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.FullRound" />
 
-            <com.google.android.material.card.MaterialCardView
-                style="?attr/materialCardViewElevatedStyle"
-                android:layout_width="@dimen/color_scheme_sample_size"
-                android:layout_height="@dimen/color_scheme_sample_size"
-                app:cardBackgroundColor="?attr/colorOnBackground"
-                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.FullRound" />
+        <com.google.android.material.card.MaterialCardView
+            style="?attr/materialCardViewElevatedStyle"
+            android:layout_width="@dimen/color_scheme_sample_size"
+            android:layout_height="@dimen/color_scheme_sample_size"
+            android:layout_marginStart="-32dp"
+            app:cardBackgroundColor="?attr/colorOnBackground"
+            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.FullRound" />
 
-            <com.google.android.material.card.MaterialCardView
-                style="?attr/materialCardViewElevatedStyle"
-                android:layout_width="@dimen/color_scheme_sample_size"
-                android:layout_height="@dimen/color_scheme_sample_size"
-                android:layout_marginStart="-32dp"
-                app:cardBackgroundColor="?attr/colorOnBackground"
-                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.FullRound" />
+        <com.google.android.material.card.MaterialCardView
+            style="?attr/materialCardViewElevatedStyle"
+            android:layout_width="@dimen/color_scheme_sample_size"
+            android:layout_height="@dimen/color_scheme_sample_size"
+            android:layout_marginStart="-32dp"
+            app:cardBackgroundColor="?attr/colorOnBackground"
+            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.FullRound" />
 
-            <com.google.android.material.card.MaterialCardView
-                style="?attr/materialCardViewElevatedStyle"
-                android:layout_width="@dimen/color_scheme_sample_size"
-                android:layout_height="@dimen/color_scheme_sample_size"
-                android:layout_marginStart="-32dp"
-                app:cardBackgroundColor="?attr/colorOnBackground"
-                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.FullRound" />
+        <com.google.android.material.card.MaterialCardView
+            style="?attr/materialCardViewElevatedStyle"
+            android:layout_width="@dimen/color_scheme_sample_size"
+            android:layout_height="@dimen/color_scheme_sample_size"
+            android:layout_marginStart="-32dp"
+            app:cardBackgroundColor="?attr/colorOnBackground"
+            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.FullRound" />
 
-            <com.google.android.material.card.MaterialCardView
-                style="?attr/materialCardViewElevatedStyle"
-                android:layout_width="@dimen/color_scheme_sample_size"
-                android:layout_height="@dimen/color_scheme_sample_size"
-                android:layout_marginStart="-32dp"
-                app:cardBackgroundColor="?attr/colorOnBackground"
-                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.FullRound" />
+        <com.google.android.material.card.MaterialCardView
+            style="?attr/materialCardViewElevatedStyle"
+            android:layout_width="@dimen/color_scheme_sample_size"
+            android:layout_height="@dimen/color_scheme_sample_size"
+            android:layout_marginStart="-32dp"
+            app:cardBackgroundColor="?attr/colorOnBackground"
+            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.FullRound" />
 
-            <com.google.android.material.card.MaterialCardView
-                style="?attr/materialCardViewElevatedStyle"
-                android:layout_width="@dimen/color_scheme_sample_size"
-                android:layout_height="@dimen/color_scheme_sample_size"
-                android:layout_marginStart="-32dp"
-                app:cardBackgroundColor="?attr/colorOnBackground"
-                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.FullRound" />
+        <com.google.android.material.card.MaterialCardView
+            style="?attr/materialCardViewElevatedStyle"
+            android:layout_width="@dimen/color_scheme_sample_size"
+            android:layout_height="@dimen/color_scheme_sample_size"
+            android:layout_marginStart="-32dp"
+            app:cardBackgroundColor="?attr/colorOnBackground"
+            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.FullRound" />
 
-            <com.google.android.material.card.MaterialCardView
-                style="?attr/materialCardViewElevatedStyle"
-                android:layout_width="@dimen/color_scheme_sample_size"
-                android:layout_height="@dimen/color_scheme_sample_size"
-                android:layout_marginStart="-32dp"
-                app:cardBackgroundColor="?attr/colorOnBackground"
-                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.FullRound" />
+        <com.google.android.material.card.MaterialCardView
+            style="?attr/materialCardViewElevatedStyle"
+            android:layout_width="@dimen/color_scheme_sample_size"
+            android:layout_height="@dimen/color_scheme_sample_size"
+            android:layout_marginStart="-32dp"
+            app:cardBackgroundColor="?attr/colorOnBackground"
+            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.FullRound" />
 
-            <com.google.android.material.card.MaterialCardView
-                style="?attr/materialCardViewElevatedStyle"
-                android:layout_width="@dimen/color_scheme_sample_size"
-                android:layout_height="@dimen/color_scheme_sample_size"
-                android:layout_marginStart="-32dp"
-                app:cardBackgroundColor="?attr/colorOnBackground"
-                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.FullRound" />
+        <com.google.android.material.card.MaterialCardView
+            style="?attr/materialCardViewElevatedStyle"
+            android:layout_width="@dimen/color_scheme_sample_size"
+            android:layout_height="@dimen/color_scheme_sample_size"
+            android:layout_marginStart="-32dp"
+            app:cardBackgroundColor="?attr/colorOnBackground"
+            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.FullRound" />
 
-            <com.google.android.material.card.MaterialCardView
-                style="?attr/materialCardViewElevatedStyle"
-                android:layout_width="@dimen/color_scheme_sample_size"
-                android:layout_height="@dimen/color_scheme_sample_size"
-                android:layout_marginStart="-32dp"
-                app:cardBackgroundColor="?attr/colorOnBackground"
-                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.FullRound" />
-
-        </androidx.appcompat.widget.LinearLayoutCompat>
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.appcompat.widget.LinearLayoutCompat>
 
 </com.facebook.shimmer.ShimmerFrameLayout>
