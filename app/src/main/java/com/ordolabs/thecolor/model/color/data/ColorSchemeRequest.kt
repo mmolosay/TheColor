@@ -10,7 +10,11 @@ data class ColorSchemeRequest(
     data class Config(
         val modeOrdinal: Int,
         val sampleCount: Int
-    )
+    ) {
+        companion object {
+            const val SAMPLE_COUNT_DEFAULT = 8
+        }
+    }
 
     companion object {
         const val SAMPLE_COUNT_MAX = 15

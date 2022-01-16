@@ -26,7 +26,8 @@
         android:layout_height="wrap_content"
         android:layout_gravity="end"
         android:layout_marginHorizontal="@dimen/offset_content_horizontal"
-        android:label="?attr/colorOnSurface"
-        android:text="@string/color_scheme_editor_dispatch_changes_btn" />
+        android:text="@string/color_scheme_editor_dispatch_changes_btn"
+        android:visibility="invisible"
+        tools:visibility="visible" />
 
 </androidx.appcompat.widget.LinearLayoutCompat>

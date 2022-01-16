@@ -1,9 +1,10 @@
 package com.ordolabs.thecolor.util.ext
 
-infix fun <T> Pair<T, T>.order(firstToSecond: Boolean): Pair<T, T> {
-    return if (firstToSecond) this else Pair(second, first)
-}
-
+/**
+ * Returns either [Pair.first] or [Pair.second] based on specified [selector].
+ *
+ * @return [Pair.first] if [selector] is `true`, otherwise [Pair.second].
+ */
 infix fun <T> Pair<T, T>.by(selector: Boolean): T {
     return if (selector) this.first else this.second
 }
