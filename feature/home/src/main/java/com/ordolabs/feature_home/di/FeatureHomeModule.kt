@@ -10,6 +10,7 @@ import com.ordolabs.feature_home.viewmodel.colordata.ColorDataViewModel
 import com.ordolabs.feature_home.viewmodel.colordata.details.ColorDetailsObtainViewModel
 import com.ordolabs.feature_home.viewmodel.colordata.details.ColorDetailsViewModel
 import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeObtainViewModel
+import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeSettingsViewModel
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorValidatorViewModel
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -59,6 +60,10 @@ val featureHomeModule = module {
         ColorSchemeObtainViewModel(
             getColorSchemeUseCase = get(named(GET_COLOR_SCHEME_USE_CASE))
         )
+    }
+
+    viewModel {
+        ColorSchemeSettingsViewModel()
     }
 
     // endregion

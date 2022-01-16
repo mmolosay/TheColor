@@ -41,6 +41,8 @@
 
     <!-- region Color Scheme -->
 
+    <string name="color_scheme_configure_fetch_btn">Fetch color scheme</string>
+
     <!-- endregion -->
 
 </resources>

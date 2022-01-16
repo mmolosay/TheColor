@@ -8,15 +8,14 @@ import com.ordolabs.thecolor.model.color.data.ColorScheme
 import com.ordolabs.thecolor.model.color.data.ColorSchemeRequest
 import com.ordolabs.thecolor.util.struct.Resource
 import kotlinx.coroutines.flow.Flow
-import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 class ColorSchemeObtainFragment :
     ColorDataObtainFragment<ColorScheme>() {
 
-    // independent, brand new ViewModel
-    private val colorSchemeObtainVM: ColorSchemeObtainViewModel by viewModel()
+    private val colorSchemeObtainVM: ColorSchemeObtainViewModel by sharedViewModel()
 
-    private fun assembleColorSchemeRequest(): ColorSchemeRequest? {
+    private fun assembleDefaultColorSchemeRequest(): ColorSchemeRequest? {
         return ColorSchemeRequest(
             seed = color ?: return null,
             mode = ColorScheme.Mode.COMPLEMENT,
@@ -30,12 +29,12 @@ class ColorSchemeObtainFragment :
         colorSchemeObtainVM.scheme
 
     override fun obtainColorData() {
-        val request = assembleColorSchemeRequest() ?: return
+        val request = assembleDefaultColorSchemeRequest() ?: return
         colorSchemeObtainVM.getColorScheme(request)
     }
 
     override fun makeColorDataFragment(): BaseColorDataFragment<ColorScheme> =
-        ColorSchemeFragment.newInstance()
+        ColorSchemeConfigureFragment.newInstance()
 
     override fun makeContentShimmerFragment(): Fragment =
         ColorSchemeShimmerFragment.newInstance()
