@@ -3,13 +3,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    tools:background="#0047AB"
+    tools:theme="@style/ThemeOverlay.TheColor.Dark">
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/colorSchemeFragmentContainer"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_height="wrap_content"
         tools:layout="@layout/color_scheme_fragment" />
 
     <androidx.fragment.app.FragmentContainerView
@@ -19,11 +20,13 @@
         tools:layout="@layout/color_scheme_config_fragment" />
 
     <Button
-        android:id="@+id/fetchColorSchemeBtn"
-        style="@style/Widget.Button.Tonal.SurfaceVariant"
+        android:id="@+id/dispatchChangesBtn"
+        style="@style/Widget.Button.Text.OnBackground"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:text="@string/color_scheme_configure_fetch_btn" />
+        android:layout_gravity="end"
+        android:layout_marginHorizontal="@dimen/offset_content_horizontal"
+        android:label="?attr/colorOnSurface"
+        android:text="@string/color_scheme_editor_dispatch_changes_btn" />
 
 </androidx.appcompat.widget.LinearLayoutCompat>

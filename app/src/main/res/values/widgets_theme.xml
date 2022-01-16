@@ -14,6 +14,10 @@
         <item name="materialThemeOverlay">@style/MaterialThemeOverlay.Button.Outlined</item>
     </style>
 
+    <style name="Widget.TheColor.Button.Text" parent="Widget.Material3.Button.TextButton">
+        <item name="materialThemeOverlay">@style/MaterialThemeOverlay.Button.Text</item>
+    </style>
+
     <style name="Widget.TheColor.Button.Tonal" parent="Widget.Material3.Button.TonalButton">
         <item name="materialThemeOverlay">@style/MaterialThemeOverlay.Button.Tonal</item>
     </style>

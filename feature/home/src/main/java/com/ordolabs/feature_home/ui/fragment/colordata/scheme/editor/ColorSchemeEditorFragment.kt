@@ -20,7 +20,7 @@ import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 /**
  * Editor fragment for color scheme. It can:
- *  1. configure color scheme via [ColorSchemeFragment];
+ *  1. configure color scheme via [ColorSchemeConfigFragment];
  *  2. dispatch the configuration to [ColorSchemeEditorViewModel];
  *  3. display scheme in [ColorSchemeFragment].
  */
@@ -75,7 +75,7 @@ class ColorSchemeEditorFragment :
     }
 
     private fun setDispatchChangesBtn() =
-        binding.fetchColorSchemeBtn.setOnClickListener l@{
+        binding.dispatchChangesBtn.setOnClickListener l@{
             val options = schemeConfigVM.assembleConfig()
             schemeEditorVM.dispatchConfig(options)
         }

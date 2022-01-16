@@ -41,7 +41,7 @@
 
     <!-- region Color Scheme -->
 
-    <string name="color_scheme_configure_fetch_btn">Fetch color scheme</string>
+    <string name="color_scheme_editor_dispatch_changes_btn">Apply changes</string>
 
     <!-- endregion -->
 

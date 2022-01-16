@@ -4,9 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:background="#0047AB"
-    tools:context="com.ordolabs.feature_home.ui.fragment.colordata.scheme.ColorSchemeFragment"
-    tools:theme="@style/ThemeOverlay.TheColor.Dark">
+    tools:context="com.ordolabs.feature_home.ui.fragment.colordata.scheme.ColorSchemeFragment">
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/glStart"

@@ -4,10 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    tools:background="#0047AB"
     tools:context="com.ordolabs.feature_home.ui.fragment.colordata.details.ColorDetailsFragment"
-    tools:layout_height="wrap_content"
-    tools:theme="@style/ThemeOverlay.TheColor.Dark">
+    tools:layout_height="wrap_content">
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/glStart"
