@@ -18,6 +18,7 @@
         android:id="@+id/colorSchemeSettingsFragmnetContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/offset_content_horizontal"
         android:layout_marginTop="@dimen/offset_16"
         tools:layout="@layout/color_scheme_config_fragment" />
 
