@@ -5,6 +5,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:background="#0047AB"
+    tools:context="com.ordolabs.feature_home.ui.fragment.colordata.scheme.editor.ColorSchemeEditorFragment"
     tools:theme="@style/ThemeOverlay.TheColor.Dark">
 
     <androidx.fragment.app.FragmentContainerView
