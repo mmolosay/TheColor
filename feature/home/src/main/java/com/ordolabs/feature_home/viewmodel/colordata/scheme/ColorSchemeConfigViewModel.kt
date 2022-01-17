@@ -4,9 +4,12 @@ import androidx.lifecycle.viewModelScope
 import com.ordolabs.thecolor.model.color.data.ColorScheme
 import com.ordolabs.thecolor.model.color.data.ColorSchemeRequest
 import com.ordolabs.thecolor.util.MutableCommandFlow
+import com.ordolabs.thecolor.util.MutableStateResourceFlow
 import com.ordolabs.thecolor.util.ext.asCommand
 import com.ordolabs.thecolor.util.ext.setSuccess
+import com.ordolabs.thecolor.util.struct.getOrNull
 import com.ordolabs.thecolor.viewmodel.BaseViewModel
+import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * Stores [ColorSchemeRequest.Config] parameters and assembles new instances of `Config`.
@@ -25,7 +28,8 @@ class ColorSchemeConfigViewModel : BaseViewModel() {
             updateHasChangesCommand()
         }
 
-    var appliedConfig: ColorSchemeRequest.Config = assembleConfig(); private set
+    private val _appliedConfig = MutableStateResourceFlow(assembleConfig())
+    val appliedConfig = _appliedConfig.asStateFlow()
 
     private val _hasChangesCommand = MutableCommandFlow(false)
     val hasChangesCommand = _hasChangesCommand.asCommand(viewModelScope)
@@ -36,13 +40,14 @@ class ColorSchemeConfigViewModel : BaseViewModel() {
      */
     fun applyConfig(): ColorSchemeRequest.Config =
         assembleConfig().also { config ->
-            this.appliedConfig = config
+            _appliedConfig.setSuccess(config)
             _hasChangesCommand.setSuccess(false) // just applied, thus the same
         }
 
     private fun updateHasChangesCommand() {
-        val currentConfig = assembleConfig()
-        val hasChanges = (currentConfig != appliedConfig)
+        val current = assembleConfig()
+        val applied = _appliedConfig.value.getOrNull()!! // should always be success
+        val hasChanges = (current != applied)
         _hasChangesCommand.setSuccess(hasChanges)
     }
 

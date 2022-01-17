@@ -21,6 +21,7 @@ import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
 import com.ordolabs.thecolor.util.ext.by
 import com.ordolabs.thecolor.util.ext.mediumAnimDuration
 import com.ordolabs.thecolor.util.ext.setFragment
+import com.ordolabs.thecolor.util.struct.getOrNull
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import com.ordolabs.thecolor.R as RApp
 
@@ -55,7 +56,7 @@ class ColorSchemeEditorFragment :
 
     override fun setUp() {
         super.setUp()
-        val defaultConfig = schemeConfigVM.appliedConfig
+        val defaultConfig = schemeConfigVM.appliedConfig.value.getOrNull()!!
         schemeEditorVM.dispatchConfig(defaultConfig)
     }
 

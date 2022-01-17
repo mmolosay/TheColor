@@ -40,14 +40,8 @@ class ColorSchemeConfigFragment : BaseFragment() {
             .inflate(R.layout.color_scheme_config_fragment, container, false)
     }
 
-    override fun setUp() {
-        super.setUp()
-        val config = schemeConfigVM.appliedConfig
-        populateTitles(config)
-    }
-
     override fun collectViewModelsData() {
-        // nothing is here
+        collectAppliedConfig()
     }
 
     override fun setViews() {
@@ -110,6 +104,13 @@ class ColorSchemeConfigFragment : BaseFragment() {
     }
 
     // endregion
+
+    private fun collectAppliedConfig() =
+        schemeConfigVM.appliedConfig.collectOnLifecycle { resource ->
+            resource.ifSuccess { config ->
+                populateTitles(config)
+            }
+        }
 
     companion object {
         fun newInstance() =
