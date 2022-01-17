@@ -8,10 +8,10 @@
     tools:context="com.ordolabs.feature_home.ui.fragment.colordata.scheme.editor.ColorSchemeConfigFragment">
 
     <TextView
-        android:id="@+id/modeChipsLabel"
+        android:id="@+id/modeChipsTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/color_scheme_config_mode_label"
+        android:text="@string/color_scheme_config_mode_title"
         android:textAppearance="?attr/textAppearanceTitleMedium" />
 
     <!-- chips are added dynamically -->
