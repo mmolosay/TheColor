@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!--~~~~~~~~~~~~~~~~~~~ OFFSETS ~~~~~~~~~~~~~~~~~~~~-->
+    <!-- region Offsets -->
+
     <dimen name="offset_2">2dp</dimen>
     <dimen name="offset_4">4dp</dimen>
     <dimen name="offset_6">6dp</dimen>
@@ -13,23 +14,13 @@
     <dimen name="offset_48">48dp</dimen>
     <dimen name="offset_64">64dp</dimen>
 
-    <dimen name="offset_content_default">@dimen/offset_16</dimen>
     <dimen name="offset_content_horizontal">@dimen/offset_16</dimen>
     <dimen name="offset_content_vertical">@dimen/offset_32</dimen>
 
-    <!--~~~~~~~~~~~~~~~~~~~~ DEFAULT ~~~~~~~~~~~~~~~~~~~-->
-    <dimen name="ripple_alpha_default" type="dimen" format="float">0.26</dimen>
+    <!-- endregion -->
+
     <dimen name="disabled_alpha_default" type="dimen" format="float">0.4</dimen>
-    <dimen name="roundness_default">6dp</dimen>
-    <dimen name="elevation_small">2dp</dimen>
-    <dimen name="elevation_normal">4dp</dimen>
-    <dimen name="elevation_big">8dp</dimen>
 
-    <!--~~~~~~~~~~~~~~~~~~ INPUT TEXT ~~~~~~~~~~~~~~~~~~-->
-
-    <!--~~~~~~~~~~~~~~~~~~~~ BUTTON ~~~~~~~~~~~~~~~~~~~~-->
-
-    <!--~~~~~~~~~~~~~~~~~~~~ WIDGET ~~~~~~~~~~~~~~~~~~~~-->
     <dimen name="divider_height">1dp</dimen>
 
 </resources>

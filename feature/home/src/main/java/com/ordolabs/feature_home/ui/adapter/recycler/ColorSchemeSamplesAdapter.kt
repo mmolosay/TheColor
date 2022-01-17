@@ -19,9 +19,13 @@ class ColorSchemeSamplesAdapter : BaseAdapter<ColorScheme.Sample, ColorSchemeSam
     }
 
     override fun setItems(items: List<ColorScheme.Sample>) {
+        val oldSize = samples.size
+        val newSize = items.size
         samples.clear()
         samples.addAll(items)
-        notifyItemRangeChanged(0, items.size)
+        // notifyItemRangeChanged(0, items.size) may cause an exception (bug) in RecyclerView
+        notifyItemRangeRemoved(0, oldSize)
+        notifyItemRangeInserted(0, newSize)
     }
 
     override fun createViewHolder(itemView: View) =

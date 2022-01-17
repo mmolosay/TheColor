@@ -29,8 +29,8 @@ abstract class OverlapingDecoration(
         val position = parent.getChildAdapterPosition(view)
         if (position == RecyclerView.NO_POSITION) return
         if (position == 0) return
-        outRect.left = -horizontal
-        outRect.top = -vertical
+        outRect.left -= horizontal
+        outRect.top -= vertical
     }
 
     class Vertical(

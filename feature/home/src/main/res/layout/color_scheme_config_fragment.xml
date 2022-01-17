@@ -11,12 +11,35 @@
         android:id="@+id/modeChipsTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/color_scheme_config_mode_title"
-        android:textAppearance="?attr/textAppearanceTitleMedium" />
+        android:textAppearance="?attr/textAppearanceTitleMedium"
+        tools:text="@string/color_scheme_config_mode_title" />
 
     <!-- chips are added dynamically -->
     <com.google.android.material.chip.ChipGroup
         android:id="@+id/modeChips"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:chipSpacingVertical="0dp"
+        app:selectionRequired="true"
+        app:singleSelection="true"
+        tools:background="?attr/colorToolsBackground"
+        tools:layout_height="64dp">
+
+        <!-- preview chip -->
+        <!--        <include layout="@layout/color_scheme_mode_chip"/>-->
+
+    </com.google.android.material.chip.ChipGroup>
+
+    <TextView
+        android:id="@+id/sampleCountTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/offset_16"
+        android:textAppearance="?attr/textAppearanceTitleMedium"
+        tools:text="@string/color_scheme_config_sample_count_title" />
+
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/sampleCountChips"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:chipSpacingVertical="0dp"

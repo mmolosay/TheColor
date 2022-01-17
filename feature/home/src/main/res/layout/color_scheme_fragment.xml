@@ -1,36 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context="com.ordolabs.feature_home.ui.fragment.colordata.scheme.ColorSchemeFragment">
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/glStart"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        app:layout_constraintGuide_begin="@dimen/offset_content_horizontal" />
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/glEnd"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        app:layout_constraintGuide_end="@dimen/offset_content_horizontal" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/samples"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintEnd_toStartOf="@id/glEnd"
-        app:layout_constraintStart_toEndOf="@id/glStart"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintWidth="wrap_content_constrained"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="center_horizontal"
+        android:clipToPadding="false"
+        android:paddingHorizontal="@dimen/offset_content_horizontal"
         tools:itemCount="5"
         tools:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         tools:listitem="@layout/color_scheme_sample_item"
         tools:orientation="horizontal" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.appcompat.widget.LinearLayoutCompat>

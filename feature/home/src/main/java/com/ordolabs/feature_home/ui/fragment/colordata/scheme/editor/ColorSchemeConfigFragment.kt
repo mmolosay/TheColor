@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
+import androidx.annotation.StringRes
 import androidx.core.text.buildSpannedString
 import androidx.core.text.color
 import by.kirich1409.viewbindingdelegate.CreateMethod
@@ -46,6 +48,7 @@ class ColorSchemeConfigFragment : BaseFragment() {
 
     override fun setViews() {
         setSchemeModeChipGroup()
+        setSchemeSampleCountChipGroup()
     }
 
     private fun setSchemeModeChipGroup() {
@@ -65,6 +68,25 @@ class ColorSchemeConfigFragment : BaseFragment() {
         (group.getChildAt(mode.ordinal) as Chip).isChecked = true
     }
 
+    private fun setSchemeSampleCountChipGroup() {
+        val group = binding.sampleCountChips
+        val layout = R.layout.color_scheme_mode_chip
+        val inflater = layoutInflater.cloneInViewContext(group)
+        val counts = ColorSchemeRequest.Config.sampleCounts
+        counts.forEach { count ->
+            val chip = inflater.inflate(layout, group, false) as Chip
+            chip.text = count.toString()
+            chip.setOnCheckedChangeListener { _, isChecked ->
+                onSchemeSampleCountChipChecked(isChecked, count)
+            }
+            group.addView(chip)
+        }
+
+        val sampleCount = schemeConfigVM.sampleCount
+        val position = counts.indexOf(sampleCount).takeUnless { it == -1 } ?: return
+        (group.getChildAt(position) as Chip).isChecked = true
+    }
+
     private fun onSchemeModeChipChecked(
         isChecked: Boolean,
         mode: ColorScheme.Mode
@@ -73,34 +95,48 @@ class ColorSchemeConfigFragment : BaseFragment() {
         schemeConfigVM.mode = mode
     }
 
+    private fun onSchemeSampleCountChipChecked(
+        isChecked: Boolean,
+        sampleCount: Int
+    ) {
+        if (!isChecked) return // do nothing
+        schemeConfigVM.sampleCount = sampleCount
+    }
+
     // region Populate
 
     private fun populateTitles(config: ColorSchemeRequest.Config) {
         val mode = enumValues<ColorScheme.Mode>()[config.modeOrdinal]
         val sampleCount = config.sampleCount
-        populateModeTitle(mode)
-        populateSampleCountTitle(sampleCount)
+        populateTitle(
+            titleView = binding.modeChipsTitle,
+            baseRes = R.string.color_scheme_config_mode_title,
+            variable = resources.getString(mode.labelRes)
+        )
+        populateTitle(
+            titleView = binding.sampleCountTitle,
+            baseRes = R.string.color_scheme_config_sample_count_title,
+            variable = sampleCount.toString()
+        )
     }
 
-    private fun populateModeTitle(mode: ColorScheme.Mode) {
-        val titleView = binding.modeChipsTitle
-        val label = resources.getString(mode.labelRes)
+    private fun populateTitle(
+        titleView: TextView,
+        @StringRes baseRes: Int,
+        variable: String
+    ) {
         val color = titleView.context
             .getColorStateList(RMaterial.color.material_on_background_emphasis_medium)
             .defaultColor
-        val base = resources.getString(R.string.color_scheme_config_mode_title)
+        val base = resources.getString(baseRes)
         val title = buildSpannedString {
             append(base)
             append(' ')
             color(color) {
-                append(label)
+                append(variable)
             }
         }
         titleView.text = title
-    }
-
-    private fun populateSampleCountTitle(sampleCount: Int) {
-        // TODO: implement
     }
 
     // endregion

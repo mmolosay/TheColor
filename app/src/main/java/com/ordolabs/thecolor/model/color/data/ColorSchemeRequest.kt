@@ -13,10 +13,9 @@ data class ColorSchemeRequest(
     ) {
         companion object {
             const val SAMPLE_COUNT_DEFAULT = 8
+            val sampleCounts = listOf(
+                5, 6, 8, 10, 12, 15
+            )
         }
-    }
-
-    companion object {
-        const val SAMPLE_COUNT_MAX = 15
     }
 }

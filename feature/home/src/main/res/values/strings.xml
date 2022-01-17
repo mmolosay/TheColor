@@ -41,8 +41,8 @@
 
     <!-- region Color Scheme -->
 
-    <string name="color_scheme_config_mode_title">Mode: </string>
-    <string name="color_scheme_config_sample_count_label">Sample count</string>
+    <string name="color_scheme_config_mode_title">Mode:</string>
+    <string name="color_scheme_config_sample_count_title">Sample count:</string>
 
     <string name="color_scheme_editor_dispatch_changes_btn">Apply changes</string>
 
