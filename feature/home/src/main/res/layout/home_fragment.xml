@@ -97,14 +97,13 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- TODO: restore android:backgroundTint="@color/transparent" -->
-        <com.ordolabs.thecolor.ui.view.ClippingFrameLayout
+        <FrameLayout
             android:id="@+id/colorDataWrapper"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_marginTop="@dimen/offset_16"
             android:background="@drawable/bg_color_information"
-            android:backgroundTint="?attr/colorDebug"
+            android:backgroundTint="@color/transparent"
             android:visibility="invisible"
 
             app:layout_constraintBottom_toBottomOf="parent"
@@ -121,7 +120,7 @@
                 android:layout_height="match_parent"
                 tools:layout="@layout/color_data_pager_fragment" />
 
-        </com.ordolabs.thecolor.ui.view.ClippingFrameLayout>
+        </FrameLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

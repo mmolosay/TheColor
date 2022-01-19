@@ -86,6 +86,9 @@ dependencies {
     api "com.github.kirich1409:viewbindingpropertydelegate:1.4.7"
     api "com.michael-bull.kotlin-result:kotlin-result:1.1.12"
     api "com.facebook.shimmer:shimmer:0.5.0"
+    // was used for clipping color data with its custom background, but uses LAYER_TYPE_SOFTWARE,
+    // and constant redrawing of such complex view is dramatic for performance (above red line)
+//    api 'io.github.florent37:shapeofview:1.4.7'
     implementation "com.github.ajalt.colormath:colormath:2.1.0"
 
     // Testing
