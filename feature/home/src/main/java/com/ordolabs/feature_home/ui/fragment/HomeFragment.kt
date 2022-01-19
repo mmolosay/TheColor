@@ -83,7 +83,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
         setColorInputFragment()
         setColorDataFragment()
         setProcceedBtn()
-        toggleDataFragmentVisibility(visible = false)
+        toggleDataWrapperVisibility(visible = false)
     }
 
     private fun setColorInputFragment() {
@@ -111,24 +111,24 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
     }
 
     @ColorInt
-    private fun getColorDataContainerBackgroundColor(): Int? {
-        return binding.colorDataFragmentContainer.backgroundTintList?.defaultColor
+    private fun getDataWrapperBackgroundColor(): Int? {
+        return binding.colorDataWrapper.backgroundTintList?.defaultColor
     }
 
-    private fun tintColorDataContanerBackground(color: Color) {
-        binding.colorDataFragmentContainer.backgroundTintList =
+    private fun tintDataWrapperBackground(color: Color) {
+        binding.colorDataWrapper.backgroundTintList =
             ColorStateList.valueOf(color.toColorInt())
         activity?.setNavigationBarColor(color)
     }
 
-    private fun clearColorDataContainerBackground() {
-        binding.colorDataFragmentContainer.backgroundTintList =
+    private fun clearDataWrapperBackground() {
+        binding.colorDataWrapper.backgroundTintList =
             ColorStateList.valueOf(ColorAndroid.TRANSPARENT)
         activity?.restoreNavigationBarColor()
     }
 
-    private fun toggleDataFragmentVisibility(visible: Boolean) {
-        binding.colorDataFragmentContainer.isInvisible = !visible
+    private fun toggleDataWrapperVisibility(visible: Boolean) {
+        binding.colorDataWrapper.isInvisible = !visible
     }
 
     private fun animInfoSheetExpanding(color: Color) {
@@ -140,7 +140,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
                     makePreviewFallingAnimation(),
                     makeInfoSheetRevealAnimation(hide = false).apply {
                         doOnStart {
-                            tintColorDataContanerBackground(color)
+                            tintDataWrapperBackground(color)
                         }
                     }
                 )
@@ -177,7 +177,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
                 makeScrollingToTopAnimation(),
                 makeInfoSheetRevealAnimation(hide = true).apply {
                     doOnEnd {
-                        clearColorDataContainerBackground()
+                        clearDataWrapperBackground()
                         binding.scrollview.run {
                             scrollTo(0, 0)
                             isScrollable = false
@@ -281,7 +281,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
 
     private fun makePreviewTranslationAnimation(down: Boolean): Animator {
         val preview = binding.previewWrapper
-        val info = binding.colorDataFragmentContainer
+        val info = binding.colorDataWrapper
         val translation = if (down) {
             val distance = preview.getDistanceToViewInParent(info, view)?.y ?: 0
             val addend = makeInfoSheetRevealCenter().y
@@ -314,7 +314,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
     }
 
     private fun makeInfoSheetRevealAnimation(hide: Boolean): Animator {
-        val info = binding.colorDataFragmentContainer
+        val info = binding.colorDataWrapper
         val preview = binding.previewWrapper
         val center = makeInfoSheetRevealCenter()
         val sr = preview.width.toFloat() / 2
@@ -323,10 +323,10 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
             duration = longAnimDuration
             interpolator = AccelerateDecelerateInterpolator()
             doOnStart {
-                toggleDataFragmentVisibility(visible = true)
+                toggleDataWrapperVisibility(visible = true)
             }
             doOnEnd {
-                toggleDataFragmentVisibility(visible = !hide)
+                toggleDataWrapperVisibility(visible = !hide)
             }
         }
     }
@@ -340,7 +340,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
     }
 
     private fun makeInfoSheetRevealCenter(): Point {
-        val info = binding.colorDataFragmentContainer
+        val info = binding.colorDataWrapper
         val bottom = info.getBottomVisibleInScrollParent(binding.root) ?: info.height
         val padding = resources.getDimensionPixelSize(RApp.dimen.offset_32)
         val previewRadius = binding.preview.height / 2
@@ -374,12 +374,12 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
         binding.previewWrapper.doOnLayout {
             val colorInt = preview.toColorInt()
             if (preview.isUserInput) { // collapse only if user changed color manually
-                val colorDataBg = getColorDataContainerBackgroundColor()
+                val colorDataBg = getDataWrapperBackgroundColor()
                 if (colorInt != colorDataBg) {
                     animColorDataCollapsingOnPreviewSuccess()
                 }
             } else {
-                tintColorDataContanerBackground(preview)
+                tintDataWrapperBackground(preview)
             }
             animPreviewColorChanging(colorInt)
             animPreviewResize(collapse = false)
