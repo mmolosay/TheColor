@@ -1,5 +1,7 @@
 package com.ordolabs.feature_home.ui.fragment.colordata.scheme
 
+import android.view.ViewGroup
+import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import com.ordolabs.feature_home.ui.fragment.colordata.ColorDataObtainFragment
 import com.ordolabs.feature_home.ui.fragment.colordata.base.BaseColorDataFragment
@@ -12,6 +14,7 @@ import com.ordolabs.thecolor.util.struct.Resource
 import com.ordolabs.thecolor.util.struct.getOrNull
 import kotlinx.coroutines.flow.Flow
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
+import com.ordolabs.thecolor.R as RApp
 
 class ColorSchemeObtainFragment :
     ColorDataObtainFragment<ColorScheme>() {
@@ -22,6 +25,13 @@ class ColorSchemeObtainFragment :
     override fun collectViewModelsData() {
         super.collectViewModelsData()
         collectDispatchConfigCommand()
+    }
+
+    override fun setViews() {
+        super.setViews()
+        view?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+            topMargin = resources.getDimensionPixelSize(RApp.dimen.offset_16)
+        }
     }
 
     private fun collectDispatchConfigCommand() =
