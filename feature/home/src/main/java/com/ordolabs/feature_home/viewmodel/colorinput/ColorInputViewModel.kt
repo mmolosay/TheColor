@@ -23,7 +23,6 @@ import kotlinx.coroutines.flow.asStateFlow
  */
 class ColorInputViewModel : BaseViewModel() {
 
-    // TODO: store one ColorPrototype
     private val _prototype = MutableStateResourceFlow<ColorPrototype>(Resource.empty())
     val prototype = _prototype.asStateFlow()
 
