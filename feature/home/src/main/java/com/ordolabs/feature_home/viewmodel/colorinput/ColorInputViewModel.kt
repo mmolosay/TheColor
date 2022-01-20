@@ -14,9 +14,16 @@ import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * Contains colors obtained from input or ones to be set in it.
+ *
+ *
+ * `View` should call [updateColorOutput], when there is new [ColorPrototype] collected.
+ *
+ * `View` should call [updateColorInput], when there is new valid [Color], that should be populated
+ * in all color input UIs.
  */
 class ColorInputViewModel : BaseViewModel() {
 
+    // TODO: store one ColorPrototype
     private val _prototypeHex = MutableStateResourceFlow<ColorPrototype.Hex>(Resource.empty())
     val prototypeHex = _prototypeHex.asStateFlow()
 
