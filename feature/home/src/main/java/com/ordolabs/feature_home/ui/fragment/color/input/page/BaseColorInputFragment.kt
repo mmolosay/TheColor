@@ -7,6 +7,7 @@ import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
 import com.ordolabs.thecolor.model.color.ColorInput
 import com.ordolabs.thecolor.model.color.ColorPrototype
 import com.ordolabs.thecolor.util.struct.Resource
+import com.ordolabs.thecolor.util.struct.getOrNull
 import kotlinx.coroutines.flow.Flow
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
@@ -30,7 +31,6 @@ abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment {
 
     protected val colorInputVM: ColorInputViewModel by sharedViewModel()
 
-    private var latestPrototype: ColorPrototype? = null
     private var isTypedByUser: Boolean = true
 
     // region Abstract
@@ -77,14 +77,9 @@ abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment {
      */
     protected fun outputOnInputChanges() {
         if (!isTypedByUser) return
-        val prototype = assembleAndMementoColor()
-        colorInputVM.updateColorOutput(prototype)
+        val prototype = assemblePrototype()
+        colorInputVM.updateColorPrototype(prototype)
     }
-
-    private fun assembleAndMementoColor(): ColorPrototype =
-        assemblePrototype().also { prototype ->
-            this.latestPrototype = prototype
-        }
 
     @Suppress("UNUSED_PARAMETER")
     private fun onColorInputEmpty(previous: ColorInput<C>?) {
@@ -92,16 +87,18 @@ abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment {
         this.isTypedByUser = false
         clearViews()
         this.isTypedByUser = true
-        this.latestPrototype = null
+        colorInputVM.clearColorPrototype()
     }
 
     private fun onColorInputSuccess(input: ColorInput<C>) {
-        if (input.color == latestPrototype) return // desired color already set
+        val new = input.color
+        val current = colorInputVM.prototype.value.getOrNull()
+        if (new == current) return // desired color already set
         if (input.forcePopulate || (!isResumed && !input.forcePopulate)) {
             this.isTypedByUser = false
-            populateViews(input.color)
+            populateViews(new)
             this.isTypedByUser = true
-            this.latestPrototype = input.color
+            colorInputVM.updateColorPrototype(new)
         }
     }
 }

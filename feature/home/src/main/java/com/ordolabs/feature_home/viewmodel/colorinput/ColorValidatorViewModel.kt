@@ -12,6 +12,7 @@ import com.ordolabs.thecolor.util.ext.setEmpty
 import com.ordolabs.thecolor.util.ext.setSuccess
 import com.ordolabs.thecolor.util.struct.Resource
 import com.ordolabs.thecolor.util.struct.empty
+import com.ordolabs.thecolor.util.struct.getOrNull
 import com.ordolabs.thecolor.viewmodel.BaseViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,11 +40,14 @@ class ColorValidatorViewModel(
         colorValidationJob?.cancel()
     }
 
-    fun validateColor(input: ColorPrototype) =
+    fun validateColor(input: ColorPrototype) {
+        val color = Color.from(input)
+        if (color == colorPreview.value.getOrNull()) return // should not validate if already set
         when (input) {
             is ColorPrototype.Hex -> validateColor(input)
             is ColorPrototype.Rgb -> validateColor(input)
         }
+    }
 
     private fun validateColor(input: ColorPrototype.Hex) {
         restartColorValidation()
