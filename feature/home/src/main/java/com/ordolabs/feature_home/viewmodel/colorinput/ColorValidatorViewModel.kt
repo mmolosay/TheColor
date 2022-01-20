@@ -3,7 +3,6 @@ package com.ordolabs.feature_home.viewmodel.colorinput
 import com.ordolabs.domain.usecase.local.ValidateColorHexBaseUseCase
 import com.ordolabs.domain.usecase.local.ValidateColorRgbBaseUseCase
 import com.ordolabs.thecolor.mapper.toDomain
-import com.ordolabs.thecolor.model.color.AbstractColor
 import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.ColorPreview
 import com.ordolabs.thecolor.model.color.ColorPrototype
@@ -40,9 +39,8 @@ class ColorValidatorViewModel(
         colorValidationJob?.cancel()
     }
 
-    fun validateColor(input: AbstractColor) =
+    fun validateColor(input: ColorPrototype) =
         when (input) {
-            is Color -> error("you can't validate Color (valid asserted)")
             is ColorPrototype.Hex -> validateColor(input)
             is ColorPrototype.Rgb -> validateColor(input)
         }

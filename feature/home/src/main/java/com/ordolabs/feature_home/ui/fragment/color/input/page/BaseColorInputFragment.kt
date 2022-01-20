@@ -29,15 +29,15 @@ abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment {
 
     protected val colorInputVM: ColorInputViewModel by sharedViewModel()
 
-    private var latestPrototype: C? = null
+    private var latestPrototype: ColorPrototype? = null
     private var isTypedByUser: Boolean = true
 
     // region Abstract
 
     /**
-     * Collects user input from UI and makes new instance of [C] out of it.
+     * Collects user input from UI and makes new instance of [ColorPrototype] out of it.
      */
-    protected abstract fun assemblePrototype(): C
+    protected abstract fun assemblePrototype(): ColorPrototype
 
     /**
      * Populates Fragment's input views with data from [color].
@@ -80,9 +80,9 @@ abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment {
         colorInputVM.updateColorOutput(prototype)
     }
 
-    private fun assembleAndMementoColor(): C =
-        assemblePrototype().also { color ->
-            this.latestPrototype = color
+    private fun assembleAndMementoColor(): ColorPrototype =
+        assemblePrototype().also { prototype ->
+            this.latestPrototype = prototype
         }
 
     @Suppress("UNUSED_PARAMETER")

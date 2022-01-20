@@ -395,20 +395,8 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
 
     // region collectColorInputPrototype
 
-    private fun collectColorInputPrototype() {
-        collectColorInputHexPrototype()
-        collectColorInputRgbPrototype()
-    }
-
-    private fun collectColorInputHexPrototype() =
-        colorInputVM.prototypeHex.collectOnLifecycle { resource ->
-            resource.ifSuccess { prototype ->
-                colorValidatorVM.validateColor(prototype)
-            }
-        }
-
-    private fun collectColorInputRgbPrototype() =
-        colorInputVM.prototypeRgb.collectOnLifecycle { resource ->
+    private fun collectColorInputPrototype() =
+        colorInputVM.prototype.collectOnLifecycle { resource ->
             resource.ifSuccess { prototype ->
                 colorValidatorVM.validateColor(prototype)
             }

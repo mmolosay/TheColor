@@ -24,11 +24,8 @@ import kotlinx.coroutines.flow.asStateFlow
 class ColorInputViewModel : BaseViewModel() {
 
     // TODO: store one ColorPrototype
-    private val _prototypeHex = MutableStateResourceFlow<ColorPrototype.Hex>(Resource.empty())
-    val prototypeHex = _prototypeHex.asStateFlow()
-
-    private val _prototypeRgb = MutableStateResourceFlow<ColorPrototype.Rgb>(Resource.empty())
-    val prototypeRgb = _prototypeRgb.asStateFlow()
+    private val _prototype = MutableStateResourceFlow<ColorPrototype>(Resource.empty())
+    val prototype = _prototype.asStateFlow()
 
     private val _colorHex = MutableStateResourceFlow<ColorPrototype.Hex>(Resource.empty())
     val colorHex = _colorHex.asStateFlow()
@@ -38,18 +35,8 @@ class ColorInputViewModel : BaseViewModel() {
 
     // region Output
 
-    fun updateColorOutput(prototype: ColorPrototype) =
-        when (prototype) {
-            is ColorPrototype.Hex -> updateColorOutput(prototype)
-            is ColorPrototype.Rgb -> updateColorOutput(prototype)
-        }
-
-    private fun updateColorOutput(prototype: ColorPrototype.Hex) {
-        _prototypeHex.setSuccess(prototype)
-    }
-
-    private fun updateColorOutput(prototype: ColorPrototype.Rgb) {
-        _prototypeRgb.setSuccess(prototype)
+    fun updateColorOutput(prototype: ColorPrototype) {
+        _prototype.setSuccess(prototype)
     }
 
     // endregion
