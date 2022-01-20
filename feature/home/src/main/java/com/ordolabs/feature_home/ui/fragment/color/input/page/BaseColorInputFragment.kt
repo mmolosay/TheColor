@@ -95,7 +95,8 @@ abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment {
     }
 
     private fun onColorInputSuccess(color: C) {
-        if (isResumed && color == latestPrototype) return // prevent user interrupting
+        if (color == latestPrototype) return // desired color already set
+        if (isResumed) return // prevent user interrupting
         this.isTypedByUser = false
         populateViews(color)
         this.isTypedByUser = true
