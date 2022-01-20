@@ -42,6 +42,7 @@ class ColorInputViewModel : BaseViewModel() {
 
     fun clearColorPrototype() {
         _prototype.setEmpty()
+
     }
 
     // endregion
@@ -51,11 +52,13 @@ class ColorInputViewModel : BaseViewModel() {
     fun updateCurrentColor(preview: ColorPreview) {
         updateHexInput(preview)
         updateRgbInput(preview)
+        _prototype.setSuccess(preview.toHex())
     }
 
     fun clearColorInput() {
         _inputHex.setEmpty()
         _inputRgb.setEmpty()
+        _prototype.setEmpty()
     }
 
     private fun updateHexInput(preview: ColorPreview) {

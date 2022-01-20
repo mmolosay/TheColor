@@ -99,7 +99,6 @@ abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment {
             clearViews()
         }
         this.currentPrototype = null
-        colorInputVM.clearColorPrototype()
     }
 
     private fun onColorInputSuccess(input: ColorInput<C>) {
@@ -110,7 +109,6 @@ abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment {
                 populateViews(new)
             }
             this.currentPrototype = new
-            colorInputVM.updateColorPrototype(new)
         }
     }
 }
