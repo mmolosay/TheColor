@@ -1,4 +1,4 @@
-package com.ordolabs.feature_home.ui.fragment.colordata
+package com.ordolabs.feature_home.ui.fragment.color.data
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -6,15 +6,14 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.CallSuper
 import androidx.core.view.ViewCompat
-import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDataObtainFragmentBinding
-import com.ordolabs.feature_home.ui.fragment.colordata.base.BaseColorDataFragment
-import com.ordolabs.feature_home.ui.fragment.colordata.base.IColorDataFragment
+import com.ordolabs.feature_home.ui.fragment.color.data.base.BaseColorDataFragment
+import com.ordolabs.feature_home.ui.fragment.color.data.base.IColorDataFragment
 import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
 import com.ordolabs.thecolor.util.ext.by

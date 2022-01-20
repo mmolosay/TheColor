@@ -1,4 +1,4 @@
-package com.ordolabs.feature_home.ui.fragment.colordata.page.base
+package com.ordolabs.feature_home.ui.fragment.color.data.page.base
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,7 +10,7 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDataPageFragmentBinding
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
-import com.ordolabs.feature_home.ui.fragment.colordata.IColorThemed
+import com.ordolabs.feature_home.ui.fragment.color.data.IColorThemed
 import com.ordolabs.feature_home.viewmodel.colordata.ColorDataViewModel
 import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.isDark

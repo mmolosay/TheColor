@@ -1,4 +1,4 @@
-package com.ordolabs.feature_home.ui.fragment.colordata
+package com.ordolabs.feature_home.ui.fragment.color.data
 
 import android.os.Bundle
 import android.view.LayoutInflater

@@ -1,4 +1,4 @@
-package com.ordolabs.feature_home.ui.fragment.colordata
+package com.ordolabs.feature_home.ui.fragment.color.data
 
 import com.ordolabs.thecolor.model.color.Color
 

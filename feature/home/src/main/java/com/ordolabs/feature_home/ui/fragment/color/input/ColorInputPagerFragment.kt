@@ -1,4 +1,4 @@
-package com.ordolabs.feature_home.ui.fragment.colorinput
+package com.ordolabs.feature_home.ui.fragment.color.input
 
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.tabs.TabLayout

@@ -1,19 +1,17 @@
-package com.ordolabs.feature_home.ui.fragment.colordata.scheme.editor
+package com.ordolabs.feature_home.ui.fragment.color.data.scheme.editor
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.isInvisible
-import androidx.core.view.isVisible
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorSchemeEditorFragmentBinding
-import com.ordolabs.feature_home.ui.fragment.colordata.base.BaseColorDataFragment
-import com.ordolabs.feature_home.ui.fragment.colordata.base.IColorDataFragment
-import com.ordolabs.feature_home.ui.fragment.colordata.scheme.ColorSchemeFragment
+import com.ordolabs.feature_home.ui.fragment.color.data.base.BaseColorDataFragment
+import com.ordolabs.feature_home.ui.fragment.color.data.base.IColorDataFragment
+import com.ordolabs.feature_home.ui.fragment.color.data.scheme.ColorSchemeFragment
 import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeConfigViewModel
 import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeEditorViewModel
 import com.ordolabs.thecolor.model.color.data.ColorScheme

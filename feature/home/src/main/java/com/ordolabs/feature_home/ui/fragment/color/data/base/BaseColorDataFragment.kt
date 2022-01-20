@@ -1,4 +1,4 @@
-package com.ordolabs.feature_home.ui.fragment.colordata.base
+package com.ordolabs.feature_home.ui.fragment.color.data.base
 
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 

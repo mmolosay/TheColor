@@ -1,10 +1,10 @@
-package com.ordolabs.feature_home.ui.fragment.colordata.page
+package com.ordolabs.feature_home.ui.fragment.color.data.page
 
 import androidx.fragment.app.Fragment
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.ui.adapter.pager.ColorDataPagerAdapter
-import com.ordolabs.feature_home.ui.fragment.colordata.details.ColorDetailsObtainFragment
-import com.ordolabs.feature_home.ui.fragment.colordata.page.base.BaseColorDataPage
+import com.ordolabs.feature_home.ui.fragment.color.data.details.ColorDetailsObtainFragment
+import com.ordolabs.feature_home.ui.fragment.color.data.page.base.BaseColorDataPage
 
 class ColorDataDetailsPage : BaseColorDataPage() {
 

@@ -1,4 +1,4 @@
-package com.ordolabs.feature_home.ui.fragment.colorinput
+package com.ordolabs.feature_home.ui.fragment.color.input
 
 import androidx.annotation.CallSuper
 import androidx.annotation.LayoutRes

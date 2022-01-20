@@ -1,10 +1,10 @@
-package com.ordolabs.feature_home.ui.fragment.colordata.page.base
+package com.ordolabs.feature_home.ui.fragment.color.data.page.base
 
 import androidx.fragment.app.Fragment
 import com.ordolabs.feature_home.ui.adapter.pager.ColorDataPagerAdapter
 
 /**
- * Interface for color data page fragment.
+ * Interface for color data page `Fragment`.
  */
 interface IColorDataPage {
 

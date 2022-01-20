@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.ordolabs.feature_home.ui.fragment.colordata.scheme.ColorSchemeFragment">
+    tools:context=".ui.fragment.color.data.scheme.ColorSchemeFragment">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/samples"

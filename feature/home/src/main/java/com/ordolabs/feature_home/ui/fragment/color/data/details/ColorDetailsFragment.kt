@@ -1,4 +1,4 @@
-package com.ordolabs.feature_home.ui.fragment.colordata.details
+package com.ordolabs.feature_home.ui.fragment.color.data.details
 
 import android.content.res.ColorStateList
 import android.graphics.Color
@@ -7,18 +7,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
-import androidx.core.view.isVisible
 import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDetailsFragmentBinding
-import com.ordolabs.feature_home.ui.fragment.colordata.base.BaseColorDataFragment
+import com.ordolabs.feature_home.ui.fragment.color.data.base.BaseColorDataFragment
 import com.ordolabs.feature_home.viewmodel.colordata.details.ColorDetailsViewModel
 import com.ordolabs.thecolor.model.color.data.ColorDetails
 import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
 import com.ordolabs.thecolor.util.ext.getStringYesOrNo
 import com.ordolabs.thecolor.util.ext.makeArgumentsKey
-import com.ordolabs.thecolor.util.ext.setTextOrGoneWith
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 /**

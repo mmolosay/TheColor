@@ -11,7 +11,7 @@
     app:shimmer_base_alpha="0.12"
     app:shimmer_highlight_alpha="0.25"
     app:shimmer_repeat_delay="@android:integer/config_longAnimTime"
-    tools:context="com.ordolabs.feature_home.ui.fragment.colordata.details.ColorDetailsShimmerFragment">
+    tools:context=".ui.fragment.color.data.details.ColorDetailsShimmerFragment">
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="wrap_content"

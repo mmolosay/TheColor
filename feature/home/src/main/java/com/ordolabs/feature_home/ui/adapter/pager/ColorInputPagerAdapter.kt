@@ -3,8 +3,8 @@ package com.ordolabs.feature_home.ui.adapter.pager
 import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputHexFragment
-import com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputRgbFragment
+import com.ordolabs.feature_home.ui.fragment.color.input.ColorInputHexFragment
+import com.ordolabs.feature_home.ui.fragment.color.input.ColorInputRgbFragment
 import com.ordolabs.thecolor.ui.adapter.EnumFragmentPage
 import com.ordolabs.thecolor.util.ext.getEnumSize
 import com.ordolabs.thecolor.util.ext.getFromEnum

@@ -1,11 +1,11 @@
-package com.ordolabs.feature_home.ui.fragment.colordata.scheme
+package com.ordolabs.feature_home.ui.fragment.color.data.scheme
 
 import android.view.ViewGroup
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
-import com.ordolabs.feature_home.ui.fragment.colordata.ColorDataObtainFragment
-import com.ordolabs.feature_home.ui.fragment.colordata.base.BaseColorDataFragment
-import com.ordolabs.feature_home.ui.fragment.colordata.scheme.editor.ColorSchemeEditorFragment
+import com.ordolabs.feature_home.ui.fragment.color.data.ColorDataObtainFragment
+import com.ordolabs.feature_home.ui.fragment.color.data.base.BaseColorDataFragment
+import com.ordolabs.feature_home.ui.fragment.color.data.scheme.editor.ColorSchemeEditorFragment
 import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeEditorViewModel
 import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeObtainViewModel
 import com.ordolabs.thecolor.model.color.data.ColorScheme

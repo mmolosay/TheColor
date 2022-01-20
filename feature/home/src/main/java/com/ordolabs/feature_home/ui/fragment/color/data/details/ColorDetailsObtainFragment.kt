@@ -1,8 +1,8 @@
-package com.ordolabs.feature_home.ui.fragment.colordata.details
+package com.ordolabs.feature_home.ui.fragment.color.data.details
 
 import androidx.fragment.app.Fragment
-import com.ordolabs.feature_home.ui.fragment.colordata.ColorDataObtainFragment
-import com.ordolabs.feature_home.ui.fragment.colordata.base.BaseColorDataFragment
+import com.ordolabs.feature_home.ui.fragment.color.data.ColorDataObtainFragment
+import com.ordolabs.feature_home.ui.fragment.color.data.base.BaseColorDataFragment
 import com.ordolabs.feature_home.viewmodel.colordata.details.ColorDetailsObtainViewModel
 import com.ordolabs.thecolor.model.color.data.ColorDetails
 import com.ordolabs.thecolor.util.struct.Resource

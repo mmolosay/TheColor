@@ -1,4 +1,4 @@
-package com.ordolabs.feature_home.ui.fragment.colordata.scheme
+package com.ordolabs.feature_home.ui.fragment.color.data.scheme
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -11,7 +11,7 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorSchemeFragmentBinding
 import com.ordolabs.feature_home.ui.adapter.recycler.ColorSchemeSamplesAdapter
-import com.ordolabs.feature_home.ui.fragment.colordata.base.BaseColorDataFragment
+import com.ordolabs.feature_home.ui.fragment.color.data.base.BaseColorDataFragment
 import com.ordolabs.thecolor.model.color.data.ColorScheme
 import com.ordolabs.thecolor.ui.adapter.base.OnRecyclerItemClicksListener
 import com.ordolabs.thecolor.ui.util.itemdecoration.OverlapingDecoration
