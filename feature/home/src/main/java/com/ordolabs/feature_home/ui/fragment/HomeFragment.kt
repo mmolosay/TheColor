@@ -412,6 +412,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
     private fun collectColorInputPrototype() =
         colorInputVM.prototype.collectOnLifecycle { resource ->
             resource.ifSuccess { prototype ->
+                if (colorValidatorVM.isSameAsColorPreview(prototype)) return@ifSuccess
                 colorValidatorVM.validateColor(prototype)
             }
         }

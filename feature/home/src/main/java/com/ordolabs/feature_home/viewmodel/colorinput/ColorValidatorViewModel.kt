@@ -40,14 +40,11 @@ class ColorValidatorViewModel(
         colorValidationJob?.cancel()
     }
 
-    fun validateColor(input: ColorPrototype) {
-        val color = Color.from(input)
-        if (color == colorPreview.value.getOrNull()) return // should not validate if already set
+    fun validateColor(input: ColorPrototype) =
         when (input) {
             is ColorPrototype.Hex -> validateColor(input)
             is ColorPrototype.Rgb -> validateColor(input)
         }
-    }
 
     private fun validateColor(input: ColorPrototype.Hex) {
         restartColorValidation()
@@ -73,6 +70,12 @@ class ColorValidatorViewModel(
 
     fun updateColorPreview(new: ColorPreview) {
         _colorPreview.setSuccess(new)
+    }
+
+    fun isSameAsColorPreview(prototype: ColorPrototype): Boolean {
+        val color = Color.from(prototype) ?: return false
+        val preview = colorPreview.value.getOrNull() ?: return false
+        return (color == preview)
     }
 
     private fun clearColorPreview() {
