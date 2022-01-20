@@ -40,7 +40,7 @@ class ColorInputViewModel : BaseViewModel() {
         _prototype.setSuccess(prototype)
     }
 
-    fun clearColorPrototype() {
+    private fun clearColorPrototype() {
         _prototype.setEmpty()
 
     }
@@ -52,13 +52,14 @@ class ColorInputViewModel : BaseViewModel() {
     fun updateCurrentColor(preview: ColorPreview) {
         updateHexInput(preview)
         updateRgbInput(preview)
-        _prototype.setSuccess(preview.toHex())
+        updateColorPrototype(preview.toHex())
     }
 
     fun clearColorInput() {
         _inputHex.setEmpty()
         _inputRgb.setEmpty()
         _prototype.setEmpty()
+        clearColorPrototype()
     }
 
     private fun updateHexInput(preview: ColorPreview) {
