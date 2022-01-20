@@ -85,8 +85,5 @@ class ColorInputViewModel : BaseViewModel() {
         _inputRgb.setSuccess(rgb)
     }
 
-    private fun isInputEmpty(): Boolean =
-        (_inputHex.value.isEmpty && _inputRgb.value.isEmpty)
-
     // endregion
 }
