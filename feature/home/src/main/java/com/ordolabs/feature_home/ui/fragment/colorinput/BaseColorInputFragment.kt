@@ -11,15 +11,19 @@ import kotlinx.coroutines.flow.Flow
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 /**
- * Base Fragment, that can obtain input from UI and [assembleColor] of type [C].
+ * Base `Fragment`, that can obtain input from UI and [assembleColor] of type [C].
  *
  * Derived class should call [validateOnInputChanges] every time data in UI input(s) was changed.
  *
- * All derived classes are designed to work together simultaneously (for example, in ViewPager),
+ * All derived classes are designed to work together simultaneously (for example, in `ViewPager`),
  * thus if color changes in any of them, changes should be reflected in all others.
  *
  * Color collected from [getColorInputFlow] will be used to [populateViews] and [clearViews].
+ *
+ * @see ColorInputHexFragment
+ * @see ColorInputRgbFragment
  */
+// TODO: should not validate color, but pass collected prototype to parent
 abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment {
 
     constructor() : super()

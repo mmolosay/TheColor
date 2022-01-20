@@ -9,11 +9,22 @@ import com.ordolabs.feature_home.ui.adapter.pager.ColorInputPagerAdapter
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorValidatorViewModel
+import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.ui.util.itemdecoration.MarginDecoration
 import com.ordolabs.thecolor.util.ext.getFromEnumOrNull
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import com.ordolabs.thecolor.R as RApp
 
+/**
+ * `Fragment` with `ViewPager` which contains `Fragment`s of specific color scheme inputs.
+ *
+ * Collects [ColorValidatorViewModel.colorPreview] and passes it in [ColorInputViewModel],
+ * where they being converted into specific color schemes and collected by child `Fragment`s.
+ *
+ * @see BaseColorInputFragment
+ * @see ColorInputHexFragment
+ * @see ColorInputRgbFragment
+ */
 class ColorInputPagerFragment : BaseFragment(R.layout.color_input_pager_fragment) {
 
     private val binding: ColorInputPagerFragmentBinding by viewBinding()
@@ -51,10 +62,19 @@ class ColorInputPagerFragment : BaseFragment(R.layout.color_input_pager_fragment
 
     private fun collectColorPreview() =
         colorValidatorVM.colorPreview.collectOnLifecycle { resource ->
-            resource.ifSuccess { preview ->
-                colorInputVM.updateColorInput(preview)
-            }
+            resource.fold(
+                onEmpty = ::onColorPreviewEmpty,
+                onSuccess = ::onColorPreviewSuccess
+            )
         }
+
+    private fun onColorPreviewEmpty(previous: Color?) {
+        colorInputVM.clearColorInput()
+    }
+
+    private fun onColorPreviewSuccess(preview: Color) {
+        colorInputVM.updateColorInput(preview)
+    }
 
     companion object {
         fun newInstance() = ColorInputPagerFragment()

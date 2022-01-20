@@ -5,6 +5,7 @@ import com.ordolabs.thecolor.model.color.ColorPrototype
 import com.ordolabs.thecolor.model.color.toHex
 import com.ordolabs.thecolor.model.color.toRgb
 import com.ordolabs.thecolor.util.MutableStateResourceFlow
+import com.ordolabs.thecolor.util.ext.setEmpty
 import com.ordolabs.thecolor.util.ext.setSuccess
 import com.ordolabs.thecolor.util.struct.Resource
 import com.ordolabs.thecolor.util.struct.empty
@@ -22,6 +23,11 @@ class ColorInputViewModel : BaseViewModel() {
     fun updateColorInput(color: Color) {
         updateHexInput(color)
         updateRgbInput(color)
+    }
+
+    fun clearColorInput() {
+        _colorHex.setEmpty()
+        _colorRgb.setEmpty()
     }
 
     private fun updateHexInput(color: Color) {
