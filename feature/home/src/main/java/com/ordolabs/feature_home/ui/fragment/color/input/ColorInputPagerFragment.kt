@@ -64,6 +64,7 @@ class ColorInputPagerFragment : BaseFragment(R.layout.color_input_pager_fragment
             )
         }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun onColorPreviewEmpty(previous: Color?) {
         colorInputVM.clearColorInput()
     }

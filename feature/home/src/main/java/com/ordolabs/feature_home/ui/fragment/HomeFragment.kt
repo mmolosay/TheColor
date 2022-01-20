@@ -82,6 +82,8 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
         collectGetExactColorCommand()
     }
 
+    // region Set views
+
     override fun setViews() {
         setColorInputFragment()
         setColorDataFragment()
@@ -113,6 +115,8 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
         }
     }
 
+    // endregion
+
     @ColorInt
     private fun getDataWrapperBackgroundColor(): Int? {
         return binding.colorDataWrapper.backgroundTintList?.defaultColor
@@ -134,6 +138,8 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
         binding.colorDataWrapper.isInvisible = !visible
     }
 
+    // region Animate
+
     private fun animInfoSheetExpanding(color: Color) {
         if (homeVM.isColorDataShown) return
         binding.root.post { // when ^ infoFragmentContainer becomes visible
@@ -141,7 +147,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
             AnimatorSet().apply {
                 playSequentially(
                     makePreviewFallingAnimation(),
-                    makeInfoSheetRevealAnimation(hide = false).apply {
+                    makeColorDataRevealAnimation(hide = false).apply {
                         doOnStart {
                             tintDataWrapperBackground(color)
                         }
@@ -157,7 +163,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
     private fun animInfoSheetCollapsingOnPreviewEmpty() {
         AnimatorSet().apply {
             playSequentially(
-                makeInfoSheetCollapsingAnimation(),
+                makeColorDataCollapsingAnimation(),
                 makePreviewTogglingAnimation(collapse = true).apply {
                     doOnStart {
                         colorValidatorVM.colorPreview.value.ifSuccess {
@@ -171,28 +177,8 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
 
     private fun animColorDataCollapsingOnPreviewSuccess() {
         if (!homeVM.isColorDataShown) return
-        makeInfoSheetCollapsingAnimation().start()
+        makeColorDataCollapsingAnimation().start()
     }
-
-    private fun makeInfoSheetCollapsingAnimation(): Animator =
-        AnimatorSet().apply {
-            playSequentially(
-                makeScrollingToTopAnimation(),
-                makeInfoSheetRevealAnimation(hide = true).apply {
-                    doOnEnd {
-                        clearDataWrapperBackground()
-                        binding.scrollview.run {
-                            scrollTo(0, 0)
-                            isScrollable = false
-                        }
-                    }
-                },
-                makePreviewRisingAnimation()
-            )
-            doOnStart {
-                homeVM.isColorDataShown = false
-            }
-        }
 
     private fun animPreviewColorChanging(@ColorInt color: Int) =
         binding.previewWrapper.doOnLayout {
@@ -212,6 +198,30 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
             animator.start()
         }
     }
+
+    // endregion
+
+    // region Animation
+
+    private fun makeColorDataCollapsingAnimation(): Animator =
+        AnimatorSet().apply {
+            playSequentially(
+                makeScrollingToTopAnimation(),
+                makeColorDataRevealAnimation(hide = true).apply {
+                    doOnEnd {
+                        clearDataWrapperBackground()
+                        binding.scrollview.run {
+                            scrollTo(0, 0)
+                            isScrollable = false
+                        }
+                    }
+                },
+                makePreviewRisingAnimation()
+            )
+            doOnStart {
+                homeVM.isColorDataShown = false
+            }
+        }
 
     private fun makePreviewRisingAnimation() =
         AnimatorSet().apply {
@@ -287,7 +297,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
         val info = binding.colorDataWrapper
         val translation = if (down) {
             val distance = preview.getDistanceToViewInParent(info, view)?.y ?: 0
-            val addend = makeInfoSheetRevealCenter().y
+            val addend = makeColorDataRevealCenter().y
             val radius = preview.height / 2
             distance.toFloat() + addend - radius
         } else {
@@ -316,10 +326,10 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
         }
     }
 
-    private fun makeInfoSheetRevealAnimation(hide: Boolean): Animator {
+    private fun makeColorDataRevealAnimation(hide: Boolean): Animator {
         val info = binding.colorDataWrapper
         val preview = binding.previewWrapper
-        val center = makeInfoSheetRevealCenter()
+        val center = makeColorDataRevealCenter()
         val sr = preview.width.toFloat() / 2
         val er = AnimationUtils.getCircularRevealMaxRadius(info, center)
         return info.createCircularRevealAnimation(!hide, center.x, center.y, sr, er).apply {
@@ -342,7 +352,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
         }
     }
 
-    private fun makeInfoSheetRevealCenter(): Point {
+    private fun makeColorDataRevealCenter(): Point {
         val info = binding.colorDataWrapper
         val bottom = info.getBottomVisibleInScrollParent(binding.root) ?: info.height
         val padding = resources.getDimensionPixelSize(RApp.dimen.offset_32)
@@ -352,6 +362,8 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
         val y = yApprox.coerceIn(0, info.height)
         return Point(x, y)
     }
+
+    // endregion
 
     // region collectColorPreview
 
