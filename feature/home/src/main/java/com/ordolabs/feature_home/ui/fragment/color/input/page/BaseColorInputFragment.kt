@@ -7,7 +7,6 @@ import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
 import com.ordolabs.thecolor.model.color.ColorInput
 import com.ordolabs.thecolor.model.color.ColorPrototype
 import com.ordolabs.thecolor.util.struct.Resource
-import com.ordolabs.thecolor.util.struct.getOrNull
 import kotlinx.coroutines.flow.Flow
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
@@ -31,6 +30,7 @@ abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment {
 
     protected val colorInputVM: ColorInputViewModel by sharedViewModel()
 
+    private var currentPrototype: ColorPrototype? = null
     private var isTypedByUser: Boolean = true
 
     // region Abstract
@@ -77,27 +77,39 @@ abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment {
      */
     protected fun outputOnInputChanges() {
         if (!isTypedByUser) return
-        val prototype = assemblePrototype()
+        val prototype = assembleAndMementoPrototype()
         colorInputVM.updateColorPrototype(prototype)
+    }
+
+    private fun assembleAndMementoPrototype() =
+        assemblePrototype().also { prototype ->
+            this.currentPrototype = prototype
+        }
+
+    private fun updateInputs(block: () -> Unit) {
+        this.isTypedByUser = false
+        block()
+        this.isTypedByUser = true
     }
 
     @Suppress("UNUSED_PARAMETER")
     private fun onColorInputEmpty(previous: ColorInput<C>?) {
         if (isResumed) return // prevent user interrupting
-        this.isTypedByUser = false
-        clearViews()
-        this.isTypedByUser = true
+        updateInputs {
+            clearViews()
+        }
+        this.currentPrototype = null
         colorInputVM.clearColorPrototype()
     }
 
     private fun onColorInputSuccess(input: ColorInput<C>) {
         val new = input.color
-        val current = colorInputVM.prototype.value.getOrNull()
-        if (new == current) return // desired color already set
+        if (new == currentPrototype) return // desired color already set
         if (input.forcePopulate || (!isResumed && !input.forcePopulate)) {
-            this.isTypedByUser = false
-            populateViews(new)
-            this.isTypedByUser = true
+            updateInputs {
+                populateViews(new)
+            }
+            this.currentPrototype = new
             colorInputVM.updateColorPrototype(new)
         }
     }
