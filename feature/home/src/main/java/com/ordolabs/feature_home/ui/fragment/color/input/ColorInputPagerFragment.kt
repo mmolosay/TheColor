@@ -7,17 +7,12 @@ import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorInputPagerFragmentBinding
 import com.ordolabs.feature_home.ui.adapter.pager.ColorInputPagerAdapter
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
-import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
-import com.ordolabs.feature_home.viewmodel.colorinput.ColorValidatorViewModel
 import com.ordolabs.thecolor.ui.util.itemdecoration.MarginDecoration
 import com.ordolabs.thecolor.util.ext.getFromEnumOrNull
 import com.ordolabs.thecolor.R as RApp
 
 /**
  * `Fragment` with `ViewPager` which contains `Fragment`s of specific color scheme inputs.
- *
- * Collects [ColorValidatorViewModel.colorPreview] and passes it in [ColorInputViewModel],
- * where they being converted into specific color schemes and collected by child `Fragment`s.
  */
 class ColorInputPagerFragment : BaseFragment(R.layout.color_input_pager_fragment) {
 
