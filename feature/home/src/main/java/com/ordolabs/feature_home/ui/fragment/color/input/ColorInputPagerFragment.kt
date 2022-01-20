@@ -9,10 +9,8 @@ import com.ordolabs.feature_home.ui.adapter.pager.ColorInputPagerAdapter
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorValidatorViewModel
-import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.ui.util.itemdecoration.MarginDecoration
 import com.ordolabs.thecolor.util.ext.getFromEnumOrNull
-import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import com.ordolabs.thecolor.R as RApp
 
 /**
@@ -21,14 +19,13 @@ import com.ordolabs.thecolor.R as RApp
  * Collects [ColorValidatorViewModel.colorPreview] and passes it in [ColorInputViewModel],
  * where they being converted into specific color schemes and collected by child `Fragment`s.
  */
+// TODO: should not collect colorPreview
 class ColorInputPagerFragment : BaseFragment(R.layout.color_input_pager_fragment) {
 
     private val binding: ColorInputPagerFragmentBinding by viewBinding()
-    private val colorInputVM: ColorInputViewModel by sharedViewModel()
-    private val colorValidatorVM: ColorValidatorViewModel by sharedViewModel()
 
     override fun collectViewModelsData() {
-        collectColorPreview()
+        // nothing is here
     }
 
     override fun setViews() {
@@ -54,23 +51,6 @@ class ColorInputPagerFragment : BaseFragment(R.layout.color_input_pager_fragment
     private fun configureInputTab(tab: TabLayout.Tab, position: Int) {
         val page = getFromEnumOrNull<ColorInputPagerAdapter.Page>(position) ?: return
         tab.setText(page.titleRes)
-    }
-
-    private fun collectColorPreview() =
-        colorValidatorVM.colorPreview.collectOnLifecycle { resource ->
-            resource.fold(
-                onEmpty = ::onColorPreviewEmpty,
-                onSuccess = ::onColorPreviewSuccess
-            )
-        }
-
-    @Suppress("UNUSED_PARAMETER")
-    private fun onColorPreviewEmpty(previous: Color?) {
-        colorInputVM.clearColorInput()
-    }
-
-    private fun onColorPreviewSuccess(preview: Color) {
-        colorInputVM.updateColorInput(preview)
     }
 
     companion object {

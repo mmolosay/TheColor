@@ -378,6 +378,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
 
     @Suppress("UNUSED_PARAMETER")
     private fun onColorPreviewEmpty(previous: ColorPreview?) {
+        colorInputVM.clearColorInput()
         binding.previewWrapper.doOnLayout {
             if (homeVM.isColorDataShown) {
                 animInfoSheetCollapsingOnPreviewEmpty()
@@ -388,6 +389,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
     }
 
     private fun onColorPreviewSuccess(preview: ColorPreview) {
+        colorInputVM.updateColorInput(preview)
         binding.previewWrapper.doOnLayout {
             val colorInt = preview.toColorInt()
             if (preview.isUserInput) { // collapse only if user changed color manually
