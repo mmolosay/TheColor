@@ -4,7 +4,6 @@ import androidx.core.widget.doOnTextChanged
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorInputRgbFragmentBinding
-import com.ordolabs.thecolor.model.color.ColorInput
 import com.ordolabs.thecolor.model.color.ColorPrototype
 import com.ordolabs.thecolor.ui.util.inputfilter.PreventingInputFilter
 import com.ordolabs.thecolor.ui.util.inputfilter.RangeInputFilter
@@ -73,7 +72,7 @@ class ColorInputRgbFragment :
             binding.inputRgbB.getText()?.clear()
         }
 
-    override fun getColorInputFlow(): Flow<Resource<ColorInput<ColorPrototype.Rgb>>> =
+    override fun getColorInputFlow(): Flow<Resource<ColorPrototype.Rgb>> =
         colorInputVM.inputRgb
 
     // endregion
