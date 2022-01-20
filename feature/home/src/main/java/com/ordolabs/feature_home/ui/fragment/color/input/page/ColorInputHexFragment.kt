@@ -1,4 +1,4 @@
-package com.ordolabs.feature_home.ui.fragment.color.input
+package com.ordolabs.feature_home.ui.fragment.color.input.page
 
 import androidx.core.widget.doOnTextChanged
 import by.kirich1409.viewbindingdelegate.viewBinding

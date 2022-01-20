@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    tools:context=".ui.fragment.color.input.ColorInputRgbFragment">
+    tools:context=".ui.fragment.color.input.page.ColorInputRgbFragment">
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/inputRgbR"
