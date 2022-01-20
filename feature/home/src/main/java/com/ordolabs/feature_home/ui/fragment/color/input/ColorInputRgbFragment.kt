@@ -1,11 +1,16 @@
 package com.ordolabs.feature_home.ui.fragment.color.input
 
+import androidx.core.widget.doOnTextChanged
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorInputRgbFragmentBinding
 import com.ordolabs.thecolor.model.color.ColorPrototype
 import com.ordolabs.thecolor.ui.util.inputfilter.PreventingInputFilter
 import com.ordolabs.thecolor.ui.util.inputfilter.RangeInputFilter
+import com.ordolabs.thecolor.util.ext.addFilters
+import com.ordolabs.thecolor.util.ext.getText
+import com.ordolabs.thecolor.util.ext.getTextString
+import com.ordolabs.thecolor.util.ext.setTextPreservingSelection
 import com.ordolabs.thecolor.util.struct.Resource
 import kotlinx.coroutines.flow.Flow
 

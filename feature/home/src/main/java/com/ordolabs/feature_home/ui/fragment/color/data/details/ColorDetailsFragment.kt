@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
 import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
@@ -17,6 +18,7 @@ import com.ordolabs.thecolor.model.color.data.ColorDetails
 import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
 import com.ordolabs.thecolor.util.ext.getStringYesOrNo
 import com.ordolabs.thecolor.util.ext.makeArgumentsKey
+import com.ordolabs.thecolor.util.ext.setTextOrGoneWith
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 /**
