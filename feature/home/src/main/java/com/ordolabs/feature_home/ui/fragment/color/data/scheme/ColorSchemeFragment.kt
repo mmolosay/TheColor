@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.doOnLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import by.kirich1409.viewbindingdelegate.CreateMethod
@@ -60,11 +61,12 @@ class ColorSchemeFragment :
 
     // region IColorDataFragment
 
-    override fun populateViews(data: ColorScheme) {
-        data.samples?.let {
-            samplesAdapter.setItems(it)
+    override fun populateViews(data: ColorScheme) =
+        binding.root.doOnLayout {
+            data.samples?.let {
+                samplesAdapter.setItems(it)
+            }
         }
-    }
 
     // endregion
 
