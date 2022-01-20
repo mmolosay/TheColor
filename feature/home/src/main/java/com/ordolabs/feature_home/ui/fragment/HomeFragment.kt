@@ -389,7 +389,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
     }
 
     private fun onColorPreviewSuccess(preview: ColorPreview) {
-        colorInputVM.updateColorInput(preview)
+        colorInputVM.updateCurrentColor(preview)
         binding.previewWrapper.doOnLayout {
             val colorInt = preview.toColorInt()
             if (preview.isUserInput) { // collapse only if user changed color manually

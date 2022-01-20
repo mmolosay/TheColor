@@ -4,6 +4,7 @@ import androidx.core.widget.doOnTextChanged
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorInputHexFragmentBinding
+import com.ordolabs.thecolor.model.color.ColorInput
 import com.ordolabs.thecolor.model.color.ColorPrototype
 import com.ordolabs.thecolor.util.ext.getText
 import com.ordolabs.thecolor.util.ext.getTextString
@@ -42,8 +43,8 @@ class ColorInputHexFragment :
             inputHex.getText()?.clear()
         }
 
-    override fun getColorInputFlow(): Flow<Resource<ColorPrototype.Hex>> =
-        colorInputVM.colorHex
+    override fun getColorInputFlow(): Flow<Resource<ColorInput<ColorPrototype.Hex>>> =
+        colorInputVM.inputHex
 
     // endregion
 

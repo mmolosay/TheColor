@@ -4,6 +4,7 @@ import androidx.annotation.CallSuper
 import androidx.annotation.LayoutRes
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
+import com.ordolabs.thecolor.model.color.ColorInput
 import com.ordolabs.thecolor.model.color.ColorPrototype
 import com.ordolabs.thecolor.util.struct.Resource
 import kotlinx.coroutines.flow.Flow
@@ -52,7 +53,7 @@ abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment {
     /**
      * Returns flow to be collected from [colorInputVM].
      */
-    protected abstract fun getColorInputFlow(): Flow<Resource<C>>
+    protected abstract fun getColorInputFlow(): Flow<Resource<ColorInput<C>>>
 
     // endregion
 
@@ -86,7 +87,7 @@ abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment {
         }
 
     @Suppress("UNUSED_PARAMETER")
-    private fun onColorInputEmpty(previous: C?) {
+    private fun onColorInputEmpty(previous: ColorInput<C>?) {
         if (isResumed) return // prevent user interrupting
         this.isTypedByUser = false
         clearViews()
@@ -94,12 +95,13 @@ abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment {
         this.latestPrototype = null
     }
 
-    private fun onColorInputSuccess(color: C) {
-        if (color == latestPrototype) return // desired color already set
-        if (isResumed) return // prevent user interrupting
-        this.isTypedByUser = false
-        populateViews(color)
-        this.isTypedByUser = true
-        this.latestPrototype = color
+    private fun onColorInputSuccess(input: ColorInput<C>) {
+        if (input.color == latestPrototype) return // desired color already set
+        if (input.forcePopulate || (!isResumed && !input.forcePopulate)) {
+            this.isTypedByUser = false
+            populateViews(input.color)
+            this.isTypedByUser = true
+            this.latestPrototype = input.color
+        }
     }
 }
