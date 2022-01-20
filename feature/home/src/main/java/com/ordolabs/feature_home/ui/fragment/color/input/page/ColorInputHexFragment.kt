@@ -22,12 +22,12 @@ class ColorInputHexFragment :
 
     private fun setInputTextWatcher() =
         binding.inputHex.editText?.doOnTextChanged { _, _, _, _ ->
-            validateOnInputChanges()
+            outputOnInputChanges()
         }
 
     // region BaseColorInputFragment
 
-    override fun assembleColor(): ColorPrototype.Hex {
+    override fun assemblePrototype(): ColorPrototype.Hex {
         val input = binding.inputHex.getTextString()
         return ColorPrototype.Hex(value = input)
     }

@@ -26,6 +26,7 @@ import com.ordolabs.feature_home.ui.fragment.color.data.ColorDataPagerFragment
 import com.ordolabs.feature_home.ui.fragment.color.input.ColorInputPagerFragment
 import com.ordolabs.feature_home.viewmodel.HomeViewModel
 import com.ordolabs.feature_home.viewmodel.colordata.details.ColorDetailsViewModel
+import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorValidatorViewModel
 import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.ColorPreview
@@ -59,8 +60,9 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
 
     private val binding: HomeFragmentBinding by viewBinding()
     private val homeVM: HomeViewModel by sharedViewModel()
-    private val colorValidatorVM: ColorValidatorViewModel by sharedViewModel()
+    private val colorInputVM: ColorInputViewModel by sharedViewModel()
     private val colorDetailsVM: ColorDetailsViewModel by sharedViewModel()
+    private val colorValidatorVM: ColorValidatorViewModel by sharedViewModel()
 
     private val previewResizeDest = AnimatorDestination()
 
@@ -76,6 +78,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
 
     override fun collectViewModelsData() {
         collectColorPreview()
+        collectColorInputPrototype()
         collectGetExactColorCommand()
     }
 
@@ -350,6 +353,8 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
         return Point(x, y)
     }
 
+    // region collectColorPreview
+
     private fun collectColorPreview() =
         colorValidatorVM.colorPreview.collectOnLifecycle { resource ->
             binding.procceedBtn.isEnabled = resource.isSuccess
@@ -386,6 +391,33 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
         }
     }
 
+    // endregion
+
+    // region collectColorInputPrototype
+
+    private fun collectColorInputPrototype() {
+        collectColorInputHexPrototype()
+        collectColorInputRgbPrototype()
+    }
+
+    private fun collectColorInputHexPrototype() =
+        colorInputVM.prototypeHex.collectOnLifecycle { resource ->
+            resource.ifSuccess { prototype ->
+                colorValidatorVM.validateColor(prototype)
+            }
+        }
+
+    private fun collectColorInputRgbPrototype() =
+        colorInputVM.prototypeRgb.collectOnLifecycle { resource ->
+            resource.ifSuccess { prototype ->
+                colorValidatorVM.validateColor(prototype)
+            }
+        }
+
+    // endregion
+
+    // region collectGetExactColorCommand
+
     private fun collectGetExactColorCommand() =
         colorDetailsVM.getExactColorCommand.collectOnLifecycle { resource ->
             resource.ifSuccess { exactColor ->
@@ -394,6 +426,8 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
                 replaceColorDataFragment(exactColor)
             }
         }
+
+    // endregion
 
     companion object {
 

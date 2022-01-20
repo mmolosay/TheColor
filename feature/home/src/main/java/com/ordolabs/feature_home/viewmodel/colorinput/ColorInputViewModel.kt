@@ -12,13 +12,42 @@ import com.ordolabs.thecolor.util.struct.empty
 import com.ordolabs.thecolor.viewmodel.BaseViewModel
 import kotlinx.coroutines.flow.asStateFlow
 
+/**
+ * Contains colors obtained from input or ones to be set in it.
+ */
 class ColorInputViewModel : BaseViewModel() {
+
+    private val _prototypeHex = MutableStateResourceFlow<ColorPrototype.Hex>(Resource.empty())
+    val prototypeHex = _prototypeHex.asStateFlow()
+
+    private val _prototypeRgb = MutableStateResourceFlow<ColorPrototype.Rgb>(Resource.empty())
+    val prototypeRgb = _prototypeRgb.asStateFlow()
 
     private val _colorHex = MutableStateResourceFlow<ColorPrototype.Hex>(Resource.empty())
     val colorHex = _colorHex.asStateFlow()
 
     private val _colorRgb = MutableStateResourceFlow<ColorPrototype.Rgb>(Resource.empty())
     val colorRgb = _colorRgb.asStateFlow()
+
+    // region Output
+
+    fun updateColorOutput(prototype: ColorPrototype) =
+        when (prototype) {
+            is ColorPrototype.Hex -> updateColorOutput(prototype)
+            is ColorPrototype.Rgb -> updateColorOutput(prototype)
+        }
+
+    private fun updateColorOutput(prototype: ColorPrototype.Hex) {
+        _prototypeHex.setSuccess(prototype)
+    }
+
+    private fun updateColorOutput(prototype: ColorPrototype.Rgb) {
+        _prototypeRgb.setSuccess(prototype)
+    }
+
+    // endregion
+
+    // region Input
 
     fun updateColorInput(color: Color) {
         updateHexInput(color)
@@ -39,4 +68,6 @@ class ColorInputViewModel : BaseViewModel() {
         val rgb = color.toRgb()
         _colorRgb.setSuccess(rgb)
     }
+
+    // endregion
 }

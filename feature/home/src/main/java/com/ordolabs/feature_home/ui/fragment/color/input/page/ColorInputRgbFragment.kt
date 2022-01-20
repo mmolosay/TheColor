@@ -36,22 +36,22 @@ class ColorInputRgbFragment :
 
     private fun setComponentRTextWatcher() =
         binding.inputRgbR.editText?.doOnTextChanged { _, _, _, _ ->
-            validateOnInputChanges()
+            outputOnInputChanges()
         }
 
     private fun setComponentGTextWatcher() =
         binding.inputRgbG.editText?.doOnTextChanged { _, _, _, _ ->
-            validateOnInputChanges()
+            outputOnInputChanges()
         }
 
     private fun setComponentBTextWatcher() =
         binding.inputRgbB.editText?.doOnTextChanged { _, _, _, _ ->
-            validateOnInputChanges()
+            outputOnInputChanges()
         }
 
     // region BaseColorInputFragment
 
-    override fun assembleColor(): ColorPrototype.Rgb {
+    override fun assemblePrototype(): ColorPrototype.Rgb {
         val r = binding.inputRgbR.getTextString()?.toIntOrNull()
         val g = binding.inputRgbG.getTextString()?.toIntOrNull()
         val b = binding.inputRgbB.getTextString()?.toIntOrNull()

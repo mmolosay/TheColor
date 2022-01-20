@@ -4,16 +4,15 @@ import androidx.annotation.CallSuper
 import androidx.annotation.LayoutRes
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
-import com.ordolabs.feature_home.viewmodel.colorinput.ColorValidatorViewModel
 import com.ordolabs.thecolor.model.color.ColorPrototype
 import com.ordolabs.thecolor.util.struct.Resource
 import kotlinx.coroutines.flow.Flow
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 /**
- * Base `Fragment`, that can obtain input from UI and [assembleColor] of type [C].
+ * Base `Fragment`, that can obtain input from UI and [assemblePrototype] of type [C].
  *
- * Derived class should call [validateOnInputChanges] every time data in UI input(s) was changed.
+ * Derived class should call [outputOnInputChanges] every time data in UI input(s) was changed.
  *
  * All derived classes are designed to work together simultaneously (for example, in `ViewPager`),
  * thus if color changes in any of them, changes should be reflected in all others.
@@ -23,7 +22,6 @@ import org.koin.androidx.viewmodel.ext.android.sharedViewModel
  * @see ColorInputHexFragment
  * @see ColorInputRgbFragment
  */
-// TODO: should not validate color, but pass collected prototype to parent
 abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment {
 
     constructor() : super()
@@ -31,8 +29,7 @@ abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment {
 
     protected val colorInputVM: ColorInputViewModel by sharedViewModel()
 
-    private val colorValidatorVM: ColorValidatorViewModel by sharedViewModel()
-    private var latestColor: C? = null
+    private var latestPrototype: C? = null
     private var isTypedByUser: Boolean = true
 
     // region Abstract
@@ -40,7 +37,7 @@ abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment {
     /**
      * Collects user input from UI and makes new instance of [C] out of it.
      */
-    protected abstract fun assembleColor(): C
+    protected abstract fun assemblePrototype(): C
 
     /**
      * Populates Fragment's input views with data from [color].
@@ -73,20 +70,19 @@ abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment {
         }
 
     /**
-     * Performs [assembleColor] and sends acquired color on validation,
-     * if data in UI input(s) was changed by user.
+     * Performs [assemblePrototype] and updates [ColorInputViewModel] with it.
      *
      * Must be called in UI input(s) observers of derived class.
      */
-    protected fun validateOnInputChanges() {
+    protected fun outputOnInputChanges() {
         if (!isTypedByUser) return
-        val color = assembleAndMementoColor()
-        colorValidatorVM.validateColor(color)
+        val prototype = assembleAndMementoColor()
+        colorInputVM.updateColorOutput(prototype)
     }
 
     private fun assembleAndMementoColor(): C =
-        assembleColor().also { color ->
-            this.latestColor = color
+        assemblePrototype().also { color ->
+            this.latestPrototype = color
         }
 
     @Suppress("UNUSED_PARAMETER")
@@ -95,12 +91,14 @@ abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment {
         this.isTypedByUser = false
         clearViews()
         this.isTypedByUser = true
+        this.latestPrototype = null
     }
 
     private fun onColorInputSuccess(color: C) {
-        if (isResumed && color == latestColor) return // prevent user interrupting
+        if (isResumed && color == latestPrototype) return // prevent user interrupting
         this.isTypedByUser = false
         populateViews(color)
         this.isTypedByUser = true
+        this.latestPrototype = color
     }
 }

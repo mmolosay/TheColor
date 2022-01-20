@@ -20,10 +20,6 @@ import com.ordolabs.thecolor.R as RApp
  *
  * Collects [ColorValidatorViewModel.colorPreview] and passes it in [ColorInputViewModel],
  * where they being converted into specific color schemes and collected by child `Fragment`s.
- *
- * @see BaseColorInputFragment
- * @see ColorInputHexFragment
- * @see ColorInputRgbFragment
  */
 class ColorInputPagerFragment : BaseFragment(R.layout.color_input_pager_fragment) {
 
