@@ -7,7 +7,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
-import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
 import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
@@ -69,17 +68,16 @@ class ColorDetailsFragment :
         }
     }
 
-    override fun populateViews(data: ColorDetails) =
-        binding.root.doOnLayout {
-            populateNameHeadline(data)
-            populateHexGroup(data)
-            populateRgbGroup(data)
-            populateHslGroup(data)
-            populateHsvGroup(data)
-            populateCmykGroup(data)
-            populateNameGroup(data)
-            populateMatchGroup(data)
-        }
+    override fun populateViews(data: ColorDetails) {
+        populateNameHeadline(data)
+        populateHexGroup(data)
+        populateRgbGroup(data)
+        populateHslGroup(data)
+        populateHsvGroup(data)
+        populateCmykGroup(data)
+        populateNameGroup(data)
+        populateMatchGroup(data)
+    }
 
     private fun populateNameHeadline(details: ColorDetails) =
         binding.run {

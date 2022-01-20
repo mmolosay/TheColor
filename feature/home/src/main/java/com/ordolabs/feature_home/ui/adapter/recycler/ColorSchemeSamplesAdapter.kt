@@ -10,7 +10,7 @@ import com.ordolabs.thecolor.ui.adapter.base.BaseViewHolder
 
 class ColorSchemeSamplesAdapter : BaseAdapter<ColorScheme.Sample, ColorSchemeSampleViewHolder>() {
 
-    private val samples: ArrayList<ColorScheme.Sample> = arrayListOf()
+    val samples: ArrayList<ColorScheme.Sample> = arrayListOf()
 
     override fun onBindViewHolder(holder: ColorSchemeSampleViewHolder, position: Int) {
         ensureIndexInItemsRange(position) ?: return

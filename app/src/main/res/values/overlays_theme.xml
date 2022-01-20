@@ -10,8 +10,6 @@
 
     <!-- Light background color -->
     <style name="ThemeOverlay.TheColor.Light" parent="">
-<!--        <item name="colorSurfaceVariant">@color/cod_gray</item>-->
-<!--        <item name="colorOnSurfaceVariant">@color/gainsboro</item>-->
         <item name="colorControlHighlight">@color/gainsboro</item>
     </style>
 
@@ -28,6 +26,10 @@
 
     <style name="ThemeOverlay.TheColor.MaterialAlertDialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
         <!-- nothing special here -->
+    </style>
+
+    <style name="ThemeOverlay.TheColor.BottomSheetDialog" parent="ThemeOverlay.MaterialComponents.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Widget.TheColor.BottomSheet.Modal</item>
     </style>
 
 </resources>

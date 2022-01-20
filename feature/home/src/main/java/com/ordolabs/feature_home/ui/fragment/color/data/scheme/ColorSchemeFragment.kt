@@ -12,6 +12,7 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorSchemeFragmentBinding
 import com.ordolabs.feature_home.ui.adapter.recycler.ColorSchemeSamplesAdapter
+import com.ordolabs.feature_home.ui.dialog.ColorDetailsBottomSheetDialogFragment
 import com.ordolabs.feature_home.ui.fragment.color.data.base.BaseColorDataFragment
 import com.ordolabs.thecolor.model.color.data.ColorScheme
 import com.ordolabs.thecolor.ui.adapter.base.OnRecyclerItemClicksListener
@@ -74,6 +75,11 @@ class ColorSchemeFragment :
 
     override fun onRecyclerItemClick(position: Int) {
         super.onRecyclerItemClick(position)
+        val sample = samplesAdapter.samples.getOrNull(position) ?: return
+        val details = sample.details
+        ColorDetailsBottomSheetDialogFragment
+            .newInstance(details)
+            .show(childFragmentManager)
     }
 
     override fun onRecyclerItemLongClick(position: Int) {

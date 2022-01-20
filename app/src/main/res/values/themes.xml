@@ -83,6 +83,7 @@
         <item name="materialButtonTonalStyle">@style/Widget.TheColor.Button.Tonal</item>
         <item name="materialDividerStyle">@style/Widget.TheColor.MaterialDivider</item>
 
+        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.TheColor.BottomSheetDialog</item>
         <item name="buttonStyle">@style/Widget.TheColor.Button</item>
         <item name="chipStyle">@style/Widget.TheColor.Chip</item>
         <item name="chipGroupStyle">@style/Widget.TheColor.ChipGroup</item>
