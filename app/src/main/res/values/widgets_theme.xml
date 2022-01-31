@@ -22,7 +22,7 @@
         <item name="materialThemeOverlay">@style/MaterialThemeOverlay.Button.Tonal</item>
     </style>
 
-    <style name="Widget.TheColor.BottomSheet.Modal" parent="Widget.MaterialComponents.BottomSheet.Modal">
+    <style name="Widget.TheColor.BottomSheet.Modal" parent="Widget.Material3.BottomSheet.Modal">
         <!-- nothing special here -->
     </style>
 
@@ -35,7 +35,7 @@
     </style>
 
     <style name="Widget.TheColor.EditText" parent="Widget.AppCompat.EditText">
-        <item name="android:textAppearance">@style/TextAppearance.EditText</item>
+        <item name="android:textAppearance">@style/TextAppearance.Widget.EditText</item>
         <item name="android:gravity">left|center_vertical</item>
         <item name="android:ellipsize">end</item>
         <item name="android:includeFontPadding">true</item>
@@ -61,14 +61,14 @@
     </style>
 
     <style name="Widget.TheColor.TextInputLayout_EditTextStyle" parent="Widget.MaterialComponents.TextInputEditText.OutlinedBox">
-        <item name="android:textAppearance">@style/TextAppearance.EditText</item>
+        <item name="android:textAppearance">@style/TextAppearance.Widget.EditText</item>
         <item name="android:gravity">left|center_vertical</item>
         <item name="android:ellipsize">end</item>
         <item name="android:includeFontPadding">true</item>
     </style>
 
     <style name="Widget.TheColor.TabLayout" parent="Widget.Design.TabLayout">
-        <item name="tabTextAppearance">@style/TextAppearance.TabLayout</item>
+        <item name="tabTextAppearance">@style/TextAppearance.Widget.TabLayout</item>
     </style>
 
     <style name="Widget.TheColor.TextView" parent="Widget.MaterialComponents.TextView">

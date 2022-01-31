@@ -4,8 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    tools:context=".ui.fragment.color.data.details.ColorDetailsFragment"
-    tools:layout_height="wrap_content">
+    tools:context=".ui.fragment.color.data.details.ColorDetailsFragment">
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/glStart"

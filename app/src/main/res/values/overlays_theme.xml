@@ -24,11 +24,17 @@
 
     <!-- endregion -->
 
-    <style name="ThemeOverlay.TheColor.MaterialAlertDialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
+    <style name="ThemeOverlay.TheColor.MaterialAlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
         <!-- nothing special here -->
     </style>
 
-    <style name="ThemeOverlay.TheColor.BottomSheetDialog" parent="ThemeOverlay.MaterialComponents.BottomSheetDialog">
+    <style name="ThemeOverlay.TheColor.BottomSheetDialog" parent="ThemeOverlay.Material3.DayNight.BottomSheetDialog">
+        <!--
+        Material3 tints all dialogs with translucent colorPrimary on top of colorSurface.
+        You should define android:background attribute of root view of your dialog layout in order
+        to change it visually.
+        If you know, how to do it properly, in themes, feel free to contribute.
+         -->
         <item name="bottomSheetStyle">@style/Widget.TheColor.BottomSheet.Modal</item>
     </style>
 

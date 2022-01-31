@@ -16,6 +16,7 @@
 
         <!-- colors background -->
         <item name="android:colorBackground">@color/black</item>
+        <item name="android:colorBackgroundFloating">@color/black</item>
         <item name="colorSurface">@color/cod_gray</item>
         <item name="colorError">@color/cinnamon_satin</item>
 
