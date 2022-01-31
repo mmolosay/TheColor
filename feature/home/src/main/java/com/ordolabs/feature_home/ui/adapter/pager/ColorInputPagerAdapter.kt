@@ -3,38 +3,37 @@ package com.ordolabs.feature_home.ui.adapter.pager
 import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import com.ordolabs.domain.model.ColorModel
-import com.ordolabs.feature_home.R
-import com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputHexFragment
-import com.ordolabs.feature_home.ui.fragment.colorinput.ColorInputRgbFragment
-import com.ordolabs.thecolor.ui.adapter.EnumTab
+import com.ordolabs.feature_home.ui.fragment.color.input.page.ColorInputHexFragment
+import com.ordolabs.feature_home.ui.fragment.color.input.page.ColorInputRgbFragment
+import com.ordolabs.thecolor.ui.adapter.EnumFragmentPage
 import com.ordolabs.thecolor.util.ext.getEnumSize
 import com.ordolabs.thecolor.util.ext.getFromEnum
+import com.ordolabs.thecolor.R as RApp
 
 class ColorInputPagerAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
 
     override fun createFragment(position: Int): Fragment =
-        getFromEnum<Tab>(position).getFragmentNewInstance()
+        getFromEnum<Page>(position).getFragmentNewInstance()
 
-    override fun getItemCount(): Int = getEnumSize<ColorModel>()
+    override fun getItemCount(): Int =
+        getEnumSize<Page>()
 
     @Suppress("unused")
-    enum class Tab(
-        @StringRes val titleRes: Int,
-        val colorModel: ColorModel
-    ) : EnumTab {
+    enum class Page(
+        @StringRes val titleRes: Int
+    ) : EnumFragmentPage {
 
         HEX(
-            R.string.color_input_hex_hint,
-            ColorModel.HEX
+            RApp.string.color_hex_label,
         ) {
-            override fun getFragmentNewInstance() = ColorInputHexFragment.newInstance()
+            override fun getFragmentNewInstance(): Fragment =
+                ColorInputHexFragment.newInstance()
         },
         RGB(
-            R.string.color_input_rgb_hint,
-            ColorModel.RGB
+            RApp.string.color_rgb_label,
         ) {
-            override fun getFragmentNewInstance() = ColorInputRgbFragment.newInstance()
+            override fun getFragmentNewInstance(): Fragment =
+                ColorInputRgbFragment.newInstance()
         }
     }
 

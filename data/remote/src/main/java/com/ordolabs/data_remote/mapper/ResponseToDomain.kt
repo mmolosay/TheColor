@@ -1,9 +1,11 @@
 package com.ordolabs.data_remote.mapper
 
-import com.ordolabs.data_remote.model.GetColorInformationResponse
-import com.ordolabs.domain.model.ColorInformation
+import com.ordolabs.data_remote.model.ColorDetailsResponse
+import com.ordolabs.data_remote.model.ColorSchemeResponse
+import com.ordolabs.domain.model.ColorDetails
+import com.ordolabs.domain.model.ColorScheme
 
-fun GetColorInformationResponse.toDomain() = ColorInformation(
+fun ColorDetailsResponse.toDomain() = ColorDetails(
     hexValue = this.hex?.value,
     hexClean = this.hex?.clean,
 
@@ -58,4 +60,11 @@ fun GetColorInformationResponse.toDomain() = ColorInformation(
     imageNamedUrl = this.image?.named,
 
     contrastHex = this.contrast?.value
+)
+
+fun ColorSchemeResponse.toDomain() = ColorScheme(
+    modeOrdinal = this.mode?.ordinal,
+    sampleCount = this.sampleCount,
+    colors = this.colors?.map { it.toDomain() },
+    seed = this.seed?.toDomain()
 )

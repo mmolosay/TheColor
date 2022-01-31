@@ -1,9 +1,13 @@
 package com.ordolabs.thecolor.mapper
 
-import com.ordolabs.domain.model.ColorInformation
-import com.ordolabs.thecolor.model.ColorInformationPresentation
+import com.ordolabs.thecolor.model.color.data.ColorDetails
+import com.ordolabs.thecolor.model.color.data.ColorScheme
+import com.ordolabs.thecolor.util.ext.getFromEnumOrNull
+import com.ordolabs.domain.model.ColorDetails as ColorDetailsDomain
+import com.ordolabs.domain.model.ColorScheme as ColorSchemeDomain
 
-fun ColorInformation.toPresentation() = ColorInformationPresentation(
+
+fun ColorDetailsDomain.toPresentation() = ColorDetails(
     hexValue = this.hexValue,
     hexClean = this.hexClean,
 
@@ -50,7 +54,8 @@ fun ColorInformation.toPresentation() = ColorInformationPresentation(
     cmykValue = this.cmykValue,
 
     name = this.name,
-    exactNameHex = this.exactNameHex,
+    exactNameHex = this.exactNameHex?.substring(1),
+    exactNameHexSigned = this.exactNameHex,
     isNameMatchExact = this.isNameMatchExact,
     exactNameHexDistance = this.exactNameHexDistance,
 
@@ -58,4 +63,14 @@ fun ColorInformation.toPresentation() = ColorInformationPresentation(
     imageNamedUrl = this.imageNamedUrl,
 
     contrastHex = this.contrastHex
+)
+
+fun ColorSchemeDomain.toPresentation() = ColorScheme(
+    mode = getFromEnumOrNull<ColorScheme.Mode>(this.modeOrdinal),
+    samples = this.colors?.mapNotNull m@{
+        val details = it.toPresentation()
+        val hex = details.hexValue ?: return@m null
+        ColorScheme.Sample(hex, details)
+    },
+    seed = this.seed?.toPresentation()
 )

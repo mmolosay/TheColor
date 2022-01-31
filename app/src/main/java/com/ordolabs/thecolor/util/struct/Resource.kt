@@ -8,30 +8,49 @@ import com.ordolabs.thecolor.util.struct.Resource.Success
 /**
  * Represents obtainable resource, that could be consumed by UI.
  * The `Resource` is either [Empty], [Loading], [Success] or [Failure] instance.
+ *
+ * @param value some value — it may be a previous value, or current one, or `null`.
  */
-sealed class Resource<out V> {
+sealed class Resource<out V>(open val value: V?) {
 
     /**
      * Represents empty, unset value. It may was cleared, or was never set.
+     *
+     * @param previous a previous correct value, or `null`.
      */
-    object Empty : Resource<Nothing>()
+    class Empty<out V>(val previous: V?) : Resource<V>(previous)
 
     /**
      * Represents loading state. If it set, then either [Success] or [Failure]
      * are going to be set in observable future.
+     *
+     * @param previous a previous correct value, or `null`.
      */
-    object Loading : Resource<Nothing>()
+    class Loading<out V>(val previous: V?) : Resource<V>(previous)
 
     /**
      * Represents success state with obtained resource [value].
+     *
+     * @param value current value.
      */
-    data class Success<out V : Any>(val value: V) : Resource<V>()
+    class Success<out V>(override val value: V) : Resource<V>(value)
 
     /**
      * Represents failure, occured while obtaining resource. [payload] can be string message,
-     * int code or anything else. If there was any [Throwable] set, it can be obtainded from [error].
+     * int code or anything else. Any [Throwable] set can be obtainded from [error].
+     *
+     * @param previous a previous correct value, or `null`.
+     * @param payload some useful data.
+     * @param error [Throwable] caught.
      */
-    data class Failure<out P : Any>(val payload: P, val error: Throwable?) : Resource<Nothing>()
+    class Failure<out V, out P>(
+        val previous: V?,
+        val payload: P?,
+        val error: Throwable
+    ) : Resource<V>(previous) {
+
+        class MessageException(msg: String) : Throwable(msg)
+    }
 
     val isEmpty: Boolean
         get() = (this is Empty)
@@ -43,35 +62,35 @@ sealed class Resource<out V> {
         get() = (this is Success)
 
     val isFailure: Boolean
-        get() = (this is Failure<*>)
+        get() = (this is Failure<*, *>)
 
     /**
      *  Maps this [Resource] by applying one of specified callbacks to it
      *  depending on its actual instance.
      */
     inline fun fold(
-        onEmpty: () -> Unit = { },
-        onLoading: () -> Unit = { },
+        onEmpty: (previous: V?) -> Unit = { },
+        onLoading: (previous: V?) -> Unit = { },
         onSuccess: (value: V) -> Unit = { _ -> },
-        onFailure: (payload: Any, error: Throwable?) -> Unit = { _, _ -> }
+        onFailure: (previous: V?, payload: Any?, error: Throwable) -> Unit = { _, _, _ -> }
     ) =
         when (this) {
-            is Empty -> onEmpty()
-            is Loading -> onLoading()
+            is Empty -> onEmpty(this.value)
+            is Loading -> onLoading(this.value)
             is Success -> onSuccess(this.value)
-            is Failure<*> -> onFailure(this.payload, this.error)
+            is Failure<*, *> -> onFailure(this.value, this.payload, this.error)
         }
 
-    inline fun <R> ifEmpty(action: () -> R): R? {
+    inline fun <R> ifEmpty(action: (value: V?) -> R): R? {
         return when (this) {
-            is Empty -> action()
+            is Empty -> action(value)
             else -> null
         }
     }
 
-    inline fun <R> ifLoading(action: () -> R): R? {
+    inline fun <R> ifLoading(action: (value: V?) -> R): R? {
         return when (this) {
-            is Loading -> action()
+            is Loading -> action(value)
             else -> null
         }
     }
@@ -86,29 +105,48 @@ sealed class Resource<out V> {
     companion object
 }
 
-fun Resource.Companion.empty(): Resource<Nothing> {
-    return Empty
-}
+// region Resource.Companion Extensions
 
-fun Resource.Companion.loading(): Resource<Nothing> {
-    return Loading
-}
+fun <V> Resource.Companion.empty(): Resource<V> =
+    Empty(previous = null)
 
-fun <V : Any> Resource.Companion.success(value: V): Resource<V> {
-    return Success(value)
-}
+fun Resource.Companion.loading(): Resource<Nothing> =
+    Loading(previous = null)
 
-fun <P : Any> Resource.Companion.failure(payload: P, error: Throwable): Resource<Nothing> {
-    return Failure(payload, error)
-}
+fun <V : Any> Resource.Companion.success(value: V): Resource<V> =
+    Success(value)
 
-fun <P : Any> Resource.Companion.failure(payload: P): Resource<Nothing> {
-    return Failure(payload, null)
-}
+// endregion
 
-fun <V : Any> Resource<V>.getOrNull(): V? {
-    return when (this) {
+// region Resource Extensions
+
+fun <V> Resource<V>.empty(): Resource<V> =
+    Empty(previous = this.value)
+
+fun <V> Resource<V>.loading(): Resource<V> =
+    Loading(previous = this.value)
+
+fun <V, P : Any> Resource<V>.failure(payload: P, error: Throwable): Resource<V> =
+    Failure(this.value, payload, error)
+
+fun <V> Resource<V>.failure(error: Throwable): Resource<V> =
+    Failure(
+        previous = this.value,
+        payload = null,
+        error = error
+    )
+
+fun <V> Resource<V>.failure(message: String): Resource<V> =
+    Failure(
+        previous = this.value,
+        payload = null,
+        error = Failure.MessageException(message)
+    )
+
+// endregion
+
+fun <V : Any> Resource<V>.getOrNull(): V? =
+    when (this) {
         is Success -> this.value
         else -> null
     }
-}

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+
+    Copy of color_details_fragment.xml content with simplifications
+-->
+<com.facebook.shimmer.ShimmerFrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:shimmer_auto_start="true"
+    app:shimmer_base_alpha="0.12"
+    app:shimmer_highlight_alpha="0.25"
+    app:shimmer_repeat_delay="@android:integer/config_longAnimTime"
+    tools:context=".ui.fragment.color.data.details.ColorDetailsShimmerFragment">
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:paddingHorizontal="@dimen/offset_content_horizontal"
+        android:paddingBottom="@dimen/offset_content_vertical">
+
+        <TextView
+            android:id="@+id/nameHeadline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_shape_round"
+            android:backgroundTint="?attr/colorOnBackground"
+            android:ems="3"
+            android:gravity="center"
+            android:textAppearance="?attr/textAppearanceDisplayLarge"
+            android:textColor="@color/material_on_background_emphasis_high_type"
+            tools:text="Cobalt" />
+
+        <TextView
+            android:id="@+id/hexLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/offset_12"
+            android:layout_marginTop="@dimen/offset_24"
+            android:alpha="@dimen/material_emphasis_medium"
+            android:background="@drawable/bg_shape_rounded_medium"
+            android:backgroundTint="?attr/colorOnBackground"
+            android:ems="7"
+            android:textAppearance="?attr/textAppearanceLabelLarge"
+            android:textColor="@color/material_on_background_emphasis_medium" />
+
+        <TextView
+            android:id="@+id/rgbLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/offset_12"
+            android:layout_marginTop="@dimen/offset_16"
+            android:alpha="@dimen/material_emphasis_medium"
+            android:background="@drawable/bg_shape_rounded_medium"
+            android:backgroundTint="?attr/colorOnBackground"
+            android:ems="8"
+            android:textAppearance="?attr/textAppearanceLabelLarge"
+            android:textColor="@color/material_on_background_emphasis_medium" />
+
+        <TextView
+            android:id="@+id/hslLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/offset_12"
+            android:layout_marginTop="@dimen/offset_16"
+            android:alpha="@dimen/material_emphasis_medium"
+            android:background="@drawable/bg_shape_rounded_medium"
+            android:backgroundTint="?attr/colorOnBackground"
+            android:ems="10"
+            android:textAppearance="?attr/textAppearanceLabelLarge"
+            android:textColor="@color/material_on_background_emphasis_medium" />
+
+        <TextView
+            android:id="@+id/hsvLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/offset_12"
+            android:layout_marginTop="@dimen/offset_16"
+            android:alpha="@dimen/material_emphasis_medium"
+            android:background="@drawable/bg_shape_rounded_medium"
+            android:backgroundTint="?attr/colorOnBackground"
+            android:ems="6"
+            android:textAppearance="?attr/textAppearanceLabelLarge"
+            android:textColor="@color/material_on_background_emphasis_medium" />
+
+        <TextView
+            android:id="@+id/cmykLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/offset_12"
+            android:layout_marginTop="@dimen/offset_16"
+            android:alpha="@dimen/material_emphasis_medium"
+            android:background="@drawable/bg_shape_rounded_medium"
+            android:backgroundTint="?attr/colorOnBackground"
+            android:ems="8"
+            android:textAppearance="?attr/textAppearanceLabelLarge"
+            android:textColor="@color/material_on_background_emphasis_medium" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+</com.facebook.shimmer.ShimmerFrameLayout>

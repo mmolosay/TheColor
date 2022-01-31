@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <dimen name="home_preview_elevation">@dimen/elevation_big</dimen>
-
-    <dimen name="color_input_pager_height">200dp</dimen>
+    <dimen name="color_input_pager_fragment_height">160dp</dimen>
     <dimen name="color_input_preview_size">48dp</dimen>
 
     <dimen name="input_color_width_min">96dp</dimen>
     <dimen name="input_color_width_max">256dp</dimen>
+
+    <dimen name="color_scheme_sample_size">64dp</dimen>
 
 </resources>

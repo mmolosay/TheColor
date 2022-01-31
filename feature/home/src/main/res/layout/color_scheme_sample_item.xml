@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/sample"
+    style="?attr/materialCardViewElevatedStyle"
+    android:layout_width="@dimen/color_scheme_sample_size"
+    android:layout_height="@dimen/color_scheme_sample_size"
+    app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.FullRound"
+    tools:cardBackgroundColor="#0B72CD" />

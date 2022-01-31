@@ -10,15 +10,54 @@ import android.view.View
 import android.view.ViewAnimationUtils
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
+import android.widget.ScrollView
+import android.widget.TextView
+import androidx.annotation.IdRes
 import androidx.core.animation.doOnEnd
 import androidx.core.graphics.minus
+import androidx.core.view.isVisible
 import androidx.dynamicanimation.animation.DynamicAnimation
 import androidx.dynamicanimation.animation.SpringAnimation
 import androidx.dynamicanimation.animation.SpringForce
 import com.google.android.material.textfield.TextInputLayout
 import com.ordolabs.thecolor.util.AnimationUtils
+import com.ordolabs.thecolor.util.AnimationUtils.CustomViewProperty
 
-/* TextInputLayout and EditText */
+// region TextView
+
+/**
+ * Sets specified [text] in [TextView.setText] and makes view visible,
+ * if [text] is not [CharSequence.isNullOrEmpty].
+ * Sets visibility to [View.GONE] otherwise.
+ *
+ * @return whether has meaningful text or not.
+ */
+fun TextView.setTextOrGone(text: CharSequence?): Boolean {
+    val hasText = !text.isNullOrEmpty()
+    this.isVisible = hasText
+    if (hasText) {
+        this.text = text
+    }
+    return hasText
+}
+
+/**
+ * Performs [TextView.setTextOrGone], but __only hides__ [views].
+ */
+fun TextView.setTextOrGoneWith(text: CharSequence?, vararg views: View): Boolean {
+    val hasText = !text.isNullOrEmpty()
+    this.isVisible = hasText
+    if (hasText) {
+        this.text = text
+    } else {
+        views.forEach { it.isVisible = false }
+    }
+    return hasText
+}
+
+// endregion
+
+// region TextInputLayout and EditText
 
 fun TextInputLayout.getText(): Editable? {
     return this.editText?.text
@@ -39,7 +78,25 @@ fun EditText.hideSoftInput(): Boolean {
     return true
 }
 
-/* Location */
+fun EditText.setTextPreservingSelection(text: String?) {
+    text ?: return
+    val hadSelection = this.hasSelection()
+    val start = this.selectionStart
+    val end = this.selectionEnd
+    this.setText(text)
+    if (hadSelection) {
+        val newStart = start.coerceAtMost(text.length)
+        val newEnd = end.coerceAtMost(text.length)
+        this.setSelection(newStart, newEnd)
+    } else if (start == end) {
+        val index = start.coerceAtMost(text.length)
+        this.setSelection(index)
+    }
+}
+
+// endregion
+
+// region Location
 
 /**
  * Computes coordinates of `this` view relative to specified [parent].
@@ -85,7 +142,21 @@ fun View.getBottomVisibleInParent(parent: View?): Int? {
     return if (clipped > 0) this.height - clipped else this.height
 }
 
-/* Animation */
+fun View.getBottomVisibleInScrollParent(parent: ScrollView?): Int? {
+    parent ?: return null
+    val location = this.getLocationInParent(parent) ?: return null
+    val absBottom = location.y + this.height
+    val viewClippedBottom = parent.scrollY + parent.height
+    return if (absBottom > viewClippedBottom) {
+        viewClippedBottom - location.y
+    } else {
+        this.height
+    }
+}
+
+// endregion
+
+// region Animation
 
 /**
  * Returns [SpringAnimation], associated with `this` view or a new one.
@@ -122,22 +193,69 @@ fun View.createSpringAnimation(
     return animation
 }
 
+/**
+ * Binds specified [animator] to `this` View, if there is no existing `Animator` bound to it.
+ * If there is one, will do nothing.
+ * If [animator] was bound, it will be unbound from `this` View, once it first ends.
+ *
+ * @return Already bound to `this` View `Animator`, if there is one, or [animator] otherwise.
+ * @see View.bindPropertyAnimator
+ */
 @Suppress("UNCHECKED_CAST")
-fun <T : Animator> View.propertyAnimator(property: Property<*, *>, animator: T): T {
-    val key = AnimationUtils.getViewPropertyKey(property)
-    return this.getTag(key) as? T
+fun <T : Animator> View.propertyAnimator(@IdRes propertyKey: Int, animator: T): T =
+    this.getTag(propertyKey) as? T
         ?: animator.also {
-            this.setTag(key, it)
+            this.setTag(propertyKey, it)
             it.doOnEnd {
-                this.setTag(key, null)
+                this.setTag(propertyKey, null)
             }
         }
+
+fun <T : Animator> View.propertyAnimator(property: Property<*, *>, animator: T): T {
+    val key = AnimationUtils.getViewPropertyKey(property)
+    return this.propertyAnimator(key, animator)
 }
 
+fun <T : Animator> View.propertyAnimator(property: CustomViewProperty, animator: T): T {
+    val key = property.key
+    return this.propertyAnimator(key, animator)
+}
+
+/**
+ * Retrieves bounded to `this` View `Animator` or `null`, if there is no such.
+ */
 @Suppress("UNCHECKED_CAST")
+fun <T : Animator> View.propertyAnimatorOrNull(@IdRes propertyKey: Int): T? =
+    this.getTag(propertyKey) as? T
+
 fun <T : Animator> View.propertyAnimatorOrNull(property: Property<*, *>): T? {
     val key = AnimationUtils.getViewPropertyKey(property)
-    return (this.getTag(key) as? T)
+    return this.propertyAnimatorOrNull(key)
+}
+
+fun <T : Animator> View.propertyAnimatorOrNull(property: CustomViewProperty): T? {
+    val key = property.key
+    return this.propertyAnimatorOrNull(key)
+}
+
+/**
+ * Binds specified [animator] to `this` View.
+ * In case there is an existing one, it will be overwritten.
+ *
+ * @return `Animator` that was overwritten, or `null` if there was no such.
+ */
+fun View.bindPropertyAnimator(@IdRes propertyKey: Int, animator: Animator): Animator? {
+    val current = this.propertyAnimatorOrNull<Animator>(propertyKey)
+    this.setTag(propertyKey, animator)
+    animator.doOnEndOnce {
+        this.setTag(propertyKey, null)
+    }
+    return current
+}
+
+fun View.bindPropertyAnimator(property: CustomViewProperty, animator: Animator): Animator? {
+    val key = property.key
+    return this.bindPropertyAnimator(key, animator)
 }
 
 /**
@@ -151,3 +269,19 @@ fun View.createCircularRevealAnimation(
 ): Animator {
     return ViewAnimationUtils.createCircularReveal(this, cx, cy, sr, er)
 }
+
+fun View.createCircularRevealAnimation(
+    reveal: Boolean,
+    cx: Int = width / 2,
+    cy: Int = height / 2,
+    sr: Float = 0f,
+    er: Float = AnimationUtils.getCircularRevealMaxRadius(this, cx, cy)
+): Animator {
+    return if (reveal) {
+        this.createCircularRevealAnimation(cx, cy, sr, er)
+    } else {
+        this.createCircularRevealAnimation(cx, cy, er, sr)
+    }
+}
+
+// endregion

@@ -3,12 +3,16 @@ package com.ordolabs.thecolor.util.ext
 import android.widget.EditText
 import android.widget.Toast
 import androidx.annotation.IdRes
-import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
 import com.github.michaelbull.result.Result
 import com.ordolabs.thecolor.ui.fragment.BaseFragment
 import com.ordolabs.thecolor.util.ContextUtil
 
+/**
+ * Mostly uses methods of [ContextUtil] object.
+ */
+
+/***/ // eat file doc
 val BaseFragment.shortAnimDuration: Long
     get() = ContextUtil.getShortAnimDuration(context) ?: 0L
 
@@ -27,27 +31,38 @@ fun BaseFragment.findFragmentById(
     )
 }
 
-fun BaseFragment.setFragment(
-    fragment: BaseFragment,
+fun BaseFragment.findFragmentByIdOrNull(
     @IdRes containerId: Int = this.defaultFragmentContainerId
+): Fragment? {
+    return ContextUtil.findFragmentByIdOrNull(
+        this.childFragmentManager,
+        containerId
+    )
+}
+
+fun BaseFragment.setFragment(
+    fragment: Fragment,
+    @IdRes containerId: Int = this.defaultFragmentContainerId,
+    transactionTag: String = fragment.getDefaultTransactionTag()
 ): Result<Int, Throwable> {
     return ContextUtil.setFragment(
         this.childFragmentManager,
         fragment,
         containerId,
-        fragment.transactionTag
+        transactionTag
     )
 }
 
 fun BaseFragment.replaceFragment(
-    fragment: BaseFragment,
-    @IdRes containerId: Int = this.defaultFragmentContainerId
+    fragment: Fragment,
+    @IdRes containerId: Int = this.defaultFragmentContainerId,
+    transactionTag: String = fragment.getDefaultTransactionTag()
 ): Result<Int, Throwable> {
     return ContextUtil.replaceFragment(
         this.childFragmentManager,
         fragment,
         containerId,
-        fragment.transactionTag
+        transactionTag
     )
 }
 
@@ -60,27 +75,50 @@ fun BaseFragment.removeFragment(
     )
 }
 
+fun BaseFragment.removeFragment(
+    @IdRes containerId: Int
+): Result<Int, Throwable> {
+    return ContextUtil.removeFragment(
+        this.childFragmentManager,
+        containerId
+    )
+}
+
+fun Fragment.getDefaultTransactionTag(): String =
+    this::class.java.simpleName
+
 fun BaseFragment.showToast(
     text: String?,
     duration: Int = Toast.LENGTH_SHORT
-) {
-    ContextUtil.showToast(requireContext(), text, duration)
+): Boolean {
+    val context = this.context ?: return false
+    ContextUtil.showToast(context, text, duration)
+    return true
 }
 
 fun BaseFragment.showToast(
-    @StringRes textRes: Int?,
+    stringRes: Int?,
     duration: Int = Toast.LENGTH_SHORT
-) {
-    textRes ?: return
-    val text = getString(textRes)
-    ContextUtil.showToast(requireContext(), text, duration)
+): Boolean {
+    stringRes ?: return false
+    val text = resources.getStringOrNull(stringRes) ?: return false
+    return this.showToast(text, duration)
 }
+
+fun BaseFragment.showToastOfUnhandledError(): Boolean =
+    this.showToast(this.defaultUnhandledErrorTextRes)
 
 fun BaseFragment.hideSoftInput(): Boolean {
     val focused = this.view?.findFocus() ?: return false
     return if (focused is EditText) {
         focused.hideSoftInput()
     } else false
+}
+
+fun BaseFragment.hideSoftInputAndClearFocus(): Boolean {
+    return this.hideSoftInput().also { wasHidden ->
+        if (wasHidden) this.view?.clearFocus()
+    }
 }
 
 fun BaseFragment.getChildFragmentAt(position: Int): Fragment? {

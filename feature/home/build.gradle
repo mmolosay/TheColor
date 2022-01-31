@@ -10,10 +10,8 @@ android {
 
     defaultConfig {
         minSdkVersion minSdkV
-        targetSdkVersion targetSdkV
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles "consumer-rules.pro"
     }
 
     buildTypes {

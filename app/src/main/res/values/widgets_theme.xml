@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--
+        Widget styles, used in application themes attributes.
+        Preserve alphabetical order.
+    -->
+
+    <style name="Widget.TheColor.Button" parent="Widget.Material3.Button">
+        <!-- nothing special here -->
+    </style>
+
+    <style name="Widget.TheColor.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="materialThemeOverlay">@style/MaterialThemeOverlay.Button.Outlined</item>
+    </style>
+
+    <style name="Widget.TheColor.Button.Text" parent="Widget.Material3.Button.TextButton">
+        <item name="materialThemeOverlay">@style/MaterialThemeOverlay.Button.Text</item>
+    </style>
+
+    <style name="Widget.TheColor.Button.Tonal" parent="Widget.Material3.Button.TonalButton">
+        <item name="materialThemeOverlay">@style/MaterialThemeOverlay.Button.Tonal</item>
+    </style>
+
+    <style name="Widget.TheColor.BottomSheet.Modal" parent="Widget.Material3.BottomSheet.Modal">
+        <!-- nothing special here -->
+    </style>
+
+    <style name="Widget.TheColor.Chip" parent="Widget.Material3.Chip.Suggestion">
+        <!-- nothing special here -->
+    </style>
+
+    <style name="Widget.TheColor.ChipGroup" parent="Widget.Material3.ChipGroup">
+        <!-- nothing special here -->
+    </style>
+
+    <style name="Widget.TheColor.EditText" parent="Widget.AppCompat.EditText">
+        <item name="android:textAppearance">@style/TextAppearance.Widget.EditText</item>
+        <item name="android:gravity">left|center_vertical</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:includeFontPadding">true</item>
+    </style>
+
+    <style name="Widget.TheColor.MaterialDivider" parent="Widget.Material3.MaterialDivider">
+        <item name="dividerColor">@color/material_on_background_disabled</item>
+    </style>
+
+    <style name="Widget.TheColor.ScrollView" parent="">
+        <item name="android:overScrollMode">ifContentScrolls</item>
+    </style>
+
+    <style name="Widget.TheColor.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="materialThemeOverlay">
+            @style/Widget.TheColor.TextInputLayout_MaterialThemeOverlay
+        </item>
+    </style>
+
+    <style name="Widget.TheColor.TextInputLayout_MaterialThemeOverlay" parent="ThemeOverlay.MaterialComponents.TextInputEditText.OutlinedBox">
+        <!-- https://stackoverflow.com/a/60178370/11672687 -->
+        <item name="editTextStyle">@style/Widget.TheColor.TextInputLayout_EditTextStyle</item>
+    </style>
+
+    <style name="Widget.TheColor.TextInputLayout_EditTextStyle" parent="Widget.MaterialComponents.TextInputEditText.OutlinedBox">
+        <item name="android:textAppearance">@style/TextAppearance.Widget.EditText</item>
+        <item name="android:gravity">left|center_vertical</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:includeFontPadding">true</item>
+    </style>
+
+    <style name="Widget.TheColor.TabLayout" parent="Widget.Design.TabLayout">
+        <item name="tabTextAppearance">@style/TextAppearance.Widget.TabLayout</item>
+    </style>
+
+    <style name="Widget.TheColor.TextView" parent="Widget.MaterialComponents.TextView">
+        <item name="android:textAppearance">?attr/textAppearanceBodyMedium</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:includeFontPadding">true</item>
+    </style>
+
+</resources>

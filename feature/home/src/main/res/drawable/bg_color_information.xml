@@ -2,16 +2,20 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <layer-list>
-            <item android:top="100dp">
+            <!-- top=oval.heihgt/2 -->
+            <item android:top="192dp">
                 <shape android:shape="rectangle">
                     <solid android:color="@color/black" />
                 </shape>
             </item>
-            <item android:end="-100dp" android:start="-100dp">
+
+            <!-- bottom inset clips bottom half of oval -->
+            <item android:width="512dp" android:height="384dp" android:bottom="-192dp" android:gravity="center_horizontal">
                 <shape android:shape="oval">
                     <solid android:color="@color/black" />
                 </shape>
             </item>
+
         </layer-list>
     </item>
 </selector>

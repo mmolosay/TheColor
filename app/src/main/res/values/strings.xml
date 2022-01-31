@@ -1,14 +1,48 @@
 <resources>
 
-    <!--—————————————————————— APP —————————————————————-->
+    <!-- region App -->
+
     <string name="app_name">TheColor</string>
 
-    <!--———————————————————— GENERIC ———————————————————-->
+    <!-- endregion -->
+
+    <!-- region Generic -->
+
     <string name="generic_yes">Yes</string>
     <string name="generic_no">No</string>
 
-    <!--————————————————————— ERROR ————————————————————-->
-    <string name="error_check_internet_connection">Check Internet connection</string>
-    <string name="error_unknown">Sory, an error occurred, try again later</string>
+    <!-- endregion -->
+
+    <!-- region Color -->
+
+    <string name="color_hex_numbersign" translatable="false">#</string>
+    <string name="color_hex_label" translatable="false">HEX</string>
+
+    <string name="color_rgb_label" translatable="false">RGB</string>
+    <string name="color_rgb_component_r_label" translatable="false">R</string>
+    <string name="color_rgb_component_g_label" translatable="false">G</string>
+    <string name="color_rgb_component_b_label" translatable="false">B</string>
+
+    <string name="color_hsl_label" translatable="false">HSL</string>
+    <string name="color_hsv_label" translatable="false">HSV</string>
+    <string name="color_cmyk_label" translatable="false">CMYK</string>
+
+    <string name="color_scheme_mode_monochrome">monochrome</string>
+    <string name="color_scheme_mode_monochrome_dark">monochrome-dark</string>
+    <string name="color_scheme_mode_monochrome_light">monochrome-light</string>
+    <string name="color_scheme_mode_analogic">analogic</string>
+    <string name="color_scheme_mode_complement">complement</string>
+    <string name="color_scheme_mode_analogic_complement">analogic-complement</string>
+    <string name="color_scheme_mode_triad">triad</string>
+    <string name="color_scheme_mode_quad">quad</string>
+
+    <!-- endregion -->
+
+    <!-- region Error -->
+
+    <string name="error_lost_internet_connection">Check Internet connection</string>
+    <string name="error_unhandled">Sory, an unhandled error occurred :&lt;</string> <!-- :< -->
+
+    <!-- endregion -->
 
 </resources>

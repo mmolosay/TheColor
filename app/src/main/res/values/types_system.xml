@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--
+        Text appearances for global theme attributes.
+        Preserve alphabetical order.
+    -->
+
+    <!-- region Display -->
+
+    <style name="TextAppearance.TheColor.DisplayLarge" parent="TextAppearance.Material3.DisplayLarge">
+        <item name="fontFamily">@font/ff_nunito_regular</item>
+        <item name="android:fontFamily">@font/ff_nunito_regular</item>
+    </style>
+
+    <style name="TextAppearance.TheColor.DisplayMedium" parent="TextAppearance.Material3.DisplayMedium">
+        <item name="fontFamily">@font/ff_nunito_regular</item>
+        <item name="android:fontFamily">@font/ff_nunito_regular</item>
+    </style>
+
+    <style name="TextAppearance.TheColor.DisplaySmall" parent="TextAppearance.Material3.DisplaySmall">
+        <item name="fontFamily">@font/ff_nunito_regular</item>
+        <item name="android:fontFamily">@font/ff_nunito_regular</item>
+    </style>
+
+    <!-- endregion -->
+
+    <!-- region Headline -->
+
+    <style name="TextAppearance.TheColor.HeadlineLarge" parent="TextAppearance.Material3.HeadlineLarge">
+        <item name="fontFamily">@font/ff_nunito_regular</item>
+        <item name="android:fontFamily">@font/ff_nunito_regular</item>
+    </style>
+
+    <style name="TextAppearance.TheColor.HeadlineMedium" parent="TextAppearance.Material3.HeadlineMedium">
+        <item name="fontFamily">@font/ff_nunito_regular</item>
+        <item name="android:fontFamily">@font/ff_nunito_regular</item>
+    </style>
+
+    <style name="TextAppearance.TheColor.HeadlineSmall" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="fontFamily">@font/ff_nunito_regular</item>
+        <item name="android:fontFamily">@font/ff_nunito_regular</item>
+    </style>
+
+    <!-- endregion -->
+
+    <!-- region Title -->
+
+    <style name="TextAppearance.TheColor.TitleLarge" parent="TextAppearance.Material3.TitleLarge">
+        <item name="fontFamily">@font/ff_nunito_regular</item>
+        <item name="android:fontFamily">@font/ff_nunito_regular</item>
+    </style>
+
+    <style name="TextAppearance.TheColor.TitleMedium" parent="TextAppearance.Material3.TitleMedium">
+        <item name="fontFamily">@font/ff_nunito_semibold</item>
+        <item name="android:fontFamily">@font/ff_nunito_semibold</item>
+    </style>
+
+    <style name="TextAppearance.TheColor.TitleSmall" parent="TextAppearance.Material3.TitleSmall">
+        <item name="fontFamily">@font/ff_nunito_semibold</item>
+        <item name="android:fontFamily">@font/ff_nunito_semibold</item>
+    </style>
+
+    <!-- endregion -->
+
+    <!-- region Body -->
+
+    <style name="TextAppearance.TheColor.BodyLarge" parent="TextAppearance.Material3.BodyLarge">
+        <item name="fontFamily">@font/ff_nunito_regular</item>
+        <item name="android:fontFamily">@font/ff_nunito_regular</item>
+    </style>
+
+    <style name="TextAppearance.TheColor.BodyMedium" parent="TextAppearance.Material3.BodyMedium">
+        <item name="fontFamily">@font/ff_nunito_regular</item>
+        <item name="android:fontFamily">@font/ff_nunito_regular</item>
+    </style>
+
+    <style name="TextAppearance.TheColor.BodySmall" parent="TextAppearance.Material3.BodySmall">
+        <item name="fontFamily">@font/ff_nunito_regular</item>
+        <item name="android:fontFamily">@font/ff_nunito_regular</item>
+    </style>
+
+    <!-- endregion -->
+
+    <!-- region Label -->
+
+    <style name="TextAppearance.TheColor.LabelLarge" parent="TextAppearance.Material3.LabelLarge">
+        <item name="fontFamily">@font/ff_nunito_semibold</item>
+        <item name="android:fontFamily">@font/ff_nunito_semibold</item>
+    </style>
+
+    <style name="TextAppearance.TheColor.LabelMedium" parent="TextAppearance.Material3.LabelMedium">
+        <item name="fontFamily">@font/ff_nunito_semibold</item>
+        <item name="android:fontFamily">@font/ff_nunito_semibold</item>
+    </style>
+
+    <style name="TextAppearance.TheColor.LabelSmall" parent="TextAppearance.Material3.LabelSmall">
+        <item name="fontFamily">@font/ff_nunito_semibold</item>
+        <item name="android:fontFamily">@font/ff_nunito_semibold</item>
+    </style>
+
+    <!-- endregion -->
+
+    <!-- region Material2 -->
+
+    <style name="TextAppearance.TheColor.Overline" parent="TextAppearance.MaterialComponents.Overline">
+        <item name="fontFamily">@font/ff_nunito_regular</item>
+    </style>
+
+    <!-- endregion -->
+
+</resources>

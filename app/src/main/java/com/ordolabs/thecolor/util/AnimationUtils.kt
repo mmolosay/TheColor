@@ -49,16 +49,6 @@ object AnimationUtils {
             else -> error("this animation property is not supported")
         }
 
-    @IdRes
-    fun getCustomPropertyKey(property: AnimationProperty): Int =
-        when (property) {
-            AnimationProperty.CIRCULAR_REVEAL -> R.id.animKeyCircularReveal
-        }
-
-    fun <T : Number> getAnimationEndValue(start: T, current: T, end: T): T {
-        return if (current != end) end else start
-    }
-
     fun getCircularRevealMaxRadius(
         view: View,
         cx: Int = view.width / 2,
@@ -76,7 +66,7 @@ object AnimationUtils {
         return getCircularRevealMaxRadius(view, center.x, center.y)
     }
 
-    enum class AnimationProperty {
-        CIRCULAR_REVEAL
+    enum class CustomViewProperty(@IdRes val key: Int) {
+        CIRCULAR_REVEAL(R.id.animPropertyKeyCircularReveal)
     }
 }

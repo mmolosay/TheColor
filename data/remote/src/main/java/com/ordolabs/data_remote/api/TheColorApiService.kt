@@ -1,6 +1,8 @@
 package com.ordolabs.data_remote.api
 
-import com.ordolabs.data_remote.model.GetColorInformationResponse
+import com.ordolabs.data_remote.model.ColorDetailsResponse
+import com.ordolabs.data_remote.model.ColorSchemeResponse
+import com.squareup.moshi.Json
 import retrofit2.http.GET
 import retrofit2.http.Query
 
@@ -13,13 +15,13 @@ import retrofit2.http.Query
 interface TheColorApiService {
 
     @GET("id")
-    suspend fun getColorInformation(
+    suspend fun getColorDetails(
         @Query("hex") hex: String? = null,
         @Query("rgb") rgb: String? = null,
         @Query("hsl") hsl: String? = null,
         @Query("cmyk") cmyk: String? = null,
         @Query("format") format: ResponseFormat = ResponseFormat.JSON
-    ): GetColorInformationResponse
+    ): ColorDetailsResponse
 
     @GET("scheme")
     suspend fun getColorScheme(
@@ -28,11 +30,11 @@ interface TheColorApiService {
         @Query("hsl") hsl: String? = null,
         @Query("cmyk") cmyk: String? = null,
         @Query("format") format: ResponseFormat = ResponseFormat.JSON,
-        @Query("mode") type: SchemeType = SchemeType.ANALOGIC,
-        @Query("count") count: Int = 5,
+        @Query("mode") mode: SchemeMode = SchemeMode.ANALOGIC,
+        @Query("count") sampleCount: Int = 5,
         @Query("w") svgSize: Int = 100,
         @Query("named") doPrintNames: Boolean = true,
-    )
+    ) : ColorSchemeResponse
 
     enum class ResponseFormat {
         JSON,
@@ -44,15 +46,15 @@ interface TheColorApiService {
         }
     }
 
-    enum class SchemeType {
-        MONOCHROME,
-        MONOCHROME_DARK,
-        MONOCHROME_LIGHT,
-        ANALOGIC,
-        COMPLEMENT,
-        ANALOGIC_COMPLEMENT,
-        TRIAD,
-        QUAD;
+    enum class SchemeMode {
+        @Json(name = "monochrome") MONOCHROME,
+        @Json(name = "monochrome-dark") MONOCHROME_DARK,
+        @Json(name = "monochrome-light") MONOCHROME_LIGHT,
+        @Json(name = "analogic") ANALOGIC,
+        @Json(name = "complement") COMPLEMENT,
+        @Json(name = "analogic-complement") ANALOGIC_COMPLEMENT,
+        @Json(name = "triad") TRIAD,
+        @Json(name = "quad") QUAD;
 
         override fun toString(): String {
             return this.name.lowercase().replace(oldChar = '_', newChar = '-')

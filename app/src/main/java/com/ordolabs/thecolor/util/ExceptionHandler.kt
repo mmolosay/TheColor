@@ -8,7 +8,7 @@ object ExceptionHandler {
 
     @StringRes
     fun parseExceptionType(t: Throwable): Int = when (t) {
-        is UnknownHostException -> R.string.error_check_internet_connection
-        else -> R.string.error_unknown
+        is UnknownHostException -> R.string.error_lost_internet_connection
+        else -> R.string.error_unhandled
     }
 }

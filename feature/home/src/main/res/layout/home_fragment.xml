@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.ordolabs.thecolor.ui.view.LockableScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/scrollview"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    tools:context="com.ordolabs.feature_home.ui.fragment.HomeFragment">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/glStart"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            app:layout_constraintGuide_begin="@dimen/offset_content_horizontal" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/glEnd"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            app:layout_constraintGuide_end="@dimen/offset_content_horizontal" />
+
+        <TextView
+            android:id="@+id/headline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="160dp"
+            android:text="@string/home_headline"
+            android:textAppearance="?attr/textAppearanceTitleLarge"
+            android:textColor="@color/material_on_background_emphasis_medium"
+
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/colorInputFragmentContainer"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/color_input_pager_fragment_height"
+            android:layout_marginTop="@dimen/offset_16"
+
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/headline"
+            tools:layout="@layout/color_input_pager_fragment" />
+
+        <Button
+            android:id="@+id/procceedBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:enabled="false"
+            android:text="@string/home_procceed_btn"
+
+            app:layout_constraintEnd_toEndOf="@id/glEnd"
+            app:layout_constraintStart_toStartOf="@id/glStart"
+            app:layout_constraintTop_toBottomOf="@id/colorInputFragmentContainer" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/previewWrapper"
+            style="?attr/materialCardViewElevatedStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/offset_8"
+            android:scaleX="0"
+            android:scaleY="0"
+            android:visibility="invisible"
+
+            app:layout_constraintEnd_toStartOf="@+id/glEnd"
+            app:layout_constraintStart_toStartOf="@+id/glStart"
+            app:layout_constraintTop_toBottomOf="@+id/procceedBtn"
+            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.FullRound"
+            tools:scaleX="1"
+            tools:scaleY="1"
+            tools:visibility="visible">
+
+            <View
+                android:id="@+id/preview"
+                android:layout_width="@dimen/color_input_preview_size"
+                android:layout_height="@dimen/color_input_preview_size"
+                android:background="@drawable/bg_shape_round"
+                tools:visibility="visible" />
+
+            <View
+                android:id="@+id/previewUpdated"
+                android:layout_width="@dimen/color_input_preview_size"
+                android:layout_height="@dimen/color_input_preview_size"
+                android:background="@drawable/bg_shape_round"
+                android:backgroundTint="@color/transparent"
+                android:visibility="invisible"
+                tools:visibility="visible" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <FrameLayout
+            android:id="@+id/colorDataWrapper"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="@dimen/offset_16"
+            android:background="@drawable/bg_color_information"
+            android:backgroundTint="@color/transparent"
+            android:visibility="invisible"
+
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHeight_min="wrap"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/previewWrapper"
+            app:layout_constraintVertical_bias="0.0"
+            tools:visibility="visible">
+
+            <androidx.fragment.app.FragmentContainerView
+                android:id="@+id/colorDataFragmentContainer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:layout="@layout/color_data_pager_fragment" />
+
+        </FrameLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.ordolabs.thecolor.ui.view.LockableScrollView>

@@ -6,7 +6,7 @@ import com.ordolabs.thecolor.ui.fragment.BaseFragment as AppBaseFragment
 
 abstract class BaseFragment : AppBaseFragment {
 
-    constructor()
+    constructor() : super()
 
     constructor(@LayoutRes layoutRes: Int) : super(layoutRes)
 

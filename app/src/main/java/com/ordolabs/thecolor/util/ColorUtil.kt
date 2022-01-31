@@ -1,83 +1,69 @@
 package com.ordolabs.thecolor.util
 
-import android.os.Parcelable
-import androidx.annotation.ColorInt
 import androidx.annotation.IntRange
 import com.github.ajalt.colormath.RGB
-import com.ordolabs.thecolor.model.InputHexPresentation
-import com.ordolabs.thecolor.model.InputRgbPresentation
-import kotlinx.parcelize.Parcelize
-import android.graphics.Color as ColorAndroid
 
+// TODO: ColorUtil should be a singleton class, which instance
+//  would be injected by DI handler in places of usage.
+/**
+ * Contains all color converting and asserting logic.
+ */
 object ColorUtil {
 
-    /**
-     * "Abstract" color model. Actually, holds HEX color value __without number sign__.
-     * __Always__ represents a valid color.
-     */
-    @Parcelize
-    data class Color(
-        val hex: String
-    ) : Parcelable {
-        val hexWithNumberSign: String get() = '#' + this.hex
+    private const val HEX_NUMBER_SIGN = '#'
 
-        override fun equals(other: Any?): Boolean {
-            other ?: return false
-            if (other is String) {
-                return (other == hex || other == hexWithNumberSign)
-            }
-            if (other is Color) {
-                return super.equals(other)
-            }
-            return false
-        }
+    private val hexFormatRegex = Regex("^#?(?:[0-9a-fA-F]{3}){1,2}\$")
 
-        override fun hashCode(): Int {
-            return hex.hashCode()
-        }
+    // region Convertion
 
-        companion object
-    }
+    fun hexToRgb(hex: String) =
+        RGB(hex)
 
-    fun Color.Companion.from(input: InputHexPresentation): Color? {
-        input.value ?: return null
-        val expanded = when (input.value.length) {
-            3 -> input.value.map { it.toString().repeat(2) }.joinToString(separator = "")
-            6 -> input.value
-            else -> return null
-        }
-        return Color(hex = expanded)
-    }
+    fun rgbToHex(r: Int, g: Int, b: Int) =
+        rgbToHex(RGB(r, g, b))
 
-    fun Color.Companion.from(input: InputRgbPresentation): Color? {
-        if (input.r == null || input.g == null || input.b == null) return null
-        val rgb = RGB(input.r, input.g, input.b)
-        val value = rgb.toHex(withNumberSign = false).uppercase()
-        return Color(hex = value)
-    }
+    // endregion
 
-    fun Color.toColorHex(): InputHexPresentation {
-        return InputHexPresentation(value = this.hex)
-    }
-
-    fun Color.toColorRgb(): InputRgbPresentation {
-        val color = RGB(this.hex)
-        return InputRgbPresentation(
-            r = color.r,
-            g = color.g,
-            b = color.b
-        )
-    }
-
-    @ColorInt
-    fun Color.toColorInt(): Int {
-        return ColorAndroid.parseColor(this.hexWithNumberSign)
-    }
-
-    fun Color.isDark(
-        @IntRange(from = 0, to = 100) threshold: Int = 60
+    fun isDark(
+        hex: String,
+        @IntRange(from = 0, to = 100) threshold: Int
     ): Boolean {
-        val hsl = RGB(this.hex).toHSL()
+        val hsl = RGB(hex).toHSL()
         return (hsl.l <= threshold)
     }
+
+    // region Extensions
+
+    fun String.colorHexSigned(): String? {
+        if (!this.isColorHex()) return null
+        if (this.isColorHexSigned()!!) return this
+        return "$HEX_NUMBER_SIGN$this"
+    }
+
+    fun String.colorHexSignless(): String? {
+        if (!this.isColorHex()) return null
+        if (this.isColorHexSignless()!!) return this
+        return this.substring(1)
+    }
+
+    fun String.isColorHex(): Boolean =
+        this.matches(hexFormatRegex)
+
+    fun String.isColorHexSigned(): Boolean? {
+        if (!this.isColorHex()) return null
+        return (this.first() == HEX_NUMBER_SIGN)
+    }
+
+    fun String.isColorHexSignless(): Boolean? =
+        this.isColorHexSigned()?.let { !it }
+
+    fun String.toColorHexFullForm(): String? {
+        if (!this.isColorHex()) return null
+        return rgbToHex(RGB(this))
+    }
+
+    // endregion
+
+    private fun rgbToHex(color: RGB): String =
+        color.toHex(withNumberSign = true).uppercase()
 }

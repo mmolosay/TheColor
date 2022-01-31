@@ -5,6 +5,7 @@ import android.view.View
 import androidx.annotation.CallSuper
 import androidx.annotation.IdRes
 import androidx.annotation.LayoutRes
+import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -20,10 +21,11 @@ abstract class BaseFragment : Fragment {
 
     constructor(@LayoutRes layoutRes: Int) : super(layoutRes)
 
-    val transactionTag: String = this::class.java.simpleName
-
     @IdRes
     open val defaultFragmentContainerId: Int = R.id.defaultFragmentContainer
+
+    @StringRes
+    open val defaultUnhandledErrorTextRes = R.string.error_unhandled
 
     /**
      * Initial soft input mode, which `activity` had before adding `this` fragment.
@@ -35,33 +37,37 @@ abstract class BaseFragment : Fragment {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initialSoftInputMode // initialize
-        setSoftInputMode()
-        parseArguments()
+        updateSoftInputMode()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         setUp()
         setViews()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        initialSoftInputMode?.let { activity?.window?.setSoftInputMode(it) }
+        restoreSoftInputMode()
     }
 
-    protected open fun setSoftInputMode() {
-        // override me
+    private fun updateSoftInputMode() {
+        getSoftInputMode()?.let {
+            activity?.window?.setSoftInputMode(it)
+        }
+    }
+
+    private fun restoreSoftInputMode() {
+        initialSoftInputMode?.let {
+            activity?.window?.setSoftInputMode(it)
+        }
     }
 
     /**
-     * Parses [Fragment.getArguments].
-     * Being called in [Fragment.onCreate] method.
+     * Specifies windoSoftInputMode for `this` fragment.
      */
-    protected open fun parseArguments() {
-        // override me
-    }
+    protected open fun getSoftInputMode(): Int? =
+        null
 
     /**
      * Configures non-view components.

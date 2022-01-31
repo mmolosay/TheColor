@@ -6,7 +6,8 @@ import androidx.annotation.IdRes
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import com.github.michaelbull.result.Result
-import com.ordolabs.thecolor.ui.fragment.BaseFragment
+import com.github.michaelbull.result.get
+import com.github.michaelbull.result.getOrElse
 import com.ordolabs.thecolor.util.ext.commit
 import com.ordolabs.thecolor.util.ext.error
 import com.ordolabs.thecolor.util.ext.success
@@ -37,6 +38,13 @@ object ContextUtil {
             .toResultOrError { "no fragment with id=$containerId" }
     }
 
+    fun findFragmentByIdOrNull(
+        fm: FragmentManager,
+        @IdRes containerId: Int
+    ): Fragment? {
+        return findFragmentById(fm, containerId).get()
+    }
+
     fun findFragmentByTag(
         fm: FragmentManager,
         transactionTag: String
@@ -47,7 +55,7 @@ object ContextUtil {
 
     fun setFragment(
         fm: FragmentManager,
-        fragment: BaseFragment,
+        fragment: Fragment,
         @IdRes containerId: Int,
         transactionTag: String
     ): Result<Int, Throwable> {
@@ -62,7 +70,7 @@ object ContextUtil {
 
     fun replaceFragment(
         fm: FragmentManager,
-        fragment: BaseFragment,
+        fragment: Fragment,
         @IdRes containerId: Int,
         transactionTag: String
     ): Result<Int, Throwable> {
@@ -83,6 +91,14 @@ object ContextUtil {
             remove(fragment)
         }
         return Result.success(transactionId)
+    }
+
+    fun removeFragment(
+        fm: FragmentManager,
+        @IdRes containerId: Int
+    ): Result<Int, Throwable> {
+        val fragment = findFragmentById(fm, containerId).getOrElse { return Result.error(it) }
+        return removeFragment(fm, fragment)
     }
 
     fun showToast(
