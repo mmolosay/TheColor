@@ -1,4 +1,4 @@
-package com.ordolabs.di
+package com.ordolabs.di.module.data.local
 
 import android.content.Context
 import androidx.room.Room
@@ -9,9 +9,7 @@ import dagger.Provides
 import javax.inject.Singleton
 
 @Module
-class DataLocalModule {
-
-    // region Database
+class DataLocalDatabaseModule {
 
     @Provides
     @Singleton
@@ -35,17 +33,9 @@ class DataLocalModule {
     ): ColorsHistoryDao =
         db.colorsHistoryDao()
 
+    // endregion
+
     companion object {
         private const val DATABASE_NAME = "the_color_db"
     }
-
-    // endregion
-
-    // endregion
-
-    // region DataStore
-
-
-
-    // endregion
 }
