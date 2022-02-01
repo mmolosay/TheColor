@@ -1,4 +1,4 @@
-package com.ordolabs.di.module.data
+package com.ordolabs.di.module.data.repository
 
 import com.ordolabs.data.repository.ColorRemoteRepository
 import com.ordolabs.data.repository.ColorValidatorRepository
@@ -12,7 +12,11 @@ import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton
 
-@Module
+@Module(
+    includes = [
+        DataRepositoryBindModule::class
+    ]
+)
 class DataRepositoryModule {
 
     @Provides

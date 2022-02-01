@@ -13,23 +13,30 @@ import javax.inject.Singleton
 @Module
 class DataRemoteModule {
 
-    fun inject(): Retrofit =
-        provideRetrofit(
-            client = makeOkHttpClient()
-        )
+    // region Api services
 
     @Provides
     @Singleton
+    fun provideTheColorApiService(
+        retrofit: Retrofit
+    ): TheColorApiService =
+        retrofit.create(TheColorApiService::class.java)
+
+    // endregion
+
+    @Provides
     fun provideRetrofit(
-        client: OkHttpClient
+        client: OkHttpClient,
+        baseUrl: String
     ): Retrofit =
         Retrofit.Builder()
-            .baseUrl(THE_COLOR_API_BASE_URL)
+            .baseUrl(baseUrl)
             .client(client)
             .addConverterFactory(MoshiConverterFactory.create())
             .build()
 
-    private fun makeOkHttpClient(): OkHttpClient {
+    @Provides
+    private fun providekHttpClient(): OkHttpClient {
         val httpLoggingInterceptor = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
         }
@@ -39,16 +46,6 @@ class DataRemoteModule {
             .addInterceptor(httpLoggingInterceptor)
             .build()
     }
-
-    // region Api services
-
-    @Provides
-    fun provideTheColorApiService(
-        retrofit: Retrofit
-    ): TheColorApiService =
-        retrofit.create(TheColorApiService::class.java)
-
-    // endregion
 
     companion object {
         private const val THE_COLOR_API_BASE_URL = "https://www.thecolorapi.com/"
