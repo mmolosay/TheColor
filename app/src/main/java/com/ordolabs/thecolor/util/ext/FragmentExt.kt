@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.annotation.IdRes
 import androidx.fragment.app.Fragment
 import com.github.michaelbull.result.Result
+import com.ordolabs.di.AppComponent
 import com.ordolabs.thecolor.ui.fragment.BaseFragment
 import com.ordolabs.thecolor.util.ContextUtil
 
@@ -138,5 +139,12 @@ fun BaseFragment.hideSoftInputAndClearFocus(): Boolean {
         if (wasHidden) this.view?.clearFocus()
     }
 }
+
+// endregion
+
+// region DI
+
+private val Fragment.appComponent: AppComponent
+    get() = requireNotNull(ContextUtil.getAppComponent(context))
 
 // endregion
