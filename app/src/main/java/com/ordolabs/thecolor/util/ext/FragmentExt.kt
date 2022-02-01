@@ -9,10 +9,13 @@ import com.ordolabs.thecolor.ui.fragment.BaseFragment
 import com.ordolabs.thecolor.util.ContextUtil
 
 /**
- * Mostly uses methods of [ContextUtil] object.
+ * Mostly maps methods of [ContextUtil] object.
  */
 
 /***/ // eat file doc
+
+// region Animation
+
 val BaseFragment.shortAnimDuration: Long
     get() = ContextUtil.getShortAnimDuration(context) ?: 0L
 
@@ -30,6 +33,10 @@ fun BaseFragment.findFragmentById(
         containerId
     )
 }
+
+// endregion
+
+// region Fragments
 
 fun BaseFragment.findFragmentByIdOrNull(
     @IdRes containerId: Int = this.defaultFragmentContainerId
@@ -87,6 +94,13 @@ fun BaseFragment.removeFragment(
 fun Fragment.getDefaultTransactionTag(): String =
     this::class.java.simpleName
 
+fun Fragment.getChildFragmentAt(position: Int): Fragment? =
+    childFragmentManager.fragments.getOrNull(position)
+
+// endregion
+
+// region Toasts
+
 fun BaseFragment.showToast(
     text: String?,
     duration: Int = Toast.LENGTH_SHORT
@@ -108,6 +122,10 @@ fun BaseFragment.showToast(
 fun BaseFragment.showToastOfUnhandledError(): Boolean =
     this.showToast(this.defaultUnhandledErrorTextRes)
 
+// endregion
+
+// region Soft input
+
 fun BaseFragment.hideSoftInput(): Boolean {
     val focused = this.view?.findFocus() ?: return false
     return if (focused is EditText) {
@@ -121,6 +139,4 @@ fun BaseFragment.hideSoftInputAndClearFocus(): Boolean {
     }
 }
 
-fun BaseFragment.getChildFragmentAt(position: Int): Fragment? {
-    return childFragmentManager.fragments.getOrNull(position)
-}
+// endregion
