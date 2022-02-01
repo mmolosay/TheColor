@@ -6,6 +6,7 @@ import com.ordolabs.di.module.data.DataModule
 import com.ordolabs.di.module.domain.DomainModule
 import dagger.BindsInstance
 import dagger.Component
+import javax.inject.Singleton
 
 @Component(
     modules = [
@@ -14,6 +15,7 @@ import dagger.Component
         DataModule::class
     ]
 )
+@Singleton
 interface AppComponent {
 
     @Component.Builder
