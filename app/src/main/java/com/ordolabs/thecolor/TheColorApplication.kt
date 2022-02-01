@@ -14,6 +14,8 @@ internal class TheColorApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        this._appComponent = DaggerAppComponent.create()
+        this._appComponent = DaggerAppComponent
+            .builder()
+            .build()
     }
 }
