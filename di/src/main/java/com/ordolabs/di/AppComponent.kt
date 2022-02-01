@@ -2,6 +2,6 @@ package com.ordolabs.di
 
 import dagger.Component
 
-@Component(modules = [LocalDataSourceModule::class])
+@Component/*(modules = [LocalDataSourceModule::class])*/
 interface AppComponent {
 }

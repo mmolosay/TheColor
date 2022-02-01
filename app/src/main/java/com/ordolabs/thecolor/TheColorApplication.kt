@@ -2,6 +2,7 @@ package com.ordolabs.thecolor
 
 import android.app.Application
 import com.ordolabs.di.AppComponent
+import com.ordolabs.di.DaggerAppComponent
 import com.ordolabs.di.localDataSourceModule
 import com.ordolabs.di.networkModule
 import com.ordolabs.di.repositoryModule
@@ -19,6 +20,8 @@ internal class TheColorApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+
+        _appComponent = DaggerAppComponent.create()
 
         startKoin {
             androidContext(this@TheColorApplication)
