@@ -24,19 +24,19 @@ class DataRemoteModule {
 
     // endregion
 
+    // TODO: provide unified Retrofit instance and pass url: String in parameters
     @Provides
     fun provideRetrofit(
-        client: OkHttpClient,
-        baseUrl: String
+        client: OkHttpClient
     ): Retrofit =
         Retrofit.Builder()
-            .baseUrl(baseUrl)
+            .baseUrl(THE_COLOR_API_BASE_URL)
             .client(client)
             .addConverterFactory(MoshiConverterFactory.create())
             .build()
 
     @Provides
-    private fun providekHttpClient(): OkHttpClient {
+    fun provideOkHttpClient(): OkHttpClient {
         val httpLoggingInterceptor = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
         }
