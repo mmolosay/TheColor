@@ -2,7 +2,7 @@ package com.ordolabs.thecolor
 
 import android.app.Application
 import android.content.Context
-import com.ordolabs.core.di.AppComponent
+import com.ordolabs.thecolor.di.AppComponent
 import com.ordolabs.di.DaggerAppComponent
 
 internal class TheColorApplication : Application() {

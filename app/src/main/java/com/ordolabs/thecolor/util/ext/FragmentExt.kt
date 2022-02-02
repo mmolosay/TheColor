@@ -5,7 +5,7 @@ import android.widget.Toast
 import androidx.annotation.IdRes
 import androidx.fragment.app.Fragment
 import com.github.michaelbull.result.Result
-import com.ordolabs.core.di.AppComponent
+import com.ordolabs.thecolor.di.AppComponent
 import com.ordolabs.thecolor.ui.fragment.BaseFragment
 import com.ordolabs.thecolor.util.ContextUtil
 

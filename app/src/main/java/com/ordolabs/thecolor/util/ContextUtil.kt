@@ -8,7 +8,7 @@ import androidx.fragment.app.FragmentManager
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.get
 import com.github.michaelbull.result.getOrElse
-import com.ordolabs.core.di.AppComponent
+import com.ordolabs.thecolor.di.AppComponent
 import com.ordolabs.thecolor.TheColorApplication
 import com.ordolabs.thecolor.util.ext.commit
 import com.ordolabs.thecolor.util.ext.error
