@@ -1,17 +1,9 @@
 package com.ordolabs.data.di
 
-import com.ordolabs.data.di.model.local.DataLocalModule
-import com.ordolabs.data.di.model.remote.DataRemoteModule
-import com.ordolabs.data.di.model.repository.DataRepositoryModule
+import com.ordolabs.data.di.model.DataModule
 import dagger.Component
 
-@Component(
-    modules = [
-        DataLocalModule::class,
-        DataRemoteModule::class,
-        DataRepositoryModule::class
-    ]
-)
+@Component(modules = [DataModule::class])
 class DataComponent {
 
     @Component.Builder

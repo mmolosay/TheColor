@@ -1,4 +1,4 @@
-package com.ordolabs.di.module.domain
+package com.ordolabs.domain.di.module
 
 import com.ordolabs.domain.repository.IColorRemoteRepository
 import com.ordolabs.domain.repository.IColorValidatorRepository
