@@ -56,7 +56,7 @@ android {
 dependencies {
 
     // Modules
-    api project(":di")
+    api project(":core")
     api project(":domain")
 
     // Jetpack
