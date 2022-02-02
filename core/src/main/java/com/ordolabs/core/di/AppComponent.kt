@@ -1,4 +1,4 @@
-package com.ordolabs.di
+package com.ordolabs.core.di
 
 import android.content.Context
 import com.ordolabs.di.module.app.AppModule
