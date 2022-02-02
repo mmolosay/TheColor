@@ -1,12 +1,16 @@
 package com.ordolabs.thecolor.di
 
 import android.content.Context
+import com.ordolabs.core.di.CoreComponent
 import dagger.BindsInstance
 import dagger.Component
 import javax.inject.Singleton
 
-@Component(modules = [AppModule::class])
-@Singleton
+@AppScope
+@Component(
+    modules = [AppModule::class],
+    dependencies = [CoreComponent::class]
+)
 interface AppComponent {
 
     @Component.Builder

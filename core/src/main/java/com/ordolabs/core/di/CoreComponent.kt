@@ -5,7 +5,7 @@ import javax.inject.Singleton
 
 @Singleton
 @Component(modules = [CoreModule::class])
-class CoreComponent {
+interface CoreComponent {
 
     @Component.Builder
     interface Builder {

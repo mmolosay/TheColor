@@ -68,7 +68,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        loadKoinModules(featureHomeModule)
+//        loadKoinModules(featureHomeModule)
     }
 
     override fun onStop() {

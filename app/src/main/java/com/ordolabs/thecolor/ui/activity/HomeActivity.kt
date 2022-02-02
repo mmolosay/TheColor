@@ -9,7 +9,10 @@ class HomeActivity : BaseActivity(R.layout.activity_home) {
     private val binding: ActivityHomeBinding by viewBinding()
 
     override fun setUp() {
-//        setTransparentSystemBars()
+
+    }
+
+    private fun setDiComponent() {
     }
 
     override fun setViews() {
