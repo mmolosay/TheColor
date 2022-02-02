@@ -1,4 +1,4 @@
-package com.ordolabs.di.module.data.local
+package com.ordolabs.data.di.model.local
 
 import android.content.Context
 import androidx.room.Room
