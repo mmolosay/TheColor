@@ -37,4 +37,7 @@ dependencies {
 
     // Modules
     implementation project(":app")
+
+    // Dagger2
+    kapt "com.google.dagger:dagger-compiler:$daggerVersion"
 }

@@ -1,6 +1,7 @@
 plugins {
     id 'java-library'
     id 'kotlin'
+    id 'kotlin-kapt'
 }
 
 java {
@@ -15,4 +16,7 @@ dependencies {
 
     // Kotlin
     api "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1"
+
+    // Dagger2
+    kapt "com.google.dagger:dagger-compiler:$daggerVersion"
 }

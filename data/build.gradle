@@ -38,4 +38,7 @@ dependencies {
 
     implementation project(':core')
     implementation project(':domain')
+
+    // Dagger2
+    kapt "com.google.dagger:dagger-compiler:$daggerVersion"
 }

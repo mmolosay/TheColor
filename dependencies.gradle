@@ -5,6 +5,9 @@ ext {
     // Kotlin
     kotlinVersion = "1.6.1"
 
+    // Dagger
+    daggerVersion = "2.40.5"
+
     // Android Core
     compileSdkV = 31
     targetSdkV = 31

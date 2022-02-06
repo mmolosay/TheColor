@@ -13,14 +13,14 @@ import javax.inject.Singleton
 )
 interface AppComponent {
 
-    @Component.Builder
-    interface Builder {
-
-        @BindsInstance
-        fun dependencies(deps: Dependencies): Builder
-
-        fun build(): AppComponent
-    }
+//    @Component.Builder
+//    interface Builder {
+//
+////        @BindsInstance
+////        fun dependencies(deps: Dependencies): Builder
+//
+//        fun build(): AppComponent
+//    }
 
     interface Dependencies {
 

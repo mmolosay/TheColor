@@ -75,7 +75,6 @@ dependencies {
     api "androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0"
 
     // Material
-
     api "com.google.android.material:material:1.6.0-alpha02"
 
     // Animations
@@ -89,6 +88,9 @@ dependencies {
     // and constant redrawing of such complex view is dramatic for performance (above red line)
 //    api 'io.github.florent37:shapeofview:1.4.7'
     implementation "com.github.ajalt.colormath:colormath:2.1.0"
+
+    // Dagger2
+    kapt "com.google.dagger:dagger-compiler:$daggerVersion"
 
     // Testing
     testImplementation "junit:junit:4.13.2"

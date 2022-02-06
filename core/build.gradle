@@ -12,7 +12,10 @@ java {
 dependencies {
 
     // Dagger2
-    api "com.google.dagger:dagger:2.40.5"
-//    implementation 'com.google.dagger:dagger-android:2.40.5'
-    kapt 'com.google.dagger:dagger-compiler:2.40.5'
+    api "com.google.dagger:dagger:$daggerVersion"
+    // implementation 'com.google.dagger:dagger-android:2.40.5'
+
+    // Seems like there is no way to "api" dagger compiler into dependent modules,
+    // you should add line below in each and every dependent module's build.gradle
+    kapt "com.google.dagger:dagger-compiler:$daggerVersion"
 }

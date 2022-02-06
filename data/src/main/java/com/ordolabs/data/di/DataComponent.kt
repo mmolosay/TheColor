@@ -4,7 +4,7 @@ import com.ordolabs.data.di.model.DataModule
 import dagger.Component
 
 @Component(modules = [DataModule::class])
-class DataComponent {
+interface DataComponent {
 
     @Component.Builder
     interface Builder {
