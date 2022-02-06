@@ -12,7 +12,7 @@ interface CoreComponent {
     @Component.Builder
     interface Builder {
 
-        fun dataComponent(c: DataComponent)
+        fun dataComponent(c: DataComponent): Builder
 
         fun build(): CoreComponent
     }

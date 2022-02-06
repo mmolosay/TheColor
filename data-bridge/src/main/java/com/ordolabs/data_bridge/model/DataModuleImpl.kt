@@ -1,9 +1,9 @@
-package com.ordolabs.data.di.model
+package com.ordolabs.data_bridge.model
 
 import com.ordolabs.core.di.data.DataModule
-import com.ordolabs.data.di.model.local.DataLocalModule
-import com.ordolabs.data.di.model.remote.DataRemoteModule
-import com.ordolabs.data.di.model.repository.DataRepositoryModule
+import com.ordolabs.data_bridge.model.local.DataLocalModule
+import com.ordolabs.data_bridge.model.remote.DataRemoteModule
+import com.ordolabs.data_bridge.model.repository.DataRepositoryModule
 import dagger.Module
 
 @Module(

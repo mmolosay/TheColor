@@ -2,7 +2,10 @@ package com.ordolabs.thecolor
 
 import android.app.Application
 import android.content.Context
+import com.ordolabs.core.di.core.DaggerCoreComponent
+import com.ordolabs.data_bridge.DaggerDataComponentImpl
 import com.ordolabs.thecolor.di.AppComponent
+import com.ordolabs.thecolor.di.DaggerAppComponent
 
 internal class TheColorApplication : Application() {
 
@@ -17,16 +20,19 @@ internal class TheColorApplication : Application() {
     }
 
     private fun setDagger() {
-//        val a = DaggerCoreComponent
-//            .builder()
-//            .dataComponent()
-//        val coreComponent = DaggerCoreComponent.builder().build()
-//        val appComponentDependencies = AppComponentDependenciesImpl()
-//        this._appComponent = DaggerAppComponent
-//            .builder()
-//            .coreComponent(coreComponent)
-//            .dependencies(appComponentDependencies)
-//            .build()
+        val dataComponent = DaggerDataComponentImpl
+            .builder()
+            .build()
+        val coreComponent = DaggerCoreComponent
+            .builder()
+            .dataComponent(dataComponent)
+            .build()
+        val appComponentDependencies = AppComponentDependenciesImpl()
+        this._appComponent = DaggerAppComponent
+            .builder()
+            .coreComponent(coreComponent)
+            .dependencies(appComponentDependencies)
+            .build()
     }
 
     private inner class AppComponentDependenciesImpl : AppComponent.Dependencies {

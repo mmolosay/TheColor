@@ -1,4 +1,4 @@
-package com.ordolabs.data.di.model.remote
+package com.ordolabs.data_bridge.model.remote
 
 import com.ordolabs.data_remote.api.TheColorApiService
 import dagger.Module

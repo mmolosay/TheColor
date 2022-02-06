@@ -1,4 +1,4 @@
-package com.ordolabs.data.di.model.repository
+package com.ordolabs.data_bridge.model.repository
 
 import com.ordolabs.data.repository.ColorRemoteRepository
 import com.ordolabs.data.repository.ColorValidatorRepository
