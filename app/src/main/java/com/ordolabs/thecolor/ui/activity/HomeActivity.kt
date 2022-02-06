@@ -13,6 +13,7 @@ class HomeActivity : BaseActivity(R.layout.activity_home) {
     }
 
     private fun setDiComponent() {
+        
     }
 
     override fun setViews() {
