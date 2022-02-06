@@ -1,7 +1,7 @@
 package com.ordolabs.thecolor.di
 
 import android.content.Context
-import com.ordolabs.core.di.CoreComponent
+import com.ordolabs.core.di.core.CoreComponent
 import dagger.BindsInstance
 import dagger.Component
 

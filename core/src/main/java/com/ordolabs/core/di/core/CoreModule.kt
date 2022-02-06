@@ -1,4 +1,4 @@
-package com.ordolabs.core.di
+package com.ordolabs.core.di.core
 
 import dagger.Module
 
