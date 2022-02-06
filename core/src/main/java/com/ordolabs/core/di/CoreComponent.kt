@@ -3,7 +3,7 @@ package com.ordolabs.core.di
 import dagger.Component
 import javax.inject.Singleton
 
-//@Singleton
+@Singleton
 @Component(modules = [CoreModule::class])
 interface CoreComponent {
 
