@@ -3,6 +3,7 @@ package com.ordolabs.thecolor.di
 import android.content.Context
 import com.ordolabs.data_bridge.DataComponent
 import com.ordolabs.domain.di.DomainComponent
+import com.ordolabs.thecolor.di.scope.AppScope
 import dagger.BindsInstance
 import dagger.Component
 

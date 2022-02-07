@@ -1,7 +1,7 @@
-package com.ordolabs.thecolor.di
+package com.ordolabs.thecolor.di.scope
 
 import javax.inject.Scope
 
 @Scope
 @Retention(AnnotationRetention.RUNTIME)
-annotation class AppScope
+internal annotation class AppScope
