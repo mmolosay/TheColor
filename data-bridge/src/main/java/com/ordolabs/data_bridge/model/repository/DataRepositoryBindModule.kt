@@ -2,6 +2,6 @@ package com.ordolabs.data_bridge.model.repository
 
 import dagger.Module
 
-// TODO: delete if remains empty
+// TODO: replace @Provides-s from DataRepositoryModule with @Binds here
 @Module
 interface DataRepositoryBindModule

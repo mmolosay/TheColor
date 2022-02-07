@@ -1,6 +1,5 @@
 package com.ordolabs.data_bridge.model
 
-import com.ordolabs.core.di.data.DataModule
 import com.ordolabs.data_bridge.model.local.DataLocalModule
 import com.ordolabs.data_bridge.model.remote.DataRemoteModule
 import com.ordolabs.data_bridge.model.repository.DataRepositoryModule
@@ -13,4 +12,4 @@ import dagger.Module
         DataRepositoryModule::class
     ]
 )
-interface DataModuleImpl : DataModule
+interface DataModule
