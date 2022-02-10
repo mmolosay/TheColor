@@ -35,8 +35,8 @@ dependencies {
     // Modules
     api project(':data:local')
     api project(':data:remote')
+    implementation project(':base')
 
-    implementation project(':core')
     implementation project(':domain')
 
     // Dagger2

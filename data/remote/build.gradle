@@ -9,9 +9,9 @@ java {
 }
 
 dependencies {
+    implementation project(':base')
 
     // Modules
-    implementation project(":core")
     implementation project(':domain')
 
     // Retrofit
