@@ -9,9 +9,6 @@ class ViewModelFactory @Inject constructor(
     private val factories: Map<Class<out ViewModel>, @JvmSuppressWildcards Provider<ViewModel>>
 ) : ViewModelProvider.Factory {
 
-    val viewModelsClasses: Set<Class<out ViewModel>>
-        get() = factories.keys
-
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         val key = modelClass as Class<ViewModel>

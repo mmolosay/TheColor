@@ -1,4 +1,4 @@
-package com.ordolabs.thecolor.di
+package com.ordolabs.thecolor.di.module
 
 import dagger.Module
 
