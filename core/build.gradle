@@ -34,4 +34,6 @@ dependencies {
 
     // Modules
     implementation project(":base")
+    implementation project(":domain")
+    implementation project(":data-bridge")
 }
