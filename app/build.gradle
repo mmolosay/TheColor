@@ -53,11 +53,11 @@ android {
 }
 
 dependencies {
-    api project(':base')
 
     // Modules
+    api project(":base")
+    api project(":core")
     api project(":domain")
-    implementation project(":data-bridge")
 
     // Jetpack
     api "androidx.core:core-ktx:1.7.0"
