@@ -1,6 +1,7 @@
 package com.ordolabs.thecolor.di
 
-import com.ordolabs.core.di.CoreComponent
+import com.ordolabs.data_bridge.DataComponent
+import com.ordolabs.domain.di.DomainComponent
 import com.ordolabs.thecolor.di.module.AppModule
 import com.ordolabs.thecolor.di.scope.AppScope
 import dagger.Component
@@ -8,7 +9,10 @@ import dagger.Component
 @AppScope
 @Component(
     modules = [AppModule::class],
-    dependencies = [CoreComponent::class]
+    dependencies = [
+        DataComponent::class,
+        DomainComponent::class
+    ]
 )
 interface AppComponent {
 
@@ -18,7 +22,8 @@ interface AppComponent {
     @Component.Builder
     interface Builder {
 
-        fun coreComponent(instance: CoreComponent): Builder
+        fun dataComponent(instance: DataComponent): Builder
+        fun domainComponent(instance: DomainComponent): Builder
 
         fun build(): AppComponent
     }

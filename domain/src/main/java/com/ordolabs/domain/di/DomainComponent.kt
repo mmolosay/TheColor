@@ -1,12 +1,12 @@
 package com.ordolabs.domain.di
 
 import com.ordolabs.domain.di.module.DomainModule
-import dagger.Subcomponent
+import dagger.Component
 
-@Subcomponent(modules = [DomainModule::class])
+@Component(modules = [DomainModule::class])
 interface DomainComponent {
 
-    @Subcomponent.Builder
+    @Component.Builder
     interface Builder {
 
         fun build(): DomainComponent

@@ -1,14 +1,14 @@
 package com.ordolabs.data_bridge
 
 import com.ordolabs.data_bridge.model.DataModule
-import dagger.Subcomponent
+import dagger.Component
 
-@Subcomponent(
+@Component(
     modules = [DataModule::class]
 )
 interface DataComponent {
 
-    @Subcomponent.Builder
+    @Component.Builder
     interface Builder {
 
         fun build(): DataComponent
