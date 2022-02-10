@@ -144,7 +144,7 @@ fun BaseFragment.hideSoftInputAndClearFocus(): Boolean {
 
 // region DI
 
-private val Fragment.appComponent: AppComponent
+val Fragment.appComponent: AppComponent
     get() = requireNotNull(ContextUtil.getAppComponent(context))
 
 // endregion

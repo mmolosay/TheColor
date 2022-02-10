@@ -22,6 +22,9 @@ import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.HomeFragmentBinding
+import com.ordolabs.feature_home.di.DaggerFeatureHomeComponent
+import com.ordolabs.feature_home.di.FeatureHomeComponent
+import com.ordolabs.feature_home.di.FeatureHomeComponentKeeper
 import com.ordolabs.feature_home.ui.fragment.color.data.ColorDataPagerFragment
 import com.ordolabs.feature_home.ui.fragment.color.input.ColorInputPagerFragment
 import com.ordolabs.feature_home.viewmodel.HomeViewModel
@@ -32,6 +35,7 @@ import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.ColorPreview
 import com.ordolabs.thecolor.model.color.toColorInt
 import com.ordolabs.thecolor.util.AnimationUtils
+import com.ordolabs.thecolor.util.ext.appComponent
 import com.ordolabs.thecolor.util.ext.bindPropertyAnimator
 import com.ordolabs.thecolor.util.ext.by
 import com.ordolabs.thecolor.util.ext.createCircularRevealAnimation
@@ -54,7 +58,11 @@ import android.graphics.Color as ColorAndroid
 import com.google.android.material.R as RMaterial
 import com.ordolabs.thecolor.R as RApp
 
-class HomeFragment : BaseFragment(R.layout.home_fragment) {
+class HomeFragment :
+    BaseFragment(R.layout.home_fragment),
+    FeatureHomeComponentKeeper {
+
+    override val featureHomeComponent: FeatureHomeComponent by lazy(::makeFeatureHomeComponent)
 
     private val binding: HomeFragmentBinding by viewBinding()
     private val homeVM: HomeViewModel by viewModels()
@@ -66,7 +74,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-//        loadKoinModules(featureHomeModule)
+        featureHomeComponent // init
     }
 
     override fun onStop() {
@@ -74,11 +82,21 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
         hideSoftInputAndClearFocus()
     }
 
+    // region Set up
+
     override fun collectViewModelsData() {
         collectColorPreview()
         collectColorInputPrototype()
         collectGetExactColorCommand()
     }
+
+    private fun makeFeatureHomeComponent(): FeatureHomeComponent =
+        DaggerFeatureHomeComponent
+            .builder()
+            .appComponent(appComponent)
+            .build()
+
+    // endregion
 
     // region Set views
 
