@@ -12,12 +12,12 @@ internal class TheColorApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        setDI()
+        setDi()
     }
 
     // region DI
 
-    private fun setDI() {
+    private fun setDi() {
         val dataComponent = DaggerDataComponent
             .builder()
             .applicationContext(this)
