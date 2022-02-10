@@ -1,16 +1,14 @@
 package com.ordolabs.thecolor
 
 import android.app.Application
-import com.ordolabs.core.di.DaggerCoreComponent
+import com.ordolabs.data_bridge.DaggerDataComponent
+import com.ordolabs.domain.di.DaggerDomainComponent
 import com.ordolabs.thecolor.di.AppComponent
 import com.ordolabs.thecolor.di.DaggerAppComponent
 
 internal class TheColorApplication : Application() {
 
-    val appComponent: AppComponent
-        get() = requireNotNull(_appComponent) { "AppComponent is not initialized yet" }
-
-    private var _appComponent: AppComponent? = null
+    lateinit var appComponent: AppComponent
 
     override fun onCreate() {
         super.onCreate()
@@ -20,13 +18,17 @@ internal class TheColorApplication : Application() {
     // region DI
 
     private fun setDI() {
-        val coreComponent = DaggerCoreComponent
+        val dataComponent = DaggerDataComponent
             .builder()
             .applicationContext(this)
             .build()
-        this._appComponent = DaggerAppComponent
+        val domainComponent = DaggerDomainComponent
             .builder()
-            .coreComponent(coreComponent)
+            .repositoryProvisions(dataComponent)
+            .build()
+        this.appComponent = DaggerAppComponent
+            .builder()
+            .domainComponent(domainComponent)
             .build()
     }
 

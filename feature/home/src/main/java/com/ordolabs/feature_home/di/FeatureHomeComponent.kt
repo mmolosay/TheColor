@@ -17,9 +17,7 @@ interface FeatureHomeComponent {
 
     @Component.Builder
     interface Builder {
-
         fun appComponent(appComponent: AppComponent): Builder
-
         fun build(): FeatureHomeComponent
     }
 }

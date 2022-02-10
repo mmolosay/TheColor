@@ -1,3 +1,0 @@
-package com.ordolabs.data_bridge.model.local.preferences
-
-interface DataLocalPreferencesProvisions
