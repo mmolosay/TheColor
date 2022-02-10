@@ -12,6 +12,9 @@ import dagger.Component
 )
 interface AppComponent {
 
+//    val viewModelMultibinding: Map<Class<out ViewModel>, @JvmSuppressWildcards ViewModel>
+//    val viewModelFactory: ViewModelProvider.Factory
+
     @Component.Builder
     interface Builder {
 
