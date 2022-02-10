@@ -19,8 +19,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
+import javax.inject.Inject
 
-class ColorValidatorViewModel(
+class ColorValidatorViewModel @Inject constructor(
     private val validateColorHexUseCase: ValidateColorHexBaseUseCase,
     private val validateColorRgbUseCase: ValidateColorRgbBaseUseCase
 ) : BaseViewModel() {

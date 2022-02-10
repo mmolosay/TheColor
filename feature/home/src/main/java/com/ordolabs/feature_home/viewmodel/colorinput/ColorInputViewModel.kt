@@ -14,6 +14,7 @@ import com.ordolabs.thecolor.util.struct.Resource
 import com.ordolabs.thecolor.util.struct.empty
 import com.ordolabs.thecolor.viewmodel.BaseViewModel
 import kotlinx.coroutines.flow.asStateFlow
+import javax.inject.Inject
 
 /**
  * Contains colors obtained from input or ones to be set in it.
@@ -23,7 +24,7 @@ import kotlinx.coroutines.flow.asStateFlow
  * `View` should call [updateCurrentColor], when there is new [Color], that should be populated
  * in all color input UIs.
  */
-class ColorInputViewModel : BaseViewModel() {
+class ColorInputViewModel @Inject constructor() : BaseViewModel() {
 
     /**
      * `Flow` of [ColorPrototype] of currently active color input UI (such as `Fragment`).
