@@ -10,11 +10,12 @@ import com.ordolabs.thecolor.util.ext.setSuccess
 import com.ordolabs.thecolor.util.struct.getOrNull
 import com.ordolabs.thecolor.viewmodel.BaseViewModel
 import kotlinx.coroutines.flow.asStateFlow
+import javax.inject.Inject
 
 /**
  * Stores [ColorSchemeRequest.Config] parameters and assembles new instances of `Config`.
  */
-class ColorSchemeConfigViewModel : BaseViewModel() {
+class ColorSchemeConfigViewModel @Inject constructor() : BaseViewModel() {
 
     var mode: ColorScheme.Mode = ColorScheme.Mode.DEFAULT
         set(value) {

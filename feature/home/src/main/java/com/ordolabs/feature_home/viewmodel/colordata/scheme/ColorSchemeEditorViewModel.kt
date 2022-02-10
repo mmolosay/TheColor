@@ -10,8 +10,9 @@ import com.ordolabs.thecolor.util.struct.Resource
 import com.ordolabs.thecolor.util.struct.empty
 import com.ordolabs.thecolor.viewmodel.BaseViewModel
 import kotlinx.coroutines.flow.asStateFlow
+import javax.inject.Inject
 
-class ColorSchemeEditorViewModel : BaseViewModel() {
+class ColorSchemeEditorViewModel @Inject constructor() : BaseViewModel() {
 
     private val _dispatchConfigCommand = MutableCommandFlow<Unit>()
     val dispatchConfigCommand = _dispatchConfigCommand.asCommand(viewModelScope)

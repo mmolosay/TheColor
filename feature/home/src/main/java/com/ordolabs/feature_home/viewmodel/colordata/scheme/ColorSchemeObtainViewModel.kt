@@ -15,9 +15,10 @@ import com.ordolabs.thecolor.viewmodel.BaseViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
+import javax.inject.Inject
 import com.ordolabs.domain.model.ColorSchemeRequest as ColorSchemeRequestDomain
 
-class ColorSchemeObtainViewModel(
+class ColorSchemeObtainViewModel @Inject constructor(
     private val getColorSchemeUseCase: GetColorSchemeBaseUseCase
 ) : BaseViewModel() {
 

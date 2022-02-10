@@ -8,8 +8,10 @@ import com.ordolabs.thecolor.model.color.from
 import com.ordolabs.thecolor.util.MutableCommandFlow
 import com.ordolabs.thecolor.util.ext.asCommand
 import com.ordolabs.thecolor.util.ext.setSuccess
+import javax.inject.Inject
 
-class ColorDetailsViewModel : ViewModel() {
+// TODO: derive from BaseViewModel, not ViewModel
+class ColorDetailsViewModel @Inject constructor() : ViewModel() {
 
     private val _getExactColorCommand = MutableCommandFlow<Color>()
     val getExactColorCommand = _getExactColorCommand.asCommand(viewModelScope)
