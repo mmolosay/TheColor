@@ -56,7 +56,6 @@ dependencies {
 
     // Modules
     api project(":base")
-    api project(":core")
     api project(":domain")
 
     // Jetpack
