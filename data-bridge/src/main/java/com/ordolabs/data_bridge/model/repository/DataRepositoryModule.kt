@@ -26,7 +26,7 @@ class DataRepositoryModule {
 
     @Provides
     @Singleton
-    fun provideColorHistoryRepository(
+    fun provideColorsHistoryRepository(
         dao: ColorsHistoryDao
     ): IColorsHistoryRepository =
         ColorsHistoryRepository(dao)
