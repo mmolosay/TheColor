@@ -13,13 +13,9 @@ import com.ordolabs.thecolor.di.mapkey.ViewModelKey
 import dagger.Binds
 import dagger.Module
 import dagger.multibindings.IntoMap
-import dagger.multibindings.Multibinds
 
 @Module
 interface FeatureHomeViewModelModule {
-
-    @Multibinds
-    fun multibindViewModels(): Map<Class<out ViewModel>, @JvmSuppressWildcards ViewModel>
 
     // region Home
 
