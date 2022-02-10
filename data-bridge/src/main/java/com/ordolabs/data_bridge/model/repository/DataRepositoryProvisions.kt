@@ -1,12 +1,5 @@
 package com.ordolabs.data_bridge.model.repository
 
-import com.ordolabs.data.repository.ColorsHistoryRepository
-import com.ordolabs.domain.repository.IColorRemoteRepository
-import com.ordolabs.domain.repository.IColorValidatorRepository
+import com.ordolabs.domain.di.RepositoryProvisions
 
-interface DataRepositoryProvisions {
-
-    val colorValidationRepository: IColorValidatorRepository
-    val colorsHistoryRepository: ColorsHistoryRepository
-    val colorRemoteRepository: IColorRemoteRepository
-}
+interface DataRepositoryProvisions : RepositoryProvisions
