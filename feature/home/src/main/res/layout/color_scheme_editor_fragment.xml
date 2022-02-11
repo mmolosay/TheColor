@@ -9,13 +9,13 @@
     tools:theme="@style/ThemeOverlay.TheColor.Dark">
 
     <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/colorSchemeFragmentContainer"
+        android:id="@+id/schemeFragmentContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         tools:layout="@layout/color_scheme_fragment" />
 
     <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/colorSchemeSettingsFragmnetContainer"
+        android:id="@+id/configFragmentContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/offset_content_horizontal"

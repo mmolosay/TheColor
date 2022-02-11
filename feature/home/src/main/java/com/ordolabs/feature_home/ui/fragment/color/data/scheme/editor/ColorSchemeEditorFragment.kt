@@ -16,6 +16,7 @@ import com.ordolabs.feature_home.databinding.ColorSchemeEditorFragmentBinding
 import com.ordolabs.feature_home.ui.fragment.color.data.base.BaseColorDataFragment
 import com.ordolabs.feature_home.ui.fragment.color.data.base.IColorDataFragment
 import com.ordolabs.feature_home.ui.fragment.color.data.scheme.ColorSchemeFragment
+import com.ordolabs.feature_home.util.FeatureHomeUtil.featureHomeComponent
 import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeConfigViewModel
 import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeEditorViewModel
 import com.ordolabs.thecolor.model.color.data.ColorScheme
@@ -39,7 +40,8 @@ class ColorSchemeEditorFragment :
     private val binding: ColorSchemeEditorFragmentBinding by viewBinding(CreateMethod.BIND)
     private val schemeEditorVM: ColorSchemeEditorViewModel by parentViewModels()
     private val schemeConfigVM: ColorSchemeConfigViewModel by viewModels(
-        ownerProducer = { configFragment ?: this }
+        ownerProducer = { configFragment ?: this },
+        factoryProducer = { featureHomeComponent.viewModelFactory }
     )
 
     private var schemeFragment: IColorDataFragment<ColorScheme>? = null
@@ -76,13 +78,13 @@ class ColorSchemeEditorFragment :
     private fun setColorShemeFragment() {
         val fragment = ColorSchemeFragment()
         this.schemeFragment = fragment
-        setFragment(fragment, binding.colorSchemeFragmentContainer.id)
+        setFragment(fragment, binding.schemeFragmentContainer.id)
     }
 
     private fun setColorSchemeSettingsFragment() {
         val fragment = ColorSchemeConfigFragment()
         this.configFragment = fragment
-        setFragment(fragment, binding.colorSchemeSettingsFragmnetContainer.id)
+        setFragment(fragment, binding.configFragmentContainer.id)
     }
 
     // endregion
