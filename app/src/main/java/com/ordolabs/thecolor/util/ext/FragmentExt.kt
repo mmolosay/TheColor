@@ -5,7 +5,6 @@ import android.widget.Toast
 import androidx.annotation.IdRes
 import androidx.annotation.MainThread
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentContainerView
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -168,22 +167,6 @@ inline fun <reified VM : ViewModel> Fragment.parentViewModels(
 ): Lazy<VM> =
     this.viewModels(
         ownerProducer = { this.parentFragment ?: this },
-        factoryProducer = factoryProducer
-    )
-
-/**
- * Returns a property delegate to access ViewModel, scoped to `Fragment` inside [childFragmentContainer].
- *
- * If there is no `Fragment` in there, then ViewModel will be
- * scoped (or created, if there is none) from `this` `Framgent`.
- */
-@MainThread
-inline fun <reified VM : ViewModel> Fragment.childViewModels(
-    childFragmentContainer: FragmentContainerView,
-    noinline factoryProducer: (() -> ViewModelProvider.Factory)? = null
-): Lazy<VM> =
-    this.viewModels(
-        ownerProducer = { childFragmentContainer.getFragment() ?: this },
         factoryProducer = factoryProducer
     )
 
