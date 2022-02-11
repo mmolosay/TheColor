@@ -157,6 +157,7 @@ val Fragment.appComponent: AppComponent
 
 /**
  * Returns a property delegate to access ViewModel, scoped to `this` [Fragment.getParentFragment].
+ * If `this` `Fragment` has no parent, then ViewModel will be scoped from `this` `Framgent`.
  */
 @MainThread
 inline fun <reified VM : ViewModel> Fragment.parentViewModels(
