@@ -14,9 +14,21 @@ import dagger.Component
 )
 interface FeatureHomeComponent {
 
+    // region Provisions
+
+    // provisions are declared in-place (not in interface),
+    // because feature components are final and should not be inherited
+
     val viewModelFactory: ViewModelProvider.Factory
 
+    // endregion
+
+    // region Injections
+
+
     fun inject(dest: HomeFragment)
+
+    // endregion
 
     @Component.Builder
     interface Builder {
