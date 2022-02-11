@@ -3,7 +3,11 @@ package com.ordolabs.thecolor.util.ext
 import android.widget.EditText
 import android.widget.Toast
 import androidx.annotation.IdRes
+import androidx.annotation.MainThread
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import com.github.michaelbull.result.Result
 import com.ordolabs.thecolor.di.AppComponent
 import com.ordolabs.thecolor.ui.fragment.BaseFragment
@@ -146,5 +150,21 @@ fun BaseFragment.hideSoftInputAndClearFocus(): Boolean {
 
 val Fragment.appComponent: AppComponent
     get() = requireNotNull(ContextUtil.getAppComponent(context))
+
+// endregion
+
+// region ViewModels
+
+/**
+ * Returns a property delegate to access ViewModel, scoped to `this` [Fragment.getParentFragment].
+ */
+@MainThread
+inline fun <reified VM : ViewModel> Fragment.parentViewModels(
+    factory: ViewModelProvider.Factory
+): Lazy<VM> =
+    this.viewModels(
+        ownerProducer = { this.requireParentFragment() },
+        factoryProducer = { factory }
+    )
 
 // endregion
