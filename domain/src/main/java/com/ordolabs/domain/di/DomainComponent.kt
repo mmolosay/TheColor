@@ -7,14 +7,14 @@ import javax.inject.Singleton
 @Singleton
 @Component(
     modules = [DomainModule::class],
-    dependencies = [RepositoryProvisions::class]
+    dependencies = [DomainDependencies::class]
 )
 interface DomainComponent : DomainProvisions {
 
     @Component.Builder
     interface Builder {
 
-        fun repositoryProvisions(instance: RepositoryProvisions): Builder
+        fun dependencies(instance: DomainDependencies): Builder
         fun build(): DomainComponent
     }
 }

@@ -24,7 +24,7 @@ internal class TheColorApplication : Application() {
             .build()
         val domainComponent = DaggerDomainComponent
             .builder()
-            .repositoryProvisions(dataComponent)
+            .dependencies(dataComponent)
             .build()
         this.appComponent = DaggerAppComponent
             .builder()
