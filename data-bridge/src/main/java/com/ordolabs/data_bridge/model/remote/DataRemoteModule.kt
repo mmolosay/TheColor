@@ -15,8 +15,8 @@ class DataRemoteModule {
 
     // region Api services
 
-    @Provides
     @Singleton
+    @Provides
     fun provideTheColorApiService(
         retrofit: Retrofit
     ): TheColorApiService =
@@ -24,7 +24,7 @@ class DataRemoteModule {
 
     // endregion
 
-    // TODO: provide unified Retrofit instance and pass url: String in parameters
+    @Singleton
     @Provides
     fun provideRetrofit(
         client: OkHttpClient
@@ -35,6 +35,7 @@ class DataRemoteModule {
             .addConverterFactory(MoshiConverterFactory.create())
             .build()
 
+    @Singleton
     @Provides
     fun provideOkHttpClient(): OkHttpClient {
         val httpLoggingInterceptor = HttpLoggingInterceptor().apply {
