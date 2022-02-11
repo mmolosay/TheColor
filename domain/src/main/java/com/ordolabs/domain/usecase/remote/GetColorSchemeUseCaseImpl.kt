@@ -6,11 +6,11 @@ import com.ordolabs.domain.repository.IColorRemoteRepository
 import com.ordolabs.domain.usecase.BaseUseCase
 import kotlinx.coroutines.flow.Flow
 
-typealias GetColorSchemeBaseUseCase = BaseUseCase<ColorSchemeRequest, ColorScheme>
+interface GetColorSchemeUseCase : BaseUseCase<ColorSchemeRequest, ColorScheme>
 
-class GetColorSchemeUseCase(
+class GetColorSchemeUseCaseImpl(
     private val colorRemoteRepository: IColorRemoteRepository
-) : GetColorSchemeBaseUseCase {
+) : GetColorSchemeUseCase {
 
     override suspend fun invoke(param: ColorSchemeRequest): Flow<ColorScheme> =
         colorRemoteRepository.fetchColorScheme(param)

@@ -5,11 +5,11 @@ import com.ordolabs.domain.repository.IColorValidatorRepository
 import com.ordolabs.domain.usecase.BaseUseCase
 import kotlinx.coroutines.flow.Flow
 
-typealias ValidateColorHexBaseUseCase = BaseUseCase<ColorHex?, Boolean>
+interface ValidateColorHexUseCase : BaseUseCase<ColorHex?, Boolean>
 
-class ValidateColorHexUseCase(
+class ValidateColorHexUseCaseImpl(
     private val colorValidatorRepository: IColorValidatorRepository
-) : ValidateColorHexBaseUseCase {
+) : ValidateColorHexUseCase {
 
     override suspend fun invoke(param: ColorHex?): Flow<Boolean> =
         colorValidatorRepository.validateColor(param)

@@ -1,7 +1,7 @@
 package com.ordolabs.feature_home.viewmodel.colorinput
 
-import com.ordolabs.domain.usecase.local.ValidateColorHexBaseUseCase
-import com.ordolabs.domain.usecase.local.ValidateColorRgbBaseUseCase
+import com.ordolabs.domain.usecase.local.ValidateColorHexUseCase
+import com.ordolabs.domain.usecase.local.ValidateColorRgbUseCase
 import com.ordolabs.thecolor.mapper.toDomain
 import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.ColorPreview
@@ -22,8 +22,8 @@ import kotlinx.coroutines.flow.collect
 import javax.inject.Inject
 
 class ColorValidatorViewModel @Inject constructor(
-    private val validateColorHexUseCase: ValidateColorHexBaseUseCase,
-    private val validateColorRgbUseCase: ValidateColorRgbBaseUseCase
+    private val validateColorHexUseCase: ValidateColorHexUseCase,
+    private val validateColorRgbUseCase: ValidateColorRgbUseCase
 ) : BaseViewModel() {
 
     private val _colorPreview: MutableStateFlow<Resource<ColorPreview>>

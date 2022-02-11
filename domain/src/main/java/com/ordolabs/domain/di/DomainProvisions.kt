@@ -1,15 +1,15 @@
 package com.ordolabs.domain.di
 
-import com.ordolabs.domain.usecase.local.ValidateColorHexBaseUseCase
-import com.ordolabs.domain.usecase.local.ValidateColorRgbBaseUseCase
-import com.ordolabs.domain.usecase.remote.GetColorDetailsBaseUseCase
-import com.ordolabs.domain.usecase.remote.GetColorSchemeBaseUseCase
+import com.ordolabs.domain.usecase.local.ValidateColorHexUseCase
+import com.ordolabs.domain.usecase.local.ValidateColorRgbUseCase
+import com.ordolabs.domain.usecase.remote.GetColorDetailsUseCase
+import com.ordolabs.domain.usecase.remote.GetColorSchemeUseCase
 
 interface DomainProvisions {
 
-    val validateColorUseCase: ValidateColorHexBaseUseCase
-    val validateColorRgbUseCase: ValidateColorRgbBaseUseCase
+    val validateColorUseCase: ValidateColorHexUseCase
+    val validateColorRgbUseCase: ValidateColorRgbUseCase
 
-    val getColorDetailsUseCase: GetColorDetailsBaseUseCase
-    val getColorSchemeUseCase: GetColorSchemeBaseUseCase
+    val getColorDetailsUseCase: GetColorDetailsUseCase
+    val getColorSchemeUseCase: GetColorSchemeUseCase
 }

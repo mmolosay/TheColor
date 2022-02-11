@@ -1,6 +1,6 @@
 package com.ordolabs.feature_home.viewmodel.colordata.details
 
-import com.ordolabs.domain.usecase.remote.GetColorDetailsBaseUseCase
+import com.ordolabs.domain.usecase.remote.GetColorDetailsUseCase
 import com.ordolabs.thecolor.mapper.toPresentation
 import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.data.ColorDetails
@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.collect
 import javax.inject.Inject
 
 class ColorDetailsObtainViewModel @Inject constructor(
-    private val getColorDetailsUseCase: GetColorDetailsBaseUseCase
+    private val getColorDetailsUseCase: GetColorDetailsUseCase
 ) : BaseViewModel() {
 
     private val _details = MutableStateResourceFlow<ColorDetails>(Resource.empty())
