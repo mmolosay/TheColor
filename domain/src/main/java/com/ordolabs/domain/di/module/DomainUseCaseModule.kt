@@ -1,7 +1,7 @@
 package com.ordolabs.domain.di.module
 
-import com.ordolabs.domain.repository.IColorRemoteRepository
-import com.ordolabs.domain.repository.IColorValidatorRepository
+import com.ordolabs.domain.repository.ColorRemoteRepository
+import com.ordolabs.domain.repository.ColorValidatorRepository
 import com.ordolabs.domain.usecase.local.ValidateColorHexUseCase
 import com.ordolabs.domain.usecase.local.ValidateColorHexUseCaseImpl
 import com.ordolabs.domain.usecase.local.ValidateColorRgbUseCase
@@ -20,28 +20,28 @@ class DomainUseCaseModule {
     @Provides
     @Singleton
     fun provideValidateColorHexUseCase(
-        repository: IColorValidatorRepository
+        repository: ColorValidatorRepository
     ): ValidateColorHexUseCase =
         ValidateColorHexUseCaseImpl(repository)
 
     @Provides
     @Singleton
     fun provideValidateColorRgbUseCase(
-        repository: IColorValidatorRepository
+        repository: ColorValidatorRepository
     ): ValidateColorRgbUseCase =
         ValidateColorRgbUseCaseImpl(repository)
 
     @Provides
     @Singleton
     fun provideGetColorDetailsUseCase(
-        repository: IColorRemoteRepository
+        repository: ColorRemoteRepository
     ): GetColorDetailsUseCase =
         GetColorDetailsUseCaseImpl(repository)
 
     @Provides
     @Singleton
     fun provideGetColorSchemeUseCase(
-        repository: IColorRemoteRepository
+        repository: ColorRemoteRepository
     ): GetColorSchemeUseCase =
         GetColorSchemeUseCaseImpl(repository)
 }

@@ -5,13 +5,13 @@ import com.ordolabs.data_remote.mapper.toDomain
 import com.ordolabs.domain.model.ColorDetails
 import com.ordolabs.domain.model.ColorScheme
 import com.ordolabs.domain.model.ColorSchemeRequest
-import com.ordolabs.domain.repository.IColorRemoteRepository
+import com.ordolabs.domain.repository.ColorRemoteRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
-class ColorRemoteRepository(
+class ColorRemoteRepositoryImpl(
     private val api: TheColorApiService
-) : IColorRemoteRepository {
+) : ColorRemoteRepository {
 
     override suspend fun fetchColorDetails(colorHex: String): Flow<ColorDetails> = flow {
         val response = api.getColorDetails(hex = colorHex)

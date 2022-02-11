@@ -2,11 +2,11 @@ package com.ordolabs.data.repository
 
 import com.ordolabs.domain.model.ColorHex
 import com.ordolabs.domain.model.ColorRgb
-import com.ordolabs.domain.repository.IColorValidatorRepository
+import com.ordolabs.domain.repository.ColorValidatorRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
-class ColorValidatorRepository : IColorValidatorRepository {
+class ColorValidatorRepositoryImpl : ColorValidatorRepository {
 
     override fun validateColor(color: ColorHex?): Flow<Boolean> = flow {
         if (color == null) {
