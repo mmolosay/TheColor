@@ -160,10 +160,10 @@ val Fragment.appComponent: AppComponent
  */
 @MainThread
 inline fun <reified VM : ViewModel> Fragment.parentViewModels(
-    noinline factoryProducer: () -> ViewModelProvider.Factory
+    noinline factoryProducer: (() -> ViewModelProvider.Factory)? = null
 ): Lazy<VM> =
     this.viewModels(
-        ownerProducer = { this.requireParentFragment() },
+        ownerProducer = { this.parentFragment ?: this },
         factoryProducer = factoryProducer
     )
 
