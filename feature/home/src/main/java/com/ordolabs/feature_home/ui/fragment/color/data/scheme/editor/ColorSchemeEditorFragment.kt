@@ -6,11 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
+import com.ordolabs.base.util.firstOf
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorSchemeEditorFragmentBinding
 import com.ordolabs.feature_home.ui.fragment.color.data.base.BaseColorDataFragment
@@ -40,12 +40,11 @@ class ColorSchemeEditorFragment :
     private val binding: ColorSchemeEditorFragmentBinding by viewBinding(CreateMethod.BIND)
     private val schemeEditorVM: ColorSchemeEditorViewModel by parentViewModels()
     private val schemeConfigVM: ColorSchemeConfigViewModel by viewModels(
-        ownerProducer = { configFragment ?: this },
+        ownerProducer = { childViewModelOwners.firstOf<ColorSchemeConfigFragment>() ?: this },
         factoryProducer = { featureHomeComponent.viewModelFactory }
     )
 
     private var schemeFragment: IColorDataFragment<ColorScheme>? = null
-    private var configFragment: Fragment? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -64,7 +63,6 @@ class ColorSchemeEditorFragment :
     override fun onDestroy() {
         super.onDestroy()
         this.schemeFragment = null
-        this.configFragment = null
     }
 
     // region Set fragments
@@ -83,7 +81,7 @@ class ColorSchemeEditorFragment :
 
     private fun setColorSchemeSettingsFragment() {
         val fragment = ColorSchemeConfigFragment()
-        this.configFragment = fragment
+        childViewModelOwners.add(fragment)
         setFragment(fragment, binding.configFragmentContainer.id)
     }
 
