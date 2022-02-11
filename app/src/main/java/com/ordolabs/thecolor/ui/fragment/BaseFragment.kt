@@ -8,6 +8,7 @@ import androidx.annotation.LayoutRes
 import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.ordolabs.thecolor.R
@@ -34,6 +35,12 @@ abstract class BaseFragment : Fragment {
         activity?.window?.attributes?.softInputMode
     }
 
+    /**
+     * List of child [ViewModelStoreOwner]s, which `this` fragment can access.
+     * You should manually add them. List will be cleared in [onDestroy].
+     */
+    protected val childViewModelOwners = arrayListOf<ViewModelStoreOwner>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initialSoftInputMode // initialize
@@ -50,6 +57,7 @@ abstract class BaseFragment : Fragment {
     override fun onDestroy() {
         super.onDestroy()
         restoreSoftInputMode()
+        childViewModelOwners.clear()
     }
 
     private fun updateSoftInputMode() {
@@ -113,7 +121,7 @@ abstract class BaseFragment : Fragment {
         crossinline action: suspend (value: T) -> Unit
     ) =
         lifecycleScope.launch {
-            lifecycle.repeatOnLifecycle(state) {
+            viewLifecycleOwner.repeatOnLifecycle(state) {
                 this@collectOnLifecycle.collect(action)
             }
         }
