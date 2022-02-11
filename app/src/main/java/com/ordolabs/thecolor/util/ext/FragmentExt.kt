@@ -160,11 +160,11 @@ val Fragment.appComponent: AppComponent
  */
 @MainThread
 inline fun <reified VM : ViewModel> Fragment.parentViewModels(
-    factory: ViewModelProvider.Factory
+    noinline factoryProducer: () -> ViewModelProvider.Factory
 ): Lazy<VM> =
     this.viewModels(
         ownerProducer = { this.requireParentFragment() },
-        factoryProducer = { factory }
+        factoryProducer = factoryProducer
     )
 
 // endregion

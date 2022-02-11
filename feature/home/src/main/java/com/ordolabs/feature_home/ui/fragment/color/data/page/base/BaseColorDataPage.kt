@@ -5,17 +5,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.view.ContextThemeWrapper
-import androidx.fragment.app.viewModels
 import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDataPageFragmentBinding
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.ui.fragment.color.data.IColorThemed
+import com.ordolabs.feature_home.util.FeatureHomeUtil.featureHomeComponent
 import com.ordolabs.feature_home.viewmodel.colordata.ColorDataViewModel
 import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.isDark
 import com.ordolabs.thecolor.util.ext.getNextFor
+import com.ordolabs.thecolor.util.ext.parentViewModels
 import com.ordolabs.thecolor.util.ext.setFragment
 import com.ordolabs.thecolor.R as RApp
 
@@ -25,7 +26,9 @@ abstract class BaseColorDataPage :
     IColorThemed {
 
     private val binding: ColorDataPageFragmentBinding by viewBinding(CreateMethod.BIND)
-    private val colorDataVM: ColorDataViewModel by viewModels()
+    private val colorDataVM: ColorDataViewModel by parentViewModels {
+        featureHomeComponent.viewModelFactory
+    }
 
     override val color: Color?
         get() = (parentFragment as? IColorThemed)?.color

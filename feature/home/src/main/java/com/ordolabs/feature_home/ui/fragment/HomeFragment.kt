@@ -20,7 +20,6 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModelProvider
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.HomeFragmentBinding
@@ -56,7 +55,6 @@ import com.ordolabs.thecolor.util.restoreNavigationBarColor
 import com.ordolabs.thecolor.util.setNavigationBarColor
 import com.ordolabs.thecolor.util.struct.AnimatorDestination
 import com.ordolabs.thecolor.util.struct.getOrNull
-import javax.inject.Inject
 import android.graphics.Color as ColorAndroid
 import com.google.android.material.R as RMaterial
 import com.ordolabs.thecolor.R as RApp
@@ -67,20 +65,23 @@ class HomeFragment :
 
     override val featureHomeComponent: FeatureHomeComponent by lazy(::makeFeatureHomeComponent)
 
-    @Inject
-    lateinit var viewModelFactory: ViewModelProvider.Factory
-
     private val binding: HomeFragmentBinding by viewBinding()
     private val homeVM: HomeViewModel /*by viewModels()*/ = HomeViewModel(SavedStateHandle())
-    private val colorInputVM: ColorInputViewModel by activityViewModels { viewModelFactory }
-    private val colorDetailsVM: ColorDetailsViewModel by activityViewModels { viewModelFactory }
-    private val colorValidatorVM: ColorValidatorViewModel by activityViewModels { viewModelFactory }
+    private val colorInputVM: ColorInputViewModel by activityViewModels {
+        featureHomeComponent.viewModelFactory
+    }
+    private val colorDetailsVM: ColorDetailsViewModel by activityViewModels {
+        featureHomeComponent.viewModelFactory
+    }
+    private val colorValidatorVM: ColorValidatorViewModel by activityViewModels {
+        featureHomeComponent.viewModelFactory
+    }
 
     private val previewResizeDest = AnimatorDestination()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        featureHomeComponent.inject(this)
+        featureHomeComponent // init
     }
 
     override fun onStop() {

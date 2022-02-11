@@ -8,17 +8,18 @@ import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.core.text.buildSpannedString
 import androidx.core.text.color
-import androidx.fragment.app.viewModels
 import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.chip.Chip
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorSchemeConfigFragmentBinding
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
+import com.ordolabs.feature_home.util.FeatureHomeUtil.featureHomeComponent
 import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeConfigViewModel
 import com.ordolabs.thecolor.model.color.data.ColorScheme
 import com.ordolabs.thecolor.model.color.data.ColorSchemeRequest
 import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
+import com.ordolabs.thecolor.util.ext.parentViewModels
 import com.google.android.material.R as RMaterial
 
 /**
@@ -30,7 +31,9 @@ import com.google.android.material.R as RMaterial
 class ColorSchemeConfigFragment : BaseFragment() {
 
     private val binding: ColorSchemeConfigFragmentBinding by viewBinding(CreateMethod.BIND)
-    private val schemeConfigVM: ColorSchemeConfigViewModel by viewModels()
+    private val schemeConfigVM: ColorSchemeConfigViewModel by parentViewModels {
+        featureHomeComponent.viewModelFactory
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,

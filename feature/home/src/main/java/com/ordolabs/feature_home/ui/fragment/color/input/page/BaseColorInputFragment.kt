@@ -2,8 +2,9 @@ package com.ordolabs.feature_home.ui.fragment.color.input.page
 
 import androidx.annotation.CallSuper
 import androidx.annotation.LayoutRes
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
+import com.ordolabs.feature_home.util.FeatureHomeUtil.featureHomeComponent
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
 import com.ordolabs.thecolor.model.color.ColorPrototype
 import com.ordolabs.thecolor.util.struct.Resource
@@ -27,7 +28,9 @@ abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment {
     constructor() : super()
     constructor(@LayoutRes layoutRes: Int) : super(layoutRes)
 
-    protected val colorInputVM: ColorInputViewModel by viewModels()
+    protected val colorInputVM: ColorInputViewModel by activityViewModels {
+        featureHomeComponent.viewModelFactory
+    }
 
     private var currentPrototype: ColorPrototype? = null
     private var isTypedByUser: Boolean = true

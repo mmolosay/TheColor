@@ -8,12 +8,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDetailsFragmentBinding
 import com.ordolabs.feature_home.ui.fragment.color.data.base.BaseColorDataFragment
+import com.ordolabs.feature_home.util.FeatureHomeUtil.featureHomeComponent
 import com.ordolabs.feature_home.viewmodel.colordata.details.ColorDetailsViewModel
 import com.ordolabs.thecolor.model.color.data.ColorDetails
 import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
@@ -28,7 +29,9 @@ class ColorDetailsFragment :
     BaseColorDataFragment<ColorDetails>() {
 
     private val binding: ColorDetailsFragmentBinding by viewBinding(CreateMethod.BIND)
-    private val colorDetailsVM: ColorDetailsViewModel by viewModels()
+    private val colorDetailsVM: ColorDetailsViewModel by activityViewModels {
+        featureHomeComponent.viewModelFactory
+    }
 
     private var colorDetails: ColorDetails? = null
 

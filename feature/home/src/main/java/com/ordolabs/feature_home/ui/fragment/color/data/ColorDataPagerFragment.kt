@@ -13,6 +13,7 @@ import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDataPagerFragmentBinding
 import com.ordolabs.feature_home.ui.adapter.pager.ColorDataPagerAdapter
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
+import com.ordolabs.feature_home.util.FeatureHomeUtil.featureHomeComponent
 import com.ordolabs.feature_home.viewmodel.colordata.ColorDataViewModel
 import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.isDark
@@ -24,7 +25,9 @@ class ColorDataPagerFragment :
     IColorThemed {
 
     private val binding: ColorDataPagerFragmentBinding by viewBinding(CreateMethod.BIND)
-    private val colorDataVM: ColorDataViewModel by viewModels()
+    private val colorDataVM: ColorDataViewModel by viewModels {
+        featureHomeComponent.viewModelFactory
+    }
 
     override var color: Color? = null
 
