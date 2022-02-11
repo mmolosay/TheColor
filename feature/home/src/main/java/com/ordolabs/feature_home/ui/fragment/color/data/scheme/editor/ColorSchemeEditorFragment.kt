@@ -22,6 +22,7 @@ import com.ordolabs.thecolor.model.color.data.ColorScheme
 import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
 import com.ordolabs.thecolor.util.ext.by
 import com.ordolabs.thecolor.util.ext.mediumAnimDuration
+import com.ordolabs.thecolor.util.ext.parentViewModels
 import com.ordolabs.thecolor.util.ext.setFragment
 import com.ordolabs.thecolor.util.struct.getOrNull
 import com.ordolabs.thecolor.R as RApp
@@ -36,7 +37,7 @@ class ColorSchemeEditorFragment :
     BaseColorDataFragment<ColorScheme>() {
 
     private val binding: ColorSchemeEditorFragmentBinding by viewBinding(CreateMethod.BIND)
-    private val schemeEditorVM: ColorSchemeEditorViewModel by viewModels {
+    private val schemeEditorVM: ColorSchemeEditorViewModel by parentViewModels {
         featureHomeComponent.viewModelFactory
     }
     private val schemeConfigVM: ColorSchemeConfigViewModel by viewModels {
