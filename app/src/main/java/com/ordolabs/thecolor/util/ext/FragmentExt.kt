@@ -5,10 +5,10 @@ import android.widget.Toast
 import androidx.annotation.IdRes
 import androidx.annotation.MainThread
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentContainerView
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelStoreOwner
 import com.github.michaelbull.result.Result
 import com.ordolabs.thecolor.di.AppComponent
 import com.ordolabs.thecolor.ui.fragment.BaseFragment
@@ -158,7 +158,9 @@ val Fragment.appComponent: AppComponent
 
 /**
  * Returns a property delegate to access ViewModel, scoped to `this` [Fragment.getParentFragment].
- * If `this` `Fragment` has no parent, then ViewModel will be scoped from `this` `Framgent`.
+ *
+ * If `this` `Fragment` has no parent, then ViewModel will be
+ * scoped (or created, if there is none) from `this` `Framgent`.
  */
 @MainThread
 inline fun <reified VM : ViewModel> Fragment.parentViewModels(
@@ -170,27 +172,19 @@ inline fun <reified VM : ViewModel> Fragment.parentViewModels(
     )
 
 /**
- * Returns a property delegate to access ViewModel, scoped to `this` [Fragment.getParentFragment].
- * If `this` `Fragment` has no parent, then ViewModel will be scoped from `this` `Framgent`.
+ * Returns a property delegate to access ViewModel, scoped to `Fragment` inside [childFragmentContainer].
+ *
+ * If there is no `Fragment` in there, then ViewModel will be
+ * scoped (or created, if there is none) from `this` `Framgent`.
  */
 @MainThread
 inline fun <reified VM : ViewModel> Fragment.childViewModels(
-    owner: ViewModelStoreOwner,
+    childFragmentContainer: FragmentContainerView,
     noinline factoryProducer: (() -> ViewModelProvider.Factory)? = null
 ): Lazy<VM> =
     this.viewModels(
-        ownerProducer = { owner },
+        ownerProducer = { childFragmentContainer.getFragment() ?: this },
         factoryProducer = factoryProducer
     )
-
-//@MainThread
-//inline fun <reified VM : ViewModel> Fragment.childViewModels(
-//    childFragmentContainer: FragmentContainerView,
-//    noinline factoryProducer: (() -> ViewModelProvider.Factory)? = null
-//): Lazy<VM> =
-//    this.viewModels(
-//        ownerProducer = { childFragmentContainer.getFrag },
-//        factoryProducer = factoryProducer
-//    )
 
 // endregion
