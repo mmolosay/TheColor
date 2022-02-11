@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStoreOwner
 import com.github.michaelbull.result.Result
 import com.ordolabs.thecolor.di.AppComponent
 import com.ordolabs.thecolor.ui.fragment.BaseFragment
@@ -167,5 +168,29 @@ inline fun <reified VM : ViewModel> Fragment.parentViewModels(
         ownerProducer = { this.parentFragment ?: this },
         factoryProducer = factoryProducer
     )
+
+/**
+ * Returns a property delegate to access ViewModel, scoped to `this` [Fragment.getParentFragment].
+ * If `this` `Fragment` has no parent, then ViewModel will be scoped from `this` `Framgent`.
+ */
+@MainThread
+inline fun <reified VM : ViewModel> Fragment.childViewModels(
+    owner: ViewModelStoreOwner,
+    noinline factoryProducer: (() -> ViewModelProvider.Factory)? = null
+): Lazy<VM> =
+    this.viewModels(
+        ownerProducer = { owner },
+        factoryProducer = factoryProducer
+    )
+
+//@MainThread
+//inline fun <reified VM : ViewModel> Fragment.childViewModels(
+//    childFragmentContainer: FragmentContainerView,
+//    noinline factoryProducer: (() -> ViewModelProvider.Factory)? = null
+//): Lazy<VM> =
+//    this.viewModels(
+//        ownerProducer = { childFragmentContainer.getFrag },
+//        factoryProducer = factoryProducer
+//    )
 
 // endregion
