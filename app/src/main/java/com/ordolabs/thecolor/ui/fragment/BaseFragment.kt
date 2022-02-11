@@ -42,6 +42,7 @@ abstract class BaseFragment : Fragment {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setFragments()
         setUp()
         setViews()
     }
@@ -68,6 +69,14 @@ abstract class BaseFragment : Fragment {
      */
     protected open fun getSoftInputMode(): Int? =
         null
+
+    /**
+     * Configures child fragments.
+     * Being called in [Fragment.onViewCreated] method.
+     */
+    protected open fun setFragments() {
+        // default empty implementation
+    }
 
     /**
      * Configures non-view components.

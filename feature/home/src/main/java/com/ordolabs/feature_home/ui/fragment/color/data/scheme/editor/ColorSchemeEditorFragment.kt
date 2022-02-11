@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import by.kirich1409.viewbindingdelegate.CreateMethod
@@ -40,25 +41,57 @@ class ColorSchemeEditorFragment :
     private val schemeEditorVM: ColorSchemeEditorViewModel by parentViewModels {
         featureHomeComponent.viewModelFactory
     }
-    private val schemeConfigVM: ColorSchemeConfigViewModel by viewModels {
-        featureHomeComponent.viewModelFactory
-    }
+    private val schemeConfigVM: ColorSchemeConfigViewModel by viewModels(
+        ownerProducer = { configFragment ?: this },
+//        factoryProducer = { featureHomeComponent.viewModelFactory }
+    )
 
     private var schemeFragment: IColorDataFragment<ColorScheme>? = null
+    private var configFragment: Fragment? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        return inflater.cloneInViewContext(container)
+        return inflater
+            .cloneInViewContext(container)
             .inflate(R.layout.color_scheme_editor_fragment, container, false)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         this.schemeFragment = null
+        this.configFragment = null
     }
+
+    // region Set fragments
+
+    override fun setFragments() {
+        super.setFragments()
+        setColorShemeFragment()
+        setColorSchemeSettingsFragment()
+    }
+
+    private fun setColorShemeFragment() {
+        val fragment = ColorSchemeFragment()
+        this.schemeFragment = fragment
+        setFragment(fragment, binding.colorSchemeFragmentContainer.id)
+    }
+
+    private fun setColorSchemeSettingsFragment() {
+        val fragment = ColorSchemeConfigFragment()
+        this.configFragment = fragment
+        setFragment(fragment, binding.colorSchemeSettingsFragmnetContainer.id)
+    }
+
+    // endregion
+
+    // region Set up
 
     override fun setUp() {
         super.setUp()
@@ -70,21 +103,12 @@ class ColorSchemeEditorFragment :
         collectHasConfigChangesCommand()
     }
 
+    // endregion
+
+    // region Set views
+
     override fun setViews() {
-        setColorShemeFragment()
-        setColorSchemeSettingsFragment()
         setDispatchChangesBtn()
-    }
-
-    private fun setColorShemeFragment() {
-        val fragment = ColorSchemeFragment()
-        this.schemeFragment = fragment
-        setFragment(fragment, binding.colorSchemeFragmentContainer.id)
-    }
-
-    private fun setColorSchemeSettingsFragment() {
-        val fragment = ColorSchemeConfigFragment()
-        setFragment(fragment, binding.colorSchemeSettingsFragmnetContainer.id)
     }
 
     private fun setDispatchChangesBtn() =
@@ -92,6 +116,8 @@ class ColorSchemeEditorFragment :
             val options = schemeConfigVM.applyConfig()
             schemeEditorVM.dispatchConfig(options)
         }
+
+    // endregion
 
     private fun animDispatchChangesBtn(show: Boolean) =
         binding.dispatchChangesBtn.apply {
