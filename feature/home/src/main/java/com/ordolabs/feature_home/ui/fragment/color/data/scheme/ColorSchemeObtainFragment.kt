@@ -7,6 +7,7 @@ import androidx.fragment.app.viewModels
 import com.ordolabs.feature_home.ui.fragment.color.data.ColorDataObtainFragment
 import com.ordolabs.feature_home.ui.fragment.color.data.base.BaseColorDataFragment
 import com.ordolabs.feature_home.ui.fragment.color.data.scheme.editor.ColorSchemeEditorFragment
+import com.ordolabs.feature_home.util.FeatureHomeUtil.featureHomeComponent
 import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeEditorViewModel
 import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeObtainViewModel
 import com.ordolabs.thecolor.model.color.data.ColorScheme
@@ -19,8 +20,12 @@ import com.ordolabs.thecolor.R as RApp
 class ColorSchemeObtainFragment :
     ColorDataObtainFragment<ColorScheme>() {
 
-    private val schemeObtainVM: ColorSchemeObtainViewModel by viewModels()
-    private val schemeEditorVM: ColorSchemeEditorViewModel by viewModels()
+    private val schemeObtainVM: ColorSchemeObtainViewModel by viewModels {
+        featureHomeComponent.viewModelFactory
+    }
+    private val schemeEditorVM: ColorSchemeEditorViewModel by viewModels {
+        featureHomeComponent.viewModelFactory
+    }
 
     override fun collectViewModelsData() {
         super.collectViewModelsData()
