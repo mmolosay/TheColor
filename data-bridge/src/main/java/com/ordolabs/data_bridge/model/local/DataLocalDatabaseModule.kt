@@ -1,4 +1,4 @@
-package com.ordolabs.data_bridge.model.local.database
+package com.ordolabs.data_bridge.model.local
 
 import android.content.Context
 import androidx.room.Room

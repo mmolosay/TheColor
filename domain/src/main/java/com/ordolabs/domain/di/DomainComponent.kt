@@ -13,7 +13,6 @@ interface DomainComponent : DomainProvisions {
 
     @Component.Builder
     interface Builder {
-
         fun dependencies(instance: DomainDependencies): Builder
         fun build(): DomainComponent
     }

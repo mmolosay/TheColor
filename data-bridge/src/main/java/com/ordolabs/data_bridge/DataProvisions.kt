@@ -1,5 +1,5 @@
 package com.ordolabs.data_bridge
 
-import com.ordolabs.data_bridge.model.repository.DataRepositoryProvisions
+import com.ordolabs.domain.di.DomainDependencies
 
-interface DataProvisions : DataRepositoryProvisions
+interface DataProvisions : DomainDependencies

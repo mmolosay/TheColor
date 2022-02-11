@@ -1,4 +1,4 @@
-package com.ordolabs.data_bridge.model.local.preferences
+package com.ordolabs.data_bridge.model.local
 
 import dagger.Module
 
