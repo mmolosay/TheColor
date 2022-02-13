@@ -103,6 +103,15 @@ fun Fragment.getDefaultTransactionTag(): String =
 fun Fragment.getChildFragmentAt(position: Int): Fragment? =
     childFragmentManager.fragments.getOrNull(position)
 
+inline fun <reified T> Fragment.parentOfType(): T? {
+    var parent = this.parentFragment
+    while (parent != null) {
+        if (parent is T) return parent
+        parent = parent.parentFragment
+    }
+    return null
+}
+
 // endregion
 
 // region Toasts
