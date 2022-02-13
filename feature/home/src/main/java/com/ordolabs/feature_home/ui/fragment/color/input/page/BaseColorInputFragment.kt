@@ -2,11 +2,11 @@ package com.ordolabs.feature_home.ui.fragment.color.input.page
 
 import androidx.annotation.CallSuper
 import androidx.annotation.LayoutRes
-import androidx.fragment.app.activityViewModels
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.util.FeatureHomeUtil.featureHomeComponent
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
 import com.ordolabs.thecolor.model.color.ColorPrototype
+import com.ordolabs.thecolor.util.ext.parentViewModels
 import com.ordolabs.thecolor.util.struct.Resource
 import kotlinx.coroutines.flow.Flow
 
@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.Flow
  *
  * All derived classes are designed to work together simultaneously (for example, in `ViewPager`),
  * thus if color changes in any of them, changes should be reflected in all others.
+ * All derived classes share common `ViewModel`, scoped to parent `Fragment`.
  *
  * Color collected from [getColorInputFlow] will be used to [populateViews] and [clearViews].
  *
@@ -28,7 +29,7 @@ abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment {
     constructor() : super()
     constructor(@LayoutRes layoutRes: Int) : super(layoutRes)
 
-    protected val colorInputVM: ColorInputViewModel by activityViewModels {
+    protected val colorInputVM: ColorInputViewModel by parentViewModels {
         featureHomeComponent.viewModelFactory
     }
 

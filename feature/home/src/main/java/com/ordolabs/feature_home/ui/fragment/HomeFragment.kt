@@ -20,6 +20,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModelStoreOwner
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.HomeFragmentBinding
@@ -39,6 +40,7 @@ import com.ordolabs.thecolor.util.AnimationUtils
 import com.ordolabs.thecolor.util.ext.appComponent
 import com.ordolabs.thecolor.util.ext.bindPropertyAnimator
 import com.ordolabs.thecolor.util.ext.by
+import com.ordolabs.thecolor.util.ext.childViewModels
 import com.ordolabs.thecolor.util.ext.createCircularRevealAnimation
 import com.ordolabs.thecolor.util.ext.getBottomVisibleInScrollParent
 import com.ordolabs.thecolor.util.ext.getDistanceToViewInParent
@@ -67,9 +69,10 @@ class HomeFragment :
 
     private val binding: HomeFragmentBinding by viewBinding()
     private val homeVM: HomeViewModel /*by viewModels()*/ = HomeViewModel(SavedStateHandle())
-    private val colorInputVM: ColorInputViewModel by activityViewModels {
-        featureHomeComponent.viewModelFactory
-    }
+    private val colorInputVM: ColorInputViewModel by childViewModels(
+        ownerProducer = { inputViewModelOwner ?: this },
+        factoryProducer = { featureHomeComponent.viewModelFactory }
+    )
     private val colorDetailsVM: ColorDetailsViewModel by activityViewModels {
         featureHomeComponent.viewModelFactory
     }
@@ -77,6 +80,8 @@ class HomeFragment :
         featureHomeComponent.viewModelFactory
     }
 
+    private var inputViewModelOwner: ViewModelStoreOwner? = null
+    private var dataViewModelOwner: ViewModelStoreOwner? = null
     private val previewResizeDest = AnimatorDestination()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -88,6 +93,28 @@ class HomeFragment :
         super.onStop()
         hideSoftInputAndClearFocus()
     }
+
+    // region Set fragment
+
+    override fun setFragments() {
+        super.setFragments()
+        setColorInputFragment()
+        setColorDataFragment()
+    }
+
+    private fun setColorInputFragment() {
+        val fragment = ColorInputPagerFragment.newInstance()
+        this.inputViewModelOwner = fragment
+        setFragment(fragment, binding.colorInputFragmentContainer.id)
+    }
+
+    private fun setColorDataFragment() {
+        val fragment = ColorDataPagerFragment.newInstance(color = null)
+        this.dataViewModelOwner = fragment
+        setFragment(fragment, binding.colorDataFragmentContainer.id)
+    }
+
+    // endregion
 
     // region Set up
 
@@ -108,20 +135,8 @@ class HomeFragment :
     // region Set views
 
     override fun setViews() {
-        setColorInputFragment()
-        setColorDataFragment()
         setProcceedBtn()
         toggleDataWrapperVisibility(visible = false)
-    }
-
-    private fun setColorInputFragment() {
-        val fragment = ColorInputPagerFragment.newInstance()
-        setFragment(fragment, binding.colorInputFragmentContainer.id)
-    }
-
-    private fun setColorDataFragment() {
-        val fragment = ColorDataPagerFragment.newInstance(color = null)
-        setFragment(fragment, binding.colorDataFragmentContainer.id)
     }
 
     private fun replaceColorDataFragment(color: Color) {
