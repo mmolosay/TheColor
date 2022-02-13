@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStoreOwner
 import com.github.michaelbull.result.Result
 import com.ordolabs.thecolor.di.AppComponent
 import com.ordolabs.thecolor.ui.fragment.BaseFragment
@@ -155,11 +156,29 @@ val Fragment.appComponent: AppComponent
 
 // region ViewModels
 
+// Actually, variations of Fragment.viewModels() function, but with more specific names
+// in order to make inferring owners of ViewModels easier in code.
+
+/**
+ * Returns a property delegate to access ViewModel, scoped to `this` `Fragment`.
+ *
+ * @see [Fragment.viewModels]
+ */
+@MainThread
+inline fun <reified VM : ViewModel> Fragment.ownViewModels(
+    noinline factoryProducer: (() -> ViewModelProvider.Factory)? = null
+): Lazy<VM> =
+    this.viewModels(
+        factoryProducer = factoryProducer
+    )
+
 /**
  * Returns a property delegate to access ViewModel, scoped to `this` [Fragment.getParentFragment].
  *
  * If `this` `Fragment` has no parent, then ViewModel will be
  * scoped (or created, if there is none) from `this` `Framgent`.
+ *
+ * @see [Fragment.viewModels]
  */
 @MainThread
 inline fun <reified VM : ViewModel> Fragment.parentViewModels(
@@ -167,6 +186,19 @@ inline fun <reified VM : ViewModel> Fragment.parentViewModels(
 ): Lazy<VM> =
     this.viewModels(
         ownerProducer = { this.parentFragment ?: this },
+        factoryProducer = factoryProducer
+    )
+
+/**
+ * @see [Fragment.viewModels]
+ */
+@MainThread
+inline fun <reified VM : ViewModel> Fragment.childViewModels(
+    noinline ownerProducer: () -> ViewModelStoreOwner,
+    noinline factoryProducer: (() -> ViewModelProvider.Factory)? = null
+): Lazy<VM> =
+    this.viewModels(
+        ownerProducer = ownerProducer,
         factoryProducer = factoryProducer
     )
 

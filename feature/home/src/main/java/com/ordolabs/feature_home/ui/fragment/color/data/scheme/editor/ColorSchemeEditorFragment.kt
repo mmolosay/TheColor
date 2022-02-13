@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
-import androidx.fragment.app.viewModels
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.lifecycle.ViewModelStoreOwner
 import by.kirich1409.viewbindingdelegate.CreateMethod
@@ -22,6 +21,7 @@ import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeEditorVie
 import com.ordolabs.thecolor.model.color.data.ColorScheme
 import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
 import com.ordolabs.thecolor.util.ext.by
+import com.ordolabs.thecolor.util.ext.childViewModels
 import com.ordolabs.thecolor.util.ext.mediumAnimDuration
 import com.ordolabs.thecolor.util.ext.parentViewModels
 import com.ordolabs.thecolor.util.ext.setFragment
@@ -39,7 +39,7 @@ class ColorSchemeEditorFragment :
 
     private val binding: ColorSchemeEditorFragmentBinding by viewBinding(CreateMethod.BIND)
     private val schemeEditorVM: ColorSchemeEditorViewModel by parentViewModels()
-    private val schemeConfigVM: ColorSchemeConfigViewModel by viewModels(
+    private val schemeConfigVM: ColorSchemeConfigViewModel by childViewModels(
         ownerProducer = { configViewModelOwner ?: this },
         factoryProducer = { featureHomeComponent.viewModelFactory }
     )
