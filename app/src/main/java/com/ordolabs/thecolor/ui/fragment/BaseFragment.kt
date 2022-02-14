@@ -2,7 +2,6 @@ package com.ordolabs.thecolor.ui.fragment
 
 import android.os.Bundle
 import android.view.View
-import androidx.annotation.CallSuper
 import androidx.annotation.IdRes
 import androidx.annotation.LayoutRes
 import androidx.annotation.StringRes
@@ -38,12 +37,13 @@ abstract class BaseFragment : Fragment {
         super.onCreate(savedInstanceState)
         initialSoftInputMode // initialize
         updateSoftInputMode()
+        setUp()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        collectViewModelsData()
         setFragments()
-        setUp()
         setViews()
     }
 
@@ -52,23 +52,33 @@ abstract class BaseFragment : Fragment {
         restoreSoftInputMode()
     }
 
+    // region Fragment.onCreate
+
+    /**
+     * Configures non-view components.
+     * Being called in [Fragment.onCreate] method.
+     */
+    protected open fun setUp() {
+        // default empty implementation
+    }
+
     private fun updateSoftInputMode() {
         getSoftInputMode()?.let {
             activity?.window?.setSoftInputMode(it)
         }
     }
 
-    private fun restoreSoftInputMode() {
-        initialSoftInputMode?.let {
-            activity?.window?.setSoftInputMode(it)
-        }
-    }
+    // endregion
+
+    // region Fragment.onViewCreated
 
     /**
-     * Specifies windoSoftInputMode for `this` fragment.
+     * Collects (subscribes to) data from ViewModel's.
+     * Being called in [Fragment.onViewCreated] method.
      */
-    protected open fun getSoftInputMode(): Int? =
-        null
+    protected open fun collectViewModelsData() {
+        // default empty implementation
+    }
 
     /**
      * Configures child fragments.
@@ -79,25 +89,32 @@ abstract class BaseFragment : Fragment {
     }
 
     /**
-     * Configures non-view components.
-     * Being called in [Fragment.onViewCreated] method.
-     */
-    @CallSuper
-    protected open fun setUp() {
-        collectViewModelsData()
-    }
-
-    /**
-     * Collects (subscribes to) data from declared ViewModel's.
-     * Being called in [setUp] method.
-     */
-    protected abstract fun collectViewModelsData()
-
-    /**
      * Sets fragment's views and configures them.
      * Being called in [Fragment.onViewCreated] method.
      */
     protected abstract fun setViews()
+
+    // endregion
+
+    // region Fragment.onDestroy
+
+    private fun restoreSoftInputMode() {
+        initialSoftInputMode?.let {
+            activity?.window?.setSoftInputMode(it)
+        }
+    }
+
+    // endregion
+
+    // region Non-lifecycle methods
+
+    /**
+     * Specifies windowSoftInputMode for `this` fragment.
+     */
+    protected open fun getSoftInputMode(): Int? =
+        null
+
+    // endregion
 
     companion object {
         // extra keys and stuff

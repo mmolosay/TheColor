@@ -86,7 +86,6 @@ class HomeFragment :
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        featureHomeComponent // init
         setFragmentResultListeners()
     }
 
@@ -95,7 +94,19 @@ class HomeFragment :
         hideSoftInputAndClearFocus()
     }
 
-    // TODO: move setUp in BaseFragment on top of call queue
+    // region Set up
+
+    override fun setUp() {
+        featureHomeComponent // init
+    }
+
+    private fun makeFeatureHomeComponent(): FeatureHomeComponent =
+        DaggerFeatureHomeComponent
+            .builder()
+            .appComponent(appComponent)
+            .build()
+
+    // endregion
 
     // region Fragment Result
 
@@ -113,10 +124,72 @@ class HomeFragment :
 
     // endregion
 
-    // region Set fragment
+    // region Collect ViewModels data
+
+    override fun collectViewModelsData() {
+        collectColorPreview()
+        collectColorInputPrototype()
+    }
+
+    // region collectColorPreview
+
+    private fun collectColorPreview() =
+        colorValidatorVM.colorPreview.collectOnLifecycle { resource ->
+            binding.procceedBtn.isEnabled = resource.isSuccess
+            resource.fold(
+                onEmpty = ::onColorPreviewEmpty,
+                onSuccess = ::onColorPreviewSuccess
+            )
+        }
+
+    @Suppress("UNUSED_PARAMETER")
+    private fun onColorPreviewEmpty(previous: ColorPreview?) {
+        colorInputVM.clearColorInput()
+        binding.previewWrapper.doOnLayout {
+            if (homeVM.isColorDataShown) {
+                animInfoSheetCollapsingOnPreviewEmpty()
+            } else {
+                animPreviewResize(collapse = true)
+            }
+        }
+    }
+
+    private fun onColorPreviewSuccess(preview: ColorPreview) {
+        colorInputVM.updateCurrentColor(preview)
+        binding.previewWrapper.doOnLayout {
+            val colorInt = preview.toColorInt()
+            if (preview.isUserInput) { // collapse only if user changed color manually
+                val colorDataBg = getDataWrapperBackgroundColor()
+                if (colorInt != colorDataBg) {
+                    animColorDataCollapsingOnPreviewSuccess()
+                }
+            } else {
+                tintDataWrapperBackground(preview)
+            }
+            animPreviewColorChanging(colorInt)
+            animPreviewResize(collapse = false)
+        }
+    }
+
+    // endregion
+
+    // region collectColorInputPrototype
+
+    private fun collectColorInputPrototype() =
+        colorInputVM.prototype.collectOnLifecycle { resource ->
+            resource.ifSuccess { prototype ->
+                if (colorValidatorVM.isSameAsColorPreview(prototype)) return@ifSuccess
+                colorValidatorVM.validateColor(prototype)
+            }
+        }
+
+    // endregion
+
+    // endregion
+
+    // region Set fragments
 
     override fun setFragments() {
-        super.setFragments()
         setColorInputFragment()
         setColorDataFragment()
     }
@@ -132,21 +205,6 @@ class HomeFragment :
         this.dataViewModelOwner = fragment
         setFragment(fragment, binding.colorDataFragmentContainer.id)
     }
-
-    // endregion
-
-    // region Set up
-
-    override fun collectViewModelsData() {
-        collectColorPreview()
-        collectColorInputPrototype()
-    }
-
-    private fun makeFeatureHomeComponent(): FeatureHomeComponent =
-        DaggerFeatureHomeComponent
-            .builder()
-            .appComponent(appComponent)
-            .build()
 
     // endregion
 
@@ -418,60 +476,6 @@ class HomeFragment :
         val y = yApprox.coerceIn(0, info.height)
         return Point(x, y)
     }
-
-    // endregion
-
-    // region collectColorPreview
-
-    private fun collectColorPreview() =
-        colorValidatorVM.colorPreview.collectOnLifecycle { resource ->
-            binding.procceedBtn.isEnabled = resource.isSuccess
-            resource.fold(
-                onEmpty = ::onColorPreviewEmpty,
-                onSuccess = ::onColorPreviewSuccess
-            )
-        }
-
-    @Suppress("UNUSED_PARAMETER")
-    private fun onColorPreviewEmpty(previous: ColorPreview?) {
-        colorInputVM.clearColorInput()
-        binding.previewWrapper.doOnLayout {
-            if (homeVM.isColorDataShown) {
-                animInfoSheetCollapsingOnPreviewEmpty()
-            } else {
-                animPreviewResize(collapse = true)
-            }
-        }
-    }
-
-    private fun onColorPreviewSuccess(preview: ColorPreview) {
-        colorInputVM.updateCurrentColor(preview)
-        binding.previewWrapper.doOnLayout {
-            val colorInt = preview.toColorInt()
-            if (preview.isUserInput) { // collapse only if user changed color manually
-                val colorDataBg = getDataWrapperBackgroundColor()
-                if (colorInt != colorDataBg) {
-                    animColorDataCollapsingOnPreviewSuccess()
-                }
-            } else {
-                tintDataWrapperBackground(preview)
-            }
-            animPreviewColorChanging(colorInt)
-            animPreviewResize(collapse = false)
-        }
-    }
-
-    // endregion
-
-    // region collectColorInputPrototype
-
-    private fun collectColorInputPrototype() =
-        colorInputVM.prototype.collectOnLifecycle { resource ->
-            resource.ifSuccess { prototype ->
-                if (colorValidatorVM.isSameAsColorPreview(prototype)) return@ifSuccess
-                colorValidatorVM.validateColor(prototype)
-            }
-        }
 
     // endregion
 
