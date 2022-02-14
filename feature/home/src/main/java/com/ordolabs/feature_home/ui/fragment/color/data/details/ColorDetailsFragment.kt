@@ -8,16 +8,14 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
-import androidx.fragment.app.activityViewModels
 import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDetailsFragmentBinding
 import com.ordolabs.feature_home.ui.fragment.color.data.base.BaseColorDataFragment
-import com.ordolabs.feature_home.util.FeatureHomeUtil.featureHomeComponent
-import com.ordolabs.feature_home.viewmodel.colordata.details.ColorDetailsViewModel
 import com.ordolabs.thecolor.model.color.data.ColorDetails
 import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
+import com.ordolabs.thecolor.util.ext.activityFragmentManager
 import com.ordolabs.thecolor.util.ext.getStringYesOrNo
 import com.ordolabs.thecolor.util.ext.makeArgumentsKey
 import com.ordolabs.thecolor.util.ext.setTextOrGoneWith
@@ -29,9 +27,6 @@ class ColorDetailsFragment :
     BaseColorDataFragment<ColorDetails>() {
 
     private val binding: ColorDetailsFragmentBinding by viewBinding(CreateMethod.BIND)
-    private val colorDetailsVM: ColorDetailsViewModel by activityViewModels {
-        featureHomeComponent.viewModelFactory
-    }
 
     private var colorDetails: ColorDetails? = null
 
@@ -184,7 +179,10 @@ class ColorDetailsFragment :
             exactColor.backgroundTintList = ColorStateList.valueOf(color)
             exactLink.setOnClickListener {
                 val exactHex = details.exactNameHex ?: return@setOnClickListener
-                colorDetailsVM.getExactColor(exactHex)
+                activityFragmentManager.setFragmentResult(
+                    RESULT_KEY_EXACT_COLOR_COMMAND,
+                    makeResultBundle(exactHex)
+                )
             }
         }
 
@@ -198,7 +196,13 @@ class ColorDetailsFragment :
 
     // endregion
 
+    data class Result(
+        val exactHex: String?
+    )
+
     companion object {
+
+        const val RESULT_KEY_EXACT_COLOR_COMMAND = "RESULT_KEY_EXACT_COLOR_COMMAND"
 
         private val ARGUMENT_KEY_COLOR_DETAILS =
             "ARGUMENT_KEY_COLOR_DETAILS".makeArgumentsKey<ColorDetailsFragment>()
@@ -209,5 +213,17 @@ class ColorDetailsFragment :
                     ARGUMENT_KEY_COLOR_DETAILS to colorDetails
                 )
             }
+
+        fun makeResultBundle(
+            exactHex: String
+        ) =
+            bundleOf(
+                "exactHex" to exactHex
+            )
+
+        fun parseResultBundle(bundle: Bundle) =
+            Result(
+                exactHex = bundle.getString("exactHex")
+            )
     }
 }

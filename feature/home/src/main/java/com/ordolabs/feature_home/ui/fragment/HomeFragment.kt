@@ -28,15 +28,18 @@ import com.ordolabs.feature_home.di.DaggerFeatureHomeComponent
 import com.ordolabs.feature_home.di.FeatureHomeComponent
 import com.ordolabs.feature_home.di.FeatureHomeComponentKeeper
 import com.ordolabs.feature_home.ui.fragment.color.data.ColorDataPagerFragment
+import com.ordolabs.feature_home.ui.fragment.color.data.details.ColorDetailsFragment
 import com.ordolabs.feature_home.ui.fragment.color.input.ColorInputPagerFragment
 import com.ordolabs.feature_home.viewmodel.HomeViewModel
-import com.ordolabs.feature_home.viewmodel.colordata.details.ColorDetailsViewModel
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorValidatorViewModel
 import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.ColorPreview
+import com.ordolabs.thecolor.model.color.ColorPrototype
+import com.ordolabs.thecolor.model.color.from
 import com.ordolabs.thecolor.model.color.toColorInt
 import com.ordolabs.thecolor.util.AnimationUtils
+import com.ordolabs.thecolor.util.ext.activityFragmentManager
 import com.ordolabs.thecolor.util.ext.appComponent
 import com.ordolabs.thecolor.util.ext.bindPropertyAnimator
 import com.ordolabs.thecolor.util.ext.by
@@ -73,9 +76,6 @@ class HomeFragment :
         ownerProducer = { inputViewModelOwner ?: this },
         factoryProducer = { featureHomeComponent.viewModelFactory }
     )
-    private val colorDetailsVM: ColorDetailsViewModel by activityViewModels {
-        featureHomeComponent.viewModelFactory
-    }
     private val colorValidatorVM: ColorValidatorViewModel by activityViewModels {
         featureHomeComponent.viewModelFactory
     }
@@ -87,12 +87,31 @@ class HomeFragment :
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         featureHomeComponent // init
+        setFragmentResultListeners()
     }
 
     override fun onStop() {
         super.onStop()
         hideSoftInputAndClearFocus()
     }
+
+    // TODO: move setUp in BaseFragment on top of call queue
+
+    // region Fragment Result
+
+    private fun setFragmentResultListeners() {
+        setColorDetailsFragmentResultListener()
+    }
+
+    private fun setColorDetailsFragmentResultListener() =
+        activityFragmentManager
+            .setFragmentResultListener(
+                ColorDetailsFragment.RESULT_KEY_EXACT_COLOR_COMMAND,
+                this,
+                ::onFragmentResult
+            )
+
+    // endregion
 
     // region Set fragment
 
@@ -121,7 +140,6 @@ class HomeFragment :
     override fun collectViewModelsData() {
         collectColorPreview()
         collectColorInputPrototype()
-        collectGetExactColorCommand()
     }
 
     private fun makeFeatureHomeComponent(): FeatureHomeComponent =
@@ -457,16 +475,24 @@ class HomeFragment :
 
     // endregion
 
-    // region collectGetExactColorCommand
+    // region Fragment Result
 
-    private fun collectGetExactColorCommand() =
-        colorDetailsVM.getExactColorCommand.collectOnLifecycle { resource ->
-            resource.ifSuccess { exactColor ->
-                val preview = ColorPreview(exactColor, isUserInput = false)
-                colorValidatorVM.updateColorPreview(preview)
-                replaceColorDataFragment(exactColor)
-            }
+    private fun onFragmentResult(key: String, bundle: Bundle) =
+        when (key) {
+            ColorDetailsFragment.RESULT_KEY_EXACT_COLOR_COMMAND ->
+                onColorDetailsFragmentResult(bundle)
+            else -> Unit
         }
+
+    private fun onColorDetailsFragmentResult(bundle: Bundle) {
+        // TODO: add field exactColor: Color in ColorDetails
+        val result = ColorDetailsFragment.parseResultBundle(bundle)
+        val proto = ColorPrototype.Hex(value = result.exactHex)
+        val color = Color.from(proto)!! // exactHex is always valid
+        val preview = ColorPreview(color, isUserInput = false)
+        colorValidatorVM.updateColorPreview(preview)
+        replaceColorDataFragment(color)
+    }
 
     // endregion
 
