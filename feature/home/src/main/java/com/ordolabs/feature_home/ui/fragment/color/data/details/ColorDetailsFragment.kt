@@ -82,7 +82,7 @@ class ColorDetailsFragment :
 
     override fun populateViews(data: ColorDetails) {
         populateNameHeadline(data)
-        populateHexGroup(data)
+        populateHexGroup(data.spaces.hex)
         populateRgbGroup(data)
         populateHslGroup(data)
         populateHsvGroup(data)
@@ -96,12 +96,12 @@ class ColorDetailsFragment :
             nameHeadline.text = details.name
         }
 
-    private fun populateHexGroup(details: ColorDetails) =
+    private fun populateHexGroup(hex: ColorDetails.Spaces.Hex) =
         binding.run {
-            val hasData = (details.hexValue != null)
+            val hasData = (hex.signless != null)
             hexGroup.isVisible = hasData
             if (!hasData) return
-            hexValue.text = details.hexValue
+            hexValue.text = hex.signed
         }
 
     private fun populateRgbGroup(details: ColorDetails) =

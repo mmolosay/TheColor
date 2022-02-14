@@ -7,9 +7,10 @@ import com.ordolabs.domain.model.ColorDetails as ColorDetailsDomain
 import com.ordolabs.domain.model.ColorScheme as ColorSchemeDomain
 
 
+// region ColorDetails
+
 fun ColorDetailsDomain.toPresentation() = ColorDetails(
-    hexValue = this.hexValue,
-    hexClean = this.hexClean,
+    spaces = this.toSpacesPresentation(),
 
     rgbFractionR = this.rgbFractionR,
     rgbFractionG = this.rgbFractionG,
@@ -65,12 +66,34 @@ fun ColorDetailsDomain.toPresentation() = ColorDetails(
     contrastHex = this.contrastHex
 )
 
+// region Space
+
+private fun ColorDetailsDomain.toSpacesPresentation() =
+    ColorDetails.Spaces(
+        hex = this.toHexSpacePresentation()
+    )
+
+private fun ColorDetailsDomain.toHexSpacePresentation() =
+    ColorDetails.Spaces.Hex(
+        signed = this.hexValue,
+        signless = this.hexClean
+    )
+
+// endregion
+
+// endregion
+
+// region ColorScheme
+
 fun ColorSchemeDomain.toPresentation() = ColorScheme(
     mode = getFromEnumOrNull<ColorScheme.Mode>(this.modeOrdinal),
     samples = this.colors?.mapNotNull m@{
         val details = it.toPresentation()
-        val hex = details.hexValue ?: return@m null
+        val hex = details.spaces.hex.signed ?: return@m null
         ColorScheme.Sample(hex, details)
     },
     seed = this.seed?.toPresentation()
 )
+
+
+// endregion

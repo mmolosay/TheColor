@@ -6,8 +6,8 @@ import kotlinx.parcelize.Parcelize
 // TODO: split into subclasses
 @Parcelize
 data class ColorDetails(
-    val hexValue: String?,
-    val hexClean: String?,
+
+    val spaces: Spaces,
 
     val rgbFractionR: Float?,
     val rgbFractionG: Float?,
@@ -61,4 +61,17 @@ data class ColorDetails(
     val imageNamedUrl: String?,
 
     val contrastHex: String?
-) : Parcelable
+) : Parcelable {
+
+    @Parcelize
+    data class Spaces(
+        val hex: Hex
+    ) : Parcelable {
+
+        @Parcelize
+        data class Hex(
+            val signed: String?,
+            val signless: String?
+        ) : Parcelable
+    }
+}
