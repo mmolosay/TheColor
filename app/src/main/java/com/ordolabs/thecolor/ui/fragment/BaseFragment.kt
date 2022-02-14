@@ -38,6 +38,7 @@ abstract class BaseFragment : Fragment {
         initialSoftInputMode // initialize
         updateSoftInputMode()
         setUp()
+        setFragmentResultListeners()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -59,6 +60,14 @@ abstract class BaseFragment : Fragment {
      * Being called in [Fragment.onCreate] method.
      */
     protected open fun setUp() {
+        // default empty implementation
+    }
+
+    /**
+     * Sets listeners for Fragment Result API.
+     * Being called in [Fragment.onCreate] method.
+     */
+    protected open fun setFragmentResultListeners() {
         // default empty implementation
     }
 

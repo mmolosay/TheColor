@@ -110,7 +110,7 @@ class HomeFragment :
 
     // region Fragment Result
 
-    private fun setFragmentResultListeners() {
+    override fun setFragmentResultListeners() {
         setColorDetailsFragmentResultListener()
     }
 
@@ -121,6 +121,27 @@ class HomeFragment :
                 this,
                 ::onFragmentResult
             )
+
+    // region Listeners
+
+    private fun onFragmentResult(key: String, bundle: Bundle) =
+        when (key) {
+            ColorDetailsFragment.RESULT_KEY_EXACT_COLOR_COMMAND ->
+                onColorDetailsFragmentResult(bundle)
+            else -> Unit
+        }
+
+    private fun onColorDetailsFragmentResult(bundle: Bundle) {
+        // TODO: add field exactColor: Color in ColorDetails
+        val result = ColorDetailsFragment.parseResultBundle(bundle)
+        val proto = ColorPrototype.Hex(value = result.exactHex)
+        val color = Color.from(proto)!! // exactHex is always valid
+        val preview = ColorPreview(color, isUserInput = false)
+        colorValidatorVM.updateColorPreview(preview)
+        replaceColorDataFragment(color)
+    }
+
+    // endregion
 
     // endregion
 
@@ -475,27 +496,6 @@ class HomeFragment :
         val yApprox = bottom - padding - previewRadius
         val y = yApprox.coerceIn(0, info.height)
         return Point(x, y)
-    }
-
-    // endregion
-
-    // region Fragment Result
-
-    private fun onFragmentResult(key: String, bundle: Bundle) =
-        when (key) {
-            ColorDetailsFragment.RESULT_KEY_EXACT_COLOR_COMMAND ->
-                onColorDetailsFragmentResult(bundle)
-            else -> Unit
-        }
-
-    private fun onColorDetailsFragmentResult(bundle: Bundle) {
-        // TODO: add field exactColor: Color in ColorDetails
-        val result = ColorDetailsFragment.parseResultBundle(bundle)
-        val proto = ColorPrototype.Hex(value = result.exactHex)
-        val color = Color.from(proto)!! // exactHex is always valid
-        val preview = ColorPreview(color, isUserInput = false)
-        colorValidatorVM.updateColorPreview(preview)
-        replaceColorDataFragment(color)
     }
 
     // endregion

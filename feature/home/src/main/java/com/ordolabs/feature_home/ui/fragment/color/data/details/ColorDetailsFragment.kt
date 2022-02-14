@@ -212,6 +212,8 @@ class ColorDetailsFragment :
                 )
             }
 
+        // region Fragment Result
+
         fun makeResultBundle(
             exactHex: String
         ) =
@@ -223,5 +225,7 @@ class ColorDetailsFragment :
             Result(
                 exactHex = bundle.getString("exactHex")
             )
+
+        // endregion
     }
 }
