@@ -35,8 +35,6 @@ import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorValidatorViewModel
 import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.ColorPreview
-import com.ordolabs.thecolor.model.color.ColorPrototype
-import com.ordolabs.thecolor.model.color.from
 import com.ordolabs.thecolor.model.color.toColorInt
 import com.ordolabs.thecolor.util.AnimationUtils
 import com.ordolabs.thecolor.util.ext.activityFragmentManager
@@ -132,13 +130,11 @@ class HomeFragment :
         }
 
     private fun onColorDetailsFragmentResult(bundle: Bundle) {
-        // TODO: add field exactColor: Color in ColorDetails
         val result = ColorDetailsFragment.parseResultBundle(bundle)
-        val proto = ColorPrototype.Hex(value = result.exactColor)
-        val color = Color.from(proto)!! // exactHex is always valid
-        val preview = ColorPreview(color, isUserInput = false)
+        val exact = result.exactColor ?: return
+        val preview = ColorPreview(exact, isUserInput = false)
         colorValidatorVM.updateColorPreview(preview)
-        replaceColorDataFragment(color)
+        replaceColorDataFragment(exact)
     }
 
     // endregion
