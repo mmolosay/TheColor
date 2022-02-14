@@ -17,7 +17,6 @@ import com.ordolabs.thecolor.model.color.data.ColorDetails
 import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
 import com.ordolabs.thecolor.util.ext.activityFragmentManager
 import com.ordolabs.thecolor.util.ext.getStringYesOrNo
-import com.ordolabs.thecolor.util.ext.makeArgumentsKey
 import com.ordolabs.thecolor.util.ext.setTextOrGoneWith
 
 /**
@@ -204,8 +203,7 @@ class ColorDetailsFragment :
 
         const val RESULT_KEY_EXACT_COLOR_COMMAND = "RESULT_KEY_EXACT_COLOR_COMMAND"
 
-        private val ARGUMENT_KEY_COLOR_DETAILS =
-            "ARGUMENT_KEY_COLOR_DETAILS".makeArgumentsKey<ColorDetailsFragment>()
+        private const val ARGUMENT_KEY_COLOR_DETAILS = "ARGUMENT_KEY_COLOR_DETAILS"
 
         fun newInstance(colorDetails: ColorDetails?) =
             ColorDetailsFragment().apply {

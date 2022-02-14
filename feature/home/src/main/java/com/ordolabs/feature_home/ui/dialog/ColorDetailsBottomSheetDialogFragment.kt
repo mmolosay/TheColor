@@ -11,7 +11,6 @@ import com.ordolabs.thecolor.model.color.data.ColorDetails
 import com.ordolabs.thecolor.ui.dialog.BaseBottomSheetDialogFragment
 import com.ordolabs.thecolor.util.ContextUtil
 import com.ordolabs.thecolor.util.ext.getDefaultTransactionTag
-import com.ordolabs.thecolor.util.ext.makeArgumentsKey
 
 class ColorDetailsBottomSheetDialogFragment : BaseBottomSheetDialogFragment() {
 
@@ -70,8 +69,7 @@ class ColorDetailsBottomSheetDialogFragment : BaseBottomSheetDialogFragment() {
 
     companion object {
 
-        private val ARGUMENT_KEY_COLOR_DETAILS =
-            "ARGUMENT_COLOR_DETAILS".makeArgumentsKey<ColorDetailsBottomSheetDialogFragment>()
+        private const val ARGUMENT_KEY_COLOR_DETAILS = "ARGUMENT_KEY_COLOR_DETAILS"
 
         fun newInstance(details: ColorDetails) =
             ColorDetailsBottomSheetDialogFragment().apply {

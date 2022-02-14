@@ -17,7 +17,6 @@ import com.ordolabs.feature_home.util.FeatureHomeUtil.featureHomeComponent
 import com.ordolabs.feature_home.viewmodel.colordata.ColorDataViewModel
 import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.isDark
-import com.ordolabs.thecolor.util.ext.makeArgumentsKey
 import com.ordolabs.thecolor.R as RApp
 
 class ColorDataPagerFragment :
@@ -87,8 +86,7 @@ class ColorDataPagerFragment :
 
     companion object {
 
-        private val ARGUMENTS_KEY_COLOR =
-            "ARGUMENTS_KEY_COLOR".makeArgumentsKey<ColorDataPagerFragment>()
+        private const val ARGUMENTS_KEY_COLOR = "ARGUMENTS_KEY_COLOR"
 
         fun newInstance(color: Color?) =
             ColorDataPagerFragment().apply {
