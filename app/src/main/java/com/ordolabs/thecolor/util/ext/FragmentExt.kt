@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.annotation.IdRes
 import androidx.annotation.MainThread
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -201,5 +202,12 @@ inline fun <reified VM : ViewModel> Fragment.childViewModels(
         ownerProducer = ownerProducer,
         factoryProducer = factoryProducer
     )
+
+// endregion
+
+// region Fragments Result API
+
+val Fragment.activityFragmentManager: FragmentManager
+    get() = requireActivity().supportFragmentManager
 
 // endregion
