@@ -46,30 +46,45 @@ class ColorDetailsFragment :
         savedInstanceState: Bundle?
     ): View? {
         // inherit container view group theme
-        return inflater.cloneInViewContext(container)
+        return inflater
+            .cloneInViewContext(container)
             .inflate(R.layout.color_details_fragment, container, false)
     }
 
+    // region Parse arguments
+
     private fun parseArguments() {
-        parseColorDetailsArg()
+        val args = arguments ?: return
+        parseColorDetails(args)
     }
 
-    private fun parseColorDetailsArg() {
+    private fun parseColorDetails(bundle: Bundle) {
         val key = ARGUMENT_KEY_COLOR_DETAILS
-        val args = arguments ?: return
-        if (!args.containsKey(key)) return
-        this.colorDetails = args.getParcelable(key)
+        if (!bundle.containsKey(key)) return
+        this.colorDetails = bundle.getParcelable(key)
     }
+
+    // endregion
+
+    // region Set up
 
     override fun collectViewModelsData() {
         // nothing is here
     }
+
+    // endregion
+
+    // region Set views
 
     override fun setViews() {
         colorDetails?.let { details ->
             populateViews(details)
         }
     }
+
+    // endregion
+
+    // region IColorDataFragment
 
     override fun populateViews(data: ColorDetails) {
         populateNameHeadline(data)
@@ -180,6 +195,8 @@ class ColorDetailsFragment :
             if (!hasData) return
             deviationValue.text = details.exactNameHexDistance.toString()
         }
+
+    // endregion
 
     companion object {
 
