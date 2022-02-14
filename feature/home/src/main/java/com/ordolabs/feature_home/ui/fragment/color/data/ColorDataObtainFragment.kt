@@ -72,18 +72,13 @@ abstract class ColorDataObtainFragment<D> :
         this.dataFragment = null
     }
 
-    @CallSuper
-    override fun collectViewModelsData() {
-        collectColorData()
-    }
+    // region Set fragments
 
-    override fun setViews() {
+    override fun setFragments() {
+        super.setFragments()
         setColorDataFragment()
         setContentShimmerFragment()
-        setRetryBtn()
     }
-
-    // region Settings views
 
     private fun setColorDataFragment() {
         val fragment = makeColorDataFragment()
@@ -94,6 +89,23 @@ abstract class ColorDataObtainFragment<D> :
     private fun setContentShimmerFragment() {
         val fragment = makeContentShimmerFragment()
         setFragment(fragment, binding.contentShimmerFragmentContainer.id)
+    }
+
+    // endregion
+
+    // region Set up
+
+    @CallSuper
+    override fun collectViewModelsData() {
+        collectColorData()
+    }
+
+    // endregion
+
+    // region Set views
+
+    override fun setViews() {
+        setRetryBtn()
     }
 
     private fun setRetryBtn() {
