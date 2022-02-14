@@ -134,7 +134,7 @@ class HomeFragment :
     private fun onColorDetailsFragmentResult(bundle: Bundle) {
         // TODO: add field exactColor: Color in ColorDetails
         val result = ColorDetailsFragment.parseResultBundle(bundle)
-        val proto = ColorPrototype.Hex(value = result.exactHex)
+        val proto = ColorPrototype.Hex(value = result.exactColor)
         val color = Color.from(proto)!! // exactHex is always valid
         val preview = ColorPreview(color, isUserInput = false)
         colorValidatorVM.updateColorPreview(preview)

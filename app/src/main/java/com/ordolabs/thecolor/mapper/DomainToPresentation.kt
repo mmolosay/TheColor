@@ -1,76 +1,28 @@
 package com.ordolabs.thecolor.mapper
 
+import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.data.ColorDetails
 import com.ordolabs.thecolor.model.color.data.ColorScheme
 import com.ordolabs.thecolor.util.ext.getFromEnumOrNull
 import com.ordolabs.domain.model.ColorDetails as ColorDetailsDomain
 import com.ordolabs.domain.model.ColorScheme as ColorSchemeDomain
 
-
 // region ColorDetails
 
 fun ColorDetailsDomain.toPresentation() = ColorDetails(
     spaces = this.toSpacesPresentation(),
-
-    rgbFractionR = this.rgbFractionR,
-    rgbFractionG = this.rgbFractionG,
-    rgbFractionB = this.rgbFractionB,
-    rgbR = this.rgbR,
-    rgbG = this.rgbG,
-    rgbB = this.rgbB,
-    rgbValue = this.rgbValue,
-
-    hslFractionH = this.hslFractionH,
-    hslFractionS = this.hslFractionS,
-    hslFractionL = this.hslFractionL,
-    hslH = this.hslH,
-    hslS = this.hslS,
-    hslL = this.hslL,
-    hslValue = this.hslValue,
-
-    hsvFractionH = this.hsvFractionH,
-    hsvFractionS = this.hsvFractionS,
-    hsvFractionV = this.hsvFractionV,
-    hsvH = this.hsvH,
-    hsvS = this.hsvS,
-    hsvV = this.hsvV,
-    hsvValue = this.hsvValue,
-
-    xyzFractionX = this.xyzFractionX,
-    xyzFractionY = this.xyzFractionY,
-    xyzFractionZ = this.xyzFractionZ,
-    xyzX = this.xyzX,
-    xyzY = this.xyzY,
-    xyzZ = this.xyzZ,
-    xyzValue = this.xyzValue,
-
-    cmykFractionC = this.cmykFractionC,
-    cmykFractionM = this.cmykFractionM,
-    cmykFractionY = this.cmykFractionY,
-    cmykFractionK = this.cmykFractionK,
-    cmykC = this.cmykC,
-    cmykM = this.cmykM,
-    cmykY = this.cmykY,
-    cmykK = this.cmykK,
-    cmykValue = this.cmykValue,
-
-    name = this.name,
-    exactNameHex = this.exactNameHex?.substring(1),
-    exactNameHexSigned = this.exactNameHex,
-    isNameMatchExact = this.isNameMatchExact,
-    exactNameHexDistance = this.exactNameHexDistance,
-
-    imageBareUrl = this.imageBareUrl,
-    imageNamedUrl = this.imageNamedUrl,
-
-    contrastHex = this.contrastHex
+    exact = this.toExactPresentation()
 )
 
 // region Space
 
 private fun ColorDetailsDomain.toSpacesPresentation() =
     ColorDetails.Spaces(
-        hex = this.toHexSpacePresentation()
+        hex = this.toHexSpacePresentation(),
+        rgb = this.toRgbSpacePresentation(),
+        hsl = this.toHslSpacePresentation(),
+        hsv = this.toHsvSpacePresentation(),
+        cmyk = this.toCmykSpacePresentation()
     )
 
 private fun ColorDetailsDomain.toHexSpacePresentation() =
@@ -78,6 +30,50 @@ private fun ColorDetailsDomain.toHexSpacePresentation() =
         signed = this.hexValue,
         signless = this.hexClean
     )
+
+private fun ColorDetailsDomain.toRgbSpacePresentation() =
+    ColorDetails.Spaces.Rgb(
+        r = this.rgbR,
+        g = this.rgbG,
+        b = this.rgbB
+    )
+
+private fun ColorDetailsDomain.toHslSpacePresentation() =
+    ColorDetails.Spaces.Hsl(
+        h = this.hslH,
+        s = this.hslS,
+        l = this.hslL
+    )
+
+private fun ColorDetailsDomain.toHsvSpacePresentation() =
+    ColorDetails.Spaces.Hsv(
+        h = this.hsvH,
+        s = this.hsvS,
+        v = this.hsvV
+    )
+
+private fun ColorDetailsDomain.toCmykSpacePresentation() =
+    ColorDetails.Spaces.Cmyk(
+        c = this.cmykC,
+        m = this.cmykM,
+        y = this.cmykY,
+        k = this.cmykK
+    )
+
+// endregion
+
+// region Exact
+
+private fun ColorDetailsDomain.toExactPresentation() =
+    ColorDetails.Exact(
+        name = this.name,
+        color = this.toExactColorPresentation(),
+        distance = this.exactNameHexDistance,
+        isMatch = this.isNameMatchExact
+    )
+
+private fun ColorDetailsDomain.toExactColorPresentation() =
+    this.exactNameHex?.let { Color(it) }
 
 // endregion
 

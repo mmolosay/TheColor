@@ -1,7 +1,6 @@
 package com.ordolabs.feature_home.ui.fragment.color.data.details
 
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -13,10 +12,13 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDetailsFragmentBinding
 import com.ordolabs.feature_home.ui.fragment.color.data.base.BaseColorDataFragment
+import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.data.ColorDetails
+import com.ordolabs.thecolor.model.color.toColorInt
 import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
 import com.ordolabs.thecolor.util.ext.activityFragmentManager
 import com.ordolabs.thecolor.util.ext.getStringYesOrNo
+import com.ordolabs.thecolor.util.ext.setTextOrGone
 import com.ordolabs.thecolor.util.ext.setTextOrGoneWith
 
 /**
@@ -81,19 +83,19 @@ class ColorDetailsFragment :
     // region IColorDataFragment
 
     override fun populateViews(data: ColorDetails) {
-        populateNameHeadline(data)
+        populateNameHeadline(data.exact.name)
         populateHexGroup(data.spaces.hex)
-        populateRgbGroup(data)
-        populateHslGroup(data)
-        populateHsvGroup(data)
-        populateCmykGroup(data)
-        populateNameGroup(data)
-        populateMatchGroup(data)
+        populateRgbGroup(data.spaces.rgb)
+        populateHslGroup(data.spaces.hsl)
+        populateHsvGroup(data.spaces.hsv)
+        populateCmykGroup(data.spaces.cmyk)
+        populateNameGroup(data.exact)
+        populateMatchGroup(data.exact)
     }
 
-    private fun populateNameHeadline(details: ColorDetails) =
+    private fun populateNameHeadline(name: String?) =
         binding.run {
-            nameHeadline.text = details.name
+            nameHeadline.setTextOrGone(name)
         }
 
     private fun populateHexGroup(hex: ColorDetails.Spaces.Hex) =
@@ -104,99 +106,97 @@ class ColorDetailsFragment :
             hexValue.text = hex.signed
         }
 
-    private fun populateRgbGroup(details: ColorDetails) =
+    private fun populateRgbGroup(rgb: ColorDetails.Spaces.Rgb) =
         binding.run {
-            val hasData = (details.rgbR != null && details.rgbG != null && details.rgbB != null)
+            val hasData = (rgb.r != null && rgb.g != null && rgb.b != null)
             rgbGroup.isVisible = hasData
             if (!hasData) return
-            rgbValueR.text = details.rgbR.toString()
-            rgbValueG.text = details.rgbG.toString()
-            rgbValueB.text = details.rgbB.toString()
+            rgbValueR.text = rgb.r.toString()
+            rgbValueG.text = rgb.g.toString()
+            rgbValueB.text = rgb.b.toString()
         }
 
-    private fun populateHslGroup(details: ColorDetails) =
+    private fun populateHslGroup(hsl: ColorDetails.Spaces.Hsl) =
         binding.run {
-            val hasData = (details.hslH != null && details.hslS != null && details.hslL != null)
+            val hasData = (hsl.h != null && hsl.s != null && hsl.l != null)
             hslGroup.isVisible = hasData
             if (!hasData) return
-            hslValueH.text = details.hslH.toString()
-            hslValueS.text = details.hslS.toString()
-            hslValueL.text = details.hslL.toString()
+            hslValueH.text = hsl.h.toString()
+            hslValueS.text = hsl.s.toString()
+            hslValueL.text = hsl.l.toString()
         }
 
-    private fun populateHsvGroup(details: ColorDetails) =
+    private fun populateHsvGroup(hsv: ColorDetails.Spaces.Hsv) =
         binding.run {
-            val hasData = (details.hsvH != null && details.hsvS != null && details.hsvV != null)
+            val hasData = (hsv.h != null && hsv.s != null && hsv.v != null)
             hsvGroup.isVisible = hasData
             if (!hasData) return
-            hsvValueH.text = details.hsvH.toString()
-            hsvValueS.text = details.hsvS.toString()
-            hsvValueV.text = details.hsvV.toString()
+            hsvValueH.text = hsv.h.toString()
+            hsvValueS.text = hsv.s.toString()
+            hsvValueV.text = hsv.v.toString()
         }
 
-    private fun populateCmykGroup(details: ColorDetails) =
+    private fun populateCmykGroup(cmyk: ColorDetails.Spaces.Cmyk) =
         binding.run {
             val hasData =
-                (details.cmykC != null && details.cmykM != null && details.cmykY != null && details.cmykK != null)
+                (cmyk.c != null && cmyk.m != null && cmyk.y != null && cmyk.k != null)
             cmykGroup.isVisible = hasData
             if (!hasData) return
-            cmykValueC.text = details.cmykC.toString()
-            cmykValueM.text = details.cmykM.toString()
-            cmykValueY.text = details.cmykY.toString()
-            cmykValueK.text = details.cmykK.toString()
+            cmykValueC.text = cmyk.c.toString()
+            cmykValueM.text = cmyk.m.toString()
+            cmykValueY.text = cmyk.y.toString()
+            cmykValueK.text = cmyk.k.toString()
         }
 
-    private fun populateNameGroup(details: ColorDetails) =
+    private fun populateNameGroup(exact: ColorDetails.Exact) =
         binding.run {
-            val hasData = (details.name != null)
+            val hasData = (exact.name != null)
             nameGroup.isVisible = hasData
             if (!hasData) return
-            nameValue.text = details.name
+            nameValue.text = exact.name
         }
 
-    private fun populateMatchGroup(details: ColorDetails) =
+    private fun populateMatchGroup(exact: ColorDetails.Exact) =
         binding.run {
-            val hasData = (details.isNameMatchExact != null)
-            val exactMatch = (details.isNameMatchExact == true)
+            val hasData = (exact.isMatch != null)
+            val exactMatch = (exact.isMatch == true)
             matchGroup.isVisible = hasData
             if (!hasData) return
             matchValue.text = resources.getStringYesOrNo(yes = exactMatch)
             matchGroups.isVisible = !exactMatch
             if (exactMatch) return
-            populateExactGroup(details)
-            populateDeviationGroup(details)
+            populateExactGroup(exact)
+            populateDeviationGroup(exact)
         }
 
-    private fun populateExactGroup(details: ColorDetails) =
+    private fun populateExactGroup(exact: ColorDetails.Exact) =
         binding.run {
-            val hasData = (details.exactNameHexSigned != null)
+            val hasData = (exact.color != null)
             exactGroup.isVisible = hasData
             if (!hasData) return
-            val exactSigned = details.exactNameHexSigned
-            val color = Color.parseColor(details.exactNameHexSigned)
-            exactValue.setTextOrGoneWith(exactSigned, exactGroup)
-            exactColor.backgroundTintList = ColorStateList.valueOf(color)
+            val color = exact.color!! // checked above
+            exactValue.setTextOrGoneWith(color.hex, exactGroup)
+            exactColor.backgroundTintList = ColorStateList.valueOf(color.toColorInt())
             exactLink.setOnClickListener {
-                val exactHex = details.exactNameHex ?: return@setOnClickListener
                 activityFragmentManager.setFragmentResult(
                     RESULT_KEY_EXACT_COLOR_COMMAND,
-                    makeResultBundle(exactHex)
+                    makeResultBundle(color)
                 )
             }
         }
 
-    private fun populateDeviationGroup(details: ColorDetails) =
+    private fun populateDeviationGroup(exact: ColorDetails.Exact) =
         binding.run {
-            val hasData = (details.exactNameHexDistance != null)
+            val hasData = (exact.distance != null)
             deviationGroup.isVisible = hasData
             if (!hasData) return
-            deviationValue.text = details.exactNameHexDistance.toString()
+            deviationValue.text = exact.distance.toString()
         }
 
     // endregion
 
     data class Result(
-        val exactHex: String?
+        val exactColor: Color?
     )
 
     companion object {
@@ -215,15 +215,15 @@ class ColorDetailsFragment :
         // region Fragment Result
 
         fun makeResultBundle(
-            exactHex: String
+            exactColor: Color
         ) =
             bundleOf(
-                "exactHex" to exactHex
+                "exactColor" to exactColor
             )
 
         fun parseResultBundle(bundle: Bundle) =
             Result(
-                exactHex = bundle.getString("exactHex")
+                exactColor = bundle.getParcelable("exactColor")
             )
 
         // endregion

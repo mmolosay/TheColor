@@ -1,71 +1,24 @@
 package com.ordolabs.thecolor.model.color.data
 
 import android.os.Parcelable
+import com.ordolabs.thecolor.model.color.Color
 import kotlinx.parcelize.Parcelize
 
-// TODO: split into subclasses
 @Parcelize
 data class ColorDetails(
-
     val spaces: Spaces,
-
-    val rgbFractionR: Float?,
-    val rgbFractionG: Float?,
-    val rgbFractionB: Float?,
-    val rgbR: Int?,
-    val rgbG: Int?,
-    val rgbB: Int?,
-    val rgbValue: String?,
-
-    val hslFractionH: Float?,
-    val hslFractionS: Float?,
-    val hslFractionL: Float?,
-    val hslH: Int?,
-    val hslS: Int?,
-    val hslL: Int?,
-    val hslValue: String?,
-
-    val hsvFractionH: Float?,
-    val hsvFractionS: Float?,
-    val hsvFractionV: Float?,
-    val hsvH: Int?,
-    val hsvS: Int?,
-    val hsvV: Int?,
-    val hsvValue: String?,
-
-    val xyzFractionX: Float?,
-    val xyzFractionY: Float?,
-    val xyzFractionZ: Float?,
-    val xyzX: Int?,
-    val xyzY: Int?,
-    val xyzZ: Int?,
-    val xyzValue: String?,
-
-    val cmykFractionC: Float?,
-    val cmykFractionM: Float?,
-    val cmykFractionY: Float?,
-    val cmykFractionK: Float?,
-    val cmykC: Int?,
-    val cmykM: Int?,
-    val cmykY: Int?,
-    val cmykK: Int?,
-    val cmykValue: String?,
-
-    val name: String?,
-    val exactNameHex: String?,
-    val exactNameHexSigned: String?,
-    val isNameMatchExact: Boolean?,
-    val exactNameHexDistance: Int?,
-
-    val imageBareUrl: String?,
-    val imageNamedUrl: String?,
-
-    val contrastHex: String?
+    val exact: Exact
 ) : Parcelable {
+
+    // TODO: implement hasAllData(): Boolean method for all spaces data classes
 
     @Parcelize
     data class Spaces(
-        val hex: Hex
+        val hex: Hex,
+        val rgb: Rgb,
+        val hsl: Hsl,
+        val hsv: Hsv,
+        val cmyk: Cmyk
     ) : Parcelable {
 
         @Parcelize
@@ -73,5 +26,42 @@ data class ColorDetails(
             val signed: String?,
             val signless: String?
         ) : Parcelable
+
+        @Parcelize
+        data class Rgb(
+            val r: Int?,
+            val g: Int?,
+            val b: Int?
+        ): Parcelable
+
+        @Parcelize
+        data class Hsl(
+            val h: Int?,
+            val s: Int?,
+            val l: Int?
+        ): Parcelable
+
+        @Parcelize
+        data class Hsv(
+            val h: Int?,
+            val s: Int?,
+            val v: Int?
+        ): Parcelable
+
+        @Parcelize
+        data class Cmyk(
+            val c: Int?,
+            val m: Int?,
+            val y: Int?,
+            val k: Int?
+        ): Parcelable
     }
+
+    @Parcelize
+    data class Exact(
+        val name: String?,
+        val color: Color?,
+        val distance: Int?,
+        val isMatch: Boolean?
+    ) : Parcelable
 }
