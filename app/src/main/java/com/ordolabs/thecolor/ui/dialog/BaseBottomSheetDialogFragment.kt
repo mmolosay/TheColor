@@ -10,10 +10,34 @@ import com.ordolabs.thecolor.util.ext.getDefaultTransactionTag
 
 abstract class BaseBottomSheetDialogFragment : BottomSheetDialogFragment() {
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        arguments?.let {
+            parseArguments(it)
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setFragments()
         setUp()
         setViews()
+    }
+
+    /**
+     * Parses [getArguments].
+     * Being called in [Fragment.onCreate] method.
+     */
+    protected open fun parseArguments(args: Bundle) {
+        // default empty implementation
+    }
+
+    /**
+     * Configures child fragments.
+     * Being called in [Fragment.onViewCreated] method.
+     */
+    protected open fun setFragments() {
+        // default empty implementation
     }
 
     /**
@@ -22,14 +46,6 @@ abstract class BaseBottomSheetDialogFragment : BottomSheetDialogFragment() {
      */
     @CallSuper
     protected open fun setUp() {
-        parseArguments()
-    }
-
-    /**
-     * Parses [getArguments].
-     * Being called in [Fragment.onViewCreated] method.
-     */
-    protected open fun parseArguments() {
         // default empty implementation
     }
 

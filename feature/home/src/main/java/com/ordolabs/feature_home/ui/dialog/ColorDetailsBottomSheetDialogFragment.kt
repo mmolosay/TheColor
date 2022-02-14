@@ -27,8 +27,8 @@ class ColorDetailsBottomSheetDialogFragment : BaseBottomSheetDialogFragment() {
 
     // region Parse arguments
 
-    override fun parseArguments() {
-        val args = arguments ?: return
+    override fun parseArguments(args: Bundle) {
+        super.parseArguments(args)
         parseColorDetails(args)
     }
 
@@ -40,9 +40,10 @@ class ColorDetailsBottomSheetDialogFragment : BaseBottomSheetDialogFragment() {
 
     // endregion
 
-    // region Set views
+    // region Set fragments
 
-    override fun setViews() {
+    override fun setFragments() {
+        super.setFragments()
         setColorDetailsFragment()
     }
 
@@ -55,6 +56,14 @@ class ColorDetailsBottomSheetDialogFragment : BaseBottomSheetDialogFragment() {
             R.id.defaultFragmentContainer,
             tag
         )
+    }
+
+    // endregion
+
+    // region Set views
+
+    override fun setViews() {
+        // nothing is here
     }
 
     // endregion
