@@ -13,7 +13,7 @@ class ColorDataDetailsPage : BaseColorDataPage() {
     override val page = ColorDataPagerAdapter.Page.DETAILS
 
     override fun makeColorDataFragmentNewInstance(): Fragment =
-        ColorDetailsObtainFragment.newInstance()
+        ColorDetailsObtainFragment.newInstance(details = null)
 
     override fun getChangePageBtnText(): String =
         resources.getString(R.string.color_data_details_page_change_page_btn)

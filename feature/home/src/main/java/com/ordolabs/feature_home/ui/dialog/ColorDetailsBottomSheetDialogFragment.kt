@@ -6,7 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import com.ordolabs.feature_home.R
-import com.ordolabs.feature_home.ui.fragment.color.data.details.ColorDetailsFragment
+import com.ordolabs.feature_home.ui.fragment.color.data.details.ColorDetailsObtainFragment
 import com.ordolabs.feature_home.ui.fragment.color.data.details.ColorDetailsParent
 import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.data.ColorDetails
@@ -51,7 +51,7 @@ class ColorDetailsBottomSheetDialogFragment :
     }
 
     private fun setColorDetailsFragment() {
-        val fragment = ColorDetailsFragment.newInstance(details)
+        val fragment = ColorDetailsObtainFragment.newInstance(details)
         val tag = fragment.getDefaultTransactionTag()
         ContextUtil.setFragment(
             childFragmentManager,
