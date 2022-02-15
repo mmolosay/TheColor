@@ -7,13 +7,15 @@ import com.ordolabs.feature_home.ui.fragment.color.data.ColorDataObtainFragment
 import com.ordolabs.feature_home.ui.fragment.color.data.base.BaseColorDataFragment
 import com.ordolabs.feature_home.util.FeatureHomeUtil.featureHomeComponent
 import com.ordolabs.feature_home.viewmodel.colordata.details.ColorDetailsObtainViewModel
+import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.data.ColorDetails
 import com.ordolabs.thecolor.util.ext.ownViewModels
 import com.ordolabs.thecolor.util.struct.Resource
 import kotlinx.coroutines.flow.Flow
 
 class ColorDetailsObtainFragment :
-    ColorDataObtainFragment<ColorDetails>() {
+    ColorDataObtainFragment<ColorDetails>(),
+    ColorDetailsObtainView {
 
     private var details: ColorDetails? = null
 
@@ -49,7 +51,7 @@ class ColorDetailsObtainFragment :
     override fun obtainColorData() {
         if (details != null) return
         val color = color ?: return
-        colorDetailsObtainVM.getColorDetails(color)
+        obtainColorDetails(color)
     }
 
     override fun makeColorDataFragment(): BaseColorDataFragment<ColorDetails> =
@@ -57,6 +59,14 @@ class ColorDetailsObtainFragment :
 
     override fun makeContentShimmerFragment(): Fragment =
         ColorDetailsShimmerFragment.newInstance()
+
+    // endregion
+
+    // region ColorDetailsObtainView
+
+    override fun obtainColorDetails(color: Color) {
+        colorDetailsObtainVM.getColorDetails(color)
+    }
 
     // endregion
 

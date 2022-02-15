@@ -8,6 +8,7 @@ import androidx.core.os.bundleOf
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.ui.fragment.color.data.ColorThemedView
 import com.ordolabs.feature_home.ui.fragment.color.data.details.ColorDetailsObtainFragment
+import com.ordolabs.feature_home.ui.fragment.color.data.details.ColorDetailsObtainView
 import com.ordolabs.feature_home.ui.fragment.color.data.details.ColorDetailsParent
 import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.data.ColorDetails
@@ -21,6 +22,7 @@ class ColorDetailsBottomSheetDialogFragment :
     ColorDetailsParent {
 
     private var details: ColorDetails? = null
+    private var obtainView: ColorDetailsObtainView? = null
 
     override val color: Color?
         get() = details?.color
@@ -31,6 +33,11 @@ class ColorDetailsBottomSheetDialogFragment :
         savedInstanceState: Bundle?
     ): View? {
         return inflater.inflate(R.layout.color_data_details_dialog, container, false)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        this.obtainView = null
     }
 
     // region Parse arguments
@@ -57,6 +64,7 @@ class ColorDetailsBottomSheetDialogFragment :
 
     private fun setColorDetailsObtainFragment() {
         val fragment = ColorDetailsObtainFragment.newInstance(details)
+        this.obtainView = fragment
         val tag = fragment.getDefaultTransactionTag()
         ContextUtil.setFragment(
             childFragmentManager,
@@ -79,7 +87,7 @@ class ColorDetailsBottomSheetDialogFragment :
     // region ColorDetailsParent
 
     override fun onExactColorClick(exact: Color) {
-        TODO()
+        obtainView?.obtainColorDetails(exact)
     }
 
     // endregion
