@@ -2,7 +2,6 @@ package com.ordolabs.thecolor.ui.dialog
 
 import android.os.Bundle
 import android.view.View
-import androidx.annotation.CallSuper
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -16,6 +15,7 @@ abstract class BaseBottomSheetDialogFragment : BottomSheetDialogFragment() {
             parseArguments(it)
         }
         setUp()
+        setFragmentResultListeners()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -38,8 +38,15 @@ abstract class BaseBottomSheetDialogFragment : BottomSheetDialogFragment() {
      * Configures non-view components.
      * Being called in [Fragment.onCreate] method.
      */
-    @CallSuper
     protected open fun setUp() {
+        // default empty implementation
+    }
+
+    /**
+     * Sets listeners for Fragment Result API.
+     * Being called in [Fragment.onCreate] method.
+     */
+    protected open fun setFragmentResultListeners() {
         // default empty implementation
     }
 
