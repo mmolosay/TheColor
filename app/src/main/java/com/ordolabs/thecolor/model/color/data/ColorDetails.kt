@@ -6,6 +6,7 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class ColorDetails(
+    val color: Color?,
     val spaces: Spaces,
     val exact: Exact
 ) : Parcelable {

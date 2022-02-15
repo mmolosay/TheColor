@@ -10,9 +10,17 @@ import com.ordolabs.domain.model.ColorScheme as ColorSchemeDomain
 // region ColorDetails
 
 fun ColorDetailsDomain.toPresentation() = ColorDetails(
+    color = this.toColorPresentation(),
     spaces = this.toSpacesPresentation(),
     exact = this.toExactPresentation()
 )
+
+// region Color
+
+private fun ColorDetailsDomain.toColorPresentation() =
+    this.hexValue?.let { Color(hex = it) }
+
+// endregion
 
 // region Space
 
