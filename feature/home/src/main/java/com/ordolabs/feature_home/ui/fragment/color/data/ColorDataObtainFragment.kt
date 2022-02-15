@@ -28,6 +28,8 @@ import java.net.UnknownHostException
 /**
  * Obtains [color] data of type [D] and passes it to child 'display-data-only' Fragment.
  * Displays loading, failure and success obtaining states.
+ *
+ * Requires [getParentFragment] to be [ColorThemedView] as well.
  */
 abstract class ColorDataObtainFragment<D> :
     BaseColorDataFragment<D>(),
