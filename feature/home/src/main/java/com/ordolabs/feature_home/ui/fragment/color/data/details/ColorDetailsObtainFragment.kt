@@ -25,6 +25,7 @@ class ColorDetailsObtainFragment :
 
     override fun setUp() {
         parseArguments()
+        details?.let { colorDetailsObtainVM.setColorDetails(it) }
     }
 
     private fun parseArguments() {

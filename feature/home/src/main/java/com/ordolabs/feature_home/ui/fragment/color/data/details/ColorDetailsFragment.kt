@@ -64,7 +64,7 @@ class ColorDetailsFragment :
 
     override fun setViews() {
         colorDetails?.let { details ->
-            populateViews(details)
+            performPopulateViews(details)
         }
     }
 
@@ -73,14 +73,20 @@ class ColorDetailsFragment :
     // region ColorDataView
 
     override fun populateViews(data: ColorDetails) {
-        populateNameHeadline(data.exact.name)
-        populateHexGroup(data.spaces.hex)
-        populateRgbGroup(data.spaces.rgb)
-        populateHslGroup(data.spaces.hsl)
-        populateHsvGroup(data.spaces.hsv)
-        populateCmykGroup(data.spaces.cmyk)
-        populateNameGroup(data.exact)
-        populateMatchGroup(data.exact)
+        if (data == colorDetails) return // already populated
+        this.colorDetails = data
+        performPopulateViews(data)
+    }
+
+    private fun performPopulateViews(details: ColorDetails) {
+        populateNameHeadline(details.exact.name)
+        populateHexGroup(details.spaces.hex)
+        populateRgbGroup(details.spaces.rgb)
+        populateHslGroup(details.spaces.hsl)
+        populateHsvGroup(details.spaces.hsv)
+        populateCmykGroup(details.spaces.cmyk)
+        populateNameGroup(details.exact)
+        populateMatchGroup(details.exact)
     }
 
     private fun populateNameHeadline(name: String?) =

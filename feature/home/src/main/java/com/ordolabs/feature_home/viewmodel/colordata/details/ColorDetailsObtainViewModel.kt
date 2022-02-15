@@ -35,6 +35,14 @@ class ColorDetailsObtainViewModel @Inject constructor(
         this.getColorDetailsJob = performGetColorDetails(color.hex)
     }
 
+    /**
+     * Sets specified [details] as current ones to be collected by `View`.
+     * Call this when you receive details from outside the 'View'.
+     */
+    fun setColorDetails(details: ColorDetails) {
+        _details.setSuccess(details)
+    }
+
     private fun performGetColorDetails(colorHex: String) =
         launchInIO {
             getColorDetailsUseCase.invoke(colorHex)
