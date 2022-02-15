@@ -30,11 +30,6 @@ class ColorDetailsFragment :
 
     private var colorDetails: ColorDetails? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        parseArguments()
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -46,25 +41,21 @@ class ColorDetailsFragment :
             .inflate(R.layout.color_details_fragment, container, false)
     }
 
-    // region Parse arguments
+    // region Set up
+
+    override fun setUp() {
+        parseArguments()
+    }
 
     private fun parseArguments() {
         val args = arguments ?: return
         parseColorDetails(args)
     }
 
-    private fun parseColorDetails(bundle: Bundle) {
+    private fun parseColorDetails(args: Bundle) {
         val key = ARGUMENT_KEY_COLOR_DETAILS
-        if (!bundle.containsKey(key)) return
-        this.colorDetails = bundle.getParcelable(key)
-    }
-
-    // endregion
-
-    // region Set up
-
-    override fun collectViewModelsData() {
-        // nothing is here
+        if (!args.containsKey(key)) return
+        this.colorDetails = args.getParcelable(key)
     }
 
     // endregion
