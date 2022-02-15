@@ -110,7 +110,7 @@ class HomeFragment :
     private fun setColorDetailsFragmentResultListener() =
         activityFragmentManager
             .setFragmentResultListener(
-                ColorDetailsFragment.RESULT_KEY,
+                ColorDetailsFragment.resultKey,
                 this,
                 ::onFragmentResult
             )
@@ -119,7 +119,7 @@ class HomeFragment :
 
     private fun onFragmentResult(key: String, bundle: Bundle) =
         when (key) {
-            ColorDetailsFragment.RESULT_KEY ->
+            ColorDetailsFragment.resultKey ->
                 onColorDetailsFragmentResult(bundle)
             else -> Unit
         }

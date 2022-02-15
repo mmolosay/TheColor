@@ -179,7 +179,7 @@ class ColorDetailsFragment :
             exactColor.backgroundTintList = ColorStateList.valueOf(color.toColorInt())
             exactLink.setOnClickListener {
                 activityFragmentManager.setFragmentResult(
-                    RESULT_KEY,
+                    resultKey,
                     makeResultBundle(color)
                 )
             }
@@ -201,7 +201,7 @@ class ColorDetailsFragment :
 
     companion object {
 
-        val RESULT_KEY = makeFragmentResultKey<ColorDetailsFragment>()
+        val resultKey = makeFragmentResultKey<ColorDetailsFragment>()
 
         private const val ARGUMENT_KEY_COLOR_DETAILS = "ARGUMENT_KEY_COLOR_DETAILS"
 
