@@ -101,9 +101,6 @@ fun BaseFragment.removeFragment(
 fun Fragment.getDefaultTransactionTag(): String =
     this::class.java.simpleName
 
-fun Fragment.getChildFragmentAt(position: Int): Fragment? =
-    childFragmentManager.fragments.getOrNull(position)
-
 // endregion
 
 // region Toasts
