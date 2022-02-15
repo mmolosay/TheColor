@@ -14,7 +14,7 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDataObtainFragmentBinding
 import com.ordolabs.feature_home.ui.fragment.color.data.base.BaseColorDataFragment
-import com.ordolabs.feature_home.ui.fragment.color.data.base.IColorDataFragment
+import com.ordolabs.feature_home.ui.fragment.color.data.base.ColorDataView
 import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
 import com.ordolabs.thecolor.util.ext.by
@@ -31,15 +31,7 @@ import java.net.UnknownHostException
  */
 abstract class ColorDataObtainFragment<D> :
     BaseColorDataFragment<D>(),
-    IColorThemed {
-
-    override val color: Color?
-        get() = (parentFragment as? IColorThemed)?.color
-
-    private val binding: ColorDataObtainFragmentBinding by viewBinding(CreateMethod.BIND)
-
-    private var dataFragment: IColorDataFragment<D>? = null
-    private var wasOnResumeCalled: Boolean = false
+    ColorThemedView {
 
     // region Abstract
 
@@ -49,6 +41,14 @@ abstract class ColorDataObtainFragment<D> :
     abstract fun makeContentShimmerFragment(): Fragment
 
     // endregion
+
+    override val color: Color?
+        get() = (parentFragment as? ColorThemedView)?.color
+
+    private val binding: ColorDataObtainFragmentBinding by viewBinding(CreateMethod.BIND)
+
+    private var dataView: ColorDataView<D>? = null
+    private var wasOnResumeCalled: Boolean = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -69,7 +69,7 @@ abstract class ColorDataObtainFragment<D> :
 
     override fun onDestroy() {
         super.onDestroy()
-        this.dataFragment = null
+        this.dataView = null
     }
 
     // region Set fragments
@@ -83,7 +83,7 @@ abstract class ColorDataObtainFragment<D> :
     private fun setColorDataFragment() {
         val fragment = makeColorDataFragment()
         setFragment(fragment)
-        this.dataFragment = fragment
+        this.dataView = fragment
     }
 
     private fun setContentShimmerFragment() {
@@ -163,7 +163,7 @@ abstract class ColorDataObtainFragment<D> :
 
     // delegates
     override fun populateViews(data: D) {
-        dataFragment?.populateViews(data)
+        dataView?.populateViews(data)
     }
 
     // endregion

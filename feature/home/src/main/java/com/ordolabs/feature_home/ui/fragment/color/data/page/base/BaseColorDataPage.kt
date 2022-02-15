@@ -5,12 +5,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.view.ContextThemeWrapper
+import androidx.fragment.app.Fragment
 import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDataPageFragmentBinding
+import com.ordolabs.feature_home.ui.adapter.pager.ColorDataPagerAdapter
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
-import com.ordolabs.feature_home.ui.fragment.color.data.IColorThemed
+import com.ordolabs.feature_home.ui.fragment.color.data.ColorThemedView
 import com.ordolabs.feature_home.viewmodel.colordata.ColorDataViewModel
 import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.isDark
@@ -21,14 +23,22 @@ import com.ordolabs.thecolor.R as RApp
 
 abstract class BaseColorDataPage :
     BaseFragment(),
-    IColorDataPage,
-    IColorThemed {
+    ColorThemedView {
+
+    // region Abstract
+
+    abstract val page: ColorDataPagerAdapter.Page
+
+    abstract fun makeColorDataFragmentNewInstance(): Fragment
+    abstract fun getChangePageBtnText(): String
+
+    // endregion
 
     private val binding: ColorDataPageFragmentBinding by viewBinding(CreateMethod.BIND)
     private val colorDataVM: ColorDataViewModel by parentViewModels()
 
     override val color: Color?
-        get() = (parentFragment as? IColorThemed)?.color
+        get() = (parentFragment as? ColorThemedView)?.color
 
     override fun onCreateView(
         inflater: LayoutInflater,

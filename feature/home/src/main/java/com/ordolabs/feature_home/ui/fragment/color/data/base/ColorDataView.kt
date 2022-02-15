@@ -1,9 +1,9 @@
 package com.ordolabs.feature_home.ui.fragment.color.data.base
 
 /**
- * Interface for fragment that populates data [D] in its views.
+ * Interface for `View` that populates data [D] in its UI.
  */
-interface IColorDataFragment<D> {
+interface ColorDataView<D> {
 
     fun populateViews(data: D)
 }

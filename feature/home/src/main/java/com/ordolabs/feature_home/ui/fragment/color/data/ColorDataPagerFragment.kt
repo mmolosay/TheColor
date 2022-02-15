@@ -21,7 +21,7 @@ import com.ordolabs.thecolor.R as RApp
 
 class ColorDataPagerFragment :
     BaseFragment(),
-    IColorThemed {
+    ColorThemedView {
 
     private val binding: ColorDataPagerFragmentBinding by viewBinding(CreateMethod.BIND)
     private val colorDataVM: ColorDataViewModel by viewModels {

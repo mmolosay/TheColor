@@ -26,16 +26,6 @@ import kotlinx.coroutines.flow.Flow
  */
 abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment {
 
-    constructor() : super()
-    constructor(@LayoutRes layoutRes: Int) : super(layoutRes)
-
-    protected val colorInputVM: ColorInputViewModel by parentViewModels {
-        featureHomeComponent.viewModelFactory
-    }
-
-    private var currentPrototype: ColorPrototype? = null
-    private var isTypedByUser: Boolean = true
-
     // region Abstract
 
     /**
@@ -59,6 +49,16 @@ abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment {
     protected abstract fun getColorInputFlow(): Flow<Resource<C>>
 
     // endregion
+
+    constructor() : super()
+    constructor(@LayoutRes layoutRes: Int) : super(layoutRes)
+
+    protected val colorInputVM: ColorInputViewModel by parentViewModels {
+        featureHomeComponent.viewModelFactory
+    }
+
+    private var currentPrototype: ColorPrototype? = null
+    private var isTypedByUser: Boolean = true
 
     @CallSuper
     override fun collectViewModelsData() {

@@ -13,7 +13,7 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorSchemeEditorFragmentBinding
 import com.ordolabs.feature_home.ui.fragment.color.data.base.BaseColorDataFragment
-import com.ordolabs.feature_home.ui.fragment.color.data.base.IColorDataFragment
+import com.ordolabs.feature_home.ui.fragment.color.data.base.ColorDataView
 import com.ordolabs.feature_home.ui.fragment.color.data.scheme.ColorSchemeFragment
 import com.ordolabs.feature_home.util.FeatureHomeUtil.featureHomeComponent
 import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeConfigViewModel
@@ -44,7 +44,7 @@ class ColorSchemeEditorFragment :
         factoryProducer = { featureHomeComponent.viewModelFactory }
     )
 
-    private var schemeFragment: IColorDataFragment<ColorScheme>? = null
+    private var schemeView: ColorDataView<ColorScheme>? = null
     private var configViewModelOwner: ViewModelStoreOwner? = null
 
     override fun onCreateView(
@@ -63,7 +63,7 @@ class ColorSchemeEditorFragment :
 
     override fun onDestroy() {
         super.onDestroy()
-        this.schemeFragment = null
+        this.schemeView = null
         this.configViewModelOwner = null
     }
 
@@ -77,7 +77,7 @@ class ColorSchemeEditorFragment :
 
     private fun setColorShemeFragment() {
         val fragment = ColorSchemeFragment()
-        this.schemeFragment = fragment
+        this.schemeView = fragment
         setFragment(fragment, binding.schemeFragmentContainer.id)
     }
 
@@ -143,7 +143,7 @@ class ColorSchemeEditorFragment :
 
     // delegate
     override fun populateViews(data: ColorScheme) {
-        schemeFragment?.populateViews(data)
+        schemeView?.populateViews(data)
     }
 
     // endregion
