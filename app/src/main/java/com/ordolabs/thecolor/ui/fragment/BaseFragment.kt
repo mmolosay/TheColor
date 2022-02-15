@@ -127,6 +127,10 @@ abstract class BaseFragment : Fragment {
 
     companion object {
         // extra keys and stuff
+
+        @JvmStatic
+        protected inline fun <reified F : BaseFragment> makeFragmentResultKey() =
+            "ResultKey_${F::class.java.canonicalName}"
     }
 
     /**

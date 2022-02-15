@@ -82,11 +82,6 @@ class HomeFragment :
     private var dataViewModelOwner: ViewModelStoreOwner? = null
     private val previewResizeDest = AnimatorDestination()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setFragmentResultListeners()
-    }
-
     override fun onStop() {
         super.onStop()
         hideSoftInputAndClearFocus()
@@ -115,7 +110,7 @@ class HomeFragment :
     private fun setColorDetailsFragmentResultListener() =
         activityFragmentManager
             .setFragmentResultListener(
-                ColorDetailsFragment.RESULT_KEY_EXACT_COLOR_COMMAND,
+                ColorDetailsFragment.RESULT_KEY,
                 this,
                 ::onFragmentResult
             )
@@ -124,7 +119,7 @@ class HomeFragment :
 
     private fun onFragmentResult(key: String, bundle: Bundle) =
         when (key) {
-            ColorDetailsFragment.RESULT_KEY_EXACT_COLOR_COMMAND ->
+            ColorDetailsFragment.RESULT_KEY ->
                 onColorDetailsFragmentResult(bundle)
             else -> Unit
         }
