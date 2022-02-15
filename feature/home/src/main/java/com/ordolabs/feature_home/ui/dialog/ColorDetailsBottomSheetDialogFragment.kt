@@ -7,12 +7,16 @@ import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.ui.fragment.color.data.details.ColorDetailsFragment
+import com.ordolabs.feature_home.ui.fragment.color.data.details.ColorDetailsParent
+import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.data.ColorDetails
 import com.ordolabs.thecolor.ui.dialog.BaseBottomSheetDialogFragment
 import com.ordolabs.thecolor.util.ContextUtil
 import com.ordolabs.thecolor.util.ext.getDefaultTransactionTag
 
-class ColorDetailsBottomSheetDialogFragment : BaseBottomSheetDialogFragment() {
+class ColorDetailsBottomSheetDialogFragment :
+    BaseBottomSheetDialogFragment(),
+    ColorDetailsParent {
 
     private var details: ColorDetails? = null
 
@@ -63,6 +67,14 @@ class ColorDetailsBottomSheetDialogFragment : BaseBottomSheetDialogFragment() {
 
     override fun setViews() {
         // nothing is here
+    }
+
+    // endregion
+
+    // region ColorDetailsParent
+
+    override fun onExactColorClick(exact: Color) {
+        TODO()
     }
 
     // endregion
