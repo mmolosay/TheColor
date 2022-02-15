@@ -60,7 +60,7 @@ class ColorSchemeFragment :
         recycler.addItemDecoration(decoration)
     }
 
-    // region IColorDataFragment
+    // region ColorDataView
 
     override fun populateViews(data: ColorScheme) =
         binding.root.doOnLayout {

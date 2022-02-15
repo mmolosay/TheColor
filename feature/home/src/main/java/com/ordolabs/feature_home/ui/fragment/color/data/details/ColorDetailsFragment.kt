@@ -79,7 +79,7 @@ class ColorDetailsFragment :
 
     // endregion
 
-    // region IColorDataFragment
+    // region ColorDataView
 
     override fun populateViews(data: ColorDetails) {
         populateNameHeadline(data.exact.name)

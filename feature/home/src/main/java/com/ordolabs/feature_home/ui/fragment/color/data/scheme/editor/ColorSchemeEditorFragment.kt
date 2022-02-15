@@ -139,7 +139,7 @@ class ColorSchemeEditorFragment :
                 .start()
         }
 
-    // region IColorDataFragment
+    // region ColorDataView
 
     // delegate
     override fun populateViews(data: ColorScheme) {

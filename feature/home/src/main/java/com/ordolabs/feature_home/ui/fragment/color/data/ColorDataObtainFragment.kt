@@ -159,7 +159,7 @@ abstract class ColorDataObtainFragment<D> :
 
     // endregion
 
-    // region IColorDataFragment
+    // region ColorDataView
 
     // delegates
     override fun populateViews(data: D) {
