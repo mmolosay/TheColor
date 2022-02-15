@@ -15,14 +15,16 @@ abstract class BaseBottomSheetDialogFragment : BottomSheetDialogFragment() {
         arguments?.let {
             parseArguments(it)
         }
+        setUp()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setFragments()
-        setUp()
         setViews()
     }
+
+    // region Fragment.onCreate
 
     /**
      * Parses [getArguments].
@@ -33,6 +35,19 @@ abstract class BaseBottomSheetDialogFragment : BottomSheetDialogFragment() {
     }
 
     /**
+     * Configures non-view components.
+     * Being called in [Fragment.onCreate] method.
+     */
+    @CallSuper
+    protected open fun setUp() {
+        // default empty implementation
+    }
+
+    // endregion
+
+    // region Fragment.onViewCreated
+
+    /**
      * Configures child fragments.
      * Being called in [Fragment.onViewCreated] method.
      */
@@ -41,19 +56,12 @@ abstract class BaseBottomSheetDialogFragment : BottomSheetDialogFragment() {
     }
 
     /**
-     * Configures non-view components.
-     * Being called in [Fragment.onViewCreated] method.
-     */
-    @CallSuper
-    protected open fun setUp() {
-        // default empty implementation
-    }
-
-    /**
      * Sets `Fragment's views and configures them.
      * Being called in [Fragment.onViewCreated] method.
      */
     protected abstract fun setViews()
+
+    // endregion
 
     fun show(manager: FragmentManager) {
         val tag = this.getDefaultTransactionTag()
