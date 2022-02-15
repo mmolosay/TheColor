@@ -7,7 +7,6 @@ import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.res.ColorStateList
 import android.graphics.Point
-import android.os.Bundle
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.AccelerateInterpolator
@@ -29,7 +28,7 @@ import com.ordolabs.feature_home.di.DaggerFeatureHomeComponent
 import com.ordolabs.feature_home.di.FeatureHomeComponent
 import com.ordolabs.feature_home.di.FeatureHomeComponentKeeper
 import com.ordolabs.feature_home.ui.fragment.color.data.ColorDataPagerFragment
-import com.ordolabs.feature_home.ui.fragment.color.data.details.ColorDetailsFragment
+import com.ordolabs.feature_home.ui.fragment.color.data.details.ColorDetailsParent
 import com.ordolabs.feature_home.ui.fragment.color.input.ColorInputPagerFragment
 import com.ordolabs.feature_home.viewmodel.HomeViewModel
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
@@ -38,7 +37,6 @@ import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.ColorPreview
 import com.ordolabs.thecolor.model.color.toColorInt
 import com.ordolabs.thecolor.util.AnimationUtils
-import com.ordolabs.thecolor.util.ext.activityFragmentManager
 import com.ordolabs.thecolor.util.ext.appComponent
 import com.ordolabs.thecolor.util.ext.bindPropertyAnimator
 import com.ordolabs.thecolor.util.ext.by
@@ -65,7 +63,8 @@ import com.ordolabs.thecolor.R as RApp
 
 class HomeFragment :
     BaseFragment(R.layout.home_fragment),
-    FeatureHomeComponentKeeper {
+    FeatureHomeComponentKeeper,
+    ColorDetailsParent {
 
     override val featureHomeComponent: FeatureHomeComponent by lazy(::makeFeatureHomeComponent)
 
@@ -105,27 +104,10 @@ class HomeFragment :
     // region Fragment Result
 
     override fun setFragmentResultListeners() {
-        setColorDetailsFragmentResultListener()
+        // nothing is here
     }
-
-    private fun setColorDetailsFragmentResultListener() =
-        activityFragmentManager
-            .setFragmentResultListener(
-                ColorDetailsFragment.resultKey,
-                this,
-                ::onColorDetailsFragmentResult
-            )
 
     // region Listeners
-
-    @Suppress("UNUSED_PARAMETER")
-    private fun onColorDetailsFragmentResult(key: String, bundle: Bundle) {
-        val result = ColorDetailsFragment.parseResultBundle(bundle)
-        val exact = result.exactColor ?: return
-        val preview = ColorPreview(exact, isUserInput = false)
-        colorValidatorVM.updateColorPreview(preview)
-        replaceColorDataFragment(exact)
-    }
 
     // endregion
 
@@ -134,6 +116,7 @@ class HomeFragment :
     // region Collect ViewModels data
 
     override fun collectViewModelsData() {
+        setColorInputFragment() // TODO: remove from here and restore in setFragments()
         collectColorPreview()
         collectColorInputPrototype()
     }
@@ -197,7 +180,8 @@ class HomeFragment :
     // region Set fragments
 
     override fun setFragments() {
-        setColorInputFragment()
+        // TODO: remove from collectViewModelsData() and restore here
+//        setColorInputFragment()
         setColorDataFragment()
     }
 
@@ -483,6 +467,16 @@ class HomeFragment :
         val yApprox = bottom - padding - previewRadius
         val y = yApprox.coerceIn(0, info.height)
         return Point(x, y)
+    }
+
+    // endregion
+
+    // region ColorDetailsParent
+
+    override fun onExactColorClick(exact: Color) {
+        val preview = ColorPreview(exact, isUserInput = false)
+        colorValidatorVM.updateColorPreview(preview)
+        replaceColorDataFragment(exact)
     }
 
     // endregion

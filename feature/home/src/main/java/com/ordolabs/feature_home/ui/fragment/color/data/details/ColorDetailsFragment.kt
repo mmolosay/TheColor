@@ -12,11 +12,10 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDetailsFragmentBinding
 import com.ordolabs.feature_home.ui.fragment.color.data.base.BaseColorDataFragment
-import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.data.ColorDetails
 import com.ordolabs.thecolor.model.color.toColorInt
 import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
-import com.ordolabs.thecolor.util.ext.activityFragmentManager
+import com.ordolabs.thecolor.util.ext.ancestorOf
 import com.ordolabs.thecolor.util.ext.getStringYesOrNo
 import com.ordolabs.thecolor.util.ext.setTextOrGone
 import com.ordolabs.thecolor.util.ext.setTextOrGoneWith
@@ -178,10 +177,7 @@ class ColorDetailsFragment :
             exactValue.setTextOrGoneWith(color.hex, exactGroup)
             exactColor.backgroundTintList = ColorStateList.valueOf(color.toColorInt())
             exactLink.setOnClickListener {
-                activityFragmentManager.setFragmentResult(
-                    resultKey,
-                    makeResultBundle(color)
-                )
+                ancestorOf<ColorDetailsParent>()?.onExactColorClick(color)
             }
         }
 
@@ -195,13 +191,7 @@ class ColorDetailsFragment :
 
     // endregion
 
-    data class Result(
-        val exactColor: Color?
-    )
-
     companion object {
-
-        val resultKey = makeFragmentResultKey<ColorDetailsFragment>()
 
         private const val ARGUMENT_KEY_COLOR_DETAILS = "ARGUMENT_KEY_COLOR_DETAILS"
 
@@ -211,21 +201,5 @@ class ColorDetailsFragment :
                     ARGUMENT_KEY_COLOR_DETAILS to colorDetails
                 )
             }
-
-        // region Fragment Result
-
-        fun makeResultBundle(
-            exactColor: Color
-        ) =
-            bundleOf(
-                "exactColor" to exactColor
-            )
-
-        fun parseResultBundle(bundle: Bundle) =
-            Result(
-                exactColor = bundle.getParcelable("exactColor")
-            )
-
-        // endregion
     }
 }
