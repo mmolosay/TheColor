@@ -46,6 +46,7 @@ class ColorDetailsObtainFragment :
         colorDetailsObtainVM.details
 
     override fun obtainColorData() {
+        if (details != null) return
         val color = color ?: return
         colorDetailsObtainVM.getColorDetails(color)
     }
