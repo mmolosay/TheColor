@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import com.ordolabs.feature_home.R
+import com.ordolabs.feature_home.ui.fragment.color.data.ColorThemedView
 import com.ordolabs.feature_home.ui.fragment.color.data.details.ColorDetailsObtainFragment
 import com.ordolabs.feature_home.ui.fragment.color.data.details.ColorDetailsParent
 import com.ordolabs.thecolor.model.color.Color
@@ -16,9 +17,13 @@ import com.ordolabs.thecolor.util.ext.getDefaultTransactionTag
 
 class ColorDetailsBottomSheetDialogFragment :
     BaseBottomSheetDialogFragment(),
+    ColorThemedView,
     ColorDetailsParent {
 
     private var details: ColorDetails? = null
+
+    override val color: Color?
+        get() = details?.color
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -47,10 +52,10 @@ class ColorDetailsBottomSheetDialogFragment :
 
     override fun setFragments() {
         super.setFragments()
-        setColorDetailsFragment()
+        setColorDetailsObtainFragment()
     }
 
-    private fun setColorDetailsFragment() {
+    private fun setColorDetailsObtainFragment() {
         val fragment = ColorDetailsObtainFragment.newInstance(details)
         val tag = fragment.getDefaultTransactionTag()
         ContextUtil.setFragment(
