@@ -30,11 +30,6 @@ class ColorDataPagerFragment :
 
     override var color: Color? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        parseArguments()
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -51,20 +46,41 @@ class ColorDataPagerFragment :
             .inflate(R.layout.color_data_pager_fragment, container, false)
     }
 
-    private fun parseArguments() {
-        parseColorArg()
+    // region Set up
+
+    override fun setUp() {
+        parseArguments()
     }
 
-    private fun parseColorArg() {
-        val key = ARGUMENTS_KEY_COLOR
+    private fun parseArguments() {
         val args = arguments ?: return
+        parseColor(args)
+    }
+
+    private fun parseColor(args: Bundle) {
+        val key = ARGUMENTS_KEY_COLOR
         if (!args.containsKey(key)) return
         this.color = args.getParcelable(key)
     }
 
+    // endregion
+
+    // region Collect ViewModels data
+
     override fun collectViewModelsData() {
         collectChangePageCommand()
     }
+
+    private fun collectChangePageCommand() =
+        colorDataVM.changePageCommand.collectOnLifecycle { resource ->
+            resource.ifSuccess { page ->
+                binding.pager.setCurrentItem(page.ordinal, /*smoothScroll*/ true)
+            }
+        }
+
+    // endregion
+
+    // region Set views
 
     override fun setViews() {
         setViewPager()
@@ -77,12 +93,7 @@ class ColorDataPagerFragment :
             pager.offscreenPageLimit = adapter.itemCount
         }
 
-    private fun collectChangePageCommand() =
-        colorDataVM.changePageCommand.collectOnLifecycle { resource ->
-            resource.ifSuccess { page ->
-                binding.pager.setCurrentItem(page.ordinal, /*smoothScroll*/ true)
-            }
-        }
+    // endregion
 
     companion object {
 
