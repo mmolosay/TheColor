@@ -4,6 +4,7 @@ import android.animation.Animator
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
+import android.annotation.SuppressLint
 import android.content.res.ColorStateList
 import android.graphics.Point
 import android.os.Bundle
@@ -112,19 +113,13 @@ class HomeFragment :
             .setFragmentResultListener(
                 ColorDetailsFragment.resultKey,
                 this,
-                ::onFragmentResult
+                ::onColorDetailsFragmentResult
             )
 
     // region Listeners
 
-    private fun onFragmentResult(key: String, bundle: Bundle) =
-        when (key) {
-            ColorDetailsFragment.resultKey ->
-                onColorDetailsFragmentResult(bundle)
-            else -> Unit
-        }
-
-    private fun onColorDetailsFragmentResult(bundle: Bundle) {
+    @Suppress("UNUSED_PARAMETER")
+    private fun onColorDetailsFragmentResult(key: String, bundle: Bundle) {
         val result = ColorDetailsFragment.parseResultBundle(bundle)
         val exact = result.exactColor ?: return
         val preview = ColorPreview(exact, isUserInput = false)
@@ -436,6 +431,7 @@ class HomeFragment :
             }
     }
 
+    @SuppressLint("PrivateResource")
     private fun makePreviewElevationAnimation(flatten: Boolean): Animator {
         val preview = binding.previewWrapper
         val elevation = resources.getDimension(RMaterial.dimen.m3_card_elevated_elevation)
