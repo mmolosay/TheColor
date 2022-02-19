@@ -4,6 +4,7 @@ import android.view.ViewGroup
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import com.ordolabs.feature_home.ui.fragment.color.data.ColorDataObtainFragment
 import com.ordolabs.feature_home.ui.fragment.color.data.base.BaseColorDataFragment
 import com.ordolabs.feature_home.ui.fragment.color.data.scheme.editor.ColorSchemeEditorFragment
@@ -35,7 +36,7 @@ class ColorSchemeObtainFragment :
     }
 
     private fun collectDispatchConfigCommand() =
-        schemeEditorVM.dispatchConfigCommand.collectOnLifecycle { resource ->
+        schemeEditorVM.dispatchConfigCommand.collectOnLifecycle(Lifecycle.State.RESUMED) { resource ->
             resource.ifSuccess { obtainColorData() }
         }
 

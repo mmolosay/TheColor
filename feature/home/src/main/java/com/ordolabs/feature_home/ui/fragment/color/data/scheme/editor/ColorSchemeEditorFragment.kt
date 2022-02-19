@@ -64,7 +64,7 @@ class ColorSchemeEditorFragment :
     override fun setFragments() {
         super.setFragments()
         setColorShemeFragment()
-        setColorSchemeSettingsFragment()
+        setColorSchemeConfigFragment()
     }
 
     private fun setColorShemeFragment() {
@@ -73,7 +73,7 @@ class ColorSchemeEditorFragment :
         setFragment(fragment, binding.schemeFragmentContainer.id)
     }
 
-    private fun setColorSchemeSettingsFragment() {
+    private fun setColorSchemeConfigFragment() {
         val fragment = ColorSchemeConfigFragment.newInstance()
         this.configView = fragment.also { view ->
             val applied = view.appliedConfig
