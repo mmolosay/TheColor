@@ -7,11 +7,13 @@ import com.ordolabs.feature_home.util.FeatureHomeUtil.featureHomeComponent
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
 import com.ordolabs.thecolor.model.color.ColorPrototype
 import com.ordolabs.thecolor.util.ext.parentViewModels
+import com.ordolabs.thecolor.util.ext.requireParentOf
 import com.ordolabs.thecolor.util.struct.Resource
 import kotlinx.coroutines.flow.Flow
 
 /**
  * Base `Fragment`, that can obtain input from UI and [assemblePrototype] of type [C].
+ * Requires parent `Fragment` to be an instance of [ColorInputParent].
  *
  * Derived class should call [outputOnInputChanges] every time data in UI input(s) was changed.
  *
@@ -57,6 +59,7 @@ abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment {
         featureHomeComponent.viewModelFactory
     }
 
+    private val parent: ColorInputParent? by lazy { requireParentOf() }
     private var currentPrototype: ColorPrototype? = null
     private var isTypedByUser: Boolean = true
 
@@ -74,14 +77,14 @@ abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment {
         }
 
     /**
-     * Performs [assemblePrototype] and updates [ColorInputViewModel] with it.
+     * Performs [assemblePrototype] and updates [parent] with it.
      *
      * Must be called in UI input(s) observers of derived class.
      */
     protected fun outputOnInputChanges() {
         if (!isTypedByUser) return
         val prototype = assembleAndMementoPrototype()
-        colorInputVM.updateColorPrototype(prototype)
+        parent?.onInputChanged(prototype)
     }
 
     private fun assembleAndMementoPrototype() =

@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:clipToPadding="false"
-    tools:context=".ui.fragment.color.input.ColorInputPagerFragment"
+    tools:context=".ui.fragment.color.input.pager.ColorInputPagerFragment"
     tools:layout_height="@dimen/color_input_pager_fragment_height">
 
     <androidx.constraintlayout.widget.Guideline

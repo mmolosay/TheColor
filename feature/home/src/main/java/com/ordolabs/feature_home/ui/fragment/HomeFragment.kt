@@ -20,7 +20,6 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModelStoreOwner
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.HomeFragmentBinding
@@ -29,18 +28,19 @@ import com.ordolabs.feature_home.di.FeatureHomeComponent
 import com.ordolabs.feature_home.di.FeatureHomeComponentKeeper
 import com.ordolabs.feature_home.ui.fragment.color.data.ColorDataPagerFragment
 import com.ordolabs.feature_home.ui.fragment.color.data.details.ColorDetailsParent
-import com.ordolabs.feature_home.ui.fragment.color.input.ColorInputPagerFragment
+import com.ordolabs.feature_home.ui.fragment.color.input.page.ColorInputParent
+import com.ordolabs.feature_home.ui.fragment.color.input.pager.ColorInputPagerFragment
+import com.ordolabs.feature_home.ui.fragment.color.input.pager.ColorInputPagerView
 import com.ordolabs.feature_home.viewmodel.HomeViewModel
-import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorValidatorViewModel
 import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.ColorPreview
+import com.ordolabs.thecolor.model.color.ColorPrototype
 import com.ordolabs.thecolor.model.color.toColorInt
 import com.ordolabs.thecolor.util.AnimationUtils
 import com.ordolabs.thecolor.util.ext.appComponent
 import com.ordolabs.thecolor.util.ext.bindPropertyAnimator
 import com.ordolabs.thecolor.util.ext.by
-import com.ordolabs.thecolor.util.ext.childViewModels
 import com.ordolabs.thecolor.util.ext.createCircularRevealAnimation
 import com.ordolabs.thecolor.util.ext.getBottomVisibleInScrollParent
 import com.ordolabs.thecolor.util.ext.getDistanceToViewInParent
@@ -64,27 +64,28 @@ import com.ordolabs.thecolor.R as RApp
 class HomeFragment :
     BaseFragment(R.layout.home_fragment),
     FeatureHomeComponentKeeper,
+    ColorInputParent,
     ColorDetailsParent {
 
     override val featureHomeComponent: FeatureHomeComponent by lazy(::makeFeatureHomeComponent)
 
     private val binding: HomeFragmentBinding by viewBinding()
     private val homeVM: HomeViewModel /*by viewModels()*/ = HomeViewModel(SavedStateHandle())
-    private val colorInputVM: ColorInputViewModel by childViewModels(
-        ownerProducer = { inputViewModelOwner ?: this },
-        factoryProducer = { featureHomeComponent.viewModelFactory }
-    )
     private val colorValidatorVM: ColorValidatorViewModel by activityViewModels {
         featureHomeComponent.viewModelFactory
     }
 
-    private var inputViewModelOwner: ViewModelStoreOwner? = null
-    private var dataViewModelOwner: ViewModelStoreOwner? = null
+    private var inputPagerView: ColorInputPagerView? = null
     private val previewResizeDest = AnimatorDestination()
 
     override fun onStop() {
         super.onStop()
         hideSoftInputAndClearFocus()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        this.inputPagerView = null
     }
 
     // region Set up
@@ -116,12 +117,8 @@ class HomeFragment :
     // region Collect ViewModels data
 
     override fun collectViewModelsData() {
-        setColorInputFragment() // TODO: remove from here and restore in setFragments()
         collectColorPreview()
-        collectColorInputPrototype()
     }
-
-    // region collectColorPreview
 
     private fun collectColorPreview() =
         colorValidatorVM.colorPreview.collectOnLifecycle { resource ->
@@ -134,7 +131,7 @@ class HomeFragment :
 
     @Suppress("UNUSED_PARAMETER")
     private fun onColorPreviewEmpty(previous: ColorPreview?) {
-        colorInputVM.clearColorInput()
+        inputPagerView?.clearCurrentColor()
         binding.previewWrapper.doOnLayout {
             if (homeVM.isColorDataShown) {
                 animInfoSheetCollapsingOnPreviewEmpty()
@@ -145,7 +142,7 @@ class HomeFragment :
     }
 
     private fun onColorPreviewSuccess(preview: ColorPreview) {
-        colorInputVM.updateCurrentColor(preview)
+        inputPagerView?.updateCurrentColor(preview)
         binding.previewWrapper.doOnLayout {
             val colorInt = preview.toColorInt()
             if (preview.isUserInput) { // collapse only if user changed color manually
@@ -163,37 +160,21 @@ class HomeFragment :
 
     // endregion
 
-    // region collectColorInputPrototype
-
-    private fun collectColorInputPrototype() =
-        colorInputVM.prototype.collectOnLifecycle { resource ->
-            resource.ifSuccess { prototype ->
-                if (colorValidatorVM.isSameAsColorPreview(prototype)) return@ifSuccess
-                colorValidatorVM.validateColor(prototype)
-            }
-        }
-
-    // endregion
-
-    // endregion
-
     // region Set fragments
 
     override fun setFragments() {
-        // TODO: remove from collectViewModelsData() and restore here
-//        setColorInputFragment()
+        setColorInputFragment()
         setColorDataFragment()
     }
 
     private fun setColorInputFragment() {
         val fragment = ColorInputPagerFragment.newInstance()
-        this.inputViewModelOwner = fragment
+        this.inputPagerView = fragment
         setFragment(fragment, binding.colorInputFragmentContainer.id)
     }
 
     private fun setColorDataFragment() {
         val fragment = ColorDataPagerFragment.newInstance(color = null)
-        this.dataViewModelOwner = fragment
         setFragment(fragment, binding.colorDataFragmentContainer.id)
     }
 
@@ -471,6 +452,15 @@ class HomeFragment :
         val yApprox = bottom - padding - previewRadius
         val y = yApprox.coerceIn(0, info.height)
         return Point(x, y)
+    }
+
+    // endregion
+
+    // region ColorInputParent
+
+    override fun onInputChanged(input: ColorPrototype) {
+        if (colorValidatorVM.isSameAsColorPreview(input)) return
+        colorValidatorVM.validateColor(input)
     }
 
     // endregion
