@@ -162,6 +162,7 @@ val Fragment.appComponent: AppComponent
 // endregion
 
 // region ViewModels
+// TODO: get rid of all, except parentViewModels
 
 // Actually, variations of Fragment.viewModels() function, but with more specific names
 // in order to make inferring owners of ViewModels easier in code.
