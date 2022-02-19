@@ -51,6 +51,7 @@ class ColorSchemeConfigFragment :
     override fun setViews() {
         setSchemeModeChipGroup()
         setSchemeSampleCountChipGroup()
+        populateTitles(appliedConfig)
     }
 
     private fun setSchemeModeChipGroup() {
