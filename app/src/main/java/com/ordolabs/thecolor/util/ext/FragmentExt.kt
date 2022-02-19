@@ -108,6 +108,9 @@ inline fun <reified T> Fragment.parentOf(): T? {
     return null
 }
 
+inline fun <reified T> Fragment.requireParentOf(): T =
+    requireNotNull(this.parentFragment) as T
+
 inline fun <reified T> Fragment.ancestorOf(): T? {
     var parent = this.parentFragment
     while (parent != null) {
