@@ -3,6 +3,7 @@ package com.ordolabs.feature_home.ui.fragment.color.data.scheme
 import android.view.ViewGroup
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import com.ordolabs.feature_home.ui.fragment.color.data.ColorDataObtainFragment
 import com.ordolabs.feature_home.ui.fragment.color.data.base.BaseColorDataFragment
 import com.ordolabs.feature_home.ui.fragment.color.data.scheme.editor.ColorSchemeEditorFragment
@@ -12,7 +13,6 @@ import com.ordolabs.feature_home.util.FeatureHomeUtil.featureHomeComponent
 import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeObtainViewModel
 import com.ordolabs.thecolor.model.color.data.ColorScheme
 import com.ordolabs.thecolor.model.color.data.ColorSchemeRequest
-import com.ordolabs.thecolor.util.ext.ownViewModels
 import com.ordolabs.thecolor.util.struct.Resource
 import kotlinx.coroutines.flow.Flow
 import com.ordolabs.thecolor.R as RApp
@@ -21,7 +21,7 @@ class ColorSchemeObtainFragment :
     ColorDataObtainFragment<ColorScheme>(),
     ColorSchemeEditorParent {
 
-    private val schemeObtainVM: ColorSchemeObtainViewModel by ownViewModels {
+    private val schemeObtainVM: ColorSchemeObtainViewModel by viewModels {
         featureHomeComponent.viewModelFactory
     }
 
