@@ -1,7 +1,6 @@
 package com.ordolabs.feature_home.ui.fragment.color.input.page
 
 import androidx.annotation.CallSuper
-import androidx.annotation.LayoutRes
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.util.FeatureHomeUtil.featureHomeComponent
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
@@ -26,7 +25,7 @@ import kotlinx.coroutines.flow.Flow
  * @see ColorInputHexFragment
  * @see ColorInputRgbFragment
  */
-abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment {
+abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment() {
 
     // region Abstract
 
@@ -51,9 +50,6 @@ abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment {
     protected abstract fun getColorInputFlow(): Flow<Resource<C>>
 
     // endregion
-
-    constructor() : super()
-    constructor(@LayoutRes layoutRes: Int) : super(layoutRes)
 
     protected val colorInputVM: ColorInputViewModel by parentViewModels {
         featureHomeComponent.viewModelFactory

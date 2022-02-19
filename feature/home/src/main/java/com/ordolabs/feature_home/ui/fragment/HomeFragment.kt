@@ -7,7 +7,10 @@ import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.res.ColorStateList
 import android.graphics.Point
+import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.AnticipateOvershootInterpolator
@@ -62,7 +65,7 @@ import com.google.android.material.R as RMaterial
 import com.ordolabs.thecolor.R as RApp
 
 class HomeFragment :
-    BaseFragment(R.layout.home_fragment),
+    BaseFragment(),
     FeatureHomeComponentKeeper,
     ColorInputParent,
     ColorDetailsParent {
@@ -77,6 +80,14 @@ class HomeFragment :
 
     private var inputPagerView: ColorInputPagerView? = null
     private val previewResizeDest = AnimatorDestination()
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        return inflater.inflate(R.layout.home_fragment, container, false)
+    }
 
     override fun onStop() {
         super.onStop()

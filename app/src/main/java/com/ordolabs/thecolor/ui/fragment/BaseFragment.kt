@@ -3,7 +3,6 @@ package com.ordolabs.thecolor.ui.fragment
 import android.os.Bundle
 import android.view.View
 import androidx.annotation.IdRes
-import androidx.annotation.LayoutRes
 import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
@@ -14,11 +13,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
-abstract class BaseFragment : Fragment {
-
-    constructor()
-
-    constructor(@LayoutRes layoutRes: Int) : super(layoutRes)
+abstract class BaseFragment : Fragment() {
 
     @IdRes
     open val defaultFragmentContainerId: Int = R.id.defaultFragmentContainer
