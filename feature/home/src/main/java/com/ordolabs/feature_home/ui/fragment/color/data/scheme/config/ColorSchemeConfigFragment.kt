@@ -1,4 +1,4 @@
-package com.ordolabs.feature_home.ui.fragment.color.data.scheme.editor
+package com.ordolabs.feature_home.ui.fragment.color.data.scheme.config
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -14,26 +14,27 @@ import com.google.android.material.chip.Chip
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorSchemeConfigFragmentBinding
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
-import com.ordolabs.feature_home.util.FeatureHomeUtil.featureHomeComponent
-import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeConfigViewModel
 import com.ordolabs.thecolor.model.color.data.ColorScheme
 import com.ordolabs.thecolor.model.color.data.ColorSchemeRequest
 import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
-import com.ordolabs.thecolor.util.ext.ownViewModels
+import com.ordolabs.thecolor.util.ext.ancestorOf
 import com.google.android.material.R as RMaterial
 
 /**
- * Fragment that displays color scheme configuration options and passes them
- * to [ColorSchemeConfigViewModel], where they being stored and could be used by parent fragment.
- *
- * [ColorSchemeEditorFragment] can be parent of `this` fragment.
+ * Fragment that displays color scheme configuration options and provides UI to change them.
  */
-class ColorSchemeConfigFragment : BaseFragment() {
+class ColorSchemeConfigFragment :
+    BaseFragment(),
+    ColorSchemeConfigView {
 
     private val binding: ColorSchemeConfigFragmentBinding by viewBinding(CreateMethod.BIND)
-    private val schemeConfigVM: ColorSchemeConfigViewModel by ownViewModels {
-        featureHomeComponent.viewModelFactory
-    }
+
+    override var mode: ColorScheme.Mode = ColorScheme.Mode.DEFAULT
+    override var sampleCount: Int = ColorSchemeRequest.Config.SAMPLE_COUNT_DEFAULT
+    override var appliedConfig: ColorSchemeRequest.Config = assembleCurrentConfig()
+
+    // TODO: implement custom property delegate "by ancestors()"?
+    private val parent: ColorSchemeConfigParent? by lazy { ancestorOf() }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -45,9 +46,7 @@ class ColorSchemeConfigFragment : BaseFragment() {
             .inflate(R.layout.color_scheme_config_fragment, container, false)
     }
 
-    override fun collectViewModelsData() {
-        collectAppliedConfig()
-    }
+    // region Set views
 
     override fun setViews() {
         setSchemeModeChipGroup()
@@ -67,7 +66,7 @@ class ColorSchemeConfigFragment : BaseFragment() {
             group.addView(chip)
         }
 
-        val mode = schemeConfigVM.mode
+        val mode = this.mode
         (group.getChildAt(mode.ordinal) as Chip).isChecked = true
     }
 
@@ -85,7 +84,7 @@ class ColorSchemeConfigFragment : BaseFragment() {
             group.addView(chip)
         }
 
-        val sampleCount = schemeConfigVM.sampleCount
+        val sampleCount = this.sampleCount
         val position = counts.indexOf(sampleCount).takeUnless { it == -1 } ?: return
         (group.getChildAt(position) as Chip).isChecked = true
     }
@@ -95,7 +94,8 @@ class ColorSchemeConfigFragment : BaseFragment() {
         mode: ColorScheme.Mode
     ) {
         if (!isChecked) return // do nothing
-        schemeConfigVM.mode = mode
+        this.mode = mode
+        onCurrentConfigChanged()
     }
 
     private fun onSchemeSampleCountChipChecked(
@@ -103,8 +103,11 @@ class ColorSchemeConfigFragment : BaseFragment() {
         sampleCount: Int
     ) {
         if (!isChecked) return // do nothing
-        schemeConfigVM.sampleCount = sampleCount
+        this.sampleCount = sampleCount
+        onCurrentConfigChanged()
     }
+
+    // endregion
 
     // region Populate
 
@@ -144,12 +147,27 @@ class ColorSchemeConfigFragment : BaseFragment() {
 
     // endregion
 
-    private fun collectAppliedConfig() =
-        schemeConfigVM.appliedConfig.collectOnLifecycle { resource ->
-            resource.ifSuccess { config ->
-                populateTitles(config)
-            }
+    // region ColorSchemeConfigView
+
+    override fun applyCurrentConfig(): ColorSchemeRequest.Config =
+        assembleCurrentConfig().also { current ->
+            this.appliedConfig = current
+            populateTitles(current)
         }
+
+    // endregion
+
+    // delegate to parent
+    private fun onCurrentConfigChanged() {
+        val current = assembleCurrentConfig()
+        parent?.onCurrentConfigChanged(current)
+    }
+
+    private fun assembleCurrentConfig() =
+        ColorSchemeRequest.Config(
+            modeOrdinal = mode.ordinal,
+            sampleCount = sampleCount
+        )
 
     companion object {
         fun newInstance() =

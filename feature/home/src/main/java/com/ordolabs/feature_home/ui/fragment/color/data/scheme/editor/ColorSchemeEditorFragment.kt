@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
-import androidx.lifecycle.ViewModelStoreOwner
 import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
@@ -15,17 +14,17 @@ import com.ordolabs.feature_home.databinding.ColorSchemeEditorFragmentBinding
 import com.ordolabs.feature_home.ui.fragment.color.data.base.BaseColorDataFragment
 import com.ordolabs.feature_home.ui.fragment.color.data.base.ColorDataView
 import com.ordolabs.feature_home.ui.fragment.color.data.scheme.ColorSchemeFragment
-import com.ordolabs.feature_home.util.FeatureHomeUtil.featureHomeComponent
-import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeConfigViewModel
+import com.ordolabs.feature_home.ui.fragment.color.data.scheme.config.ColorSchemeConfigFragment
+import com.ordolabs.feature_home.ui.fragment.color.data.scheme.config.ColorSchemeConfigParent
+import com.ordolabs.feature_home.ui.fragment.color.data.scheme.config.ColorSchemeConfigView
 import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeEditorViewModel
 import com.ordolabs.thecolor.model.color.data.ColorScheme
+import com.ordolabs.thecolor.model.color.data.ColorSchemeRequest
 import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
 import com.ordolabs.thecolor.util.ext.by
-import com.ordolabs.thecolor.util.ext.childViewModels
 import com.ordolabs.thecolor.util.ext.mediumAnimDuration
 import com.ordolabs.thecolor.util.ext.parentViewModels
 import com.ordolabs.thecolor.util.ext.setFragment
-import com.ordolabs.thecolor.util.struct.getOrNull
 import com.ordolabs.thecolor.R as RApp
 
 /**
@@ -35,17 +34,14 @@ import com.ordolabs.thecolor.R as RApp
  *  3. display scheme in [ColorSchemeFragment].
  */
 class ColorSchemeEditorFragment :
-    BaseColorDataFragment<ColorScheme>() {
+    BaseColorDataFragment<ColorScheme>(),
+    ColorSchemeConfigParent {
 
     private val binding: ColorSchemeEditorFragmentBinding by viewBinding(CreateMethod.BIND)
     private val schemeEditorVM: ColorSchemeEditorViewModel by parentViewModels()
-    private val schemeConfigVM: ColorSchemeConfigViewModel by childViewModels(
-        ownerProducer = { configViewModelOwner ?: this },
-        factoryProducer = { featureHomeComponent.viewModelFactory }
-    )
 
     private var schemeView: ColorDataView<ColorScheme>? = null
-    private var configViewModelOwner: ViewModelStoreOwner? = null
+    private var configView: ColorSchemeConfigView? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -57,14 +53,10 @@ class ColorSchemeEditorFragment :
             .inflate(R.layout.color_scheme_editor_fragment, container, false)
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-    }
-
     override fun onDestroy() {
         super.onDestroy()
         this.schemeView = null
-        this.configViewModelOwner = null
+        this.configView = null
     }
 
     // region Set fragments
@@ -76,29 +68,18 @@ class ColorSchemeEditorFragment :
     }
 
     private fun setColorShemeFragment() {
-        val fragment = ColorSchemeFragment()
+        val fragment = ColorSchemeFragment.newInstance()
         this.schemeView = fragment
         setFragment(fragment, binding.schemeFragmentContainer.id)
     }
 
     private fun setColorSchemeSettingsFragment() {
-        val fragment = ColorSchemeConfigFragment()
-        this.configViewModelOwner = fragment
+        val fragment = ColorSchemeConfigFragment.newInstance()
+        this.configView = fragment.also { view ->
+            val applied = view.appliedConfig
+            schemeEditorVM.dispatchConfig(applied)
+        }
         setFragment(fragment, binding.configFragmentContainer.id)
-    }
-
-    // endregion
-
-    // region Set up
-
-    override fun setUp() {
-        super.setUp()
-        val defaultConfig = schemeConfigVM.appliedConfig.value.getOrNull()!!
-        schemeEditorVM.dispatchConfig(defaultConfig)
-    }
-
-    override fun collectViewModelsData() {
-        collectHasConfigChangesCommand()
     }
 
     // endregion
@@ -111,11 +92,14 @@ class ColorSchemeEditorFragment :
 
     private fun setDispatchChangesBtn() =
         binding.dispatchChangesBtn.setOnClickListener l@{
-            val options = schemeConfigVM.applyConfig()
-            schemeEditorVM.dispatchConfig(options)
+            val applied = configView?.applyCurrentConfig() ?: return@l
+            animDispatchChangesBtn(show = false)
+            schemeEditorVM.dispatchConfig(applied)
         }
 
     // endregion
+
+    // region Animate
 
     private fun animDispatchChangesBtn(show: Boolean) =
         binding.dispatchChangesBtn.apply {
@@ -139,6 +123,8 @@ class ColorSchemeEditorFragment :
                 .start()
         }
 
+    // endregion
+
     // region ColorDataView
 
     // delegate
@@ -148,12 +134,15 @@ class ColorSchemeEditorFragment :
 
     // endregion
 
-    private fun collectHasConfigChangesCommand() =
-        schemeConfigVM.hasChangesCommand.collectOnLifecycle { resource ->
-            resource.ifSuccess { hasChanges ->
-                animDispatchChangesBtn(show = hasChanges)
-            }
-        }
+    // region ColorSchemeConfigParent
+
+    override fun onCurrentConfigChanged(current: ColorSchemeRequest.Config) {
+        val applied = configView?.appliedConfig ?: return
+        val hasChanges = (current != applied)
+        animDispatchChangesBtn(show = hasChanges)
+    }
+
+    // endregion
 
     companion object {
         fun newInstance() =
