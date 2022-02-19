@@ -74,6 +74,52 @@ abstract class ColorDataObtainFragment<D> :
         this.dataView = null
     }
 
+    // region Set up
+
+    @CallSuper
+    override fun collectViewModelsData() {
+        collectColorData()
+    }
+
+    private fun collectColorData() =
+        getColorDataFlow().collectOnLifecycle { resource ->
+            resource.fold(
+                onEmpty = ::onColorDataEmpty,
+                onLoading = ::onColorDataLoading,
+                onSuccess = ::onColorDataSuccess,
+                onFailure = ::onColorDataFailure
+            )
+        }
+
+    @Suppress("UNUSED_PARAMETER")
+    private fun onColorDataEmpty(previous: D?) {
+        animContentVisibility(visible = false)
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    private fun onColorDataLoading(previous: D?) {
+        showLoadingView()
+    }
+
+    private fun onColorDataSuccess(data: D) {
+        populateViews(data)
+        animContentVisibility(visible = true)
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    private fun onColorDataFailure(
+        previous: D?,
+        payload: Any?,
+        error: Throwable
+    ) {
+        when (error) {
+            is UnknownHostException -> showNoContentView()
+            else -> showToast(error.localizedMessage)
+        }
+    }
+
+    // endregion
+
     // region Set fragments
 
     override fun setFragments() {
@@ -91,15 +137,6 @@ abstract class ColorDataObtainFragment<D> :
     private fun setContentShimmerFragment() {
         val fragment = makeContentShimmerFragment()
         setFragment(fragment, binding.contentShimmerFragmentContainer.id)
-    }
-
-    // endregion
-
-    // region Set up
-
-    @CallSuper
-    override fun collectViewModelsData() {
-        collectColorData()
     }
 
     // endregion
@@ -170,41 +207,4 @@ abstract class ColorDataObtainFragment<D> :
     }
 
     // endregion
-
-    private fun collectColorData() =
-        getColorDataFlow().collectOnLifecycle { resource ->
-            resource.fold(
-                onEmpty = ::onColorDataEmpty,
-                onLoading = ::onColorDataLoading,
-                onSuccess = ::onColorDataSuccess,
-                onFailure = ::onColorDataFailure
-            )
-        }
-
-    @Suppress("UNUSED_PARAMETER")
-    private fun onColorDataEmpty(previous: D?) {
-        animContentVisibility(visible = false)
-    }
-
-    @Suppress("UNUSED_PARAMETER")
-    private fun onColorDataLoading(previous: D?) {
-        showLoadingView()
-    }
-
-    private fun onColorDataSuccess(data: D) {
-        populateViews(data)
-        animContentVisibility(visible = true)
-    }
-
-    @Suppress("UNUSED_PARAMETER")
-    private fun onColorDataFailure(
-        previous: D?,
-        payload: Any?,
-        error: Throwable
-    ) {
-        when (error) {
-            is UnknownHostException -> showNoContentView()
-            else -> showToast(error.localizedMessage)
-        }
-    }
 }
