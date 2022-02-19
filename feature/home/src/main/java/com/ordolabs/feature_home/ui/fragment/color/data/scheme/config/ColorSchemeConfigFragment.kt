@@ -29,12 +29,12 @@ class ColorSchemeConfigFragment :
 
     private val binding: ColorSchemeConfigFragmentBinding by viewBinding(CreateMethod.BIND)
 
-    override var mode: ColorScheme.Mode = ColorScheme.Mode.DEFAULT
-    override var sampleCount: Int = ColorSchemeRequest.Config.SAMPLE_COUNT_DEFAULT
-    override var appliedConfig: ColorSchemeRequest.Config = assembleCurrentConfig()
-
     // TODO: implement custom property delegate "by ancestors()"?
     private val parent: ColorSchemeConfigParent? by lazy { ancestorOf() }
+    private var mode: ColorScheme.Mode = ColorScheme.Mode.DEFAULT
+    private var sampleCount: Int = ColorSchemeRequest.Config.SAMPLE_COUNT_DEFAULT
+
+    override var appliedConfig: ColorSchemeRequest.Config = assembleCurrentConfig()
 
     override fun onCreateView(
         inflater: LayoutInflater,
