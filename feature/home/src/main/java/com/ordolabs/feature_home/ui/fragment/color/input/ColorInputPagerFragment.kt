@@ -1,5 +1,9 @@
 package com.ordolabs.feature_home.ui.fragment.color.input
 
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
@@ -14,13 +18,20 @@ import com.ordolabs.thecolor.R as RApp
 /**
  * `Fragment` with `ViewPager` which contains `Fragment`s of specific color scheme inputs.
  */
-class ColorInputPagerFragment : BaseFragment(R.layout.color_input_pager_fragment) {
+class ColorInputPagerFragment :
+    BaseFragment() {
 
     private val binding: ColorInputPagerFragmentBinding by viewBinding()
 
-    override fun collectViewModelsData() {
-        // nothing is here
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        return inflater.inflate(R.layout.color_input_pager_fragment, container, false)
     }
+
+    // region Set views
 
     override fun setViews() {
         setViewPager()
@@ -46,6 +57,8 @@ class ColorInputPagerFragment : BaseFragment(R.layout.color_input_pager_fragment
         val page = getFromEnumOrNull<ColorInputPagerAdapter.Page>(position) ?: return
         tab.setText(page.titleRes)
     }
+
+    // endregion
 
     companion object {
         fun newInstance() = ColorInputPagerFragment()
