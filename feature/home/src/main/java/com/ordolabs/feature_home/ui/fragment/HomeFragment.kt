@@ -222,6 +222,8 @@ class HomeFragment :
 
     // endregion
 
+    // region View utils
+
     @ColorInt
     private fun getDataWrapperBackgroundColor(): Int? {
         return binding.colorDataWrapper.backgroundTintList?.defaultColor
@@ -242,6 +244,8 @@ class HomeFragment :
     private fun toggleDataWrapperVisibility(visible: Boolean) {
         binding.colorDataWrapper.isInvisible = !visible
     }
+
+    // endregion
 
     // region Animate
 
