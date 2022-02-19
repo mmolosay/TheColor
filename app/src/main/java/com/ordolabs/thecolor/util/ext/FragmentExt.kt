@@ -101,6 +101,13 @@ fun BaseFragment.removeFragment(
 fun Fragment.getDefaultTransactionTag(): String =
     this::class.java.simpleName
 
+inline fun <reified T> Fragment.parentOf(): T? {
+    this.parentFragment?.let { parent ->
+        if (parent is T) return parent
+    }
+    return null
+}
+
 inline fun <reified T> Fragment.ancestorOf(): T? {
     var parent = this.parentFragment
     while (parent != null) {
