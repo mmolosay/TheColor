@@ -17,7 +17,7 @@ import androidx.core.animation.doOnStart
 import androidx.core.view.doOnLayout
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.lifecycle.SavedStateHandle
 import by.kirich1409.viewbindingdelegate.viewBinding
@@ -71,7 +71,7 @@ class HomeFragment :
 
     private val binding: HomeFragmentBinding by viewBinding()
     private val homeVM: HomeViewModel /*by viewModels()*/ = HomeViewModel(SavedStateHandle())
-    private val colorValidatorVM: ColorValidatorViewModel by activityViewModels {
+    private val colorValidatorVM: ColorValidatorViewModel by viewModels {
         featureHomeComponent.viewModelFactory
     }
 
