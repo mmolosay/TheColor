@@ -27,10 +27,21 @@ class ColorSchemeObtainFragment :
         featureHomeComponent.viewModelFactory
     }
 
+    // region Collect ViewModels data
+
     override fun collectViewModelsData() {
         super.collectViewModelsData()
         collectDispatchConfigCommand()
     }
+
+    private fun collectDispatchConfigCommand() =
+        schemeEditorVM.dispatchConfigCommand.collectOnLifecycle { resource ->
+            resource.ifSuccess { obtainColorData() }
+        }
+
+    // endregion
+
+    // region Set views
 
     override fun setViews() {
         super.setViews()
@@ -39,16 +50,7 @@ class ColorSchemeObtainFragment :
         }
     }
 
-    private fun collectDispatchConfigCommand() =
-        schemeEditorVM.dispatchConfigCommand.collectOnLifecycle { resource ->
-            resource.ifSuccess { obtainColorData() }
-        }
-
-    private fun assembleSchemeRequest(): ColorSchemeRequest? {
-        val seed = color ?: return null
-        val config = schemeEditorVM.config.value.getOrNull() ?: return null
-        return ColorSchemeRequest(seed, config)
-    }
+    // endregion
 
     // region ColorDataObtainFragment
 
@@ -65,6 +67,12 @@ class ColorSchemeObtainFragment :
 
     override fun makeContentShimmerFragment(): Fragment =
         ColorSchemeShimmerFragment.newInstance()
+
+    private fun assembleSchemeRequest(): ColorSchemeRequest? {
+        val seed = color ?: return null
+        val config = schemeEditorVM.config.value.getOrNull() ?: return null
+        return ColorSchemeRequest(seed, config)
+    }
 
     // endregion
 

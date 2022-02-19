@@ -106,6 +106,7 @@ abstract class ColorDataObtainFragment<D> :
 
     // region Set views
 
+    @CallSuper
     override fun setViews() {
         setRetryBtn()
     }
