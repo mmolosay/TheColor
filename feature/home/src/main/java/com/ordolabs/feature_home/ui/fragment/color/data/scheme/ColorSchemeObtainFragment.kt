@@ -13,6 +13,7 @@ import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeEditorVie
 import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeObtainViewModel
 import com.ordolabs.thecolor.model.color.data.ColorScheme
 import com.ordolabs.thecolor.model.color.data.ColorSchemeRequest
+import com.ordolabs.thecolor.util.ext.ownViewModels
 import com.ordolabs.thecolor.util.struct.Resource
 import com.ordolabs.thecolor.util.struct.getOrNull
 import kotlinx.coroutines.flow.Flow
@@ -21,7 +22,7 @@ import com.ordolabs.thecolor.R as RApp
 class ColorSchemeObtainFragment :
     ColorDataObtainFragment<ColorScheme>() {
 
-    private val schemeObtainVM: ColorSchemeObtainViewModel by viewModels {
+    private val schemeObtainVM: ColorSchemeObtainViewModel by ownViewModels {
         featureHomeComponent.viewModelFactory
     }
     private val schemeEditorVM: ColorSchemeEditorViewModel by viewModels {
