@@ -49,7 +49,9 @@ abstract class ColorDataObtainFragment<D> :
 
     private val binding: ColorDataObtainFragmentBinding by viewBinding(CreateMethod.BIND)
 
-    private var dataView: ColorDataView<D>? = null
+    protected var dataView: ColorDataView<D>? = null
+        private set
+
     private var wasOnResumeCalled: Boolean = false
 
     override fun onCreateView(

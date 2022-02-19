@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.ordolabs.feature_home.viewmodel.colordata.ColorDataViewModel
 import com.ordolabs.feature_home.viewmodel.colordata.details.ColorDetailsObtainViewModel
-import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeEditorViewModel
 import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeObtainViewModel
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorValidatorViewModel
@@ -51,9 +50,6 @@ interface FeatureHomeViewModelModule {
     // endregion
 
     // region Color scheme
-
-    @[Binds IntoMap ViewModelKey(ColorSchemeEditorViewModel::class)]
-    fun bindColorSchemeEditorViewModel(vm: ColorSchemeEditorViewModel): ViewModel
 
     @[Binds IntoMap ViewModelKey(ColorSchemeObtainViewModel::class)]
     fun bindColorSchemeObtainViewModel(vm: ColorSchemeObtainViewModel): ViewModel

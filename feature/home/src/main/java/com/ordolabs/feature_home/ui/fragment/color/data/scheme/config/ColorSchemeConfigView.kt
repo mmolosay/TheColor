@@ -4,7 +4,7 @@ import com.ordolabs.thecolor.model.color.data.ColorSchemeRequest
 
 interface ColorSchemeConfigView {
 
-    var appliedConfig: ColorSchemeRequest.Config
+    val appliedConfig: ColorSchemeRequest.Config?
 
-    fun applyCurrentConfig(): ColorSchemeRequest.Config
+    fun applyCurrentConfig(): ColorSchemeRequest.Config?
 }

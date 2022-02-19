@@ -17,31 +17,35 @@ import com.ordolabs.feature_home.ui.fragment.color.data.scheme.ColorSchemeFragme
 import com.ordolabs.feature_home.ui.fragment.color.data.scheme.config.ColorSchemeConfigFragment
 import com.ordolabs.feature_home.ui.fragment.color.data.scheme.config.ColorSchemeConfigParent
 import com.ordolabs.feature_home.ui.fragment.color.data.scheme.config.ColorSchemeConfigView
-import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeEditorViewModel
 import com.ordolabs.thecolor.model.color.data.ColorScheme
 import com.ordolabs.thecolor.model.color.data.ColorSchemeRequest
 import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
+import com.ordolabs.thecolor.util.ext.ancestorOf
 import com.ordolabs.thecolor.util.ext.by
 import com.ordolabs.thecolor.util.ext.mediumAnimDuration
-import com.ordolabs.thecolor.util.ext.parentViewModels
 import com.ordolabs.thecolor.util.ext.setFragment
 import com.ordolabs.thecolor.R as RApp
 
 /**
  * Editor fragment for color scheme. It can:
  *  1. configure color scheme via [ColorSchemeConfigFragment];
- *  2. dispatch the configuration to [ColorSchemeEditorViewModel];
- *  3. display scheme in [ColorSchemeFragment].
+ *  2. dispatch the configuration to [ColorSchemeEditorParent];
+ *  3. display scheme via [ColorSchemeFragment].
  */
 class ColorSchemeEditorFragment :
     BaseColorDataFragment<ColorScheme>(),
+    ColorSchemeEditorView,
     ColorSchemeConfigParent {
 
     private val binding: ColorSchemeEditorFragmentBinding by viewBinding(CreateMethod.BIND)
-    private val schemeEditorVM: ColorSchemeEditorViewModel by parentViewModels()
 
+    private val parent: ColorSchemeEditorParent? by lazy { ancestorOf() }
     private var schemeView: ColorDataView<ColorScheme>? = null
     private var configView: ColorSchemeConfigView? = null
+
+    // delegates
+    override val appliedConfig: ColorSchemeRequest.Config?
+        get() = configView?.appliedConfig
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -75,10 +79,10 @@ class ColorSchemeEditorFragment :
 
     private fun setColorSchemeConfigFragment() {
         val fragment = ColorSchemeConfigFragment.newInstance()
-        this.configView = fragment.also { view ->
+        this.configView = fragment/*.also { view ->
             val applied = view.appliedConfig
-            schemeEditorVM.dispatchConfig(applied)
-        }
+            parent?.onSchemeConfigDisaptched(app)
+        }*/
         setFragment(fragment, binding.configFragmentContainer.id)
     }
 
@@ -94,7 +98,7 @@ class ColorSchemeEditorFragment :
         binding.dispatchChangesBtn.setOnClickListener l@{
             val applied = configView?.applyCurrentConfig() ?: return@l
             animDispatchChangesBtn(show = false)
-            schemeEditorVM.dispatchConfig(applied)
+            parent?.dispatchColorSchemeConfig(applied)
         }
 
     // endregion
@@ -131,6 +135,14 @@ class ColorSchemeEditorFragment :
     override fun populateViews(data: ColorScheme) {
         schemeView?.populateViews(data)
     }
+
+    // endregion
+
+    // region ColorSchemeConfigView
+
+    // delegates
+    override fun applyCurrentConfig(): ColorSchemeRequest.Config? =
+        configView?.applyCurrentConfig()
 
     // endregion
 
