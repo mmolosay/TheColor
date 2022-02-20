@@ -23,7 +23,7 @@ import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
 import com.ordolabs.thecolor.util.ext.ancestorOf
 import com.ordolabs.thecolor.util.ext.by
 import com.ordolabs.thecolor.util.ext.mediumAnimDuration
-import com.ordolabs.thecolor.util.ext.setFragment
+import com.ordolabs.thecolor.util.ext.setFragmentOrGet
 import com.ordolabs.thecolor.R as RApp
 
 /**
@@ -72,18 +72,17 @@ class ColorSchemeEditorFragment :
     }
 
     private fun setColorShemeFragment() {
-        val fragment = ColorSchemeFragment.newInstance()
-        this.schemeView = fragment
-        setFragment(fragment, binding.schemeFragmentContainer.id)
+        val container = binding.schemeFragmentContainer
+        this.schemeView = setFragmentOrGet(container.id) {
+            ColorSchemeFragment.newInstance()
+        }
     }
 
     private fun setColorSchemeConfigFragment() {
-        val fragment = ColorSchemeConfigFragment.newInstance()
-        this.configView = fragment/*.also { view ->
-            val applied = view.appliedConfig
-            parent?.onSchemeConfigDisaptched(app)
-        }*/
-        setFragment(fragment, binding.configFragmentContainer.id)
+        val container = binding.configFragmentContainer
+        this.configView = setFragmentOrGet(container.id) {
+            ColorSchemeConfigFragment.newInstance()
+        }
     }
 
     // endregion

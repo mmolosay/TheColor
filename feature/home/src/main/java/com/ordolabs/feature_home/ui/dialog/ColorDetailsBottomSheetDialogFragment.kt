@@ -14,7 +14,6 @@ import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.data.ColorDetails
 import com.ordolabs.thecolor.ui.dialog.BaseBottomSheetDialogFragment
 import com.ordolabs.thecolor.util.ContextUtil
-import com.ordolabs.thecolor.util.ext.getDefaultTransactionTag
 
 class ColorDetailsBottomSheetDialogFragment :
     BaseBottomSheetDialogFragment(),
@@ -63,15 +62,13 @@ class ColorDetailsBottomSheetDialogFragment :
     }
 
     private fun setColorDetailsObtainFragment() {
-        val fragment = ColorDetailsObtainFragment.newInstance(details)
-        this.obtainView = fragment
-        val tag = fragment.getDefaultTransactionTag()
-        ContextUtil.setFragment(
+        this.obtainView = ContextUtil.setFragmentOrGet(
             childFragmentManager,
-            fragment,
             R.id.defaultFragmentContainer,
-            tag
-        )
+            transactionTag = null
+        ) {
+            ColorDetailsObtainFragment.newInstance(details)
+        }
     }
 
     // endregion

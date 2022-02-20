@@ -18,7 +18,7 @@ import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.isDark
 import com.ordolabs.thecolor.util.ext.getNextFor
 import com.ordolabs.thecolor.util.ext.parentViewModels
-import com.ordolabs.thecolor.util.ext.setFragment
+import com.ordolabs.thecolor.util.ext.setFragmentOrGet
 import com.ordolabs.thecolor.R as RApp
 
 abstract class BaseColorDataPage :
@@ -68,8 +68,7 @@ abstract class BaseColorDataPage :
     }
 
     private fun setColorDataFragment() {
-        val fragment = makeColorDataFragmentNewInstance()
-        setFragment(fragment)
+        setFragmentOrGet { makeColorDataFragmentNewInstance() }
     }
 
     private fun setChangePageBtn() =
