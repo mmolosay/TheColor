@@ -10,7 +10,7 @@ import javax.inject.Inject
 /**
  * Factory of factories of [ViewModel]s with [SavedStateHandle] to be assisted-injected.
  */
-class SavedStateViewModelFactory @Inject constructor(
+class SavedStateViewModelFactoryFactory @Inject constructor(
     private val factories: Map<Class<out ViewModel>, @JvmSuppressWildcards AssistedSavedStateViewModelFactory<out ViewModel>>
 ) {
 
