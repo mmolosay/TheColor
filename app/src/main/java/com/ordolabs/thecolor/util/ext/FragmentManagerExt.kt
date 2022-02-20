@@ -8,7 +8,7 @@ fun FragmentManager.commit(
     allowReordering: Boolean = true,
     body: FragmentTransaction.() -> Unit
 ): Int {
-    val transaction = beginTransaction()
+    val transaction = this.beginTransaction()
     transaction.body()
     transaction.setReorderingAllowed(allowReordering)
     return if (allowStateLoss) {
