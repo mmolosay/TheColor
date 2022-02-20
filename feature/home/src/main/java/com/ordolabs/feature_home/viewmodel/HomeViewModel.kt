@@ -16,10 +16,7 @@ class HomeViewModel @AssistedInject constructor(
         set(value) = state.set(KEY_IS_COLOR_DATA_SHOWN, value)
 
     @AssistedFactory
-    interface Factory : AssistedSavedStateViewModelFactory<HomeViewModel> {
-        // TODO: try to remove empty override
-        override fun create(savedStateHandle: SavedStateHandle): HomeViewModel
-    }
+    interface Factory : AssistedSavedStateViewModelFactory<HomeViewModel>
 
     companion object {
 
