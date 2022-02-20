@@ -67,9 +67,9 @@ dependencies {
     api "androidx.constraintlayout:constraintlayout:2.1.1"
     api "androidx.recyclerview:recyclerview:1.2.1"
 
-    implementation "androidx.navigation:navigation-fragment-ktx:2.3.5"
-    implementation "androidx.navigation:navigation-dynamic-features-fragment:2.3.5"
-    implementation "androidx.navigation:navigation-ui-ktx:2.3.5"
+    api "androidx.navigation:navigation-fragment-ktx:2.4.1"
+    api "androidx.navigation:navigation-ui-ktx:2.4.1"
+    implementation "androidx.navigation:navigation-dynamic-features-fragment:2.4.1"
 
     // Lifecycle
     api "androidx.lifecycle:lifecycle-runtime-ktx:2.4.0"
