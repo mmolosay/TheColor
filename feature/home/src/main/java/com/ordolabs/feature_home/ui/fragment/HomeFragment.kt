@@ -90,6 +90,13 @@ class HomeFragment :
         return inflater.inflate(R.layout.home_fragment, container, false)
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        homeVM.color?.let { color ->
+            tintPreview(color)
+        }
+    }
+
     override fun onStop() {
         super.onStop()
         hideSoftInputAndClearFocus()
@@ -143,6 +150,7 @@ class HomeFragment :
 
     @Suppress("UNUSED_PARAMETER")
     private fun onColorPreviewEmpty(previous: ColorPreview?) {
+        homeVM.color = null
         inputPagerView?.clearCurrentColor()
         binding.previewWrapper.doOnLayout {
             if (homeVM.isColorDataShown) {
@@ -154,6 +162,7 @@ class HomeFragment :
     }
 
     private fun onColorPreviewSuccess(preview: ColorPreview) {
+        homeVM.color = preview
         inputPagerView?.updateCurrentColor(preview)
         binding.previewWrapper.doOnLayout {
             val colorInt = preview.toColorInt()
@@ -207,14 +216,15 @@ class HomeFragment :
         replaceFragment(fragment, binding.colorDataFragmentContainer.id)
     }
 
-    private fun setProcceedBtn() = binding.run {
-        procceedBtn.setOnClickListener l@{
-            val color = colorValidatorVM.colorPreview.value.getOrNull() ?: return@l
-            hideSoftInput()
-            animColorDataExpanding(color)
-            replaceColorDataFragment(color)
+    private fun setProcceedBtn() =
+        binding.run {
+            procceedBtn.setOnClickListener l@{
+                val color = colorValidatorVM.colorPreview.value.getOrNull() ?: return@l
+                hideSoftInput()
+                animColorDataExpanding(color)
+                replaceColorDataFragment(color)
+            }
         }
-    }
 
     // endregion
 
@@ -239,6 +249,11 @@ class HomeFragment :
 
     private fun toggleDataWrapperVisibility(visible: Boolean) {
         binding.colorDataWrapper.isInvisible = !visible
+    }
+
+    private fun tintPreview(color: Color) {
+        val tint = ColorStateList.valueOf(color.toColorInt())
+        binding.preview.backgroundTintList = tint
     }
 
     // endregion
