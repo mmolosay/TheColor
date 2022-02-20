@@ -8,8 +8,8 @@ import androidx.fragment.app.FragmentManager
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.get
 import com.github.michaelbull.result.getOrElse
-import com.ordolabs.thecolor.di.AppComponent
 import com.ordolabs.thecolor.TheColorApplication
+import com.ordolabs.thecolor.di.AppComponent
 import com.ordolabs.thecolor.util.ext.commit
 import com.ordolabs.thecolor.util.ext.error
 import com.ordolabs.thecolor.util.ext.success
@@ -65,15 +65,32 @@ object ContextUtil {
         fm: FragmentManager,
         fragment: Fragment,
         @IdRes containerId: Int,
-        transactionTag: String
+        transactionTag: String?
     ): Result<Int, Throwable> {
-        fm.findFragmentByTag(transactionTag)?.let {
-            return Result.error("fragment with $transactionTag tag already added")
+        fm.findFragmentById(containerId)?.let {
+            return Result.error("fragment with $containerId id already added")
         }
         val transactionId = fm.commit {
             add(containerId, fragment, transactionTag)
         }
         return Result.success(transactionId)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun <F : Fragment> setFragmentOrGet(
+        fm: FragmentManager,
+        @IdRes containerId: Int,
+        transactionTag: String?,
+        fragmentProducer: () -> F
+    ): F {
+        fm.findFragmentById(containerId)?.let { added ->
+            return added as F
+        }
+        val fragment = fragmentProducer()
+        fm.commit {
+            add(containerId, fragment, transactionTag)
+        }
+        return fragment
     }
 
     fun replaceFragment(

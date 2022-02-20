@@ -53,7 +53,7 @@ import com.ordolabs.thecolor.util.ext.mediumAnimDuration
 import com.ordolabs.thecolor.util.ext.propertyAnimator
 import com.ordolabs.thecolor.util.ext.propertyAnimatorOrNull
 import com.ordolabs.thecolor.util.ext.replaceFragment
-import com.ordolabs.thecolor.util.ext.setFragment
+import com.ordolabs.thecolor.util.ext.setFragmentOrGet
 import com.ordolabs.thecolor.util.ext.shortAnimDuration
 import com.ordolabs.thecolor.util.restoreNavigationBarColor
 import com.ordolabs.thecolor.util.setNavigationBarColor
@@ -180,14 +180,17 @@ class HomeFragment :
     }
 
     private fun setColorInputFragment() {
-        val fragment = ColorInputPagerFragment.newInstance()
-        this.inputPagerView = fragment
-        setFragment(fragment, binding.colorInputFragmentContainer.id)
+        val container = binding.colorInputFragmentContainer
+        this.inputPagerView = setFragmentOrGet(container.id) {
+            ColorInputPagerFragment.newInstance()
+        }
     }
 
     private fun setColorDataFragment() {
-        val fragment = ColorDataPagerFragment.newInstance(color = null)
-        setFragment(fragment, binding.colorDataFragmentContainer.id)
+        val container = binding.colorDataFragmentContainer
+        setFragmentOrGet(container.id) {
+            ColorDataPagerFragment.newInstance(color = null)
+        }
     }
 
     // endregion

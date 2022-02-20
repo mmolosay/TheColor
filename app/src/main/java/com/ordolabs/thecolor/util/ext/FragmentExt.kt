@@ -64,6 +64,17 @@ fun BaseFragment.setFragment(
         transactionTag
     )
 
+fun <F : Fragment> BaseFragment.setFragmentOrGet(
+    @IdRes containerId: Int = this.defaultFragmentContainerId,
+    fragmentProducer: () -> F
+) =
+    ContextUtil.setFragmentOrGet(
+        this.childFragmentManager,
+        containerId,
+        transactionTag = null,
+        fragmentProducer
+    )
+
 fun BaseFragment.replaceFragment(
     fragment: Fragment,
     @IdRes containerId: Int = this.defaultFragmentContainerId,
