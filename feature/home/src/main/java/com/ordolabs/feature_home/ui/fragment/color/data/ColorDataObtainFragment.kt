@@ -14,7 +14,7 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDataObtainFragmentBinding
 import com.ordolabs.feature_home.ui.fragment.color.data.base.BaseColorDataFragment
-import com.ordolabs.feature_home.ui.fragment.color.data.base.IColorDataFragment
+import com.ordolabs.feature_home.ui.fragment.color.data.base.ColorDataView
 import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
 import com.ordolabs.thecolor.util.ext.by
@@ -28,18 +28,12 @@ import java.net.UnknownHostException
 /**
  * Obtains [color] data of type [D] and passes it to child 'display-data-only' Fragment.
  * Displays loading, failure and success obtaining states.
+ *
+ * Requires [getParentFragment] to be [ColorThemedView] as well.
  */
 abstract class ColorDataObtainFragment<D> :
     BaseColorDataFragment<D>(),
-    IColorThemed {
-
-    override val color: Color?
-        get() = (parentFragment as? IColorThemed)?.color
-
-    private val binding: ColorDataObtainFragmentBinding by viewBinding(CreateMethod.BIND)
-
-    private var dataFragment: IColorDataFragment<D>? = null
-    private var wasOnResumeCalled: Boolean = false
+    ColorThemedView {
 
     // region Abstract
 
@@ -49,6 +43,16 @@ abstract class ColorDataObtainFragment<D> :
     abstract fun makeContentShimmerFragment(): Fragment
 
     // endregion
+
+    override val color: Color?
+        get() = (parentFragment as? ColorThemedView)?.color
+
+    private val binding: ColorDataObtainFragmentBinding by viewBinding(CreateMethod.BIND)
+
+    protected var dataView: ColorDataView<D>? = null
+        private set
+
+    private var wasOnResumeCalled: Boolean = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -69,31 +73,81 @@ abstract class ColorDataObtainFragment<D> :
 
     override fun onDestroy() {
         super.onDestroy()
-        this.dataFragment = null
+        this.dataView = null
     }
+
+    // region Set up
 
     @CallSuper
     override fun collectViewModelsData() {
         collectColorData()
     }
 
-    override fun setViews() {
-        setColorDataFragment()
-        setContentShimmerFragment()
-        setRetryBtn()
+    private fun collectColorData() =
+        getColorDataFlow().collectOnLifecycle { resource ->
+            resource.fold(
+                onEmpty = ::onColorDataEmpty,
+                onLoading = ::onColorDataLoading,
+                onSuccess = ::onColorDataSuccess,
+                onFailure = ::onColorDataFailure
+            )
+        }
+
+    @Suppress("UNUSED_PARAMETER")
+    private fun onColorDataEmpty(previous: D?) {
+        animContentVisibility(visible = false)
     }
 
-    // region Settings views
+    @Suppress("UNUSED_PARAMETER")
+    private fun onColorDataLoading(previous: D?) {
+        showLoadingView()
+    }
+
+    private fun onColorDataSuccess(data: D) {
+        populateViews(data)
+        animContentVisibility(visible = true)
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    private fun onColorDataFailure(
+        previous: D?,
+        payload: Any?,
+        error: Throwable
+    ) {
+        when (error) {
+            is UnknownHostException -> showNoContentView()
+            else -> showToast(error.localizedMessage)
+        }
+    }
+
+    // endregion
+
+    // region Set fragments
+
+    override fun setFragments() {
+        super.setFragments()
+        setColorDataFragment()
+        setContentShimmerFragment()
+    }
 
     private fun setColorDataFragment() {
         val fragment = makeColorDataFragment()
         setFragment(fragment)
-        this.dataFragment = fragment
+        this.dataView = fragment
     }
 
     private fun setContentShimmerFragment() {
         val fragment = makeContentShimmerFragment()
         setFragment(fragment, binding.contentShimmerFragmentContainer.id)
+    }
+
+    // endregion
+
+    // region Set views
+
+    @CallSuper
+    override fun setViews() {
+        setRetryBtn()
     }
 
     private fun setRetryBtn() {
@@ -147,49 +201,12 @@ abstract class ColorDataObtainFragment<D> :
 
     // endregion
 
-    // region IColorDataFragment
+    // region ColorDataView
 
     // delegates
     override fun populateViews(data: D) {
-        dataFragment?.populateViews(data)
+        dataView?.populateViews(data)
     }
 
     // endregion
-
-    private fun collectColorData() =
-        getColorDataFlow().collectOnLifecycle { resource ->
-            resource.fold(
-                onEmpty = ::onColorDataEmpty,
-                onLoading = ::onColorDataLoading,
-                onSuccess = ::onColorDataSuccess,
-                onFailure = ::onColorDataFailure
-            )
-        }
-
-    @Suppress("UNUSED_PARAMETER")
-    private fun onColorDataEmpty(previous: D?) {
-        animContentVisibility(visible = false)
-    }
-
-    @Suppress("UNUSED_PARAMETER")
-    private fun onColorDataLoading(previous: D?) {
-        showLoadingView()
-    }
-
-    private fun onColorDataSuccess(data: D) {
-        populateViews(data)
-        animContentVisibility(visible = true)
-    }
-
-    @Suppress("UNUSED_PARAMETER")
-    private fun onColorDataFailure(
-        previous: D?,
-        payload: Any?,
-        error: Throwable
-    ) {
-        when (error) {
-            is UnknownHostException -> showNoContentView()
-            else -> showToast(error.localizedMessage)
-        }
-    }
 }

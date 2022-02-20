@@ -8,4 +8,4 @@ import com.ordolabs.feature_home.ui.fragment.BaseFragment
  */
 abstract class BaseColorDataFragment<D> :
     BaseFragment(),
-    IColorDataFragment<D>
+    ColorDataView<D>

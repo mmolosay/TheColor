@@ -2,9 +2,7 @@ package com.ordolabs.thecolor.ui.fragment
 
 import android.os.Bundle
 import android.view.View
-import androidx.annotation.CallSuper
 import androidx.annotation.IdRes
-import androidx.annotation.LayoutRes
 import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
@@ -15,11 +13,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
-abstract class BaseFragment : Fragment {
-
-    constructor()
-
-    constructor(@LayoutRes layoutRes: Int) : super(layoutRes)
+abstract class BaseFragment : Fragment() {
 
     @IdRes
     open val defaultFragmentContainerId: Int = R.id.defaultFragmentContainer
@@ -38,11 +32,14 @@ abstract class BaseFragment : Fragment {
         super.onCreate(savedInstanceState)
         initialSoftInputMode // initialize
         updateSoftInputMode()
+        setUp()
+        setFragmentResultListeners()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setUp()
+        collectViewModelsData()
+        setFragments()
         setViews()
     }
 
@@ -51,38 +48,49 @@ abstract class BaseFragment : Fragment {
         restoreSoftInputMode()
     }
 
+    // region Fragment.onCreate
+
+    /**
+     * Configures non-view components.
+     * Being called in [Fragment.onCreate] method.
+     */
+    protected open fun setUp() {
+        // default empty implementation
+    }
+
+    /**
+     * Sets listeners for Fragment Result API.
+     * Being called in [Fragment.onCreate] method.
+     */
+    protected open fun setFragmentResultListeners() {
+        // default empty implementation
+    }
+
     private fun updateSoftInputMode() {
         getSoftInputMode()?.let {
             activity?.window?.setSoftInputMode(it)
         }
     }
 
-    private fun restoreSoftInputMode() {
-        initialSoftInputMode?.let {
-            activity?.window?.setSoftInputMode(it)
-        }
-    }
+    // endregion
+
+    // region Fragment.onViewCreated
 
     /**
-     * Specifies windoSoftInputMode for `this` fragment.
-     */
-    protected open fun getSoftInputMode(): Int? =
-        null
-
-    /**
-     * Configures non-view components.
+     * Collects (subscribes to) data from ViewModel's.
      * Being called in [Fragment.onViewCreated] method.
      */
-    @CallSuper
-    protected open fun setUp() {
-        collectViewModelsData()
+    protected open fun collectViewModelsData() {
+        // default empty implementation
     }
 
     /**
-     * Collects (subscribes to) data from declared ViewModel's.
-     * Being called in [setUp] method.
+     * Configures child fragments.
+     * Being called in [Fragment.onViewCreated] method.
      */
-    protected abstract fun collectViewModelsData()
+    protected open fun setFragments() {
+        // default empty implementation
+    }
 
     /**
      * Sets fragment's views and configures them.
@@ -90,8 +98,34 @@ abstract class BaseFragment : Fragment {
      */
     protected abstract fun setViews()
 
+    // endregion
+
+    // region Fragment.onDestroy
+
+    private fun restoreSoftInputMode() {
+        initialSoftInputMode?.let {
+            activity?.window?.setSoftInputMode(it)
+        }
+    }
+
+    // endregion
+
+    // region Non-lifecycle methods
+
+    /**
+     * Specifies windowSoftInputMode for `this` fragment.
+     */
+    protected open fun getSoftInputMode(): Int? =
+        null
+
+    // endregion
+
     companion object {
         // extra keys and stuff
+
+        @JvmStatic
+        protected inline fun <reified F : BaseFragment> makeFragmentResultKey() =
+            "ResultKey_${F::class.java.canonicalName}"
     }
 
     /**
@@ -104,7 +138,7 @@ abstract class BaseFragment : Fragment {
         crossinline action: suspend (value: T) -> Unit
     ) =
         lifecycleScope.launch {
-            lifecycle.repeatOnLifecycle(state) {
+            viewLifecycleOwner.repeatOnLifecycle(state) {
                 this@collectOnLifecycle.collect(action)
             }
         }

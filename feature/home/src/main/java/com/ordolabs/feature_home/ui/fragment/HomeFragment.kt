@@ -4,10 +4,13 @@ import android.animation.Animator
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
+import android.annotation.SuppressLint
 import android.content.res.ColorStateList
 import android.graphics.Point
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.AnticipateOvershootInterpolator
@@ -17,21 +20,27 @@ import androidx.core.animation.doOnStart
 import androidx.core.view.doOnLayout
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
+import androidx.fragment.app.viewModels
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.HomeFragmentBinding
-import com.ordolabs.feature_home.di.featureHomeModule
+import com.ordolabs.feature_home.di.DaggerFeatureHomeComponent
+import com.ordolabs.feature_home.di.FeatureHomeComponent
+import com.ordolabs.feature_home.di.FeatureHomeComponentKeeper
 import com.ordolabs.feature_home.ui.fragment.color.data.ColorDataPagerFragment
-import com.ordolabs.feature_home.ui.fragment.color.input.ColorInputPagerFragment
+import com.ordolabs.feature_home.ui.fragment.color.data.details.ColorDetailsParent
+import com.ordolabs.feature_home.ui.fragment.color.input.page.ColorInputParent
+import com.ordolabs.feature_home.ui.fragment.color.input.pager.ColorInputPagerFragment
+import com.ordolabs.feature_home.ui.fragment.color.input.pager.ColorInputPagerView
 import com.ordolabs.feature_home.viewmodel.HomeViewModel
-import com.ordolabs.feature_home.viewmodel.colordata.details.ColorDetailsViewModel
-import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorValidatorViewModel
 import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.ColorPreview
+import com.ordolabs.thecolor.model.color.ColorPrototype
 import com.ordolabs.thecolor.model.color.toColorInt
 import com.ordolabs.thecolor.util.AnimationUtils
+import com.ordolabs.thecolor.util.ext.appComponent
 import com.ordolabs.thecolor.util.ext.bindPropertyAnimator
 import com.ordolabs.thecolor.util.ext.by
 import com.ordolabs.thecolor.util.ext.createCircularRevealAnimation
@@ -50,25 +59,35 @@ import com.ordolabs.thecolor.util.restoreNavigationBarColor
 import com.ordolabs.thecolor.util.setNavigationBarColor
 import com.ordolabs.thecolor.util.struct.AnimatorDestination
 import com.ordolabs.thecolor.util.struct.getOrNull
-import org.koin.androidx.viewmodel.ext.android.sharedViewModel
-import org.koin.core.context.loadKoinModules
 import android.graphics.Color as ColorAndroid
 import com.google.android.material.R as RMaterial
 import com.ordolabs.thecolor.R as RApp
 
-class HomeFragment : BaseFragment(R.layout.home_fragment) {
+class HomeFragment :
+    BaseFragment(),
+    FeatureHomeComponentKeeper,
+    ColorInputParent,
+    ColorDetailsParent {
+
+    override val featureHomeComponent: FeatureHomeComponent by lazy(::makeFeatureHomeComponent)
 
     private val binding: HomeFragmentBinding by viewBinding()
-    private val homeVM: HomeViewModel by sharedViewModel()
-    private val colorInputVM: ColorInputViewModel by sharedViewModel()
-    private val colorDetailsVM: ColorDetailsViewModel by sharedViewModel()
-    private val colorValidatorVM: ColorValidatorViewModel by sharedViewModel()
+    private val homeVM: HomeViewModel by viewModels {
+        featureHomeComponent.savedStateViewModelFactoryFactory.create(this, defaultArgs = null)
+    }
+    private val colorValidatorVM: ColorValidatorViewModel by viewModels {
+        featureHomeComponent.viewModelFactory
+    }
 
+    private var inputPagerView: ColorInputPagerView? = null
     private val previewResizeDest = AnimatorDestination()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        loadKoinModules(featureHomeModule)
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        return inflater.inflate(R.layout.home_fragment, container, false)
     }
 
     override fun onStop() {
@@ -76,29 +95,108 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
         hideSoftInputAndClearFocus()
     }
 
-    override fun collectViewModelsData() {
-        collectColorPreview()
-        collectColorInputPrototype()
-        collectGetExactColorCommand()
+    override fun onDestroy() {
+        super.onDestroy()
+        this.inputPagerView = null
     }
 
-    // region Set views
+    // region Set up
 
-    override fun setViews() {
+    override fun setUp() {
+        featureHomeComponent // init
+    }
+
+    private fun makeFeatureHomeComponent(): FeatureHomeComponent =
+        DaggerFeatureHomeComponent
+            .builder()
+            .appComponent(appComponent)
+            .build()
+
+    // endregion
+
+    // region Fragment Result
+
+    override fun setFragmentResultListeners() {
+        // nothing is here
+    }
+
+    // region Listeners
+
+    // endregion
+
+    // endregion
+
+    // region Collect ViewModels data
+
+    override fun collectViewModelsData() {
+        collectColorPreview()
+    }
+
+    private fun collectColorPreview() =
+        colorValidatorVM.colorPreview.collectOnLifecycle { resource ->
+            binding.procceedBtn.isEnabled = resource.isSuccess
+            resource.fold(
+                onEmpty = ::onColorPreviewEmpty,
+                onSuccess = ::onColorPreviewSuccess
+            )
+        }
+
+    @Suppress("UNUSED_PARAMETER")
+    private fun onColorPreviewEmpty(previous: ColorPreview?) {
+        inputPagerView?.clearCurrentColor()
+        binding.previewWrapper.doOnLayout {
+            if (homeVM.isColorDataShown) {
+                animInfoSheetCollapsingOnPreviewEmpty()
+            } else {
+                animPreviewResize(collapse = true)
+            }
+        }
+    }
+
+    private fun onColorPreviewSuccess(preview: ColorPreview) {
+        inputPagerView?.updateCurrentColor(preview)
+        binding.previewWrapper.doOnLayout {
+            val colorInt = preview.toColorInt()
+            if (preview.isUserInput) { // collapse only if user changed color manually
+                val colorDataBg = getDataWrapperBackgroundColor()
+                if (colorInt != colorDataBg) {
+                    animColorDataCollapsingOnPreviewSuccess()
+                }
+            } else {
+                tintDataWrapperBackground(preview)
+            }
+            animPreviewColorChanging(colorInt)
+            animPreviewResize(collapse = false)
+        }
+    }
+
+    // endregion
+
+    // region Set fragments
+
+    override fun setFragments() {
         setColorInputFragment()
         setColorDataFragment()
-        setProcceedBtn()
-        toggleDataWrapperVisibility(visible = false)
     }
 
     private fun setColorInputFragment() {
         val fragment = ColorInputPagerFragment.newInstance()
+        this.inputPagerView = fragment
         setFragment(fragment, binding.colorInputFragmentContainer.id)
     }
 
     private fun setColorDataFragment() {
         val fragment = ColorDataPagerFragment.newInstance(color = null)
         setFragment(fragment, binding.colorDataFragmentContainer.id)
+    }
+
+    // endregion
+
+    // region Set views
+
+    override fun setViews() {
+        setProcceedBtn()
+        toggleDataWrapperVisibility(visible = false)
     }
 
     private fun replaceColorDataFragment(color: Color) {
@@ -116,6 +214,8 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
     }
 
     // endregion
+
+    // region View utils
 
     @ColorInt
     private fun getDataWrapperBackgroundColor(): Int? {
@@ -137,6 +237,8 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
     private fun toggleDataWrapperVisibility(visible: Boolean) {
         binding.colorDataWrapper.isInvisible = !visible
     }
+
+    // endregion
 
     // region Animate
 
@@ -310,6 +412,7 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
             }
     }
 
+    @SuppressLint("PrivateResource")
     private fun makePreviewElevationAnimation(flatten: Boolean): Animator {
         val preview = binding.previewWrapper
         val elevation = resources.getDimension(RMaterial.dimen.m3_card_elevated_elevation)
@@ -365,70 +468,22 @@ class HomeFragment : BaseFragment(R.layout.home_fragment) {
 
     // endregion
 
-    // region collectColorPreview
+    // region ColorInputParent
 
-    private fun collectColorPreview() =
-        colorValidatorVM.colorPreview.collectOnLifecycle { resource ->
-            binding.procceedBtn.isEnabled = resource.isSuccess
-            resource.fold(
-                onEmpty = ::onColorPreviewEmpty,
-                onSuccess = ::onColorPreviewSuccess
-            )
-        }
-
-    @Suppress("UNUSED_PARAMETER")
-    private fun onColorPreviewEmpty(previous: ColorPreview?) {
-        colorInputVM.clearColorInput()
-        binding.previewWrapper.doOnLayout {
-            if (homeVM.isColorDataShown) {
-                animInfoSheetCollapsingOnPreviewEmpty()
-            } else {
-                animPreviewResize(collapse = true)
-            }
-        }
-    }
-
-    private fun onColorPreviewSuccess(preview: ColorPreview) {
-        colorInputVM.updateCurrentColor(preview)
-        binding.previewWrapper.doOnLayout {
-            val colorInt = preview.toColorInt()
-            if (preview.isUserInput) { // collapse only if user changed color manually
-                val colorDataBg = getDataWrapperBackgroundColor()
-                if (colorInt != colorDataBg) {
-                    animColorDataCollapsingOnPreviewSuccess()
-                }
-            } else {
-                tintDataWrapperBackground(preview)
-            }
-            animPreviewColorChanging(colorInt)
-            animPreviewResize(collapse = false)
-        }
+    override fun onInputChanged(input: ColorPrototype) {
+        if (colorValidatorVM.isSameAsColorPreview(input)) return
+        colorValidatorVM.validateColor(input)
     }
 
     // endregion
 
-    // region collectColorInputPrototype
+    // region ColorDetailsParent
 
-    private fun collectColorInputPrototype() =
-        colorInputVM.prototype.collectOnLifecycle { resource ->
-            resource.ifSuccess { prototype ->
-                if (colorValidatorVM.isSameAsColorPreview(prototype)) return@ifSuccess
-                colorValidatorVM.validateColor(prototype)
-            }
-        }
-
-    // endregion
-
-    // region collectGetExactColorCommand
-
-    private fun collectGetExactColorCommand() =
-        colorDetailsVM.getExactColorCommand.collectOnLifecycle { resource ->
-            resource.ifSuccess { exactColor ->
-                val preview = ColorPreview(exactColor, isUserInput = false)
-                colorValidatorVM.updateColorPreview(preview)
-                replaceColorDataFragment(exactColor)
-            }
-        }
+    override fun onExactColorClick(exact: Color) {
+        val preview = ColorPreview(exact, isUserInput = false)
+        colorValidatorVM.updateColorPreview(preview)
+        replaceColorDataFragment(exact)
+    }
 
     // endregion
 

@@ -6,32 +6,29 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.os.bundleOf
+import androidx.fragment.app.viewModels
 import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDataPagerFragmentBinding
 import com.ordolabs.feature_home.ui.adapter.pager.ColorDataPagerAdapter
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
+import com.ordolabs.feature_home.util.FeatureHomeUtil.featureHomeComponent
 import com.ordolabs.feature_home.viewmodel.colordata.ColorDataViewModel
 import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.isDark
-import com.ordolabs.thecolor.util.ext.makeArgumentsKey
-import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import com.ordolabs.thecolor.R as RApp
 
 class ColorDataPagerFragment :
     BaseFragment(),
-    IColorThemed {
+    ColorThemedView {
 
     private val binding: ColorDataPagerFragmentBinding by viewBinding(CreateMethod.BIND)
-    private val colorDataVM: ColorDataViewModel by sharedViewModel()
+    private val colorDataVM: ColorDataViewModel by viewModels {
+        featureHomeComponent.viewModelFactory
+    }
 
     override var color: Color? = null
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        parseArguments()
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -49,20 +46,41 @@ class ColorDataPagerFragment :
             .inflate(R.layout.color_data_pager_fragment, container, false)
     }
 
-    private fun parseArguments() {
-        parseColorArg()
+    // region Set up
+
+    override fun setUp() {
+        parseArguments()
     }
 
-    private fun parseColorArg() {
-        val key = ARGUMENTS_KEY_COLOR
+    private fun parseArguments() {
         val args = arguments ?: return
+        parseColor(args)
+    }
+
+    private fun parseColor(args: Bundle) {
+        val key = ARGUMENTS_KEY_COLOR
         if (!args.containsKey(key)) return
         this.color = args.getParcelable(key)
     }
 
+    // endregion
+
+    // region Collect ViewModels data
+
     override fun collectViewModelsData() {
         collectChangePageCommand()
     }
+
+    private fun collectChangePageCommand() =
+        colorDataVM.changePageCommand.collectOnLifecycle { resource ->
+            resource.ifSuccess { page ->
+                binding.pager.setCurrentItem(page.ordinal, /*smoothScroll*/ true)
+            }
+        }
+
+    // endregion
+
+    // region Set views
 
     override fun setViews() {
         setViewPager()
@@ -75,17 +93,11 @@ class ColorDataPagerFragment :
             pager.offscreenPageLimit = adapter.itemCount
         }
 
-    private fun collectChangePageCommand() =
-        colorDataVM.changePageCommand.collectOnLifecycle { resource ->
-            resource.ifSuccess { page ->
-                binding.pager.setCurrentItem(page.ordinal, /*smoothScroll*/ true)
-            }
-        }
+    // endregion
 
     companion object {
 
-        private val ARGUMENTS_KEY_COLOR =
-            "ARGUMENTS_KEY_COLOR".makeArgumentsKey<ColorDataPagerFragment>()
+        private const val ARGUMENTS_KEY_COLOR = "ARGUMENTS_KEY_COLOR"
 
         fun newInstance(color: Color?) =
             ColorDataPagerFragment().apply {

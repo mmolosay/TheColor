@@ -6,7 +6,6 @@ plugins {
 }
 android {
     compileSdkVersion = compileSdkV
-    buildToolsVersion = buildToolsV
 
     defaultConfig {
         minSdkVersion minSdkV
@@ -38,4 +37,7 @@ dependencies {
 
     // Modules
     implementation project(":app")
+
+    // Dagger2
+    kapt "com.google.dagger:dagger-compiler:$daggerVersion"
 }

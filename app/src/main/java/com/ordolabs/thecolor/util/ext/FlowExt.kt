@@ -28,7 +28,7 @@ import kotlinx.coroutines.flow.update
  */
 fun <T> Flow<T>.shareOnceIn(
     scope: CoroutineScope,
-    started: SharingStarted = SharingStarted.Lazily
+    started: SharingStarted = SharingStarted.Eagerly
 ): SharedFlow<T> =
     this.shareIn(scope, started, replay = 0)
 

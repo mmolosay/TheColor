@@ -1,36 +1,31 @@
 package com.ordolabs.feature_home.ui.fragment.color.input.page
 
 import androidx.annotation.CallSuper
-import androidx.annotation.LayoutRes
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
+import com.ordolabs.feature_home.util.FeatureHomeUtil.featureHomeComponent
 import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
 import com.ordolabs.thecolor.model.color.ColorPrototype
+import com.ordolabs.thecolor.util.ext.parentViewModels
+import com.ordolabs.thecolor.util.ext.requireParentOf
 import com.ordolabs.thecolor.util.struct.Resource
 import kotlinx.coroutines.flow.Flow
-import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 /**
  * Base `Fragment`, that can obtain input from UI and [assemblePrototype] of type [C].
+ * Requires parent `Fragment` to be an instance of [ColorInputParent].
  *
  * Derived class should call [outputOnInputChanges] every time data in UI input(s) was changed.
  *
  * All derived classes are designed to work together simultaneously (for example, in `ViewPager`),
  * thus if color changes in any of them, changes should be reflected in all others.
+ * All derived classes share common `ViewModel`, scoped to parent `Fragment`.
  *
  * Color collected from [getColorInputFlow] will be used to [populateViews] and [clearViews].
  *
  * @see ColorInputHexFragment
  * @see ColorInputRgbFragment
  */
-abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment {
-
-    constructor() : super()
-    constructor(@LayoutRes layoutRes: Int) : super(layoutRes)
-
-    protected val colorInputVM: ColorInputViewModel by sharedViewModel()
-
-    private var currentPrototype: ColorPrototype? = null
-    private var isTypedByUser: Boolean = true
+abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment() {
 
     // region Abstract
 
@@ -56,6 +51,14 @@ abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment {
 
     // endregion
 
+    protected val colorInputVM: ColorInputViewModel by parentViewModels {
+        featureHomeComponent.viewModelFactory
+    }
+
+    private val parent: ColorInputParent? by lazy { requireParentOf() }
+    private var currentPrototype: ColorPrototype? = null
+    private var isTypedByUser: Boolean = true
+
     @CallSuper
     override fun collectViewModelsData() {
         collectColorInput()
@@ -70,14 +73,14 @@ abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment {
         }
 
     /**
-     * Performs [assemblePrototype] and updates [ColorInputViewModel] with it.
+     * Performs [assemblePrototype] and updates [parent] with it.
      *
      * Must be called in UI input(s) observers of derived class.
      */
     protected fun outputOnInputChanges() {
         if (!isTypedByUser) return
         val prototype = assembleAndMementoPrototype()
-        colorInputVM.updateColorPrototype(prototype)
+        parent?.onInputChanged(prototype)
     }
 
     private fun assembleAndMementoPrototype() =

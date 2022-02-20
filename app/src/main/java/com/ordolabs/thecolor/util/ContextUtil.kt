@@ -8,12 +8,16 @@ import androidx.fragment.app.FragmentManager
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.get
 import com.github.michaelbull.result.getOrElse
+import com.ordolabs.thecolor.di.AppComponent
+import com.ordolabs.thecolor.TheColorApplication
 import com.ordolabs.thecolor.util.ext.commit
 import com.ordolabs.thecolor.util.ext.error
 import com.ordolabs.thecolor.util.ext.success
 import com.ordolabs.thecolor.util.ext.toResultOrError
 
 object ContextUtil {
+
+    // region Animation
 
     fun getShortAnimDuration(context: Context?): Long? {
         context ?: return null
@@ -29,6 +33,10 @@ object ContextUtil {
         context ?: return null
         return context.resources.getInteger(android.R.integer.config_longAnimTime).toLong()
     }
+
+    // endregion
+
+    // region Fragments
 
     fun findFragmentById(
         fm: FragmentManager,
@@ -101,6 +109,10 @@ object ContextUtil {
         return removeFragment(fm, fragment)
     }
 
+    // endregion
+
+    // region Toast
+
     fun showToast(
         context: Context,
         text: String?,
@@ -109,4 +121,17 @@ object ContextUtil {
         text ?: return
         Toast.makeText(context, text, duration).show()
     }
+
+    // endregion
+
+    // region DI
+
+    fun getAppComponent(context: Context?): AppComponent? =
+        when (context) {
+            null -> null
+            is TheColorApplication -> context.appComponent
+            else -> getAppComponent(context.applicationContext)
+        }
+
+    // endregion
 }

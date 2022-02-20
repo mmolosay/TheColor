@@ -1,6 +1,6 @@
 package com.ordolabs.feature_home.viewmodel.colordata.details
 
-import com.ordolabs.domain.usecase.remote.GetColorDetailsBaseUseCase
+import com.ordolabs.domain.usecase.remote.GetColorDetailsUseCase
 import com.ordolabs.thecolor.mapper.toPresentation
 import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.data.ColorDetails
@@ -14,9 +14,10 @@ import com.ordolabs.thecolor.viewmodel.BaseViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
+import javax.inject.Inject
 
-class ColorDetailsObtainViewModel(
-    private val getColorDetailsUseCase: GetColorDetailsBaseUseCase
+class ColorDetailsObtainViewModel @Inject constructor(
+    private val getColorDetailsUseCase: GetColorDetailsUseCase
 ) : BaseViewModel() {
 
     private val _details = MutableStateResourceFlow<ColorDetails>(Resource.empty())
@@ -32,6 +33,14 @@ class ColorDetailsObtainViewModel(
     fun getColorDetails(color: Color) {
         restartGettingColorDetails()
         this.getColorDetailsJob = performGetColorDetails(color.hex)
+    }
+
+    /**
+     * Sets specified [details] as current ones to be collected by `View`.
+     * Call this when you receive details from outside the 'View'.
+     */
+    fun setColorDetails(details: ColorDetails) {
+        _details.setSuccess(details)
     }
 
     private fun performGetColorDetails(colorHex: String) =

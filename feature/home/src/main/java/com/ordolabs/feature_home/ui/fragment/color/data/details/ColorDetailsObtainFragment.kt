@@ -1,19 +1,47 @@
 package com.ordolabs.feature_home.ui.fragment.color.data.details
 
+import android.os.Bundle
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import com.ordolabs.feature_home.ui.fragment.color.data.ColorDataObtainFragment
 import com.ordolabs.feature_home.ui.fragment.color.data.base.BaseColorDataFragment
+import com.ordolabs.feature_home.util.FeatureHomeUtil.featureHomeComponent
 import com.ordolabs.feature_home.viewmodel.colordata.details.ColorDetailsObtainViewModel
+import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.data.ColorDetails
 import com.ordolabs.thecolor.util.struct.Resource
 import kotlinx.coroutines.flow.Flow
-import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class ColorDetailsObtainFragment :
-    ColorDataObtainFragment<ColorDetails>() {
+    ColorDataObtainFragment<ColorDetails>(),
+    ColorDetailsObtainView {
 
-    // independent, brand new ViewModel
-    private val colorDetailsObtainVM: ColorDetailsObtainViewModel by viewModel()
+    private var details: ColorDetails? = null
+
+    private val colorDetailsObtainVM: ColorDetailsObtainViewModel by viewModels {
+        featureHomeComponent.viewModelFactory
+    }
+
+    // region Set up
+
+    override fun setUp() {
+        parseArguments()
+        details?.let { colorDetailsObtainVM.setColorDetails(it) }
+    }
+
+    private fun parseArguments() {
+        val args = arguments ?: return
+        parseColorDetails(args)
+    }
+
+    private fun parseColorDetails(args: Bundle) {
+        val key = ARGUMENT_KEY_COLOR_DETAILS
+        if (!args.containsKey(key)) return
+        this.details = args.getParcelable(key)
+    }
+
+    // endregion
 
     // region ColorDataObtainFragment
 
@@ -21,20 +49,38 @@ class ColorDetailsObtainFragment :
         colorDetailsObtainVM.details
 
     override fun obtainColorData() {
+        if (details != null) return
         val color = color ?: return
-        colorDetailsObtainVM.getColorDetails(color)
+        obtainColorDetails(color)
     }
 
     override fun makeColorDataFragment(): BaseColorDataFragment<ColorDetails> =
-        ColorDetailsFragment.newInstance(colorDetails = null)
+        ColorDetailsFragment.newInstance(colorDetails = details)
 
     override fun makeContentShimmerFragment(): Fragment =
         ColorDetailsShimmerFragment.newInstance()
 
     // endregion
 
+    // region ColorDetailsObtainView
+
+    override fun obtainColorDetails(color: Color) {
+        colorDetailsObtainVM.getColorDetails(color)
+    }
+
+    // endregion
+
     companion object {
-        fun newInstance() =
-            ColorDetailsObtainFragment()
+
+        private const val ARGUMENT_KEY_COLOR_DETAILS = "ARGUMENT_KEY_COLOR_DETAILS"
+
+        fun newInstance(
+            details: ColorDetails?
+        ) =
+            ColorDetailsObtainFragment().apply {
+                arguments = bundleOf(
+                    ARGUMENT_KEY_COLOR_DETAILS to details
+                )
+            }
     }
 }

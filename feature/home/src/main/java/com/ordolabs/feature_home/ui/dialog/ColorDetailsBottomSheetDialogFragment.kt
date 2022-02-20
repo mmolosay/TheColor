@@ -6,16 +6,26 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import com.ordolabs.feature_home.R
-import com.ordolabs.feature_home.ui.fragment.color.data.details.ColorDetailsFragment
+import com.ordolabs.feature_home.ui.fragment.color.data.ColorThemedView
+import com.ordolabs.feature_home.ui.fragment.color.data.details.ColorDetailsObtainFragment
+import com.ordolabs.feature_home.ui.fragment.color.data.details.ColorDetailsObtainView
+import com.ordolabs.feature_home.ui.fragment.color.data.details.ColorDetailsParent
+import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.data.ColorDetails
 import com.ordolabs.thecolor.ui.dialog.BaseBottomSheetDialogFragment
 import com.ordolabs.thecolor.util.ContextUtil
 import com.ordolabs.thecolor.util.ext.getDefaultTransactionTag
-import com.ordolabs.thecolor.util.ext.makeArgumentsKey
 
-class ColorDetailsBottomSheetDialogFragment : BaseBottomSheetDialogFragment() {
+class ColorDetailsBottomSheetDialogFragment :
+    BaseBottomSheetDialogFragment(),
+    ColorThemedView,
+    ColorDetailsParent {
 
     private var details: ColorDetails? = null
+    private var obtainView: ColorDetailsObtainView? = null
+
+    override val color: Color?
+        get() = details?.color
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -25,10 +35,15 @@ class ColorDetailsBottomSheetDialogFragment : BaseBottomSheetDialogFragment() {
         return inflater.inflate(R.layout.color_data_details_dialog, container, false)
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        this.obtainView = null
+    }
+
     // region Parse arguments
 
-    override fun parseArguments() {
-        val args = arguments ?: return
+    override fun parseArguments(args: Bundle) {
+        super.parseArguments(args)
         parseColorDetails(args)
     }
 
@@ -40,14 +55,16 @@ class ColorDetailsBottomSheetDialogFragment : BaseBottomSheetDialogFragment() {
 
     // endregion
 
-    // region Set views
+    // region Set fragments
 
-    override fun setViews() {
-        setColorDetailsFragment()
+    override fun setFragments() {
+        super.setFragments()
+        setColorDetailsObtainFragment()
     }
 
-    private fun setColorDetailsFragment() {
-        val fragment = ColorDetailsFragment.newInstance(details)
+    private fun setColorDetailsObtainFragment() {
+        val fragment = ColorDetailsObtainFragment.newInstance(details)
+        this.obtainView = fragment
         val tag = fragment.getDefaultTransactionTag()
         ContextUtil.setFragment(
             childFragmentManager,
@@ -59,10 +76,25 @@ class ColorDetailsBottomSheetDialogFragment : BaseBottomSheetDialogFragment() {
 
     // endregion
 
+    // region Set views
+
+    override fun setViews() {
+        // nothing is here
+    }
+
+    // endregion
+
+    // region ColorDetailsParent
+
+    override fun onExactColorClick(exact: Color) {
+        obtainView?.obtainColorDetails(exact)
+    }
+
+    // endregion
+
     companion object {
 
-        private val ARGUMENT_KEY_COLOR_DETAILS =
-            "ARGUMENT_COLOR_DETAILS".makeArgumentsKey<ColorDetailsBottomSheetDialogFragment>()
+        private const val ARGUMENT_KEY_COLOR_DETAILS = "ARGUMENT_KEY_COLOR_DETAILS"
 
         fun newInstance(details: ColorDetails) =
             ColorDetailsBottomSheetDialogFragment().apply {
