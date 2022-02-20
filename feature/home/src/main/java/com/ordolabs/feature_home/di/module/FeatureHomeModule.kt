@@ -7,4 +7,4 @@ import dagger.Module
         FeatureHomeViewModelModule::class
     ]
 )
-class FeatureHomeModule
+interface FeatureHomeModule

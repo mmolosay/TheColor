@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.ordolabs.feature_home.di.module.FeatureHomeModule
 import com.ordolabs.thecolor.di.AppComponent
 import com.ordolabs.thecolor.di.scope.FeatureScope
+import com.ordolabs.thecolor.viewmodel.factory.SavedStateViewModelFactory
 import dagger.Component
 
 @FeatureScope
@@ -19,6 +20,7 @@ interface FeatureHomeComponent {
     // because feature components are final and should not be inherited
 
     val viewModelFactory: ViewModelProvider.Factory
+    val savedStateViewModelFactory: SavedStateViewModelFactory
 
     // endregion
 
