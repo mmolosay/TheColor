@@ -90,13 +90,6 @@ class HomeFragment :
         return inflater.inflate(R.layout.home_fragment, container, false)
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        homeVM.color?.let { color ->
-            tintPreview(color)
-        }
-    }
-
     override fun onStop() {
         super.onStop()
         hideSoftInputAndClearFocus()
@@ -106,6 +99,35 @@ class HomeFragment :
         super.onDestroy()
         this.inputPagerView = null
     }
+
+    // region Restore state
+
+    override fun onViewStateRestored(savedInstanceState: Bundle?) {
+        super.onViewStateRestored(savedInstanceState)
+        restorePreviewTint()
+        restoreDataWrapperVisibility()
+        restoreDataWrapperTint()
+    }
+
+    private fun restorePreviewTint() {
+        homeVM.color?.let { color ->
+            tintPreviewBackground(color)
+        }
+    }
+
+    private fun restoreDataWrapperVisibility() {
+        if (!homeVM.isColorDataShown) return
+        toggleDataWrapperVisibility(visible = true)
+    }
+
+    private fun restoreDataWrapperTint() {
+        if (!homeVM.isColorDataShown) return
+        homeVM.color?.let { color ->
+            tintDataWrapperBackground(color)
+        }
+    }
+
+    // endregion
 
     // region Set up
 
@@ -251,7 +273,7 @@ class HomeFragment :
         binding.colorDataWrapper.isInvisible = !visible
     }
 
-    private fun tintPreview(color: Color) {
+    private fun tintPreviewBackground(color: Color) {
         val tint = ColorStateList.valueOf(color.toColorInt())
         binding.preview.backgroundTintList = tint
     }
