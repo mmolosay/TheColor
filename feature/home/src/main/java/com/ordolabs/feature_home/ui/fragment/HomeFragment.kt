@@ -146,7 +146,7 @@ class HomeFragment :
         inputPagerView?.clearCurrentColor()
         binding.previewWrapper.doOnLayout {
             if (homeVM.isColorDataShown) {
-                animInfoSheetCollapsingOnPreviewEmpty()
+                animColorDataCollapsingOnPreviewEmpty()
             } else {
                 animPreviewResize(collapse = true)
             }
@@ -211,7 +211,7 @@ class HomeFragment :
         procceedBtn.setOnClickListener l@{
             val color = colorValidatorVM.colorPreview.value.getOrNull() ?: return@l
             hideSoftInput()
-            animInfoSheetExpanding(color)
+            animColorDataExpanding(color)
             replaceColorDataFragment(color)
         }
     }
@@ -245,7 +245,7 @@ class HomeFragment :
 
     // region Animate
 
-    private fun animInfoSheetExpanding(color: Color) {
+    private fun animColorDataExpanding(color: Color) {
         if (homeVM.isColorDataShown) return
         binding.root.post { // when ^ infoFragmentContainer becomes visible
             binding.scrollview.isScrollable = true
@@ -265,7 +265,7 @@ class HomeFragment :
         }
     }
 
-    private fun animInfoSheetCollapsingOnPreviewEmpty() {
+    private fun animColorDataCollapsingOnPreviewEmpty() {
         AnimatorSet().apply {
             playSequentially(
                 makeColorDataCollapsingAnimation(),
