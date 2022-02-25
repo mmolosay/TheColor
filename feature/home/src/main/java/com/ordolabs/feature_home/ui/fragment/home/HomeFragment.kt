@@ -64,7 +64,6 @@ import com.google.android.material.R as RMaterial
 import com.ordolabs.thecolor.R as RApp
 
 // TODO: refactor to state machine
-// TODO: now BLANK state is being set in xml; configure all states manually in code
 class HomeFragment :
     BaseFragment(),
     FeatureHomeComponentKeeper,
@@ -118,19 +117,22 @@ class HomeFragment :
         }
 
     private fun restoreBlankState() {
-        // blank from xml layout by default; do nothing
+        showPreviewGroup(visible = false)
+        scalePreviewGroup(collapse = true)
     }
 
     private fun restorePreviewState() {
         val preview = homeVM.preview ?: return
-        animPreviewResize(collapse = false)
-        tintPreviewBackground(preview)
+        showPreviewGroup(visible = true)
+        scalePreviewGroup(collapse = false)
+        tintPreview(preview)
     }
 
     private fun restoreDataState() {
         val preview = homeVM.preview ?: return
-        scalePreviewGroup(collapsed = false)
-        tintPreviewBackground(preview)
+        showPreviewGroup(visible = false)
+        scalePreviewGroup(collapse = false)
+        tintPreview(preview)
         showDataWrapper(visible = true)
         tintDataWrapper(preview)
     }
@@ -260,14 +262,14 @@ class HomeFragment :
         binding.previewGroup.isInvisible = !visible
     }
 
-    private fun scalePreviewGroup(collapsed: Boolean) {
-        val value = 0f to 1f by collapsed
+    private fun scalePreviewGroup(collapse: Boolean) {
+        val value = 0f to 1f by collapse
         val preview = binding.previewGroup
         preview.scaleX = value
         preview.scaleY = value
     }
 
-    private fun tintPreviewBackground(color: Color) {
+    private fun tintPreview(color: Color) {
         val tint = ColorStateList.valueOf(color.toColorInt())
         binding.previewCurrent.backgroundTintList = tint
     }
