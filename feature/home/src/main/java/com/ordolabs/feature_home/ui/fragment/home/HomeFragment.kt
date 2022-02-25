@@ -256,6 +256,10 @@ class HomeFragment :
         replaceFragment(fragment, binding.colorDataFragmentContainer.id)
     }
 
+    private fun showPreviewGroup(visible: Boolean) {
+        binding.previewGroup.isInvisible = !visible
+    }
+
     private fun scalePreviewGroup(collapsed: Boolean) {
         val value = 0f to 1f by collapsed
         val preview = binding.previewGroup
@@ -392,26 +396,26 @@ class HomeFragment :
         }
 
     private fun makePreviewResizingAnimation(collapse: Boolean): ValueAnimator {
-        val wrapper = binding.previewGroup
-        val current = wrapper.scaleX
-        val end = if (collapse) 0f else 1f
-        val animator = ValueAnimator.ofFloat(current, end).apply {
+        val group = binding.previewGroup
+        val from = group.scaleX
+        val to = if (collapse) 0f else 1f
+        val animator = ValueAnimator.ofFloat(from, to).apply {
             interpolator = FastOutSlowInInterpolator()
             duration = 300L
             addUpdateListener {
-                wrapper.scaleX = animatedValue as Float
-                wrapper.scaleY = animatedValue as Float
+                group.scaleX = animatedValue as Float
+                group.scaleY = animatedValue as Float
             }
             doOnStart {
-                wrapper.isInvisible = false
+                showPreviewGroup(visible = true)
             }
             doOnEnd {
                 // expanded state could be achieved by reversing collapsing animation
-                wrapper.isInvisible = (wrapper.scaleX == 0f)
+                showPreviewGroup(visible = (group.scaleX != 0f))
                 previewResizeDest.clear()
             }
         }
-        return wrapper.propertyAnimator(View.SCALE_X, animator)
+        return group.propertyAnimator(View.SCALE_X, animator)
     }
 
     private fun makePreviewColorChangingAnimation(@ColorInt color: Int): Animator {
@@ -428,7 +432,7 @@ class HomeFragment :
              if parent view group is hidden */
             interpolator = FastOutSlowInInterpolator()
             doOnStart {
-                group.isInvisible = false // make parent viewgroup visible
+                showPreviewGroup(visible = true) // make parent viewgroup visible
                 updated.isInvisible = false
                 updated.backgroundTintList = ColorStateList.valueOf(color)
             }
