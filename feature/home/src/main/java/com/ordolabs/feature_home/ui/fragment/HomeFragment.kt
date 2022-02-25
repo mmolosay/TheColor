@@ -102,29 +102,9 @@ class HomeFragment :
 
     // region Restore state
 
+    // TODO: delete if nothing in it
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
         super.onViewStateRestored(savedInstanceState)
-        restorePreviewTint()
-        restoreDataWrapperVisibility()
-        restoreDataWrapperTint()
-    }
-
-    private fun restorePreviewTint() {
-        homeVM.preview?.let { color ->
-            tintPreviewBackground(color)
-        }
-    }
-
-    private fun restoreDataWrapperVisibility() {
-        if (!homeVM.isColorDataShown) return
-        toggleDataWrapperVisibility(visible = true)
-    }
-
-    private fun restoreDataWrapperTint() {
-        if (!homeVM.isColorDataShown) return
-        homeVM.preview?.let { color ->
-            tintDataWrapperBackground(color)
-        }
     }
 
     // endregion
@@ -188,12 +168,16 @@ class HomeFragment :
         inputPagerView?.updateCurrentColor(preview)
         binding.previewWrapper.doOnLayout {
             val colorInt = preview.toColorInt()
+            val hasBg = isDataWrapperHasBackround()
             if (preview.isUserInput) { // collapse only if user changed color manually
-                val colorDataBg = getDataWrapperBackgroundColor()
-                if (colorInt != colorDataBg) {
-                    animColorDataCollapsingOnPreviewSuccess()
+                if (hasBg) {
+                    val colorDataBg = getDataWrapperBackgroundColor()
+                    if (colorInt != colorDataBg) {
+                        animColorDataCollapsingOnPreviewSuccess()
+                    }
                 }
-            } else {
+            }
+            if (!hasBg && homeVM.isColorDataShown) {
                 tintDataWrapperBackground(preview)
             }
             animPreviewColorChanging(colorInt)
@@ -230,7 +214,7 @@ class HomeFragment :
 
     override fun setViews() {
         setProcceedBtn()
-        toggleDataWrapperVisibility(visible = false)
+        setDataWrapper()
     }
 
     private fun replaceColorDataFragment(color: Color) {
@@ -248,6 +232,12 @@ class HomeFragment :
             }
         }
 
+    private fun setDataWrapper() =
+        binding.run {
+            val visible = homeVM.isColorDataShown
+            toggleDataWrapperVisibility(visible)
+        }
+
     // endregion
 
     // region View utils
@@ -255,6 +245,11 @@ class HomeFragment :
     @ColorInt
     private fun getDataWrapperBackgroundColor(): Int? {
         return binding.colorDataWrapper.backgroundTintList?.defaultColor
+    }
+
+    private fun isDataWrapperHasBackround(): Boolean {
+        val bg = getDataWrapperBackgroundColor() ?: return false
+        return (bg != android.graphics.Color.TRANSPARENT)
     }
 
     private fun tintDataWrapperBackground(color: Color) {

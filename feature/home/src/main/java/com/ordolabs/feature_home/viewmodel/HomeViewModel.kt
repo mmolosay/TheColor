@@ -2,7 +2,7 @@ package com.ordolabs.feature_home.viewmodel
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import com.ordolabs.thecolor.model.color.Color
+import com.ordolabs.thecolor.model.color.ColorPreview
 import com.ordolabs.thecolor.viewmodel.factory.AssistedSavedStateViewModelFactory
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -16,8 +16,8 @@ class HomeViewModel @AssistedInject constructor(
         get() = state.get<Boolean>(KEY_IS_COLOR_DATA_SHOWN) ?: false
         set(value) = state.set(KEY_IS_COLOR_DATA_SHOWN, value)
 
-    var preview: Color?
-        get() = state.get<Color>(KEY_PREVIEW)
+    var preview: ColorPreview?
+        get() = state.get<ColorPreview>(KEY_PREVIEW)
         set(value) = state.set(KEY_PREVIEW, value)
 
     @AssistedFactory
