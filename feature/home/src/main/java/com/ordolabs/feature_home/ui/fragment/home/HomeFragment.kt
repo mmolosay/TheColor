@@ -1,4 +1,4 @@
-package com.ordolabs.feature_home.ui.fragment
+package com.ordolabs.feature_home.ui.fragment.home
 
 import android.animation.Animator
 import android.animation.AnimatorSet
@@ -28,6 +28,7 @@ import com.ordolabs.feature_home.databinding.HomeFragmentBinding
 import com.ordolabs.feature_home.di.DaggerFeatureHomeComponent
 import com.ordolabs.feature_home.di.FeatureHomeComponent
 import com.ordolabs.feature_home.di.FeatureHomeComponentKeeper
+import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.ui.fragment.color.data.ColorDataPagerFragment
 import com.ordolabs.feature_home.ui.fragment.color.data.details.ColorDetailsParent
 import com.ordolabs.feature_home.ui.fragment.color.input.page.ColorInputParent

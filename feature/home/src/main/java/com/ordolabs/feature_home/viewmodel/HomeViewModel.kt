@@ -2,7 +2,7 @@ package com.ordolabs.feature_home.viewmodel
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import com.ordolabs.feature_home.ui.fragment.HomeFragment
+import com.ordolabs.feature_home.ui.fragment.home.HomeFragment
 import com.ordolabs.thecolor.model.color.ColorPreview
 import com.ordolabs.thecolor.viewmodel.factory.AssistedSavedStateViewModelFactory
 import dagger.assisted.Assisted
