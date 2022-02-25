@@ -62,7 +62,7 @@
             app:layout_constraintTop_toBottomOf="@id/colorInputFragmentContainer" />
 
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/previewWrapper"
+            android:id="@+id/previewGroup"
             style="?attr/materialCardViewElevatedStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -80,7 +80,7 @@
             tools:visibility="visible">
 
             <View
-                android:id="@+id/preview"
+                android:id="@+id/previewCurrent"
                 android:layout_width="@dimen/color_input_preview_size"
                 android:layout_height="@dimen/color_input_preview_size"
                 android:background="@drawable/bg_shape_round"
@@ -110,7 +110,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHeight_min="wrap"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/previewWrapper"
+            app:layout_constraintTop_toBottomOf="@+id/previewGroup"
             app:layout_constraintVertical_bias="0.0"
             tools:visibility="visible">
 

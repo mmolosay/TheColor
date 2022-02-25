@@ -281,12 +281,12 @@ class HomeFragment :
 
     private fun tintPreviewBackground(color: Color) {
         val tint = ColorStateList.valueOf(color.toColorInt())
-        binding.preview.backgroundTintList = tint
+        binding.previewCurrent.backgroundTintList = tint
     }
 
     private fun scalePreviewGroup(show: Boolean) {
         val value = 1f to 0f by show
-        val preview = binding.previewWrapper
+        val preview = binding.previewGroup
         preview.scaleX = value
         preview.scaleY = value
     }
@@ -334,13 +334,13 @@ class HomeFragment :
     }
 
     private fun animPreviewColorChanging(@ColorInt color: Int) =
-        binding.previewWrapper.doOnLayout {
+        binding.previewGroup.doOnLayout {
             makePreviewColorChangingAnimation(color).start()
         }
 
     private fun animPreviewResize(collapse: Boolean) {
-        if (collapse && binding.previewWrapper.scaleX == 0f) return // already collapsed
-        if (!collapse && binding.previewWrapper.scaleX == 1f) return // already expanded
+        if (collapse && binding.previewGroup.scaleX == 0f) return // already collapsed
+        if (!collapse && binding.previewGroup.scaleX == 1f) return // already expanded
         if (collapse == previewResizeDest.isEnd) return // already running towards desired dest
         val animator = makePreviewResizingAnimation(collapse)
         if (animator.isStarted) {
@@ -392,7 +392,7 @@ class HomeFragment :
         }
 
     private fun makePreviewResizingAnimation(collapse: Boolean): ValueAnimator {
-        val wrapper = binding.previewWrapper
+        val wrapper = binding.previewGroup
         val current = wrapper.scaleX
         val end = if (collapse) 0f else 1f
         val animator = ValueAnimator.ofFloat(current, end).apply {
@@ -415,25 +415,25 @@ class HomeFragment :
     }
 
     private fun makePreviewColorChangingAnimation(@ColorInt color: Int): Animator {
-        val preview = binding.preview
+        val group = binding.previewGroup
+        val current = binding.previewCurrent
         val updated = binding.previewUpdated
-        val wrapper = binding.previewWrapper
 
         val property = AnimationUtils.CustomViewProperty.CIRCULAR_REVEAL
         val existed = updated.propertyAnimatorOrNull<Animator>(property)
         existed?.cancel() // will trigger onEnd as well
 
         val animator = updated.createCircularRevealAnimation().apply {
-            duration = 0L to shortAnimDuration by !wrapper.isVisible /* finish instantly,
+            duration = 0L to shortAnimDuration by !group.isVisible /* finish instantly,
              if parent view group is hidden */
             interpolator = FastOutSlowInInterpolator()
             doOnStart {
-                wrapper.isInvisible = false // make parent viewgroup visible
+                group.isInvisible = false // make parent viewgroup visible
                 updated.isInvisible = false
                 updated.backgroundTintList = ColorStateList.valueOf(color)
             }
             doOnEnd {
-                preview.backgroundTintList = ColorStateList.valueOf(color)
+                current.backgroundTintList = ColorStateList.valueOf(color)
                 updated.isInvisible = (existed != null) /* otherwise will hide view and animation
                  will be played on not visible view */
             }
@@ -444,23 +444,23 @@ class HomeFragment :
     }
 
     private fun makePreviewTranslationAnimation(down: Boolean): Animator {
-        val preview = binding.previewWrapper
+        val group = binding.previewGroup
         val translation = calcPreviewTranslation()
         val from = 0f to translation by down
         val to = translation to 0f by down
         return ObjectAnimator
-            .ofFloat(preview, View.TRANSLATION_Y, from, to)
+            .ofFloat(group, View.TRANSLATION_Y, from, to)
             .apply {
                 interpolator = AnticipateOvershootInterpolator()
                 doOnStart {
-                    preview.isInvisible = false
+                    group.isInvisible = false
                 }
             }
     }
 
     @SuppressLint("PrivateResource")
     private fun makePreviewElevationAnimation(flatten: Boolean): Animator {
-        val preview = binding.previewWrapper
+        val group = binding.previewGroup
         val elevation = resources.getDimension(RMaterial.dimen.m3_card_elevated_elevation)
         val animator = if (flatten) { // reverse() can't be used when is a part of AnimatorSet
             ValueAnimator.ofFloat(elevation, 0f)
@@ -470,16 +470,16 @@ class HomeFragment :
         return animator.apply {
             interpolator = AccelerateInterpolator()
             addUpdateListener {
-                preview.elevation = animatedValue as Float
+                group.elevation = animatedValue as Float
             }
         }
     }
 
     private fun makeColorDataRevealAnimation(hide: Boolean): Animator {
         val info = binding.colorDataWrapper
-        val preview = binding.previewWrapper
+        val group = binding.previewGroup
         val center = calcColorDataRevealCenter()
-        val sr = preview.width.toFloat() / 2
+        val sr = group.width.toFloat() / 2
         val er = AnimationUtils.getCircularRevealMaxRadius(info, center)
         return info.createCircularRevealAnimation(!hide, center.x, center.y, sr, er).apply {
             duration = longAnimDuration
@@ -505,7 +505,7 @@ class HomeFragment :
         val data = binding.colorDataWrapper
         val bottom = data.getBottomVisibleInParent(binding.root) ?: data.height
         val padding = resources.getDimensionPixelSize(RApp.dimen.offset_32)
-        val previewRadius = binding.preview.height / 2
+        val previewRadius = binding.previewGroup.height / 2
         val x = data.width / 2
         val yApprox = bottom - padding - previewRadius
         val y = yApprox.coerceIn(0, data.height)
@@ -513,7 +513,7 @@ class HomeFragment :
     }
 
     private fun calcPreviewTranslation(): Float {
-        val preview = binding.previewWrapper
+        val preview = binding.previewGroup
         val data = binding.colorDataWrapper
         val distance = preview.getDistanceToViewInParent(data, view)?.y ?: 0
         val addend = calcColorDataRevealCenter().y
