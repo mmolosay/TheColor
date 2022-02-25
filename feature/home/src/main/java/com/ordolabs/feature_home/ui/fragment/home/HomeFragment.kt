@@ -64,6 +64,7 @@ import com.google.android.material.R as RMaterial
 import com.ordolabs.thecolor.R as RApp
 
 // TODO: refactor to state machine
+// TODO: now BLANK state is being set in xml; configure all states manually in code
 class HomeFragment :
     BaseFragment(),
     FeatureHomeComponentKeeper,
