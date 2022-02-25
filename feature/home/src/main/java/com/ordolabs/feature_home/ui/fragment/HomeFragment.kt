@@ -125,11 +125,10 @@ class HomeFragment :
     }
 
     private fun restoreDataState() {
-        restorePreviewState()
+        val preview = homeVM.preview ?: return
+        tintPreviewBackground(preview)
         toggleDataWrapperVisibility(visible = true)
-        homeVM.preview?.let {
-            tintDataWrapperBackground(it)
-        }
+        tintDataWrapperBackground(preview)
     }
 
     // endregion
@@ -195,6 +194,7 @@ class HomeFragment :
                 State.BLANK -> {
                     animPreviewResize(collapse = false)
                     animPreviewColorChanging(colorInt)
+                    homeVM.state = State.PREVIEW
                 }
                 State.PREVIEW -> {
                     if (homeVM.preview == preview) return@a // already set
@@ -210,7 +210,6 @@ class HomeFragment :
             }
             inputPagerView?.updateCurrentColor(preview)
             homeVM.preview = preview
-            homeVM.state = State.PREVIEW
         }
 
     // endregion
@@ -269,17 +268,19 @@ class HomeFragment :
         return binding.colorDataWrapper.backgroundTintList?.defaultColor
     }
 
-    private fun tintDataWrapperBackground(color: Color) {
-        binding.colorDataWrapper.backgroundTintList =
-            ColorStateList.valueOf(color.toColorInt())
-        activity?.setNavigationBarColor(color)
-    }
+    private fun tintDataWrapperBackground(color: Color) =
+        binding.colorDataWrapper.doOnLayout {
+            binding.colorDataWrapper.backgroundTintList =
+                ColorStateList.valueOf(color.toColorInt())
+            activity?.setNavigationBarColor(color)
+        }
 
-    private fun clearDataWrapperBackground() {
-        binding.colorDataWrapper.backgroundTintList =
-            ColorStateList.valueOf(ColorAndroid.TRANSPARENT)
-        activity?.restoreNavigationBarColor()
-    }
+    private fun clearDataWrapperBackground() =
+        binding.colorDataWrapper.doOnLayout {
+            binding.colorDataWrapper.backgroundTintList =
+                ColorStateList.valueOf(ColorAndroid.TRANSPARENT)
+            activity?.restoreNavigationBarColor()
+        }
 
     private fun toggleDataWrapperVisibility(visible: Boolean) {
         binding.colorDataWrapper.isInvisible = !visible
