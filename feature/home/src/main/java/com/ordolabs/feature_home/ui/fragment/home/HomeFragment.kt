@@ -63,9 +63,11 @@ import android.graphics.Color as ColorAndroid
 import com.google.android.material.R as RMaterial
 import com.ordolabs.thecolor.R as RApp
 
+// TODO: refactor to state machine
 class HomeFragment :
     BaseFragment(),
     FeatureHomeComponentKeeper,
+    HomeView,
     ColorInputParent,
     ColorDetailsParent {
 
@@ -109,9 +111,9 @@ class HomeFragment :
 
     private fun restoreState() =
         when (homeVM.state) {
-            State.BLANK -> restoreBlankState()
-            State.PREVIEW -> restorePreviewState()
-            State.DATA -> restoreDataState()
+            HomeView.State.BLANK -> restoreBlankState()
+            HomeView.State.PREVIEW -> restorePreviewState()
+            HomeView.State.DATA -> restoreDataState()
         }
 
     private fun restoreBlankState() {
@@ -167,29 +169,29 @@ class HomeFragment :
     private fun onColorPreviewEmpty(previous: ColorPreview?) =
         view?.doOnLayout {
             when (homeVM.state) {
-                State.PREVIEW -> animPreviewResize(collapse = true)
-                State.DATA -> animColorDataCollapsingOnPreviewEmpty()
+                HomeView.State.PREVIEW -> animPreviewResize(collapse = true)
+                HomeView.State.DATA -> animColorDataCollapsingOnPreviewEmpty()
                 else -> Unit
             }
             inputPagerView?.clearCurrentColor()
             homeVM.preview = null
-            homeVM.state = State.BLANK
+            homeVM.state = HomeView.State.BLANK
         }
 
     private fun onColorPreviewSuccess(preview: ColorPreview) =
         view?.doOnLayout a@{
             val colorInt = preview.toColorInt()
             when (homeVM.state) {
-                State.BLANK -> {
+                HomeView.State.BLANK -> {
                     animPreviewResize(collapse = false)
                     animPreviewColorChanging(colorInt)
-                    homeVM.state = State.PREVIEW
+                    homeVM.state = HomeView.State.PREVIEW
                 }
-                State.PREVIEW -> {
+                HomeView.State.PREVIEW -> {
                     if (homeVM.preview == preview) return@a // already set
                     animPreviewColorChanging(colorInt)
                 }
-                State.DATA -> {
+                HomeView.State.DATA -> {
                     if (!preview.isUserInput) return@a // collapse only if user changed color manually
                     val dataBg = getDataWrapperTint()
                     if (colorInt != dataBg) {
@@ -239,7 +241,7 @@ class HomeFragment :
                 hideSoftInput()
                 animColorDataExpanding(color)
                 replaceColorDataFragment(color)
-                homeVM.state = State.DATA
+                homeVM.state = HomeView.State.DATA
             }
         }
 
@@ -543,24 +545,6 @@ class HomeFragment :
     }
 
     // endregion
-
-    // TODO: extract
-    enum class State {
-        /**
-         * Has neither color preview or color data shown.
-         */
-        BLANK,
-
-        /**
-         * Has color preview shown only.
-         */
-        PREVIEW,
-
-        /**
-         * Has both color preview and color data shown.
-         */
-        DATA
-    }
 
     companion object {
 

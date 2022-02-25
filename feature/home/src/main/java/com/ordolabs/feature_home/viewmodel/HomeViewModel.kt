@@ -2,7 +2,7 @@ package com.ordolabs.feature_home.viewmodel
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import com.ordolabs.feature_home.ui.fragment.home.HomeFragment
+import com.ordolabs.feature_home.ui.fragment.home.HomeView
 import com.ordolabs.thecolor.model.color.ColorPreview
 import com.ordolabs.thecolor.viewmodel.factory.AssistedSavedStateViewModelFactory
 import dagger.assisted.Assisted
@@ -21,8 +21,8 @@ class HomeViewModel @AssistedInject constructor(
         get() = stateHandle.get<ColorPreview>(KEY_PREVIEW)
         set(value) = stateHandle.set(KEY_PREVIEW, value)
 
-    var state: HomeFragment.State
-        get() = stateHandle.get<HomeFragment.State>(KEY_STATE) ?: HomeFragment.State.BLANK
+    var state: HomeView.State
+        get() = stateHandle.get<HomeView.State>(KEY_STATE) ?: HomeView.State.BLANK
         set(value) = stateHandle.set(KEY_STATE, value)
 
     @AssistedFactory
