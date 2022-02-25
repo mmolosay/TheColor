@@ -256,6 +256,22 @@ class HomeFragment :
         replaceFragment(fragment, binding.colorDataFragmentContainer.id)
     }
 
+    private fun scalePreviewGroup(show: Boolean) {
+        val value = 1f to 0f by show
+        val preview = binding.previewGroup
+        preview.scaleX = value
+        preview.scaleY = value
+    }
+
+    private fun tintPreviewBackground(color: Color) {
+        val tint = ColorStateList.valueOf(color.toColorInt())
+        binding.previewCurrent.backgroundTintList = tint
+    }
+
+    private fun showDataWrapper(visible: Boolean) {
+        binding.colorDataWrapper.isInvisible = !visible
+    }
+
     @ColorInt
     private fun getDataWrapperTint(): Int? {
         return binding.colorDataWrapper.backgroundTintList?.defaultColor
@@ -274,22 +290,6 @@ class HomeFragment :
                 ColorStateList.valueOf(ColorAndroid.TRANSPARENT)
             activity?.restoreNavigationBarColor()
         }
-
-    private fun showDataWrapper(visible: Boolean) {
-        binding.colorDataWrapper.isInvisible = !visible
-    }
-
-    private fun tintPreviewBackground(color: Color) {
-        val tint = ColorStateList.valueOf(color.toColorInt())
-        binding.previewCurrent.backgroundTintList = tint
-    }
-
-    private fun scalePreviewGroup(show: Boolean) {
-        val value = 1f to 0f by show
-        val preview = binding.previewGroup
-        preview.scaleX = value
-        preview.scaleY = value
-    }
 
     // endregion
 
