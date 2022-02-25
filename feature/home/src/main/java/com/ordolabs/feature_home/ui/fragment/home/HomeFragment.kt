@@ -197,6 +197,7 @@ class HomeFragment :
                     val dataBg = getDataWrapperTint()
                     if (colorInt != dataBg) {
                         animColorDataCollapsingOnPreviewSuccess()
+                        homeVM.state = HomeView.State.PREVIEW
                     }
                 }
             }
@@ -295,7 +296,7 @@ class HomeFragment :
     // region Animate
 
     private fun animColorDataExpanding(color: Color) {
-        if (homeVM.isColorDataShown) return
+        if (homeVM.state.isData()) return // already expanded
         binding.root.post { // when ^ infoFragmentContainer becomes visible
             binding.scrollview.isScrollable = true
             AnimatorSet().apply {
@@ -307,9 +308,6 @@ class HomeFragment :
                         }
                     }
                 )
-                doOnEnd {
-                    homeVM.isColorDataShown = true
-                }
             }.start()
         }
     }
@@ -331,7 +329,7 @@ class HomeFragment :
     }
 
     private fun animColorDataCollapsingOnPreviewSuccess() {
-        if (!homeVM.isColorDataShown) return
+        if (!homeVM.state.isData()) return // already collapsed
         makeColorDataCollapsingAnimation().start()
     }
 
@@ -373,9 +371,6 @@ class HomeFragment :
                 },
                 makePreviewRisingAnimation()
             )
-            doOnStart {
-                homeVM.isColorDataShown = false
-            }
         }
 
     private fun makePreviewRisingAnimation() =

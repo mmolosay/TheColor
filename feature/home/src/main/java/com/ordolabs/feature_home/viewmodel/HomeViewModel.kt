@@ -13,10 +13,6 @@ class HomeViewModel @AssistedInject constructor(
     @Assisted private val stateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    var isColorDataShown: Boolean
-        get() = stateHandle.get<Boolean>(KEY_IS_COLOR_DATA_SHOWN) ?: false
-        set(value) = stateHandle.set(KEY_IS_COLOR_DATA_SHOWN, value)
-
     var preview: ColorPreview?
         get() = stateHandle.get<ColorPreview>(KEY_PREVIEW)
         set(value) = stateHandle.set(KEY_PREVIEW, value)
@@ -30,7 +26,6 @@ class HomeViewModel @AssistedInject constructor(
 
     companion object {
 
-        private const val KEY_IS_COLOR_DATA_SHOWN = "KEY_IS_COLOR_DATA_SHOWN"
         private const val KEY_PREVIEW = "KEY_PREVIEW"
         private const val KEY_STATE = "KEY_STATE"
     }
