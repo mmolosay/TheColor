@@ -5,6 +5,7 @@ import com.ordolabs.thecolor.util.struct.Resource.Failure
 import com.ordolabs.thecolor.util.struct.Resource.Loading
 import com.ordolabs.thecolor.util.struct.Resource.Success
 
+// TODO: get rid of previous value — state should not contain such
 /**
  * Represents obtainable resource, that could be consumed by UI.
  * The `Resource` is either [Empty], [Loading], [Success] or [Failure] instance.
