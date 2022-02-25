@@ -44,7 +44,7 @@ import com.ordolabs.thecolor.util.ext.appComponent
 import com.ordolabs.thecolor.util.ext.bindPropertyAnimator
 import com.ordolabs.thecolor.util.ext.by
 import com.ordolabs.thecolor.util.ext.createCircularRevealAnimation
-import com.ordolabs.thecolor.util.ext.getBottomVisibleInScrollParent
+import com.ordolabs.thecolor.util.ext.getBottomVisibleInParent
 import com.ordolabs.thecolor.util.ext.getDistanceToViewInParent
 import com.ordolabs.thecolor.util.ext.hideSoftInput
 import com.ordolabs.thecolor.util.ext.hideSoftInputAndClearFocus
@@ -101,7 +101,6 @@ class HomeFragment :
 
     // region Restore state
 
-    // TODO: delete if nothing in it
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
         super.onViewStateRestored(savedInstanceState)
         restoreState()
@@ -126,6 +125,7 @@ class HomeFragment :
 
     private fun restoreDataState() {
         val preview = homeVM.preview ?: return
+        scalePreviewGroup(show = true)
         tintPreviewBackground(preview)
         toggleDataWrapperVisibility(visible = true)
         tintDataWrapperBackground(preview)
@@ -144,18 +144,6 @@ class HomeFragment :
             .builder()
             .appComponent(appComponent)
             .build()
-
-    // endregion
-
-    // region Fragment Result
-
-    override fun setFragmentResultListeners() {
-        // nothing is here
-    }
-
-    // region Listeners
-
-    // endregion
 
     // endregion
 
@@ -291,6 +279,13 @@ class HomeFragment :
         binding.preview.backgroundTintList = tint
     }
 
+    private fun scalePreviewGroup(show: Boolean) {
+        val value = 1f to 0f by show
+        val preview = binding.previewWrapper
+        preview.scaleX = value
+        preview.scaleY = value
+    }
+
     // endregion
 
     // region Animate
@@ -321,7 +316,8 @@ class HomeFragment :
                 makeColorDataCollapsingAnimation(),
                 makePreviewResizingAnimation(collapse = true).apply {
                     doOnStart {
-                        colorValidatorVM.colorPreview.value.ifSuccess {
+                        // if new preview appeared during animation
+                        if (homeVM.preview != null) {
                             cancel()
                         }
                     }
@@ -450,19 +446,16 @@ class HomeFragment :
 
     private fun makePreviewTranslationAnimation(down: Boolean): Animator {
         val preview = binding.previewWrapper
-        val info = binding.colorDataWrapper
-        val translation = if (down) {
-            val distance = preview.getDistanceToViewInParent(info, view)?.y ?: 0
-            val addend = makeColorDataRevealCenter().y
-            val radius = preview.height / 2
-            distance.toFloat() + addend - radius
-        } else {
-            0f
-        }
+        val translation = calcPreviewTranslation()
+        val from = 0f to translation by down
+        val to = translation to 0f by down
         return ObjectAnimator
-            .ofFloat(preview, View.TRANSLATION_Y, translation)
+            .ofFloat(preview, View.TRANSLATION_Y, from, to)
             .apply {
                 interpolator = AnticipateOvershootInterpolator()
+                doOnStart {
+                    preview.isInvisible = false
+                }
             }
     }
 
@@ -486,7 +479,7 @@ class HomeFragment :
     private fun makeColorDataRevealAnimation(hide: Boolean): Animator {
         val info = binding.colorDataWrapper
         val preview = binding.previewWrapper
-        val center = makeColorDataRevealCenter()
+        val center = calcColorDataRevealCenter()
         val sr = preview.width.toFloat() / 2
         val er = AnimationUtils.getCircularRevealMaxRadius(info, center)
         return info.createCircularRevealAnimation(!hide, center.x, center.y, sr, er).apply {
@@ -509,15 +502,24 @@ class HomeFragment :
         }
     }
 
-    private fun makeColorDataRevealCenter(): Point {
-        val info = binding.colorDataWrapper
-        val bottom = info.getBottomVisibleInScrollParent(binding.root) ?: info.height
+    private fun calcColorDataRevealCenter(): Point {
+        val data = binding.colorDataWrapper
+        val bottom = data.getBottomVisibleInParent(binding.root) ?: data.height
         val padding = resources.getDimensionPixelSize(RApp.dimen.offset_32)
         val previewRadius = binding.preview.height / 2
-        val x = info.width / 2
+        val x = data.width / 2
         val yApprox = bottom - padding - previewRadius
-        val y = yApprox.coerceIn(0, info.height)
+        val y = yApprox.coerceIn(0, data.height)
         return Point(x, y)
+    }
+
+    private fun calcPreviewTranslation(): Float {
+        val preview = binding.previewWrapper
+        val data = binding.colorDataWrapper
+        val distance = preview.getDistanceToViewInParent(data, view)?.y ?: 0
+        val addend = calcColorDataRevealCenter().y
+        val radius = preview.height / 2
+        return distance.toFloat() + addend - radius
     }
 
     // endregion
