@@ -100,7 +100,6 @@
             android:layout_marginTop="@dimen/offset_16"
             android:background="@drawable/bg_color_information"
             android:backgroundTint="@color/transparent"
-            android:visibility="invisible"
 
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

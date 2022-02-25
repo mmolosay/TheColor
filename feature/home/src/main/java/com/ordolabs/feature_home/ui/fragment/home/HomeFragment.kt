@@ -119,6 +119,7 @@ class HomeFragment :
     private fun restoreBlankState() {
         showPreviewGroup(visible = false)
         scalePreviewGroup(collapse = true)
+        showDataWrapper(visible = false)
     }
 
     private fun restorePreviewState() {
@@ -126,6 +127,7 @@ class HomeFragment :
         showPreviewGroup(visible = true)
         scalePreviewGroup(collapse = false)
         tintPreview(preview)
+        showDataWrapper(visible = false)
     }
 
     private fun restoreDataState() {
@@ -482,12 +484,12 @@ class HomeFragment :
     }
 
     private fun makeColorDataRevealAnimation(hide: Boolean): Animator {
-        val info = binding.colorDataWrapper
-        val group = binding.previewGroup
+        val data = binding.colorDataWrapper
+        val preview = binding.previewGroup
         val center = calcColorDataRevealCenter()
-        val sr = group.width.toFloat() / 2
-        val er = AnimationUtils.getCircularRevealMaxRadius(info, center)
-        return info.createCircularRevealAnimation(!hide, center.x, center.y, sr, er).apply {
+        val sr = preview.width.toFloat() / 2
+        val er = AnimationUtils.getCircularRevealMaxRadius(data, center)
+        return data.createCircularRevealAnimation(!hide, center.x, center.y, sr, er).apply {
             duration = longAnimDuration
             interpolator = AccelerateDecelerateInterpolator()
             doOnStart {
