@@ -89,7 +89,6 @@
                 android:layout_height="@dimen/color_input_preview_size"
                 android:background="@drawable/bg_shape_round"
                 android:backgroundTint="@color/transparent"
-                android:visibility="invisible"
                 tools:visibility="visible" />
 
         </com.google.android.material.card.MaterialCardView>
