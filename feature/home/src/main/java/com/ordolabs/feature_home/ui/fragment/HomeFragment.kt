@@ -522,6 +522,24 @@ class HomeFragment :
 
     // endregion
 
+    // TODO: extract
+    enum class State {
+        /**
+         * Has neither color preview or color data shown.
+         */
+        BLANK,
+
+        /**
+         * Has color preview shown only.
+         */
+        PREVIEW,
+
+        /**
+         * Has both color preview and color data shown.
+         */
+        DATA
+    }
+
     companion object {
 
         // being created by NavHostFragment, thus no newInstance() method
