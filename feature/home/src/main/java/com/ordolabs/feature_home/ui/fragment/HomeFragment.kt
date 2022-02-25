@@ -58,7 +58,6 @@ import com.ordolabs.thecolor.util.ext.shortAnimDuration
 import com.ordolabs.thecolor.util.restoreNavigationBarColor
 import com.ordolabs.thecolor.util.setNavigationBarColor
 import com.ordolabs.thecolor.util.struct.AnimatorDestination
-import com.ordolabs.thecolor.util.struct.getOrNull
 import android.graphics.Color as ColorAndroid
 import com.google.android.material.R as RMaterial
 import com.ordolabs.thecolor.R as RApp
@@ -121,13 +120,16 @@ class HomeFragment :
 
     private fun restorePreviewState() {
         val preview = homeVM.preview ?: return
-        binding.previewWrapper.isInvisible = false // make parent visible
+        animPreviewResize(collapse = false)
         tintPreviewBackground(preview)
     }
 
     private fun restoreDataState() {
         restorePreviewState()
         toggleDataWrapperVisibility(visible = true)
+        homeVM.preview?.let {
+            tintDataWrapperBackground(it)
+        }
     }
 
     // endregion
@@ -174,50 +176,42 @@ class HomeFragment :
         }
 
     @Suppress("UNUSED_PARAMETER")
-    private fun onColorPreviewEmpty(previous: ColorPreview?) {
-        homeVM.preview = null
-        inputPagerView?.clearCurrentColor()
-        binding.previewWrapper.doOnLayout {
+    private fun onColorPreviewEmpty(previous: ColorPreview?) =
+        view?.doOnLayout {
             when (homeVM.state) {
                 State.PREVIEW -> animPreviewResize(collapse = true)
                 State.DATA -> animColorDataCollapsingOnPreviewEmpty()
                 else -> Unit
             }
+            inputPagerView?.clearCurrentColor()
+            homeVM.preview = null
             homeVM.state = State.BLANK
         }
-    }
 
-    private fun onColorPreviewSuccess(preview: ColorPreview) {
-        inputPagerView?.updateCurrentColor(preview)
-        binding.previewWrapper.doOnLayout {
+    private fun onColorPreviewSuccess(preview: ColorPreview) =
+        view?.doOnLayout a@{
             val colorInt = preview.toColorInt()
-            val hasBg = isDataWrapperHasBackround()
             when (homeVM.state) {
                 State.BLANK -> {
                     animPreviewResize(collapse = false)
-                    tintPreviewBackground(preview)
+                    animPreviewColorChanging(colorInt)
                 }
                 State.PREVIEW -> {
-                    if (homeVM.preview != preview) {
-                        animPreviewColorChanging(colorInt)
-                    }
+                    if (homeVM.preview == preview) return@a // already set
+                    animPreviewColorChanging(colorInt)
                 }
                 State.DATA -> {
-                    if (preview.isUserInput && hasBg) { // collapse only if user changed color manually
-                        val colorDataBg = getDataWrapperBackgroundColor()
-                        if (colorInt != colorDataBg) {
-                            animColorDataCollapsingOnPreviewSuccess()
-                        }
-                    }
-                    if (!hasBg && homeVM.isColorDataShown) {
-                        tintDataWrapperBackground(preview)
+                    if (!preview.isUserInput) return@a // collapse only if user changed color manually
+                    val dataBg = getDataWrapperTint()
+                    if (colorInt != dataBg) {
+                        animColorDataCollapsingOnPreviewSuccess()
                     }
                 }
             }
+            inputPagerView?.updateCurrentColor(preview)
             homeVM.preview = preview
             homeVM.state = State.PREVIEW
         }
-    }
 
     // endregion
 
@@ -253,7 +247,7 @@ class HomeFragment :
     private fun setProcceedBtn() =
         binding.run {
             procceedBtn.setOnClickListener l@{
-                val color = colorValidatorVM.colorPreview.value.getOrNull() ?: return@l
+                val color = homeVM.preview ?: return@l
                 hideSoftInput()
                 animColorDataExpanding(color)
                 replaceColorDataFragment(color)
@@ -271,13 +265,8 @@ class HomeFragment :
     }
 
     @ColorInt
-    private fun getDataWrapperBackgroundColor(): Int? {
+    private fun getDataWrapperTint(): Int? {
         return binding.colorDataWrapper.backgroundTintList?.defaultColor
-    }
-
-    private fun isDataWrapperHasBackround(): Boolean {
-        val bg = getDataWrapperBackgroundColor() ?: return false
-        return (bg != android.graphics.Color.TRANSPARENT)
     }
 
     private fun tintDataWrapperBackground(color: Color) {
@@ -329,7 +318,7 @@ class HomeFragment :
         AnimatorSet().apply {
             playSequentially(
                 makeColorDataCollapsingAnimation(),
-                makePreviewTogglingAnimation(collapse = true).apply {
+                makePreviewResizingAnimation(collapse = true).apply {
                     doOnStart {
                         colorValidatorVM.colorPreview.value.ifSuccess {
                             cancel()
@@ -354,7 +343,7 @@ class HomeFragment :
         if (collapse && binding.previewWrapper.scaleX == 0f) return // already collapsed
         if (!collapse && binding.previewWrapper.scaleX == 1f) return // already expanded
         if (collapse == previewResizeDest.isEnd) return // already running towards desired dest
-        val animator = makePreviewTogglingAnimation(collapse)
+        val animator = makePreviewResizingAnimation(collapse)
         if (animator.isStarted) {
             previewResizeDest.reverse()
             animator.reverse()
@@ -406,7 +395,7 @@ class HomeFragment :
             duration = longAnimDuration
         }
 
-    private fun makePreviewTogglingAnimation(collapse: Boolean): ValueAnimator {
+    private fun makePreviewResizingAnimation(collapse: Boolean): ValueAnimator {
         val wrapper = binding.previewWrapper
         val current = wrapper.scaleX
         val end = if (collapse) 0f else 1f
