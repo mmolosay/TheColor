@@ -131,8 +131,8 @@ class HomeFragment :
         val preview = homeVM.preview ?: return
         scalePreviewGroup(show = true)
         tintPreviewBackground(preview)
-        toggleDataWrapperVisibility(visible = true)
-        tintDataWrapperBackground(preview)
+        showDataWrapper(visible = true)
+        tintDataWrapper(preview)
     }
 
     // endregion
@@ -261,21 +261,21 @@ class HomeFragment :
         return binding.colorDataWrapper.backgroundTintList?.defaultColor
     }
 
-    private fun tintDataWrapperBackground(color: Color) =
+    private fun tintDataWrapper(color: Color) =
         binding.colorDataWrapper.doOnLayout {
             binding.colorDataWrapper.backgroundTintList =
                 ColorStateList.valueOf(color.toColorInt())
             activity?.setNavigationBarColor(color)
         }
 
-    private fun clearDataWrapperBackground() =
+    private fun clearDataWrapperTint() =
         binding.colorDataWrapper.doOnLayout {
             binding.colorDataWrapper.backgroundTintList =
                 ColorStateList.valueOf(ColorAndroid.TRANSPARENT)
             activity?.restoreNavigationBarColor()
         }
 
-    private fun toggleDataWrapperVisibility(visible: Boolean) {
+    private fun showDataWrapper(visible: Boolean) {
         binding.colorDataWrapper.isInvisible = !visible
     }
 
@@ -304,7 +304,7 @@ class HomeFragment :
                     makePreviewFallingAnimation(),
                     makeColorDataRevealAnimation(hide = false).apply {
                         doOnStart {
-                            tintDataWrapperBackground(color)
+                            tintDataWrapper(color)
                         }
                     }
                 )
@@ -362,7 +362,7 @@ class HomeFragment :
                 makeScrollingToTopAnimation(),
                 makeColorDataRevealAnimation(hide = true).apply {
                     doOnEnd {
-                        clearDataWrapperBackground()
+                        clearDataWrapperTint()
                         binding.scrollview.run {
                             scrollTo(0, 0)
                             isScrollable = false
@@ -485,10 +485,10 @@ class HomeFragment :
             duration = longAnimDuration
             interpolator = AccelerateDecelerateInterpolator()
             doOnStart {
-                toggleDataWrapperVisibility(visible = true)
+                showDataWrapper(visible = true)
             }
             doOnEnd {
-                toggleDataWrapperVisibility(visible = !hide)
+                showDataWrapper(visible = !hide)
             }
         }
     }
