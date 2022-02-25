@@ -105,6 +105,29 @@ class HomeFragment :
     // TODO: delete if nothing in it
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
         super.onViewStateRestored(savedInstanceState)
+        restoreState()
+    }
+
+    private fun restoreState() =
+        when (homeVM.state) {
+            State.BLANK -> restoreBlankState()
+            State.PREVIEW -> restorePreviewState()
+            State.DATA -> restoreDataState()
+        }
+
+    private fun restoreBlankState() {
+        // blank from xml layout by default; do nothing
+    }
+
+    private fun restorePreviewState() {
+        val preview = homeVM.preview ?: return
+        binding.previewWrapper.isInvisible = false // make parent visible
+        tintPreviewBackground(preview)
+    }
+
+    private fun restoreDataState() {
+        restorePreviewState()
+        toggleDataWrapperVisibility(visible = true)
     }
 
     // endregion
@@ -155,33 +178,44 @@ class HomeFragment :
         homeVM.preview = null
         inputPagerView?.clearCurrentColor()
         binding.previewWrapper.doOnLayout {
-            if (homeVM.isColorDataShown) {
-                animColorDataCollapsingOnPreviewEmpty()
-            } else {
-                animPreviewResize(collapse = true)
+            when (homeVM.state) {
+                State.PREVIEW -> animPreviewResize(collapse = true)
+                State.DATA -> animColorDataCollapsingOnPreviewEmpty()
+                else -> Unit
             }
+            homeVM.state = State.BLANK
         }
     }
 
     private fun onColorPreviewSuccess(preview: ColorPreview) {
-        homeVM.preview = preview
         inputPagerView?.updateCurrentColor(preview)
         binding.previewWrapper.doOnLayout {
             val colorInt = preview.toColorInt()
             val hasBg = isDataWrapperHasBackround()
-            if (preview.isUserInput) { // collapse only if user changed color manually
-                if (hasBg) {
-                    val colorDataBg = getDataWrapperBackgroundColor()
-                    if (colorInt != colorDataBg) {
-                        animColorDataCollapsingOnPreviewSuccess()
+            when (homeVM.state) {
+                State.BLANK -> {
+                    animPreviewResize(collapse = false)
+                    tintPreviewBackground(preview)
+                }
+                State.PREVIEW -> {
+                    if (homeVM.preview != preview) {
+                        animPreviewColorChanging(colorInt)
+                    }
+                }
+                State.DATA -> {
+                    if (preview.isUserInput && hasBg) { // collapse only if user changed color manually
+                        val colorDataBg = getDataWrapperBackgroundColor()
+                        if (colorInt != colorDataBg) {
+                            animColorDataCollapsingOnPreviewSuccess()
+                        }
+                    }
+                    if (!hasBg && homeVM.isColorDataShown) {
+                        tintDataWrapperBackground(preview)
                     }
                 }
             }
-            if (!hasBg && homeVM.isColorDataShown) {
-                tintDataWrapperBackground(preview)
-            }
-            animPreviewColorChanging(colorInt)
-            animPreviewResize(collapse = false)
+            homeVM.preview = preview
+            homeVM.state = State.PREVIEW
         }
     }
 
@@ -214,12 +248,6 @@ class HomeFragment :
 
     override fun setViews() {
         setProcceedBtn()
-        setDataWrapper()
-    }
-
-    private fun replaceColorDataFragment(color: Color) {
-        val fragment = ColorDataPagerFragment.newInstance(color)
-        replaceFragment(fragment, binding.colorDataFragmentContainer.id)
     }
 
     private fun setProcceedBtn() =
@@ -229,18 +257,18 @@ class HomeFragment :
                 hideSoftInput()
                 animColorDataExpanding(color)
                 replaceColorDataFragment(color)
+                homeVM.state = State.DATA
             }
-        }
-
-    private fun setDataWrapper() =
-        binding.run {
-            val visible = homeVM.isColorDataShown
-            toggleDataWrapperVisibility(visible)
         }
 
     // endregion
 
     // region View utils
+
+    private fun replaceColorDataFragment(color: Color) {
+        val fragment = ColorDataPagerFragment.newInstance(color)
+        replaceFragment(fragment, binding.colorDataFragmentContainer.id)
+    }
 
     @ColorInt
     private fun getDataWrapperBackgroundColor(): Int? {
@@ -415,8 +443,9 @@ class HomeFragment :
              if parent view group is hidden */
             interpolator = FastOutSlowInInterpolator()
             doOnStart {
-                updated.backgroundTintList = ColorStateList.valueOf(color)
+                wrapper.isInvisible = false // make parent viewgroup visible
                 updated.isInvisible = false
+                updated.backgroundTintList = ColorStateList.valueOf(color)
             }
             doOnEnd {
                 preview.backgroundTintList = ColorStateList.valueOf(color)
