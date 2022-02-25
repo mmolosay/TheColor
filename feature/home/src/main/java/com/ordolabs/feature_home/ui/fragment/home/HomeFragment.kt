@@ -129,7 +129,7 @@ class HomeFragment :
 
     private fun restoreDataState() {
         val preview = homeVM.preview ?: return
-        scalePreviewGroup(show = true)
+        scalePreviewGroup(collapsed = false)
         tintPreviewBackground(preview)
         showDataWrapper(visible = true)
         tintDataWrapper(preview)
@@ -256,8 +256,8 @@ class HomeFragment :
         replaceFragment(fragment, binding.colorDataFragmentContainer.id)
     }
 
-    private fun scalePreviewGroup(show: Boolean) {
-        val value = 1f to 0f by show
+    private fun scalePreviewGroup(collapsed: Boolean) {
+        val value = 0f to 1f by collapsed
         val preview = binding.previewGroup
         preview.scaleX = value
         preview.scaleY = value
