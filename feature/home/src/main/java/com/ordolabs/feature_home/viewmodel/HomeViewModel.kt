@@ -16,9 +16,9 @@ class HomeViewModel @AssistedInject constructor(
         get() = state.get<Boolean>(KEY_IS_COLOR_DATA_SHOWN) ?: false
         set(value) = state.set(KEY_IS_COLOR_DATA_SHOWN, value)
 
-    var color: Color?
-        get() = state.get<Color>(KEY_COLOR)
-        set(value) = state.set(KEY_COLOR, value)
+    var preview: Color?
+        get() = state.get<Color>(KEY_PREVIEW)
+        set(value) = state.set(KEY_PREVIEW, value)
 
     @AssistedFactory
     interface Factory : AssistedSavedStateViewModelFactory<HomeViewModel>
@@ -26,6 +26,6 @@ class HomeViewModel @AssistedInject constructor(
     companion object {
 
         private const val KEY_IS_COLOR_DATA_SHOWN = "KEY_IS_COLOR_DATA_SHOWN"
-        private const val KEY_COLOR = "KEY_COLOR"
+        private const val KEY_PREVIEW = "KEY_PREVIEW"
     }
 }

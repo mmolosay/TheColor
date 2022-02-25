@@ -110,7 +110,7 @@ class HomeFragment :
     }
 
     private fun restorePreviewTint() {
-        homeVM.color?.let { color ->
+        homeVM.preview?.let { color ->
             tintPreviewBackground(color)
         }
     }
@@ -122,7 +122,7 @@ class HomeFragment :
 
     private fun restoreDataWrapperTint() {
         if (!homeVM.isColorDataShown) return
-        homeVM.color?.let { color ->
+        homeVM.preview?.let { color ->
             tintDataWrapperBackground(color)
         }
     }
@@ -172,7 +172,7 @@ class HomeFragment :
 
     @Suppress("UNUSED_PARAMETER")
     private fun onColorPreviewEmpty(previous: ColorPreview?) {
-        homeVM.color = null
+        homeVM.preview = null
         inputPagerView?.clearCurrentColor()
         binding.previewWrapper.doOnLayout {
             if (homeVM.isColorDataShown) {
@@ -184,7 +184,7 @@ class HomeFragment :
     }
 
     private fun onColorPreviewSuccess(preview: ColorPreview) {
-        homeVM.color = preview
+        homeVM.preview = preview
         inputPagerView?.updateCurrentColor(preview)
         binding.previewWrapper.doOnLayout {
             val colorInt = preview.toColorInt()
