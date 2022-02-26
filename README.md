@@ -1,5 +1,5 @@
 # TheColor
-An Android app about each and every known color.
+Cutting edge Android app about each and every known color.
 
 #### Features
 - color input in various color spaces
