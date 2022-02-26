@@ -1,4 +1,4 @@
-package com.ordolabs.feature_home.viewmodel.colordata.details
+package com.ordolabs.feature_home.viewmodel.color.data.details
 
 import com.ordolabs.domain.usecase.remote.GetColorDetailsUseCase
 import com.ordolabs.thecolor.mapper.toPresentation

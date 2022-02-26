@@ -14,7 +14,7 @@ import com.ordolabs.feature_home.databinding.ColorDataPagerFragmentBinding
 import com.ordolabs.feature_home.ui.adapter.pager.ColorDataPagerAdapter
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.util.FeatureHomeUtil.featureHomeComponent
-import com.ordolabs.feature_home.viewmodel.colordata.ColorDataViewModel
+import com.ordolabs.feature_home.viewmodel.color.data.ColorDataViewModel
 import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.isDark
 import com.ordolabs.thecolor.R as RApp

@@ -1,4 +1,4 @@
-package com.ordolabs.feature_home.viewmodel.colordata
+package com.ordolabs.feature_home.viewmodel.color.data
 
 import androidx.lifecycle.viewModelScope
 import com.ordolabs.feature_home.ui.adapter.pager.ColorDataPagerAdapter

@@ -7,7 +7,7 @@ import androidx.fragment.app.viewModels
 import com.ordolabs.feature_home.ui.fragment.color.data.ColorDataObtainFragment
 import com.ordolabs.feature_home.ui.fragment.color.data.base.BaseColorDataFragment
 import com.ordolabs.feature_home.util.FeatureHomeUtil.featureHomeComponent
-import com.ordolabs.feature_home.viewmodel.colordata.details.ColorDetailsObtainViewModel
+import com.ordolabs.feature_home.viewmodel.color.data.details.ColorDetailsObtainViewModel
 import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.data.ColorDetails
 import com.ordolabs.thecolor.util.struct.Resource

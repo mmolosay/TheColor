@@ -13,7 +13,7 @@ import com.ordolabs.feature_home.databinding.ColorDataPageFragmentBinding
 import com.ordolabs.feature_home.ui.adapter.pager.ColorDataPagerAdapter
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.ui.fragment.color.data.ColorThemedView
-import com.ordolabs.feature_home.viewmodel.colordata.ColorDataViewModel
+import com.ordolabs.feature_home.viewmodel.color.data.ColorDataViewModel
 import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.isDark
 import com.ordolabs.thecolor.util.ext.getNextFor

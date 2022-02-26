@@ -10,7 +10,7 @@ import com.ordolabs.feature_home.ui.fragment.color.data.scheme.editor.ColorSchem
 import com.ordolabs.feature_home.ui.fragment.color.data.scheme.editor.ColorSchemeEditorParent
 import com.ordolabs.feature_home.ui.fragment.color.data.scheme.editor.ColorSchemeEditorView
 import com.ordolabs.feature_home.util.FeatureHomeUtil.featureHomeComponent
-import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeObtainViewModel
+import com.ordolabs.feature_home.viewmodel.color.data.scheme.ColorSchemeObtainViewModel
 import com.ordolabs.thecolor.model.color.data.ColorScheme
 import com.ordolabs.thecolor.model.color.data.ColorSchemeRequest
 import com.ordolabs.thecolor.util.struct.Resource
