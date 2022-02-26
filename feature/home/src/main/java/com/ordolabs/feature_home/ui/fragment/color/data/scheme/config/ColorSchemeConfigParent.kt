@@ -7,5 +7,15 @@ import com.ordolabs.thecolor.model.color.data.ColorSchemeRequest
  * `View`, implementing this interface, would handle all actions from color scheme config `View`.
  */
 interface ColorSchemeConfigParent {
-    fun onCurrentConfigChanged(current: ColorSchemeRequest.Config)
+    /**
+     * Being called when UI of color scheme config `View` was changed,
+     * so now it represents new [ColorSchemeRequest.Config].
+     *
+     * @param applied presently applied config.
+     * @param current new config, determined by UI.
+     */
+    fun onCurrentConfigChanged(
+        applied: ColorSchemeRequest.Config,
+        current: ColorSchemeRequest.Config
+    )
 }

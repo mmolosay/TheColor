@@ -43,10 +43,6 @@ class ColorSchemeEditorFragment :
     private var schemeView: ColorDataView<ColorScheme>? = null
     private var configView: ColorSchemeConfigView? = null
 
-    // delegates
-    override val appliedConfig: ColorSchemeRequest.Config?
-        get() = configView?.appliedConfig
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -139,7 +135,11 @@ class ColorSchemeEditorFragment :
 
     // region ColorSchemeConfigView
 
-    // delegates
+    // delegations
+
+    override val appliedConfig: ColorSchemeRequest.Config?
+        get() = configView?.appliedConfig
+
     override fun applyCurrentConfig(): ColorSchemeRequest.Config? =
         configView?.applyCurrentConfig()
 
@@ -147,8 +147,10 @@ class ColorSchemeEditorFragment :
 
     // region ColorSchemeConfigParent
 
-    override fun onCurrentConfigChanged(current: ColorSchemeRequest.Config) {
-        val applied = configView?.appliedConfig ?: return
+    override fun onCurrentConfigChanged(
+        applied: ColorSchemeRequest.Config,
+        current: ColorSchemeRequest.Config
+    ) {
         val hasChanges = (current != applied)
         animDispatchChangesBtn(show = hasChanges)
     }

@@ -8,12 +8,15 @@ import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.core.text.buildSpannedString
 import androidx.core.text.color
+import androidx.fragment.app.viewModels
 import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.chip.Chip
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorSchemeConfigFragmentBinding
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
+import com.ordolabs.feature_home.util.FeatureHomeUtil.featureHomeComponent
+import com.ordolabs.feature_home.viewmodel.color.data.scheme.ColorSchemeConfigViewModel
 import com.ordolabs.thecolor.model.color.data.ColorScheme
 import com.ordolabs.thecolor.model.color.data.ColorSchemeRequest
 import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
@@ -28,13 +31,14 @@ class ColorSchemeConfigFragment :
     ColorSchemeConfigView {
 
     private val binding: ColorSchemeConfigFragmentBinding by viewBinding(CreateMethod.BIND)
+    private val configVM: ColorSchemeConfigViewModel by viewModels {
+        featureHomeComponent.savedStateViewModelFactoryFactory.create(this, defaultArgs = null)
+    }
 
     // TODO: implement custom property delegate "by ancestors()"?
     private val parent: ColorSchemeConfigParent? by lazy { ancestorOf() }
-    private var mode: ColorScheme.Mode = ColorScheme.Mode.DEFAULT
-    private var sampleCount: Int = ColorSchemeRequest.Config.SAMPLE_COUNT_DEFAULT
-
-    override var appliedConfig: ColorSchemeRequest.Config = assembleCurrentConfig()
+    private var modeOrdinal: Int? = null
+    private var sampleCount: Int? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -46,12 +50,27 @@ class ColorSchemeConfigFragment :
             .inflate(R.layout.color_scheme_config_fragment, container, false)
     }
 
+    override fun onViewStateRestored(savedInstanceState: Bundle?) {
+        super.onViewStateRestored(savedInstanceState)
+        populateCurrentConfig(configVM.currentConfig)
+        populateAppliedConfig(configVM.appliedConfig)
+    }
+
+    // region Set up
+
+    override fun setUp() {
+        val current = configVM.currentConfig
+        this.modeOrdinal = current.modeOrdinal
+        this.sampleCount = current.sampleCount
+    }
+
+    // endregion
+
     // region Set views
 
     override fun setViews() {
         setSchemeModeChipGroup()
         setSchemeSampleCountChipGroup()
-        populateTitles(appliedConfig)
     }
 
     private fun setSchemeModeChipGroup() {
@@ -62,13 +81,10 @@ class ColorSchemeConfigFragment :
             val chip = inflater.inflate(layout, group, false) as Chip
             chip.setText(mode.labelRes)
             chip.setOnCheckedChangeListener { _, isChecked ->
-                onSchemeModeChipChecked(isChecked, mode)
+                onSchemeModeChipChecked(isChecked, mode.ordinal)
             }
             group.addView(chip)
         }
-
-        val mode = this.mode
-        (group.getChildAt(mode.ordinal) as Chip).isChecked = true
     }
 
     private fun setSchemeSampleCountChipGroup() {
@@ -84,18 +100,14 @@ class ColorSchemeConfigFragment :
             }
             group.addView(chip)
         }
-
-        val sampleCount = this.sampleCount
-        val position = counts.indexOf(sampleCount).takeUnless { it == -1 } ?: return
-        (group.getChildAt(position) as Chip).isChecked = true
     }
 
     private fun onSchemeModeChipChecked(
         isChecked: Boolean,
-        mode: ColorScheme.Mode
+        modeOrdinal: Int
     ) {
         if (!isChecked) return // do nothing
-        this.mode = mode
+        this.modeOrdinal = modeOrdinal
         onCurrentConfigChanged()
     }
 
@@ -111,6 +123,15 @@ class ColorSchemeConfigFragment :
     // endregion
 
     // region Populate
+
+    private fun populateAppliedConfig(config: ColorSchemeRequest.Config) {
+        populateTitles(config)
+    }
+
+    private fun populateCurrentConfig(config: ColorSchemeRequest.Config) {
+        populateMode(config.modeOrdinal)
+        populateSampleCount(config.sampleCount)
+    }
 
     private fun populateTitles(config: ColorSchemeRequest.Config) {
         val mode = enumValues<ColorScheme.Mode>()[config.modeOrdinal]
@@ -146,29 +167,47 @@ class ColorSchemeConfigFragment :
         titleView.text = title
     }
 
+    private fun populateMode(modeOrdinal: Int) {
+        val chip = binding.modeChips.getChildAt(modeOrdinal) as Chip
+        chip.isChecked = true
+    }
+
+    private fun populateSampleCount(sampleCount: Int) {
+        val counts = ColorSchemeRequest.Config.sampleCounts
+        val position = counts.indexOf(sampleCount).takeUnless { it == -1 } ?: return
+        val chip = binding.sampleCountChips.getChildAt(position) as Chip
+        chip.isChecked = true
+    }
+
     // endregion
 
     // region ColorSchemeConfigView
 
+    override val appliedConfig: ColorSchemeRequest.Config
+        get() = configVM.appliedConfig
+
     override fun applyCurrentConfig(): ColorSchemeRequest.Config =
-        assembleCurrentConfig().also { current ->
-            this.appliedConfig = current
-            populateTitles(current)
-        }
+        assembleCurrentConfig()?.also { current ->
+            configVM.appliedConfig = current
+            populateAppliedConfig(current)
+        } ?: configVM.appliedConfig
 
     // endregion
 
     // delegate to parent
     private fun onCurrentConfigChanged() {
-        val current = assembleCurrentConfig()
-        parent?.onCurrentConfigChanged(current)
+        val applied = configVM.appliedConfig
+        val current = assembleCurrentConfig()?.also { config ->
+            configVM.currentConfig = config
+        } ?: configVM.currentConfig
+        parent?.onCurrentConfigChanged(applied, current)
     }
 
-    private fun assembleCurrentConfig() =
-        ColorSchemeRequest.Config(
-            modeOrdinal = mode.ordinal,
-            sampleCount = sampleCount
-        )
+    private fun assembleCurrentConfig(): ColorSchemeRequest.Config? {
+        val modeOrdinal = modeOrdinal ?: return null
+        val sampleCount = sampleCount ?: return null
+        return ColorSchemeRequest.Config(modeOrdinal, sampleCount)
+    }
 
     companion object {
         fun newInstance() =
