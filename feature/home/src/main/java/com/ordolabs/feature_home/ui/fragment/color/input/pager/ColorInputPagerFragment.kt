@@ -14,7 +14,7 @@ import com.ordolabs.feature_home.ui.adapter.pager.ColorInputPagerAdapter
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.ui.fragment.color.input.page.ColorInputParent
 import com.ordolabs.feature_home.util.FeatureHomeUtil.featureHomeComponent
-import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
+import com.ordolabs.feature_home.viewmodel.color.input.ColorInputViewModel
 import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.ColorPrototype
 import com.ordolabs.thecolor.ui.util.itemdecoration.MarginDecoration

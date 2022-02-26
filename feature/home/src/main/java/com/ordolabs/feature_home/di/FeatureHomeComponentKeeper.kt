@@ -8,6 +8,5 @@ import com.ordolabs.thecolor.di.ScopedComponentKeeper
  * @see ScopedComponentKeeper
  */
 interface FeatureHomeComponentKeeper : ScopedComponentKeeper {
-
     val featureHomeComponent: FeatureHomeComponent
 }

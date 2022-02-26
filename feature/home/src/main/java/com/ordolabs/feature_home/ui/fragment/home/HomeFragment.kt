@@ -1,4 +1,4 @@
-package com.ordolabs.feature_home.ui.fragment
+package com.ordolabs.feature_home.ui.fragment.home
 
 import android.animation.Animator
 import android.animation.AnimatorSet
@@ -28,13 +28,14 @@ import com.ordolabs.feature_home.databinding.HomeFragmentBinding
 import com.ordolabs.feature_home.di.DaggerFeatureHomeComponent
 import com.ordolabs.feature_home.di.FeatureHomeComponent
 import com.ordolabs.feature_home.di.FeatureHomeComponentKeeper
+import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.ui.fragment.color.data.ColorDataPagerFragment
 import com.ordolabs.feature_home.ui.fragment.color.data.details.ColorDetailsParent
 import com.ordolabs.feature_home.ui.fragment.color.input.page.ColorInputParent
 import com.ordolabs.feature_home.ui.fragment.color.input.pager.ColorInputPagerFragment
 import com.ordolabs.feature_home.ui.fragment.color.input.pager.ColorInputPagerView
 import com.ordolabs.feature_home.viewmodel.HomeViewModel
-import com.ordolabs.feature_home.viewmodel.colorinput.ColorValidatorViewModel
+import com.ordolabs.feature_home.viewmodel.color.input.ColorValidatorViewModel
 import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.ColorPreview
 import com.ordolabs.thecolor.model.color.ColorPrototype
@@ -44,7 +45,7 @@ import com.ordolabs.thecolor.util.ext.appComponent
 import com.ordolabs.thecolor.util.ext.bindPropertyAnimator
 import com.ordolabs.thecolor.util.ext.by
 import com.ordolabs.thecolor.util.ext.createCircularRevealAnimation
-import com.ordolabs.thecolor.util.ext.getBottomVisibleInScrollParent
+import com.ordolabs.thecolor.util.ext.getBottomVisibleInParent
 import com.ordolabs.thecolor.util.ext.getDistanceToViewInParent
 import com.ordolabs.thecolor.util.ext.hideSoftInput
 import com.ordolabs.thecolor.util.ext.hideSoftInputAndClearFocus
@@ -53,12 +54,11 @@ import com.ordolabs.thecolor.util.ext.mediumAnimDuration
 import com.ordolabs.thecolor.util.ext.propertyAnimator
 import com.ordolabs.thecolor.util.ext.propertyAnimatorOrNull
 import com.ordolabs.thecolor.util.ext.replaceFragment
-import com.ordolabs.thecolor.util.ext.setFragment
+import com.ordolabs.thecolor.util.ext.setFragmentOrGet
 import com.ordolabs.thecolor.util.ext.shortAnimDuration
 import com.ordolabs.thecolor.util.restoreNavigationBarColor
 import com.ordolabs.thecolor.util.setNavigationBarColor
 import com.ordolabs.thecolor.util.struct.AnimatorDestination
-import com.ordolabs.thecolor.util.struct.getOrNull
 import android.graphics.Color as ColorAndroid
 import com.google.android.material.R as RMaterial
 import com.ordolabs.thecolor.R as RApp
@@ -66,10 +66,9 @@ import com.ordolabs.thecolor.R as RApp
 class HomeFragment :
     BaseFragment(),
     FeatureHomeComponentKeeper,
+    HomeView,
     ColorInputParent,
     ColorDetailsParent {
-
-    override val featureHomeComponent: FeatureHomeComponent by lazy(::makeFeatureHomeComponent)
 
     private val binding: HomeFragmentBinding by viewBinding()
     private val homeVM: HomeViewModel by viewModels {
@@ -90,6 +89,12 @@ class HomeFragment :
         return inflater.inflate(R.layout.home_fragment, container, false)
     }
 
+    override fun onViewStateRestored(savedInstanceState: Bundle?) {
+        super.onViewStateRestored(savedInstanceState)
+        this.state = createStateByType(homeVM.stateType)
+        state.restoreState()
+    }
+
     override fun onStop() {
         super.onStop()
         hideSoftInputAndClearFocus()
@@ -105,24 +110,6 @@ class HomeFragment :
     override fun setUp() {
         featureHomeComponent // init
     }
-
-    private fun makeFeatureHomeComponent(): FeatureHomeComponent =
-        DaggerFeatureHomeComponent
-            .builder()
-            .appComponent(appComponent)
-            .build()
-
-    // endregion
-
-    // region Fragment Result
-
-    override fun setFragmentResultListeners() {
-        // nothing is here
-    }
-
-    // region Listeners
-
-    // endregion
 
     // endregion
 
@@ -142,33 +129,19 @@ class HomeFragment :
         }
 
     @Suppress("UNUSED_PARAMETER")
-    private fun onColorPreviewEmpty(previous: ColorPreview?) {
-        inputPagerView?.clearCurrentColor()
-        binding.previewWrapper.doOnLayout {
-            if (homeVM.isColorDataShown) {
-                animInfoSheetCollapsingOnPreviewEmpty()
-            } else {
-                animPreviewResize(collapse = true)
-            }
+    private fun onColorPreviewEmpty(previous: ColorPreview?) =
+        view?.doOnLayout {
+            state.showBlank()
+            inputPagerView?.clearCurrentColor()
+            homeVM.preview = null
         }
-    }
 
-    private fun onColorPreviewSuccess(preview: ColorPreview) {
-        inputPagerView?.updateCurrentColor(preview)
-        binding.previewWrapper.doOnLayout {
-            val colorInt = preview.toColorInt()
-            if (preview.isUserInput) { // collapse only if user changed color manually
-                val colorDataBg = getDataWrapperBackgroundColor()
-                if (colorInt != colorDataBg) {
-                    animColorDataCollapsingOnPreviewSuccess()
-                }
-            } else {
-                tintDataWrapperBackground(preview)
-            }
-            animPreviewColorChanging(colorInt)
-            animPreviewResize(collapse = false)
+    private fun onColorPreviewSuccess(preview: ColorPreview) =
+        view?.doOnLayout a@{
+            state.showPreview(preview)
+            inputPagerView?.updateCurrentColor(preview)
+            homeVM.preview = preview
         }
-    }
 
     // endregion
 
@@ -180,14 +153,17 @@ class HomeFragment :
     }
 
     private fun setColorInputFragment() {
-        val fragment = ColorInputPagerFragment.newInstance()
-        this.inputPagerView = fragment
-        setFragment(fragment, binding.colorInputFragmentContainer.id)
+        val container = binding.colorInputFragmentContainer
+        this.inputPagerView = setFragmentOrGet(container.id) {
+            ColorInputPagerFragment.newInstance()
+        }
     }
 
     private fun setColorDataFragment() {
-        val fragment = ColorDataPagerFragment.newInstance(color = null)
-        setFragment(fragment, binding.colorDataFragmentContainer.id)
+        val container = binding.colorDataFragmentContainer
+        setFragmentOrGet(container.id) {
+            ColorDataPagerFragment.newInstance(color = null)
+        }
     }
 
     // endregion
@@ -196,54 +172,70 @@ class HomeFragment :
 
     override fun setViews() {
         setProcceedBtn()
-        toggleDataWrapperVisibility(visible = false)
     }
+
+    private fun setProcceedBtn() =
+        binding.run {
+            procceedBtn.setOnClickListener l@{
+                val color = homeVM.preview ?: return@l
+                state.showData(color)
+            }
+        }
+
+    // endregion
+
+    // region View utils
 
     private fun replaceColorDataFragment(color: Color) {
         val fragment = ColorDataPagerFragment.newInstance(color)
         replaceFragment(fragment, binding.colorDataFragmentContainer.id)
     }
 
-    private fun setProcceedBtn() = binding.run {
-        procceedBtn.setOnClickListener l@{
-            val color = colorValidatorVM.colorPreview.value.getOrNull() ?: return@l
-            hideSoftInput()
-            animInfoSheetExpanding(color)
-            replaceColorDataFragment(color)
-        }
+    private fun showPreviewGroup(visible: Boolean) {
+        binding.previewGroup.isInvisible = !visible
     }
 
-    // endregion
+    private fun scalePreviewGroup(collapse: Boolean) {
+        val value = 0f to 1f by collapse
+        val preview = binding.previewGroup
+        preview.scaleX = value
+        preview.scaleY = value
+    }
 
-    // region View utils
+    private fun tintPreview(color: Color) {
+        val tint = ColorStateList.valueOf(color.toColorInt())
+        binding.previewCurrent.backgroundTintList = tint
+    }
+
+    private fun showDataWrapper(visible: Boolean) {
+        binding.colorDataWrapper.isInvisible = !visible
+    }
 
     @ColorInt
-    private fun getDataWrapperBackgroundColor(): Int? {
+    private fun getDataWrapperTint(): Int? {
         return binding.colorDataWrapper.backgroundTintList?.defaultColor
     }
 
-    private fun tintDataWrapperBackground(color: Color) {
-        binding.colorDataWrapper.backgroundTintList =
-            ColorStateList.valueOf(color.toColorInt())
-        activity?.setNavigationBarColor(color)
-    }
+    private fun tintDataWrapper(color: Color) =
+        binding.colorDataWrapper.doOnLayout {
+            binding.colorDataWrapper.backgroundTintList =
+                ColorStateList.valueOf(color.toColorInt())
+            activity?.setNavigationBarColor(color)
+        }
 
-    private fun clearDataWrapperBackground() {
-        binding.colorDataWrapper.backgroundTintList =
-            ColorStateList.valueOf(ColorAndroid.TRANSPARENT)
-        activity?.restoreNavigationBarColor()
-    }
-
-    private fun toggleDataWrapperVisibility(visible: Boolean) {
-        binding.colorDataWrapper.isInvisible = !visible
-    }
+    private fun clearDataWrapperTint() =
+        binding.colorDataWrapper.doOnLayout {
+            binding.colorDataWrapper.backgroundTintList =
+                ColorStateList.valueOf(ColorAndroid.TRANSPARENT)
+            activity?.restoreNavigationBarColor()
+        }
 
     // endregion
 
     // region Animate
 
-    private fun animInfoSheetExpanding(color: Color) {
-        if (homeVM.isColorDataShown) return
+    private fun animColorDataExpanding(color: Color) {
+        if (homeVM.stateType == HomeView.State.Type.DATA) return // already expanded
         binding.root.post { // when ^ infoFragmentContainer becomes visible
             binding.scrollview.isScrollable = true
             AnimatorSet().apply {
@@ -251,24 +243,22 @@ class HomeFragment :
                     makePreviewFallingAnimation(),
                     makeColorDataRevealAnimation(hide = false).apply {
                         doOnStart {
-                            tintDataWrapperBackground(color)
+                            tintDataWrapper(color)
                         }
                     }
                 )
-                doOnEnd {
-                    homeVM.isColorDataShown = true
-                }
             }.start()
         }
     }
 
-    private fun animInfoSheetCollapsingOnPreviewEmpty() {
+    private fun animColorDataCollapsingOnPreviewEmpty() {
         AnimatorSet().apply {
             playSequentially(
                 makeColorDataCollapsingAnimation(),
-                makePreviewTogglingAnimation(collapse = true).apply {
+                makePreviewResizingAnimation(collapse = true).apply {
                     doOnStart {
-                        colorValidatorVM.colorPreview.value.ifSuccess {
+                        // if new preview appeared during animation
+                        if (homeVM.preview != null) {
                             cancel()
                         }
                     }
@@ -278,20 +268,20 @@ class HomeFragment :
     }
 
     private fun animColorDataCollapsingOnPreviewSuccess() {
-        if (!homeVM.isColorDataShown) return
+        if (homeVM.stateType != HomeView.State.Type.DATA) return // already collapsed
         makeColorDataCollapsingAnimation().start()
     }
 
     private fun animPreviewColorChanging(@ColorInt color: Int) =
-        binding.previewWrapper.doOnLayout {
+        binding.previewGroup.doOnLayout {
             makePreviewColorChangingAnimation(color).start()
         }
 
     private fun animPreviewResize(collapse: Boolean) {
-        if (collapse && binding.previewWrapper.scaleX == 0f) return // already collapsed
-        if (!collapse && binding.previewWrapper.scaleX == 1f) return // already expanded
+        if (collapse && binding.previewGroup.scaleX == 0f) return // already collapsed
+        if (!collapse && binding.previewGroup.scaleX == 1f) return // already expanded
         if (collapse == previewResizeDest.isEnd) return // already running towards desired dest
-        val animator = makePreviewTogglingAnimation(collapse)
+        val animator = makePreviewResizingAnimation(collapse)
         if (animator.isStarted) {
             previewResizeDest.reverse()
             animator.reverse()
@@ -311,7 +301,7 @@ class HomeFragment :
                 makeScrollingToTopAnimation(),
                 makeColorDataRevealAnimation(hide = true).apply {
                     doOnEnd {
-                        clearDataWrapperBackground()
+                        clearDataWrapperTint()
                         binding.scrollview.run {
                             scrollTo(0, 0)
                             isScrollable = false
@@ -320,9 +310,6 @@ class HomeFragment :
                 },
                 makePreviewRisingAnimation()
             )
-            doOnStart {
-                homeVM.isColorDataShown = false
-            }
         }
 
     private fun makePreviewRisingAnimation() =
@@ -343,48 +330,49 @@ class HomeFragment :
             duration = longAnimDuration
         }
 
-    private fun makePreviewTogglingAnimation(collapse: Boolean): ValueAnimator {
-        val wrapper = binding.previewWrapper
-        val current = wrapper.scaleX
-        val end = if (collapse) 0f else 1f
-        val animator = ValueAnimator.ofFloat(current, end).apply {
+    private fun makePreviewResizingAnimation(collapse: Boolean): ValueAnimator {
+        val group = binding.previewGroup
+        val from = group.scaleX
+        val to = if (collapse) 0f else 1f
+        val animator = ValueAnimator.ofFloat(from, to).apply {
             interpolator = FastOutSlowInInterpolator()
             duration = 300L
             addUpdateListener {
-                wrapper.scaleX = animatedValue as Float
-                wrapper.scaleY = animatedValue as Float
+                group.scaleX = animatedValue as Float
+                group.scaleY = animatedValue as Float
             }
             doOnStart {
-                wrapper.isInvisible = false
+                showPreviewGroup(visible = true)
             }
             doOnEnd {
                 // expanded state could be achieved by reversing collapsing animation
-                wrapper.isInvisible = (wrapper.scaleX == 0f)
+                showPreviewGroup(visible = (group.scaleX != 0f))
                 previewResizeDest.clear()
             }
         }
-        return wrapper.propertyAnimator(View.SCALE_X, animator)
+        return group.propertyAnimator(View.SCALE_X, animator)
     }
 
     private fun makePreviewColorChangingAnimation(@ColorInt color: Int): Animator {
-        val preview = binding.preview
+        val group = binding.previewGroup
+        val current = binding.previewCurrent
         val updated = binding.previewUpdated
-        val wrapper = binding.previewWrapper
 
         val property = AnimationUtils.CustomViewProperty.CIRCULAR_REVEAL
         val existed = updated.propertyAnimatorOrNull<Animator>(property)
         existed?.cancel() // will trigger onEnd as well
 
         val animator = updated.createCircularRevealAnimation().apply {
-            duration = 0L to shortAnimDuration by !wrapper.isVisible /* finish instantly,
+            duration = 0L to shortAnimDuration by !group.isVisible /* finish instantly,
              if parent view group is hidden */
             interpolator = FastOutSlowInInterpolator()
             doOnStart {
-                updated.backgroundTintList = ColorStateList.valueOf(color)
+                showPreviewGroup(visible = true) // make parent viewgroup visible
                 updated.isInvisible = false
+                updated.backgroundTintList = ColorStateList.valueOf(color)
             }
             doOnEnd {
-                preview.backgroundTintList = ColorStateList.valueOf(color)
+                current.backgroundTintList = ColorStateList.valueOf(color)
                 updated.isInvisible = (existed != null) /* otherwise will hide view and animation
                  will be played on not visible view */
             }
@@ -395,26 +383,23 @@ class HomeFragment :
     }
 
     private fun makePreviewTranslationAnimation(down: Boolean): Animator {
-        val preview = binding.previewWrapper
-        val info = binding.colorDataWrapper
-        val translation = if (down) {
-            val distance = preview.getDistanceToViewInParent(info, view)?.y ?: 0
-            val addend = makeColorDataRevealCenter().y
-            val radius = preview.height / 2
-            distance.toFloat() + addend - radius
-        } else {
-            0f
-        }
+        val group = binding.previewGroup
+        val translation = calcPreviewTranslation()
+        val from = 0f to translation by down
+        val to = translation to 0f by down
         return ObjectAnimator
-            .ofFloat(preview, View.TRANSLATION_Y, translation)
+            .ofFloat(group, View.TRANSLATION_Y, from, to)
             .apply {
                 interpolator = AnticipateOvershootInterpolator()
+                doOnStart {
+                    group.isInvisible = false
+                }
             }
     }
 
     @SuppressLint("PrivateResource")
     private fun makePreviewElevationAnimation(flatten: Boolean): Animator {
-        val preview = binding.previewWrapper
+        val group = binding.previewGroup
         val elevation = resources.getDimension(RMaterial.dimen.m3_card_elevated_elevation)
         val animator = if (flatten) { // reverse() can't be used when is a part of AnimatorSet
             ValueAnimator.ofFloat(elevation, 0f)
@@ -424,25 +409,25 @@ class HomeFragment :
         return animator.apply {
             interpolator = AccelerateInterpolator()
             addUpdateListener {
-                preview.elevation = animatedValue as Float
+                group.elevation = animatedValue as Float
             }
         }
     }
 
     private fun makeColorDataRevealAnimation(hide: Boolean): Animator {
-        val info = binding.colorDataWrapper
-        val preview = binding.previewWrapper
-        val center = makeColorDataRevealCenter()
+        val data = binding.colorDataWrapper
+        val preview = binding.previewGroup
+        val center = calcColorDataRevealCenter()
         val sr = preview.width.toFloat() / 2
-        val er = AnimationUtils.getCircularRevealMaxRadius(info, center)
-        return info.createCircularRevealAnimation(!hide, center.x, center.y, sr, er).apply {
+        val er = AnimationUtils.getCircularRevealMaxRadius(data, center)
+        return data.createCircularRevealAnimation(!hide, center.x, center.y, sr, er).apply {
             duration = longAnimDuration
             interpolator = AccelerateDecelerateInterpolator()
             doOnStart {
-                toggleDataWrapperVisibility(visible = true)
+                showDataWrapper(visible = true)
             }
             doOnEnd {
-                toggleDataWrapperVisibility(visible = !hide)
+                showDataWrapper(visible = !hide)
             }
         }
     }
@@ -455,15 +440,47 @@ class HomeFragment :
         }
     }
 
-    private fun makeColorDataRevealCenter(): Point {
-        val info = binding.colorDataWrapper
-        val bottom = info.getBottomVisibleInScrollParent(binding.root) ?: info.height
+    private fun calcColorDataRevealCenter(): Point {
+        val data = binding.colorDataWrapper
+        val bottom = data.getBottomVisibleInParent(binding.root) ?: data.height
         val padding = resources.getDimensionPixelSize(RApp.dimen.offset_32)
-        val previewRadius = binding.preview.height / 2
-        val x = info.width / 2
+        val previewRadius = binding.previewGroup.height / 2
+        val x = data.width / 2
         val yApprox = bottom - padding - previewRadius
-        val y = yApprox.coerceIn(0, info.height)
+        val y = yApprox.coerceIn(0, data.height)
         return Point(x, y)
+    }
+
+    private fun calcPreviewTranslation(): Float {
+        val preview = binding.previewGroup
+        val data = binding.colorDataWrapper
+        val distance = preview.getDistanceToViewInParent(data, view)?.y ?: 0
+        val addend = calcColorDataRevealCenter().y
+        val radius = preview.height / 2
+        return distance.toFloat() + addend - radius
+    }
+
+    // endregion
+
+    // region FeatureHomeComponentKeeper
+
+    override val featureHomeComponent: FeatureHomeComponent by lazy(::makeFeatureHomeComponent)
+
+    private fun makeFeatureHomeComponent(): FeatureHomeComponent =
+        DaggerFeatureHomeComponent
+            .builder()
+            .appComponent(appComponent)
+            .build()
+
+    // endregion
+
+    // region HomeView
+
+    override var state: HomeView.State = BlankState()
+
+    override fun changeState(type: HomeView.State.Type) {
+        this.state = createStateByType(type)
+        homeVM.stateType = type
     }
 
     // endregion
@@ -483,6 +500,100 @@ class HomeFragment :
         val preview = ColorPreview(exact, isUserInput = false)
         colorValidatorVM.updateColorPreview(preview)
         replaceColorDataFragment(exact)
+    }
+
+    // endregion
+
+    // region States
+
+    private fun createStateByType(type: HomeView.State.Type): HomeView.State =
+        when (type) {
+            HomeView.State.Type.BLANK -> BlankState()
+            HomeView.State.Type.PREVIEW -> PreviewState()
+            HomeView.State.Type.DATA -> DataState()
+        }
+
+    private inner class BlankState : HomeView.State(this) {
+
+        override fun restoreState() {
+            showPreviewGroup(visible = false)
+            scalePreviewGroup(collapse = true)
+            showDataWrapper(visible = false)
+        }
+
+        override fun showBlank() {
+            // already in blank state; do nothing
+        }
+
+        override fun showPreview(preview: ColorPreview) {
+            val color = preview.toColorInt()
+            animPreviewResize(collapse = false)
+            animPreviewColorChanging(color)
+            view.changeState(Type.PREVIEW)
+        }
+
+        override fun showData(color: Color) {
+            // illegal; do nothing
+        }
+    }
+
+    private inner class PreviewState : HomeView.State(this) {
+
+        override fun restoreState() {
+            val preview = homeVM.preview ?: return
+            showPreviewGroup(visible = true)
+            scalePreviewGroup(collapse = false)
+            tintPreview(preview)
+            showDataWrapper(visible = false)
+        }
+
+        override fun showBlank() {
+            animPreviewResize(collapse = true)
+            view.changeState(Type.BLANK)
+        }
+
+        override fun showPreview(preview: ColorPreview) {
+            if (homeVM.preview == preview) return // already set
+            val color = preview.toColorInt()
+            animPreviewColorChanging(color)
+        }
+
+        override fun showData(color: Color) {
+            hideSoftInput()
+            animColorDataExpanding(color)
+            replaceColorDataFragment(color)
+            view.changeState(Type.DATA)
+        }
+    }
+
+    private inner class DataState : HomeView.State(this) {
+
+        override fun restoreState() {
+            val preview = homeVM.preview ?: return
+            showPreviewGroup(visible = false)
+            scalePreviewGroup(collapse = false)
+            tintPreview(preview)
+            showDataWrapper(visible = true)
+            tintDataWrapper(preview)
+        }
+
+        override fun showBlank() {
+            animColorDataCollapsingOnPreviewEmpty()
+            view.changeState(Type.BLANK)
+        }
+
+        override fun showPreview(preview: ColorPreview) {
+            if (!preview.isUserInput) return // collapse only if user changed color manually
+            val color = preview.toColorInt()
+            val dataBg = getDataWrapperTint()
+            if (dataBg == color) return // TODO: is ever a case?; debug
+            animColorDataCollapsingOnPreviewSuccess()
+            view.changeState(Type.PREVIEW)
+        }
+
+        override fun showData(color: Color) {
+            // already showing data; do nothing
+        }
     }
 
     // endregion

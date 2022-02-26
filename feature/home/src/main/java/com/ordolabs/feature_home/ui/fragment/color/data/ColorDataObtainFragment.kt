@@ -19,7 +19,7 @@ import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
 import com.ordolabs.thecolor.util.ext.by
 import com.ordolabs.thecolor.util.ext.mediumAnimDuration
-import com.ordolabs.thecolor.util.ext.setFragment
+import com.ordolabs.thecolor.util.ext.setFragmentOrGet
 import com.ordolabs.thecolor.util.ext.showToast
 import com.ordolabs.thecolor.util.struct.Resource
 import kotlinx.coroutines.flow.Flow
@@ -131,14 +131,14 @@ abstract class ColorDataObtainFragment<D> :
     }
 
     private fun setColorDataFragment() {
-        val fragment = makeColorDataFragment()
-        setFragment(fragment)
-        this.dataView = fragment
+        this.dataView = setFragmentOrGet { makeColorDataFragment() }
     }
 
     private fun setContentShimmerFragment() {
-        val fragment = makeContentShimmerFragment()
-        setFragment(fragment, binding.contentShimmerFragmentContainer.id)
+        val container = binding.contentShimmerFragmentContainer
+        setFragmentOrGet(container.id) {
+            makeContentShimmerFragment()
+        }
     }
 
     // endregion

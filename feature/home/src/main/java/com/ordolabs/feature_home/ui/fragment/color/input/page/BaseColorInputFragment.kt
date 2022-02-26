@@ -3,7 +3,7 @@ package com.ordolabs.feature_home.ui.fragment.color.input.page
 import androidx.annotation.CallSuper
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.util.FeatureHomeUtil.featureHomeComponent
-import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
+import com.ordolabs.feature_home.viewmodel.color.input.ColorInputViewModel
 import com.ordolabs.thecolor.model.color.ColorPrototype
 import com.ordolabs.thecolor.util.ext.parentViewModels
 import com.ordolabs.thecolor.util.ext.requireParentOf

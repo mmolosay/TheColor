@@ -3,11 +3,12 @@ package com.ordolabs.feature_home.di.module
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.ordolabs.feature_home.viewmodel.HomeViewModel
-import com.ordolabs.feature_home.viewmodel.colordata.ColorDataViewModel
-import com.ordolabs.feature_home.viewmodel.colordata.details.ColorDetailsObtainViewModel
-import com.ordolabs.feature_home.viewmodel.colordata.scheme.ColorSchemeObtainViewModel
-import com.ordolabs.feature_home.viewmodel.colorinput.ColorInputViewModel
-import com.ordolabs.feature_home.viewmodel.colorinput.ColorValidatorViewModel
+import com.ordolabs.feature_home.viewmodel.color.data.ColorDataViewModel
+import com.ordolabs.feature_home.viewmodel.color.data.details.ColorDetailsObtainViewModel
+import com.ordolabs.feature_home.viewmodel.color.data.scheme.ColorSchemeConfigViewModel
+import com.ordolabs.feature_home.viewmodel.color.data.scheme.ColorSchemeObtainViewModel
+import com.ordolabs.feature_home.viewmodel.color.input.ColorInputViewModel
+import com.ordolabs.feature_home.viewmodel.color.input.ColorValidatorViewModel
 import com.ordolabs.thecolor.di.mapkey.ViewModelKey
 import com.ordolabs.thecolor.viewmodel.factory.AssistedSavedStateViewModelFactory
 import com.ordolabs.thecolor.viewmodel.factory.ViewModelFactory
@@ -56,6 +57,9 @@ interface FeatureHomeViewModelModule {
 
     @[Binds IntoMap ViewModelKey(ColorSchemeObtainViewModel::class)]
     fun bindColorSchemeObtainViewModel(vm: ColorSchemeObtainViewModel): ViewModel
+
+    @[Binds IntoMap ViewModelKey(ColorSchemeConfigViewModel::class)]
+    fun bindColorSchemeConfigViewModel(f: ColorSchemeConfigViewModel.Factory): AssistedSavedStateViewModelFactory<out ViewModel>
 
     // endregion
 }

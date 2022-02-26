@@ -19,9 +19,22 @@ import androidx.core.view.isVisible
 import androidx.dynamicanimation.animation.DynamicAnimation
 import androidx.dynamicanimation.animation.SpringAnimation
 import androidx.dynamicanimation.animation.SpringForce
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentContainerView
 import com.google.android.material.textfield.TextInputLayout
 import com.ordolabs.thecolor.util.AnimationUtils
 import com.ordolabs.thecolor.util.AnimationUtils.CustomViewProperty
+
+// region FragmentContainerView
+
+inline fun <reified F : Fragment> FragmentContainerView.fragmentOf(): F? =
+    try {
+        this.getFragment<F>()
+    } catch (cce: ClassCastException) {
+        null
+    }
+
+// endregion
 
 // region TextView
 

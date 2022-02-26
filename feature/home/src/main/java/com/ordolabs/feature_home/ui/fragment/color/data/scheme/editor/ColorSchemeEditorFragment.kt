@@ -23,7 +23,7 @@ import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
 import com.ordolabs.thecolor.util.ext.ancestorOf
 import com.ordolabs.thecolor.util.ext.by
 import com.ordolabs.thecolor.util.ext.mediumAnimDuration
-import com.ordolabs.thecolor.util.ext.setFragment
+import com.ordolabs.thecolor.util.ext.setFragmentOrGet
 import com.ordolabs.thecolor.R as RApp
 
 /**
@@ -42,10 +42,6 @@ class ColorSchemeEditorFragment :
     private val parent: ColorSchemeEditorParent? by lazy { ancestorOf() }
     private var schemeView: ColorDataView<ColorScheme>? = null
     private var configView: ColorSchemeConfigView? = null
-
-    // delegates
-    override val appliedConfig: ColorSchemeRequest.Config?
-        get() = configView?.appliedConfig
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -72,18 +68,17 @@ class ColorSchemeEditorFragment :
     }
 
     private fun setColorShemeFragment() {
-        val fragment = ColorSchemeFragment.newInstance()
-        this.schemeView = fragment
-        setFragment(fragment, binding.schemeFragmentContainer.id)
+        val container = binding.schemeFragmentContainer
+        this.schemeView = setFragmentOrGet(container.id) {
+            ColorSchemeFragment.newInstance()
+        }
     }
 
     private fun setColorSchemeConfigFragment() {
-        val fragment = ColorSchemeConfigFragment.newInstance()
-        this.configView = fragment/*.also { view ->
-            val applied = view.appliedConfig
-            parent?.onSchemeConfigDisaptched(app)
-        }*/
-        setFragment(fragment, binding.configFragmentContainer.id)
+        val container = binding.configFragmentContainer
+        this.configView = setFragmentOrGet(container.id) {
+            ColorSchemeConfigFragment.newInstance()
+        }
     }
 
     // endregion
@@ -140,7 +135,11 @@ class ColorSchemeEditorFragment :
 
     // region ColorSchemeConfigView
 
-    // delegates
+    // delegations
+
+    override val appliedConfig: ColorSchemeRequest.Config?
+        get() = configView?.appliedConfig
+
     override fun applyCurrentConfig(): ColorSchemeRequest.Config? =
         configView?.applyCurrentConfig()
 
@@ -148,8 +147,10 @@ class ColorSchemeEditorFragment :
 
     // region ColorSchemeConfigParent
 
-    override fun onCurrentConfigChanged(current: ColorSchemeRequest.Config) {
-        val applied = configView?.appliedConfig ?: return
+    override fun onCurrentConfigChanged(
+        applied: ColorSchemeRequest.Config,
+        current: ColorSchemeRequest.Config
+    ) {
         val hasChanges = (current != applied)
         animDispatchChangesBtn(show = hasChanges)
     }

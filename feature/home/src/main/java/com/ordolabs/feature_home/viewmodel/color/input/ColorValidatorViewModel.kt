@@ -1,4 +1,4 @@
-package com.ordolabs.feature_home.viewmodel.colorinput
+package com.ordolabs.feature_home.viewmodel.color.input
 
 import com.ordolabs.domain.usecase.local.ValidateColorHexUseCase
 import com.ordolabs.domain.usecase.local.ValidateColorRgbUseCase

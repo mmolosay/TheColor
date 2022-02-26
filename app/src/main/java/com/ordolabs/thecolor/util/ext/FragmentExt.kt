@@ -46,56 +46,62 @@ fun BaseFragment.findFragmentById(
 
 fun BaseFragment.findFragmentByIdOrNull(
     @IdRes containerId: Int = this.defaultFragmentContainerId
-): Fragment? {
-    return ContextUtil.findFragmentByIdOrNull(
+): Fragment? =
+    ContextUtil.findFragmentByIdOrNull(
         this.childFragmentManager,
         containerId
     )
-}
 
 fun BaseFragment.setFragment(
     fragment: Fragment,
     @IdRes containerId: Int = this.defaultFragmentContainerId,
     transactionTag: String = fragment.getDefaultTransactionTag()
-): Result<Int, Throwable> {
-    return ContextUtil.setFragment(
+): Result<Int, Throwable> =
+    ContextUtil.setFragment(
         this.childFragmentManager,
         fragment,
         containerId,
         transactionTag
     )
-}
+
+fun <F : Fragment> BaseFragment.setFragmentOrGet(
+    @IdRes containerId: Int = this.defaultFragmentContainerId,
+    fragmentProducer: () -> F
+) =
+    ContextUtil.setFragmentOrGet(
+        this.childFragmentManager,
+        containerId,
+        transactionTag = null,
+        fragmentProducer
+    )
 
 fun BaseFragment.replaceFragment(
     fragment: Fragment,
     @IdRes containerId: Int = this.defaultFragmentContainerId,
     transactionTag: String = fragment.getDefaultTransactionTag()
-): Result<Int, Throwable> {
-    return ContextUtil.replaceFragment(
+): Result<Int, Throwable> =
+    ContextUtil.replaceFragment(
         this.childFragmentManager,
         fragment,
         containerId,
         transactionTag
     )
-}
 
 fun BaseFragment.removeFragment(
     fragment: Fragment
-): Result<Int, Throwable> {
-    return ContextUtil.removeFragment(
+): Result<Int, Throwable> =
+    ContextUtil.removeFragment(
         this.childFragmentManager,
         fragment
     )
-}
 
 fun BaseFragment.removeFragment(
     @IdRes containerId: Int
-): Result<Int, Throwable> {
-    return ContextUtil.removeFragment(
+): Result<Int, Throwable> =
+    ContextUtil.removeFragment(
         this.childFragmentManager,
         containerId
     )
-}
 
 fun Fragment.getDefaultTransactionTag(): String =
     this::class.java.simpleName

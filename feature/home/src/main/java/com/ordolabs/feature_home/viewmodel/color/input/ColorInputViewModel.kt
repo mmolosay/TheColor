@@ -1,4 +1,4 @@
-package com.ordolabs.feature_home.viewmodel.colorinput
+package com.ordolabs.feature_home.viewmodel.color.input
 
 import androidx.lifecycle.viewModelScope
 import com.ordolabs.thecolor.model.color.Color
