@@ -35,6 +35,7 @@
         to change it visually.
         If you know, how to do it properly, in themes, feel free to contribute.
          -->
+        <item name="android:navigationBarColor">?attr/colorSurface</item>
         <item name="bottomSheetStyle">@style/Widget.TheColor.BottomSheet.Modal</item>
     </style>
 
