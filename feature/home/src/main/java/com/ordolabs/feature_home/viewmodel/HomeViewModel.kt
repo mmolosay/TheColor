@@ -17,8 +17,8 @@ class HomeViewModel @AssistedInject constructor(
         get() = stateHandle.get<ColorPreview>(KEY_PREVIEW)
         set(value) = stateHandle.set(KEY_PREVIEW, value)
 
-    var state: HomeView.State
-        get() = stateHandle.get<HomeView.State>(KEY_STATE) ?: HomeView.State.BLANK
+    var stateType: HomeView.State.Type
+        get() = stateHandle.get<HomeView.State.Type>(KEY_STATE) ?: HomeView.State.Type.BLANK
         set(value) = stateHandle.set(KEY_STATE, value)
 
     @AssistedFactory

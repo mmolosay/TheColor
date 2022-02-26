@@ -1,41 +1,55 @@
 package com.ordolabs.feature_home.ui.fragment.home
 
+import com.ordolabs.thecolor.model.color.Color
+import com.ordolabs.thecolor.model.color.ColorPreview
+
 /**
- * At the moment, empty interface and just place for [HomeView.State].
+ * Interface for home `View`, which is finite-state machine: see [HomeView.State].
  */
 interface HomeView {
 
-    enum class State {
+    var state: State
+
+    fun changeState(type: State.Type)
+
+    sealed class State(
+        protected val view: HomeView
+    ) {
         /**
-         * Has neither color preview or color data shown.
+         * Restores UI for current state.
          */
-        BLANK {
-            override fun isBlank(): Boolean = true
-            override fun isPreview(): Boolean = false
-            override fun isData(): Boolean = false
-        },
+        abstract fun restoreState()
 
         /**
-         * Has color preview shown only.
+         * Sets UI in [Type.BLANK] state.
          */
-        PREVIEW {
-            override fun isBlank(): Boolean = false
-            override fun isPreview(): Boolean = true
-            override fun isData(): Boolean = false
-        },
+        abstract fun showBlank()
 
         /**
-         * Has both color preview and color data shown.
+         * Sets UI in [Type.PREVIEW] state.
          */
-        DATA {
-            override fun isBlank(): Boolean = false
-            override fun isPreview(): Boolean = false
-            override fun isData(): Boolean = true
-        };
+        abstract fun showPreview(preview: ColorPreview)
 
-        // utils to make checking specific state easier
-        abstract fun isBlank(): Boolean
-        abstract fun isPreview(): Boolean
-        abstract fun isData(): Boolean
+        /**
+         * Sets UI in [Type.DATA] state.
+         */
+        abstract fun showData(color: Color)
+
+        enum class Type {
+            /**
+             * Has neither color preview or color data shown.
+             */
+            BLANK,
+
+            /**
+             * Has color preview shown only.
+             */
+            PREVIEW,
+
+            /**
+             * Has both color preview and color data shown.
+             */
+            DATA
+        }
     }
 }

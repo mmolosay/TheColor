@@ -63,15 +63,12 @@ import android.graphics.Color as ColorAndroid
 import com.google.android.material.R as RMaterial
 import com.ordolabs.thecolor.R as RApp
 
-// TODO: refactor to state machine
 class HomeFragment :
     BaseFragment(),
     FeatureHomeComponentKeeper,
     HomeView,
     ColorInputParent,
     ColorDetailsParent {
-
-    override val featureHomeComponent: FeatureHomeComponent by lazy(::makeFeatureHomeComponent)
 
     private val binding: HomeFragmentBinding by viewBinding()
     private val homeVM: HomeViewModel by viewModels {
@@ -92,6 +89,12 @@ class HomeFragment :
         return inflater.inflate(R.layout.home_fragment, container, false)
     }
 
+    override fun onViewStateRestored(savedInstanceState: Bundle?) {
+        super.onViewStateRestored(savedInstanceState)
+        this.state = createStateByType(homeVM.stateType)
+        state.restoreState()
+    }
+
     override fun onStop() {
         super.onStop()
         hideSoftInputAndClearFocus()
@@ -102,56 +105,11 @@ class HomeFragment :
         this.inputPagerView = null
     }
 
-    // region Restore state
-
-    override fun onViewStateRestored(savedInstanceState: Bundle?) {
-        super.onViewStateRestored(savedInstanceState)
-        restoreState()
-    }
-
-    private fun restoreState() =
-        when (homeVM.state) {
-            HomeView.State.BLANK -> restoreBlankState()
-            HomeView.State.PREVIEW -> restorePreviewState()
-            HomeView.State.DATA -> restoreDataState()
-        }
-
-    private fun restoreBlankState() {
-        showPreviewGroup(visible = false)
-        scalePreviewGroup(collapse = true)
-        showDataWrapper(visible = false)
-    }
-
-    private fun restorePreviewState() {
-        val preview = homeVM.preview ?: return
-        showPreviewGroup(visible = true)
-        scalePreviewGroup(collapse = false)
-        tintPreview(preview)
-        showDataWrapper(visible = false)
-    }
-
-    private fun restoreDataState() {
-        val preview = homeVM.preview ?: return
-        showPreviewGroup(visible = false)
-        scalePreviewGroup(collapse = false)
-        tintPreview(preview)
-        showDataWrapper(visible = true)
-        tintDataWrapper(preview)
-    }
-
-    // endregion
-
     // region Set up
 
     override fun setUp() {
         featureHomeComponent // init
     }
-
-    private fun makeFeatureHomeComponent(): FeatureHomeComponent =
-        DaggerFeatureHomeComponent
-            .builder()
-            .appComponent(appComponent)
-            .build()
 
     // endregion
 
@@ -173,38 +131,14 @@ class HomeFragment :
     @Suppress("UNUSED_PARAMETER")
     private fun onColorPreviewEmpty(previous: ColorPreview?) =
         view?.doOnLayout {
-            when (homeVM.state) {
-                HomeView.State.PREVIEW -> animPreviewResize(collapse = true)
-                HomeView.State.DATA -> animColorDataCollapsingOnPreviewEmpty()
-                else -> Unit
-            }
+            state.showBlank()
             inputPagerView?.clearCurrentColor()
             homeVM.preview = null
-            homeVM.state = HomeView.State.BLANK
         }
 
     private fun onColorPreviewSuccess(preview: ColorPreview) =
         view?.doOnLayout a@{
-            val colorInt = preview.toColorInt()
-            when (homeVM.state) {
-                HomeView.State.BLANK -> {
-                    animPreviewResize(collapse = false)
-                    animPreviewColorChanging(colorInt)
-                    homeVM.state = HomeView.State.PREVIEW
-                }
-                HomeView.State.PREVIEW -> {
-                    if (homeVM.preview == preview) return@a // already set
-                    animPreviewColorChanging(colorInt)
-                }
-                HomeView.State.DATA -> {
-                    if (!preview.isUserInput) return@a // collapse only if user changed color manually
-                    val dataBg = getDataWrapperTint()
-                    if (colorInt != dataBg) {
-                        animColorDataCollapsingOnPreviewSuccess()
-                        homeVM.state = HomeView.State.PREVIEW
-                    }
-                }
-            }
+            state.showPreview(preview)
             inputPagerView?.updateCurrentColor(preview)
             homeVM.preview = preview
         }
@@ -244,10 +178,7 @@ class HomeFragment :
         binding.run {
             procceedBtn.setOnClickListener l@{
                 val color = homeVM.preview ?: return@l
-                hideSoftInput()
-                animColorDataExpanding(color)
-                replaceColorDataFragment(color)
-                homeVM.state = HomeView.State.DATA
+                state.showData(color)
             }
         }
 
@@ -304,7 +235,7 @@ class HomeFragment :
     // region Animate
 
     private fun animColorDataExpanding(color: Color) {
-        if (homeVM.state.isData()) return // already expanded
+        if (homeVM.stateType == HomeView.State.Type.DATA) return // already expanded
         binding.root.post { // when ^ infoFragmentContainer becomes visible
             binding.scrollview.isScrollable = true
             AnimatorSet().apply {
@@ -337,7 +268,7 @@ class HomeFragment :
     }
 
     private fun animColorDataCollapsingOnPreviewSuccess() {
-        if (!homeVM.state.isData()) return // already collapsed
+        if (homeVM.stateType != HomeView.State.Type.DATA) return // already collapsed
         makeColorDataCollapsingAnimation().start()
     }
 
@@ -531,6 +462,29 @@ class HomeFragment :
 
     // endregion
 
+    // region FeatureHomeComponentKeeper
+
+    override val featureHomeComponent: FeatureHomeComponent by lazy(::makeFeatureHomeComponent)
+
+    private fun makeFeatureHomeComponent(): FeatureHomeComponent =
+        DaggerFeatureHomeComponent
+            .builder()
+            .appComponent(appComponent)
+            .build()
+
+    // endregion
+
+    // region HomeView
+
+    override var state: HomeView.State = BlankState()
+
+    override fun changeState(type: HomeView.State.Type) {
+        this.state = createStateByType(type)
+        homeVM.stateType = type
+    }
+
+    // endregion
+
     // region ColorInputParent
 
     override fun onInputChanged(input: ColorPrototype) {
@@ -546,6 +500,100 @@ class HomeFragment :
         val preview = ColorPreview(exact, isUserInput = false)
         colorValidatorVM.updateColorPreview(preview)
         replaceColorDataFragment(exact)
+    }
+
+    // endregion
+
+    // region States
+
+    private fun createStateByType(type: HomeView.State.Type): HomeView.State =
+        when (type) {
+            HomeView.State.Type.BLANK -> BlankState()
+            HomeView.State.Type.PREVIEW -> PreviewState()
+            HomeView.State.Type.DATA -> DataState()
+        }
+
+    private inner class BlankState : HomeView.State(this) {
+
+        override fun restoreState() {
+            showPreviewGroup(visible = false)
+            scalePreviewGroup(collapse = true)
+            showDataWrapper(visible = false)
+        }
+
+        override fun showBlank() {
+            // already in blank state; do nothing
+        }
+
+        override fun showPreview(preview: ColorPreview) {
+            val color = preview.toColorInt()
+            animPreviewResize(collapse = false)
+            animPreviewColorChanging(color)
+            view.changeState(Type.PREVIEW)
+        }
+
+        override fun showData(color: Color) {
+            // illegal; do nothing
+        }
+    }
+
+    private inner class PreviewState : HomeView.State(this) {
+
+        override fun restoreState() {
+            val preview = homeVM.preview ?: return
+            showPreviewGroup(visible = true)
+            scalePreviewGroup(collapse = false)
+            tintPreview(preview)
+            showDataWrapper(visible = false)
+        }
+
+        override fun showBlank() {
+            animPreviewResize(collapse = true)
+            view.changeState(Type.BLANK)
+        }
+
+        override fun showPreview(preview: ColorPreview) {
+            if (homeVM.preview == preview) return // already set
+            val color = preview.toColorInt()
+            animPreviewColorChanging(color)
+        }
+
+        override fun showData(color: Color) {
+            hideSoftInput()
+            animColorDataExpanding(color)
+            replaceColorDataFragment(color)
+            view.changeState(Type.DATA)
+        }
+    }
+
+    private inner class DataState : HomeView.State(this) {
+
+        override fun restoreState() {
+            val preview = homeVM.preview ?: return
+            showPreviewGroup(visible = false)
+            scalePreviewGroup(collapse = false)
+            tintPreview(preview)
+            showDataWrapper(visible = true)
+            tintDataWrapper(preview)
+        }
+
+        override fun showBlank() {
+            animColorDataCollapsingOnPreviewEmpty()
+            view.changeState(Type.BLANK)
+        }
+
+        override fun showPreview(preview: ColorPreview) {
+            if (!preview.isUserInput) return // collapse only if user changed color manually
+            val color = preview.toColorInt()
+            val dataBg = getDataWrapperTint()
+            if (dataBg == color) return // TODO: is ever a case?; debug
+            animColorDataCollapsingOnPreviewSuccess()
+            view.changeState(Type.PREVIEW)
+        }
+
+        override fun showData(color: Color) {
+            // already showing data; do nothing
+        }
     }
 
     // endregion
