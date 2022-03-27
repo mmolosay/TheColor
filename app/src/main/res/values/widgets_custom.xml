@@ -44,10 +44,23 @@
         <item name="dividerInsetEnd">@dimen/offset_content_horizontal</item>
     </style>
 
+    <!-- region TextView -->
+
     <!-- solution to override any specified textApearance's fontFamily -->
     <style name="Widget.TextView.Value" parent="">
         <item name="fontFamily">sans-serif</item>
         <item name="android:fontFamily">sans-serif</item>
     </style>
+
+    <style name="Widget.TextView.ListItem" parent="Widget.TheColor.TextView">
+        <item name="android:paddingTop">@dimen/offset_content_default</item>
+        <item name="android:paddingBottom">@dimen/offset_content_default</item>
+        <item name="android:paddingStart">@dimen/offset_content_horizontal</item>
+        <item name="android:paddingEnd">@dimen/offset_content_horizontal</item>
+        <item name="android:textAppearance">?attr/textAppearanceBodyLarge</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+    </style>
+
+    <!-- endregion -->
 
 </resources>

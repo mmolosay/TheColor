@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    tools:context="com.ordolabs.feature_settings.ui.fragment.category.content.AppearanceCategoryThemeDialog">
+
+    <RadioGroup
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <RadioButton
+            android:id="@+id/themeSystem"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="@dimen/offset_8"
+            android:text="@string/appearance_category_content_theme_system" />
+
+        <RadioButton
+            android:id="@+id/themeLight"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="@dimen/offset_8"
+            android:text="@string/appearance_category_content_theme_light" />
+
+        <RadioButton
+            android:id="@+id/themeDark"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="@dimen/offset_8"
+            android:text="@string/appearance_category_content_theme_dark" />
+
+    </RadioGroup>
+
+</androidx.appcompat.widget.LinearLayoutCompat>

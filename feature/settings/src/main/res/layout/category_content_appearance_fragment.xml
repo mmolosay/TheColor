@@ -1,44 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:paddingHorizontal="@dimen/offset_content_horizontal"
-    android:paddingVertical="@dimen/offset_16">
+    tools:context="com.ordolabs.feature_settings.ui.fragment.category.content.AppearanceCategoryContentFragment">
 
     <TextView
-        android:id="@+id/themeSubtitle"
-        android:layout_width="wrap_content"
+        android:id="@+id/themeTitle"
+        style="@style/Widget.TextView.ListItem"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/offset_8"
-        android:text="@string/appearance_category_content_theme"
-        android:textAppearance="@style/TextAppearance.SettingsCategorySubtitle" />
-
-    <RadioGroup
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <RadioButton
-            android:id="@+id/themeSystem"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingHorizontal="@dimen/offset_8"
-            android:text="@string/appearance_category_content_theme_system" />
-
-        <RadioButton
-            android:id="@+id/themeLight"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingHorizontal="@dimen/offset_8"
-            android:text="@string/appearance_category_content_theme_light" />
-
-        <RadioButton
-            android:id="@+id/themeDark"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingHorizontal="@dimen/offset_8"
-            android:text="@string/appearance_category_content_theme_dark" />
-
-    </RadioGroup>
+        android:text="@string/appearance_category_content_theme" />
 
 </androidx.appcompat.widget.LinearLayoutCompat>

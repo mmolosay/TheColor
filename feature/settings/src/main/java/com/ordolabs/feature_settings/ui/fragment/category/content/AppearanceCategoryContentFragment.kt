@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CompoundButton
-import android.widget.RadioButton
 import androidx.appcompat.app.AppCompatDelegate
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_settings.R
@@ -29,46 +28,24 @@ class AppearanceCategoryContentFragment : BaseCategoryContentFragment() {
     // region Set views
 
     override fun setViews() {
-        setThemeRadioButtons()
+        setThemeCategory()
     }
 
-    private fun setThemeRadioButtons() {
-        binding.themeSystem.setOnCheckedChangeListener(::onThemeRadioButtonChecked)
-        binding.themeLight.setOnCheckedChangeListener(::onThemeRadioButtonChecked)
-        binding.themeDark.setOnCheckedChangeListener(::onThemeRadioButtonChecked)
+    private fun setThemeCategory() {
+        binding.themeTitle.setOnClickListener {
+            onThemeCategoryClick()
+        }
     }
 
     // endregion
 
-    // region View actions
+    // region Click listeners
 
-    private fun onThemeRadioButtonChecked(button: CompoundButton, isChecked: Boolean) {
-        if (!isChecked) return // ignore unchecking
-        val settings = settings ?: return
-        val theme = getThemeForRadioButton(button)
-        if (theme == settings.appearance.theme) return // already set
-        AppCompatDelegate.setDefaultNightMode(theme.nightMode)
-        val updated = settings.appearance.copy(theme = theme)
-        settingsVM.editAppearance(updated)
+    private fun onThemeCategoryClick() {
+        AppearanceCategoryThemeDialog.newInstance().apply {
+            listener = ThemeDialogListener()
+        }.show(childFragmentManager)
     }
-
-    // endregion
-
-    // region View utils
-
-    private fun getRadioButtonForTheme(theme: Appearance.Theme): RadioButton =
-        when (theme) {
-            Appearance.Theme.SYSTEM -> binding.themeSystem
-            Appearance.Theme.LIGHT -> binding.themeLight
-            Appearance.Theme.DARK -> binding.themeDark
-        }
-
-    private fun getThemeForRadioButton(radiobutton: View): Appearance.Theme =
-        when (radiobutton) {
-            binding.themeLight -> Appearance.Theme.LIGHT
-            binding.themeDark -> Appearance.Theme.DARK
-            else -> Appearance.Theme.SYSTEM
-        }
 
     // endregion
 
@@ -79,12 +56,32 @@ class AppearanceCategoryContentFragment : BaseCategoryContentFragment() {
     }
 
     private fun populateTheme(current: Appearance.Theme) {
-        val radiobutton = getRadioButtonForTheme(current)
-        radiobutton.isChecked = true
-        radiobutton.jumpDrawablesToCurrentState() // skips animation
+//        val radiobutton = getRadioButtonForTheme(current)
+//        radiobutton.isChecked = true
+//        radiobutton.jumpDrawablesToCurrentState() // skips animation
     }
 
     // endregion
+
+    inner class ThemeDialogListener : AppearanceCategoryThemeDialog.Listener {
+
+        override fun getCurrentTheme(): Appearance.Theme? =
+            settings?.appearance?.theme
+
+        override fun onThemeRadioButtonChecked(
+            button: CompoundButton,
+            theme: Appearance.Theme,
+            isChecked: Boolean
+        ) {
+            if (!isChecked) return // ignore unchecking
+            val settings = settings ?: return // ignore if settings are not obtained yet
+            if (theme == settings.appearance.theme) return // already set
+
+            AppCompatDelegate.setDefaultNightMode(theme.nightMode)
+            val updated = settings.appearance.copy(theme = theme)
+            settingsVM.editAppearance(updated)
+        }
+    }
 
     companion object {
 
