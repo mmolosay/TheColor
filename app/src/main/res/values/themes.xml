@@ -1,13 +1,23 @@
 <resources>
 
-    <!-- top level DayNight theme -->
-    <style name="Theme.TheColor" parent="Base.Theme.TheColor" />
+    <!-- region Top-level themes -->
 
-    <!-- base custom theme to be overridden -->
+    <style name="Theme.TheColor" parent="Theme.TheColor.DayNight" />
+    <style name="Theme.TheColor.DayNight" parent="Theme.TheColor.Light" />
+    <style name="Theme.TheColor.Light" parent="Base.Theme.TheColor.Light" />
+    <style name="Theme.TheColor.Dark" parent="Base.Theme.TheColor.Dark" />
+
+    <!-- endregion -->
+
+    <!-- region Base themes -->
+
+    <style name="Base.Theme.TheColor.Light" parent="Base.V23.Theme.TheColor.Light" />
+    <style name="Base.Theme.TheColor.Dark" parent="Base.V23.Theme.TheColor.Dark" />
     <style name="Base.Theme.TheColor" parent="Base.V23.Theme.TheColor" />
 
-    <style name="Base.V23.Theme.TheColor" parent="Base.Theme.Material">
+    <!-- endregion -->
 
+    <style name="Base.V23.Theme.TheColor.Light" parent="Base.Theme.TheColor">
         <!-- colors theme -->
         <item name="colorPrimary">@color/indigo</item>
         <item name="colorPrimaryInverse">?attr/colorDebug</item>
@@ -43,7 +53,33 @@
         <!-- colors background -->
         <item name="android:colorBackground">@color/white</item>
         <item name="android:colorBackgroundFloating">@color/white</item>
+    </style>
 
+    <style name="Base.V23.Theme.TheColor.Dark" parent="Base.Theme.TheColor">
+
+        <item name="android:navigationBarColor">?android:attr/colorBackground</item>
+
+        <!-- colors theme -->
+        <item name="colorPrimary">@color/violet</item>
+        <item name="colorPrimaryVariant">@color/purple</item>
+        <item name="colorSecondary">@color/coral</item>
+        <item name="colorSecondaryVariant">?attr/colorDebug</item>
+        <item name="colorSurface">@color/indigo_dark</item>
+        <item name="colorError">@color/cinnamon_satin</item>
+
+        <!-- colors on -->
+        <item name="colorOnPrimary">@color/black</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <item name="colorOnBackground">@color/white</item>
+        <item name="colorOnSurface">@color/white</item>
+        <item name="colorOnError">@color/black</item>
+
+        <!-- colors background -->
+        <item name="android:colorBackground">@color/cod_gray</item>
+        <item name="android:colorBackgroundFloating">@color/black</item>
+    </style>
+
+    <style name="Base.V23.Theme.TheColor" parent="Base.Theme.Material">
         <!-- types -->
         <item name="textAppearanceDisplayLarge">@style/TextAppearance.TheColor.DisplayLarge</item>
         <item name="textAppearanceDisplayMedium">@style/TextAppearance.TheColor.DisplayMedium</item>

@@ -1,10 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Base.Theme.TheColor" parent="Base.V27.Theme.TheColor" />
+    <!-- region Base themes -->
+
+    <style name="Base.Theme.TheColor.Light" parent="Base.V27.Theme.TheColor.Light" />
+    <style name="Base.Theme.TheColor.Dark" parent="Base.V27.Theme.TheColor.Dark" />
+    <style name="Base.Theme.TheColor" parent="Base.V27.Theme.TheColor"/>
+
+    <!-- endregion -->
+
+    <style name="Base.V27.Theme.TheColor.Light" parent="Base.V23.Theme.TheColor.Light">
+        <item name="android:navigationBarColor">?android:attr/colorBackground</item>
+        <item name="android:windowLightNavigationBar">?attr/isLightTheme</item>
+    </style>
+
+    <style name="Base.V27.Theme.TheColor.Dark" parent="Base.V23.Theme.TheColor.Dark">
+        <!-- nothing special here -->
+    </style>
 
     <style name="Base.V27.Theme.TheColor" parent="Base.V23.Theme.TheColor">
-        <item name="android:navigationBarColor">?android:attr/colorBackground</item>
         <item name="android:windowLightNavigationBar">?attr/isLightTheme</item>
     </style>
 
