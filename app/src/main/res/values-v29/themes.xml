@@ -9,11 +9,11 @@
 
     <!-- endregion -->
 
-    <style name="Base.V29.Theme.TheColor.Light" parent="Base.V27.Theme.TheColor.Light">
+    <style name="Base.V29.Theme.TheColor.Light" parent="Base.V23.Theme.TheColor.Light">
         <item name="android:isLightTheme">true</item>
     </style>
 
-    <style name="Base.V29.Theme.TheColor.Dark" parent="Base.V27.Theme.TheColor.Dark">
+    <style name="Base.V29.Theme.TheColor.Dark" parent="Base.V23.Theme.TheColor.Dark">
         <item name="android:isLightTheme">false</item>
     </style>
 
