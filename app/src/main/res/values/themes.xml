@@ -1,10 +1,12 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
 
     <!-- top level DayNight theme -->
     <style name="Theme.TheColor" parent="Base.Theme.TheColor" />
 
     <!-- base custom theme to be overridden -->
-    <style name="Base.Theme.TheColor" parent="Base.Theme.Material">
+    <style name="Base.Theme.TheColor" parent="Base.V23.Theme.TheColor" />
+
+    <style name="Base.V23.Theme.TheColor" parent="Base.Theme.Material">
 
         <!-- colors theme -->
         <item name="colorPrimary">@color/indigo</item>
@@ -91,13 +93,12 @@
         <item name="toolbarStyle">@style/Widget.TheColor.Toolbar</item>
     </style>
 
+    <!-- Material supertheme -->
     <style name="Base.Theme.Material" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:windowBackground">?android:attr/colorBackground</item>
         <item name="android:statusBarColor">?android:attr/colorBackground</item>
         <item name="android:windowLightStatusBar">?attr/isLightTheme</item>
-        <item name="android:navigationBarColor">?android:attr/colorBackground</item>
-        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">?attr/isLightTheme
-        </item>
+        <item name="android:navigationBarColor">@color/black</item>
     </style>
 
 </resources>

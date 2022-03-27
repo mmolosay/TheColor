@@ -1,6 +1,10 @@
 <resources>
 
-    <style name="Theme.TheColor" parent="Base.Theme.TheColor">
+    <style name="Base.Theme.TheColor" parent="Base.V23.Theme.TheColor" />
+
+    <style name="Base.V23.Theme.TheColor" parent="Base.Theme.Material">
+
+        <item name="android:navigationBarColor">?android:attr/colorBackground</item>
 
         <!-- colors theme -->
         <item name="colorPrimary">@color/violet</item>
