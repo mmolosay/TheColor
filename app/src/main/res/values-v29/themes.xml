@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- region Base theme -->
+
+    <style name="Base.Theme.TheColor.Light" parent="Base.V29.Theme.TheColor.Light" />
+    <style name="Base.Theme.TheColor.Dark" parent="Base.V29.Theme.TheColor.Dark" />
+    <style name="Base.Theme.TheColor" parent="Base.V29.Theme.TheColor"/>
+
+    <!-- endregion -->
+
+    <style name="Base.V29.Theme.TheColor.Light" parent="Base.V27.Theme.TheColor.Light">
+        <item name="android:isLightTheme">true</item>
+    </style>
+
+    <style name="Base.V29.Theme.TheColor.Dark" parent="Base.V27.Theme.TheColor.Dark">
+        <item name="android:isLightTheme">false</item>
+    </style>
+
+    <style name="Base.V29.Theme.TheColor" parent="Base.V27.Theme.TheColor">
+        <item name="android:windowLightNavigationBar">?android:attr/isLightTheme</item>
+    </style>
+
+</resources>
