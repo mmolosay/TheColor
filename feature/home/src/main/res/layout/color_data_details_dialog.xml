@@ -4,7 +4,6 @@
     android:id="@id/defaultFragmentContainer"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?android:attr/colorBackground"
     android:paddingTop="@dimen/offset_8"
     tools:layout="@layout/color_details_fragment"
     tools:layout_gravity="bottom" />

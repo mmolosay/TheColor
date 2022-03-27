@@ -27,7 +27,8 @@
     </style>
 
     <style name="Widget.TheColor.BottomSheet.Modal" parent="Widget.Material3.BottomSheet.Modal">
-        <!-- nothing special here -->
+        <!-- Material3 tints all dialogs with translucent colorPrimary. -->
+        <item name="backgroundTint">?android:attr/colorBackground</item>
     </style>
 
     <style name="Widget.TheColor.Chip" parent="Widget.Material3.Chip.Suggestion">
