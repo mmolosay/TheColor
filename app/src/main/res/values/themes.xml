@@ -2,7 +2,6 @@
 
     <!-- region Top-level themes -->
 
-    <style name="Theme.TheColor" parent="Theme.TheColor.DayNight" />
     <style name="Theme.TheColor.DayNight" parent="Theme.TheColor.Light" />
     <style name="Theme.TheColor.Light" parent="Base.Theme.TheColor.Light" />
     <style name="Theme.TheColor.Dark" parent="Base.Theme.TheColor.Dark" />
