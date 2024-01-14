@@ -2,14 +2,14 @@ package com.ordolabs.domain.usecase
 
 import com.ordolabs.domain.model.ColorScheme
 import com.ordolabs.domain.model.ColorSchemeRequest
-import com.ordolabs.domain.repository.ColorRemoteRepository
+import com.ordolabs.domain.repository.ColorRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class GetColorSchemeUseCase @Inject constructor(
-    private val colorRemoteRepository: ColorRemoteRepository,
+    private val colorRepository: ColorRepository,
 ) {
 
     suspend fun invoke(param: ColorSchemeRequest): Flow<ColorScheme> =
-        colorRemoteRepository.fetchColorScheme(param)
+        colorRepository.getColorScheme(param)
 }

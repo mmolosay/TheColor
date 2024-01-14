@@ -5,7 +5,7 @@ import com.ordolabs.domain.model.ColorScheme
 import com.ordolabs.domain.model.ColorSchemeRequest
 import kotlinx.coroutines.flow.Flow
 
-interface ColorRemoteRepository {
-    suspend fun fetchColorDetails(colorHex: String): Flow<ColorDetails>
-    suspend fun fetchColorScheme(request: ColorSchemeRequest): Flow<ColorScheme>
+interface ColorRepository {
+    suspend fun getColorDetails(colorHex: String): Flow<ColorDetails>
+    suspend fun getColorScheme(request: ColorSchemeRequest): Flow<ColorScheme>
 }

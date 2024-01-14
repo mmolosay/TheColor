@@ -5,21 +5,21 @@ import com.ordolabs.data_remote.mapper.toDomain
 import com.ordolabs.domain.model.ColorDetails
 import com.ordolabs.domain.model.ColorScheme
 import com.ordolabs.domain.model.ColorSchemeRequest
-import com.ordolabs.domain.repository.ColorRemoteRepository
+import com.ordolabs.domain.repository.ColorRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
-class ColorRemoteRepositoryImpl @Inject constructor(
+class ColorRepositoryImpl @Inject constructor(
     private val api: TheColorApiService
-) : ColorRemoteRepository {
+) : ColorRepository {
 
-    override suspend fun fetchColorDetails(colorHex: String): Flow<ColorDetails> = flow {
+    override suspend fun getColorDetails(colorHex: String): Flow<ColorDetails> = flow {
         val response = api.getColorDetails(hex = colorHex)
         emit(response.toDomain())
     }
 
-    override suspend fun fetchColorScheme(request: ColorSchemeRequest): Flow<ColorScheme> = flow {
+    override suspend fun getColorScheme(request: ColorSchemeRequest): Flow<ColorScheme> = flow {
         val mode = TheColorApiService.SchemeMode.values()[request.modeOrdinal]
         val response = api.getColorScheme(
             hex = request.seedHex,
