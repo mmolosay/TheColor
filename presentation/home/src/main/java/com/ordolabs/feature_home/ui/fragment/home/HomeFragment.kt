@@ -112,8 +112,7 @@ class HomeFragment :
             )
         }
 
-    @Suppress("UNUSED_PARAMETER")
-    private fun onColorPreviewEmpty(previous: ColorPreview?) =
+    private fun onColorPreviewEmpty() =
         view?.doOnLayout {
             state.showBlank()
             inputPagerView?.clearCurrentColor()

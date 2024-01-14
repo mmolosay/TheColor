@@ -2,11 +2,11 @@ package com.ordolabs.feature_home.ui.fragment.color.input.page
 
 import androidx.annotation.CallSuper
 import com.ordolabs.feature_home.viewmodel.color.input.ColorInputViewModel
+import com.ordolabs.util.Resource
 import io.github.mmolosay.presentation.fragment.BaseFragment
 import io.github.mmolosay.presentation.model.color.ColorPrototype
 import io.github.mmolosay.presentation.util.ext.parentViewModels
 import io.github.mmolosay.presentation.util.ext.requireParentOf
-import com.ordolabs.util.Resource
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -91,8 +91,7 @@ abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment() {
         this.isTypedByUser = true
     }
 
-    @Suppress("UNUSED_PARAMETER")
-    private fun onColorInputEmpty(previous: C?) {
+    private fun onColorInputEmpty() {
         if (isResumed) return // prevent user interrupting
         updateInputs {
             clearViews()

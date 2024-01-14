@@ -14,13 +14,13 @@ import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDataObtainFragmentBinding
 import com.ordolabs.feature_home.ui.fragment.color.data.base.BaseColorDataFragment
 import com.ordolabs.feature_home.ui.fragment.color.data.base.ColorDataView
+import com.ordolabs.util.Resource
 import io.github.mmolosay.presentation.model.color.Color
 import io.github.mmolosay.presentation.util.InflaterUtil.cloneInViewContext
 import io.github.mmolosay.presentation.util.ext.by
 import io.github.mmolosay.presentation.util.ext.mediumAnimDuration
 import io.github.mmolosay.presentation.util.ext.setFragmentOrGet
 import io.github.mmolosay.presentation.util.ext.showToast
-import com.ordolabs.util.Resource
 import kotlinx.coroutines.flow.Flow
 import java.net.UnknownHostException
 
@@ -88,17 +88,15 @@ abstract class ColorDataObtainFragment<D> :
                 onEmpty = ::onColorDataEmpty,
                 onLoading = ::onColorDataLoading,
                 onSuccess = ::onColorDataSuccess,
-                onFailure = ::onColorDataFailure
+                onFailure = ::onColorDataFailure,
             )
         }
 
-    @Suppress("UNUSED_PARAMETER")
-    private fun onColorDataEmpty(previous: D?) {
+    private fun onColorDataEmpty() {
         animContentVisibility(visible = false)
     }
 
-    @Suppress("UNUSED_PARAMETER")
-    private fun onColorDataLoading(previous: D?) {
+    private fun onColorDataLoading() {
         showLoadingView()
     }
 
@@ -109,9 +107,8 @@ abstract class ColorDataObtainFragment<D> :
 
     @Suppress("UNUSED_PARAMETER")
     private fun onColorDataFailure(
-        previous: D?,
         payload: Any?,
-        error: Throwable
+        error: Throwable,
     ) {
         when (error) {
             is UnknownHostException -> showNoContentView()
