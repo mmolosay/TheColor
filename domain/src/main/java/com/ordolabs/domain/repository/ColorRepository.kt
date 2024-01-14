@@ -6,6 +6,6 @@ import com.ordolabs.domain.model.ColorSchemeRequest
 import kotlinx.coroutines.flow.Flow
 
 interface ColorRepository {
-    suspend fun getColorDetails(colorHex: String): Flow<ColorDetails>
-    suspend fun getColorScheme(request: ColorSchemeRequest): Flow<ColorScheme>
+    suspend fun getColorDetails(colorHex: String): ColorDetails
+    suspend fun getColorScheme(request: ColorSchemeRequest): ColorScheme
 }

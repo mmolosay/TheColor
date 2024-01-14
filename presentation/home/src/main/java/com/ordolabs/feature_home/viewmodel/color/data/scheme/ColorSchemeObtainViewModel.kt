@@ -7,14 +7,15 @@ import io.github.mmolosay.presentation.mapper.toPresentation
 import io.github.mmolosay.presentation.model.color.data.ColorScheme
 import io.github.mmolosay.presentation.model.color.data.ColorSchemeRequest
 import io.github.mmolosay.presentation.util.MutableStateResourceFlow
-import io.github.mmolosay.presentation.util.ext.catchFailureIn
 import io.github.mmolosay.presentation.util.ext.setLoading
 import io.github.mmolosay.presentation.util.ext.setSuccess
 import io.github.mmolosay.presentation.util.struct.Resource
 import io.github.mmolosay.presentation.util.struct.empty
+import io.github.mmolosay.presentation.util.struct.failure
 import io.github.mmolosay.presentation.viewmodel.BaseViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 import com.ordolabs.domain.model.ColorSchemeRequest as ColorSchemeRequestDomain
 
@@ -41,12 +42,13 @@ class ColorSchemeObtainViewModel @Inject constructor(
 
     private fun performGetColorScheme(request: ColorSchemeRequestDomain) =
         launchInIO {
-            getColorScheme(request)
-                .catchFailureIn(_scheme)
-                .collect { schemeDomain ->
-                    val scheme = schemeDomain.toPresentation()
-                    _scheme.setSuccess(scheme)
-                }
+            try {
+                val schemeDomain = getColorScheme(request)
+                val scheme = schemeDomain.toPresentation()
+                _scheme.setSuccess(scheme)
+            } catch (e: Throwable) {
+                _scheme.update { it.failure(e) }
+            }
         }
 
     private fun restartGettingColorScheme() {

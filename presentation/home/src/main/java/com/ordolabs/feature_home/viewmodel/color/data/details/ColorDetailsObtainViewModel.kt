@@ -6,14 +6,15 @@ import io.github.mmolosay.presentation.mapper.toPresentation
 import io.github.mmolosay.presentation.model.color.Color
 import io.github.mmolosay.presentation.model.color.data.ColorDetails
 import io.github.mmolosay.presentation.util.MutableStateResourceFlow
-import io.github.mmolosay.presentation.util.ext.catchFailureIn
 import io.github.mmolosay.presentation.util.ext.setLoading
 import io.github.mmolosay.presentation.util.ext.setSuccess
 import io.github.mmolosay.presentation.util.struct.Resource
 import io.github.mmolosay.presentation.util.struct.empty
+import io.github.mmolosay.presentation.util.struct.failure
 import io.github.mmolosay.presentation.viewmodel.BaseViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 @HiltViewModel
@@ -46,12 +47,13 @@ class ColorDetailsObtainViewModel @Inject constructor(
 
     private fun performGetColorDetails(colorHex: String) =
         launchInIO {
-            getColorDetails(colorHex)
-                .catchFailureIn(_details)
-                .collect { detailsDomain ->
-                    val details = detailsDomain.toPresentation()
-                    _details.setSuccess(details)
-                }
+            try {
+                val detailsDomain = getColorDetails(colorHex)
+                val details = detailsDomain.toPresentation()
+                _details.setSuccess(details)
+            } catch (e: Throwable) {
+                _details.update { it.failure(e) }
+            }
         }
 
     private fun restartGettingColorDetails() {
