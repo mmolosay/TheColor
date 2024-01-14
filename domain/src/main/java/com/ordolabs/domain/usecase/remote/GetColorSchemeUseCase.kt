@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class GetColorSchemeUseCase @Inject constructor(
-    private val colorRemoteRepository: ColorRemoteRepository
+    private val colorRemoteRepository: ColorRemoteRepository,
 ) {
 
     suspend fun invoke(param: ColorSchemeRequest): Flow<ColorScheme> =

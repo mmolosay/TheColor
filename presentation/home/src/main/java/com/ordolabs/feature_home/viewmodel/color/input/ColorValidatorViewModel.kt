@@ -3,7 +3,7 @@ package com.ordolabs.feature_home.viewmodel.color.input
 import com.ordolabs.domain.usecase.local.ValidateColorHexUseCase
 import com.ordolabs.domain.usecase.local.ValidateColorRgbUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.mmolosay.presentation.mapper.toDomain
+import io.github.mmolosay.presentation.mapper.toDomainOrNull
 import io.github.mmolosay.presentation.model.color.Color
 import io.github.mmolosay.presentation.model.color.ColorPreview
 import io.github.mmolosay.presentation.model.color.ColorPrototype
@@ -23,8 +23,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ColorValidatorViewModel @Inject constructor(
-    private val validateColorHexUseCase: ValidateColorHexUseCase,
-    private val validateColorRgbUseCase: ValidateColorRgbUseCase
+    private val validateHexColor: ValidateColorHexUseCase,
+    private val validateRgbColor: ValidateColorRgbUseCase
 ) : BaseViewModel() {
 
     private val _colorPreview: MutableStateFlow<Resource<ColorPreview>>
@@ -50,27 +50,21 @@ class ColorValidatorViewModel @Inject constructor(
 
     private fun validateColor(input: ColorPrototype.Hex) {
         restartColorValidation()
-        val domain = input.toDomain()
+        val colorDomain = input.toDomainOrNull()
         this.colorValidationJob = launch {
-            val flow = validateColorHexUseCase.invoke(domain)
-            flow.collect {
-
-            }
-            validateColorHexUseCase.invoke(domain).collect { valid ->
-                val color = Color.from(input)
-                onColorValidated(color, valid)
-            }
+            val valid = validateHexColor(colorDomain)
+            val color = Color.from(input)
+            onColorValidated(color, valid)
         }
     }
 
     private fun validateColor(input: ColorPrototype.Rgb) {
         restartColorValidation()
-        val domain = input.toDomain()
+        val colorDomain = input.toDomainOrNull()
         this.colorValidationJob = launch {
-            validateColorRgbUseCase.invoke(domain).collect { valid ->
-                val color = Color.from(input)
-                onColorValidated(color, valid)
-            }
+            val valid = validateRgbColor(colorDomain)
+            val color = Color.from(input)
+            onColorValidated(color, valid)
         }
     }
 

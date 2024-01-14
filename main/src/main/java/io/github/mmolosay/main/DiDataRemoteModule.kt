@@ -1,11 +1,9 @@
 package io.github.mmolosay.main
 
 import com.ordolabs.data.repository.ColorRemoteRepositoryImpl
-import com.ordolabs.data.repository.ColorValidatorRepositoryImpl
 import com.ordolabs.data.repository.ColorsHistoryRepositoryImpl
 import com.ordolabs.data_remote.api.TheColorApiService
 import com.ordolabs.domain.repository.ColorRemoteRepository
-import com.ordolabs.domain.repository.ColorValidatorRepository
 import com.ordolabs.domain.repository.ColorsHistoryRepository
 import dagger.Binds
 import dagger.Module
@@ -74,7 +72,4 @@ interface DiDataRemoteBindModule {
 
     @Binds
     fun bindColorsHistoryRepository(impl: ColorsHistoryRepositoryImpl): ColorsHistoryRepository
-
-    @Binds
-    fun bindColorValidatorRepository(impl: ColorValidatorRepositoryImpl): ColorValidatorRepository
 }

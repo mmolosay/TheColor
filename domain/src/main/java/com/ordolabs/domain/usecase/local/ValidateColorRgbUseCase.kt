@@ -1,14 +1,15 @@
 package com.ordolabs.domain.usecase.local
 
 import com.ordolabs.domain.model.ColorRgb
-import com.ordolabs.domain.repository.ColorValidatorRepository
-import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class ValidateColorRgbUseCase @Inject constructor(
-    private val colorValidatorRepository: ColorValidatorRepository
-) {
+class ValidateColorRgbUseCase @Inject constructor() {
 
-    fun invoke(param: ColorRgb?): Flow<Boolean> =
-        colorValidatorRepository.validateColor(param)
+    private val componentRange by lazy { 0..255 }
+
+    operator fun invoke(color: ColorRgb?): Boolean {
+        color ?: return false
+        val components = listOf(color.r, color.b, color.g)
+        return components.all { it in componentRange }
+    }
 }

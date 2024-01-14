@@ -2,7 +2,7 @@ package com.ordolabs.feature_home.viewmodel.color.data.scheme
 
 import com.ordolabs.domain.usecase.remote.GetColorSchemeUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.mmolosay.presentation.mapper.toDomain
+import io.github.mmolosay.presentation.mapper.toDomainOrNull
 import io.github.mmolosay.presentation.mapper.toPresentation
 import io.github.mmolosay.presentation.model.color.data.ColorScheme
 import io.github.mmolosay.presentation.model.color.data.ColorSchemeRequest
@@ -35,7 +35,7 @@ class ColorSchemeObtainViewModel @Inject constructor(
 
     fun getColorScheme(request: ColorSchemeRequest) {
         restartGettingColorScheme()
-        val domain = request.toDomain()
+        val domain = request.toDomainOrNull()
         this.getColorSchemeJob = performGetColorScheme(domain)
     }
 

@@ -9,14 +9,14 @@ import io.github.mmolosay.presentation.model.color.from
 import io.github.mmolosay.presentation.model.color.toHex
 import com.ordolabs.domain.model.ColorSchemeRequest as ColorSchemeRequestDomain
 
-fun ColorPrototype.Hex.toDomain(): ColorHex? {
+fun ColorPrototype.Hex.toDomainOrNull(): ColorHex? {
     Color.from(this) ?: return null
     return ColorHex(
         value = this.value!! // checked in converting to valid color above
     )
 }
 
-fun ColorPrototype.Rgb.toDomain(): ColorRgb? {
+fun ColorPrototype.Rgb.toDomainOrNull(): ColorRgb? {
     Color.from(this) ?: return null
     return ColorRgb(
         r = this.r!!, // checked in converting to valid color above
@@ -25,7 +25,7 @@ fun ColorPrototype.Rgb.toDomain(): ColorRgb? {
     )
 }
 
-fun ColorSchemeRequest.toDomain(): ColorSchemeRequestDomain {
+fun ColorSchemeRequest.toDomainOrNull(): ColorSchemeRequestDomain {
     return ColorSchemeRequestDomain(
         seedHex = this.seed.toHex().value!!,
         modeOrdinal = this.config.modeOrdinal,
