@@ -10,6 +10,6 @@ class GetColorSchemeUseCase @Inject constructor(
     private val colorRepository: ColorRepository,
 ) {
 
-    suspend fun invoke(param: ColorSchemeRequest): Flow<ColorScheme> =
+    suspend operator fun invoke(param: ColorSchemeRequest): Flow<ColorScheme> =
         colorRepository.getColorScheme(param)
 }

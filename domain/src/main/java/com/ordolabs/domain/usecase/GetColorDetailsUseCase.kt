@@ -9,6 +9,6 @@ class GetColorDetailsUseCase @Inject constructor(
     private val colorRepository: ColorRepository,
 ) {
 
-    suspend fun invoke(param: String): Flow<ColorDetails> =
+    suspend operator fun invoke(param: String): Flow<ColorDetails> =
         colorRepository.getColorDetails(param)
 }
