@@ -9,7 +9,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
-import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDataObtainFragmentBinding
@@ -47,7 +46,7 @@ abstract class ColorDataObtainFragment<D> :
     override val color: Color?
         get() = (parentFragment as? ColorThemedView)?.color
 
-    private val binding: ColorDataObtainFragmentBinding by viewBinding(CreateMethod.BIND)
+    private val binding by viewBinding(ColorDataObtainFragmentBinding::bind)
 
     protected var dataView: ColorDataView<D>? = null
         private set

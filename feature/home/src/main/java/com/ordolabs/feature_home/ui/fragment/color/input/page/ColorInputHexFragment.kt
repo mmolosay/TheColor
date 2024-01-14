@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.Flow
 class ColorInputHexFragment :
     BaseColorInputFragment<ColorPrototype.Hex>() {
 
-    private val binding: ColorInputHexFragmentBinding by viewBinding()
+    private val binding by viewBinding(ColorInputHexFragmentBinding::bind)
 
     override fun onCreateView(
         inflater: LayoutInflater,

@@ -67,7 +67,7 @@ class HomeFragment :
     ColorInputParent,
     ColorDetailsParent {
 
-    private val binding: HomeFragmentBinding by viewBinding()
+    private val binding by viewBinding(HomeFragmentBinding::bind)
     private val homeVM: HomeViewModel by viewModels()
     private val colorValidatorVM: ColorValidatorViewModel by viewModels()
 

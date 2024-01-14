@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.fragment.app.Fragment
-import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDataPageFragmentBinding
@@ -34,7 +33,7 @@ abstract class BaseColorDataPage :
 
     // endregion
 
-    private val binding: ColorDataPageFragmentBinding by viewBinding(CreateMethod.BIND)
+    private val binding by viewBinding(ColorDataPageFragmentBinding::bind)
     private val colorDataVM: ColorDataViewModel by parentViewModels()
 
     override val color: Color?

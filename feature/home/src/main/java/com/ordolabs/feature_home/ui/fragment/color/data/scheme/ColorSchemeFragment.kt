@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import androidx.core.view.doOnLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorSchemeFragmentBinding
@@ -26,7 +25,7 @@ class ColorSchemeFragment :
     BaseColorDataFragment<ColorScheme>(),
     OnRecyclerItemClicksListener {
 
-    private val binding: ColorSchemeFragmentBinding by viewBinding(CreateMethod.BIND)
+    private val binding by viewBinding(ColorSchemeFragmentBinding::bind)
 
     private val samplesAdapter =
         ColorSchemeSamplesAdapter().also {

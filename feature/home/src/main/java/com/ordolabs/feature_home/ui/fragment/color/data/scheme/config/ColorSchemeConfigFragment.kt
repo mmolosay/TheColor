@@ -9,7 +9,6 @@ import androidx.annotation.StringRes
 import androidx.core.text.buildSpannedString
 import androidx.core.text.color
 import androidx.fragment.app.viewModels
-import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.google.android.material.chip.Chip
 import com.ordolabs.feature_home.R
@@ -31,7 +30,7 @@ class ColorSchemeConfigFragment :
     BaseFragment(),
     ColorSchemeConfigView {
 
-    private val binding: ColorSchemeConfigFragmentBinding by viewBinding(CreateMethod.BIND)
+    private val binding by viewBinding(ColorSchemeConfigFragmentBinding::bind)
     private val configVM: ColorSchemeConfigViewModel by viewModels()
 
     // TODO: implement custom property delegate "by ancestors()"?

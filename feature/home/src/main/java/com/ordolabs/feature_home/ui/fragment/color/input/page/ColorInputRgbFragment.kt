@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.Flow
 class ColorInputRgbFragment :
     BaseColorInputFragment<ColorPrototype.Rgb>() {
 
-    private val binding: ColorInputRgbFragmentBinding by viewBinding()
+    private val binding by viewBinding(ColorInputRgbFragmentBinding::bind)
 
     override fun onCreateView(
         inflater: LayoutInflater,

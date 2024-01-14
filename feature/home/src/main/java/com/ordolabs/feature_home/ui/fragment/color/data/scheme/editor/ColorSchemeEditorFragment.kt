@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
-import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorSchemeEditorFragmentBinding
@@ -37,7 +36,7 @@ class ColorSchemeEditorFragment :
     ColorSchemeEditorView,
     ColorSchemeConfigParent {
 
-    private val binding: ColorSchemeEditorFragmentBinding by viewBinding(CreateMethod.BIND)
+    private val binding by viewBinding(ColorSchemeEditorFragmentBinding::bind)
 
     private val parent: ColorSchemeEditorParent? by lazy { ancestorOf() }
     private var schemeView: ColorDataView<ColorScheme>? = null

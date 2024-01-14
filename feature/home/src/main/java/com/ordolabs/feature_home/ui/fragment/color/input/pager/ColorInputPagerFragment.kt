@@ -32,7 +32,7 @@ class ColorInputPagerFragment :
     ColorInputPagerView,
     ColorInputParent {
 
-    private val binding: ColorInputPagerFragmentBinding by viewBinding()
+    private val binding by viewBinding(ColorInputPagerFragmentBinding::bind)
     private val colorInputVM: ColorInputViewModel by viewModels()
 
     private val parent: ColorInputParent? by lazy { requireParentOf() }

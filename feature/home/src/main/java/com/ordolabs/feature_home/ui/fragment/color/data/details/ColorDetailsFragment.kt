@@ -7,7 +7,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
-import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDetailsFragmentBinding
@@ -26,7 +25,7 @@ import com.ordolabs.thecolor.util.ext.setTextOrGoneWith
 class ColorDetailsFragment :
     BaseColorDataFragment<ColorDetails>() {
 
-    private val binding: ColorDetailsFragmentBinding by viewBinding(CreateMethod.BIND)
+    private val binding by viewBinding(ColorDetailsFragmentBinding::bind)
 
     private var colorDetails: ColorDetails? = null
 

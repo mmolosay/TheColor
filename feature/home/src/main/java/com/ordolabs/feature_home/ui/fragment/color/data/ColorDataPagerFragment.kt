@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
-import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDataPagerFragmentBinding
@@ -24,7 +23,7 @@ class ColorDataPagerFragment :
     BaseFragment(),
     ColorThemedView {
 
-    private val binding: ColorDataPagerFragmentBinding by viewBinding(CreateMethod.BIND)
+    private val binding by viewBinding(ColorDataPagerFragmentBinding::bind)
     private val colorDataVM: ColorDataViewModel by viewModels()
 
     override var color: Color? = null
