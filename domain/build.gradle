@@ -9,9 +9,9 @@ java {
 }
 
 dependencies {
+    implementation project(':utils')
 
     // Modules
-    implementation project(':base')
 
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
     implementation "javax.inject:javax.inject:1"

@@ -57,9 +57,9 @@ android {
 }
 
 dependencies {
+    api project(':utils')
 
     // Modules
-    api project(":base")
     api project(":domain")
     implementation project(":main")
 

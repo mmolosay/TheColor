@@ -30,9 +30,9 @@ android {
 }
 
 dependencies {
+    implementation project(':utils')
 
     // Modules
-    implementation project(':base')
     implementation project(':domain')
     api project(':data:local')
     api project(':data:remote')

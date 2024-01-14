@@ -9,8 +9,7 @@ java {
 }
 
 dependencies {
-    implementation project(':base')
-
+    implementation project(':utils')
     // Modules
     implementation project(':domain')
 
