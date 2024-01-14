@@ -6,8 +6,9 @@ import com.ordolabs.domain.model.HistoryColor
 import com.ordolabs.domain.repository.ColorsHistoryRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import javax.inject.Inject
 
-class ColorsHistoryRepositoryImpl(
+class ColorsHistoryRepositoryImpl @Inject constructor(
     private val colorsHistoryDao: ColorsHistoryDao
 ) : ColorsHistoryRepository {
 

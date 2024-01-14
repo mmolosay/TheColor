@@ -4,10 +4,11 @@ import com.ordolabs.domain.model.ColorHex
 import com.ordolabs.domain.repository.ColorValidatorRepository
 import com.ordolabs.domain.usecase.BaseUseCase
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
 interface ValidateColorHexUseCase : BaseUseCase<ColorHex?, Boolean>
 
-class ValidateColorHexUseCaseImpl(
+class ValidateColorHexUseCaseImpl @Inject constructor(
     private val colorValidatorRepository: ColorValidatorRepository
 ) : ValidateColorHexUseCase {
 

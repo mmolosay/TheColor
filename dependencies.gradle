@@ -7,6 +7,7 @@ ext {
 
     // Dagger
     daggerVersion = "2.40.5"
+    hiltVersion = "2.40.5" // 2.44
 
     // Android Core
     compileSdkV = 31

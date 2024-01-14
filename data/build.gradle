@@ -1,7 +1,6 @@
 plugins {
     id 'com.android.library'
     id 'kotlin-android'
-    id 'kotlin-kapt'
 }
 
 android {
@@ -33,12 +32,10 @@ android {
 dependencies {
 
     // Modules
+    implementation project(':base')
+    implementation project(':domain')
     api project(':data:local')
     api project(':data:remote')
-    implementation project(':base')
 
-    implementation project(':domain')
-
-    // Dagger2
-    kapt "com.google.dagger:dagger-compiler:$daggerVersion"
+    implementation "javax.inject:javax.inject:1"
 }

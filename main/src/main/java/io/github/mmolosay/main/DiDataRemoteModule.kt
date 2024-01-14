@@ -1,4 +1,4 @@
-package com.ordolabs.data_bridge.model.remote
+package io.github.mmolosay.main
 
 import com.ordolabs.data_remote.api.TheColorApiService
 import dagger.Module
@@ -8,26 +8,23 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.util.concurrent.TimeUnit
-import javax.inject.Singleton
 
+/**
+ * Part of [DiDataModule].
+ * Focuses on data components related to remote sources.
+ */
 @Module
-class DataRemoteModule {
+object DiDataRemoteModule {
 
-    // region Api services
-
-    @Singleton
     @Provides
     fun provideTheColorApiService(
-        retrofit: Retrofit
+        retrofit: Retrofit,
     ): TheColorApiService =
         retrofit.create(TheColorApiService::class.java)
 
-    // endregion
-
-    @Singleton
     @Provides
     fun provideRetrofit(
-        client: OkHttpClient
+        client: OkHttpClient,
     ): Retrofit =
         Retrofit.Builder()
             .baseUrl(THE_COLOR_API_BASE_URL)
@@ -35,22 +32,20 @@ class DataRemoteModule {
             .addConverterFactory(MoshiConverterFactory.create())
             .build()
 
-    @Singleton
     @Provides
-    fun provideOkHttpClient(): OkHttpClient {
-        val httpLoggingInterceptor = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
-        }
-        return OkHttpClient.Builder()
+    fun provideOkHttpClient(): OkHttpClient =
+        OkHttpClient.Builder()
             .connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .readTimeout(READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-            .addInterceptor(httpLoggingInterceptor)
+            .addInterceptor(makeHttpLoggingInterceptor())
             .build()
-    }
 
-    companion object {
-        private const val THE_COLOR_API_BASE_URL = "https://www.thecolorapi.com/"
-        private const val CONNECT_TIMEOUT_SECONDS = 10L
-        private const val READ_TIMEOUT_SECONDS = 10L
-    }
+    private fun makeHttpLoggingInterceptor() =
+        HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
+
+    private const val THE_COLOR_API_BASE_URL = "https://www.thecolorapi.com/"
+    private const val CONNECT_TIMEOUT_SECONDS = 10L
+    private const val READ_TIMEOUT_SECONDS = 10L
 }

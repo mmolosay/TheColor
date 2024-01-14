@@ -1,7 +1,6 @@
 plugins {
     id 'java-library'
     id 'kotlin'
-    id 'kotlin-kapt'
 }
 
 java {
@@ -9,18 +8,11 @@ java {
     targetCompatibility = JavaVersion.VERSION_1_8
 }
 
-sourceSets {
-    main.java.srcDirs += 'build/generated/source/kapt'
-}
-
 dependencies {
 
     // Modules
     implementation project(':base')
 
-    // Kotlin
     api "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1"
-
-    // Dagger2
-    kapt "com.google.dagger:dagger-compiler:$daggerVersion"
+    implementation "javax.inject:javax.inject:1"
 }

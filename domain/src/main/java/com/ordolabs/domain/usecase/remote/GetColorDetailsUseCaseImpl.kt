@@ -4,10 +4,11 @@ import com.ordolabs.domain.model.ColorDetails
 import com.ordolabs.domain.repository.ColorRemoteRepository
 import com.ordolabs.domain.usecase.BaseUseCase
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
 interface GetColorDetailsUseCase : BaseUseCase<String, ColorDetails>
 
-class GetColorDetailsUseCaseImpl(
+class GetColorDetailsUseCaseImpl @Inject constructor(
     private val colorRemoteRepository: ColorRemoteRepository
 ) : GetColorDetailsUseCase {
 
