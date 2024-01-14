@@ -6,8 +6,10 @@ import com.ordolabs.thecolor.util.MutableCommandFlow
 import com.ordolabs.thecolor.util.ext.asCommand
 import com.ordolabs.thecolor.util.ext.setSuccess
 import com.ordolabs.thecolor.viewmodel.BaseViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
+@HiltViewModel
 class ColorDataViewModel @Inject constructor() : BaseViewModel() {
 
     private val _changePageCommand = MutableCommandFlow<ColorDataPagerAdapter.Page>()

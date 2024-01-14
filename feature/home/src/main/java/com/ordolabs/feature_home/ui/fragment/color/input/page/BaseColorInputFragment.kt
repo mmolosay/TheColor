@@ -2,7 +2,6 @@ package com.ordolabs.feature_home.ui.fragment.color.input.page
 
 import androidx.annotation.CallSuper
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
-import com.ordolabs.feature_home.util.FeatureHomeUtil.featureHomeComponent
 import com.ordolabs.feature_home.viewmodel.color.input.ColorInputViewModel
 import com.ordolabs.thecolor.model.color.ColorPrototype
 import com.ordolabs.thecolor.util.ext.parentViewModels
@@ -51,9 +50,7 @@ abstract class BaseColorInputFragment<C : ColorPrototype> : BaseFragment() {
 
     // endregion
 
-    protected val colorInputVM: ColorInputViewModel by parentViewModels {
-        featureHomeComponent.viewModelFactory
-    }
+    protected val colorInputVM: ColorInputViewModel by parentViewModels()
 
     private val parent: ColorInputParent? by lazy { requireParentOf() }
     private var currentPrototype: ColorPrototype? = null

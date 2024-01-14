@@ -8,8 +8,6 @@ import androidx.fragment.app.FragmentManager
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.get
 import com.github.michaelbull.result.getOrElse
-import com.ordolabs.thecolor.TheColorApplication
-import com.ordolabs.thecolor.di.AppComponent
 import com.ordolabs.thecolor.util.ext.commit
 import com.ordolabs.thecolor.util.ext.error
 import com.ordolabs.thecolor.util.ext.success
@@ -138,17 +136,6 @@ object ContextUtil {
         text ?: return
         Toast.makeText(context, text, duration).show()
     }
-
-    // endregion
-
-    // region DI
-
-    fun getAppComponent(context: Context?): AppComponent? =
-        when (context) {
-            null -> null
-            is TheColorApplication -> context.appComponent
-            else -> getAppComponent(context.applicationContext)
-        }
 
     // endregion
 }

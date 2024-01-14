@@ -13,20 +13,19 @@ import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDataPagerFragmentBinding
 import com.ordolabs.feature_home.ui.adapter.pager.ColorDataPagerAdapter
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
-import com.ordolabs.feature_home.util.FeatureHomeUtil.featureHomeComponent
 import com.ordolabs.feature_home.viewmodel.color.data.ColorDataViewModel
 import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.isDark
+import dagger.hilt.android.AndroidEntryPoint
 import com.ordolabs.thecolor.R as RApp
 
+@AndroidEntryPoint
 class ColorDataPagerFragment :
     BaseFragment(),
     ColorThemedView {
 
     private val binding: ColorDataPagerFragmentBinding by viewBinding(CreateMethod.BIND)
-    private val colorDataVM: ColorDataViewModel by viewModels {
-        featureHomeComponent.viewModelFactory
-    }
+    private val colorDataVM: ColorDataViewModel by viewModels()
 
     override var color: Color? = null
 

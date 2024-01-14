@@ -4,13 +4,12 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import com.ordolabs.feature_home.ui.fragment.home.HomeView
 import com.ordolabs.thecolor.model.color.ColorPreview
-import com.ordolabs.thecolor.viewmodel.factory.AssistedSavedStateViewModelFactory
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class HomeViewModel @AssistedInject constructor(
-    @Assisted private val stateHandle: SavedStateHandle
+@HiltViewModel
+class HomeViewModel @Inject constructor(
+    private val stateHandle: SavedStateHandle,
 ) : ViewModel() {
 
     var preview: ColorPreview?
@@ -20,9 +19,6 @@ class HomeViewModel @AssistedInject constructor(
     var stateType: HomeView.State.Type
         get() = stateHandle.get<HomeView.State.Type>(KEY_STATE) ?: HomeView.State.Type.BLANK
         set(value) = stateHandle.set(KEY_STATE, value)
-
-    @AssistedFactory
-    interface Factory : AssistedSavedStateViewModelFactory<HomeViewModel>
 
     companion object {
 

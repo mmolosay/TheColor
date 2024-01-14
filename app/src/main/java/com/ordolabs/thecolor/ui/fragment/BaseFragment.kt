@@ -135,7 +135,7 @@ abstract class BaseFragment : Fragment() {
      */
     protected inline fun <T> Flow<T>.collectOnLifecycle(
         state: Lifecycle.State = Lifecycle.State.STARTED,
-        crossinline action: suspend (value: T) -> Unit
+        noinline action: suspend (value: T) -> Unit
     ) =
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(state) {

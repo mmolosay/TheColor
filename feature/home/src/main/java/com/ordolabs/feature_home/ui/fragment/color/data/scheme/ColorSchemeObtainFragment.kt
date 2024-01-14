@@ -9,21 +9,20 @@ import com.ordolabs.feature_home.ui.fragment.color.data.base.BaseColorDataFragme
 import com.ordolabs.feature_home.ui.fragment.color.data.scheme.editor.ColorSchemeEditorFragment
 import com.ordolabs.feature_home.ui.fragment.color.data.scheme.editor.ColorSchemeEditorParent
 import com.ordolabs.feature_home.ui.fragment.color.data.scheme.editor.ColorSchemeEditorView
-import com.ordolabs.feature_home.util.FeatureHomeUtil.featureHomeComponent
 import com.ordolabs.feature_home.viewmodel.color.data.scheme.ColorSchemeObtainViewModel
 import com.ordolabs.thecolor.model.color.data.ColorScheme
 import com.ordolabs.thecolor.model.color.data.ColorSchemeRequest
 import com.ordolabs.thecolor.util.struct.Resource
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.Flow
 import com.ordolabs.thecolor.R as RApp
 
+@AndroidEntryPoint
 class ColorSchemeObtainFragment :
     ColorDataObtainFragment<ColorScheme>(),
     ColorSchemeEditorParent {
 
-    private val schemeObtainVM: ColorSchemeObtainViewModel by viewModels {
-        featureHomeComponent.viewModelFactory
-    }
+    private val schemeObtainVM: ColorSchemeObtainViewModel by viewModels()
 
     // region Set views
 

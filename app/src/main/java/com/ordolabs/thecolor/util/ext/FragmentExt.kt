@@ -10,7 +10,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.github.michaelbull.result.Result
-import com.ordolabs.thecolor.di.AppComponent
 import com.ordolabs.thecolor.ui.fragment.BaseFragment
 import com.ordolabs.thecolor.util.ContextUtil
 
@@ -166,13 +165,6 @@ fun BaseFragment.hideSoftInputAndClearFocus(): Boolean {
         if (wasHidden) this.view?.clearFocus()
     }
 }
-
-// endregion
-
-// region DI
-
-val Fragment.appComponent: AppComponent
-    get() = requireNotNull(ContextUtil.getAppComponent(context))
 
 // endregion
 

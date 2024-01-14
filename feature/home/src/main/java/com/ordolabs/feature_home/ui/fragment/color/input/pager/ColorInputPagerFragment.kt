@@ -13,28 +13,27 @@ import com.ordolabs.feature_home.databinding.ColorInputPagerFragmentBinding
 import com.ordolabs.feature_home.ui.adapter.pager.ColorInputPagerAdapter
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.ui.fragment.color.input.page.ColorInputParent
-import com.ordolabs.feature_home.util.FeatureHomeUtil.featureHomeComponent
 import com.ordolabs.feature_home.viewmodel.color.input.ColorInputViewModel
 import com.ordolabs.thecolor.model.color.Color
 import com.ordolabs.thecolor.model.color.ColorPrototype
 import com.ordolabs.thecolor.ui.util.itemdecoration.MarginDecoration
 import com.ordolabs.thecolor.util.ext.getFromEnumOrNull
 import com.ordolabs.thecolor.util.ext.requireParentOf
+import dagger.hilt.android.AndroidEntryPoint
 import com.ordolabs.thecolor.R as RApp
 
 /**
  * `Fragment` with `ViewPager` which contains `Fragment`s of specific color scheme inputs.
  * Requires parent `Fragment` to be an instance of [ColorInputParent].
  */
+@AndroidEntryPoint
 class ColorInputPagerFragment :
     BaseFragment(),
     ColorInputPagerView,
     ColorInputParent {
 
     private val binding: ColorInputPagerFragmentBinding by viewBinding()
-    private val colorInputVM: ColorInputViewModel by viewModels {
-        featureHomeComponent.viewModelFactory
-    }
+    private val colorInputVM: ColorInputViewModel by viewModels()
 
     private val parent: ColorInputParent? by lazy { requireParentOf() }
 

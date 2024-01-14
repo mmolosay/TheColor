@@ -4,13 +4,12 @@ import androidx.lifecycle.SavedStateHandle
 import com.ordolabs.thecolor.model.color.data.ColorScheme
 import com.ordolabs.thecolor.model.color.data.ColorSchemeRequest
 import com.ordolabs.thecolor.viewmodel.BaseViewModel
-import com.ordolabs.thecolor.viewmodel.factory.AssistedSavedStateViewModelFactory
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class ColorSchemeConfigViewModel @AssistedInject constructor(
-    @Assisted private val stateHandle: SavedStateHandle
+@HiltViewModel
+class ColorSchemeConfigViewModel @Inject constructor(
+    private val stateHandle: SavedStateHandle,
 ) : BaseViewModel() {
 
     init {
@@ -39,9 +38,6 @@ class ColorSchemeConfigViewModel @AssistedInject constructor(
             modeOrdinal = ColorScheme.Mode.DEFAULT.ordinal,
             sampleCount = ColorSchemeRequest.Config.SAMPLE_COUNT_DEFAULT
         )
-
-    @AssistedFactory
-    interface Factory : AssistedSavedStateViewModelFactory<ColorSchemeConfigViewModel>
 
     companion object {
         private const val KEY_CURRENT_CONFIG = "KEY_CURRENT_CONFIG"

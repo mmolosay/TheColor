@@ -4,8 +4,8 @@ import android.animation.Animator
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 
-inline fun Animator.doOnEndOnce(
-    crossinline action: (animator: Animator) -> Unit
+fun Animator.doOnEndOnce(
+    action: (animator: Animator) -> Unit
 ): Animator.AnimatorListener {
     val listener = object : Animator.AnimatorListener {
         override fun onAnimationStart(animation: Animator) {}

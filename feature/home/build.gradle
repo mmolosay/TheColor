@@ -2,6 +2,7 @@ plugins {
     id 'com.android.dynamic-feature'
     id 'kotlin-android'
     id 'kotlin-kapt'
+    id 'com.google.dagger.hilt.android'
     id 'kotlin-parcelize'
     id 'androidx.navigation.safeargs.kotlin'
 }
@@ -32,13 +33,22 @@ android {
     buildFeatures {
         viewBinding true
     }
+    kapt {
+        correctErrorTypes true
+    }
 }
 
 dependencies {
 
     // Modules
     implementation project(":app")
+    implementation project(":main")
 
-    // Dagger2
-    kapt "com.google.dagger:dagger-compiler:$daggerVersion"
+    // Kotlin
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
+
+    // Hilt
+    String hiltV = "2.48.1" // TODO: dependencies.gradle
+    implementation "com.google.dagger:hilt-android:$hiltV"
+    kapt "com.google.dagger:hilt-compiler:$hiltV"
 }

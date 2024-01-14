@@ -11,11 +11,13 @@ import com.ordolabs.thecolor.util.ext.setSuccess
 import com.ordolabs.thecolor.util.struct.Resource
 import com.ordolabs.thecolor.util.struct.empty
 import com.ordolabs.thecolor.viewmodel.BaseViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import javax.inject.Inject
 
+@HiltViewModel
 class ColorDetailsObtainViewModel @Inject constructor(
     private val getColorDetailsUseCase: GetColorDetailsUseCase
 ) : BaseViewModel() {

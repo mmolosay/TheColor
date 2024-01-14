@@ -15,25 +15,24 @@ import com.google.android.material.chip.Chip
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorSchemeConfigFragmentBinding
 import com.ordolabs.feature_home.ui.fragment.BaseFragment
-import com.ordolabs.feature_home.util.FeatureHomeUtil.featureHomeComponent
 import com.ordolabs.feature_home.viewmodel.color.data.scheme.ColorSchemeConfigViewModel
 import com.ordolabs.thecolor.model.color.data.ColorScheme
 import com.ordolabs.thecolor.model.color.data.ColorSchemeRequest
 import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
 import com.ordolabs.thecolor.util.ext.ancestorOf
+import dagger.hilt.android.AndroidEntryPoint
 import com.google.android.material.R as RMaterial
 
 /**
  * Fragment that displays color scheme configuration options and provides UI to change them.
  */
+@AndroidEntryPoint
 class ColorSchemeConfigFragment :
     BaseFragment(),
     ColorSchemeConfigView {
 
     private val binding: ColorSchemeConfigFragmentBinding by viewBinding(CreateMethod.BIND)
-    private val configVM: ColorSchemeConfigViewModel by viewModels {
-        featureHomeComponent.savedStateViewModelFactoryFactory.create(this, defaultArgs = null)
-    }
+    private val configVM: ColorSchemeConfigViewModel by viewModels()
 
     // TODO: implement custom property delegate "by ancestors()"?
     private val parent: ColorSchemeConfigParent? by lazy { ancestorOf() }

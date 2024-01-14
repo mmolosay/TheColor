@@ -7,12 +7,14 @@ import com.ordolabs.data_local.dao.ColorsHistoryDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.migration.DisableInstallInCheck
 
 /**
  * Part of [DiDataModule].
  * Focuses on data components related to local sources.
  */
 @Module
+@DisableInstallInCheck
 object DiDataLocalModule {
 
     // region Database

@@ -3,6 +3,7 @@ package io.github.mmolosay.main
 import com.ordolabs.data_remote.api.TheColorApiService
 import dagger.Module
 import dagger.Provides
+import dagger.hilt.migration.DisableInstallInCheck
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -14,6 +15,7 @@ import java.util.concurrent.TimeUnit
  * Focuses on data components related to remote sources.
  */
 @Module
+@DisableInstallInCheck
 object DiDataRemoteModule {
 
     @Provides

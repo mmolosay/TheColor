@@ -10,6 +10,7 @@ import com.ordolabs.thecolor.util.ext.asCommand
 import com.ordolabs.thecolor.util.ext.setEmpty
 import com.ordolabs.thecolor.util.ext.setSuccess
 import com.ordolabs.thecolor.viewmodel.BaseViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 /**
@@ -18,6 +19,7 @@ import javax.inject.Inject
  * `View` should call [updateCurrentColor], when there is new [Color], that should be populated
  * in all color input UIs.
  */
+@HiltViewModel
 class ColorInputViewModel @Inject constructor() : BaseViewModel() {
 
     /**

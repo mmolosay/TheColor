@@ -14,6 +14,7 @@ import com.ordolabs.thecolor.util.struct.Resource
 import com.ordolabs.thecolor.util.struct.empty
 import com.ordolabs.thecolor.util.struct.getOrNull
 import com.ordolabs.thecolor.viewmodel.BaseViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import javax.inject.Inject
 
+@HiltViewModel
 class ColorValidatorViewModel @Inject constructor(
     private val validateColorHexUseCase: ValidateColorHexUseCase,
     private val validateColorRgbUseCase: ValidateColorRgbUseCase
@@ -51,6 +53,10 @@ class ColorValidatorViewModel @Inject constructor(
         restartColorValidation()
         val domain = input.toDomain()
         this.colorValidationJob = launch {
+            val flow = validateColorHexUseCase.invoke(domain)
+            flow.collect {
+
+            }
             validateColorHexUseCase.invoke(domain).collect { valid ->
                 val color = Color.from(input)
                 onColorValidated(color, valid)

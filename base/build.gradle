@@ -9,6 +9,10 @@ java {
     targetCompatibility = JavaVersion.VERSION_1_8
 }
 
+kapt {
+    correctErrorTypes true
+}
+
 dependencies {
 
     // Dagger2
