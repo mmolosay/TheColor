@@ -3,10 +3,10 @@ package com.ordolabs.feature_home.ui.adapter.recycler
 import android.view.View
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorSchemeSampleItemBinding
-import com.ordolabs.thecolor.model.color.data.ColorScheme
-import com.ordolabs.thecolor.model.color.toColorInt
-import com.ordolabs.thecolor.ui.adapter.base.BaseAdapter
-import com.ordolabs.thecolor.ui.adapter.base.BaseViewHolder
+import io.github.mmolosay.presentation.model.color.data.ColorScheme
+import io.github.mmolosay.presentation.model.color.toColorInt
+import io.github.mmolosay.presentation.ui.adapter.base.BaseAdapter
+import io.github.mmolosay.presentation.ui.adapter.base.BaseViewHolder
 
 class ColorSchemeSamplesAdapter : BaseAdapter<ColorScheme.Sample, ColorSchemeSampleViewHolder>() {
 

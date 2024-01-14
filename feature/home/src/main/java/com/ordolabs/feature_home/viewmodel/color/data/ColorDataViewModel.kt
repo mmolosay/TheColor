@@ -2,11 +2,11 @@ package com.ordolabs.feature_home.viewmodel.color.data
 
 import androidx.lifecycle.viewModelScope
 import com.ordolabs.feature_home.ui.adapter.pager.ColorDataPagerAdapter
-import com.ordolabs.thecolor.util.MutableCommandFlow
-import com.ordolabs.thecolor.util.ext.asCommand
-import com.ordolabs.thecolor.util.ext.setSuccess
-import com.ordolabs.thecolor.viewmodel.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.mmolosay.presentation.util.MutableCommandFlow
+import io.github.mmolosay.presentation.util.ext.asCommand
+import io.github.mmolosay.presentation.util.ext.setSuccess
+import io.github.mmolosay.presentation.viewmodel.BaseViewModel
 import javax.inject.Inject
 
 @HiltViewModel

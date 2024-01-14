@@ -16,14 +16,13 @@ import com.ordolabs.feature_home.ui.fragment.color.data.scheme.ColorSchemeFragme
 import com.ordolabs.feature_home.ui.fragment.color.data.scheme.config.ColorSchemeConfigFragment
 import com.ordolabs.feature_home.ui.fragment.color.data.scheme.config.ColorSchemeConfigParent
 import com.ordolabs.feature_home.ui.fragment.color.data.scheme.config.ColorSchemeConfigView
-import com.ordolabs.thecolor.model.color.data.ColorScheme
-import com.ordolabs.thecolor.model.color.data.ColorSchemeRequest
-import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
-import com.ordolabs.thecolor.util.ext.ancestorOf
-import com.ordolabs.thecolor.util.ext.by
-import com.ordolabs.thecolor.util.ext.mediumAnimDuration
-import com.ordolabs.thecolor.util.ext.setFragmentOrGet
-import com.ordolabs.thecolor.R as RApp
+import io.github.mmolosay.presentation.model.color.data.ColorScheme
+import io.github.mmolosay.presentation.model.color.data.ColorSchemeRequest
+import io.github.mmolosay.presentation.util.InflaterUtil.cloneInViewContext
+import io.github.mmolosay.presentation.util.ext.ancestorOf
+import io.github.mmolosay.presentation.util.ext.by
+import io.github.mmolosay.presentation.util.ext.mediumAnimDuration
+import io.github.mmolosay.presentation.util.ext.setFragmentOrGet
 
 /**
  * Editor fragment for color scheme. It can:
@@ -102,7 +101,7 @@ class ColorSchemeEditorFragment :
     private fun animDispatchChangesBtn(show: Boolean) =
         binding.dispatchChangesBtn.apply {
             if (show == !isInvisible) return@apply // already in dest state
-            val translation = resources.getDimension(RApp.dimen.offset_12)
+            val translation = resources.getDimension(R.dimen.offset_12)
             val alphaValues = 1f to 0f
             val translationValues = 0f to translation
             alpha = alphaValues by !show // initial

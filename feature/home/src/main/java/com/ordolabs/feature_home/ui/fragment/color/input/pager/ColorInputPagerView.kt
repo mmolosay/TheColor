@@ -1,6 +1,6 @@
 package com.ordolabs.feature_home.ui.fragment.color.input.pager
 
-import com.ordolabs.thecolor.model.color.Color
+import io.github.mmolosay.presentation.model.color.Color
 
 interface ColorInputPagerView {
     fun updateCurrentColor(color: Color)

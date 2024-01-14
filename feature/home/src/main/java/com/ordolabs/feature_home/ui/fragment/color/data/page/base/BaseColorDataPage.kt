@@ -10,15 +10,14 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDataPageFragmentBinding
 import com.ordolabs.feature_home.ui.adapter.pager.ColorDataPagerAdapter
-import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.ui.fragment.color.data.ColorThemedView
 import com.ordolabs.feature_home.viewmodel.color.data.ColorDataViewModel
-import com.ordolabs.thecolor.model.color.Color
-import com.ordolabs.thecolor.model.color.isDark
-import com.ordolabs.thecolor.util.ext.getNextFor
-import com.ordolabs.thecolor.util.ext.parentViewModels
-import com.ordolabs.thecolor.util.ext.setFragmentOrGet
-import com.ordolabs.thecolor.R as RApp
+import io.github.mmolosay.presentation.fragment.BaseFragment
+import io.github.mmolosay.presentation.model.color.Color
+import io.github.mmolosay.presentation.model.color.isDark
+import io.github.mmolosay.presentation.util.ext.getNextFor
+import io.github.mmolosay.presentation.util.ext.parentViewModels
+import io.github.mmolosay.presentation.util.ext.setFragmentOrGet
 
 abstract class BaseColorDataPage :
     BaseFragment(),
@@ -47,9 +46,9 @@ abstract class BaseColorDataPage :
         /* ViewPager2 inflates its fragments without container,
         * thus parent view group theme can not be used :< */
         val themeOverlay = if (color?.isDark() == true) {
-            RApp.style.ThemeOverlay_TheColor_Dark
+            R.style.ThemeOverlay_TheColor_Dark
         } else {
-            RApp.style.ThemeOverlay_TheColor_Light
+            R.style.ThemeOverlay_TheColor_Light
         }
         val themedContext = ContextThemeWrapper(context, themeOverlay)
         return inflater

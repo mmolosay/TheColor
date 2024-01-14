@@ -3,7 +3,7 @@ package com.ordolabs.feature_home.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import com.ordolabs.feature_home.ui.fragment.home.HomeView
-import com.ordolabs.thecolor.model.color.ColorPreview
+import io.github.mmolosay.presentation.model.color.ColorPreview
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 

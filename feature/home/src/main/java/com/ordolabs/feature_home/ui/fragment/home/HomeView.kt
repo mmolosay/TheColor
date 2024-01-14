@@ -1,7 +1,7 @@
 package com.ordolabs.feature_home.ui.fragment.home
 
-import com.ordolabs.thecolor.model.color.Color
-import com.ordolabs.thecolor.model.color.ColorPreview
+import io.github.mmolosay.presentation.model.color.Color
+import io.github.mmolosay.presentation.model.color.ColorPreview
 
 /**
  * Interface for home `View`, which is finite-state machine: see [HomeView.State].

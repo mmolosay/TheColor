@@ -11,13 +11,13 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDetailsFragmentBinding
 import com.ordolabs.feature_home.ui.fragment.color.data.base.BaseColorDataFragment
-import com.ordolabs.thecolor.model.color.data.ColorDetails
-import com.ordolabs.thecolor.model.color.toColorInt
-import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
-import com.ordolabs.thecolor.util.ext.ancestorOf
-import com.ordolabs.thecolor.util.ext.getStringYesOrNo
-import com.ordolabs.thecolor.util.ext.setTextOrGone
-import com.ordolabs.thecolor.util.ext.setTextOrGoneWith
+import io.github.mmolosay.presentation.model.color.data.ColorDetails
+import io.github.mmolosay.presentation.model.color.toColorInt
+import io.github.mmolosay.presentation.util.InflaterUtil.cloneInViewContext
+import io.github.mmolosay.presentation.util.ext.ancestorOf
+import io.github.mmolosay.presentation.util.ext.getStringYesOrNo
+import io.github.mmolosay.presentation.util.ext.setTextOrGone
+import io.github.mmolosay.presentation.util.ext.setTextOrGoneWith
 
 /**
  * [BaseColorDataFragment] that displays [ColorDetails] data.

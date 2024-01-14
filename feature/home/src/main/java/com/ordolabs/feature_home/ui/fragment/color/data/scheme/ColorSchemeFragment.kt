@@ -13,10 +13,10 @@ import com.ordolabs.feature_home.databinding.ColorSchemeFragmentBinding
 import com.ordolabs.feature_home.ui.adapter.recycler.ColorSchemeSamplesAdapter
 import com.ordolabs.feature_home.ui.dialog.ColorDetailsBottomSheetDialogFragment
 import com.ordolabs.feature_home.ui.fragment.color.data.base.BaseColorDataFragment
-import com.ordolabs.thecolor.model.color.data.ColorScheme
-import com.ordolabs.thecolor.ui.adapter.base.OnRecyclerItemClicksListener
-import com.ordolabs.thecolor.ui.util.itemdecoration.OverlapingDecoration
-import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
+import io.github.mmolosay.presentation.model.color.data.ColorScheme
+import io.github.mmolosay.presentation.ui.adapter.base.OnRecyclerItemClicksListener
+import io.github.mmolosay.presentation.ui.util.itemdecoration.OverlapingDecoration
+import io.github.mmolosay.presentation.util.InflaterUtil.cloneInViewContext
 
 /**
  * [BaseColorDataFragment] that displays [ColorScheme] data.

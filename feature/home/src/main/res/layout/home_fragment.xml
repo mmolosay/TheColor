@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.ordolabs.thecolor.ui.view.LockableScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<io.github.mmolosay.presentation.ui.view.LockableScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/scrollview"
@@ -118,4 +118,4 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-</com.ordolabs.thecolor.ui.view.LockableScrollView>
+</io.github.mmolosay.presentation.ui.view.LockableScrollView>

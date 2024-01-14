@@ -10,10 +10,10 @@ import com.ordolabs.feature_home.ui.fragment.color.data.ColorThemedView
 import com.ordolabs.feature_home.ui.fragment.color.data.details.ColorDetailsObtainFragment
 import com.ordolabs.feature_home.ui.fragment.color.data.details.ColorDetailsObtainView
 import com.ordolabs.feature_home.ui.fragment.color.data.details.ColorDetailsParent
-import com.ordolabs.thecolor.model.color.Color
-import com.ordolabs.thecolor.model.color.data.ColorDetails
-import com.ordolabs.thecolor.ui.dialog.BaseBottomSheetDialogFragment
-import com.ordolabs.thecolor.util.ContextUtil
+import io.github.mmolosay.presentation.model.color.Color
+import io.github.mmolosay.presentation.model.color.data.ColorDetails
+import io.github.mmolosay.presentation.ui.dialog.BaseBottomSheetDialogFragment
+import io.github.mmolosay.presentation.util.ContextUtil
 
 class ColorDetailsBottomSheetDialogFragment :
     BaseBottomSheetDialogFragment(),

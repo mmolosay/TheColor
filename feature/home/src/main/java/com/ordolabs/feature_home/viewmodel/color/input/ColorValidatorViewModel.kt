@@ -2,24 +2,23 @@ package com.ordolabs.feature_home.viewmodel.color.input
 
 import com.ordolabs.domain.usecase.local.ValidateColorHexUseCase
 import com.ordolabs.domain.usecase.local.ValidateColorRgbUseCase
-import com.ordolabs.thecolor.mapper.toDomain
-import com.ordolabs.thecolor.model.color.Color
-import com.ordolabs.thecolor.model.color.ColorPreview
-import com.ordolabs.thecolor.model.color.ColorPrototype
-import com.ordolabs.thecolor.model.color.from
-import com.ordolabs.thecolor.util.MutableStateResourceFlow
-import com.ordolabs.thecolor.util.ext.setEmpty
-import com.ordolabs.thecolor.util.ext.setSuccess
-import com.ordolabs.thecolor.util.struct.Resource
-import com.ordolabs.thecolor.util.struct.empty
-import com.ordolabs.thecolor.util.struct.getOrNull
-import com.ordolabs.thecolor.viewmodel.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.mmolosay.presentation.mapper.toDomain
+import io.github.mmolosay.presentation.model.color.Color
+import io.github.mmolosay.presentation.model.color.ColorPreview
+import io.github.mmolosay.presentation.model.color.ColorPrototype
+import io.github.mmolosay.presentation.model.color.from
+import io.github.mmolosay.presentation.util.MutableStateResourceFlow
+import io.github.mmolosay.presentation.util.ext.setEmpty
+import io.github.mmolosay.presentation.util.ext.setSuccess
+import io.github.mmolosay.presentation.util.struct.Resource
+import io.github.mmolosay.presentation.util.struct.empty
+import io.github.mmolosay.presentation.util.struct.getOrNull
+import io.github.mmolosay.presentation.viewmodel.BaseViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import javax.inject.Inject
 
 @HiltViewModel

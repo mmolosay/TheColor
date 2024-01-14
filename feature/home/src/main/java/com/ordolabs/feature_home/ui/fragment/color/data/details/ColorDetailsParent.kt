@@ -1,6 +1,6 @@
 package com.ordolabs.feature_home.ui.fragment.color.data.details
 
-import com.ordolabs.thecolor.model.color.Color
+import io.github.mmolosay.presentation.model.color.Color
 
 /**
  * Interface for parent (ancestor) `View` of color details `View`.

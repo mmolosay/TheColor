@@ -11,12 +11,11 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDataPagerFragmentBinding
 import com.ordolabs.feature_home.ui.adapter.pager.ColorDataPagerAdapter
-import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.viewmodel.color.data.ColorDataViewModel
-import com.ordolabs.thecolor.model.color.Color
-import com.ordolabs.thecolor.model.color.isDark
+import io.github.mmolosay.presentation.model.color.Color
+import io.github.mmolosay.presentation.model.color.isDark
 import dagger.hilt.android.AndroidEntryPoint
-import com.ordolabs.thecolor.R as RApp
+import io.github.mmolosay.presentation.fragment.BaseFragment
 
 @AndroidEntryPoint
 class ColorDataPagerFragment :
@@ -34,9 +33,9 @@ class ColorDataPagerFragment :
         savedInstanceState: Bundle?
     ): View? {
         val themeOverlay = if (color?.isDark() == true) {
-            RApp.style.ThemeOverlay_TheColor_Dark
+            R.style.ThemeOverlay_TheColor_Dark
         } else {
-            RApp.style.ThemeOverlay_TheColor_Light
+            R.style.ThemeOverlay_TheColor_Light
         }
         val themedContext = ContextThemeWrapper(context, themeOverlay)
         return inflater

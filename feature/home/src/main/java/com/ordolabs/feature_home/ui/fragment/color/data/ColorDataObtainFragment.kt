@@ -14,13 +14,13 @@ import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorDataObtainFragmentBinding
 import com.ordolabs.feature_home.ui.fragment.color.data.base.BaseColorDataFragment
 import com.ordolabs.feature_home.ui.fragment.color.data.base.ColorDataView
-import com.ordolabs.thecolor.model.color.Color
-import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
-import com.ordolabs.thecolor.util.ext.by
-import com.ordolabs.thecolor.util.ext.mediumAnimDuration
-import com.ordolabs.thecolor.util.ext.setFragmentOrGet
-import com.ordolabs.thecolor.util.ext.showToast
-import com.ordolabs.thecolor.util.struct.Resource
+import io.github.mmolosay.presentation.model.color.Color
+import io.github.mmolosay.presentation.util.InflaterUtil.cloneInViewContext
+import io.github.mmolosay.presentation.util.ext.by
+import io.github.mmolosay.presentation.util.ext.mediumAnimDuration
+import io.github.mmolosay.presentation.util.ext.setFragmentOrGet
+import io.github.mmolosay.presentation.util.ext.showToast
+import io.github.mmolosay.presentation.util.struct.Resource
 import kotlinx.coroutines.flow.Flow
 import java.net.UnknownHostException
 
@@ -179,7 +179,7 @@ abstract class ColorDataObtainFragment<D> :
 
     private fun animContentVisibility(visible: Boolean, instant: Boolean = false) {
         val content = binding.defaultFragmentContainer
-        val translation = resources.getDimension(com.ordolabs.thecolor.R.dimen.offset_8)
+        val translation = resources.getDimension(R.dimen.offset_8)
         if (visible) content.translationY = translation
         val translationY = 0f to translation by visible
         val alpha = 1f to 0f by visible

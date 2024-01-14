@@ -1,10 +1,10 @@
 package com.ordolabs.feature_home.viewmodel.color.data.scheme
 
 import androidx.lifecycle.SavedStateHandle
-import com.ordolabs.thecolor.model.color.data.ColorScheme
-import com.ordolabs.thecolor.model.color.data.ColorSchemeRequest
-import com.ordolabs.thecolor.viewmodel.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.mmolosay.presentation.model.color.data.ColorScheme
+import io.github.mmolosay.presentation.model.color.data.ColorSchemeRequest
+import io.github.mmolosay.presentation.viewmodel.BaseViewModel
 import javax.inject.Inject
 
 @HiltViewModel
