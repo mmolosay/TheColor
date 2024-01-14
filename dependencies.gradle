@@ -1,6 +1,6 @@
 ext {
 
-    // TODO: move all dependecies there
+    // TODO: move all dependencies there
 
     // Kotlin
     kotlinVersion = "1.6.1"
