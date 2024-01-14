@@ -1,7 +1,7 @@
 plugins {
     id 'com.android.library'
     id 'kotlin-android'
-    id 'kotlin-kapt'
+    id "com.google.devtools.ksp"
 }
 
 android {
@@ -37,9 +37,10 @@ dependencies {
     implementation project(':domain')
 
     // Room
-    api "androidx.room:room-runtime:2.4.1"
-    api "androidx.room:room-ktx:2.4.1"
-    kapt "androidx.room:room-compiler:2.4.1"
+    String roomV = "2.6.1"
+    api "androidx.room:room-runtime:$roomV"
+    api "androidx.room:room-ktx:$roomV"
+    ksp "androidx.room:room-compiler:$roomV"
 
     // DataStore Preferences
     implementation "androidx.datastore:datastore-preferences:1.0.0"

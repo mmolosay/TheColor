@@ -3,7 +3,7 @@ ext {
     // TODO: move all dependencies there
 
     // Kotlin
-    kotlinVersion = "1.6.1"
+    kotlinVersion = "1.8.22"
 
     // Dagger
     daggerVersion = "2.40.5"
