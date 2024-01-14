@@ -6,7 +6,7 @@ import io.github.mmolosay.presentation.fragment.BaseFragment
 import io.github.mmolosay.presentation.model.color.ColorPrototype
 import io.github.mmolosay.presentation.util.ext.parentViewModels
 import io.github.mmolosay.presentation.util.ext.requireParentOf
-import io.github.mmolosay.presentation.util.struct.Resource
+import com.ordolabs.util.Resource
 import kotlinx.coroutines.flow.Flow
 
 /**

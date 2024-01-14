@@ -14,7 +14,7 @@ import com.ordolabs.feature_home.viewmodel.color.data.scheme.ColorSchemeObtainVi
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.mmolosay.presentation.model.color.data.ColorScheme
 import io.github.mmolosay.presentation.model.color.data.ColorSchemeRequest
-import io.github.mmolosay.presentation.util.struct.Resource
+import com.ordolabs.util.Resource
 import kotlinx.coroutines.flow.Flow
 
 @AndroidEntryPoint

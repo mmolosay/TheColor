@@ -7,9 +7,9 @@ import io.github.mmolosay.presentation.model.color.ColorPrototype
 import io.github.mmolosay.presentation.model.color.toHex
 import io.github.mmolosay.presentation.model.color.toRgb
 import io.github.mmolosay.presentation.util.ext.shareOnceIn
-import io.github.mmolosay.presentation.util.struct.Resource
-import io.github.mmolosay.presentation.util.struct.empty
-import io.github.mmolosay.presentation.util.struct.success
+import com.ordolabs.util.Resource
+import com.ordolabs.util.empty
+import com.ordolabs.util.success
 import io.github.mmolosay.presentation.viewmodel.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject

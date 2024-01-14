@@ -8,10 +8,10 @@ import io.github.mmolosay.presentation.model.color.Color
 import io.github.mmolosay.presentation.model.color.ColorPreview
 import io.github.mmolosay.presentation.model.color.ColorPrototype
 import io.github.mmolosay.presentation.model.color.from
-import io.github.mmolosay.presentation.util.struct.Resource
-import io.github.mmolosay.presentation.util.struct.empty
-import io.github.mmolosay.presentation.util.struct.getOrNull
-import io.github.mmolosay.presentation.util.struct.success
+import com.ordolabs.util.Resource
+import com.ordolabs.util.empty
+import com.ordolabs.util.getOrNull
+import com.ordolabs.util.success
 import io.github.mmolosay.presentation.viewmodel.BaseViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow

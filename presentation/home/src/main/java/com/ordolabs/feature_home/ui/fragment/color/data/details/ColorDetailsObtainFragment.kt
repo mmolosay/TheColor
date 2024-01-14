@@ -9,7 +9,7 @@ import com.ordolabs.feature_home.ui.fragment.color.data.base.BaseColorDataFragme
 import com.ordolabs.feature_home.viewmodel.color.data.details.ColorDetailsObtainViewModel
 import io.github.mmolosay.presentation.model.color.Color
 import io.github.mmolosay.presentation.model.color.data.ColorDetails
-import io.github.mmolosay.presentation.util.struct.Resource
+import com.ordolabs.util.Resource
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.Flow
 

@@ -15,7 +15,7 @@ import io.github.mmolosay.presentation.util.ext.addFilters
 import io.github.mmolosay.presentation.util.ext.getText
 import io.github.mmolosay.presentation.util.ext.getTextString
 import io.github.mmolosay.presentation.util.ext.setTextPreservingSelection
-import io.github.mmolosay.presentation.util.struct.Resource
+import com.ordolabs.util.Resource
 import kotlinx.coroutines.flow.Flow
 
 class ColorInputRgbFragment :

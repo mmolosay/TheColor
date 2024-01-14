@@ -4,9 +4,9 @@ import androidx.lifecycle.viewModelScope
 import com.ordolabs.feature_home.ui.adapter.pager.ColorDataPagerAdapter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.presentation.util.ext.shareOnceIn
-import io.github.mmolosay.presentation.util.struct.Resource
-import io.github.mmolosay.presentation.util.struct.empty
-import io.github.mmolosay.presentation.util.struct.success
+import com.ordolabs.util.Resource
+import com.ordolabs.util.empty
+import com.ordolabs.util.success
 import io.github.mmolosay.presentation.viewmodel.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject

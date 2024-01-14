@@ -20,7 +20,7 @@ import io.github.mmolosay.presentation.util.ext.by
 import io.github.mmolosay.presentation.util.ext.mediumAnimDuration
 import io.github.mmolosay.presentation.util.ext.setFragmentOrGet
 import io.github.mmolosay.presentation.util.ext.showToast
-import io.github.mmolosay.presentation.util.struct.Resource
+import com.ordolabs.util.Resource
 import kotlinx.coroutines.flow.Flow
 import java.net.UnknownHostException
 

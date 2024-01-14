@@ -5,11 +5,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.presentation.mapper.toPresentation
 import io.github.mmolosay.presentation.model.color.Color
 import io.github.mmolosay.presentation.model.color.data.ColorDetails
-import io.github.mmolosay.presentation.util.struct.Resource
-import io.github.mmolosay.presentation.util.struct.empty
-import io.github.mmolosay.presentation.util.struct.failure
-import io.github.mmolosay.presentation.util.struct.loading
-import io.github.mmolosay.presentation.util.struct.success
+import com.ordolabs.util.Resource
+import com.ordolabs.util.empty
+import com.ordolabs.util.failure
+import com.ordolabs.util.loading
+import com.ordolabs.util.success
 import io.github.mmolosay.presentation.viewmodel.BaseViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow

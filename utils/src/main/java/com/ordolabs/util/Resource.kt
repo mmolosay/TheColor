@@ -1,9 +1,9 @@
-package io.github.mmolosay.presentation.util.struct
+package com.ordolabs.util
 
-import io.github.mmolosay.presentation.util.struct.Resource.Empty
-import io.github.mmolosay.presentation.util.struct.Resource.Failure
-import io.github.mmolosay.presentation.util.struct.Resource.Loading
-import io.github.mmolosay.presentation.util.struct.Resource.Success
+import com.ordolabs.util.Resource.Empty
+import com.ordolabs.util.Resource.Failure
+import com.ordolabs.util.Resource.Loading
+import com.ordolabs.util.Resource.Success
 
 // TODO: get rid of previous value — state should not contain such
 /**
@@ -37,8 +37,8 @@ sealed class Resource<out V>(open val value: V?) {
     class Success<out V>(override val value: V) : Resource<V>(value)
 
     /**
-     * Represents failure, occured while obtaining resource. [payload] can be string message,
-     * int code or anything else. Any [Throwable] set can be obtainded from [error].
+     * Represents failure, occurred while obtaining resource. [payload] can be string message,
+     * int code or anything else. Any [Throwable] set can be obtained from [error].
      *
      * @param previous a previous correct value, or `null`.
      * @param payload some useful data.
