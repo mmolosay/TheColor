@@ -1,20 +1,17 @@
-@file:Suppress("UnstableApiUsage")
-
 plugins {
     id("com.android.library")
-    id("org.jetbrains.kotlin.android")
-    id("org.jetbrains.kotlin.kapt")
-    id("com.google.dagger.hilt.android")
+    id("kotlin-android")
+    id("com.google.devtools.ksp")
 }
 
 android {
-    namespace = "io.github.mmolosay.main"
     compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
     }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -29,18 +26,18 @@ android {
     kotlinOptions {
         jvmTarget = javaVersion.toString()
     }
-
-    kapt {
-        correctErrorTypes = true
-    }
 }
 
 dependencies {
+    implementation(project(":utils"))
     implementation(project(":domain"))
-    implementation(project(":data"))
-    implementation(project(":data:local"))
-    implementation(project(":data:remote"))
 
-    implementation("com.google.dagger:hilt-android:${libs.versions.hilt.get()}")
-    kapt("com.google.dagger:hilt-compiler:${libs.versions.hilt.get()}")
+    // Room
+    val roomVersion = libs.versions.room.get()
+    api("androidx.room:room-runtime:$roomVersion")
+    api("androidx.room:room-ktx:$roomVersion")
+    ksp("androidx.room:room-compiler:$roomVersion")
+
+    // DataStore Preferences
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
 }

@@ -1,0 +1,25 @@
+[versions]
+# Gradle
+androidGradlePlugin = "7.1.1" # TODO: bump
+
+# Android
+compileSdk = "34"
+targetSdk = "34"
+minSdk = "24"
+buildTools = "34.0.0"
+
+# Kotlin
+kotlin = "1.9.10"
+ksp = "1.9.10-1.0.13"
+coroutines = "1.7.2"
+
+# Dagger & Hilt
+hilt = "2.48.1"
+
+# Remote
+retrofit-library = "2.9.0"
+retrofit-moshi = "2.7.0"
+okhttp3-loggingInterceptor = "4.8.0"
+
+# Local
+room = "2.6.1"

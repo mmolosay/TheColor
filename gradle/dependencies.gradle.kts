@@ -1,9 +1,9 @@
 mapOf(
     // Android
-    "compileSdkV" to 34,
-    "targetSdkV" to 34,
-    "minSdkV" to 24,
-    "buildToolsV" to "34.0.0",
+    "compileSdkVersion" to 34,
+    "targetSdkVersion" to 34,
+    "minSdkVersion" to 24,
+    "buildToolsVersion" to "34.0.0",
 
     // Kotlin
     "kotlinVersion" to "1.9.10",

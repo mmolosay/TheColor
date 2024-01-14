@@ -14,6 +14,8 @@ dependencyResolutionManagement {
     }
 }
 
+enableFeaturePreview("VERSION_CATALOGS")
+
 rootProject.name = "TheColor"
 include(":app")
 include(":domain")

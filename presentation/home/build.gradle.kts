@@ -1,11 +1,13 @@
 plugins {
     id("com.android.library")
-    id("org.jetbrains.kotlin.android")
+    id("kotlin-android")
+    id("kotlin-kapt")
+    id("com.google.dagger.hilt.android")
     id("kotlin-parcelize")
+    id("androidx.navigation.safeargs.kotlin")
 }
 
 android {
-    namespace = "io.github.mmolosay.presentation.common"
     compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
@@ -18,6 +20,9 @@ android {
             isMinifyEnabled = false
         }
     }
+    buildFeatures {
+        viewBinding = true
+    }
 
     val javaVersion = JavaVersion.VERSION_1_8
     compileOptions {
@@ -27,11 +32,20 @@ android {
     kotlinOptions {
         jvmTarget = javaVersion.toString()
     }
+
+    kapt {
+        correctErrorTypes = true
+    }
 }
 
 dependencies {
-
+    // Modules
     implementation(project(":domain"))
+    implementation(project(":utils"))
+    implementation(project(":presentation:common"))
+
+    // Kotlin
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.coroutines.get()}")
 
     // Jetpack
     implementation("androidx.core:core-ktx:1.7.0")
@@ -58,8 +72,8 @@ dependencies {
     implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.5.9")
     implementation("com.michael-bull.kotlin-result:kotlin-result:1.1.12")
     implementation("com.facebook.shimmer:shimmer:0.5.0")
-    // was used for clipping color data with its custom background, but uses LAYER_TYPE_SOFTWARE,
-    // and constant redrawing of such complex view is dramatic for performance (above red line)
-//    api 'io.github.florent37:shapeofview:1.4.7'
-    implementation("com.github.ajalt.colormath:colormath:2.1.0")
+
+    // Hilt
+    implementation("com.google.dagger:hilt-android:${libs.versions.hilt.get()}")
+    kapt("com.google.dagger:hilt-compiler:${libs.versions.hilt.get()}")
 }
