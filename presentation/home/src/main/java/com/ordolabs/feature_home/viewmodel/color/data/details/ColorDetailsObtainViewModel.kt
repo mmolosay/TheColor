@@ -18,7 +18,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ColorDetailsObtainViewModel @Inject constructor(
-    private val getColorDetailsUseCase: GetColorDetailsUseCase
+    private val getColorDetails: GetColorDetailsUseCase
 ) : BaseViewModel() {
 
     private val _details = MutableStateResourceFlow<ColorDetails>(Resource.empty())
@@ -46,7 +46,7 @@ class ColorDetailsObtainViewModel @Inject constructor(
 
     private fun performGetColorDetails(colorHex: String) =
         launchInIO {
-            getColorDetailsUseCase.invoke(colorHex)
+            getColorDetails(colorHex)
                 .catchFailureIn(_details)
                 .collect { detailsDomain ->
                     val details = detailsDomain.toPresentation()

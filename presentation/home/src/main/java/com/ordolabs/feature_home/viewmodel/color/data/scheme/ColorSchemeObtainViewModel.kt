@@ -20,7 +20,7 @@ import com.ordolabs.domain.model.ColorSchemeRequest as ColorSchemeRequestDomain
 
 @HiltViewModel
 class ColorSchemeObtainViewModel @Inject constructor(
-    private val getColorSchemeUseCase: GetColorSchemeUseCase
+    private val getColorScheme: GetColorSchemeUseCase
 ) : BaseViewModel() {
 
     private val _scheme = MutableStateResourceFlow<ColorScheme>(Resource.empty())
@@ -41,7 +41,7 @@ class ColorSchemeObtainViewModel @Inject constructor(
 
     private fun performGetColorScheme(request: ColorSchemeRequestDomain) =
         launchInIO {
-            getColorSchemeUseCase.invoke(request)
+            getColorScheme(request)
                 .catchFailureIn(_scheme)
                 .collect { schemeDomain ->
                     val scheme = schemeDomain.toPresentation()

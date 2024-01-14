@@ -24,7 +24,7 @@ class ColorRepositoryImpl @Inject constructor(
         val response = api.getColorScheme(
             hex = request.seedHex,
             mode = mode,
-            sampleCount = request.sampleCount
+            sampleCount = request.sampleCount,
         )
         emit(response.toDomain())
     }
