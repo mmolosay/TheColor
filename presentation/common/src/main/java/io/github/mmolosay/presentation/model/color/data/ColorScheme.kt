@@ -2,7 +2,7 @@ package io.github.mmolosay.presentation.model.color.data
 
 import android.os.Parcelable
 import androidx.annotation.StringRes
-import io.github.mmolosay.presentation.R
+import io.github.mmolosay.presentation.common.R
 import io.github.mmolosay.presentation.model.color.Color
 import kotlinx.parcelize.Parcelize
 

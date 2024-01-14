@@ -1,6 +1,6 @@
 package io.github.mmolosay.presentation.util
 
-import io.github.mmolosay.presentation.BuildConfig
+import io.github.mmolosay.presentation.common.BuildConfig
 
 object BuildUtil  {
 

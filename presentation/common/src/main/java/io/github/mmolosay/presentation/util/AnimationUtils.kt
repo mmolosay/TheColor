@@ -6,7 +6,7 @@ import android.view.View
 import androidx.annotation.IdRes
 import androidx.dynamicanimation.animation.DynamicAnimation.ViewProperty
 import androidx.dynamicanimation.animation.SpringAnimation
-import io.github.mmolosay.presentation.R
+import io.github.mmolosay.presentation.common.R
 import kotlin.math.hypot
 
 object AnimationUtils {

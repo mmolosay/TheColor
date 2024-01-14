@@ -7,7 +7,7 @@ import android.text.Spanned
 import android.text.SpannedString
 import androidx.annotation.StringRes
 import androidx.core.text.getSpans
-import io.github.mmolosay.presentation.R
+import io.github.mmolosay.presentation.common.R
 import kotlin.math.min
 
 private const val STRING_RESOURCE_ANNOTATION_KEY = "ordinal"

@@ -1,7 +1,7 @@
 package io.github.mmolosay.presentation.viewmodel
 
 import androidx.annotation.StringRes
-import io.github.mmolosay.presentation.R
+import io.github.mmolosay.presentation.common.R
 import java.net.UnknownHostException
 
 object ExceptionHandler {

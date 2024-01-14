@@ -6,6 +6,7 @@ plugins {
     id 'kotlin-parcelize'
     id 'androidx.navigation.safeargs.kotlin'
 }
+
 android {
     compileSdkVersion = compileSdkV
 
@@ -42,9 +43,8 @@ dependencies {
 
     // Modules
     implementation project(":domain")
-    implementation project(":main")
     implementation project(":utils")
-    implementation project(':presentation')
+    implementation project(":presentation:common")
 
     // Kotlin
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
