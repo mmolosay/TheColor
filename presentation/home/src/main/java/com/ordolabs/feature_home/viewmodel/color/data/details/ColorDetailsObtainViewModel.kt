@@ -1,6 +1,6 @@
 package com.ordolabs.feature_home.viewmodel.color.data.details
 
-import com.ordolabs.domain.usecase.remote.GetColorDetailsUseCase
+import com.ordolabs.domain.usecase.GetColorDetailsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.presentation.mapper.toPresentation
 import io.github.mmolosay.presentation.model.color.Color

@@ -1,4 +1,4 @@
-package com.ordolabs.domain.usecase.remote
+package com.ordolabs.domain.usecase
 
 import com.ordolabs.domain.model.ColorDetails
 import com.ordolabs.domain.repository.ColorRemoteRepository

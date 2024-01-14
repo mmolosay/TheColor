@@ -1,6 +1,6 @@
 package com.ordolabs.feature_home.viewmodel.color.data.scheme
 
-import com.ordolabs.domain.usecase.remote.GetColorSchemeUseCase
+import com.ordolabs.domain.usecase.GetColorSchemeUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.presentation.mapper.toDomainOrNull
 import io.github.mmolosay.presentation.mapper.toPresentation

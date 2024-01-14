@@ -1,4 +1,4 @@
-package com.ordolabs.domain.usecase.local
+package com.ordolabs.domain.usecase
 
 import com.ordolabs.domain.model.ColorHex
 import javax.inject.Inject

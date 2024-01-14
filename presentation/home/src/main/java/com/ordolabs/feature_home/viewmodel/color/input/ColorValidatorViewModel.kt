@@ -1,7 +1,7 @@
 package com.ordolabs.feature_home.viewmodel.color.input
 
-import com.ordolabs.domain.usecase.local.ValidateColorHexUseCase
-import com.ordolabs.domain.usecase.local.ValidateColorRgbUseCase
+import com.ordolabs.domain.usecase.ValidateColorHexUseCase
+import com.ordolabs.domain.usecase.ValidateColorRgbUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.presentation.mapper.toDomainOrNull
 import io.github.mmolosay.presentation.model.color.Color
