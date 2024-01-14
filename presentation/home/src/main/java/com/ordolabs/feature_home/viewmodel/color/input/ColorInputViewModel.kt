@@ -1,16 +1,17 @@
 package com.ordolabs.feature_home.viewmodel.color.input
 
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.presentation.model.color.Color
 import io.github.mmolosay.presentation.model.color.ColorPrototype
 import io.github.mmolosay.presentation.model.color.toHex
 import io.github.mmolosay.presentation.model.color.toRgb
-import io.github.mmolosay.presentation.util.MutableCommandFlow
-import io.github.mmolosay.presentation.util.ext.asCommand
-import io.github.mmolosay.presentation.util.ext.setEmpty
-import io.github.mmolosay.presentation.util.ext.setSuccess
-import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.mmolosay.presentation.util.ext.shareOnceIn
+import io.github.mmolosay.presentation.util.struct.Resource
+import io.github.mmolosay.presentation.util.struct.empty
+import io.github.mmolosay.presentation.util.struct.success
 import io.github.mmolosay.presentation.viewmodel.BaseViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 
 /**
@@ -27,12 +28,12 @@ class ColorInputViewModel @Inject constructor() : BaseViewModel() {
      */
 
     private val _inputHex =
-        MutableCommandFlow<ColorPrototype.Hex>()
-    val inputHex = _inputHex.asCommand(viewModelScope)
+        MutableStateFlow<Resource<ColorPrototype.Hex>>(Resource.empty())
+    val inputHex = _inputHex.shareOnceIn(viewModelScope)
 
     private val _inputRgb =
-        MutableCommandFlow<ColorPrototype.Rgb>()
-    val inputRgb = _inputRgb.asCommand(viewModelScope)
+        MutableStateFlow<Resource<ColorPrototype.Rgb>>(Resource.empty())
+    val inputRgb = _inputRgb.shareOnceIn(viewModelScope)
 
     /**
      * Updates current [color], displayed by `View`.
@@ -45,17 +46,17 @@ class ColorInputViewModel @Inject constructor() : BaseViewModel() {
     }
 
     fun clearColorInput() {
-        _inputHex.setEmpty()
-        _inputRgb.setEmpty()
+        _inputHex.value = Resource.empty()
+        _inputRgb.value = Resource.empty()
     }
 
     private fun updateHexInput(color: Color) {
         val hex = color.toHex()
-        _inputHex.setSuccess(hex)
+        _inputHex.value = Resource.success(hex)
     }
 
     private fun updateRgbInput(color: Color) {
         val rgb = color.toRgb()
-        _inputRgb.setSuccess(rgb)
+        _inputRgb.value = Resource.success(rgb)
     }
 }

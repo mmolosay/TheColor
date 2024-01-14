@@ -5,14 +5,14 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.presentation.mapper.toPresentation
 import io.github.mmolosay.presentation.model.color.Color
 import io.github.mmolosay.presentation.model.color.data.ColorDetails
-import io.github.mmolosay.presentation.util.MutableStateResourceFlow
-import io.github.mmolosay.presentation.util.ext.setLoading
-import io.github.mmolosay.presentation.util.ext.setSuccess
 import io.github.mmolosay.presentation.util.struct.Resource
 import io.github.mmolosay.presentation.util.struct.empty
 import io.github.mmolosay.presentation.util.struct.failure
+import io.github.mmolosay.presentation.util.struct.loading
+import io.github.mmolosay.presentation.util.struct.success
 import io.github.mmolosay.presentation.viewmodel.BaseViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
@@ -22,7 +22,7 @@ class ColorDetailsObtainViewModel @Inject constructor(
     private val getColorDetails: GetColorDetailsUseCase
 ) : BaseViewModel() {
 
-    private val _details = MutableStateResourceFlow<ColorDetails>(Resource.empty())
+    private val _details = MutableStateFlow<Resource<ColorDetails>>(Resource.empty())
     val details = _details.asStateFlow()
 
     private var getColorDetailsJob: Job? = null
@@ -42,15 +42,14 @@ class ColorDetailsObtainViewModel @Inject constructor(
      * Call this when you receive details from outside the 'View'.
      */
     fun setColorDetails(details: ColorDetails) {
-        _details.setSuccess(details)
+        _details.value = Resource.success(details)
     }
 
     private fun performGetColorDetails(colorHex: String) =
         launchInIO {
             try {
-                val detailsDomain = getColorDetails(colorHex)
-                val details = detailsDomain.toPresentation()
-                _details.setSuccess(details)
+                val details = getColorDetails(colorHex).toPresentation()
+                _details.value = Resource.success(details)
             } catch (e: Throwable) {
                 _details.update { it.failure(e) }
             }
@@ -58,6 +57,6 @@ class ColorDetailsObtainViewModel @Inject constructor(
 
     private fun restartGettingColorDetails() {
         getColorDetailsJob?.cancel()
-        _details.setLoading()
+        _details.value = Resource.loading()
     }
 }

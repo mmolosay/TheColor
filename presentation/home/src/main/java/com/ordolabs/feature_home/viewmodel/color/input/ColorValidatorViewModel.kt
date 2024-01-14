@@ -8,12 +8,10 @@ import io.github.mmolosay.presentation.model.color.Color
 import io.github.mmolosay.presentation.model.color.ColorPreview
 import io.github.mmolosay.presentation.model.color.ColorPrototype
 import io.github.mmolosay.presentation.model.color.from
-import io.github.mmolosay.presentation.util.MutableStateResourceFlow
-import io.github.mmolosay.presentation.util.ext.setEmpty
-import io.github.mmolosay.presentation.util.ext.setSuccess
 import io.github.mmolosay.presentation.util.struct.Resource
 import io.github.mmolosay.presentation.util.struct.empty
 import io.github.mmolosay.presentation.util.struct.getOrNull
+import io.github.mmolosay.presentation.util.struct.success
 import io.github.mmolosay.presentation.viewmodel.BaseViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,7 +31,7 @@ class ColorValidatorViewModel @Inject constructor(
     private var colorValidationJob: Job? = null
 
     init {
-        _colorPreview = MutableStateResourceFlow(Resource.empty())
+        _colorPreview = MutableStateFlow(Resource.empty())
         colorPreview = _colorPreview.asStateFlow()
     }
 
@@ -69,7 +67,7 @@ class ColorValidatorViewModel @Inject constructor(
     }
 
     fun updateColorPreview(new: ColorPreview) {
-        _colorPreview.setSuccess(new)
+        _colorPreview.value = Resource.success(new)
     }
 
     fun isSameAsColorPreview(prototype: ColorPrototype): Boolean {
@@ -79,7 +77,7 @@ class ColorValidatorViewModel @Inject constructor(
     }
 
     private fun clearColorPreview() {
-        _colorPreview.setEmpty()
+        _colorPreview.value = Resource.empty()
     }
 
     private fun restartColorValidation() {

@@ -3,23 +3,26 @@ package com.ordolabs.feature_home.viewmodel.color.data
 import androidx.lifecycle.viewModelScope
 import com.ordolabs.feature_home.ui.adapter.pager.ColorDataPagerAdapter
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.mmolosay.presentation.util.MutableCommandFlow
-import io.github.mmolosay.presentation.util.ext.asCommand
-import io.github.mmolosay.presentation.util.ext.setSuccess
+import io.github.mmolosay.presentation.util.ext.shareOnceIn
+import io.github.mmolosay.presentation.util.struct.Resource
+import io.github.mmolosay.presentation.util.struct.empty
+import io.github.mmolosay.presentation.util.struct.success
 import io.github.mmolosay.presentation.viewmodel.BaseViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 
 @HiltViewModel
 class ColorDataViewModel @Inject constructor() : BaseViewModel() {
 
-    private val _changePageCommand = MutableCommandFlow<ColorDataPagerAdapter.Page>()
-    val changePageCommand = _changePageCommand.asCommand(viewModelScope)
+    private val _changePageCommand =
+        MutableStateFlow<Resource<ColorDataPagerAdapter.Page>>(Resource.empty())
+    val changePageCommand = _changePageCommand.shareOnceIn(viewModelScope)
 
     override fun onCleared() {
         super.onCleared()
     }
 
     fun changeDataPage(dest: ColorDataPagerAdapter.Page) {
-        _changePageCommand.setSuccess(dest)
+        _changePageCommand.value = Resource.success(dest)
     }
 }
