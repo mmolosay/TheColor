@@ -4,6 +4,7 @@ plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.kapt")
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -38,7 +39,7 @@ dependencies {
     implementation(project(":data:local"))
     implementation(project(":data:remote"))
 
-    val hiltVersion = "2.48.1"
+    val hiltVersion = "2.48.1" // TODO: dependencies.gradle
     implementation("com.google.dagger:hilt-android:$hiltVersion")
     kapt("com.google.dagger:hilt-compiler:$hiltVersion")
 }

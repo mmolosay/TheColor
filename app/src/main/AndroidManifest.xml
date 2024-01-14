@@ -14,7 +14,7 @@
         android:theme="@style/Theme.TheColor">
 
         <activity
-            android:name="com.ordolabs.thecolor.ui.activity.HomeActivity"
+            android:name="com.ordolabs.thecolor.ui.activity.MainActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustPan">
             <intent-filter>

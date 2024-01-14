@@ -94,8 +94,6 @@ dependencies {
 //    api 'io.github.florent37:shapeofview:1.4.7'
     implementation "com.github.ajalt.colormath:colormath:2.1.0"
 
-    // Dagger2
-    kapt "com.google.dagger:dagger-compiler:$daggerVersion"
     // Hilt
     implementation("com.google.dagger:hilt-android:$hiltVersion")
     kapt("com.google.dagger:hilt-android-compiler:$hiltVersion")
