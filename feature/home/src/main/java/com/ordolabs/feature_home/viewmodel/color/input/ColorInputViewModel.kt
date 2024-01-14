@@ -1,15 +1,16 @@
 package com.ordolabs.feature_home.viewmodel.color.input
 
 import androidx.lifecycle.viewModelScope
-import com.ordolabs.thecolor.model.color.Color
-import com.ordolabs.thecolor.model.color.ColorPrototype
-import com.ordolabs.thecolor.model.color.toHex
-import com.ordolabs.thecolor.model.color.toRgb
-import com.ordolabs.thecolor.util.MutableCommandFlow
-import com.ordolabs.thecolor.util.ext.asCommand
-import com.ordolabs.thecolor.util.ext.setEmpty
-import com.ordolabs.thecolor.util.ext.setSuccess
-import com.ordolabs.thecolor.viewmodel.BaseViewModel
+import io.github.mmolosay.presentation.model.color.Color
+import io.github.mmolosay.presentation.model.color.ColorPrototype
+import io.github.mmolosay.presentation.model.color.toHex
+import io.github.mmolosay.presentation.model.color.toRgb
+import io.github.mmolosay.presentation.util.MutableCommandFlow
+import io.github.mmolosay.presentation.util.ext.asCommand
+import io.github.mmolosay.presentation.util.ext.setEmpty
+import io.github.mmolosay.presentation.util.ext.setSuccess
+import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.mmolosay.presentation.viewmodel.BaseViewModel
 import javax.inject.Inject
 
 /**
@@ -18,6 +19,7 @@ import javax.inject.Inject
  * `View` should call [updateCurrentColor], when there is new [Color], that should be populated
  * in all color input UIs.
  */
+@HiltViewModel
 class ColorInputViewModel @Inject constructor() : BaseViewModel() {
 
     /**

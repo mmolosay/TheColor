@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
-import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.ColorSchemeEditorFragmentBinding
@@ -17,14 +16,13 @@ import com.ordolabs.feature_home.ui.fragment.color.data.scheme.ColorSchemeFragme
 import com.ordolabs.feature_home.ui.fragment.color.data.scheme.config.ColorSchemeConfigFragment
 import com.ordolabs.feature_home.ui.fragment.color.data.scheme.config.ColorSchemeConfigParent
 import com.ordolabs.feature_home.ui.fragment.color.data.scheme.config.ColorSchemeConfigView
-import com.ordolabs.thecolor.model.color.data.ColorScheme
-import com.ordolabs.thecolor.model.color.data.ColorSchemeRequest
-import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
-import com.ordolabs.thecolor.util.ext.ancestorOf
-import com.ordolabs.thecolor.util.ext.by
-import com.ordolabs.thecolor.util.ext.mediumAnimDuration
-import com.ordolabs.thecolor.util.ext.setFragmentOrGet
-import com.ordolabs.thecolor.R as RApp
+import io.github.mmolosay.presentation.model.color.data.ColorScheme
+import io.github.mmolosay.presentation.model.color.data.ColorSchemeRequest
+import io.github.mmolosay.presentation.util.InflaterUtil.cloneInViewContext
+import io.github.mmolosay.presentation.util.ext.ancestorOf
+import io.github.mmolosay.presentation.util.ext.by
+import io.github.mmolosay.presentation.util.ext.mediumAnimDuration
+import io.github.mmolosay.presentation.util.ext.setFragmentOrGet
 
 /**
  * Editor fragment for color scheme. It can:
@@ -37,7 +35,7 @@ class ColorSchemeEditorFragment :
     ColorSchemeEditorView,
     ColorSchemeConfigParent {
 
-    private val binding: ColorSchemeEditorFragmentBinding by viewBinding(CreateMethod.BIND)
+    private val binding by viewBinding(ColorSchemeEditorFragmentBinding::bind)
 
     private val parent: ColorSchemeEditorParent? by lazy { ancestorOf() }
     private var schemeView: ColorDataView<ColorScheme>? = null
@@ -103,7 +101,7 @@ class ColorSchemeEditorFragment :
     private fun animDispatchChangesBtn(show: Boolean) =
         binding.dispatchChangesBtn.apply {
             if (show == !isInvisible) return@apply // already in dest state
-            val translation = resources.getDimension(RApp.dimen.offset_12)
+            val translation = resources.getDimension(R.dimen.offset_12)
             val alphaValues = 1f to 0f
             val translationValues = 0f to translation
             alpha = alphaValues by !show // initial

@@ -25,10 +25,6 @@ import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.ordolabs.feature_home.R
 import com.ordolabs.feature_home.databinding.HomeFragmentBinding
-import com.ordolabs.feature_home.di.DaggerFeatureHomeComponent
-import com.ordolabs.feature_home.di.FeatureHomeComponent
-import com.ordolabs.feature_home.di.FeatureHomeComponentKeeper
-import com.ordolabs.feature_home.ui.fragment.BaseFragment
 import com.ordolabs.feature_home.ui.fragment.color.data.ColorDataPagerFragment
 import com.ordolabs.feature_home.ui.fragment.color.data.details.ColorDetailsParent
 import com.ordolabs.feature_home.ui.fragment.color.input.page.ColorInputParent
@@ -36,47 +32,43 @@ import com.ordolabs.feature_home.ui.fragment.color.input.pager.ColorInputPagerFr
 import com.ordolabs.feature_home.ui.fragment.color.input.pager.ColorInputPagerView
 import com.ordolabs.feature_home.viewmodel.HomeViewModel
 import com.ordolabs.feature_home.viewmodel.color.input.ColorValidatorViewModel
-import com.ordolabs.thecolor.model.color.Color
-import com.ordolabs.thecolor.model.color.ColorPreview
-import com.ordolabs.thecolor.model.color.ColorPrototype
-import com.ordolabs.thecolor.model.color.toColorInt
-import com.ordolabs.thecolor.util.AnimationUtils
-import com.ordolabs.thecolor.util.ext.appComponent
-import com.ordolabs.thecolor.util.ext.bindPropertyAnimator
-import com.ordolabs.thecolor.util.ext.by
-import com.ordolabs.thecolor.util.ext.createCircularRevealAnimation
-import com.ordolabs.thecolor.util.ext.getBottomVisibleInParent
-import com.ordolabs.thecolor.util.ext.getDistanceToViewInParent
-import com.ordolabs.thecolor.util.ext.hideSoftInput
-import com.ordolabs.thecolor.util.ext.hideSoftInputAndClearFocus
-import com.ordolabs.thecolor.util.ext.longAnimDuration
-import com.ordolabs.thecolor.util.ext.mediumAnimDuration
-import com.ordolabs.thecolor.util.ext.propertyAnimator
-import com.ordolabs.thecolor.util.ext.propertyAnimatorOrNull
-import com.ordolabs.thecolor.util.ext.replaceFragment
-import com.ordolabs.thecolor.util.ext.setFragmentOrGet
-import com.ordolabs.thecolor.util.ext.shortAnimDuration
-import com.ordolabs.thecolor.util.restoreNavigationBarColor
-import com.ordolabs.thecolor.util.setNavigationBarColor
-import com.ordolabs.thecolor.util.struct.AnimatorDestination
+import dagger.hilt.android.AndroidEntryPoint
+import io.github.mmolosay.presentation.fragment.BaseFragment
+import io.github.mmolosay.presentation.model.color.Color
+import io.github.mmolosay.presentation.model.color.ColorPreview
+import io.github.mmolosay.presentation.model.color.ColorPrototype
+import io.github.mmolosay.presentation.model.color.toColorInt
+import io.github.mmolosay.presentation.util.AnimationUtils
+import io.github.mmolosay.presentation.util.ext.bindPropertyAnimator
+import io.github.mmolosay.presentation.util.ext.by
+import io.github.mmolosay.presentation.util.ext.createCircularRevealAnimation
+import io.github.mmolosay.presentation.util.ext.getBottomVisibleInParent
+import io.github.mmolosay.presentation.util.ext.getDistanceToViewInParent
+import io.github.mmolosay.presentation.util.ext.hideSoftInput
+import io.github.mmolosay.presentation.util.ext.hideSoftInputAndClearFocus
+import io.github.mmolosay.presentation.util.ext.longAnimDuration
+import io.github.mmolosay.presentation.util.ext.mediumAnimDuration
+import io.github.mmolosay.presentation.util.ext.propertyAnimator
+import io.github.mmolosay.presentation.util.ext.propertyAnimatorOrNull
+import io.github.mmolosay.presentation.util.ext.replaceFragment
+import io.github.mmolosay.presentation.util.ext.setFragmentOrGet
+import io.github.mmolosay.presentation.util.ext.shortAnimDuration
+import io.github.mmolosay.presentation.util.restoreNavigationBarColor
+import io.github.mmolosay.presentation.util.setNavigationBarColor
+import io.github.mmolosay.presentation.util.struct.AnimatorDestination
 import android.graphics.Color as ColorAndroid
 import com.google.android.material.R as RMaterial
-import com.ordolabs.thecolor.R as RApp
 
+@AndroidEntryPoint
 class HomeFragment :
     BaseFragment(),
-    FeatureHomeComponentKeeper,
     HomeView,
     ColorInputParent,
     ColorDetailsParent {
 
-    private val binding: HomeFragmentBinding by viewBinding()
-    private val homeVM: HomeViewModel by viewModels {
-        featureHomeComponent.savedStateViewModelFactoryFactory.create(this, defaultArgs = null)
-    }
-    private val colorValidatorVM: ColorValidatorViewModel by viewModels {
-        featureHomeComponent.viewModelFactory
-    }
+    private val binding by viewBinding(HomeFragmentBinding::bind)
+    private val homeVM: HomeViewModel by viewModels()
+    private val colorValidatorVM: ColorValidatorViewModel by viewModels()
 
     private var inputPagerView: ColorInputPagerView? = null
     private val previewResizeDest = AnimatorDestination()
@@ -104,14 +96,6 @@ class HomeFragment :
         super.onDestroy()
         this.inputPagerView = null
     }
-
-    // region Set up
-
-    override fun setUp() {
-        featureHomeComponent // init
-    }
-
-    // endregion
 
     // region Collect ViewModels data
 
@@ -443,7 +427,7 @@ class HomeFragment :
     private fun calcColorDataRevealCenter(): Point {
         val data = binding.colorDataWrapper
         val bottom = data.getBottomVisibleInParent(binding.root) ?: data.height
-        val padding = resources.getDimensionPixelSize(RApp.dimen.offset_32)
+        val padding = resources.getDimensionPixelSize(R.dimen.offset_32)
         val previewRadius = binding.previewGroup.height / 2
         val x = data.width / 2
         val yApprox = bottom - padding - previewRadius
@@ -459,18 +443,6 @@ class HomeFragment :
         val radius = preview.height / 2
         return distance.toFloat() + addend - radius
     }
-
-    // endregion
-
-    // region FeatureHomeComponentKeeper
-
-    override val featureHomeComponent: FeatureHomeComponent by lazy(::makeFeatureHomeComponent)
-
-    private fun makeFeatureHomeComponent(): FeatureHomeComponent =
-        DaggerFeatureHomeComponent
-            .builder()
-            .appComponent(appComponent)
-            .build()
 
     // endregion
 

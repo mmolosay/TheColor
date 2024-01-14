@@ -5,8 +5,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.ordolabs.feature_home.R
-import com.ordolabs.feature_home.ui.fragment.BaseFragment
-import com.ordolabs.thecolor.util.InflaterUtil.cloneInViewContext
+import io.github.mmolosay.presentation.fragment.BaseFragment
+import io.github.mmolosay.presentation.util.InflaterUtil.cloneInViewContext
 
 class ColorDetailsShimmerFragment : BaseFragment() {
 

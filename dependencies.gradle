@@ -1,18 +1,20 @@
 ext {
 
-    // TODO: move all dependecies there
+    // TODO: move all dependencies there
 
     // Kotlin
-    kotlinVersion = "1.6.1"
+    kotlinVersion = "1.9.10"
+    coroutinesVersion = "1.7.2"
 
     // Dagger
-    daggerVersion = "2.40.5"
+    daggerVersion = "2.48.1"
+    hiltVersion = "2.48.1" // TODO: latest is 2.50
 
     // Android Core
-    compileSdkV = 31
-    targetSdkV = 31
-    minSdkV = 23
-    buildToolsV = "30.0.2"
+    compileSdkV = 34
+    targetSdkV = 34
+    minSdkV = 24
+    buildToolsV = "34.0.0"
 
     // App Versioning
     versionCodeMajor = 1

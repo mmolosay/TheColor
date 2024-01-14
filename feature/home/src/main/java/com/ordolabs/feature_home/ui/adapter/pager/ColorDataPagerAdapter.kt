@@ -4,9 +4,9 @@ import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.ordolabs.feature_home.ui.fragment.color.data.page.ColorDataDetailsPage
 import com.ordolabs.feature_home.ui.fragment.color.data.page.ColorDataSchemePage
-import com.ordolabs.thecolor.ui.adapter.EnumFragmentPage
-import com.ordolabs.thecolor.util.ext.getEnumSize
-import com.ordolabs.thecolor.util.ext.getFromEnum
+import io.github.mmolosay.presentation.ui.adapter.EnumFragmentPage
+import io.github.mmolosay.presentation.util.ext.getEnumSize
+import io.github.mmolosay.presentation.util.ext.getFromEnum
 
 class ColorDataPagerAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
 

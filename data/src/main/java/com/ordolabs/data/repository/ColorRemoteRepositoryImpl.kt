@@ -8,8 +8,9 @@ import com.ordolabs.domain.model.ColorSchemeRequest
 import com.ordolabs.domain.repository.ColorRemoteRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import javax.inject.Inject
 
-class ColorRemoteRepositoryImpl(
+class ColorRemoteRepositoryImpl @Inject constructor(
     private val api: TheColorApiService
 ) : ColorRemoteRepository {
 

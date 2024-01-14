@@ -1,21 +1,22 @@
 package com.ordolabs.feature_home.viewmodel.color.data.details
 
 import com.ordolabs.domain.usecase.remote.GetColorDetailsUseCase
-import com.ordolabs.thecolor.mapper.toPresentation
-import com.ordolabs.thecolor.model.color.Color
-import com.ordolabs.thecolor.model.color.data.ColorDetails
-import com.ordolabs.thecolor.util.MutableStateResourceFlow
-import com.ordolabs.thecolor.util.ext.catchFailureIn
-import com.ordolabs.thecolor.util.ext.setLoading
-import com.ordolabs.thecolor.util.ext.setSuccess
-import com.ordolabs.thecolor.util.struct.Resource
-import com.ordolabs.thecolor.util.struct.empty
-import com.ordolabs.thecolor.viewmodel.BaseViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.mmolosay.presentation.mapper.toPresentation
+import io.github.mmolosay.presentation.model.color.Color
+import io.github.mmolosay.presentation.model.color.data.ColorDetails
+import io.github.mmolosay.presentation.util.MutableStateResourceFlow
+import io.github.mmolosay.presentation.util.ext.catchFailureIn
+import io.github.mmolosay.presentation.util.ext.setLoading
+import io.github.mmolosay.presentation.util.ext.setSuccess
+import io.github.mmolosay.presentation.util.struct.Resource
+import io.github.mmolosay.presentation.util.struct.empty
+import io.github.mmolosay.presentation.viewmodel.BaseViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import javax.inject.Inject
 
+@HiltViewModel
 class ColorDetailsObtainViewModel @Inject constructor(
     private val getColorDetailsUseCase: GetColorDetailsUseCase
 ) : BaseViewModel() {

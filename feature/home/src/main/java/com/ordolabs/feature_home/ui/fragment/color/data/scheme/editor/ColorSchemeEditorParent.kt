@@ -1,6 +1,6 @@
 package com.ordolabs.feature_home.ui.fragment.color.data.scheme.editor
 
-import com.ordolabs.thecolor.model.color.data.ColorSchemeRequest
+import io.github.mmolosay.presentation.model.color.data.ColorSchemeRequest
 
 /**
  * Interface for parent (ancestor) `View` of color scheme editor `View`.
