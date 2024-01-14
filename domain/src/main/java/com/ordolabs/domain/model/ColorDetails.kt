@@ -54,5 +54,5 @@ data class ColorDetails(
     val imageBareUrl: String?,
     val imageNamedUrl: String?,
 
-    val contrastHex: String?
+    val contrastHex: String?,
 )
