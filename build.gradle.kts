@@ -11,6 +11,7 @@ plugins {
 apply("dependencies.gradle")
 
 buildscript {
+    apply("/gradle/dependencies.gradle.kts")
     repositories {
         gradlePluginPortal()
     }

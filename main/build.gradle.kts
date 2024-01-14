@@ -39,7 +39,7 @@ dependencies {
     implementation(project(":data:local"))
     implementation(project(":data:remote"))
 
-    val hiltVersion = "2.48.1" // TODO: dependencies.gradle
+    val hiltVersion by rootProject.properties
     implementation("com.google.dagger:hilt-android:$hiltVersion")
     kapt("com.google.dagger:hilt-compiler:$hiltVersion")
 }
