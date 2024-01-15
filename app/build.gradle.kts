@@ -53,7 +53,7 @@ dependencies {
     implementation(project(":presentation:home"))
 
     // Jetpack
-    implementation("androidx.appcompat:appcompat:1.3.1")
+    implementation("androidx.appcompat:appcompat:${libs.versions.androidx.appcompat.get()}")
 
     implementation("androidx.navigation:navigation-fragment-ktx:2.4.1")
     implementation("androidx.navigation:navigation-ui-ktx:2.4.1")

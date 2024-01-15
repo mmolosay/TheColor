@@ -46,8 +46,8 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.coroutines.get()}")
 
     // Jetpack
-    implementation("androidx.core:core-ktx:1.7.0")
-    implementation("androidx.appcompat:appcompat:1.3.1")
+    implementation("androidx.core:core-ktx:${libs.versions.androidx.core.coreKtx.get()}")
+    implementation("androidx.appcompat:appcompat:${libs.versions.androidx.appcompat.get()}")
     implementation("androidx.fragment:fragment-ktx:1.6.2")
 
     implementation("androidx.constraintlayout:constraintlayout:2.1.1")
