@@ -16,7 +16,7 @@ class ColorInputViewModel @Inject constructor() : ViewModel() {
     private fun onInputChange(value: String) {
         _uiDataFlow.update {
             it.copy(
-                input = value,
+                input = value.take(MAX_SYMBOLS_IN_HEX_COLOR),
                 showTrailingButton = value.isNotEmpty(),
             )
         }
@@ -33,4 +33,8 @@ class ColorInputViewModel @Inject constructor() : ViewModel() {
             showTrailingButton = false,
             onTrailingButtonClick = ::onTrailingButtonClick,
         )
+
+    private companion object {
+        const val MAX_SYMBOLS_IN_HEX_COLOR = 6
+    }
 }
