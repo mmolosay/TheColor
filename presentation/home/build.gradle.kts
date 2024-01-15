@@ -22,6 +22,7 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        compose = true
     }
 
     java {
@@ -33,6 +34,10 @@ android {
 
     kapt {
         correctErrorTypes = true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = libs.versions.compose.compiler.get()
     }
 }
 
@@ -55,6 +60,16 @@ dependencies {
 
     implementation("androidx.navigation:navigation-fragment-ktx:2.4.1")
     implementation("androidx.navigation:navigation-ui-ktx:2.4.1")
+
+    // Compose
+    val composeBom = platform("androidx.compose:compose-bom:${libs.versions.compose.bom.get()}")
+    implementation(composeBom)
+    androidTestImplementation(composeBom)
+
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    debugImplementation("androidx.compose.ui:ui-tooling")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
 
     // Lifecycle
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")

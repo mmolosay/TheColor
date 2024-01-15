@@ -18,6 +18,10 @@ coroutines = "1.7.2"
 androidx-core-coreKtx = "1.12.0"
 androidx-appcompat = "1.6.1"
 
+# Compose
+compose-bom = "2023.10.01"
+compose-compiler = "1.5.3" # https://developer.android.com/jetpack/androidx/releases/compose-kotlin
+
 # Dagger & Hilt
 hilt = "2.48.1"
 
