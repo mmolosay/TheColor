@@ -1,21 +1,17 @@
 plugins {
-    // TODO: take versions from dependencies.gradle or other source
-    val agpV = "7.1.1" // TODO: 8.0.2
-    id("com.android.application") version agpV apply false
-    id("com.android.library") version agpV apply false
-    id("com.google.devtools.ksp") version "1.9.10-1.0.13" apply false
-    id("com.google.dagger.hilt.android") version "2.48.1" apply false
-    id("org.jetbrains.kotlin.android") version "1.9.10" apply false
+    id("com.android.application") version libs.versions.androidGradlePlugin.get() apply false
+    id("com.android.library") version libs.versions.androidGradlePlugin.get() apply false
+    id("com.google.devtools.ksp") version libs.versions.ksp.get() apply false
+    id("com.google.dagger.hilt.android") version libs.versions.hilt.get() apply false
+    id("org.jetbrains.kotlin.android") version libs.versions.kotlin.get() apply false
 }
-
-apply("dependencies.gradle")
 
 buildscript {
     repositories {
         gradlePluginPortal()
     }
     dependencies {
-        classpath("androidx.navigation:navigation-safe-args-gradle-plugin:2.5.0-alpha01")
+        classpath("androidx.navigation:navigation-safe-args-gradle-plugin:2.7.6")
     }
 }
 

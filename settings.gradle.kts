@@ -15,12 +15,12 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "TheColor"
-include(":app")
 include(":domain")
+include(":utils")
 include(":data")
 include(":data:local")
 include(":data:remote")
-include(":feature:home")
-include(":utils")
 include(":main")
+include(":app")
 include(":presentation:common")
+include(":presentation:home")
