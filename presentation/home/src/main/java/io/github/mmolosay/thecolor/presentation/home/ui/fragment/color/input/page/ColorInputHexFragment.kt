@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy.DisposeOnLifecycleDestroyed
 import androidx.fragment.app.viewModels
 import io.github.mmolosay.thecolor.presentation.color.ColorPrototype
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputHex
@@ -25,6 +26,7 @@ class ColorInputHexFragment :
         savedInstanceState: Bundle?,
     ): View =
         ComposeView(inflater.context).apply {
+            setViewCompositionStrategy(DisposeOnLifecycleDestroyed(lifecycle))
             setContent {
                 ColorInputHex(vm = vm)
             }
