@@ -5,6 +5,7 @@ plugins {
 }
 
 android {
+    namespace = "io.github.mmolosay.thecolor.data.local"
     compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
