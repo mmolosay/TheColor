@@ -3,8 +3,8 @@ plugins {
     id("kotlin-android")
     id("kotlin-parcelize")
     id("kotlin-kapt")
-    id("androidx.navigation.safeargs.kotlin")
     id("com.google.dagger.hilt.android")
+    id("androidx.navigation.safeargs.kotlin")
 }
 
 android {
@@ -14,9 +14,6 @@ android {
         applicationId = "com.ordolabs.thecolor" // TODO: rename
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
-
-        versionCode = 1
-        versionName = ""
     }
 
     buildTypes {
@@ -53,8 +50,8 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":utils"))
     implementation(project(":main"))
-    implementation(project(":presentation:home"))
     implementation(project(":presentation:common"))
+    implementation(project(":presentation:home"))
 
     // Jetpack
     implementation("androidx.appcompat:appcompat:1.3.1")

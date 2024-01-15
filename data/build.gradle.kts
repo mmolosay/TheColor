@@ -29,9 +29,10 @@ android {
 
 dependencies {
     implementation(project(":domain"))
-    api(project(":data:local"))
-    api(project(":data:remote"))
     implementation(project(":utils"))
+    implementation(project(":data:local"))
+    implementation(project(":data:remote"))
 
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.coroutines.get()}")
     implementation("javax.inject:javax.inject:1")
 }

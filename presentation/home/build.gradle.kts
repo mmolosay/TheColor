@@ -1,9 +1,9 @@
 plugins {
     id("com.android.library")
     id("kotlin-android")
+    id("kotlin-parcelize")
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
-    id("kotlin-parcelize")
     id("androidx.navigation.safeargs.kotlin")
 }
 
@@ -69,7 +69,7 @@ dependencies {
     implementation("androidx.dynamicanimation:dynamicanimation:1.0.0")
 
     // Third Party Libraries
-    implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.5.9")
+    implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:${libs.versions.viewbindingpropertydelegate.get()}")
     implementation("com.michael-bull.kotlin-result:kotlin-result:1.1.12")
     implementation("com.facebook.shimmer:shimmer:0.5.0")
 

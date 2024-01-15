@@ -23,3 +23,6 @@ okhttp3-loggingInterceptor = "4.8.0"
 
 # Local
 room = "2.6.1"
+
+# Misc (preserve alphabetical order)
+viewbindingpropertydelegate = "1.5.9"

@@ -34,8 +34,8 @@ dependencies {
 
     // Room
     val roomVersion = libs.versions.room.get()
-    api("androidx.room:room-runtime:$roomVersion")
-    api("androidx.room:room-ktx:$roomVersion")
+    implementation("androidx.room:room-runtime:$roomVersion")
+    implementation("androidx.room:room-ktx:$roomVersion")
     ksp("androidx.room:room-compiler:$roomVersion")
 
     // DataStore Preferences
