@@ -1,6 +1,6 @@
 [versions]
 # Gradle
-androidGradlePlugin = "7.1.1" # TODO: bump
+androidGradlePlugin = "7.4.2" # TODO: bump
 
 # Android
 compileSdk = "34"
