@@ -10,19 +10,20 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import by.kirich1409.viewbindingdelegate.viewBinding
+import io.github.mmolosay.thecolor.presentation.color.Color
 import io.github.mmolosay.thecolor.presentation.home.R
 import io.github.mmolosay.thecolor.presentation.home.databinding.ColorDataObtainFragmentBinding
 import io.github.mmolosay.thecolor.presentation.home.ui.fragment.color.data.base.BaseColorDataFragment
 import io.github.mmolosay.thecolor.presentation.home.ui.fragment.color.data.base.ColorDataView
-import io.github.mmolosay.thecolor.utils.Resource
-import io.github.mmolosay.thecolor.presentation.color.Color
 import io.github.mmolosay.thecolor.presentation.util.InflaterUtil.cloneInViewContext
 import io.github.mmolosay.thecolor.presentation.util.ext.by
 import io.github.mmolosay.thecolor.presentation.util.ext.mediumAnimDuration
 import io.github.mmolosay.thecolor.presentation.util.ext.setFragmentOrGet
 import io.github.mmolosay.thecolor.presentation.util.ext.showToast
+import io.github.mmolosay.thecolor.utils.Resource
 import kotlinx.coroutines.flow.Flow
 import java.net.UnknownHostException
+import io.github.mmolosay.thecolor.presentation.R as CommonR
 
 /**
  * Obtains [color] data of type [D] and passes it to child 'display-data-only' Fragment.
@@ -176,7 +177,7 @@ abstract class ColorDataObtainFragment<D> :
 
     private fun animContentVisibility(visible: Boolean, instant: Boolean = false) {
         val content = binding.defaultFragmentContainer
-        val translation = resources.getDimension(R.dimen.offset_8)
+        val translation = resources.getDimension(CommonR.dimen.offset_8)
         if (visible) content.translationY = translation
         val translationY = 0f to translation by visible
         val alpha = 1f to 0f by visible

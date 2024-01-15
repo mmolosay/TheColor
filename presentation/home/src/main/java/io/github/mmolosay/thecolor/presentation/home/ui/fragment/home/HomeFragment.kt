@@ -23,6 +23,12 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import by.kirich1409.viewbindingdelegate.viewBinding
+import dagger.hilt.android.AndroidEntryPoint
+import io.github.mmolosay.thecolor.presentation.color.Color
+import io.github.mmolosay.thecolor.presentation.color.ColorPreview
+import io.github.mmolosay.thecolor.presentation.color.ColorPrototype
+import io.github.mmolosay.thecolor.presentation.color.toColorInt
+import io.github.mmolosay.thecolor.presentation.fragment.BaseFragment
 import io.github.mmolosay.thecolor.presentation.home.R
 import io.github.mmolosay.thecolor.presentation.home.databinding.HomeFragmentBinding
 import io.github.mmolosay.thecolor.presentation.home.ui.fragment.color.data.ColorDataPagerFragment
@@ -32,12 +38,6 @@ import io.github.mmolosay.thecolor.presentation.home.ui.fragment.color.input.pag
 import io.github.mmolosay.thecolor.presentation.home.ui.fragment.color.input.pager.ColorInputPagerView
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.color.input.ColorValidatorViewModel
-import dagger.hilt.android.AndroidEntryPoint
-import io.github.mmolosay.thecolor.presentation.fragment.BaseFragment
-import io.github.mmolosay.thecolor.presentation.color.Color
-import io.github.mmolosay.thecolor.presentation.color.ColorPreview
-import io.github.mmolosay.thecolor.presentation.color.ColorPrototype
-import io.github.mmolosay.thecolor.presentation.color.toColorInt
 import io.github.mmolosay.thecolor.presentation.util.AnimationUtils
 import io.github.mmolosay.thecolor.presentation.util.ext.bindPropertyAnimator
 import io.github.mmolosay.thecolor.presentation.util.ext.by
@@ -58,6 +58,7 @@ import io.github.mmolosay.thecolor.presentation.util.setNavigationBarColor
 import io.github.mmolosay.thecolor.presentation.util.struct.AnimatorDestination
 import android.graphics.Color as ColorAndroid
 import com.google.android.material.R as RMaterial
+import io.github.mmolosay.thecolor.presentation.R as CommonR
 
 @AndroidEntryPoint
 class HomeFragment :
@@ -426,7 +427,7 @@ class HomeFragment :
     private fun calcColorDataRevealCenter(): Point {
         val data = binding.colorDataWrapper
         val bottom = data.getBottomVisibleInParent(binding.root) ?: data.height
-        val padding = resources.getDimensionPixelSize(R.dimen.offset_32)
+        val padding = resources.getDimensionPixelSize(CommonR.dimen.offset_32)
         val previewRadius = binding.previewGroup.height / 2
         val x = data.width / 2
         val yApprox = bottom - padding - previewRadius

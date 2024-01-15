@@ -7,17 +7,18 @@ import android.view.ViewGroup
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.fragment.app.Fragment
 import by.kirich1409.viewbindingdelegate.viewBinding
+import io.github.mmolosay.thecolor.presentation.color.Color
+import io.github.mmolosay.thecolor.presentation.color.isDark
+import io.github.mmolosay.thecolor.presentation.fragment.BaseFragment
 import io.github.mmolosay.thecolor.presentation.home.R
 import io.github.mmolosay.thecolor.presentation.home.databinding.ColorDataPageFragmentBinding
 import io.github.mmolosay.thecolor.presentation.home.ui.adapter.pager.ColorDataPagerAdapter
 import io.github.mmolosay.thecolor.presentation.home.ui.fragment.color.data.ColorThemedView
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.color.data.ColorDataViewModel
-import io.github.mmolosay.thecolor.presentation.fragment.BaseFragment
-import io.github.mmolosay.thecolor.presentation.color.Color
-import io.github.mmolosay.thecolor.presentation.color.isDark
 import io.github.mmolosay.thecolor.presentation.util.ext.getNextFor
 import io.github.mmolosay.thecolor.presentation.util.ext.parentViewModels
 import io.github.mmolosay.thecolor.presentation.util.ext.setFragmentOrGet
+import io.github.mmolosay.thecolor.presentation.R as CommonR
 
 abstract class BaseColorDataPage :
     BaseFragment(),
@@ -25,7 +26,7 @@ abstract class BaseColorDataPage :
 
     // region Abstract
 
-    abstract val page: io.github.mmolosay.thecolor.presentation.home.ui.adapter.pager.ColorDataPagerAdapter.Page
+    abstract val page: ColorDataPagerAdapter.Page
 
     abstract fun makeColorDataFragmentNewInstance(): Fragment
     abstract fun getChangePageBtnText(): String
@@ -46,9 +47,9 @@ abstract class BaseColorDataPage :
         /* ViewPager2 inflates its fragments without container,
         * thus parent view group theme can not be used :< */
         val themeOverlay = if (color?.isDark() == true) {
-            R.style.ThemeOverlay_TheColor_Dark
+            CommonR.style.ThemeOverlay_TheColor_Dark
         } else {
-            R.style.ThemeOverlay_TheColor_Light
+            CommonR.style.ThemeOverlay_TheColor_Light
         }
         val themedContext = ContextThemeWrapper(context, themeOverlay)
         return inflater

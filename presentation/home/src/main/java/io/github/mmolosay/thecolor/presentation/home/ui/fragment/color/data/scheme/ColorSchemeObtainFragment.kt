@@ -4,18 +4,18 @@ import android.view.ViewGroup
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import io.github.mmolosay.thecolor.presentation.home.R
+import dagger.hilt.android.AndroidEntryPoint
+import io.github.mmolosay.thecolor.presentation.color.data.ColorScheme
+import io.github.mmolosay.thecolor.presentation.color.data.ColorSchemeRequest
 import io.github.mmolosay.thecolor.presentation.home.ui.fragment.color.data.ColorDataObtainFragment
 import io.github.mmolosay.thecolor.presentation.home.ui.fragment.color.data.base.BaseColorDataFragment
 import io.github.mmolosay.thecolor.presentation.home.ui.fragment.color.data.scheme.editor.ColorSchemeEditorFragment
 import io.github.mmolosay.thecolor.presentation.home.ui.fragment.color.data.scheme.editor.ColorSchemeEditorParent
 import io.github.mmolosay.thecolor.presentation.home.ui.fragment.color.data.scheme.editor.ColorSchemeEditorView
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.color.data.scheme.ColorSchemeObtainViewModel
-import dagger.hilt.android.AndroidEntryPoint
-import io.github.mmolosay.thecolor.presentation.color.data.ColorScheme
-import io.github.mmolosay.thecolor.presentation.color.data.ColorSchemeRequest
 import io.github.mmolosay.thecolor.utils.Resource
 import kotlinx.coroutines.flow.Flow
+import io.github.mmolosay.thecolor.presentation.R as CommonR
 
 @AndroidEntryPoint
 class ColorSchemeObtainFragment :
@@ -29,7 +29,7 @@ class ColorSchemeObtainFragment :
     override fun setViews() {
         super.setViews()
         view?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-            topMargin = resources.getDimensionPixelSize(R.dimen.offset_16)
+            topMargin = resources.getDimensionPixelSize(CommonR.dimen.offset_16)
         }
     }
 

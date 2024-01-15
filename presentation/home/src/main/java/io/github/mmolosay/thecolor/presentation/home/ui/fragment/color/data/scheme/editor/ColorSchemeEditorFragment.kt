@@ -8,6 +8,8 @@ import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import by.kirich1409.viewbindingdelegate.viewBinding
+import io.github.mmolosay.thecolor.presentation.color.data.ColorScheme
+import io.github.mmolosay.thecolor.presentation.color.data.ColorSchemeRequest
 import io.github.mmolosay.thecolor.presentation.home.R
 import io.github.mmolosay.thecolor.presentation.home.databinding.ColorSchemeEditorFragmentBinding
 import io.github.mmolosay.thecolor.presentation.home.ui.fragment.color.data.base.BaseColorDataFragment
@@ -16,13 +18,12 @@ import io.github.mmolosay.thecolor.presentation.home.ui.fragment.color.data.sche
 import io.github.mmolosay.thecolor.presentation.home.ui.fragment.color.data.scheme.config.ColorSchemeConfigFragment
 import io.github.mmolosay.thecolor.presentation.home.ui.fragment.color.data.scheme.config.ColorSchemeConfigParent
 import io.github.mmolosay.thecolor.presentation.home.ui.fragment.color.data.scheme.config.ColorSchemeConfigView
-import io.github.mmolosay.thecolor.presentation.color.data.ColorScheme
-import io.github.mmolosay.thecolor.presentation.color.data.ColorSchemeRequest
 import io.github.mmolosay.thecolor.presentation.util.InflaterUtil.cloneInViewContext
 import io.github.mmolosay.thecolor.presentation.util.ext.ancestorOf
 import io.github.mmolosay.thecolor.presentation.util.ext.by
 import io.github.mmolosay.thecolor.presentation.util.ext.mediumAnimDuration
 import io.github.mmolosay.thecolor.presentation.util.ext.setFragmentOrGet
+import io.github.mmolosay.thecolor.presentation.R as CommonR
 
 /**
  * Editor fragment for color scheme. It can:
@@ -101,7 +102,7 @@ class ColorSchemeEditorFragment :
     private fun animDispatchChangesBtn(show: Boolean) =
         binding.dispatchChangesBtn.apply {
             if (show == !isInvisible) return@apply // already in dest state
-            val translation = resources.getDimension(R.dimen.offset_12)
+            val translation = resources.getDimension(CommonR.dimen.offset_12)
             val alphaValues = 1f to 0f
             val translationValues = 0f to translation
             alpha = alphaValues by !show // initial
