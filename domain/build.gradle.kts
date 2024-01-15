@@ -11,6 +11,6 @@ java {
 dependencies {
     implementation(project(":utils"))
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${rootProject.extra["coroutinesVersion"]}")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.coroutines.get()}")
     implementation("javax.inject:javax.inject:1")
 }

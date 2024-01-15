@@ -7,10 +7,7 @@ plugins {
     id("org.jetbrains.kotlin.android") version libs.versions.kotlin.get() apply false
 }
 
-apply("dependencies.gradle")
-
 buildscript {
-    apply("/gradle/dependencies.gradle.kts")
     repositories {
         gradlePluginPortal()
     }
