@@ -17,13 +17,10 @@ android {
         }
     }
 
-    val javaVersion = JavaVersion.VERSION_1_8
-    compileOptions {
-        sourceCompatibility = javaVersion
-        targetCompatibility = javaVersion
-    }
-    kotlinOptions {
-        jvmTarget = javaVersion.toString()
+    java {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(17))
+        }
     }
 }
 
