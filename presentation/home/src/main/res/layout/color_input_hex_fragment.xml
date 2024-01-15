@@ -10,7 +10,7 @@
         android:id="@+id/inputHex"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:hint="@string/color_hex_label"
+        android:hint="@string/color_input_hex_label"
         android:maxWidth="@dimen/input_color_width_max"
         android:minWidth="@dimen/input_color_width_min"
 
@@ -34,5 +34,13 @@
             android:selectAllOnFocus="true" />
 
     </com.google.android.material.textfield.TextInputLayout>
+
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/composeView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="@id/inputHex"
+        app:layout_constraintStart_toStartOf="@id/inputHex"
+        app:layout_constraintTop_toBottomOf="@id/inputHex" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -9,6 +9,7 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import io.github.mmolosay.thecolor.presentation.home.R
 import io.github.mmolosay.thecolor.presentation.home.databinding.ColorInputHexFragmentBinding
 import io.github.mmolosay.thecolor.presentation.color.ColorPrototype
+import io.github.mmolosay.thecolor.presentation.home.input.ColorInputHex
 import io.github.mmolosay.thecolor.presentation.util.ext.getText
 import io.github.mmolosay.thecolor.presentation.util.ext.getTextString
 import io.github.mmolosay.thecolor.presentation.util.ext.setTextPreservingSelection
@@ -32,12 +33,19 @@ class ColorInputHexFragment :
 
     override fun setViews() {
         setInputTextWatcher()
+        setComposeView()
     }
 
     private fun setInputTextWatcher() =
         binding.inputHex.editText?.doOnTextChanged { _, _, _, _ ->
             outputOnInputChanges()
         }
+
+    private fun setComposeView() {
+        binding.composeView.setContent {
+            ColorInputHex()
+        }
+    }
 
     // endregion
 

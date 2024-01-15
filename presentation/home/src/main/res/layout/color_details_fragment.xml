@@ -99,7 +99,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/offset_12"
         android:layout_marginTop="@dimen/offset_24"
-        android:text="@string/color_hex_label"
+        android:text="@string/color_input_hex_label"
         android:textAppearance="?attr/textAppearanceLabelLarge"
         android:textColor="@color/material_on_background_emphasis_medium"
 
