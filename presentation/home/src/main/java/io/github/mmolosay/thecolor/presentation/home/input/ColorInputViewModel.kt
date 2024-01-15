@@ -15,16 +15,23 @@ class ColorInputViewModel @Inject constructor() : ViewModel() {
 
     private fun onInputChange(value: String) {
         _uiDataFlow.update {
-            it.copy(
-                input = value.take(MAX_SYMBOLS_IN_HEX_COLOR),
-                showTrailingButton = value.isNotEmpty(),
-            )
+            it.smartCopy(input = value)
         }
     }
 
     private fun onTrailingButtonClick() {
-
+        _uiDataFlow.update {
+            it.smartCopy(input = "")
+        }
     }
+
+    private fun ColorInputHexUiData.ViewModelData.smartCopy(
+        input: String,
+    ) =
+        copy(
+            input = input.take(MAX_SYMBOLS_IN_HEX_COLOR),
+            showTrailingButton = input.isNotEmpty(),
+        )
 
     private fun makeInitialViewModelData() =
         ColorInputHexUiData.ViewModelData(
