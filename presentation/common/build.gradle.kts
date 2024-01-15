@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "io.github.mmolosay.presentation.common"
+    namespace = "io.github.mmolosay.presentation"
     compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {

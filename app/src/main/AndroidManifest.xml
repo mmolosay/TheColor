@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.ordolabs.thecolor">
+    package="io.github.mmolosay.thecolor">
 
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
-        android:name=".TheColorApplication"
+        android:name="io.github.mmolosay.thecolor.TheColorApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -14,7 +14,7 @@
         android:theme="@style/Theme.TheColor">
 
         <activity
-            android:name="com.ordolabs.thecolor.MainActivity"
+            android:name="io.github.mmolosay.thecolor.MainActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustPan">
             <intent-filter>

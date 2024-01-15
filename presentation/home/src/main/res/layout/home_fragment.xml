@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<io.github.mmolosay.presentation.ui.view.LockableScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<io.github.mmolosay.thecolor.presentation.ui.view.LockableScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/scrollview"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    tools:context="com.ordolabs.feature_home.ui.fragment.home.HomeFragment">
+    tools:context="io.github.mmolosay.thecolor.presentation.home.ui.fragment.home.HomeFragment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -118,4 +118,4 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-</io.github.mmolosay.presentation.ui.view.LockableScrollView>
+</io.github.mmolosay.thecolor.presentation.ui.view.LockableScrollView>
