@@ -1,4 +1,3 @@
-@Suppress("DSL_SCOPE_VIOLATION") // TODO: fixed in AGP 8.1
 plugins {
     id("com.android.application") version libs.versions.androidGradlePlugin.get() apply false
     id("com.android.library") version libs.versions.androidGradlePlugin.get() apply false
