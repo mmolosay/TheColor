@@ -68,6 +68,7 @@ private fun previewUiData() =
         inputField = ColorInputFieldUiData(
             text = "",
             onTextChange = {},
+            processText = { it },
             label = "HEX",
             placeholder = "000000",
             prefix = "#",

@@ -14,9 +14,12 @@ class ColorInputHexViewModel @Inject constructor() : ViewModel() {
     private val _uiDataFlow = MutableStateFlow(makeInitialViewModelData())
     val uiDataFlow = _uiDataFlow.asStateFlow()
 
-    private fun onInputChange(value: String) {
+    private fun processInput(input: String): String =
+        input.take(MAX_SYMBOLS_IN_HEX_COLOR)
+
+    private fun onInputChange(input: String) {
         _uiDataFlow.update {
-            it.smartCopy(input = value)
+            it.smartCopy(input = input)
         }
     }
 
@@ -31,7 +34,7 @@ class ColorInputHexViewModel @Inject constructor() : ViewModel() {
         input: String,
     ) =
         copy(
-            text = input.take(MAX_SYMBOLS_IN_HEX_COLOR),
+            text = processInput(input),
             showTrailingButton = input.isNotEmpty(),
         )
 
@@ -39,6 +42,7 @@ class ColorInputHexViewModel @Inject constructor() : ViewModel() {
         ColorInputFieldUiData.ViewModelData(
             text = "",
             onTextChange = ::onInputChange,
+            processText = ::processInput,
             showTrailingButton = false,
             onTrailingButtonClick = ::onTrailingButtonClick,
         )

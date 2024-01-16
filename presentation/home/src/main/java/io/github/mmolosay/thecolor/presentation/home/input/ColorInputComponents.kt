@@ -9,7 +9,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.TextRange
@@ -27,31 +26,29 @@ internal object ColorInputComponents {
         uiData: ColorInputFieldUiData,
         value: TextFieldValue,
         updateValue: (TextFieldValue) -> Unit,
-    ) {
-        OutlinedTextField(
-            modifier = modifier
-                .selectAllTextOnFocus(
-                    value = value,
-                    onValueChange = updateValue,
-                ),
-            value = value,
-            onValueChange = { new ->
-                updateValue(new)
-                uiData.onTextChange(new.text)
-            },
-            label = { Label(uiData.label) },
-            placeholder = { Placeholder(uiData.placeholder) },
-            trailingIcon = { TrailingButton(uiData.trailingButton) },
-            prefix = { Prefix(uiData.prefix) },
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(),
-            singleLine = true,
-        )
-        LaunchedEffect(uiData.text) {
-            val new = value.copy(text = uiData.text)
-            updateValue(new)
+    ) =
+        with(uiData) {
+            OutlinedTextField(
+                modifier = modifier
+                    .selectAllTextOnFocus(
+                        value = value,
+                        onValueChange = updateValue,
+                    ),
+                value = value,
+                onValueChange = { new ->
+                    val processed = new.copy(text = processText(new.text))
+                    updateValue(processed)
+                    onTextChange(new.text)
+                },
+                label = { Label(label) },
+                placeholder = { Placeholder(placeholder) },
+                trailingIcon = { TrailingButton(trailingButton) },
+                prefix = { Prefix(prefix) },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(),
+                singleLine = true,
+            )
         }
-    }
 
     @Composable
     private fun Label(text: String) =

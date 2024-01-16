@@ -11,6 +11,7 @@ import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData
 data class ColorInputFieldUiData(
     val text: String,
     val onTextChange: (String) -> Unit,
+    val processText: (String) -> String,
     val label: String,
     val placeholder: String,
     val prefix: String,
@@ -26,18 +27,19 @@ data class ColorInputFieldUiData(
     }
 
     /**
-     * Part of to-be [ColorInputHexUiData].
+     * Part of to-be [ColorInputFieldUiData].
      * Created by `ViewModel`.
      */
     data class ViewModelData(
         val text: String,
         val onTextChange: (String) -> Unit,
+        val processText: (String) -> String,
         val showTrailingButton: Boolean,
         val onTrailingButtonClick: () -> Unit,
     )
 
     /**
-     * Part of to-be [ColorInputHexUiData].
+     * Part of to-be [ColorInputFieldUiData].
      * Created by `View`, since string resources are tied to platform-specific
      * components (like `Context`), which should be avoided in `ViewModel`s.
      */
@@ -59,6 +61,7 @@ private fun uiData(
     ColorInputFieldUiData(
         text = viewModelData.text,
         onTextChange = viewModelData.onTextChange,
+        processText = viewModelData.processText,
         label = viewData.label,
         placeholder = viewData.placeholder,
         prefix = viewData.prefix,
