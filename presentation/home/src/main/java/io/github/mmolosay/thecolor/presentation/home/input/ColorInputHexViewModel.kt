@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 @HiltViewModel
-class ColorInputViewModel @Inject constructor() : ViewModel() {
+class ColorInputHexViewModel @Inject constructor() : ViewModel() {
 
     private val _uiDataFlow = MutableStateFlow(makeInitialViewModelData())
     val uiDataFlow = _uiDataFlow.asStateFlow()

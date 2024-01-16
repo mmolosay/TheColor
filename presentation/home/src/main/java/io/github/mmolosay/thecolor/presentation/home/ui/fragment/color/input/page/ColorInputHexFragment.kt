@@ -9,7 +9,7 @@ import androidx.compose.ui.platform.ViewCompositionStrategy.DisposeOnLifecycleDe
 import androidx.fragment.app.viewModels
 import io.github.mmolosay.thecolor.presentation.color.ColorPrototype
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputHex
-import io.github.mmolosay.thecolor.presentation.home.input.ColorInputViewModel
+import io.github.mmolosay.thecolor.presentation.home.input.ColorInputHexViewModel
 import io.github.mmolosay.thecolor.utils.Resource
 import kotlinx.coroutines.flow.Flow
 
@@ -18,7 +18,7 @@ class ColorInputHexFragment :
 
 //    private val binding by viewBinding(ColorInputHexFragmentBinding::bind)
 
-    private val vm: ColorInputViewModel by viewModels()
+    private val vm: ColorInputHexViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,

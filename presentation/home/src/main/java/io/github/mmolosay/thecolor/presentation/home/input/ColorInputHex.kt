@@ -30,7 +30,7 @@ import io.github.mmolosay.thecolor.presentation.R as CommonR
 
 @Composable
 internal fun ColorInputHex(
-    vm: ColorInputViewModel = hiltViewModel(),
+    vm: ColorInputHexViewModel = hiltViewModel(),
 ) {
     val viewModelData = vm.uiDataFlow.collectAsStateWithLifecycle().value
     val textFieldUiData = viewModelData + rememberViewData()
