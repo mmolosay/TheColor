@@ -25,6 +25,7 @@ class ColorInputViewModel @Inject constructor() : ViewModel() {
         }
     }
 
+    // seems like a better solution than "uiDataFlow = _uiDataFlow.map {..}"
     private fun ColorInputHexUiData.ViewModelData.smartCopy(
         input: String,
     ) =
