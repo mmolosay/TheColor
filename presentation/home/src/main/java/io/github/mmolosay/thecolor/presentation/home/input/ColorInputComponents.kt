@@ -9,6 +9,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.TextRange
@@ -48,6 +49,11 @@ internal object ColorInputComponents {
                 keyboardActions = KeyboardActions(),
                 singleLine = true,
             )
+            // for when text is cleared with trailing button
+            LaunchedEffect(text) {
+                val new = value.copy(text = text)
+                updateValue(new)
+            }
         }
 
     @Composable
