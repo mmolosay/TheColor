@@ -34,7 +34,9 @@ class ColorInputHexViewModel @AssistedInject constructor(
             )
 
     private fun processInput(input: String): String =
-        input.take(MAX_SYMBOLS_IN_HEX_COLOR)
+        input
+            .filter { it.isDigit() || it in 'A'..'F' }
+            .take(MAX_SYMBOLS_IN_HEX_COLOR)
 
     private fun makeUiData(inputFieldUiData: ColorInputFieldUiData) =
         ColorInputHexUiData(inputFieldUiData)
