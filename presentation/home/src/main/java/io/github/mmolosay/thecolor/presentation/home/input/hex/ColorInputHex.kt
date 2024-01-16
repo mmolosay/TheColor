@@ -1,33 +1,23 @@
 package io.github.mmolosay.thecolor.presentation.home.input.hex
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.home.R
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputComponents.TextField
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData.TrailingButton
-import io.github.mmolosay.thecolor.presentation.R as CommonR
 
 @Composable
 internal fun ColorInputHex(
-    vm: ColorInputHexViewModel = hiltViewModel(),
+    vm: ColorInputHexViewModel,
 ) {
-    val viewData = rememberViewData()
-    LaunchedEffect(Unit) {
-        vm.init(viewData)
-    }
-
-    val uiData = vm.uiDataFlow.collectAsStateWithLifecycle().value ?: return
+    val uiData = vm.uiDataFlow.collectAsStateWithLifecycle().value
     ColorInputHex(
         uiData = uiData,
     )
@@ -44,17 +34,6 @@ internal fun ColorInputHex(
         updateValue = { new -> value = new },
     )
 }
-
-@Composable
-private fun rememberViewData() =
-    ColorInputFieldUiData.ViewData(
-        label = stringResource(R.string.color_input_hex_label),
-        placeholder = stringResource(R.string.color_input_hex_placeholder),
-        prefix = stringResource(CommonR.string.color_hex_numbersign),
-        trailingIconContentDesc = stringResource(R.string.color_input_hex_trailing_icon_desc),
-    ).let {
-        remember { it }
-    }
 
 @Preview(showBackground = true)
 @Composable

@@ -7,28 +7,22 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 class ColorInputFieldViewModel(
+    private val viewData: ViewData,
     private val processText: (String) -> String,
 ) {
 
-    private lateinit var viewData: ViewData
-
-    private val _uiDataFlow = MutableStateFlow<ColorInputFieldUiData?>(null)
+    private val _uiDataFlow = MutableStateFlow(makeInitialUiData())
     val uiDataFlow = _uiDataFlow.asStateFlow()
-
-    fun init(viewData: ViewData) {
-        this.viewData = viewData
-        _uiDataFlow.value = makeInitialUiData(viewData)
-    }
 
     private fun onTextChange(text: String) {
         _uiDataFlow.update {
-            it?.smartCopy(text = processText(text))
+            it.smartCopy(text = processText(text))
         }
     }
 
     private fun onTrailingButtonClick() {
         _uiDataFlow.update {
-            it?.smartCopy(text = "")
+            it.smartCopy(text = "")
         }
     }
 
@@ -54,7 +48,7 @@ class ColorInputFieldViewModel(
     private fun showTrailingButton(text: String): Boolean =
         text.isNotEmpty()
 
-    private fun makeInitialUiData(viewData: ViewData) =
+    private fun makeInitialUiData() =
         ColorInputFieldUiData(
             text = "",
             onTextChange = ::onTextChange,

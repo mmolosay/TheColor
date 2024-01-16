@@ -7,18 +7,29 @@ import android.view.ViewGroup
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy.DisposeOnLifecycleDestroyed
 import androidx.fragment.app.viewModels
+import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.lifecycle.withCreationCallback
 import io.github.mmolosay.thecolor.presentation.color.ColorPrototype
 import io.github.mmolosay.thecolor.presentation.home.input.hex.ColorInputHex
+import io.github.mmolosay.thecolor.presentation.home.input.hex.ColorInputHexViewData
 import io.github.mmolosay.thecolor.presentation.home.input.hex.ColorInputHexViewModel
 import io.github.mmolosay.thecolor.utils.Resource
 import kotlinx.coroutines.flow.Flow
 
+@AndroidEntryPoint
 class ColorInputHexFragment :
     BaseColorInputFragment<ColorPrototype.Hex>() {
 
 //    private val binding by viewBinding(ColorInputHexFragmentBinding::bind)
 
-    private val vm: ColorInputHexViewModel by viewModels()
+    private val vm: ColorInputHexViewModel by viewModels(
+        extrasProducer = {
+            defaultViewModelCreationExtras.withCreationCallback<ColorInputHexViewModel.Factory> { factory ->
+                val viewData = ColorInputHexViewData(requireContext())
+                factory.create(viewData)
+            }
+        }
+    )
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -28,7 +39,7 @@ class ColorInputHexFragment :
         ComposeView(inflater.context).apply {
             setViewCompositionStrategy(DisposeOnLifecycleDestroyed(lifecycle))
             setContent {
-                ColorInputHex(vm = vm)
+                ColorInputHex(vm)
             }
         }
 
@@ -49,8 +60,9 @@ class ColorInputHexFragment :
     // region BaseColorInputFragment
 
     override fun assemblePrototype(): ColorPrototype.Hex {
-        val input = vm.uiDataFlow.value?.inputField?.text
-        return ColorPrototype.Hex(value = input)
+//        val input = vm.uiDataFlow.value?.inputField?.text
+//        return ColorPrototype.Hex(value = input)
+        return ColorPrototype.Hex(value = null)
     }
 
     override fun populateViews(color: ColorPrototype.Hex): Unit =
