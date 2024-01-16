@@ -1,6 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.home.input.hex
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -15,16 +16,18 @@ import io.github.mmolosay.thecolor.presentation.home.R
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputComponents.TextField
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData.TrailingButton
-import io.github.mmolosay.thecolor.presentation.home.input.plus
 import io.github.mmolosay.thecolor.presentation.R as CommonR
 
 @Composable
 internal fun ColorInputHex(
     vm: ColorInputHexViewModel = hiltViewModel(),
 ) {
-    val viewModelData = vm.uiDataFlow.collectAsStateWithLifecycle().value
-    val textFieldUiData = viewModelData + rememberViewData()
-    val uiData = ColorInputHexUiData(textFieldUiData)
+    val viewData = rememberViewData()
+    LaunchedEffect(Unit) {
+        vm.init(viewData)
+    }
+
+    val uiData = vm.uiDataFlow.collectAsStateWithLifecycle().value ?: return
     ColorInputHex(
         uiData = uiData,
     )
