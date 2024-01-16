@@ -26,18 +26,18 @@ class ColorInputViewModel @Inject constructor() : ViewModel() {
     }
 
     // seems like a better solution than "uiDataFlow = _uiDataFlow.map {..}"
-    private fun ColorInputHexUiData.ViewModelData.smartCopy(
+    private fun ColorInputFieldUiData.ViewModelData.smartCopy(
         input: String,
     ) =
         copy(
-            input = input.take(MAX_SYMBOLS_IN_HEX_COLOR),
+            text = input.take(MAX_SYMBOLS_IN_HEX_COLOR),
             showTrailingButton = input.isNotEmpty(),
         )
 
     private fun makeInitialViewModelData() =
-        ColorInputHexUiData.ViewModelData(
-            input = "",
-            onInputChange = ::onInputChange,
+        ColorInputFieldUiData.ViewModelData(
+            text = "",
+            onTextChange = ::onInputChange,
             showTrailingButton = false,
             onTrailingButtonClick = ::onTrailingButtonClick,
         )

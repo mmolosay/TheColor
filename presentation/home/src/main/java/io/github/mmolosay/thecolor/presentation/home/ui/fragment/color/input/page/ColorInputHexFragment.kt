@@ -49,7 +49,7 @@ class ColorInputHexFragment :
     // region BaseColorInputFragment
 
     override fun assemblePrototype(): ColorPrototype.Hex {
-        val input = vm.uiDataFlow.value.input
+        val input = vm.uiDataFlow.value.text
         return ColorPrototype.Hex(value = input)
     }
 
