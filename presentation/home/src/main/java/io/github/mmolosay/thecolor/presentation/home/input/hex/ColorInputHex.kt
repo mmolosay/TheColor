@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.home.input
+package io.github.mmolosay.thecolor.presentation.home.input.hex
 
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -25,7 +25,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.home.R
+import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData.TrailingButton
+import io.github.mmolosay.thecolor.presentation.home.input.plus
 import io.github.mmolosay.thecolor.presentation.R as CommonR
 
 @Composable

@@ -1,7 +1,8 @@
-package io.github.mmolosay.thecolor.presentation.home.input
+package io.github.mmolosay.thecolor.presentation.home.input.hex
 
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update

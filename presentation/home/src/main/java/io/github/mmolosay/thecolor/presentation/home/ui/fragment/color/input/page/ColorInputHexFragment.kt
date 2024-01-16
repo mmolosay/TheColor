@@ -8,8 +8,8 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy.DisposeOnLifecycleDestroyed
 import androidx.fragment.app.viewModels
 import io.github.mmolosay.thecolor.presentation.color.ColorPrototype
-import io.github.mmolosay.thecolor.presentation.home.input.ColorInputHex
-import io.github.mmolosay.thecolor.presentation.home.input.ColorInputHexViewModel
+import io.github.mmolosay.thecolor.presentation.home.input.hex.ColorInputHex
+import io.github.mmolosay.thecolor.presentation.home.input.hex.ColorInputHexViewModel
 import io.github.mmolosay.thecolor.utils.Resource
 import kotlinx.coroutines.flow.Flow
 
