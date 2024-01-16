@@ -9,10 +9,17 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -38,10 +45,18 @@ internal fun ColorInputHex(
     modifier: Modifier = Modifier,
     uiData: ColorInputHexUiData,
 ) {
+    var value by remember { mutableStateOf(TextFieldValue(text = uiData.input)) }
     OutlinedTextField(
-        modifier = modifier,
-        value = uiData.input,
-        onValueChange = uiData.onInputChange,
+        modifier = modifier
+            .selectAllTextOnFocus(
+                value = value,
+                onValueChange = { new -> value = new },
+            ),
+        value = value,
+        onValueChange = { new ->
+            value = new
+            uiData.onInputChange(new.text)
+        },
         label = { Label(uiData.label) },
         placeholder = { Placeholder(uiData.placeholder) },
         trailingIcon = { TrailingButton(uiData.trailingButton) },
@@ -50,6 +65,9 @@ internal fun ColorInputHex(
         keyboardActions = KeyboardActions(),
         singleLine = true,
     )
+    LaunchedEffect(uiData.input) {
+        value = value.copy(text = uiData.input)
+    }
 }
 
 @Composable
@@ -88,6 +106,19 @@ private fun Prefix(text: String) =
     Text(
         text = text,
     )
+
+private fun Modifier.selectAllTextOnFocus(
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
+) =
+    onFocusChanged a@{
+        if (!it.isFocused) return@a
+        val text = value.text
+        val newValue = value.copy(
+            selection = TextRange(start = 0, end = text.length)
+        )
+        onValueChange(newValue)
+    }
 
 @Composable
 private fun rememberViewData() =
