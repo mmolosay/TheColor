@@ -50,9 +50,9 @@ data class ColorInputHexUiData(
 }
 
 operator fun ViewModelData.plus(viewData: ViewData) =
-    combine(viewModelData = this, viewData = viewData)
+    uiData(viewModelData = this, viewData = viewData)
 
-private fun combine(
+private fun uiData(
     viewModelData: ViewModelData,
     viewData: ViewData,
 ) =
