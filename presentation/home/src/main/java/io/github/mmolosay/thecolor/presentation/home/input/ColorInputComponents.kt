@@ -27,6 +27,7 @@ internal object ColorInputComponents {
         uiData: ColorInputFieldUiData,
         value: TextFieldValue,
         updateValue: (TextFieldValue) -> Unit,
+        keyboardOptions: KeyboardOptions,
     ) =
         with(uiData) {
             OutlinedTextField(
@@ -45,7 +46,7 @@ internal object ColorInputComponents {
                 placeholder = { Placeholder(placeholder) },
                 trailingIcon = { TrailingButton(trailingButton) },
                 prefix = { Prefix(prefix) },
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardOptions = keyboardOptions,
                 keyboardActions = KeyboardActions(),
                 singleLine = true,
             )
