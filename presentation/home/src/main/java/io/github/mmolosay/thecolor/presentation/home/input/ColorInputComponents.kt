@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
+import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData.TrailingButton
 
 /**
  * Reusable UI components of color input widgets.
@@ -69,14 +70,14 @@ object ColorInputComponents {
         )
 
     @Composable
-    private fun TrailingButton(uiData: ColorInputFieldUiData.TrailingButton) =
+    private fun TrailingButton(uiData: TrailingButton) =
         when (uiData) {
-            is ColorInputFieldUiData.TrailingButton.Visible -> ClearIconButton(uiData)
-            is ColorInputFieldUiData.TrailingButton.Hidden -> Unit // don't show anything
+            is TrailingButton.Visible -> ClearIconButton(uiData)
+            is TrailingButton.Hidden -> Unit // don't show anything
         }
 
     @Composable
-    private fun ClearIconButton(uiData: ColorInputFieldUiData.TrailingButton.Visible) {
+    private fun ClearIconButton(uiData: TrailingButton.Visible) {
         IconButton(
             onClick = uiData.onClick,
         ) {
