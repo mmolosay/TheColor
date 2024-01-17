@@ -25,7 +25,8 @@ class ColorInputFieldViewModel(
         }
     }
 
-    private fun onTrailingButtonClick() {
+    private fun clearInputField() {
+        if (uiDataFlow.value.trailingButton is TrailingButton.Hidden) return
         _uiDataFlow.update {
             it.smartCopy(text = "")
         }
@@ -49,7 +50,7 @@ class ColorInputFieldViewModel(
     ): TrailingButton =
         if (trailingIcon is ViewData.TrailingIcon.Exists && showTrailingButton(text)) {
             TrailingButton.Visible(
-                onClick = ::onTrailingButtonClick,
+                onClick = ::clearInputField,
                 iconContentDesc = trailingIcon.contentDesc,
             )
         } else {
