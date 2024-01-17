@@ -26,7 +26,7 @@ class ColorInputViewModel @AssistedInject constructor(
 
     private fun initialUiData(viewData: ColorInputUiData.ViewData) =
         ColorInputUiData(
-            inputType = InputType.Rgb,
+            inputType = InputType.Hex,
             onInputTypeSelect = ::onInputTypeSelect,
             hexLabel = viewData.hexLabel,
             rgbLabel = viewData.rgbLabel,
