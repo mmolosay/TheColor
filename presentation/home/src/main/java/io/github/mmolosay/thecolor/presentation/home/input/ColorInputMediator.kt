@@ -2,9 +2,9 @@ package io.github.mmolosay.thecolor.presentation.home.input
 
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
-import io.github.mmolosay.thecolor.domain.usecase.ValidateColorHexUseCase
 import io.github.mmolosay.thecolor.presentation.color.ColorPrototype
 import io.github.mmolosay.thecolor.presentation.mapper.toDomainOrNull
+import io.github.mmolosay.thecolor.presentation.mapper.toPresentation
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.mapNotNull
@@ -27,19 +27,18 @@ import javax.inject.Inject
  *    left on in previous color input View.
  */
 class ColorInputMediator @Inject constructor(
-    private val validateHexColor: ValidateColorHexUseCase,
     private val colorConverter: ColorConverter,
 ) {
 
     private val colorFlow = MutableStateFlow<Color.Abstract?>(null)
 
-    val hexFlow: Flow<Color.Hex> =
+    val hexFlow: Flow<ColorPrototype.Hex> =
         colorFlow.mapNotNull { color ->
-            with(colorConverter) { color?.toHex() }
+            with(colorConverter) { color?.toHex() }?.toPresentation()
         }
-    val rgbFlow: Flow<Color.Rgb> =
+    val rgbFlow: Flow<ColorPrototype.Rgb> =
         colorFlow.mapNotNull { color ->
-            with(colorConverter) { color?.toRgb() }
+            with(colorConverter) { color?.toRgb() }?.toPresentation()
         }
 
     fun update(new: ColorPrototype) {

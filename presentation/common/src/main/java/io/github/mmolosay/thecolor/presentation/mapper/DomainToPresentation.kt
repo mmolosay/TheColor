@@ -1,11 +1,23 @@
 package io.github.mmolosay.thecolor.presentation.mapper
 
 import io.github.mmolosay.thecolor.presentation.color.Color
+import io.github.mmolosay.thecolor.presentation.color.ColorPrototype
 import io.github.mmolosay.thecolor.presentation.color.data.ColorDetails
 import io.github.mmolosay.thecolor.presentation.color.data.ColorScheme
 import io.github.mmolosay.thecolor.presentation.util.ext.getFromEnumOrNull
+import io.github.mmolosay.thecolor.domain.model.Color as ColorDomain
 import io.github.mmolosay.thecolor.domain.model.ColorDetails as ColorDetailsDomain
 import io.github.mmolosay.thecolor.domain.model.ColorScheme as ColorSchemeDomain
+
+// region ColorPrototype
+
+fun ColorDomain.Hex.toPresentation(): ColorPrototype.Hex =
+    ColorPrototype.Hex(this.value)
+
+fun ColorDomain.Rgb.toPresentation(): ColorPrototype.Rgb =
+    ColorPrototype.Rgb(this.r, this.g, this.b)
+
+// endregion
 
 // region ColorDetails
 
