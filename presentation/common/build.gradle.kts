@@ -29,6 +29,7 @@ android {
 dependencies {
 
     implementation(project(":domain"))
+    implementation(project(":presentation:design-system"))
 
     // Jetpack
     implementation("androidx.core:core-ktx:${libs.versions.androidx.core.coreKtx.get()}")
