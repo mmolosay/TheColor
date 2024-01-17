@@ -1,5 +1,10 @@
 package io.github.mmolosay.thecolor.presentation.home.input
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandIn
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -10,6 +15,11 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.TextRange
@@ -70,11 +80,22 @@ object ColorInputComponents {
         )
 
     @Composable
-    private fun TrailingButton(uiData: TrailingButton) =
-        when (uiData) {
-            is TrailingButton.Visible -> ClearIconButton(uiData)
-            is TrailingButton.Hidden -> Unit // don't show anything
+    private fun TrailingButton(uiData: TrailingButton) {
+        val resizingAlignment = Alignment.Center
+        // when uiData is Hidden, we want to have memoized Visible data for some time while "exit" animation is running
+        var visibleUiData by remember { mutableStateOf<TrailingButton.Visible?>(null) }
+        AnimatedVisibility(
+            visible = uiData is TrailingButton.Visible,
+            enter = fadeIn() + expandIn(expandFrom = resizingAlignment),
+            exit = fadeOut() + shrinkOut(shrinkTowards = resizingAlignment),
+        ) {
+            val lastVisible = visibleUiData ?: return@AnimatedVisibility
+            ClearIconButton(lastVisible)
         }
+        LaunchedEffect(uiData) {
+            visibleUiData = uiData as? TrailingButton.Visible ?: return@LaunchedEffect
+        }
+    }
 
     @Composable
     private fun ClearIconButton(uiData: TrailingButton.Visible) {
