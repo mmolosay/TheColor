@@ -3,6 +3,7 @@ package io.github.mmolosay.thecolor.presentation.home.input.rgb
 import android.content.Context
 import io.github.mmolosay.thecolor.presentation.home.R
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData
+import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData.ViewData.TrailingIcon
 
 data class ColorInputRgbViewData(
     val rInputField: ColorInputFieldUiData.ViewData,
@@ -22,7 +23,7 @@ private fun rViewData(context: Context) =
         label = context.getString(R.string.color_input_rgb_r_label),
         placeholder = context.getString(R.string.color_input_rgb_r_placeholder),
         prefix = null,
-        trailingIconContentDesc = null,
+        trailingIcon = TrailingIcon.None,
     )
 
 private fun gViewData(context: Context) =
@@ -30,7 +31,7 @@ private fun gViewData(context: Context) =
         label = context.getString(R.string.color_input_rgb_g_label),
         placeholder = context.getString(R.string.color_input_rgb_g_placeholder),
         prefix = null,
-        trailingIconContentDesc = null,
+        trailingIcon = TrailingIcon.None,
     )
 
 private fun bViewData(context: Context) =
@@ -38,5 +39,5 @@ private fun bViewData(context: Context) =
         label = context.getString(R.string.color_input_rgb_b_label),
         placeholder = context.getString(R.string.color_input_rgb_b_placeholder),
         prefix = null,
-        trailingIconContentDesc = null,
+        trailingIcon = TrailingIcon.None,
     )

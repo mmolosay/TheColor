@@ -31,6 +31,12 @@ data class ColorInputFieldUiData(
         val label: String,
         val placeholder: String,
         val prefix: String?,
-        val trailingIconContentDesc: String?,
-    )
+        val trailingIcon: TrailingIcon,
+    ) {
+
+        sealed interface TrailingIcon {
+            data object None : TrailingIcon
+            data class Exists(val contentDesc: String) : TrailingIcon
+        }
+    }
 }
