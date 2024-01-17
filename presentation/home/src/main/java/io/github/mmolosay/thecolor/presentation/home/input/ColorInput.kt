@@ -29,6 +29,7 @@ import io.github.mmolosay.thecolor.presentation.home.input.hex.ColorInputHexView
 import io.github.mmolosay.thecolor.presentation.home.input.rgb.ColorInputRgb
 import io.github.mmolosay.thecolor.presentation.home.input.rgb.ColorInputRgbUiData
 import io.github.mmolosay.thecolor.presentation.home.input.rgb.ColorInputRgbViewModel
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
 
 @Composable
 fun ColorInput(

@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputComponents.TextField
-import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
 
 @Composable
 fun ColorInputRgb(

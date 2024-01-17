@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.home.input.rgb
 
-import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
 
 data class ColorInputRgbUiData(
     val rInputField: ColorInputFieldUiData,

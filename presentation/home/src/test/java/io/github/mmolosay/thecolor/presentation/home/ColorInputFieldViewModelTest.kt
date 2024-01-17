@@ -1,9 +1,9 @@
 package io.github.mmolosay.thecolor.presentation.home
 
-import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData
-import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData.TrailingButton
-import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData.ViewData.TrailingIcon
-import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldViewModel
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.TrailingButton
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.ViewData.TrailingIcon
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType

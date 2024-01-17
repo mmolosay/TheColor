@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.home.input
+package io.github.mmolosay.thecolor.presentation.home.input.field
 
 data class ColorInputFieldUiData(
     val text: String,

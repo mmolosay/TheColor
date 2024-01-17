@@ -2,8 +2,8 @@ package io.github.mmolosay.thecolor.presentation.home.input.rgb
 
 import android.content.Context
 import io.github.mmolosay.thecolor.presentation.home.R
-import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData
-import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData.ViewData.TrailingIcon
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.ViewData.TrailingIcon
 
 data class ColorInputRgbViewData(
     val rInputField: ColorInputFieldUiData.ViewData,

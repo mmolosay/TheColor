@@ -17,8 +17,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputComponents.TextField
-import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData
-import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData.TrailingButton
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.TrailingButton
 
 @Composable
 fun ColorInputHex(

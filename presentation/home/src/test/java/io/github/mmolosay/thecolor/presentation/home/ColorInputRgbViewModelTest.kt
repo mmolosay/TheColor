@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.home
 
-import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
 import io.github.mmolosay.thecolor.presentation.home.input.rgb.ColorInputRgbUiData
 import io.github.mmolosay.thecolor.presentation.home.input.rgb.ColorInputRgbViewData
 import io.github.mmolosay.thecolor.presentation.home.input.rgb.ColorInputRgbViewModel

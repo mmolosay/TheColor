@@ -27,7 +27,8 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.TextFieldValue
-import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData.TrailingButton
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.TrailingButton
 
 /**
  * Reusable UI components of color input widgets.

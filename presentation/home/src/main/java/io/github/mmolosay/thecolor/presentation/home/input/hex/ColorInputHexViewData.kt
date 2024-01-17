@@ -2,8 +2,8 @@ package io.github.mmolosay.thecolor.presentation.home.input.hex
 
 import android.content.Context
 import io.github.mmolosay.thecolor.presentation.home.R
-import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData
-import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData.ViewData.TrailingIcon
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.ViewData.TrailingIcon
 import io.github.mmolosay.thecolor.presentation.R as CommonR
 
 @Suppress("FunctionName")

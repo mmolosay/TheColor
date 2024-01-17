@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.home
 
-import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
 import io.github.mmolosay.thecolor.presentation.home.input.hex.ColorInputHexUiData
 import io.github.mmolosay.thecolor.presentation.home.input.hex.ColorInputHexViewModel
 import io.kotest.matchers.shouldBe

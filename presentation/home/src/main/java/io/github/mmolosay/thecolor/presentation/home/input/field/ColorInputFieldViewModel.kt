@@ -1,7 +1,7 @@
-package io.github.mmolosay.thecolor.presentation.home.input
+package io.github.mmolosay.thecolor.presentation.home.input.field
 
-import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData.TrailingButton
-import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData.ViewData
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.TrailingButton
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.ViewData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update

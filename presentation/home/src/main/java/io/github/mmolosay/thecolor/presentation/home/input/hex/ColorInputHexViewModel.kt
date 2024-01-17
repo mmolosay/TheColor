@@ -6,9 +6,9 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData
-import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData.ViewData
-import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldViewModel
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.ViewData
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
