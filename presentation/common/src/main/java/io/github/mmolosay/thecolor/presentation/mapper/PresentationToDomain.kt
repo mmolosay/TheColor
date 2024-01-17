@@ -9,6 +9,7 @@ import io.github.mmolosay.thecolor.domain.model.Color.Hex as ColorHexDomain
 import io.github.mmolosay.thecolor.domain.model.Color.Rgb as ColorRgbDomain
 import io.github.mmolosay.thecolor.domain.model.ColorSchemeRequest as ColorSchemeRequestDomain
 
+// TODO: replace with some ColorFactory that turns presentation ColorPrototype-s into domain Color-s
 fun ColorPrototype.Hex.toDomainOrNull(): ColorHexDomain? {
     Color.from(this) ?: return null
     return ColorHexDomain(
