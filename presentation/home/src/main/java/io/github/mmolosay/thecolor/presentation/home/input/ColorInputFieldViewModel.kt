@@ -6,6 +6,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+/**
+ * Not a ViewModel-ViewModel in terms of Android development.
+ * It doesn't derive from [androidx.lifecycle.ViewModel], so should only be used in "real" ViewModels
+ * which do derive from Android-aware implementation.
+ */
 class ColorInputFieldViewModel(
     private val viewData: ViewData,
     private val processText: (String) -> String,
