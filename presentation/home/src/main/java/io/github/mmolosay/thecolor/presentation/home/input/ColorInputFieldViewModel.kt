@@ -37,11 +37,14 @@ class ColorInputFieldViewModel(
     ) =
         copy(
             text = text,
-            trailingButton = trailingButton(text, viewData.trailingIconContentDesc),
+            trailingButton = trailingButton(
+                text = text,
+                iconContentDesc = viewData.trailingIconContentDesc,
+            ),
         )
 
-    private fun trailingButton(text: String, iconContentDesc: String): TrailingButton =
-        if (showTrailingButton(text)) {
+    private fun trailingButton(text: String, iconContentDesc: String?): TrailingButton =
+        if (showTrailingButton(text) && iconContentDesc != null) {
             TrailingButton.Visible(
                 onClick = ::onTrailingButtonClick,
                 iconContentDesc = iconContentDesc,

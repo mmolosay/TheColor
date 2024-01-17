@@ -10,7 +10,7 @@ data class ColorInputFieldUiData(
     val processText: (String) -> String,
     val label: String,
     val placeholder: String,
-    val prefix: String,
+    val prefix: String?,
     val trailingButton: TrailingButton,
 ) {
 
@@ -30,7 +30,7 @@ data class ColorInputFieldUiData(
     data class ViewData(
         val label: String,
         val placeholder: String,
-        val prefix: String,
-        val trailingIconContentDesc: String,
+        val prefix: String?,
+        val trailingIconContentDesc: String?,
     )
 }

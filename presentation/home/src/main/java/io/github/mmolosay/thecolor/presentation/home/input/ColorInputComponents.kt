@@ -13,7 +13,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 
 /**
@@ -45,7 +44,7 @@ object ColorInputComponents {
                 label = { Label(label) },
                 placeholder = { Placeholder(placeholder) },
                 trailingIcon = { TrailingButton(trailingButton) },
-                prefix = { Prefix(prefix) },
+                prefix = if (prefix != null) ({ Prefix(prefix) }) else null,
                 keyboardOptions = keyboardOptions,
                 keyboardActions = KeyboardActions(),
                 singleLine = true,
