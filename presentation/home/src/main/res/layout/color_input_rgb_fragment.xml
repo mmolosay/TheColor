@@ -10,14 +10,14 @@
         android:id="@+id/inputRgbR"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:hint="@string/color_rgb_component_r_label"
+        android:hint="@string/color_input_rgb_r_label"
         android:minWidth="@dimen/input_color_width_min"
 
         app:layout_constraintEnd_toStartOf="@+id/inputRgbG"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:placeholderText="@string/color_input_rgb_placeholder_r">
+        app:placeholderText="@string/color_input_rgb_r_placeholder">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/edittextR"
@@ -34,14 +34,14 @@
         android:id="@+id/inputRgbG"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:hint="@string/color_rgb_component_g_label"
+        android:hint="@string/color_input_rgb_g_label"
         android:minWidth="@dimen/input_color_width_min"
 
         app:layout_constraintEnd_toStartOf="@id/inputRgbB"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/inputRgbR"
         app:layout_constraintTop_toTopOf="parent"
-        app:placeholderText="@string/color_input_rgb_placeholder_g">
+        app:placeholderText="@string/color_input_rgb_g_placeholder">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/edittextG"
@@ -58,13 +58,13 @@
         android:id="@+id/inputRgbB"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:hint="@string/color_rgb_component_b_label"
+        android:hint="@string/color_input_rgb_b_label"
         android:minWidth="@dimen/input_color_width_min"
 
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/inputRgbG"
         app:layout_constraintTop_toTopOf="parent"
-        app:placeholderText="@string/color_input_rgb_placeholder_b">
+        app:placeholderText="@string/color_input_rgb_b_placeholder">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/edittextB"

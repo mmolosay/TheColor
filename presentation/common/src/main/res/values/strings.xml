@@ -12,10 +12,6 @@
 
     <string name="color_hex_numbersign" translatable="false">#</string>
 
-    <string name="color_rgb_component_r_label" translatable="false">R</string>
-    <string name="color_rgb_component_g_label" translatable="false">G</string>
-    <string name="color_rgb_component_b_label" translatable="false">B</string>
-
     <string name="color_hsl_label" translatable="false">HSL</string>
     <string name="color_hsv_label" translatable="false">HSV</string>
     <string name="color_cmyk_label" translatable="false">CMYK</string>
