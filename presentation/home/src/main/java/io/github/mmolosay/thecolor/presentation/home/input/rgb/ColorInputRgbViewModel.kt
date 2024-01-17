@@ -6,15 +6,19 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 @HiltViewModel(assistedFactory = ColorInputRgbViewModel.Factory::class)
 class ColorInputRgbViewModel @AssistedInject constructor(
     @Assisted viewData: ColorInputRgbViewData,
+    private val mediator: ColorInputMediator,
 ) : ViewModel() {
 
     private val rInputFieldViewModel =
@@ -38,11 +42,33 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         gInputFieldViewModel.uiDataFlow,
         bInputFieldViewModel.uiDataFlow,
         ::makeUiData,
-    ).stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = makeInitialUiData(),
     )
+        .onEach { uiData ->
+            val prototype = uiData.assembleColorPrototype()
+            mediator.update(prototype)
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = makeInitialUiData(),
+        )
+
+    init {
+        collectMediatorColorFlow()
+    }
+
+    private fun collectMediatorColorFlow() {
+        viewModelScope.launch {
+            mediator.rgbFlow.collect { color ->
+                val newRText = color.r?.toString().orEmpty()
+                val newGText = color.g?.toString().orEmpty()
+                val newBText = color.b?.toString().orEmpty()
+                uiDataFlow.value.rInputField.onTextChange(newRText)
+                uiDataFlow.value.gInputField.onTextChange(newGText)
+                uiDataFlow.value.bInputField.onTextChange(newBText)
+            }
+        }
+    }
 
     private fun processInput(text: String): String =
         text

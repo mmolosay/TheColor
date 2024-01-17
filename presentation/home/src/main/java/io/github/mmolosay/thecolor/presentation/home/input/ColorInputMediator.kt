@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.mapNotNull
 import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * Acts as mediator between ViewModels of different color input Views.
@@ -26,6 +27,7 @@ import javax.inject.Inject
  *    This way if user switches to other color input View, they can continue editing the color they
  *    left on in previous color input View.
  */
+@Singleton
 class ColorInputMediator @Inject constructor(
     private val colorConverter: ColorConverter,
 ) {

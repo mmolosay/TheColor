@@ -3,6 +3,7 @@ package io.github.mmolosay.thecolor.domain.usecase
 import io.github.mmolosay.thecolor.domain.model.Color
 import javax.inject.Inject
 
+// TODO: use third-party library for converting
 class ColorConverter @Inject constructor() {
 
     fun Color.Hex.toAbstract(): Color.Abstract {
@@ -21,7 +22,9 @@ class ColorConverter @Inject constructor() {
     @OptIn(ExperimentalStdlibApi::class)
     fun Color.Abstract.toHex(): Color.Hex {
         val abstract = this as AbstractColorImpl
-        val string = abstract.int.toHexString(format = HexFormat.UpperCase)
+        val string = abstract.int
+            .toHexString(HexFormat.UpperCase)
+            .removePrefix("00")
         return Color.Hex(value = string)
     }
 
