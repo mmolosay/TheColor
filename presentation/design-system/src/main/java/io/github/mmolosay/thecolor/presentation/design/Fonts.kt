@@ -5,7 +5,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 
-val nunitoFamily = FontFamily(
+internal val nunitoFamily = FontFamily(
     Font(R.font.nunito_thin, FontWeight.W200),
     Font(R.font.nunito_thin_italic, FontWeight.W200, FontStyle.Italic),
 

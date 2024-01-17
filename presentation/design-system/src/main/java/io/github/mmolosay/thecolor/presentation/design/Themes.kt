@@ -10,6 +10,7 @@ fun TheColorTheme(
 ) {
     MaterialTheme(
         colorScheme = theme.colorScheme(),
+        typography = typography(),
         content = content,
     )
 }
