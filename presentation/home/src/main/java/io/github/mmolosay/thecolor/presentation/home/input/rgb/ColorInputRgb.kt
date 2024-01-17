@@ -16,9 +16,20 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputComponents.TextField
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData
+
+@Composable
+fun ColorInputRgb(
+    vm: ColorInputRgbViewModel,
+) {
+    val uiData = vm.uiDataFlow.collectAsStateWithLifecycle().value
+    ColorInputRgb(
+        uiData = uiData,
+    )
+}
 
 @Composable
 fun ColorInputRgb(
