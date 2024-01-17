@@ -15,24 +15,22 @@ import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel(assistedFactory = ColorInputRgbViewModel.Factory::class)
 class ColorInputRgbViewModel @AssistedInject constructor(
-    @Assisted rInputFieldViewData: ViewData,
-    @Assisted gInputFieldViewData: ViewData,
-    @Assisted bInputFieldViewData: ViewData,
+    @Assisted viewData: ColorInputRgbViewData,
 ) : ViewModel() {
 
     private val rInputFieldViewModel =
         ColorInputFieldViewModel(
-            viewData = rInputFieldViewData,
+            viewData = viewData.rInputField,
             processText = ::processInput,
         )
     private val gInputFieldViewModel =
         ColorInputFieldViewModel(
-            viewData = gInputFieldViewData,
+            viewData = viewData.gInputField,
             processText = ::processInput,
         )
     private val bInputFieldViewModel =
         ColorInputFieldViewModel(
-            viewData = bInputFieldViewData,
+            viewData = viewData.bInputField,
             processText = ::processInput,
         )
 
