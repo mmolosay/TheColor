@@ -19,7 +19,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 /**
  * Reusable UI components of color input widgets.
  */
-internal object ColorInputComponents {
+object ColorInputComponents {
 
     @Composable
     fun TextField(

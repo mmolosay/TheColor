@@ -21,7 +21,7 @@ import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData.TrailingButton
 
 @Composable
-internal fun ColorInputHex(
+fun ColorInputHex(
     vm: ColorInputHexViewModel,
 ) {
     val uiData = vm.uiDataFlow.collectAsStateWithLifecycle().value
@@ -31,7 +31,7 @@ internal fun ColorInputHex(
 }
 
 @Composable
-internal fun ColorInputHex(
+fun ColorInputHex(
     uiData: ColorInputHexUiData,
 ) {
     var value by remember { mutableStateOf(TextFieldValue(text = uiData.inputField.text)) }

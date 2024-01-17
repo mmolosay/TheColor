@@ -21,7 +21,7 @@ import io.github.mmolosay.thecolor.presentation.home.input.ColorInputComponents.
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData
 
 @Composable
-internal fun ColorInputRgb(
+fun ColorInputRgb(
     uiData: ColorInputRgbUiData,
 ) {
     Row(
