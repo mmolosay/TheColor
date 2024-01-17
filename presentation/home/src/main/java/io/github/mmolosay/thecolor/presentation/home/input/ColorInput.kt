@@ -1,6 +1,8 @@
 package io.github.mmolosay.thecolor.presentation.home.input
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -57,9 +59,19 @@ fun ColorInput(
             .fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        when (uiData.inputType) {
-            InputType.Hex -> hexInput()
-            InputType.Rgb -> rgbInput()
+        Crossfade(
+            targetState = uiData.inputType,
+            label = "Input type cross-fade",
+        ) { type ->
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.TopCenter,
+            ) {
+                when (type) {
+                    InputType.Hex -> hexInput()
+                    InputType.Rgb -> rgbInput()
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
