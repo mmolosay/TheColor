@@ -26,7 +26,7 @@ class ColorInputFieldViewModel(
     }
 
     private fun clearInputField() {
-        if (uiDataFlow.value.trailingButton is TrailingButton.Hidden) return
+        if (uiDataFlow.value.trailingButton is TrailingButton.Hidden) return // animating
         _uiDataFlow.update {
             it.smartCopy(text = "")
         }
