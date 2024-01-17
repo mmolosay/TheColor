@@ -7,7 +7,7 @@ import io.github.mmolosay.thecolor.presentation.mapper.toDomainOrNull
 import io.github.mmolosay.thecolor.presentation.mapper.toPresentation
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.transform
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -33,18 +33,26 @@ class ColorInputMediator @Inject constructor(
 ) {
 
     private val colorFlow = MutableStateFlow<Color.Abstract?>(null)
+    private lateinit var lastUsedInputType: InputType
 
     val hexFlow: Flow<ColorPrototype.Hex> =
-        colorFlow.mapNotNull { color ->
-            with(colorConverter) { color?.toHex() }?.toPresentation()
+        colorFlow.transform { abstract ->
+            abstract ?: return@transform
+            if (lastUsedInputType == InputType.Hex) return@transform // prevent user input interrupting
+            val color = with(colorConverter) { abstract.toHex() }.toPresentation()
+            emit(color)
         }
     val rgbFlow: Flow<ColorPrototype.Rgb> =
-        colorFlow.mapNotNull { color ->
-            with(colorConverter) { color?.toRgb() }?.toPresentation()
+        colorFlow.transform { abstract ->
+            abstract ?: return@transform
+            if (lastUsedInputType == InputType.Rgb) return@transform // prevent user input interrupting
+            val color = with(colorConverter) { abstract.toRgb() }.toPresentation()
+            emit(color)
         }
 
     fun update(new: ColorPrototype) {
         val abstract = new.toAbstract() ?: return // ignore unfinished colors
+        lastUsedInputType = new.toInputType()
         colorFlow.value = abstract
     }
 
@@ -62,5 +70,16 @@ class ColorInputMediator @Inject constructor(
     private fun ColorPrototype.Rgb.toAbstract(): Color.Abstract? {
         val color: Color.Rgb = this.toDomainOrNull() ?: return null // ignore unfinished colors
         return with(colorConverter) { color.toAbstract() }
+    }
+
+    private fun ColorPrototype.toInputType() =
+        when (this) {
+            is ColorPrototype.Hex -> InputType.Hex
+            is ColorPrototype.Rgb -> InputType.Rgb
+        }
+
+    private enum class InputType {
+        Hex,
+        Rgb,
     }
 }
