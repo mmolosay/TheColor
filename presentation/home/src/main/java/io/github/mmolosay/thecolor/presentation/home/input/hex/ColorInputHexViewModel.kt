@@ -30,7 +30,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000),
-                initialValue = makeUiData(colorInputFieldViewModel.uiDataFlow.value),
+                initialValue = makeInitialUiData(),
             )
 
     private fun processInput(text: String): String =
@@ -38,8 +38,12 @@ class ColorInputHexViewModel @AssistedInject constructor(
             .filter { it.isDigit() || it in 'A'..'F' }
             .take(MAX_SYMBOLS_IN_HEX_COLOR)
 
-    private fun makeUiData(inputFieldUiData: ColorInputFieldUiData) =
-        ColorInputHexUiData(inputFieldUiData)
+    private fun makeUiData(inputField: ColorInputFieldUiData) =
+        ColorInputHexUiData(inputField)
+
+    // this code is extracted into separate method to be consistent with ColorInputRgbViewModel
+    private fun makeInitialUiData() =
+        makeUiData(colorInputFieldViewModel.uiDataFlow.value)
 
     private companion object {
         const val MAX_SYMBOLS_IN_HEX_COLOR = 6
