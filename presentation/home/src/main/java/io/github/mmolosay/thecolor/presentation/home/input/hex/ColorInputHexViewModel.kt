@@ -41,7 +41,6 @@ class ColorInputHexViewModel @AssistedInject constructor(
     private fun makeUiData(inputField: ColorInputFieldUiData) =
         ColorInputHexUiData(inputField)
 
-    // this code is extracted into separate method to be consistent with ColorInputRgbViewModel
     private fun makeInitialUiData() =
         makeUiData(colorInputFieldViewModel.uiDataFlow.value)
 
