@@ -33,8 +33,8 @@ class ColorInputHexViewModel @AssistedInject constructor(
                 initialValue = makeUiData(colorInputFieldViewModel.uiDataFlow.value),
             )
 
-    private fun processInput(input: String): String =
-        input
+    private fun processInput(text: String): String =
+        text
             .filter { it.isDigit() || it in 'A'..'F' }
             .take(MAX_SYMBOLS_IN_HEX_COLOR)
 
