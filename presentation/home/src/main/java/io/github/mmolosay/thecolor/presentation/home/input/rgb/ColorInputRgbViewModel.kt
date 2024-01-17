@@ -7,7 +7,6 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData
-import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldUiData.ViewData
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputFieldViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -66,11 +65,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(
-            rInputFieldViewData: ViewData,
-            gInputFieldViewData: ViewData,
-            bInputFieldViewData: ViewData,
-        ): ColorInputRgbViewModel
+        fun create(viewData: ColorInputRgbViewData): ColorInputRgbViewModel
     }
 
     private companion object {
