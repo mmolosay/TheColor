@@ -1,9 +1,5 @@
 package io.github.mmolosay.thecolor.presentation.home.input
 
-/**
- * All data that is required to correctly display this UI component.
- * Designed in a way so it's convenient for UI to consume: related values are grouped into subclasses.
- */
 data class ColorInputFieldUiData(
     val text: String,
     val onTextChange: (String) -> Unit,
