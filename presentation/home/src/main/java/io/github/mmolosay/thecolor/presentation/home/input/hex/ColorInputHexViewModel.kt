@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator.Command
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.Text
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.ViewData
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -23,7 +24,7 @@ import kotlinx.coroutines.launch
 class ColorInputHexViewModel @AssistedInject constructor(
     @Assisted viewData: ViewData,
     private val mediator: ColorInputMediator,
-    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
+    private val defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val inputFieldViewModel =
@@ -36,7 +37,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
         inputFieldViewModel.uiDataFlow
             .map(::makeUiData)
             .onEach { uiData ->
-                val command = if (uiData.inputField.text.isNotEmpty()) {
+                val command = if (uiData.inputField.text.string.isNotEmpty()) {
                     val prototype = uiData.assembleColorPrototype()
                     Command.Populate(prototype)
                 } else {
@@ -60,18 +61,19 @@ class ColorInputHexViewModel @AssistedInject constructor(
                 when (command) {
                     is Command.Clear -> inputFieldViewModel.clearText()
                     is Command.Populate -> {
-                        val newText = command.color.value.orEmpty()
-                        inputFieldViewModel.setText(newText)
+                        val text = Text(command.color.value.orEmpty())
+                        inputFieldViewModel.setText(text)
                     }
                 }
             }
         }
     }
 
-    private fun filterUserInput(text: String): String =
-        text
+    private fun filterUserInput(input: String): Text =
+        input
             .filter { it.isDigit() || it in 'A'..'F' }
             .take(MAX_SYMBOLS_IN_HEX_COLOR)
+            .let { Text(it) }
 
     private fun makeUiData(inputField: ColorInputFieldUiData) =
         ColorInputHexUiData(inputField)

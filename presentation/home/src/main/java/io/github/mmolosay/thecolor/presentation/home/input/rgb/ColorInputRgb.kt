@@ -20,6 +20,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputComponents.TextField
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.Text
 
 @Composable
 fun ColorInputRgb(
@@ -69,7 +70,7 @@ private fun TextField(
     uiData: ColorInputFieldUiData,
     imeAction: ImeAction,
 ) {
-    var value by remember { mutableStateOf(TextFieldValue(text = uiData.text)) }
+    var value by remember { mutableStateOf(TextFieldValue(text = uiData.text.string)) }
     TextField(
         modifier = modifier,
         uiData = uiData,
@@ -95,9 +96,9 @@ private fun Preview() {
 private fun previewUiData() =
     ColorInputRgbUiData(
         rInputField = ColorInputFieldUiData(
-            text = "12",
+            text = Text("12"),
             onTextChange = {},
-            filterUserInput = { it },
+            filterUserInput = { Text(it) },
             label = "R",
             placeholder = "0",
             prefix = "",
@@ -107,9 +108,9 @@ private fun previewUiData() =
             ),
         ),
         gInputField = ColorInputFieldUiData(
-            text = "",
+            text = Text(""),
             onTextChange = {},
-            filterUserInput = { it },
+            filterUserInput = { Text(it) },
             label = "G",
             placeholder = "0",
             prefix = "",
@@ -119,9 +120,9 @@ private fun previewUiData() =
             ),
         ),
         bInputField = ColorInputFieldUiData(
-            text = "255",
+            text = Text("255"),
             onTextChange = {},
-            filterUserInput = { it },
+            filterUserInput = { Text(it) },
             label = "B",
             placeholder = "0",
             prefix = "",

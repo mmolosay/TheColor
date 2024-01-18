@@ -18,6 +18,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputComponents.TextField
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.Text
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.TrailingButton
 
 @Composable
@@ -34,7 +35,7 @@ fun ColorInputHex(
 fun ColorInputHex(
     uiData: ColorInputHexUiData,
 ) {
-    var value by remember { mutableStateOf(TextFieldValue(text = uiData.inputField.text)) }
+    var value by remember { mutableStateOf(TextFieldValue(text = uiData.inputField.text.string)) }
     TextField(
         modifier = Modifier
             .wrapContentSize(align = Alignment.TopCenter) // ComposeView propagates min=max constraints
@@ -62,9 +63,9 @@ private fun Preview() {
 private fun previewUiData() =
     ColorInputHexUiData(
         inputField = ColorInputFieldUiData(
-            text = "",
+            text = Text(""),
             onTextChange = {},
-            filterUserInput = { it },
+            filterUserInput = { Text(it) },
             label = "HEX",
             placeholder = "000000",
             prefix = "#",

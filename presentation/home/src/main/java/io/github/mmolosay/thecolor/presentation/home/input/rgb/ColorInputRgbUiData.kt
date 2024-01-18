@@ -11,7 +11,7 @@ data class ColorInputRgbUiData(
 
 fun ColorInputRgbUiData.assembleColorPrototype() =
     ColorPrototype.Rgb(
-        r = rInputField.text.toIntOrNull(),
-        g = gInputField.text.toIntOrNull(),
-        b = bInputField.text.toIntOrNull(),
+        r = rInputField.text.string.toIntOrNull(),
+        g = gInputField.text.string.toIntOrNull(),
+        b = bInputField.text.string.toIntOrNull(),
     )

@@ -7,14 +7,21 @@ package io.github.mmolosay.thecolor.presentation.home.input.field
  * @param filterUserInput filters text from user input and returns processed text to be displayed.
  */
 data class ColorInputFieldUiData(
-    val text: String, // TODO: custom type?
-    val onTextChange: (String) -> Unit,
-    val filterUserInput: (String) -> String,
+    val text: Text,
+    val onTextChange: (Text) -> Unit,
+    val filterUserInput: (String) -> Text,
     val label: String,
     val placeholder: String,
     val prefix: String?,
     val trailingButton: TrailingButton,
 ) {
+
+    /**
+     * Text that is ready to be displayed in UI.
+     * Can be obtained from [filterUserInput].
+     */
+    @JvmInline
+    value class Text(val string: String)
 
     sealed interface TrailingButton {
         data object Hidden : TrailingButton

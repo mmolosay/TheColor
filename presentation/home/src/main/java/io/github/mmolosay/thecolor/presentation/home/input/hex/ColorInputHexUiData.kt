@@ -8,4 +8,4 @@ data class ColorInputHexUiData(
 )
 
 fun ColorInputHexUiData.assembleColorPrototype() =
-    ColorPrototype.Hex(value = inputField.text)
+    ColorPrototype.Hex(value = inputField.text.string)

@@ -52,9 +52,10 @@ object ColorInputComponents {
                     ),
                 value = value,
                 onValueChange = { new ->
-                    val filtered = new.copy(text = filterUserInput(new.text))
+                    val newText = filterUserInput(new.text)
+                    val filtered = new.copy(text = newText.string)
                     updateValue(filtered)
-                    onTextChange(filtered.text)
+                    onTextChange(newText)
                 },
                 textStyle = LocalTextStyle.current.copy(fontFamily = FontFamily.SansSerif),
                 label = { Label(label) },
@@ -67,7 +68,7 @@ object ColorInputComponents {
             )
             // for when text is cleared with trailing button
             LaunchedEffect(text) {
-                val new = value.copy(text = text)
+                val new = value.copy(text = text.string)
                 updateValue(new)
             }
         }

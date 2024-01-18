@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator.Command
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.Text
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -22,7 +23,7 @@ import kotlinx.coroutines.launch
 class ColorInputRgbViewModel @AssistedInject constructor(
     @Assisted viewData: ColorInputRgbViewData,
     private val mediator: ColorInputMediator,
-    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
+    private val defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val rInputFieldViewModel =
@@ -49,7 +50,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     )
         .onEach { uiData ->
             val areNotAllFieldsEmpty =
-                inputFieldViewModels().any { it.uiDataFlow.value.text.isNotEmpty() }
+                inputFieldViewModels().any { it.uiDataFlow.value.text.string.isNotEmpty() }
             val command = if (areNotAllFieldsEmpty) {
                 val prototype = uiData.assembleColorPrototype()
                 Command.Populate(prototype)
@@ -74,22 +75,23 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                 when (command) {
                     is Command.Clear -> inputFieldViewModels().forEach { it.clearText() }
                     is Command.Populate -> {
-                        val newRText = command.color.r?.toString().orEmpty()
-                        val newGText = command.color.g?.toString().orEmpty()
-                        val newBText = command.color.b?.toString().orEmpty()
-                        rInputFieldViewModel.setText(newRText)
-                        gInputFieldViewModel.setText(newGText)
-                        bInputFieldViewModel.setText(newBText)
+                        val rText = Text(command.color.r?.toString().orEmpty())
+                        val gText = Text(command.color.g?.toString().orEmpty())
+                        val bText = Text(command.color.b?.toString().orEmpty())
+                        rInputFieldViewModel.setText(rText)
+                        gInputFieldViewModel.setText(gText)
+                        bInputFieldViewModel.setText(bText)
                     }
                 }
             }
         }
     }
 
-    private fun filterUserInput(text: String): String =
-        text
+    private fun filterUserInput(input: String): Text =
+        input
             .filter { it.isDigit() }
             .take(MAX_SYMBOLS_IN_RGB_COMPONENT)
+            .let { Text(it) }
 
     private fun makeInitialUiData() =
         makeUiData(
