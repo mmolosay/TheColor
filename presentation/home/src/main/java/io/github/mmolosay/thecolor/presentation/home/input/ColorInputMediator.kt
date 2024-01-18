@@ -101,8 +101,13 @@ class ColorInputMediator @Inject constructor(
             is ColorPrototype.Rgb -> InputType.Rgb
         }
 
+    /** A command to be executed by receiving ViewModel towards its View. */
     sealed interface Command<out C> {
+
+        /** Clears all user input. */
         data object Clear : Command<Nothing>
+
+        /** Populates UI with specified [color] data. */
         data class Populate<C>(val color: C) : Command<C>
     }
 
