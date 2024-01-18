@@ -64,14 +64,14 @@ class ColorInputFieldViewModelTest {
     }
 
     fun createSut(
-        processText: (String) -> String = noopProcessText,
+        filterUserInput: (String) -> String = noopFilterUserInput,
     ) =
         ColorInputFieldViewModel(
             viewData = viewData,
-            processText = processText,
+            filterUserInput = filterUserInput,
         ).also { this.sut = it }
 
-    val noopProcessText: (String) -> String =
+    val noopFilterUserInput: (String) -> String =
         mockk lambda@{
             val slot = slot<String>()
             every { this@lambda.invoke(capture(slot)) } answers { slot.captured }

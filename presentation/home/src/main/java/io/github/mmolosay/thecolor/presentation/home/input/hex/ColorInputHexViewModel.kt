@@ -11,6 +11,8 @@ import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator.Co
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.ViewData
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -21,12 +23,13 @@ import kotlinx.coroutines.launch
 class ColorInputHexViewModel @AssistedInject constructor(
     @Assisted viewData: ViewData,
     private val mediator: ColorInputMediator,
+    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
 
     private val inputFieldViewModel =
         ColorInputFieldViewModel(
             viewData = viewData,
-            filterUserInput = ::processInput,
+            filterUserInput = ::filterUserInput,
         )
 
     val uiDataFlow =
@@ -52,7 +55,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
     }
 
     private fun collectMediatorColorFlow() {
-        viewModelScope.launch {
+        viewModelScope.launch(defaultDispatcher) {
             mediator.hexCommandFlow.collect { command ->
                 when (command) {
                     is Command.Clear -> inputFieldViewModel.clearText()
@@ -65,7 +68,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
         }
     }
 
-    private fun processInput(text: String): String =
+    private fun filterUserInput(text: String): String =
         text
             .filter { it.isDigit() || it in 'A'..'F' }
             .take(MAX_SYMBOLS_IN_HEX_COLOR)

@@ -6,7 +6,6 @@ import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputField
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.ViewData.TrailingIcon
 import io.github.mmolosay.thecolor.presentation.R as CommonR
 
-@Suppress("FunctionName")
 fun ColorInputHexViewData(context: Context) =
     ColorInputFieldUiData.ViewData(
         label = context.getString(R.string.color_input_hex_label),

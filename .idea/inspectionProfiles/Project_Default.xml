@@ -14,6 +14,7 @@
     <inspection_tool class="FillVariablesOfSameName" enabled="true" level="INFORMATION" enabled_by_default="true">
       <option name="withTrailingComma" value="true" />
     </inspection_tool>
+    <inspection_tool class="FunctionName" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="JoinDeclarationAndAssignment" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="KotlinRedundantOverride" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="ManualArrayCopy" enabled="false" level="WARNING" enabled_by_default="false" />

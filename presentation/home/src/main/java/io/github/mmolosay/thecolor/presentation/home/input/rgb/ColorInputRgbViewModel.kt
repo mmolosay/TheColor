@@ -10,6 +10,8 @@ import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator.Command
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.onEach
@@ -20,22 +22,23 @@ import kotlinx.coroutines.launch
 class ColorInputRgbViewModel @AssistedInject constructor(
     @Assisted viewData: ColorInputRgbViewData,
     private val mediator: ColorInputMediator,
+    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
 
     private val rInputFieldViewModel =
         ColorInputFieldViewModel(
             viewData = viewData.rInputField,
-            filterUserInput = ::processInput,
+            filterUserInput = ::filterUserInput,
         )
     private val gInputFieldViewModel =
         ColorInputFieldViewModel(
             viewData = viewData.gInputField,
-            filterUserInput = ::processInput,
+            filterUserInput = ::filterUserInput,
         )
     private val bInputFieldViewModel =
         ColorInputFieldViewModel(
             viewData = viewData.bInputField,
-            filterUserInput = ::processInput,
+            filterUserInput = ::filterUserInput,
         )
 
     val uiDataFlow = combine(
@@ -66,7 +69,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     }
 
     private fun collectMediatorColorFlow() {
-        viewModelScope.launch {
+        viewModelScope.launch(defaultDispatcher) {
             mediator.rgbCommandFlow.collect { command ->
                 when (command) {
                     is Command.Clear -> inputFieldViewModels().forEach { it.clearText() }
@@ -83,7 +86,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         }
     }
 
-    private fun processInput(text: String): String =
+    private fun filterUserInput(text: String): String =
         text
             .filter { it.isDigit() }
             .take(MAX_SYMBOLS_IN_RGB_COMPONENT)

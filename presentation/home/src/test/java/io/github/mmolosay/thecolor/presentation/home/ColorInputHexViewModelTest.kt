@@ -1,31 +1,48 @@
 package io.github.mmolosay.thecolor.presentation.home
 
+import io.github.mmolosay.thecolor.presentation.color.ColorPrototype
+import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
 import io.github.mmolosay.thecolor.presentation.home.input.hex.ColorInputHexUiData
 import io.github.mmolosay.thecolor.presentation.home.input.hex.ColorInputHexViewModel
 import io.kotest.matchers.shouldBe
+import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.runs
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
 class ColorInputHexViewModelTest {
 
     val viewData: ColorInputFieldUiData.ViewData = mockk(relaxed = true)
 
-    val sut = ColorInputHexViewModel(viewData)
+    val mediator: ColorInputMediator = mockk {
+        every { hexCommandFlow } returns emptyFlow()
+        every { issue<ColorPrototype.Hex>(any()) } just runs
+    }
+
+    val sut = ColorInputHexViewModel(
+        viewData = viewData,
+        mediator = mediator,
+        defaultDispatcher = StandardTestDispatcher(),
+    )
 
     val uiData: ColorInputHexUiData
         get() = sut.uiDataFlow.value
 
     @Test
-    fun `input processing keeps only digits and letter A-F`() {
-        val result = uiData.inputField.processText("123abc_!.@ABG")
+    fun `filtering keeps only digits and letter A-F`() = runTest {
+        val result = uiData.inputField.filterUserInput("123abc_!.@ABG")
 
         result shouldBe "123AB"
     }
 
     @Test
-    fun `input processing keeps only first 6 characters`() {
-        val result = uiData.inputField.processText("123456789ABCDEF")
+    fun `filtering keeps only first 6 characters`() = runTest {
+        val result = uiData.inputField.filterUserInput("123456789ABCDEF")
 
         result shouldBe "123456"
     }
