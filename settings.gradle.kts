@@ -17,6 +17,7 @@ dependencyResolutionManagement {
 rootProject.name = "TheColor"
 include(":domain")
 include(":utils")
+include(":utils:testing")
 include(":data")
 include(":data:local")
 include(":data:remote")
