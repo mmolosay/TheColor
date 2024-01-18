@@ -37,28 +37,13 @@ class ColorInputMediator @Inject constructor(
     private lateinit var lastUsedInputType: InputType
 
     val hexCommandFlow: Flow<Command<ColorPrototype.Hex>> =
-        commandFlow.transform { command ->
-            when (command) {
-                is Command.Clear -> emit(command)
-                is Command.Populate -> {
-                    if (lastUsedInputType == InputType.Hex) return@transform // prevent user input interrupting
-                    val color = with(colorConverter) { command.color.toHex() }.toPresentation()
-                    val newCommand = Command.Populate(color)
-                    emit(newCommand)
-                }
-            }
+        commandFlow.mapColorType(inputType = InputType.Hex) {
+            with(colorConverter) { it.toHex() }.toPresentation()
         }
+
     val rgbCommandFlow: Flow<Command<ColorPrototype.Rgb>> =
-        commandFlow.transform { command ->
-            when (command) {
-                is Command.Clear -> emit(command)
-                is Command.Populate -> {
-                    if (lastUsedInputType == InputType.Rgb) return@transform // prevent user input interrupting
-                    val color = with(colorConverter) { command.color.toRgb() }.toPresentation()
-                    val newCommand = Command.Populate(color)
-                    emit(newCommand)
-                }
-            }
+        commandFlow.mapColorType(inputType = InputType.Rgb) {
+            with(colorConverter) { it.toRgb() }.toPresentation()
         }
 
     fun <C : ColorPrototype> update(command: Command<C>) {
@@ -71,6 +56,22 @@ class ColorInputMediator @Inject constructor(
                 lastUsedInputType = command.color.toInputType()
                 commandFlow.value = Command.Populate(abstract)
             }
+        }
+    }
+
+    private fun <C> Flow<Command<Color.Abstract>>.mapColorType(
+        inputType: InputType,
+        transform: (Color.Abstract) -> C,
+    ) = transform { command ->
+        when (command) {
+            is Command.Clear -> command
+            is Command.Populate -> {
+                if (lastUsedInputType == inputType) return@transform // prevent user input interrupting
+                val color = transform(command.color)
+                Command.Populate(color)
+            }
+        }.also {
+            emit(it)
         }
     }
 
