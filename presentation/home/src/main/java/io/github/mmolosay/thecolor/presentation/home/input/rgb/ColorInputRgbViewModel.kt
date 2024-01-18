@@ -6,11 +6,13 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.mmolosay.thecolor.presentation.color.ColorPrototype
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator
-import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel.State
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.Text
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel.State
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel.StateReducer
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -41,6 +43,16 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             filterUserInput = ::filterUserInput,
         )
 
+    private val rInputFieldStateReducer = StateReducer<ColorPrototype.Rgb> { color ->
+        Text(color.r?.toString().orEmpty())
+    }
+    private val gInputFieldStateReducer = StateReducer<ColorPrototype.Rgb> { color ->
+        Text(color.g?.toString().orEmpty())
+    }
+    private val bInputFieldStateReducer = StateReducer<ColorPrototype.Rgb> { color ->
+        Text(color.b?.toString().orEmpty())
+    }
+
     val uiDataFlow = combine(
         rInputFieldViewModel.uiDataFlow,
         gInputFieldViewModel.uiDataFlow,
@@ -48,13 +60,13 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         ::makeUiData,
     )
         .onEach { uiData ->
-            val areNotAllFieldsEmpty =
-                inputFieldViewModels().any { it.uiDataFlow.value.text.string.isNotEmpty() }
-            val state = if (areNotAllFieldsEmpty) {
+            val areAllFieldsEmpty = inputFieldViewModels()
+                .all { it.uiDataFlow.value.text.string.isEmpty() }
+            val state = if (areAllFieldsEmpty) {
+                State.Empty
+            } else {
                 val prototype = uiData.assembleColorPrototype()
                 State.Populated(prototype)
-            } else {
-                State.Empty
             }
             mediator.send(state)
         }
@@ -70,18 +82,10 @@ class ColorInputRgbViewModel @AssistedInject constructor(
 
     private fun collectMediatorUpdates() {
         viewModelScope.launch(defaultDispatcher) {
-            mediator.rgbStateFlow.collect { command ->
-                when (command) {
-                    is State.Empty -> inputFieldViewModels().forEach { it.clearText() }
-                    is State.Populated -> {
-                        val rText = Text(command.color.r?.toString().orEmpty())
-                        val gText = Text(command.color.g?.toString().orEmpty())
-                        val bText = Text(command.color.b?.toString().orEmpty())
-                        rInputFieldViewModel.setText(rText)
-                        gInputFieldViewModel.setText(gText)
-                        bInputFieldViewModel.setText(bText)
-                    }
-                }
+            mediator.rgbStateFlow.collect { state ->
+                with(rInputFieldStateReducer) { rInputFieldViewModel apply state }
+                with(gInputFieldStateReducer) { gInputFieldViewModel apply state }
+                with(bInputFieldStateReducer) { bInputFieldViewModel apply state }
             }
         }
     }

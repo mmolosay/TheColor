@@ -6,12 +6,14 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.mmolosay.thecolor.presentation.color.ColorPrototype
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator
-import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel.State
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.Text
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.ViewData
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel.State
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel.StateReducer
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -31,6 +33,10 @@ class ColorInputHexViewModel @AssistedInject constructor(
             viewData = viewData,
             filterUserInput = ::filterUserInput,
         )
+
+    private val inputFieldStateReducer = StateReducer<ColorPrototype.Hex> { color ->
+        Text(color.value.orEmpty())
+    }
 
     val uiDataFlow =
         inputFieldViewModel.uiDataFlow
@@ -56,14 +62,8 @@ class ColorInputHexViewModel @AssistedInject constructor(
 
     private fun collectMediatorUpdates() {
         viewModelScope.launch(defaultDispatcher) {
-            mediator.hexStateFlow.collect { command ->
-                when (command) {
-                    is State.Empty -> inputFieldViewModel.clearText()
-                    is State.Populated -> {
-                        val text = Text(command.color.value.orEmpty())
-                        inputFieldViewModel.setText(text)
-                    }
-                }
+            mediator.hexStateFlow.collect { state ->
+                with(inputFieldStateReducer) { inputFieldViewModel apply state }
             }
         }
     }

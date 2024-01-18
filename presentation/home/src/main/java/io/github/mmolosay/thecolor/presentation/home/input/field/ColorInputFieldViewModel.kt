@@ -20,13 +20,13 @@ class ColorInputFieldViewModel(
     private val _uiDataFlow = MutableStateFlow(makeInitialUiData())
     val uiDataFlow = _uiDataFlow.asStateFlow()
 
-    fun setText(text: Text) {
+    private fun updateText(text: Text) {
         _uiDataFlow.update {
             it.smartCopy(text = text)
         }
     }
 
-    fun clearText() {
+    private fun clearText() {
         _uiDataFlow.update {
             it.smartCopy(text = Text(""))
         }
@@ -63,7 +63,7 @@ class ColorInputFieldViewModel(
     private fun makeInitialUiData() =
         ColorInputFieldUiData(
             text = Text(""),
-            onTextChange = ::setText,
+            onTextChange = ::updateText,
             filterUserInput = filterUserInput,
             label = viewData.label,
             placeholder = viewData.placeholder,
@@ -81,5 +81,18 @@ class ColorInputFieldViewModel(
         data class Populated<C>(val color: C) : State<C>
 
         /* No intermediate state with unfinished color */
+    }
+
+    /**
+     * Applies specified [State] to [ColorInputFieldViewModel].
+     */
+    class StateReducer<Color>(private val colorToText: (Color) -> Text) {
+
+        infix fun ColorInputFieldViewModel.apply(state: State<Color>) {
+            when (state) {
+                is State.Empty -> clearText()
+                is State.Populated -> updateText(colorToText(state.color))
+            }
+        }
     }
 }
