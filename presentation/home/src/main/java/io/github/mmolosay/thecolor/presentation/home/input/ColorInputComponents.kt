@@ -31,7 +31,7 @@ import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputField
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.TrailingButton
 
 /**
- * Reusable UI components of color input widgets.
+ * Reusable UI components for color input Views.
  */
 object ColorInputComponents {
 
