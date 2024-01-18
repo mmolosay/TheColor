@@ -52,6 +52,7 @@ object ColorInputComponents {
                     ),
                 value = value,
                 onValueChange = { new ->
+                    // can't just pass new.text to ViewModel for filtering: TextFieldValue.selection will be lost
                     val filteredText = filterUserInput(new.text)
                     val filteredValue = new.copy(text = filteredText.string)
                     updateValue(filteredValue)
