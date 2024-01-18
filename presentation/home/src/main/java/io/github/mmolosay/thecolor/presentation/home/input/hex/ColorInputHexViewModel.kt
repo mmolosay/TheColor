@@ -51,10 +51,10 @@ class ColorInputHexViewModel @AssistedInject constructor(
             )
 
     init {
-        collectMediatorColorFlow()
+        collectMediatorUpdates()
     }
 
-    private fun collectMediatorColorFlow() {
+    private fun collectMediatorUpdates() {
         viewModelScope.launch(defaultDispatcher) {
             mediator.hexStateFlow.collect { command ->
                 when (command) {

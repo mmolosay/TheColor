@@ -65,10 +65,10 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         )
 
     init {
-        collectMediatorColorFlow()
+        collectMediatorUpdates()
     }
 
-    private fun collectMediatorColorFlow() {
+    private fun collectMediatorUpdates() {
         viewModelScope.launch(defaultDispatcher) {
             mediator.rgbStateFlow.collect { command ->
                 when (command) {
