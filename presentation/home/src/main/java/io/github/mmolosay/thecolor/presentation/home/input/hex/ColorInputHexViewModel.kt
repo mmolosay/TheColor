@@ -41,15 +41,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
     val uiDataFlow =
         inputFieldViewModel.uiDataFlow
             .map(::makeUiData)
-            .onEach { uiData ->
-                val state = if (uiData.inputField.text.string.isNotEmpty()) {
-                    val prototype = uiData.assembleColorPrototype()
-                    State.Populated(prototype)
-                } else {
-                    State.Empty
-                }
-                mediator.send(state)
-            }
+            .onEach(::onEachUiData)
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000),
@@ -66,6 +58,17 @@ class ColorInputHexViewModel @AssistedInject constructor(
                 with(inputFieldStateReducer) { inputFieldViewModel apply state }
             }
         }
+    }
+
+    private fun onEachUiData(uiData: ColorInputHexUiData) {
+        val isTextEmpty = uiData.inputField.text.string.isEmpty()
+        val state = if (isTextEmpty) {
+            State.Empty
+        } else {
+            val prototype = uiData.assembleColorPrototype()
+            State.Populated(prototype)
+        }
+        mediator.send(state)
     }
 
     private fun filterUserInput(input: String): Text =

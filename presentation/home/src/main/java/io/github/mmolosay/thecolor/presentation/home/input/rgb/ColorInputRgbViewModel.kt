@@ -59,17 +59,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         bInputFieldViewModel.uiDataFlow,
         ::makeUiData,
     )
-        .onEach { uiData ->
-            val areAllFieldsEmpty = inputFieldViewModels()
-                .all { it.uiDataFlow.value.text.string.isEmpty() }
-            val state = if (areAllFieldsEmpty) {
-                State.Empty
-            } else {
-                val prototype = uiData.assembleColorPrototype()
-                State.Populated(prototype)
-            }
-            mediator.send(state)
-        }
+        .onEach(::onEachUiData)
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -88,6 +78,19 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                 with(bInputFieldStateReducer) { bInputFieldViewModel apply state }
             }
         }
+    }
+
+    private fun onEachUiData(uiData: ColorInputRgbUiData) {
+        val areAllFieldsEmpty =
+            listOf(rInputFieldViewModel, gInputFieldViewModel, bInputFieldViewModel)
+                .all { it.uiDataFlow.value.text.string.isEmpty() }
+        val state = if (areAllFieldsEmpty) {
+            State.Empty
+        } else {
+            val prototype = uiData.assembleColorPrototype()
+            State.Populated(prototype)
+        }
+        mediator.send(state)
     }
 
     private fun filterUserInput(input: String): Text =
@@ -109,9 +112,6 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         bInputField: ColorInputFieldUiData,
     ) =
         ColorInputRgbUiData(rInputField, gInputField, bInputField)
-
-    private fun inputFieldViewModels() =
-        listOf(rInputFieldViewModel, gInputFieldViewModel, bInputFieldViewModel)
 
     @AssistedFactory
     interface Factory {
