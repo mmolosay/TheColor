@@ -37,13 +37,13 @@ class ColorInputHexViewModelTest {
     fun `filtering keeps only digits and letter A-F`() = runTest {
         val result = uiData.inputField.filterUserInput("123abc_!.@ABG")
 
-        result shouldBe "123AB"
+        result.string shouldBe "123AB"
     }
 
     @Test
     fun `filtering keeps only first 6 characters`() = runTest {
         val result = uiData.inputField.filterUserInput("123456789ABCDEF")
 
-        result shouldBe "123456"
+        result.string shouldBe "123456"
     }
 }

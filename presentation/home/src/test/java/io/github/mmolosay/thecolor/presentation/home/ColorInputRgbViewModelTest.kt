@@ -40,13 +40,13 @@ class ColorInputRgbViewModelTest {
     fun `filtering keeps only digits`() {
         val result = uiData.rInputField.filterUserInput("abc1def2ghi3")
 
-        result shouldBe "123"
+        result.string shouldBe "123"
     }
 
     @Test
     fun `filtering keeps only first 3 characters`() {
         val result = uiData.rInputField.filterUserInput("1234567890")
 
-        result shouldBe "123"
+        result.string shouldBe "123"
     }
 }

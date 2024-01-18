@@ -1,6 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.home
 
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.Text
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.TrailingButton
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.ViewData.TrailingIcon
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel
@@ -27,7 +28,7 @@ class ColorInputFieldViewModelTest {
         every { viewData.trailingIcon } returns mockk<TrailingIcon.Exists>(relaxed = true)
         createSut()
 
-        uiData.onTextChange("non-empty text")
+        uiData.onTextChange(Text("non-empty text"))
 
         uiData.trailingButton should beOfType<TrailingButton.Visible>()
     }
@@ -37,7 +38,7 @@ class ColorInputFieldViewModelTest {
         every { viewData.trailingIcon } returns mockk<TrailingIcon.Exists>(relaxed = true)
         createSut()
 
-        uiData.onTextChange("")
+        uiData.onTextChange(Text(""))
 
         uiData.trailingButton should beOfType<TrailingButton.Hidden>()
     }
@@ -47,7 +48,7 @@ class ColorInputFieldViewModelTest {
         every { viewData.trailingIcon } returns TrailingIcon.None
         createSut()
 
-        uiData.onTextChange("any text")
+        uiData.onTextChange(Text("any text"))
 
         uiData.trailingButton should beOfType<TrailingButton.Hidden>()
     }
@@ -57,23 +58,19 @@ class ColorInputFieldViewModelTest {
         every { viewData.trailingIcon } returns mockk<TrailingIcon.Exists>(relaxed = true)
         createSut()
 
-        uiData.onTextChange("any text")
+        uiData.onTextChange(Text("any text"))
         (uiData.trailingButton as TrailingButton.Visible).onClick()
 
-        uiData.text shouldBe ""
+        uiData.text.string shouldBe ""
     }
 
     fun createSut(
-        filterUserInput: (String) -> String = noopFilterUserInput,
+        filterUserInput: (String) -> Text = noopFilterUserInput,
     ) =
         ColorInputFieldViewModel(
             viewData = viewData,
             filterUserInput = filterUserInput,
         ).also { this.sut = it }
 
-    val noopFilterUserInput: (String) -> String =
-        mockk lambda@{
-            val slot = slot<String>()
-            every { this@lambda.invoke(capture(slot)) } answers { slot.captured }
-        }
+    val noopFilterUserInput: (String) -> Text = { Text(it) }
 }
