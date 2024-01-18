@@ -16,6 +16,7 @@ import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
@@ -29,7 +30,9 @@ class ColorInputHexViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    val viewData: ColorInputFieldUiData.ViewData = mockk(relaxed = true)
+    val viewData: ColorInputFieldUiData.ViewData = mockk(relaxed = true) {
+        every { trailingIcon } returns TrailingIcon.None
+    }
 
     val mediator: ColorInputMediator = mockk {
         every { hexStateFlow } returns emptyFlow()
@@ -62,7 +65,6 @@ class ColorInputHexViewModelTest {
     @Test
     fun `populated state is sent to mediator on new UiData with non-empty text in input`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            every { viewData.trailingIcon } returns TrailingIcon.None
             createSut()
             val collectionJob = launch {
                 sut.uiDataFlow.collect() // subscriber to activate the flow
@@ -79,7 +81,6 @@ class ColorInputHexViewModelTest {
     @Test
     fun `empty state is sent to mediator on new UiData with no text in input`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            every { viewData.trailingIcon } returns TrailingIcon.None
             createSut()
             val collectionJob = launch {
                 sut.uiDataFlow.collect() // subscriber to activate the flow
@@ -90,6 +91,42 @@ class ColorInputHexViewModelTest {
             uiData.inputField.onTextChange(Text("")) // empty text, second State.Empty
 
             verify(exactly = 2) { mediator.send(State.Empty) }
+            collectionJob.cancel()
+        }
+
+    @Test
+    fun `empty state from mediator clears input text`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val initialState = State.Populated(ColorPrototype.Hex("not empty"))
+            val hexStateFlow = MutableStateFlow<State<ColorPrototype.Hex>>(initialState)
+            every { mediator.hexStateFlow } returns hexStateFlow
+            createSut()
+            val collectionJob = launch {
+                sut.uiDataFlow.collect() // subscriber to activate the flow
+            }
+
+            // initially is not empty
+            hexStateFlow.value = State.Empty
+
+            uiData.inputField.text.string shouldBe ""
+            collectionJob.cancel()
+        }
+
+    @Test
+    fun `populated state from mediator updates input text`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val initialState = State.Empty
+            val hexStateFlow = MutableStateFlow<State<ColorPrototype.Hex>>(initialState)
+            every { mediator.hexStateFlow } returns hexStateFlow
+            createSut()
+            val collectionJob = launch {
+                sut.uiDataFlow.collect() // subscriber to activate the flow
+            }
+
+            // initial text is empty
+            hexStateFlow.value = State.Populated(ColorPrototype.Hex("anything"))
+
+            uiData.inputField.text.string shouldBe "anything"
             collectionJob.cancel()
         }
 
