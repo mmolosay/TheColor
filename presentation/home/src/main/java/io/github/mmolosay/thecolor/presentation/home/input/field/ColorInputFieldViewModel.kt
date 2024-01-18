@@ -70,4 +70,16 @@ class ColorInputFieldViewModel(
             prefix = viewData.prefix,
             trailingButton = TrailingButton.Hidden,
         )
+
+    /** A state of View in regard of user input. */
+    sealed interface State<out Color> {
+
+        /** Clears all user input. */
+        data object Empty : State<Nothing>
+
+        /** Populates UI with specified [color] data. */
+        data class Populated<C>(val color: C) : State<C>
+
+        /* No intermediate state with unfinished color */
+    }
 }

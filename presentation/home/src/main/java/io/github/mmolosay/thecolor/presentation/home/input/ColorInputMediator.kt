@@ -3,7 +3,7 @@ package io.github.mmolosay.thecolor.presentation.home.input
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.presentation.color.ColorPrototype
-import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator.State
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel.State
 import io.github.mmolosay.thecolor.presentation.mapper.toDomainOrNull
 import io.github.mmolosay.thecolor.presentation.mapper.toPresentation
 import kotlinx.coroutines.flow.Flow
@@ -92,16 +92,6 @@ class ColorInputMediator @Inject constructor(
             is ColorPrototype.Hex -> InputType.Hex
             is ColorPrototype.Rgb -> InputType.Rgb
         }
-
-    /** A state of View in regard of user input. */
-    sealed interface State<out C> {
-
-        /** Clears all user input. */
-        data object Empty : State<Nothing>
-
-        /** Populates UI with specified [color] data. */
-        data class Populated<C>(val color: C) : State<C>
-    }
 
     private enum class InputType {
         Hex,
