@@ -26,7 +26,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
     private val inputFieldViewModel =
         ColorInputFieldViewModel(
             viewData = viewData,
-            processText = ::processInput,
+            filterUserInput = ::processInput,
         )
 
     val uiDataFlow =
@@ -55,7 +55,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
         viewModelScope.launch {
             mediator.hexCommandFlow.collect { command ->
                 when (command) {
-                    is Command.Clear -> inputFieldViewModel.clearInputField()
+                    is Command.Clear -> inputFieldViewModel.clearText()
                     is Command.Populate -> {
                         val newText = command.color.value.orEmpty()
                         inputFieldViewModel.setText(newText)

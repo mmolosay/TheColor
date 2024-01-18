@@ -13,19 +13,20 @@ import kotlinx.coroutines.flow.update
  */
 class ColorInputFieldViewModel(
     private val viewData: ViewData,
-    private val processText: (String) -> String,
+    private val filterUserInput: (String) -> String,
 ) {
 
     private val _uiDataFlow = MutableStateFlow(makeInitialUiData())
     val uiDataFlow = _uiDataFlow.asStateFlow()
 
+    // presentation-ready text is passed
     fun setText(text: String) {
         _uiDataFlow.update {
-            it.smartCopy(text = processText(text))
+            it.smartCopy(text = text)
         }
     }
 
-    fun clearInputField() {
+    fun clearText() {
         _uiDataFlow.update {
             it.smartCopy(text = "")
         }
@@ -49,7 +50,7 @@ class ColorInputFieldViewModel(
     ): TrailingButton =
         if (trailingIcon is ViewData.TrailingIcon.Exists && showTrailingButton(text)) {
             TrailingButton.Visible(
-                onClick = ::clearInputField,
+                onClick = ::clearText,
                 iconContentDesc = trailingIcon.contentDesc,
             )
         } else {
@@ -63,7 +64,7 @@ class ColorInputFieldViewModel(
         ColorInputFieldUiData(
             text = "",
             onTextChange = ::setText,
-            processText = processText,
+            filterUserInput = filterUserInput,
             label = viewData.label,
             placeholder = viewData.placeholder,
             prefix = viewData.prefix,

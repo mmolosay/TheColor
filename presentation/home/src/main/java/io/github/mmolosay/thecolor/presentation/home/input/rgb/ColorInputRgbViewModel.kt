@@ -25,17 +25,17 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     private val rInputFieldViewModel =
         ColorInputFieldViewModel(
             viewData = viewData.rInputField,
-            processText = ::processInput,
+            filterUserInput = ::processInput,
         )
     private val gInputFieldViewModel =
         ColorInputFieldViewModel(
             viewData = viewData.gInputField,
-            processText = ::processInput,
+            filterUserInput = ::processInput,
         )
     private val bInputFieldViewModel =
         ColorInputFieldViewModel(
             viewData = viewData.bInputField,
-            processText = ::processInput,
+            filterUserInput = ::processInput,
         )
 
     val uiDataFlow = combine(
@@ -69,7 +69,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         viewModelScope.launch {
             mediator.rgbCommandFlow.collect { command ->
                 when (command) {
-                    is Command.Clear -> inputFieldViewModels().forEach { it.clearInputField() }
+                    is Command.Clear -> inputFieldViewModels().forEach { it.clearText() }
                     is Command.Populate -> {
                         val newRText = command.color.r?.toString().orEmpty()
                         val newGText = command.color.g?.toString().orEmpty()

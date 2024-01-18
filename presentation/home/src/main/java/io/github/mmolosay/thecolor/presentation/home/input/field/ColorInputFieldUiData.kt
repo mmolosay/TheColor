@@ -1,13 +1,15 @@
 package io.github.mmolosay.thecolor.presentation.home.input.field
 
 /**
- * @param onTextChange a callback to be called when input text is changed __by user__.
- * @param processText filters __user input__ and returns processed value to be displayed.
+ * @param onTextChange a callback to be invoked when displayed text is changed.
+ * It should receive a result of [filterUserInput] or other text that is presentation-ready.
+ *
+ * @param filterUserInput filters text from user input and returns processed text to be displayed.
  */
 data class ColorInputFieldUiData(
-    val text: String,
+    val text: String, // TODO: custom type?
     val onTextChange: (String) -> Unit,
-    val processText: (String) -> String,
+    val filterUserInput: (String) -> String,
     val label: String,
     val placeholder: String,
     val prefix: String?,
