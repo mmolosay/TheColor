@@ -39,7 +39,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
                 } else {
                     Command.Clear
                 }
-                mediator.update(command)
+                mediator.issue(command)
             }
             .stateIn(
                 scope = viewModelScope,

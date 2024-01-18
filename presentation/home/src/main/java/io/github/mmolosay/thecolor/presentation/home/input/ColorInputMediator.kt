@@ -16,7 +16,7 @@ import javax.inject.Singleton
  * Acts as mediator between ViewModels of different color input Views.
  * The responsibility of this component is to synchronize data between different color input Views.
  *
- * Once one View issues a [Command], all other Views get the same command.
+ * Once one View [issue]s a [Command], all other Views get the same command.
  * This way if user was using one specific View, after switching to other View they will see
  * the UI with the same data (color) they have left on in previous View.
  */
@@ -39,7 +39,7 @@ class ColorInputMediator @Inject constructor(
             with(colorConverter) { it.toRgb() }.toPresentation()
         }
 
-    fun <C : ColorPrototype> update(command: Command<C>) {
+    fun <C : ColorPrototype> issue(command: Command<C>) {
         when (command) {
             is Command.Clear -> {
                 commandFlow.value = command // just pass it forward
