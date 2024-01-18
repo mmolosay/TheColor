@@ -45,7 +45,7 @@ class ColorInputHexViewModelTest {
         get() = sut.uiDataFlow.value
 
     @Test
-    fun `filtering keeps only digits and letter A-F`() = runTest {
+    fun `filtering keeps only digits and letters A-F`() = runTest {
         createSut()
 
         val result = uiData.inputField.filterUserInput("123abc_!.@ABG")
