@@ -19,8 +19,8 @@ import javax.inject.Singleton
  * The pipeline is following:
  * 1. ViewModel receives user input (e.g. new text in text field).
  * 2. ViewModel converts all data from user input into [ColorPrototype] and passes it to [update].
- * 3. Passed [ColorPrototype] is turned to domain [Color.Abstract] and is put into [colorFlow].
- * 4. Color-space-oriented flows [hexFlow] and [rgbFlow] map [colorFlow] into respective color spaces.
+ * 3. Passed [ColorPrototype] is turned to domain [Color.Abstract] and is put into [commandFlow].
+ * 4. Color-space-oriented flows [hexCommandFlow] and [rgbCommandFlow] map [commandFlow] into respective color spaces.
  * 5. ViewModels subscribe to flow of their color space.
  * 6. Once this flow emits, it means that user has entered valid color in some color input View.
  *    All other Views should populate this color in their UI.
@@ -32,29 +32,49 @@ class ColorInputMediator @Inject constructor(
     private val colorConverter: ColorConverter,
 ) {
 
-    private val colorFlow = MutableStateFlow<Color.Abstract?>(null)
+    private val commandFlow =
+        MutableStateFlow<Command<Color.Abstract>>(Command.Clear)
     private lateinit var lastUsedInputType: InputType
 
-    val hexFlow: Flow<ColorPrototype.Hex> =
-        colorFlow.transform { abstract ->
-            abstract ?: return@transform
-            if (lastUsedInputType == InputType.Hex) return@transform // prevent user input interrupting
-            val color = with(colorConverter) { abstract.toHex() }.toPresentation()
-            emit(color)
+    val hexCommandFlow: Flow<Command<ColorPrototype.Hex>> =
+        commandFlow.transform { command ->
+            when (command) {
+                is Command.Clear -> emit(command)
+                is Command.Populate -> {
+                    if (lastUsedInputType == InputType.Hex) return@transform // prevent user input interrupting
+                    val color = with(colorConverter) { command.color.toHex() }.toPresentation()
+                    val newCommand = Command.Populate(color)
+                    emit(newCommand)
+                }
+            }
         }
-    val rgbFlow: Flow<ColorPrototype.Rgb> =
-        colorFlow.transform { abstract ->
-            abstract ?: return@transform
-            if (lastUsedInputType == InputType.Rgb) return@transform // prevent user input interrupting
-            val color = with(colorConverter) { abstract.toRgb() }.toPresentation()
-            emit(color)
+    val rgbCommandFlow: Flow<Command<ColorPrototype.Rgb>> =
+        commandFlow.transform { command ->
+            when (command) {
+                is Command.Clear -> emit(command)
+                is Command.Populate -> {
+                    if (lastUsedInputType == InputType.Rgb) return@transform // prevent user input interrupting
+                    val color = with(colorConverter) { command.color.toRgb() }.toPresentation()
+                    val newCommand = Command.Populate(color)
+                    emit(newCommand)
+                }
+            }
         }
 
-    fun update(new: ColorPrototype) {
-        val abstract = new.toAbstract() ?: return // ignore unfinished colors
-        lastUsedInputType = new.toInputType()
-        colorFlow.value = abstract
+    fun <C : ColorPrototype> update(command: Command<C>) {
+        when (command) {
+            is Command.Clear -> {
+                commandFlow.value = command // just pass it forward
+            }
+            is Command.Populate -> {
+                val abstract = command.color.toAbstract() ?: return // ignore unfinished colors
+                lastUsedInputType = command.color.toInputType()
+                commandFlow.value = Command.Populate(abstract)
+            }
+        }
     }
+
+    // region ColorPrototype.toAbstract()
 
     private fun ColorPrototype.toAbstract(): Color.Abstract? =
         when (this) {
@@ -72,11 +92,18 @@ class ColorInputMediator @Inject constructor(
         return with(colorConverter) { color.toAbstract() }
     }
 
+    // endregion
+
     private fun ColorPrototype.toInputType() =
         when (this) {
             is ColorPrototype.Hex -> InputType.Hex
             is ColorPrototype.Rgb -> InputType.Rgb
         }
+
+    sealed interface Command<out C> {
+        data object Clear : Command<Nothing>
+        data class Populate<C>(val color: C) : Command<C>
+    }
 
     private enum class InputType {
         Hex,

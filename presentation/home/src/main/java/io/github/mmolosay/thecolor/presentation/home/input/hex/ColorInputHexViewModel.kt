@@ -7,6 +7,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator
+import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator.Command
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.ViewData
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel
@@ -32,8 +33,13 @@ class ColorInputHexViewModel @AssistedInject constructor(
         inputFieldViewModel.uiDataFlow
             .map(::makeUiData)
             .onEach { uiData ->
-                val prototype = uiData.assembleColorPrototype()
-                mediator.update(prototype)
+                val command = if (uiData.inputField.text.isNotEmpty()) {
+                    val prototype = uiData.assembleColorPrototype()
+                    Command.Populate(prototype)
+                } else {
+                    Command.Clear
+                }
+                mediator.update(command)
             }
             .stateIn(
                 scope = viewModelScope,
@@ -47,9 +53,14 @@ class ColorInputHexViewModel @AssistedInject constructor(
 
     private fun collectMediatorColorFlow() {
         viewModelScope.launch {
-            mediator.hexFlow.collect { color ->
-                val newText = color.value.orEmpty()
-                uiDataFlow.value.inputField.onTextChange(newText)
+            mediator.hexCommandFlow.collect { command ->
+                when (command) {
+                    is Command.Clear -> inputFieldViewModel.clearInputField()
+                    is Command.Populate -> {
+                        val newText = command.color.value.orEmpty()
+                        inputFieldViewModel.setText(newText)
+                    }
+                }
             }
         }
     }

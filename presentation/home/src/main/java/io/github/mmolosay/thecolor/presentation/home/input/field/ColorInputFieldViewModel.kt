@@ -19,14 +19,13 @@ class ColorInputFieldViewModel(
     private val _uiDataFlow = MutableStateFlow(makeInitialUiData())
     val uiDataFlow = _uiDataFlow.asStateFlow()
 
-    private fun onTextChange(text: String) {
+    fun setText(text: String) {
         _uiDataFlow.update {
             it.smartCopy(text = processText(text))
         }
     }
 
-    private fun clearInputField() {
-        if (uiDataFlow.value.trailingButton is TrailingButton.Hidden) return // animating
+    fun clearInputField() {
         _uiDataFlow.update {
             it.smartCopy(text = "")
         }
@@ -63,7 +62,7 @@ class ColorInputFieldViewModel(
     private fun makeInitialUiData() =
         ColorInputFieldUiData(
             text = "",
-            onTextChange = ::onTextChange,
+            onTextChange = ::setText,
             processText = processText,
             label = viewData.label,
             placeholder = viewData.placeholder,

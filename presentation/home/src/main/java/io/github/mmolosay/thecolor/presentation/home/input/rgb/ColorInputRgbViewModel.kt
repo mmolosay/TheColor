@@ -7,6 +7,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator
+import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator.Command
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -44,8 +45,15 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         ::makeUiData,
     )
         .onEach { uiData ->
-            val prototype = uiData.assembleColorPrototype()
-            mediator.update(prototype)
+            val areNotAllFieldsEmpty =
+                inputFieldViewModels().any { it.uiDataFlow.value.text.isNotEmpty() }
+            val command = if (areNotAllFieldsEmpty) {
+                val prototype = uiData.assembleColorPrototype()
+                Command.Populate(prototype)
+            } else {
+                Command.Clear
+            }
+            mediator.update(command)
         }
         .stateIn(
             scope = viewModelScope,
@@ -59,13 +67,18 @@ class ColorInputRgbViewModel @AssistedInject constructor(
 
     private fun collectMediatorColorFlow() {
         viewModelScope.launch {
-            mediator.rgbFlow.collect { color ->
-                val newRText = color.r?.toString().orEmpty()
-                val newGText = color.g?.toString().orEmpty()
-                val newBText = color.b?.toString().orEmpty()
-                uiDataFlow.value.rInputField.onTextChange(newRText)
-                uiDataFlow.value.gInputField.onTextChange(newGText)
-                uiDataFlow.value.bInputField.onTextChange(newBText)
+            mediator.rgbCommandFlow.collect { command ->
+                when (command) {
+                    is Command.Clear -> inputFieldViewModels().forEach { it.clearInputField() }
+                    is Command.Populate -> {
+                        val newRText = command.color.r?.toString().orEmpty()
+                        val newGText = command.color.g?.toString().orEmpty()
+                        val newBText = command.color.b?.toString().orEmpty()
+                        rInputFieldViewModel.setText(newRText)
+                        gInputFieldViewModel.setText(newGText)
+                        bInputFieldViewModel.setText(newBText)
+                    }
+                }
             }
         }
     }
@@ -88,6 +101,9 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         bInputField: ColorInputFieldUiData,
     ) =
         ColorInputRgbUiData(rInputField, gInputField, bInputField)
+
+    private fun inputFieldViewModels() =
+        listOf(rInputFieldViewModel, gInputFieldViewModel, bInputFieldViewModel)
 
     @AssistedFactory
     interface Factory {
