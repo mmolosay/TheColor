@@ -52,10 +52,10 @@ object ColorInputComponents {
                     ),
                 value = value,
                 onValueChange = { new ->
-                    val newText = filterUserInput(new.text)
-                    val filtered = new.copy(text = newText.string)
-                    updateValue(filtered)
-                    onTextChange(newText)
+                    val filteredText = filterUserInput(new.text)
+                    val filteredValue = new.copy(text = filteredText.string)
+                    updateValue(filteredValue)
+                    onTextChange(filteredText)
                 },
                 textStyle = LocalTextStyle.current.copy(fontFamily = FontFamily.SansSerif),
                 label = { Label(label) },
