@@ -1,5 +1,9 @@
 package io.github.mmolosay.thecolor.presentation.home.input.field
 
+/**
+ * @param onTextChange a callback to be called when input text is changed __by user__.
+ * @param processText filters __user input__ and returns processed value to be displayed.
+ */
 data class ColorInputFieldUiData(
     val text: String,
     val onTextChange: (String) -> Unit,
