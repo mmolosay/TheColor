@@ -3,6 +3,7 @@ package io.github.mmolosay.thecolor.presentation.home.input
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.presentation.color.ColorPrototype
+import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator.Command
 import io.github.mmolosay.thecolor.presentation.mapper.toDomainOrNull
 import io.github.mmolosay.thecolor.presentation.mapper.toPresentation
 import kotlinx.coroutines.flow.Flow
@@ -13,19 +14,11 @@ import javax.inject.Singleton
 
 /**
  * Acts as mediator between ViewModels of different color input Views.
- * The responsibility of this component is to synchronize data between different color input Views,
- * so if user was using once specific View, after switching to any other they see the same data (same color).
+ * The responsibility of this component is to synchronize data between different color input Views.
  *
- * The pipeline is following:
- * 1. ViewModel receives user input (e.g. new text in text field).
- * 2. ViewModel converts all data from user input into [ColorPrototype] and passes it to [update].
- * 3. Passed [ColorPrototype] is turned to domain [Color.Abstract] and is put into [commandFlow].
- * 4. Color-space-oriented flows [hexCommandFlow] and [rgbCommandFlow] map [commandFlow] into respective color spaces.
- * 5. ViewModels subscribe to flow of their color space.
- * 6. Once this flow emits, it means that user has entered valid color in some color input View.
- *    All other Views should populate this color in their UI.
- *    This way if user switches to other color input View, they can continue editing the color they
- *    left on in previous color input View.
+ * Once one View issues a [Command], all other Views get the same command.
+ * This way if user was using one specific View, after switching to other View they will see
+ * the UI with the same data (color) they have left on in previous View.
  */
 @Singleton
 class ColorInputMediator @Inject constructor(
