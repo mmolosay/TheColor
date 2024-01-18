@@ -18,16 +18,6 @@ sealed class ColorPrototype : AbstractColor() {
         val value: String?
     ) : ColorPrototype() {
 
-        override fun equals(other: Any?): Boolean {
-            return super.equals(other)
-        }
-
-        override fun hashCode(): Int {
-            var result = super.hashCode()
-            result = 31 * result + (value?.hashCode() ?: 0)
-            return result
-        }
-
         companion object
     }
 
