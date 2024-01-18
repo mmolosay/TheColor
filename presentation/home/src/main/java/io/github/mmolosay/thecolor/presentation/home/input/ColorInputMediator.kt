@@ -41,14 +41,14 @@ class ColorInputMediator @Inject constructor(
 
     fun <C : ColorPrototype> issue(command: Command<C>) {
         when (command) {
-            is Command.Clear -> {
-                commandFlow.value = command // just pass it forward
-            }
+            is Command.Clear -> command // just pass it forward
             is Command.Populate -> {
                 val abstract = command.color.toAbstract() ?: return // ignore unfinished colors
                 lastUsedInputType = command.color.toInputType()
-                commandFlow.value = Command.Populate(abstract)
+                Command.Populate(abstract)
             }
+        }.also {
+            commandFlow.value = it
         }
     }
 
