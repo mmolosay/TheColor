@@ -88,6 +88,13 @@ class ColorInputFieldViewModel(
      */
     class StateReducer<Color>(private val colorToText: (Color) -> Text) {
 
+        /*
+         * Curious thing to notice:
+         * both used methods of ViewModel are private.
+         * however if this class is instantiated outside of ViewModel,
+         * you will be able to invoke them indirectly using this method.
+         * I find this approach to be a great alternative to exposing ViewModel methods as public.
+         */
         infix fun ColorInputFieldViewModel.apply(state: State<Color>) {
             when (state) {
                 is State.Empty -> clearText()
