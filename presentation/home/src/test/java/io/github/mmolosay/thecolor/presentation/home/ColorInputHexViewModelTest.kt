@@ -20,8 +20,8 @@ class ColorInputHexViewModelTest {
     val viewData: ColorInputFieldUiData.ViewData = mockk(relaxed = true)
 
     val mediator: ColorInputMediator = mockk {
-        every { hexCommandFlow } returns emptyFlow()
-        every { issue<ColorPrototype.Hex>(any()) } just runs
+        every { hexStateFlow } returns emptyFlow()
+        every { send<ColorPrototype.Hex>(any()) } just runs
     }
 
     val sut = ColorInputHexViewModel(

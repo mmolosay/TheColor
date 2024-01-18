@@ -7,13 +7,12 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator
-import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator.Command
+import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator.State
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.Text
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.ViewData
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -37,13 +36,13 @@ class ColorInputHexViewModel @AssistedInject constructor(
         inputFieldViewModel.uiDataFlow
             .map(::makeUiData)
             .onEach { uiData ->
-                val command = if (uiData.inputField.text.string.isNotEmpty()) {
+                val state = if (uiData.inputField.text.string.isNotEmpty()) {
                     val prototype = uiData.assembleColorPrototype()
-                    Command.Populate(prototype)
+                    State.Populated(prototype)
                 } else {
-                    Command.Clear
+                    State.Empty
                 }
-                mediator.issue(command)
+                mediator.send(state)
             }
             .stateIn(
                 scope = viewModelScope,
@@ -57,10 +56,10 @@ class ColorInputHexViewModel @AssistedInject constructor(
 
     private fun collectMediatorColorFlow() {
         viewModelScope.launch(defaultDispatcher) {
-            mediator.hexCommandFlow.collect { command ->
+            mediator.hexStateFlow.collect { command ->
                 when (command) {
-                    is Command.Clear -> inputFieldViewModel.clearText()
-                    is Command.Populate -> {
+                    is State.Empty -> inputFieldViewModel.clearText()
+                    is State.Populated -> {
                         val text = Text(command.color.value.orEmpty())
                         inputFieldViewModel.setText(text)
                     }

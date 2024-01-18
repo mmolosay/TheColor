@@ -23,8 +23,8 @@ class ColorInputRgbViewModelTest {
     val viewData = ColorInputRgbViewData(rInputField, gInputField, bInputField)
 
     val mediator: ColorInputMediator = mockk {
-        every { rgbCommandFlow } returns emptyFlow()
-        every { issue<ColorPrototype.Hex>(any()) } just runs
+        every { rgbStateFlow } returns emptyFlow()
+        every { send<ColorPrototype.Hex>(any()) } just runs
     }
 
     val sut = ColorInputRgbViewModel(

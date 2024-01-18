@@ -7,12 +7,11 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator
-import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator.Command
+import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator.State
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.Text
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.onEach
@@ -51,13 +50,13 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         .onEach { uiData ->
             val areNotAllFieldsEmpty =
                 inputFieldViewModels().any { it.uiDataFlow.value.text.string.isNotEmpty() }
-            val command = if (areNotAllFieldsEmpty) {
+            val state = if (areNotAllFieldsEmpty) {
                 val prototype = uiData.assembleColorPrototype()
-                Command.Populate(prototype)
+                State.Populated(prototype)
             } else {
-                Command.Clear
+                State.Empty
             }
-            mediator.issue(command)
+            mediator.send(state)
         }
         .stateIn(
             scope = viewModelScope,
@@ -71,10 +70,10 @@ class ColorInputRgbViewModel @AssistedInject constructor(
 
     private fun collectMediatorColorFlow() {
         viewModelScope.launch(defaultDispatcher) {
-            mediator.rgbCommandFlow.collect { command ->
+            mediator.rgbStateFlow.collect { command ->
                 when (command) {
-                    is Command.Clear -> inputFieldViewModels().forEach { it.clearText() }
-                    is Command.Populate -> {
+                    is State.Empty -> inputFieldViewModels().forEach { it.clearText() }
+                    is State.Populated -> {
                         val rText = Text(command.color.r?.toString().orEmpty())
                         val gText = Text(command.color.g?.toString().orEmpty())
                         val bText = Text(command.color.b?.toString().orEmpty())

@@ -3,7 +3,7 @@ package io.github.mmolosay.thecolor.presentation.home.input
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.presentation.color.ColorPrototype
-import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator.Command
+import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator.State
 import io.github.mmolosay.thecolor.presentation.mapper.toDomainOrNull
 import io.github.mmolosay.thecolor.presentation.mapper.toPresentation
 import kotlinx.coroutines.flow.Flow
@@ -16,7 +16,7 @@ import javax.inject.Singleton
  * Acts as mediator between ViewModels of different color input Views.
  * The responsibility of this component is to synchronize data between different color input Views.
  *
- * Once one View [issue]s a [Command], all other Views get the same command.
+ * Once one View [send]s a [State], all other Views get the same state through flows.
  * This way if user was using one specific View, after switching to other View they will see
  * the UI with the same data (color) they have left on in previous View.
  */
@@ -25,48 +25,47 @@ class ColorInputMediator @Inject constructor(
     private val colorConverter: ColorConverter,
 ) {
 
-    private val commandFlow =
-        MutableStateFlow<Command<Color.Abstract>>(Command.Clear)
+    private val stateFlow = MutableStateFlow<State<Color.Abstract>>(State.Empty)
     private lateinit var lastUsedInputType: InputType
 
-    val hexCommandFlow: Flow<Command<ColorPrototype.Hex>> =
-        commandFlow.mapColorType(inputType = InputType.Hex) {
-            with(colorConverter) { it.toHex() }.toPresentation()
-        }
-
-    val rgbCommandFlow: Flow<Command<ColorPrototype.Rgb>> =
-        commandFlow.mapColorType(inputType = InputType.Rgb) {
-            with(colorConverter) { it.toRgb() }.toPresentation()
-        }
-
-    fun <C : ColorPrototype> issue(command: Command<C>) {
-        when (command) {
-            is Command.Clear -> command // just pass it forward
-            is Command.Populate -> {
-                val abstract = command.color.toAbstract() ?: return // ignore unfinished colors
-                lastUsedInputType = command.color.toInputType()
-                Command.Populate(abstract)
+    val hexStateFlow: Flow<State<ColorPrototype.Hex>> =
+        stateFlow.transform { state ->
+            state.map {
+                if (lastUsedInputType == InputType.Hex) return@transform // prevent user input interrupting
+                with(colorConverter) { it.toHex() }.toPresentation()
+            }.also {
+                emit(it)
             }
-        }.also {
-            commandFlow.value = it
+        }
+
+    val rgbStateFlow: Flow<State<ColorPrototype.Rgb>> =
+        stateFlow.transform { state ->
+            state.map {
+                if (lastUsedInputType == InputType.Rgb) return@transform // prevent user input interrupting
+                with(colorConverter) { it.toRgb() }.toPresentation()
+            }.also {
+                emit(it)
+            }
+        }
+
+    fun <C : ColorPrototype> send(state: State<C>) {
+        stateFlow.value = state.map { color ->
+            val result = color.toAbstract() ?: return // ignore unfinished colors
+            lastUsedInputType = color.toInputType()
+            result
         }
     }
 
-    private fun <C> Flow<Command<Color.Abstract>>.mapColorType(
-        inputType: InputType,
-        transform: (Color.Abstract) -> C,
-    ) = transform { command ->
-        when (command) {
-            is Command.Clear -> command
-            is Command.Populate -> {
-                if (lastUsedInputType == inputType) return@transform // prevent user input interrupting
-                val color = transform(command.color)
-                Command.Populate(color)
+    private inline fun <T, R> State<T>.map(
+        transformation: (T) -> R,
+    ): State<R> =
+        when (this) {
+            is State.Empty -> this
+            is State.Populated -> {
+                val newColor = transformation(color)
+                State.Populated(newColor)
             }
-        }.also {
-            emit(it)
         }
-    }
 
     // region ColorPrototype.toAbstract()
 
@@ -94,14 +93,14 @@ class ColorInputMediator @Inject constructor(
             is ColorPrototype.Rgb -> InputType.Rgb
         }
 
-    /** A command to be executed by receiving ViewModel towards its View. */
-    sealed interface Command<out C> {
+    /** A state of View in regard of user input. */
+    sealed interface State<out C> {
 
         /** Clears all user input. */
-        data object Clear : Command<Nothing>
+        data object Empty : State<Nothing>
 
         /** Populates UI with specified [color] data. */
-        data class Populate<C>(val color: C) : Command<C>
+        data class Populated<C>(val color: C) : State<C>
     }
 
     private enum class InputType {
