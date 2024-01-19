@@ -78,8 +78,7 @@ class TextFieldViewModel(
         /*
          * Curious thing to notice:
          * Used method of ViewModel is private,
-         * however if this class is instantiated outside of ViewModel,
-         * you still will be able to invoke it indirectly using this class.
+         * however you still will be able to invoke it indirectly using this companion object.
          * I find this approach to be a great alternative to exposing ViewModel methods as public.
          */
         infix fun TextFieldViewModel.updateWith(text: Text) {
