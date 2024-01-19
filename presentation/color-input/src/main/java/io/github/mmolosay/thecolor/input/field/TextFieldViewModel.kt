@@ -80,7 +80,7 @@ class TextFieldViewModel(
          * I find this approach to be a great alternative to exposing ViewModel methods as public.
          */
         infix fun TextFieldViewModel.updateWith(text: Text) {
-            updateText(text causedByUser false)
+            updateText(text causedByUser false) // not a data from UI
         }
     }
 }
