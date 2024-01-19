@@ -6,8 +6,15 @@ import javax.inject.Inject
 // TODO: use third-party library for converting
 class ColorConverter @Inject constructor() {
 
+    fun Color.toAbstract(): Color.Abstract =
+        when (this) {
+            is Color.Abstract -> this
+            is Color.Hex -> this.toAbstract()
+            is Color.Rgb -> this.toAbstract()
+        }
+
     fun Color.Hex.toAbstract(): Color.Abstract {
-        val int = this.value.toInt(radix = 16)
+        val int = this.value
         return AbstractColorImpl(int)
     }
 
@@ -19,13 +26,9 @@ class ColorConverter @Inject constructor() {
         return AbstractColorImpl(int)
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     fun Color.Abstract.toHex(): Color.Hex {
         val abstract = this as AbstractColorImpl
-        val string = abstract.int
-            .toHexString(HexFormat.UpperCase)
-            .removePrefix("00")
-        return Color.Hex(value = string)
+        return Color.Hex(value = abstract.int)
     }
 
     fun Color.Abstract.toRgb(): Color.Rgb {

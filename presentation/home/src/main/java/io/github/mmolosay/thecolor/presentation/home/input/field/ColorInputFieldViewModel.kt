@@ -73,7 +73,7 @@ class ColorInputFieldViewModel(
         )
 
     /** A state of View in regard of user input. */
-    sealed interface State<out Color> {
+    sealed interface State<out ColorInput> {
 
         /** Clears all user input. */
         data object Empty : State<Nothing>

@@ -1,6 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.mapper
 
 import io.github.mmolosay.thecolor.presentation.color.Color
+import io.github.mmolosay.thecolor.presentation.color.ColorInput
 import io.github.mmolosay.thecolor.presentation.color.ColorPrototype
 import io.github.mmolosay.thecolor.presentation.color.data.ColorDetails
 import io.github.mmolosay.thecolor.presentation.color.data.ColorScheme
@@ -11,11 +12,33 @@ import io.github.mmolosay.thecolor.domain.model.ColorScheme as ColorSchemeDomain
 
 // region ColorPrototype
 
-fun ColorDomain.Hex.toPresentation(): ColorPrototype.Hex =
-    ColorPrototype.Hex(this.value)
+@OptIn(ExperimentalStdlibApi::class)
+fun ColorDomain.Hex.toPresentation(): ColorPrototype.Hex {
+    val value = this.value
+        .toHexString(format = HexFormat.UpperCase)
+        .trimStart { it == '0' }
+        .padStart(6, '0')
+    return ColorPrototype.Hex(value)
+}
 
 fun ColorDomain.Rgb.toPresentation(): ColorPrototype.Rgb =
     ColorPrototype.Rgb(this.r, this.g, this.b)
+
+@OptIn(ExperimentalStdlibApi::class)
+fun ColorDomain.Hex.toColorInput(): ColorInput.Hex {
+    val string = this.value
+        .toHexString(format = HexFormat.UpperCase)
+        .trimStart { it == '0' }
+        .padStart(6, '0')
+    return ColorInput.Hex(string)
+}
+
+fun ColorDomain.Rgb.toColorInput(): ColorInput.Rgb =
+    ColorInput.Rgb(
+        r = this.r.toString(),
+        g = this.g.toString(),
+        b = this.b.toString(),
+    )
 
 // endregion
 

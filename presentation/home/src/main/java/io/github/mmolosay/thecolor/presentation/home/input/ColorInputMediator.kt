@@ -2,10 +2,12 @@ package io.github.mmolosay.thecolor.presentation.home.input
 
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
-import io.github.mmolosay.thecolor.presentation.color.ColorPrototype
+import io.github.mmolosay.thecolor.domain.usecase.ColorPrototypeConverter
+import io.github.mmolosay.thecolor.presentation.color.ColorInput
+import io.github.mmolosay.thecolor.presentation.color.isCompleteFromUserPerspective
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel.State
-import io.github.mmolosay.thecolor.presentation.mapper.toDomainOrNull
-import io.github.mmolosay.thecolor.presentation.mapper.toPresentation
+import io.github.mmolosay.thecolor.presentation.mapper.toColorInput
+import io.github.mmolosay.thecolor.presentation.mapper.toDomain
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.transform
@@ -22,41 +24,58 @@ import javax.inject.Singleton
  */
 @Singleton
 class ColorInputMediator @Inject constructor(
+    private val colorPrototypeConverter: ColorPrototypeConverter,
     private val colorConverter: ColorConverter,
 ) {
 
     private val stateFlow = MutableStateFlow<State<Color.Abstract>>(State.Empty)
     private lateinit var lastUsedInputType: InputType
 
-    val hexStateFlow: Flow<State<ColorPrototype.Hex>> =
+    val hexStateFlow: Flow<State<ColorInput.Hex>> =
         stateFlow.transform { state ->
-            state.map {
+            state.mapType {
                 if (lastUsedInputType == InputType.Hex) return@transform // prevent user input interrupting
-                with(colorConverter) { it.toHex() }.toPresentation()
+                with(colorConverter) { it.toHex() }.toColorInput()
             }.also {
                 emit(it)
             }
         }
 
-    val rgbStateFlow: Flow<State<ColorPrototype.Rgb>> =
+    val rgbStateFlow: Flow<State<ColorInput.Rgb>> =
         stateFlow.transform { state ->
-            state.map {
+            state.mapType {
                 if (lastUsedInputType == InputType.Rgb) return@transform // prevent user input interrupting
-                with(colorConverter) { it.toRgb() }.toPresentation()
+                with(colorConverter) { it.toRgb() }.toColorInput()
             }.also {
                 emit(it)
             }
         }
 
-    fun <C : ColorPrototype> send(state: State<C>) {
-        stateFlow.value = state.map { color ->
-            val result = color.toAbstract() ?: return // ignore unfinished colors
-            lastUsedInputType = color.toInputType()
-            result
+    fun <C : ColorInput> send(state: State<C>) {
+        val result = runCatching {
+            state.mapType { colorInput ->
+                fun updateLastUsedInputType() {
+                    lastUsedInputType = colorInput.toInputType()
+                }
+                if (!colorInput.isCompleteFromUserPerspective()) {
+                    updateLastUsedInputType()
+                    error("If color becomes incomplete, clear other color input Views")
+                }
+                val prototype = colorInput.toDomain()
+                val color = with(colorPrototypeConverter) { prototype.toColorOrNull() }
+                if (color == null) {
+                    updateLastUsedInputType()
+                    error("If color is not valid, clear other color input Views")
+                }
+                val abstract = with(colorConverter) { color.toAbstract() }
+                updateLastUsedInputType()
+                abstract
+            }
         }
+        stateFlow.value = result.getOrElse { State.Empty }
     }
 
-    private inline fun <T, R> State<T>.map(
+    private inline fun <T, R> State<T>.mapType(
         transformation: (T) -> R,
     ): State<R> =
         when (this) {
@@ -67,32 +86,13 @@ class ColorInputMediator @Inject constructor(
             }
         }
 
-    // region ColorPrototype.toAbstract()
-
-    private fun ColorPrototype.toAbstract(): Color.Abstract? =
+    private fun ColorInput.toInputType() =
         when (this) {
-            is ColorPrototype.Hex -> toAbstract()
-            is ColorPrototype.Rgb -> toAbstract()
+            is ColorInput.Hex -> InputType.Hex
+            is ColorInput.Rgb -> InputType.Rgb
         }
 
-    private fun ColorPrototype.Hex.toAbstract(): Color.Abstract? {
-        val color: Color.Hex = this.toDomainOrNull() ?: return null // ignore unfinished colors
-        return with(colorConverter) { color.toAbstract() }
-    }
-
-    private fun ColorPrototype.Rgb.toAbstract(): Color.Abstract? {
-        val color: Color.Rgb = this.toDomainOrNull() ?: return null // ignore unfinished colors
-        return with(colorConverter) { color.toAbstract() }
-    }
-
-    // endregion
-
-    private fun ColorPrototype.toInputType() =
-        when (this) {
-            is ColorPrototype.Hex -> InputType.Hex
-            is ColorPrototype.Rgb -> InputType.Rgb
-        }
-
+    /** Used to differentiate between color input Views. */
     private enum class InputType {
         Hex,
         Rgb,

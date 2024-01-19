@@ -6,14 +6,14 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.mmolosay.thecolor.presentation.color.ColorPrototype
+import io.github.mmolosay.thecolor.presentation.color.ColorInput
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator
+import io.github.mmolosay.thecolor.presentation.home.input.InitialTextProvider
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.Text
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel.State
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel.StateReducer
-import io.github.mmolosay.thecolor.presentation.home.input.InitialTextProvider
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -48,14 +48,14 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             filterUserInput = ::filterUserInput,
         )
 
-    private val rInputFieldStateReducer = StateReducer<ColorPrototype.Rgb> { color ->
-        Text(color.r?.toString().orEmpty())
+    private val rInputFieldStateReducer = StateReducer<ColorInput.Rgb> { color ->
+        Text(color.r)
     }
-    private val gInputFieldStateReducer = StateReducer<ColorPrototype.Rgb> { color ->
-        Text(color.g?.toString().orEmpty())
+    private val gInputFieldStateReducer = StateReducer<ColorInput.Rgb> { color ->
+        Text(color.g)
     }
-    private val bInputFieldStateReducer = StateReducer<ColorPrototype.Rgb> { color ->
-        Text(color.b?.toString().orEmpty())
+    private val bInputFieldStateReducer = StateReducer<ColorInput.Rgb> { color ->
+        Text(color.b)
     }
 
     val uiDataFlow = combine(
@@ -92,7 +92,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         val state = if (areAllFieldsEmpty) {
             State.Empty
         } else {
-            val prototype = uiData.assembleColorPrototype()
+            val prototype = uiData.assembleColorInput()
             State.Populated(prototype)
         }
         mediator.send(state)

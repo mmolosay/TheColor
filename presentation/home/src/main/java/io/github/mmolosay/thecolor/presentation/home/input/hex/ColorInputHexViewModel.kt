@@ -6,15 +6,16 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.mmolosay.thecolor.presentation.color.ColorInput
 import io.github.mmolosay.thecolor.presentation.color.ColorPrototype
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator
+import io.github.mmolosay.thecolor.presentation.home.input.InitialTextProvider
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.Text
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.ViewData
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel.State
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel.StateReducer
-import io.github.mmolosay.thecolor.presentation.home.input.InitialTextProvider
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -37,8 +38,8 @@ class ColorInputHexViewModel @AssistedInject constructor(
             filterUserInput = ::filterUserInput,
         )
 
-    private val inputFieldStateReducer = StateReducer<ColorPrototype.Hex> { color ->
-        Text(color.value.orEmpty())
+    private val inputFieldStateReducer = StateReducer<ColorInput.Hex> { color ->
+        Text(color.string)
     }
 
     val uiDataFlow =
@@ -68,7 +69,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
         val state = if (isTextEmpty) {
             State.Empty
         } else {
-            val prototype = uiData.assembleColorPrototype()
+            val prototype = uiData.assembleColorInput()
             State.Populated(prototype)
         }
         mediator.send(state)
