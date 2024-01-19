@@ -15,7 +15,7 @@ sealed class ColorPrototype : AbstractColor() {
      */
     @Parcelize
     data class Hex(
-        val value: String?
+        val value: String?,
     ) : ColorPrototype() {
 
         companion object
@@ -32,20 +32,8 @@ sealed class ColorPrototype : AbstractColor() {
     data class Rgb(
         val r: Int?,
         val g: Int?,
-        val b: Int?
+        val b: Int?,
     ) : ColorPrototype() {
-
-        override fun equals(other: Any?): Boolean {
-            return super.equals(other)
-        }
-
-        override fun hashCode(): Int {
-            var result = super.hashCode()
-            result = 31 * result + (r ?: 0)
-            result = 31 * result + (g ?: 0)
-            result = 31 * result + (b ?: 0)
-            return result
-        }
 
         companion object
     }
