@@ -22,6 +22,7 @@ data class ColorInputFieldUiData(
      */
     @JvmInline
     value class Text(val string: String)
+    // I decided to not introduce 'Text.Empty' extension for the same reason why there's no String.Empty
 
     sealed interface TrailingButton {
         data object Hidden : TrailingButton

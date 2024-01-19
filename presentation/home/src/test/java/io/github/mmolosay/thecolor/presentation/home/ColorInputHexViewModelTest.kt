@@ -5,8 +5,8 @@ import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.Text
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.ViewData.TrailingIcon
-import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel.InitialData
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel.State
+import io.github.mmolosay.thecolor.presentation.home.input.InitialTextProvider
 import io.github.mmolosay.thecolor.presentation.home.input.hex.ColorInputHexUiData
 import io.github.mmolosay.thecolor.presentation.home.input.hex.ColorInputHexViewModel
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
@@ -31,6 +31,10 @@ class ColorInputHexViewModelTest {
 
     val viewData: ColorInputFieldUiData.ViewData = mockk(relaxed = true) {
         every { trailingIcon } returns TrailingIcon.None
+    }
+
+    val initialTextProvider: InitialTextProvider = mockk(relaxed = true) {
+        every { hex } returns Text("mocked")
     }
 
     val mediator: ColorInputMediator = mockk {
@@ -64,9 +68,9 @@ class ColorInputHexViewModelTest {
     @Test
     fun `populated state is sent to mediator on initial UiData with non-empty text in input`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            val initialData = InitialData(text = Text("1F"))
+            every { initialTextProvider.hex } returns Text("1F")
 
-            createSut(initialData)
+            createSut()
             val collectionJob = launch {
                 sut.uiDataFlow.collect() // subscriber to activate the flow
             }
@@ -79,12 +83,44 @@ class ColorInputHexViewModelTest {
     @Test
     fun `empty state is sent to mediator on initial UiData with empty text in input`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            val initialData = InitialData(text = Text(""))
+            every { initialTextProvider.hex } returns Text("")
 
-            createSut(initialData)
+            createSut()
             val collectionJob = launch {
                 sut.uiDataFlow.collect() // subscriber to activate the flow
             }
+
+            verify(exactly = 1) { mediator.send(State.Empty) }
+            collectionJob.cancel()
+        }
+
+    @Test
+    fun `populated state is sent to mediator on new UiData with non-empty text in input`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            every { initialTextProvider.hex } returns Text("")
+            createSut()
+            val collectionJob = launch {
+                sut.uiDataFlow.collect() // subscriber to activate the flow
+            }
+
+            uiData.inputField.onTextChange(Text("1F"))
+
+            val sentState = State.Populated(ColorPrototype.Hex("1F"))
+            verify(exactly = 1) { mediator.send(sentState) }
+            collectionJob.cancel()
+        }
+
+    @Test
+    fun `empty state is sent to mediator on new UiData with empty text in input`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            every { initialTextProvider.hex } returns Text("1F")
+
+            createSut()
+            val collectionJob = launch {
+                sut.uiDataFlow.collect() // subscriber to activate the flow
+            }
+
+            uiData.inputField.onTextChange(Text(""))
 
             verify(exactly = 1) { mediator.send(State.Empty) }
             collectionJob.cancel()
@@ -101,7 +137,7 @@ class ColorInputHexViewModelTest {
                 sut.uiDataFlow.collect() // subscriber to activate the flow
             }
 
-            // initially is not empty
+            // initial text is not empty
             hexStateFlow.value = State.Empty
 
             uiData.inputField.text.string shouldBe ""
@@ -126,12 +162,10 @@ class ColorInputHexViewModelTest {
             collectionJob.cancel()
         }
 
-    fun createSut(
-        initialData: InitialData = InitialData(),
-    ) =
+    fun createSut() =
         ColorInputHexViewModel(
             viewData = viewData,
-            initialData = initialData,
+            initialTextProvider = initialTextProvider,
             mediator = mediator,
             defaultDispatcher = mainDispatcherRule.testDispatcher,
         ).also {

@@ -13,6 +13,7 @@ import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputField
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel.State
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel.StateReducer
+import io.github.mmolosay.thecolor.presentation.home.input.InitialTextProvider
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -23,22 +24,26 @@ import kotlinx.coroutines.launch
 @HiltViewModel(assistedFactory = ColorInputRgbViewModel.Factory::class)
 class ColorInputRgbViewModel @AssistedInject constructor(
     @Assisted viewData: ColorInputRgbViewData,
+    initialTextProvider: InitialTextProvider,
     private val mediator: ColorInputMediator,
     private val defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val rInputFieldViewModel =
         ColorInputFieldViewModel(
+            initialText = initialTextProvider.rgbR,
             viewData = viewData.rInputField,
             filterUserInput = ::filterUserInput,
         )
     private val gInputFieldViewModel =
         ColorInputFieldViewModel(
+            initialText = initialTextProvider.rgbG,
             viewData = viewData.gInputField,
             filterUserInput = ::filterUserInput,
         )
     private val bInputFieldViewModel =
         ColorInputFieldViewModel(
+            initialText = initialTextProvider.rgbB,
             viewData = viewData.bInputField,
             filterUserInput = ::filterUserInput,
         )

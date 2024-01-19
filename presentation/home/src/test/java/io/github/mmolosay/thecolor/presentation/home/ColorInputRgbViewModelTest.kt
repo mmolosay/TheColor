@@ -2,6 +2,7 @@ package io.github.mmolosay.thecolor.presentation.home
 
 import io.github.mmolosay.thecolor.presentation.color.ColorPrototype
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator
+import io.github.mmolosay.thecolor.presentation.home.input.InitialTextProvider
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.Text
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.ViewData.TrailingIcon
@@ -40,6 +41,12 @@ class ColorInputRgbViewModelTest {
     }
     val viewData = ColorInputRgbViewData(rInputField, gInputField, bInputField)
 
+    val initialTextProvider: InitialTextProvider = mockk(relaxed = true) {
+        every { rgbR } returns Text("mocked")
+        every { rgbG } returns Text("mocked")
+        every { rgbB } returns Text("mocked")
+    }
+
     val mediator: ColorInputMediator = mockk {
         every { rgbStateFlow } returns emptyFlow()
         every { send<ColorPrototype.Hex>(any()) } just runs
@@ -69,15 +76,16 @@ class ColorInputRgbViewModelTest {
     }
 
     @Test
-    fun `populated state is sent to mediator on new UiData with non-empty text in input`() =
+    fun `populated state is sent to mediator on initial UiData with non-empty text in inputs`() =
         runTest(mainDispatcherRule.testDispatcher) {
+            every { initialTextProvider.rgbR } returns Text("18")
+            every { initialTextProvider.rgbG } returns Text("")
+            every { initialTextProvider.rgbB } returns Text("")
+
             createSut()
             val collectionJob = launch {
                 sut.uiDataFlow.collect() // subscriber to activate the flow
             }
-
-            // first State.Empty is emitted on subscription due to initial text=""
-            uiData.rInputField.onTextChange(Text("18")) // non-empty text
 
             val sentState = State.Populated(ColorPrototype.Rgb(r = 18, g = null, b = null))
             verify(exactly = 1) { mediator.send(sentState) }
@@ -85,18 +93,51 @@ class ColorInputRgbViewModelTest {
         }
 
     @Test
-    fun `empty state is sent to mediator on new UiData with no text in input`() =
+    fun `empty state is sent to mediator on initial UiData with empty text in inputs`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            every { initialTextProvider.rgbR } returns Text("")
+            every { initialTextProvider.rgbG } returns Text("")
+            every { initialTextProvider.rgbB } returns Text("")
+
+            createSut()
+            val collectionJob = launch {
+                sut.uiDataFlow.collect() // subscriber to activate the flow
+            }
+
+            verify(exactly = 1) { mediator.send(State.Empty) }
+            collectionJob.cancel()
+        }
+
+    @Test
+    fun `populated state is sent to mediator on new UiData with non-empty text in input`() =
         runTest(mainDispatcherRule.testDispatcher) {
             createSut()
             val collectionJob = launch {
                 sut.uiDataFlow.collect() // subscriber to activate the flow
             }
 
-            // first State.Empty is emitted on subscription due to initial text=""
-            uiData.rInputField.onTextChange(Text("18")) // non-empty text
-            uiData.rInputField.onTextChange(Text("")) // empty text, second State.Empty
+            uiData.rInputField.onTextChange(Text("18"))
 
-            verify(exactly = 2) { mediator.send(State.Empty) }
+            val sentState = State.Populated(ColorPrototype.Rgb(r = 18, g = null, b = null))
+            verify(exactly = 1) { mediator.send(sentState) }
+            collectionJob.cancel()
+        }
+
+    @Test
+    fun `empty state is sent to mediator on new UiData with no text in inputs`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            every { initialTextProvider.rgbR } returns Text("18")
+            every { initialTextProvider.rgbG } returns Text("")
+            every { initialTextProvider.rgbB } returns Text("")
+
+            createSut()
+            val collectionJob = launch {
+                sut.uiDataFlow.collect() // subscriber to activate the flow
+            }
+
+            uiData.rInputField.onTextChange(Text(""))
+
+            verify(exactly = 1) { mediator.send(State.Empty) }
             collectionJob.cancel()
         }
 
@@ -111,7 +152,7 @@ class ColorInputRgbViewModelTest {
                 sut.uiDataFlow.collect() // subscriber to activate the flow
             }
 
-            // initially is not empty
+            // initial text is not empty
             rgbStateFlow.value = State.Empty
 
             uiData.rInputField.text.string shouldBe ""
@@ -139,6 +180,7 @@ class ColorInputRgbViewModelTest {
     fun createSut() =
         ColorInputRgbViewModel(
             viewData = viewData,
+            initialTextProvider = initialTextProvider,
             mediator = mediator,
             defaultDispatcher = mainDispatcherRule.testDispatcher,
         ).also {

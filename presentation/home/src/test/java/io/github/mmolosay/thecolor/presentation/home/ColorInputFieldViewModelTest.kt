@@ -10,7 +10,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.slot
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
@@ -22,6 +21,16 @@ class ColorInputFieldViewModelTest {
 
     val uiData: ColorInputFieldUiData
         get() = sut.uiDataFlow.value
+
+    @Test
+    fun `initial text is set to initial UiData`() = runTest {
+        every { viewData.trailingIcon } returns TrailingIcon.None
+
+        val initialText = Text("anything")
+        createSut(initialText)
+
+        uiData.text shouldBe initialText
+    }
 
     @Test
     fun `trailing button is visible when text is non-empty`() = runTest {
@@ -65,9 +74,11 @@ class ColorInputFieldViewModelTest {
     }
 
     fun createSut(
+        initialText: Text = Text(""),
         filterUserInput: (String) -> Text = noopFilterUserInput,
     ) =
         ColorInputFieldViewModel(
+            initialText = initialText,
             viewData = viewData,
             filterUserInput = filterUserInput,
         ).also { this.sut = it }
