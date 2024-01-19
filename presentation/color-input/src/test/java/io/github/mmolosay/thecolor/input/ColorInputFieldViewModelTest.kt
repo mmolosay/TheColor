@@ -1,10 +1,10 @@
 package io.github.mmolosay.thecolor.input
 
-import io.github.mmolosay.thecolor.input.field.ColorInputFieldUiData
-import io.github.mmolosay.thecolor.input.field.ColorInputFieldUiData.Text
-import io.github.mmolosay.thecolor.input.field.ColorInputFieldUiData.TrailingButton
-import io.github.mmolosay.thecolor.input.field.ColorInputFieldUiData.ViewData.TrailingIcon
-import io.github.mmolosay.thecolor.input.field.ColorInputFieldViewModel
+import io.github.mmolosay.thecolor.input.field.TextFieldUiData
+import io.github.mmolosay.thecolor.input.field.TextFieldUiData.Text
+import io.github.mmolosay.thecolor.input.field.TextFieldUiData.TrailingButton
+import io.github.mmolosay.thecolor.input.field.TextFieldUiData.ViewData.TrailingIcon
+import io.github.mmolosay.thecolor.input.field.TextFieldViewModel
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
@@ -15,11 +15,11 @@ import org.junit.Test
 
 class ColorInputFieldViewModelTest {
 
-    val viewData: ColorInputFieldUiData.ViewData = mockk(relaxed = true)
+    val viewData: TextFieldUiData.ViewData = mockk(relaxed = true)
 
-    lateinit var sut: ColorInputFieldViewModel
+    lateinit var sut: TextFieldViewModel
 
-    val uiData: ColorInputFieldUiData
+    val uiData: TextFieldUiData
         get() = sut.uiDataFlow.value
 
     @Test
@@ -77,7 +77,7 @@ class ColorInputFieldViewModelTest {
         initialText: Text = Text(""),
         filterUserInput: (String) -> Text = noopFilterUserInput,
     ) =
-        ColorInputFieldViewModel(
+        TextFieldViewModel(
             initialText = initialText,
             viewData = viewData,
             filterUserInput = filterUserInput,

@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.input
 
-import io.github.mmolosay.thecolor.input.field.ColorInputFieldUiData.Text
+import io.github.mmolosay.thecolor.input.field.TextFieldUiData.Text
 import javax.inject.Inject
 import javax.inject.Singleton
 

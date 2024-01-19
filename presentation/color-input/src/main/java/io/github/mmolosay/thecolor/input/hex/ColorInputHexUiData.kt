@@ -1,11 +1,11 @@
 package io.github.mmolosay.thecolor.input.hex
 
 import io.github.mmolosay.thecolor.presentation.color.ColorInput
-import io.github.mmolosay.thecolor.input.field.ColorInputFieldUiData
+import io.github.mmolosay.thecolor.input.field.TextFieldUiData
 
 data class ColorInputHexUiData(
-    val inputField: ColorInputFieldUiData,
+    val textField: TextFieldUiData,
 )
 
 fun ColorInputHexUiData.assembleColorInput() =
-    ColorInput.Hex(string = inputField.text.string)
+    ColorInput.Hex(string = textField.text.string)

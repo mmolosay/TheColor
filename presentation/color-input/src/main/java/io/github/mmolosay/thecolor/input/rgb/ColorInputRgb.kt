@@ -18,9 +18,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.input.ColorInputComponents.TextField
-import io.github.mmolosay.thecolor.input.field.ColorInputFieldUiData
-import io.github.mmolosay.thecolor.input.field.ColorInputFieldUiData.Text
+import io.github.mmolosay.thecolor.input.Components.TextField
+import io.github.mmolosay.thecolor.input.field.TextFieldUiData
+import io.github.mmolosay.thecolor.input.field.TextFieldUiData.Text
 
 @Composable
 fun ColorInputRgb(
@@ -44,21 +44,21 @@ fun ColorInputRgb(
 
         TextField(
             modifier = Modifier.weight(1f),
-            uiData = uiData.rInputField,
+            uiData = uiData.rTextField,
             imeAction = ImeAction.Next,
         )
 
         SpacerInBetween()
         TextField(
             modifier = Modifier.weight(1f),
-            uiData = uiData.gInputField,
+            uiData = uiData.gTextField,
             imeAction = ImeAction.Next,
         )
 
         SpacerInBetween()
         TextField(
             modifier = Modifier.weight(1f),
-            uiData = uiData.bInputField,
+            uiData = uiData.bTextField,
             imeAction = ImeAction.Done,
         )
     }
@@ -67,7 +67,7 @@ fun ColorInputRgb(
 @Composable
 private fun TextField(
     modifier: Modifier = Modifier,
-    uiData: ColorInputFieldUiData,
+    uiData: TextFieldUiData,
     imeAction: ImeAction,
 ) {
     var value by remember { mutableStateOf(TextFieldValue(text = uiData.text.string)) }
@@ -95,38 +95,38 @@ private fun Preview() {
 
 private fun previewUiData() =
     ColorInputRgbUiData(
-        rInputField = ColorInputFieldUiData(
+        rTextField = TextFieldUiData(
             text = Text("12"),
             onTextChange = {},
             filterUserInput = { Text(it) },
             label = "R",
             placeholder = "0",
             prefix = "",
-            trailingButton = ColorInputFieldUiData.TrailingButton.Visible(
+            trailingButton = TextFieldUiData.TrailingButton.Visible(
                 onClick = {},
                 iconContentDesc = "",
             ),
         ),
-        gInputField = ColorInputFieldUiData(
+        gTextField = TextFieldUiData(
             text = Text(""),
             onTextChange = {},
             filterUserInput = { Text(it) },
             label = "G",
             placeholder = "0",
             prefix = "",
-            trailingButton = ColorInputFieldUiData.TrailingButton.Visible(
+            trailingButton = TextFieldUiData.TrailingButton.Visible(
                 onClick = {},
                 iconContentDesc = "",
             ),
         ),
-        bInputField = ColorInputFieldUiData(
+        bTextField = TextFieldUiData(
             text = Text("255"),
             onTextChange = {},
             filterUserInput = { Text(it) },
             label = "B",
             placeholder = "0",
             prefix = "",
-            trailingButton = ColorInputFieldUiData.TrailingButton.Visible(
+            trailingButton = TextFieldUiData.TrailingButton.Visible(
                 onClick = {},
                 iconContentDesc = "",
             ),

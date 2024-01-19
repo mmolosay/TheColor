@@ -1,17 +1,17 @@
 package io.github.mmolosay.thecolor.input.rgb
 
 import io.github.mmolosay.thecolor.presentation.color.ColorInput
-import io.github.mmolosay.thecolor.input.field.ColorInputFieldUiData
+import io.github.mmolosay.thecolor.input.field.TextFieldUiData
 
 data class ColorInputRgbUiData(
-    val rInputField: ColorInputFieldUiData,
-    val gInputField: ColorInputFieldUiData,
-    val bInputField: ColorInputFieldUiData,
+    val rTextField: TextFieldUiData,
+    val gTextField: TextFieldUiData,
+    val bTextField: TextFieldUiData,
 )
 
 fun ColorInputRgbUiData.assembleColorInput() =
     ColorInput.Rgb(
-        r = rInputField.text.string,
-        g = gInputField.text.string,
-        b = bInputField.text.string,
+        r = rTextField.text.string,
+        g = gTextField.text.string,
+        b = bTextField.text.string,
     )

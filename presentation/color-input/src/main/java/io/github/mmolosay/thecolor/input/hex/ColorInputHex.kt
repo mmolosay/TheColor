@@ -16,10 +16,10 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.input.ColorInputComponents.TextField
-import io.github.mmolosay.thecolor.input.field.ColorInputFieldUiData
-import io.github.mmolosay.thecolor.input.field.ColorInputFieldUiData.Text
-import io.github.mmolosay.thecolor.input.field.ColorInputFieldUiData.TrailingButton
+import io.github.mmolosay.thecolor.input.Components.TextField
+import io.github.mmolosay.thecolor.input.field.TextFieldUiData
+import io.github.mmolosay.thecolor.input.field.TextFieldUiData.Text
+import io.github.mmolosay.thecolor.input.field.TextFieldUiData.TrailingButton
 
 @Composable
 fun ColorInputHex(
@@ -35,12 +35,12 @@ fun ColorInputHex(
 fun ColorInputHex(
     uiData: ColorInputHexUiData,
 ) {
-    var value by remember { mutableStateOf(TextFieldValue(text = uiData.inputField.text.string)) }
+    var value by remember { mutableStateOf(TextFieldValue(text = uiData.textField.text.string)) }
     TextField(
         modifier = Modifier
             .wrapContentSize(align = Alignment.TopCenter) // ComposeView propagates min=max constraints
             .fillMaxWidth(0.5f),
-        uiData = uiData.inputField,
+        uiData = uiData.textField,
         value = value,
         updateValue = { new -> value = new },
         keyboardOptions = KeyboardOptions(
@@ -62,7 +62,7 @@ private fun Preview() {
 
 private fun previewUiData() =
     ColorInputHexUiData(
-        inputField = ColorInputFieldUiData(
+        textField = TextFieldUiData(
             text = Text(""),
             onTextChange = {},
             filterUserInput = { Text(it) },

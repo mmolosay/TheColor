@@ -6,7 +6,7 @@ package io.github.mmolosay.thecolor.input.field
  *
  * @param filterUserInput filters text from user input and returns processed text to be displayed.
  */
-data class ColorInputFieldUiData(
+data class TextFieldUiData(
     val text: Text,
     val onTextChange: (Text) -> Unit,
     val filterUserInput: (String) -> Text,
@@ -33,7 +33,7 @@ data class ColorInputFieldUiData(
     }
 
     /**
-     * Part of to-be [ColorInputFieldUiData].
+     * Part of to-be [TextFieldUiData].
      * Created by `View`, since string resources are tied to platform-specific
      * components (like `Context`), which should be avoided in `ViewModel`s.
      */

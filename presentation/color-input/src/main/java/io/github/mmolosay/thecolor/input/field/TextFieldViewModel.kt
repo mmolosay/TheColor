@@ -2,9 +2,9 @@ package io.github.mmolosay.thecolor.input.field
 
 import io.github.mmolosay.thecolor.input.Update
 import io.github.mmolosay.thecolor.input.causedByUser
-import io.github.mmolosay.thecolor.input.field.ColorInputFieldUiData.Text
-import io.github.mmolosay.thecolor.input.field.ColorInputFieldUiData.TrailingButton
-import io.github.mmolosay.thecolor.input.field.ColorInputFieldUiData.ViewData
+import io.github.mmolosay.thecolor.input.field.TextFieldUiData.Text
+import io.github.mmolosay.thecolor.input.field.TextFieldUiData.TrailingButton
+import io.github.mmolosay.thecolor.input.field.TextFieldUiData.ViewData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.update
  * It doesn't derive from [androidx.lifecycle.ViewModel], so should only be used in "real" ViewModels
  * which do derive from Android-aware implementation.
  */
-class ColorInputFieldViewModel(
+class TextFieldViewModel(
     initialText: Text,
     private val viewData: ViewData,
     private val filterUserInput: (String) -> Text,
@@ -34,8 +34,7 @@ class ColorInputFieldViewModel(
         }
     }
 
-    // seems like a better solution than "uiDataFlow = _uiDataFlow.map {..}"
-    private fun ColorInputFieldUiData.smartCopy(text: Text) =
+    private fun TextFieldUiData.smartCopy(text: Text) =
         copy(
             text = text,
             trailingButton = trailingButton(
@@ -61,7 +60,7 @@ class ColorInputFieldViewModel(
         text.string.isNotEmpty()
 
     private fun makeInitialUiData(text: Text) =
-        ColorInputFieldUiData(
+        TextFieldUiData(
             text = text,
             onTextChange = { new -> updateText(new causedByUser true) },
             filterUserInput = filterUserInput,
@@ -80,7 +79,7 @@ class ColorInputFieldViewModel(
          * you still will be able to invoke it indirectly using this class.
          * I find this approach to be a great alternative to exposing ViewModel methods as public.
          */
-        infix fun ColorInputFieldViewModel.updateWith(text: Text) {
+        infix fun TextFieldViewModel.updateWith(text: Text) {
             updateText(text causedByUser false)
         }
     }

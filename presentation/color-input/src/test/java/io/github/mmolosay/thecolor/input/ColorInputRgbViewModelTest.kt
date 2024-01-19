@@ -1,10 +1,10 @@
 package io.github.mmolosay.thecolor.input
 
 import io.github.mmolosay.thecolor.presentation.color.ColorPrototype
-import io.github.mmolosay.thecolor.input.field.ColorInputFieldUiData
-import io.github.mmolosay.thecolor.input.field.ColorInputFieldUiData.Text
-import io.github.mmolosay.thecolor.input.field.ColorInputFieldUiData.ViewData.TrailingIcon
-import io.github.mmolosay.thecolor.input.field.ColorInputFieldViewModel.State
+import io.github.mmolosay.thecolor.input.field.TextFieldUiData
+import io.github.mmolosay.thecolor.input.field.TextFieldUiData.Text
+import io.github.mmolosay.thecolor.input.field.TextFieldUiData.ViewData.TrailingIcon
+import io.github.mmolosay.thecolor.input.field.TextFieldViewModel.State
 import io.github.mmolosay.thecolor.input.rgb.ColorInputRgbUiData
 import io.github.mmolosay.thecolor.input.rgb.ColorInputRgbViewData
 import io.github.mmolosay.thecolor.input.rgb.ColorInputRgbViewModel
@@ -28,13 +28,13 @@ class ColorInputRgbViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    val rInputField: ColorInputFieldUiData.ViewData = mockk(relaxed = true) {
+    val rInputField: TextFieldUiData.ViewData = mockk(relaxed = true) {
         every { trailingIcon } returns TrailingIcon.None
     }
-    val gInputField: ColorInputFieldUiData.ViewData = mockk(relaxed = true) {
+    val gInputField: TextFieldUiData.ViewData = mockk(relaxed = true) {
         every { trailingIcon } returns TrailingIcon.None
     }
-    val bInputField: ColorInputFieldUiData.ViewData = mockk(relaxed = true) {
+    val bInputField: TextFieldUiData.ViewData = mockk(relaxed = true) {
         every { trailingIcon } returns TrailingIcon.None
     }
     val viewData = ColorInputRgbViewData(rInputField, gInputField, bInputField)
@@ -59,7 +59,7 @@ class ColorInputRgbViewModelTest {
     fun `filtering keeps only digits`() {
         createSut()
 
-        val result = uiData.rInputField.filterUserInput("abc1def2ghi3")
+        val result = uiData.rTextField.filterUserInput("abc1def2ghi3")
 
         result.string shouldBe "123"
     }
@@ -68,7 +68,7 @@ class ColorInputRgbViewModelTest {
     fun `filtering keeps only first 3 characters`() {
         createSut()
 
-        val result = uiData.rInputField.filterUserInput("1234567890")
+        val result = uiData.rTextField.filterUserInput("1234567890")
 
         result.string shouldBe "123"
     }
@@ -114,7 +114,7 @@ class ColorInputRgbViewModelTest {
                 sut.uiDataFlow.collect() // subscriber to activate the flow
             }
 
-            uiData.rInputField.onTextChange(Text("18"))
+            uiData.rTextField.onTextChange(Text("18"))
 
             val sentState = State.Populated(ColorPrototype.Rgb(r = 18, g = null, b = null))
             verify(exactly = 1) { mediator.send(sentState) }
@@ -133,7 +133,7 @@ class ColorInputRgbViewModelTest {
                 sut.uiDataFlow.collect() // subscriber to activate the flow
             }
 
-            uiData.rInputField.onTextChange(Text(""))
+            uiData.rTextField.onTextChange(Text(""))
 
             verify(exactly = 1) { mediator.send(State.Empty) }
             collectionJob.cancel()
@@ -153,7 +153,7 @@ class ColorInputRgbViewModelTest {
             // initial text is not empty
             rgbStateFlow.value = State.Empty
 
-            uiData.rInputField.text.string shouldBe ""
+            uiData.rTextField.text.string shouldBe ""
             collectionJob.cancel()
         }
 
@@ -171,7 +171,7 @@ class ColorInputRgbViewModelTest {
             // initial text is empty
             rgbStateFlow.value = State.Populated(ColorPrototype.Rgb(r = 18, g = 0, b = 0))
 
-            uiData.rInputField.text.string shouldBe "18"
+            uiData.rTextField.text.string shouldBe "18"
             collectionJob.cancel()
         }
 

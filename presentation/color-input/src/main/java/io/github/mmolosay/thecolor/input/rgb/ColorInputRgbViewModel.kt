@@ -9,10 +9,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.input.ColorInputMediator
 import io.github.mmolosay.thecolor.input.InitialTextProvider
 import io.github.mmolosay.thecolor.input.Update
-import io.github.mmolosay.thecolor.input.field.ColorInputFieldUiData
-import io.github.mmolosay.thecolor.input.field.ColorInputFieldUiData.Text
-import io.github.mmolosay.thecolor.input.field.ColorInputFieldViewModel
-import io.github.mmolosay.thecolor.input.field.ColorInputFieldViewModel.Companion.updateWith
+import io.github.mmolosay.thecolor.input.field.TextFieldUiData
+import io.github.mmolosay.thecolor.input.field.TextFieldUiData.Text
+import io.github.mmolosay.thecolor.input.field.TextFieldViewModel
+import io.github.mmolosay.thecolor.input.field.TextFieldViewModel.Companion.updateWith
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -29,29 +29,29 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     private val defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
-    private val rInputFieldViewModel =
-        ColorInputFieldViewModel(
+    private val rTextInputVm =
+        TextFieldViewModel(
             initialText = initialTextProvider.rgbR,
             viewData = viewData.rInputField,
             filterUserInput = ::filterUserInput,
         )
-    private val gInputFieldViewModel =
-        ColorInputFieldViewModel(
+    private val gTextInputVm =
+        TextFieldViewModel(
             initialText = initialTextProvider.rgbG,
             viewData = viewData.gInputField,
             filterUserInput = ::filterUserInput,
         )
-    private val bInputFieldViewModel =
-        ColorInputFieldViewModel(
+    private val bTextInputVm =
+        TextFieldViewModel(
             initialText = initialTextProvider.rgbB,
             viewData = viewData.bInputField,
             filterUserInput = ::filterUserInput,
         )
 
     val uiDataFlow = combine(
-        rInputFieldViewModel.uiDataUpdatesFlow,
-        gInputFieldViewModel.uiDataUpdatesFlow,
-        bInputFieldViewModel.uiDataUpdatesFlow,
+        rTextInputVm.uiDataUpdatesFlow,
+        gTextInputVm.uiDataUpdatesFlow,
+        bTextInputVm.uiDataUpdatesFlow,
     ) { r, g, b ->
         Update(
             data = makeUiData(r.data, g.data, b.data),
@@ -73,9 +73,9 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     private fun collectMediatorUpdates() {
         viewModelScope.launch(defaultDispatcher) {
             mediator.rgbStateFlow.collect { input ->
-                rInputFieldViewModel updateWith Text(input.r)
-                gInputFieldViewModel updateWith Text(input.g)
-                bInputFieldViewModel updateWith Text(input.b)
+                rTextInputVm updateWith Text(input.r)
+                gTextInputVm updateWith Text(input.g)
+                bTextInputVm updateWith Text(input.b)
             }
         }
     }
@@ -95,17 +95,17 @@ class ColorInputRgbViewModel @AssistedInject constructor(
 
     private fun makeInitialUiData() =
         makeUiData(
-            rInputFieldViewModel.uiDataUpdatesFlow.value.data,
-            gInputFieldViewModel.uiDataUpdatesFlow.value.data,
-            bInputFieldViewModel.uiDataUpdatesFlow.value.data,
+            rTextInputVm.uiDataUpdatesFlow.value.data,
+            gTextInputVm.uiDataUpdatesFlow.value.data,
+            bTextInputVm.uiDataUpdatesFlow.value.data,
         )
 
     private fun makeUiData(
-        rInputField: ColorInputFieldUiData,
-        gInputField: ColorInputFieldUiData,
-        bInputField: ColorInputFieldUiData,
+        rTextField: TextFieldUiData,
+        gTextField: TextFieldUiData,
+        bTextField: TextFieldUiData,
     ) =
-        ColorInputRgbUiData(rInputField, gInputField, bInputField)
+        ColorInputRgbUiData(rTextField, gTextField, bTextField)
 
     @AssistedFactory
     interface Factory {

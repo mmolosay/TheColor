@@ -1,10 +1,10 @@
 package io.github.mmolosay.thecolor.input
 
 import io.github.mmolosay.thecolor.presentation.color.ColorPrototype
-import io.github.mmolosay.thecolor.input.field.ColorInputFieldUiData
-import io.github.mmolosay.thecolor.input.field.ColorInputFieldUiData.Text
-import io.github.mmolosay.thecolor.input.field.ColorInputFieldUiData.ViewData.TrailingIcon
-import io.github.mmolosay.thecolor.input.field.ColorInputFieldViewModel.State
+import io.github.mmolosay.thecolor.input.field.TextFieldUiData
+import io.github.mmolosay.thecolor.input.field.TextFieldUiData.Text
+import io.github.mmolosay.thecolor.input.field.TextFieldUiData.ViewData.TrailingIcon
+import io.github.mmolosay.thecolor.input.field.TextFieldViewModel.State
 import io.github.mmolosay.thecolor.input.hex.ColorInputHexUiData
 import io.github.mmolosay.thecolor.input.hex.ColorInputHexViewModel
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
@@ -27,7 +27,7 @@ class ColorInputHexViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    val viewData: ColorInputFieldUiData.ViewData = mockk(relaxed = true) {
+    val viewData: TextFieldUiData.ViewData = mockk(relaxed = true) {
         every { trailingIcon } returns TrailingIcon.None
     }
 
@@ -49,7 +49,7 @@ class ColorInputHexViewModelTest {
     fun `filtering keeps only digits and letters A-F`() = runTest {
         createSut()
 
-        val result = uiData.inputField.filterUserInput("123abc_!.@ABG")
+        val result = uiData.textField.filterUserInput("123abc_!.@ABG")
 
         result.string shouldBe "123AB"
     }
@@ -58,7 +58,7 @@ class ColorInputHexViewModelTest {
     fun `filtering keeps only first 6 characters`() = runTest {
         createSut()
 
-        val result = uiData.inputField.filterUserInput("123456789ABCDEF")
+        val result = uiData.textField.filterUserInput("123456789ABCDEF")
 
         result.string shouldBe "123456"
     }
@@ -101,7 +101,7 @@ class ColorInputHexViewModelTest {
                 sut.uiDataFlow.collect() // subscriber to activate the flow
             }
 
-            uiData.inputField.onTextChange(Text("1F"))
+            uiData.textField.onTextChange(Text("1F"))
 
             val sentState = State.Populated(ColorPrototype.Hex("1F"))
             verify(exactly = 1) { mediator.send(sentState) }
@@ -118,7 +118,7 @@ class ColorInputHexViewModelTest {
                 sut.uiDataFlow.collect() // subscriber to activate the flow
             }
 
-            uiData.inputField.onTextChange(Text(""))
+            uiData.textField.onTextChange(Text(""))
 
             verify(exactly = 1) { mediator.send(State.Empty) }
             collectionJob.cancel()
@@ -138,7 +138,7 @@ class ColorInputHexViewModelTest {
             // initial text is not empty
             hexStateFlow.value = State.Empty
 
-            uiData.inputField.text.string shouldBe ""
+            uiData.textField.text.string shouldBe ""
             collectionJob.cancel()
         }
 
@@ -156,7 +156,7 @@ class ColorInputHexViewModelTest {
             // initial text is empty
             hexStateFlow.value = State.Populated(ColorPrototype.Hex("anything"))
 
-            uiData.inputField.text.string shouldBe "anything"
+            uiData.textField.text.string shouldBe "anything"
             collectionJob.cancel()
         }
 

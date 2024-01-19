@@ -27,18 +27,18 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.TextFieldValue
-import io.github.mmolosay.thecolor.input.field.ColorInputFieldUiData
-import io.github.mmolosay.thecolor.input.field.ColorInputFieldUiData.TrailingButton
+import io.github.mmolosay.thecolor.input.field.TextFieldUiData
+import io.github.mmolosay.thecolor.input.field.TextFieldUiData.TrailingButton
 
 /**
  * Reusable UI components for color input Views.
  */
-object ColorInputComponents {
+object Components {
 
     @Composable
     fun TextField(
         modifier: Modifier = Modifier,
-        uiData: ColorInputFieldUiData,
+        uiData: TextFieldUiData,
         value: TextFieldValue,
         updateValue: (TextFieldValue) -> Unit,
         keyboardOptions: KeyboardOptions,
