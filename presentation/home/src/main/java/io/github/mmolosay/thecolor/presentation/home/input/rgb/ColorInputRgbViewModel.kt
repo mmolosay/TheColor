@@ -13,8 +13,7 @@ import io.github.mmolosay.thecolor.presentation.home.input.Update
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.Text
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel
-import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel.State
-import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel.StateReducer
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel.ColorInputReducer
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -50,14 +49,14 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             filterUserInput = ::filterUserInput,
         )
 
-    private val rInputFieldStateReducer = StateReducer<ColorInput.Rgb> { color ->
-        Text(color.r)
+    private val rColorInputReducer = ColorInputReducer<ColorInput.Rgb> { input ->
+        Text(input.r)
     }
-    private val gInputFieldStateReducer = StateReducer<ColorInput.Rgb> { color ->
-        Text(color.g)
+    private val gColorInputReducer = ColorInputReducer<ColorInput.Rgb> { input ->
+        Text(input.g)
     }
-    private val bInputFieldStateReducer = StateReducer<ColorInput.Rgb> { color ->
-        Text(color.b)
+    private val bColorInputReducer = ColorInputReducer<ColorInput.Rgb> { input ->
+        Text(input.b)
     }
 
     val uiDataFlow = combine(
@@ -85,9 +84,9 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     private fun collectMediatorUpdates() {
         viewModelScope.launch(defaultDispatcher) {
             mediator.rgbStateFlow.collect { state ->
-                with(rInputFieldStateReducer) { rInputFieldViewModel apply state }
-                with(gInputFieldStateReducer) { gInputFieldViewModel apply state }
-                with(bInputFieldStateReducer) { bInputFieldViewModel apply state }
+                with(rColorInputReducer) { rInputFieldViewModel apply state }
+                with(gColorInputReducer) { gInputFieldViewModel apply state }
+                with(bColorInputReducer) { bInputFieldViewModel apply state }
             }
         }
     }
@@ -95,13 +94,8 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     private fun onEachUiDataUpdate(update: Update<ColorInputRgbUiData>) {
         if (!update.causedByUser) return // don't synchronize this update with other Views
         val (uiData) = update
-        val state = if (uiData.areAllInputsEmpty()) {
-            State.Empty
-        } else {
-            val prototype = uiData.assembleColorInput()
-            State.Populated(prototype)
-        }
-        mediator.send(state)
+        val input = uiData.assembleColorInput()
+        mediator.send(input)
     }
 
     private fun filterUserInput(input: String): Text =

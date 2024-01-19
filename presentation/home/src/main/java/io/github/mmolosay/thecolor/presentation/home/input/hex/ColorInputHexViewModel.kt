@@ -14,8 +14,7 @@ import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputField
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.Text
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.ViewData
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel
-import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel.State
-import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel.StateReducer
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel.ColorInputReducer
 import io.github.mmolosay.thecolor.presentation.home.input.map
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
@@ -39,8 +38,8 @@ class ColorInputHexViewModel @AssistedInject constructor(
             filterUserInput = ::filterUserInput,
         )
 
-    private val inputFieldStateReducer = StateReducer<ColorInput.Hex> { color ->
-        Text(color.string)
+    private val colorInputReducer = ColorInputReducer<ColorInput.Hex> { input ->
+        Text(input.string)
     }
 
     val uiDataFlow =
@@ -61,7 +60,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
     private fun collectMediatorUpdates() {
         viewModelScope.launch(defaultDispatcher) {
             mediator.hexStateFlow.collect { state ->
-                with(inputFieldStateReducer) { inputFieldViewModel apply state }
+                with(colorInputReducer) { inputFieldViewModel apply state }
             }
         }
     }
@@ -69,13 +68,8 @@ class ColorInputHexViewModel @AssistedInject constructor(
     private fun onEachUiDataUpdate(update: Update<ColorInputHexUiData>) {
         if (!update.causedByUser) return // don't synchronize this update with other Views
         val (uiData) = update
-        val state = if (uiData.areAllInputsEmpty()) {
-            State.Empty
-        } else {
-            val prototype = uiData.assembleColorInput()
-            State.Populated(prototype)
-        }
-        mediator.send(state)
+        val input = uiData.assembleColorInput()
+        mediator.send(input)
     }
 
     private fun filterUserInput(input: String): Text =

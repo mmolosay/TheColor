@@ -9,10 +9,6 @@ data class ColorInputRgbUiData(
     val bInputField: ColorInputFieldUiData,
 )
 
-fun ColorInputRgbUiData.areAllInputsEmpty() =
-    listOf(rInputField, gInputField, bInputField)
-        .all { it.text.string.isEmpty() }
-
 fun ColorInputRgbUiData.assembleColorInput() =
     ColorInput.Rgb(
         r = rInputField.text.string,

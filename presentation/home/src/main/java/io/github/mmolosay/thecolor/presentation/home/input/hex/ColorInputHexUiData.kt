@@ -7,8 +7,5 @@ data class ColorInputHexUiData(
     val inputField: ColorInputFieldUiData,
 )
 
-fun ColorInputHexUiData.areAllInputsEmpty() =
-    inputField.text.string.isEmpty()
-
 fun ColorInputHexUiData.assembleColorInput() =
     ColorInput.Hex(string = inputField.text.string)

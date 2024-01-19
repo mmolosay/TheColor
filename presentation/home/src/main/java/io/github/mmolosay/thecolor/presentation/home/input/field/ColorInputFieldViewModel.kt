@@ -71,36 +71,20 @@ class ColorInputFieldViewModel(
             trailingButton = trailingButton(text, viewData.trailingIcon),
         )
 
-    /** A state of View in regard of user input. */
-    sealed interface State<out ColorInput> {
-
-        /** Clears all user input. */
-        data object Empty : State<Nothing>
-
-        /** Populates UI with specified [color] data. */
-        data class Populated<C>(val color: C) : State<C>
-
-        /* No intermediate state with unfinished color */
-    }
-
     /**
-     * Applies specified [State] to [ColorInputFieldViewModel].
+     * Applies specified [ColorInput] to [ColorInputFieldViewModel].
      */
-    // TODO: ColorInputPopulator? and get rid of State? because State.Empty is a State.Populated with empty fields
-    class StateReducer<Color>(private val colorToText: (Color) -> Text) {
+    class ColorInputReducer<ColorInput>(private val colorInputToText: (ColorInput) -> Text) {
 
         /*
          * Curious thing to notice:
-         * both used methods of ViewModel are private.
+         * Used method of ViewModel is private,
          * however if this class is instantiated outside of ViewModel,
-         * you will be able to invoke them indirectly using this method.
+         * you still will be able to invoke it indirectly using this class.
          * I find this approach to be a great alternative to exposing ViewModel methods as public.
          */
-        infix fun ColorInputFieldViewModel.apply(state: State<Color>) {
-            val text = when (state) {
-                is State.Empty -> Text("")
-                is State.Populated -> colorToText(state.color)
-            }
+        infix fun ColorInputFieldViewModel.apply(input: ColorInput) {
+            val text = colorInputToText(input)
             updateText(text causedByUser false)
         }
     }
