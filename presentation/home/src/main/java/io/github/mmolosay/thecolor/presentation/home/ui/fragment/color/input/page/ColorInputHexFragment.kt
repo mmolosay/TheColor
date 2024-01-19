@@ -11,9 +11,9 @@ import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.lifecycle.withCreationCallback
 import io.github.mmolosay.thecolor.presentation.color.ColorPrototype
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.home.input.hex.ColorInputHex
-import io.github.mmolosay.thecolor.presentation.home.input.hex.ColorInputHexViewData
-import io.github.mmolosay.thecolor.presentation.home.input.hex.ColorInputHexViewModel
+import io.github.mmolosay.thecolor.input.hex.ColorInputHex
+import io.github.mmolosay.thecolor.input.hex.ColorInputHexViewData
+import io.github.mmolosay.thecolor.input.hex.ColorInputHexViewModel
 import io.github.mmolosay.thecolor.utils.Resource
 import kotlinx.coroutines.flow.Flow
 

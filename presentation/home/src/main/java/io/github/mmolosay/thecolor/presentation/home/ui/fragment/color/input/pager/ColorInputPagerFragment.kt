@@ -13,13 +13,13 @@ import io.github.mmolosay.thecolor.presentation.color.Color
 import io.github.mmolosay.thecolor.presentation.color.ColorPrototype
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.fragment.BaseFragment
-import io.github.mmolosay.thecolor.presentation.home.input.ColorInput
-import io.github.mmolosay.thecolor.presentation.home.input.ColorInputViewData
-import io.github.mmolosay.thecolor.presentation.home.input.ColorInputViewModel
-import io.github.mmolosay.thecolor.presentation.home.input.hex.ColorInputHexViewData
-import io.github.mmolosay.thecolor.presentation.home.input.hex.ColorInputHexViewModel
-import io.github.mmolosay.thecolor.presentation.home.input.rgb.ColorInputRgbViewData
-import io.github.mmolosay.thecolor.presentation.home.input.rgb.ColorInputRgbViewModel
+import io.github.mmolosay.thecolor.input.ColorInput
+import io.github.mmolosay.thecolor.input.ColorInputViewData
+import io.github.mmolosay.thecolor.input.ColorInputViewModel
+import io.github.mmolosay.thecolor.input.hex.ColorInputHexViewData
+import io.github.mmolosay.thecolor.input.hex.ColorInputHexViewModel
+import io.github.mmolosay.thecolor.input.rgb.ColorInputRgbViewData
+import io.github.mmolosay.thecolor.input.rgb.ColorInputRgbViewModel
 import io.github.mmolosay.thecolor.presentation.home.ui.fragment.color.input.page.ColorInputParent
 
 /**

@@ -17,25 +17,6 @@
 
     <!-- endregion -->
 
-    <!-- region Color Input -->
-
-    <string name="color_input_tab_hex" translatable="false">HEX</string>
-    <string name="color_input_tab_rgb" translatable="false">RGB</string>
-
-    <string name="color_input_hex_label" translatable="false">HEX</string>
-    <string name="color_input_hex_placeholder" translatable="false">000000</string>
-    <string name="color_input_hex_trailing_icon_desc">Clear text field</string>
-
-    <string name="color_input_rgb_r_label" translatable="false">R</string>
-    <string name="color_input_rgb_g_label" translatable="false">G</string>
-    <string name="color_input_rgb_b_label" translatable="false">B</string>
-
-    <string name="color_input_rgb_r_placeholder" translatable="false">0</string>
-    <string name="color_input_rgb_g_placeholder" translatable="false">0</string>
-    <string name="color_input_rgb_b_placeholder" translatable="false">0</string>
-
-    <!-- endregion -->
-
     <!-- region Color Data -->
 
     <string name="color_data_no_content_message">Can\'t fetch color information :(</string>
