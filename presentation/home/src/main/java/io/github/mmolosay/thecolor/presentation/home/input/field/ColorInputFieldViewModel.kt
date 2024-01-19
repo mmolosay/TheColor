@@ -13,11 +13,12 @@ import kotlinx.coroutines.flow.update
  * which do derive from Android-aware implementation.
  */
 class ColorInputFieldViewModel(
+    initialData: InitialData = InitialData(),
     private val viewData: ViewData,
     private val filterUserInput: (String) -> Text,
 ) {
 
-    private val _uiDataFlow = MutableStateFlow(makeInitialUiData())
+    private val _uiDataFlow = MutableStateFlow(makeInitialUiData(initialData))
     val uiDataFlow = _uiDataFlow.asStateFlow()
 
     private fun updateText(text: Text) {
@@ -60,16 +61,20 @@ class ColorInputFieldViewModel(
     private fun showTrailingButton(text: Text): Boolean =
         text.string.isNotEmpty()
 
-    private fun makeInitialUiData() =
+    private fun makeInitialUiData(initialData: InitialData) =
         ColorInputFieldUiData(
-            text = Text(""),
+            text = initialData.text,
             onTextChange = ::updateText,
             filterUserInput = filterUserInput,
             label = viewData.label,
             placeholder = viewData.placeholder,
             prefix = viewData.prefix,
-            trailingButton = TrailingButton.Hidden,
+            trailingButton = trailingButton(initialData.text, viewData.trailingIcon),
         )
+
+    data class InitialData(
+        val text: Text = Text(""),
+    )
 
     /** A state of View in regard of user input. */
     sealed interface State<out Color> {

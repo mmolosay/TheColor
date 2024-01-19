@@ -5,6 +5,7 @@ import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.Text
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.ViewData.TrailingIcon
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel.InitialData
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel.State
 import io.github.mmolosay.thecolor.presentation.home.input.hex.ColorInputHexUiData
 import io.github.mmolosay.thecolor.presentation.home.input.hex.ColorInputHexViewModel
@@ -61,15 +62,14 @@ class ColorInputHexViewModelTest {
     }
 
     @Test
-    fun `populated state is sent to mediator on new UiData with non-empty text in input`() =
+    fun `populated state is sent to mediator on initial UiData with non-empty text in input`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            createSut()
+            val initialData = InitialData(text = Text("1F"))
+
+            createSut(initialData)
             val collectionJob = launch {
                 sut.uiDataFlow.collect() // subscriber to activate the flow
             }
-
-            // first State.Empty is emitted on subscription due to initial text=""
-            uiData.inputField.onTextChange(Text("1F")) // non-empty text
 
             val sentState = State.Populated(ColorPrototype.Hex("1F"))
             verify(exactly = 1) { mediator.send(sentState) }
@@ -77,18 +77,16 @@ class ColorInputHexViewModelTest {
         }
 
     @Test
-    fun `empty state is sent to mediator on new UiData with no text in input`() =
+    fun `empty state is sent to mediator on initial UiData with empty text in input`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            createSut()
+            val initialData = InitialData(text = Text(""))
+
+            createSut(initialData)
             val collectionJob = launch {
                 sut.uiDataFlow.collect() // subscriber to activate the flow
             }
 
-            // first State.Empty is emitted on subscription due to initial text=""
-            uiData.inputField.onTextChange(Text("1F")) // non-empty text
-            uiData.inputField.onTextChange(Text("")) // empty text, second State.Empty
-
-            verify(exactly = 2) { mediator.send(State.Empty) }
+            verify(exactly = 1) { mediator.send(State.Empty) }
             collectionJob.cancel()
         }
 
@@ -128,9 +126,12 @@ class ColorInputHexViewModelTest {
             collectionJob.cancel()
         }
 
-    fun createSut() =
+    fun createSut(
+        initialData: InitialData = InitialData(),
+    ) =
         ColorInputHexViewModel(
             viewData = viewData,
+            initialData = initialData,
             mediator = mediator,
             defaultDispatcher = mainDispatcherRule.testDispatcher,
         ).also {

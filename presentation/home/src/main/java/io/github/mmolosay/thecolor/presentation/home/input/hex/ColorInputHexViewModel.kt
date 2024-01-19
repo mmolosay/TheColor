@@ -12,6 +12,7 @@ import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputField
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.Text
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.ViewData
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel.InitialData
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel.State
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel.StateReducer
 import kotlinx.coroutines.CoroutineDispatcher
@@ -24,12 +25,14 @@ import kotlinx.coroutines.launch
 @HiltViewModel(assistedFactory = ColorInputHexViewModel.Factory::class)
 class ColorInputHexViewModel @AssistedInject constructor(
     @Assisted viewData: ViewData,
+    @Assisted initialData: InitialData,
     private val mediator: ColorInputMediator,
     private val defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val inputFieldViewModel =
         ColorInputFieldViewModel(
+            initialData = initialData,
             viewData = viewData,
             filterUserInput = ::filterUserInput,
         )
@@ -89,6 +92,9 @@ class ColorInputHexViewModel @AssistedInject constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(viewData: ViewData): ColorInputHexViewModel
+        fun create(
+            viewData: ViewData,
+            initialData: InitialData = InitialData(),
+        ): ColorInputHexViewModel
     }
 }

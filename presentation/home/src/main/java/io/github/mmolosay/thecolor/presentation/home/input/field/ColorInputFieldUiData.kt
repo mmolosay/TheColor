@@ -17,7 +17,7 @@ data class ColorInputFieldUiData(
 ) {
 
     /**
-     * Text that is ready to be displayed in UI.
+     * Text that was filtered and is ready to be displayed in UI.
      * Can be obtained from [filterUserInput].
      */
     @JvmInline
