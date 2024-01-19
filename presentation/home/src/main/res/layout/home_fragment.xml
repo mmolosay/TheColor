@@ -51,11 +51,11 @@
             tools:layout="@layout/color_input_pager_fragment" />
 
         <Button
-            android:id="@+id/procceedBtn"
+            android:id="@+id/proceedBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:enabled="false"
-            android:text="@string/home_procceed_btn"
+            android:text="@string/home_proceed_btn"
 
             app:layout_constraintEnd_toEndOf="@id/glEnd"
             app:layout_constraintStart_toStartOf="@id/glStart"
@@ -70,7 +70,7 @@
 
             app:layout_constraintEnd_toStartOf="@+id/glEnd"
             app:layout_constraintStart_toStartOf="@+id/glStart"
-            app:layout_constraintTop_toBottomOf="@+id/procceedBtn"
+            app:layout_constraintTop_toBottomOf="@+id/proceedBtn"
             app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.FullRound"
             tools:scaleX="1"
             tools:scaleY="1"

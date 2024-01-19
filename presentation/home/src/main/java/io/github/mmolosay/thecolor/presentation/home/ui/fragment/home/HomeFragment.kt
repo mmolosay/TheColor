@@ -106,7 +106,7 @@ class HomeFragment :
 
     private fun collectColorPreview() =
         colorValidatorVM.colorPreview.collectOnLifecycle { resource ->
-            binding.procceedBtn.isEnabled = resource.isSuccess
+            binding.proceedBtn.isEnabled = resource.isSuccess
             resource.fold(
                 onEmpty = ::onColorPreviewEmpty,
                 onSuccess = ::onColorPreviewSuccess
@@ -155,12 +155,12 @@ class HomeFragment :
     // region Set views
 
     override fun setViews() {
-        setProcceedBtn()
+        setProceedBtn()
     }
 
-    private fun setProcceedBtn() =
+    private fun setProceedBtn() =
         binding.run {
-            procceedBtn.setOnClickListener l@{
+            proceedBtn.setOnClickListener l@{
                 val color = homeVM.preview ?: return@l
                 state.showData(color)
             }
