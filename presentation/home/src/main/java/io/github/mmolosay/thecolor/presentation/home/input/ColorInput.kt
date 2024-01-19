@@ -22,7 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.home.input.ColorInputUiData.InputType
+import io.github.mmolosay.thecolor.presentation.home.input.ColorInputUiData.ViewType
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
 import io.github.mmolosay.thecolor.presentation.home.input.hex.ColorInputHex
 import io.github.mmolosay.thecolor.presentation.home.input.hex.ColorInputHexUiData
@@ -60,7 +60,7 @@ fun ColorInput(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Crossfade(
-            targetState = uiData.inputType,
+            targetState = uiData.viewType,
             label = "Input type cross-fade",
         ) { type ->
             Box(
@@ -69,8 +69,8 @@ fun ColorInput(
                     .wrapContentWidth(),
             ) {
                 when (type) {
-                    InputType.Hex -> hexInput()
-                    InputType.Rgb -> rgbInput()
+                    ViewType.Hex -> hexInput()
+                    ViewType.Rgb -> rgbInput()
                 }
             }
         }
@@ -86,12 +86,12 @@ private fun InputSelector(
     uiData: ColorInputUiData,
 ) {
     Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        InputType.entries.forEach { type ->
+        ViewType.entries.forEach { type ->
             val labelText = type.label(uiData)
             FilterChip(
-                selected = (type == uiData.inputType),
+                selected = (type == uiData.viewType),
                 onClick = { uiData.onInputTypeSelect(type) },
                 label = { ChipLabel(labelText) }
             )
@@ -108,10 +108,10 @@ private fun ChipLabel(text: String) {
     )
 }
 
-private fun InputType.label(uiData: ColorInputUiData): String =
+private fun ViewType.label(uiData: ColorInputUiData): String =
     when (this) {
-        InputType.Hex -> uiData.hexLabel
-        InputType.Rgb -> uiData.rgbLabel
+        ViewType.Hex -> uiData.hexLabel
+        ViewType.Rgb -> uiData.rgbLabel
     }
 
 @Preview(showBackground = true)
@@ -132,7 +132,7 @@ private fun Preview() {
 
 private fun previewUiData() =
     ColorInputUiData(
-        inputType = InputType.Hex,
+        viewType = ViewType.Hex,
         onInputTypeSelect = {},
         hexLabel = "HEX",
         rgbLabel = "RGB",
