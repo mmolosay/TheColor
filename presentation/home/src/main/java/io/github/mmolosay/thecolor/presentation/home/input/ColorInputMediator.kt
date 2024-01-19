@@ -29,12 +29,12 @@ class ColorInputMediator @Inject constructor(
 ) {
 
     private val stateFlow = MutableStateFlow<State<Color.Abstract>>(State.Empty)
-    private lateinit var lastUsedInputType: InputType
+    private var lastUsedInputType: InputType = InputType.Hex // TODO: I don't like that it is hardcoded
 
     val hexStateFlow: Flow<State<ColorInput.Hex>> =
         stateFlow.transform { state ->
+            if (lastUsedInputType == InputType.Hex) return@transform // prevent user input interrupting
             state.mapType {
-                if (lastUsedInputType == InputType.Hex) return@transform // prevent user input interrupting
                 with(colorConverter) { it.toHex() }.toColorInput()
             }.also {
                 emit(it)
@@ -43,8 +43,8 @@ class ColorInputMediator @Inject constructor(
 
     val rgbStateFlow: Flow<State<ColorInput.Rgb>> =
         stateFlow.transform { state ->
+            if (lastUsedInputType == InputType.Rgb) return@transform // prevent user input interrupting
             state.mapType {
-                if (lastUsedInputType == InputType.Rgb) return@transform // prevent user input interrupting
                 with(colorConverter) { it.toRgb() }.toColorInput()
             }.also {
                 emit(it)

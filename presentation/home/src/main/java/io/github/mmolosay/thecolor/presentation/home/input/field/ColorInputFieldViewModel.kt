@@ -1,5 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.home.input.field
 
+import io.github.mmolosay.thecolor.presentation.home.input.Update
+import io.github.mmolosay.thecolor.presentation.home.input.causedByUser
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.Text
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.TrailingButton
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.ViewData
@@ -18,22 +20,22 @@ class ColorInputFieldViewModel(
     private val filterUserInput: (String) -> Text,
 ) {
 
-    private val _uiDataFlow = MutableStateFlow(makeInitialUiData(text = initialText))
-    val uiDataFlow = _uiDataFlow.asStateFlow()
+    private val _uiDataUpdatesFlow = MutableStateFlow(
+        makeInitialUiData(text = initialText) causedByUser false
+    )
+    val uiDataUpdatesFlow = _uiDataUpdatesFlow.asStateFlow()
 
-    private fun updateText(text: Text) {
-        _uiDataFlow.update {
-            it.smartCopy(text = text)
+    private fun updateText(update: Update<Text>) {
+        _uiDataUpdatesFlow.update {
+            val text = update.data
+            val (oldUiData) = it
+            val newUiData = oldUiData.smartCopy(text)
+            newUiData causedByUser update.causedByUser
         }
     }
 
-    private fun clearText() =
-        updateText(text = Text(""))
-
     // seems like a better solution than "uiDataFlow = _uiDataFlow.map {..}"
-    private fun ColorInputFieldUiData.smartCopy(
-        text: Text,
-    ) =
+    private fun ColorInputFieldUiData.smartCopy(text: Text) =
         copy(
             text = text,
             trailingButton = trailingButton(
@@ -48,7 +50,7 @@ class ColorInputFieldViewModel(
     ): TrailingButton =
         if (trailingIcon is ViewData.TrailingIcon.Exists && showTrailingButton(text)) {
             TrailingButton.Visible(
-                onClick = ::clearText,
+                onClick = { updateText(Text("") causedByUser true) },
                 iconContentDesc = trailingIcon.contentDesc,
             )
         } else {
@@ -61,7 +63,7 @@ class ColorInputFieldViewModel(
     private fun makeInitialUiData(text: Text) =
         ColorInputFieldUiData(
             text = text,
-            onTextChange = ::updateText,
+            onTextChange = { new -> updateText(new causedByUser true) },
             filterUserInput = filterUserInput,
             label = viewData.label,
             placeholder = viewData.placeholder,
@@ -84,6 +86,7 @@ class ColorInputFieldViewModel(
     /**
      * Applies specified [State] to [ColorInputFieldViewModel].
      */
+    // TODO: ColorInputPopulator? and get rid of State? because State.Empty is a State.Populated with empty fields
     class StateReducer<Color>(private val colorToText: (Color) -> Text) {
 
         /*
@@ -94,10 +97,11 @@ class ColorInputFieldViewModel(
          * I find this approach to be a great alternative to exposing ViewModel methods as public.
          */
         infix fun ColorInputFieldViewModel.apply(state: State<Color>) {
-            when (state) {
-                is State.Empty -> clearText()
-                is State.Populated -> updateText(colorToText(state.color))
+            val text = when (state) {
+                is State.Empty -> Text("")
+                is State.Populated -> colorToText(state.color)
             }
+            updateText(text causedByUser false)
         }
     }
 }

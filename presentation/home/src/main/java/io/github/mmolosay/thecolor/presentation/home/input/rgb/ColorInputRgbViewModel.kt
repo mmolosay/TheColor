@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.presentation.color.ColorInput
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.home.input.InitialTextProvider
+import io.github.mmolosay.thecolor.presentation.home.input.Update
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.Text
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel
@@ -17,6 +18,7 @@ import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputField
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -59,12 +61,17 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     }
 
     val uiDataFlow = combine(
-        rInputFieldViewModel.uiDataFlow,
-        gInputFieldViewModel.uiDataFlow,
-        bInputFieldViewModel.uiDataFlow,
-        ::makeUiData,
-    )
-        .onEach(::onEachUiData)
+        rInputFieldViewModel.uiDataUpdatesFlow,
+        gInputFieldViewModel.uiDataUpdatesFlow,
+        bInputFieldViewModel.uiDataUpdatesFlow,
+    ) { r, g, b ->
+        Update(
+            data = makeUiData(r.data, g.data, b.data),
+            causedByUser = listOf(r, g, b).any { it.causedByUser },
+        )
+    }
+        .onEach(::onEachUiDataUpdate)
+        .map { it.data }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -85,11 +92,10 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         }
     }
 
-    private fun onEachUiData(uiData: ColorInputRgbUiData) {
-        val areAllFieldsEmpty =
-            listOf(rInputFieldViewModel, gInputFieldViewModel, bInputFieldViewModel)
-                .all { it.uiDataFlow.value.text.string.isEmpty() }
-        val state = if (areAllFieldsEmpty) {
+    private fun onEachUiDataUpdate(update: Update<ColorInputRgbUiData>) {
+        if (!update.causedByUser) return // don't synchronize this update with other Views
+        val (uiData) = update
+        val state = if (uiData.areAllInputsEmpty()) {
             State.Empty
         } else {
             val prototype = uiData.assembleColorInput()
@@ -106,9 +112,9 @@ class ColorInputRgbViewModel @AssistedInject constructor(
 
     private fun makeInitialUiData() =
         makeUiData(
-            rInputFieldViewModel.uiDataFlow.value,
-            gInputFieldViewModel.uiDataFlow.value,
-            bInputFieldViewModel.uiDataFlow.value,
+            rInputFieldViewModel.uiDataUpdatesFlow.value.data,
+            gInputFieldViewModel.uiDataUpdatesFlow.value.data,
+            bInputFieldViewModel.uiDataUpdatesFlow.value.data,
         )
 
     private fun makeUiData(

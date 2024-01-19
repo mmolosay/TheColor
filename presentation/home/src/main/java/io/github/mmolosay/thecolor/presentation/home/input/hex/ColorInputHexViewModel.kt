@@ -7,15 +7,16 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.presentation.color.ColorInput
-import io.github.mmolosay.thecolor.presentation.color.ColorPrototype
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.home.input.InitialTextProvider
+import io.github.mmolosay.thecolor.presentation.home.input.Update
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.Text
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.ViewData
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel.State
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel.StateReducer
+import io.github.mmolosay.thecolor.presentation.home.input.map
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -43,9 +44,10 @@ class ColorInputHexViewModel @AssistedInject constructor(
     }
 
     val uiDataFlow =
-        inputFieldViewModel.uiDataFlow
-            .map(::makeUiData)
-            .onEach(::onEachUiData)
+        inputFieldViewModel.uiDataUpdatesFlow
+            .map { it.map(::makeUiData) }
+            .onEach(::onEachUiDataUpdate)
+            .map { it.data }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000),
@@ -64,9 +66,10 @@ class ColorInputHexViewModel @AssistedInject constructor(
         }
     }
 
-    private fun onEachUiData(uiData: ColorInputHexUiData) {
-        val isTextEmpty = uiData.inputField.text.string.isEmpty()
-        val state = if (isTextEmpty) {
+    private fun onEachUiDataUpdate(update: Update<ColorInputHexUiData>) {
+        if (!update.causedByUser) return // don't synchronize this update with other Views
+        val (uiData) = update
+        val state = if (uiData.areAllInputsEmpty()) {
             State.Empty
         } else {
             val prototype = uiData.assembleColorInput()
@@ -85,7 +88,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
         ColorInputHexUiData(inputField)
 
     private fun makeInitialUiData() =
-        makeUiData(inputFieldViewModel.uiDataFlow.value)
+        makeUiData(inputFieldViewModel.uiDataUpdatesFlow.value.data)
 
     private companion object {
         const val MAX_SYMBOLS_IN_HEX_COLOR = 6
