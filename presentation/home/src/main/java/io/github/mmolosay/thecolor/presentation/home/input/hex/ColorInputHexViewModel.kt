@@ -6,7 +6,6 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.mmolosay.thecolor.presentation.color.ColorInput
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.home.input.InitialTextProvider
 import io.github.mmolosay.thecolor.presentation.home.input.Update
@@ -14,7 +13,7 @@ import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputField
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.Text
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.ViewData
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel
-import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel.ColorInputReducer
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel.Companion.updateWith
 import io.github.mmolosay.thecolor.presentation.home.input.map
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
@@ -38,10 +37,6 @@ class ColorInputHexViewModel @AssistedInject constructor(
             filterUserInput = ::filterUserInput,
         )
 
-    private val colorInputReducer = ColorInputReducer<ColorInput.Hex> { input ->
-        Text(input.string)
-    }
-
     val uiDataFlow =
         inputFieldViewModel.uiDataUpdatesFlow
             .map { it.map(::makeUiData) }
@@ -59,8 +54,8 @@ class ColorInputHexViewModel @AssistedInject constructor(
 
     private fun collectMediatorUpdates() {
         viewModelScope.launch(defaultDispatcher) {
-            mediator.hexStateFlow.collect { state ->
-                with(colorInputReducer) { inputFieldViewModel apply state }
+            mediator.hexStateFlow.collect { input ->
+                inputFieldViewModel updateWith Text(input.string)
             }
         }
     }

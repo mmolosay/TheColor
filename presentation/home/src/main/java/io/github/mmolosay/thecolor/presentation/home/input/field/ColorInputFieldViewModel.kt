@@ -71,10 +71,7 @@ class ColorInputFieldViewModel(
             trailingButton = trailingButton(text, viewData.trailingIcon),
         )
 
-    /**
-     * Applies specified [ColorInput] to [ColorInputFieldViewModel].
-     */
-    class ColorInputReducer<ColorInput>(private val colorInputToText: (ColorInput) -> Text) {
+    companion object {
 
         /*
          * Curious thing to notice:
@@ -83,8 +80,7 @@ class ColorInputFieldViewModel(
          * you still will be able to invoke it indirectly using this class.
          * I find this approach to be a great alternative to exposing ViewModel methods as public.
          */
-        infix fun ColorInputFieldViewModel.apply(input: ColorInput) {
-            val text = colorInputToText(input)
+        infix fun ColorInputFieldViewModel.updateWith(text: Text) {
             updateText(text causedByUser false)
         }
     }

@@ -6,14 +6,13 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.mmolosay.thecolor.presentation.color.ColorInput
 import io.github.mmolosay.thecolor.presentation.home.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.home.input.InitialTextProvider
 import io.github.mmolosay.thecolor.presentation.home.input.Update
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldUiData.Text
 import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel
-import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel.ColorInputReducer
+import io.github.mmolosay.thecolor.presentation.home.input.field.ColorInputFieldViewModel.Companion.updateWith
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -49,16 +48,6 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             filterUserInput = ::filterUserInput,
         )
 
-    private val rColorInputReducer = ColorInputReducer<ColorInput.Rgb> { input ->
-        Text(input.r)
-    }
-    private val gColorInputReducer = ColorInputReducer<ColorInput.Rgb> { input ->
-        Text(input.g)
-    }
-    private val bColorInputReducer = ColorInputReducer<ColorInput.Rgb> { input ->
-        Text(input.b)
-    }
-
     val uiDataFlow = combine(
         rInputFieldViewModel.uiDataUpdatesFlow,
         gInputFieldViewModel.uiDataUpdatesFlow,
@@ -83,10 +72,10 @@ class ColorInputRgbViewModel @AssistedInject constructor(
 
     private fun collectMediatorUpdates() {
         viewModelScope.launch(defaultDispatcher) {
-            mediator.rgbStateFlow.collect { state ->
-                with(rColorInputReducer) { rInputFieldViewModel apply state }
-                with(gColorInputReducer) { gInputFieldViewModel apply state }
-                with(bColorInputReducer) { bInputFieldViewModel apply state }
+            mediator.rgbStateFlow.collect { input ->
+                rInputFieldViewModel updateWith Text(input.r)
+                gInputFieldViewModel updateWith Text(input.g)
+                bInputFieldViewModel updateWith Text(input.b)
             }
         }
     }
