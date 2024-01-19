@@ -27,11 +27,8 @@ class ColorInputFieldViewModel(
         }
     }
 
-    private fun clearText() {
-        _uiDataFlow.update {
-            it.smartCopy(text = Text(""))
-        }
-    }
+    private fun clearText() =
+        updateText(text = Text(""))
 
     // seems like a better solution than "uiDataFlow = _uiDataFlow.map {..}"
     private fun ColorInputFieldUiData.smartCopy(
