@@ -34,6 +34,9 @@ class TextFieldViewModel(
         }
     }
 
+    private fun onTextChangeFromView(text: Text) =
+        updateText(text causedByUser true)
+
     private fun TextFieldUiData.smartCopy(text: Text) =
         copy(
             text = text,
@@ -62,7 +65,7 @@ class TextFieldViewModel(
     private fun makeInitialUiData(text: Text) =
         TextFieldUiData(
             text = text,
-            onTextChange = { new -> updateText(new causedByUser true) },
+            onTextChange = ::onTextChangeFromView,
             filterUserInput = filterUserInput,
             label = viewData.label,
             placeholder = viewData.placeholder,
