@@ -15,12 +15,10 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.verify
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -130,12 +128,11 @@ class ColorInputHexViewModelTest {
             collectionJob.cancel()
         }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     fun createSut() =
         ColorInputHexViewModel(
             viewData = viewData,
             mediator = mediator,
-            defaultDispatcher = UnconfinedTestDispatcher(),
+            defaultDispatcher = mainDispatcherRule.testDispatcher,
         ).also {
             sut = it
         }
