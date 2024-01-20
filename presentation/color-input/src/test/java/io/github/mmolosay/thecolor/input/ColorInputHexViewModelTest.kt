@@ -1,12 +1,11 @@
 package io.github.mmolosay.thecolor.input
 
-import io.github.mmolosay.thecolor.presentation.color.ColorPrototype
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData.Text
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData.ViewData.TrailingIcon
-import io.github.mmolosay.thecolor.input.field.TextFieldViewModel.State
 import io.github.mmolosay.thecolor.input.hex.ColorInputHexUiData
 import io.github.mmolosay.thecolor.input.hex.ColorInputHexViewModel
+import io.github.mmolosay.thecolor.presentation.color.ColorInput
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -14,7 +13,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.verify
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
@@ -37,7 +36,7 @@ class ColorInputHexViewModelTest {
 
     val mediator: ColorInputMediator = mockk {
         every { hexColorInputFlow } returns emptyFlow()
-        every { send<ColorPrototype.Hex>(any()) } just runs
+        every { send(any()) } just runs
     }
 
     lateinit var sut: ColorInputHexViewModel
@@ -64,38 +63,20 @@ class ColorInputHexViewModelTest {
     }
 
     @Test
-    fun `populated state is sent to mediator on initial UiData with non-empty text in input`() =
+    fun `initial UiData is not sent to mediator`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            every { initialTextProvider.hex } returns Text("1F")
-
             createSut()
             val collectionJob = launch {
                 sut.uiDataFlow.collect() // subscriber to activate the flow
             }
 
-            val sentState = State.Populated(ColorPrototype.Hex("1F"))
-            verify(exactly = 1) { mediator.send(sentState) }
+            verify(exactly = 0) { mediator.send(any()) }
             collectionJob.cancel()
         }
 
     @Test
-    fun `empty state is sent to mediator on initial UiData with empty text in input`() =
+    fun `updated UiData is sent to mediator`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            every { initialTextProvider.hex } returns Text("")
-
-            createSut()
-            val collectionJob = launch {
-                sut.uiDataFlow.collect() // subscriber to activate the flow
-            }
-
-            verify(exactly = 1) { mediator.send(State.Empty) }
-            collectionJob.cancel()
-        }
-
-    @Test
-    fun `populated state is sent to mediator on new UiData with non-empty text in input`() =
-        runTest(mainDispatcherRule.testDispatcher) {
-            every { initialTextProvider.hex } returns Text("")
             createSut()
             val collectionJob = launch {
                 sut.uiDataFlow.collect() // subscriber to activate the flow
@@ -103,60 +84,41 @@ class ColorInputHexViewModelTest {
 
             uiData.textField.onTextChange(Text("1F"))
 
-            val sentState = State.Populated(ColorPrototype.Hex("1F"))
-            verify(exactly = 1) { mediator.send(sentState) }
+            val sentColorInput = ColorInput.Hex("1F")
+            verify(exactly = 1) { mediator.send(sentColorInput) }
             collectionJob.cancel()
         }
 
     @Test
-    fun `empty state is sent to mediator on new UiData with empty text in input`() =
+    fun `emission from mediator updates UiData`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            every { initialTextProvider.hex } returns Text("1F")
-
+            val hexColorInputFlow = MutableSharedFlow<ColorInput.Hex>()
+            every { mediator.hexColorInputFlow } returns hexColorInputFlow
             createSut()
             val collectionJob = launch {
                 sut.uiDataFlow.collect() // subscriber to activate the flow
             }
 
-            uiData.textField.onTextChange(Text(""))
+            hexColorInputFlow.emit(ColorInput.Hex("1F"))
 
-            verify(exactly = 1) { mediator.send(State.Empty) }
+            uiData.textField.text.string shouldBe "1F"
             collectionJob.cancel()
         }
 
     @Test
-    fun `empty state from mediator clears input text`() =
+    fun `emission from mediator is not emitted to mediator back and loop is not created`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            val initialState = State.Populated(ColorPrototype.Hex("not empty"))
-            val hexStateFlow = MutableStateFlow<State<ColorPrototype.Hex>>(initialState)
-            every { mediator.hexColorInputFlow } returns hexStateFlow
+            val hexColorInputFlow = MutableSharedFlow<ColorInput.Hex>()
+            every { mediator.hexColorInputFlow } returns hexColorInputFlow
             createSut()
             val collectionJob = launch {
                 sut.uiDataFlow.collect() // subscriber to activate the flow
             }
 
-            // initial text is not empty
-            hexStateFlow.value = State.Empty
+            val sentColorInput = ColorInput.Hex("1F")
+            hexColorInputFlow.emit(sentColorInput)
 
-            uiData.textField.text.string shouldBe ""
-            collectionJob.cancel()
-        }
-
-    @Test
-    fun `populated state from mediator updates input text`() =
-        runTest(mainDispatcherRule.testDispatcher) {
-            val initialState = State.Empty
-            val hexStateFlow = MutableStateFlow<State<ColorPrototype.Hex>>(initialState)
-            every { mediator.hexColorInputFlow } returns hexStateFlow
-            createSut()
-            val collectionJob = launch {
-                sut.uiDataFlow.collect() // subscriber to activate the flow
-            }
-
-            // initial text is empty
-            hexStateFlow.value = State.Populated(ColorPrototype.Hex("anything"))
-
-            uiData.textField.text.string shouldBe "anything"
+            verify(exactly = 0) { mediator.send(sentColorInput) }
             collectionJob.cancel()
         }
 
