@@ -91,6 +91,13 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         input
             .filter { it.isDigit() }
             .take(MAX_SYMBOLS_IN_RGB_COMPONENT)
+            .let { string ->
+                if (string.isEmpty()) return@let ""
+                var int = string.toIntOrNull() ?: MIN_RGB_COMPONENT_VALUE // removes leading zeros
+                while (int > MAX_RGB_COMPONENT_VALUE) // reduces int from right until it's in range
+                    int /= 10
+                int.toString()
+            }
             .let { Text(it) }
 
     private fun makeInitialUiData() =
@@ -114,5 +121,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
 
     private companion object {
         const val MAX_SYMBOLS_IN_RGB_COMPONENT = 3
+        const val MIN_RGB_COMPONENT_VALUE = 0
+        const val MAX_RGB_COMPONENT_VALUE = 255
     }
 }
