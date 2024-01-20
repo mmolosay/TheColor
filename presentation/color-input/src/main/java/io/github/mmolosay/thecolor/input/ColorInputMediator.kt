@@ -10,7 +10,6 @@ import io.github.mmolosay.thecolor.presentation.mapper.toDomain
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -25,16 +24,16 @@ import javax.inject.Singleton
  */
 @Singleton
 class ColorInputMediator @Inject constructor(
+    initialColorProvider: InitialColorProvider,
     private val colorPrototypeConverter: ColorPrototypeConverter,
     private val colorConverter: ColorConverter,
 ) {
 
-    private val stateFlow = MutableStateFlow<ColorState?>(null)
+    private val stateFlow = MutableStateFlow(initialColorProvider.color.toState())
     private var lastUsedInputType: InputType? = null
 
     val hexColorInputFlow: Flow<ColorInput.Hex> =
         stateFlow
-            .filterNotNull()
             .filter { lastUsedInputType != InputType.Hex } // prevent interrupting user
             .map {
                 when (it) {
@@ -45,7 +44,6 @@ class ColorInputMediator @Inject constructor(
 
     val rgbColorInputFlow: Flow<ColorInput.Rgb> =
         stateFlow
-            .filterNotNull()
             .filter { lastUsedInputType != InputType.Rgb } // prevent interrupting user
             .map {
                 when (it) {
@@ -64,14 +62,20 @@ class ColorInputMediator @Inject constructor(
                 ?: error("Color is invalid")
             with(colorConverter) { color.toAbstract() }
         }
-        val color = result.getOrNull()
-        val state = if (color != null) {
-            ColorState.Valid(color)
+        stateFlow.value = result.getOrNull().toState()
+    }
+
+    // could be using Repository if initial color comes from persistence
+    class InitialColorProvider @Inject constructor() {
+        val color: Color.Abstract? = null
+    }
+
+    private fun Color.Abstract?.toState(): ColorState =
+        if (this != null) {
+            ColorState.Valid(color = this)
         } else {
             ColorState.Invalid
         }
-        stateFlow.value = state
-    }
 
     private fun ColorInput.type() =
         when (this) {

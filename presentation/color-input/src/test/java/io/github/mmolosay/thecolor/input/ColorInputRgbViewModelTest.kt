@@ -38,12 +38,6 @@ class ColorInputRgbViewModelTest {
     }
     val viewData = ColorInputRgbViewData(rInputField, gInputField, bInputField)
 
-    val initialTextProvider: InitialTextProvider = mockk(relaxed = true) {
-        every { rgbR } returns Text("mocked")
-        every { rgbG } returns Text("mocked")
-        every { rgbB } returns Text("mocked")
-    }
-
     val mediator: ColorInputMediator = mockk {
         every { rgbColorInputFlow } returns emptyFlow()
         every { send(any()) } just runs
@@ -150,9 +144,6 @@ class ColorInputRgbViewModelTest {
     @Test
     fun `updated UiData is sent to mediator`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            every { initialTextProvider.rgbR } returns Text("")
-            every { initialTextProvider.rgbG } returns Text("")
-            every { initialTextProvider.rgbB } returns Text("")
             createSut()
             val collectionJob = launch {
                 sut.uiDataFlow.collect() // subscriber to activate the flow
@@ -204,7 +195,6 @@ class ColorInputRgbViewModelTest {
     fun createSut() =
         ColorInputRgbViewModel(
             viewData = viewData,
-            initialTextProvider = initialTextProvider,
             mediator = mediator,
             mediatorUpdatesCollectionDispatcher = mainDispatcherRule.testDispatcher,
         ).also {

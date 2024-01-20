@@ -7,7 +7,6 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.input.ColorInputMediator
-import io.github.mmolosay.thecolor.input.InitialTextProvider
 import io.github.mmolosay.thecolor.input.Update
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData.Text
@@ -15,6 +14,7 @@ import io.github.mmolosay.thecolor.input.field.TextFieldViewModel
 import io.github.mmolosay.thecolor.input.field.TextFieldViewModel.Companion.updateWith
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -25,31 +25,27 @@ import javax.inject.Named
 @HiltViewModel(assistedFactory = ColorInputRgbViewModel.Factory::class)
 class ColorInputRgbViewModel @AssistedInject constructor(
     @Assisted viewData: ColorInputRgbViewData,
-    initialTextProvider: InitialTextProvider,
     private val mediator: ColorInputMediator,
     @Named("mediatorUpdatesCollectionDispatcher") private val mediatorUpdatesCollectionDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val rTextInputVm =
         TextFieldViewModel(
-            initialText = initialTextProvider.rgbR,
             viewData = viewData.rInputField,
             filterUserInput = ::filterUserInput,
         )
     private val gTextInputVm =
         TextFieldViewModel(
-            initialText = initialTextProvider.rgbG,
             viewData = viewData.gInputField,
             filterUserInput = ::filterUserInput,
         )
     private val bTextInputVm =
         TextFieldViewModel(
-            initialText = initialTextProvider.rgbB,
             viewData = viewData.bInputField,
             filterUserInput = ::filterUserInput,
         )
 
-    val uiDataFlow = combine(
+    val uiDataFlow: StateFlow<ColorInputRgbUiData> = combine(
         rTextInputVm.uiDataUpdatesFlow,
         gTextInputVm.uiDataUpdatesFlow,
         bTextInputVm.uiDataUpdatesFlow,

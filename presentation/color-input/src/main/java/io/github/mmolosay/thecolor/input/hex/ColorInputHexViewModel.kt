@@ -7,7 +7,6 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.input.ColorInputMediator
-import io.github.mmolosay.thecolor.input.InitialTextProvider
 import io.github.mmolosay.thecolor.input.Update
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData.Text
@@ -17,6 +16,8 @@ import io.github.mmolosay.thecolor.input.field.TextFieldViewModel.Companion.upda
 import io.github.mmolosay.thecolor.input.map
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -26,20 +27,19 @@ import javax.inject.Named
 @HiltViewModel(assistedFactory = ColorInputHexViewModel.Factory::class)
 class ColorInputHexViewModel @AssistedInject constructor(
     @Assisted viewData: ViewData,
-    initialTextProvider: InitialTextProvider,
     private val mediator: ColorInputMediator,
     @Named("mediatorUpdatesCollectionDispatcher") private val mediatorUpdatesCollectionDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val textFieldVm =
         TextFieldViewModel(
-            initialText = initialTextProvider.hex,
             viewData = viewData,
             filterUserInput = ::filterUserInput,
         )
 
-    val uiDataFlow =
+    val uiDataFlow: StateFlow<ColorInputHexUiData> =
         textFieldVm.uiDataUpdatesFlow
+            .filterNotNull()
             .map { it.map(::makeUiData) }
             .onEach(::onEachUiDataUpdate)
             .map { it.data }

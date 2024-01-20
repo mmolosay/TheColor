@@ -30,10 +30,6 @@ class ColorInputHexViewModelTest {
         every { trailingIcon } returns TrailingIcon.None
     }
 
-    val initialTextProvider: InitialTextProvider = mockk(relaxed = true) {
-        every { hex } returns Text("mocked")
-    }
-
     val mediator: ColorInputMediator = mockk {
         every { hexColorInputFlow } returns emptyFlow()
         every { send(any()) } just runs
@@ -125,7 +121,6 @@ class ColorInputHexViewModelTest {
     fun createSut() =
         ColorInputHexViewModel(
             viewData = viewData,
-            initialTextProvider = initialTextProvider,
             mediator = mediator,
             mediatorUpdatesCollectionDispatcher = mainDispatcherRule.testDispatcher,
         ).also {
