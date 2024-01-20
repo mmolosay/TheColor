@@ -9,6 +9,7 @@ import io.github.mmolosay.thecolor.presentation.mapper.toColorInput
 import io.github.mmolosay.thecolor.presentation.mapper.toDomain
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.transform
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -27,58 +28,54 @@ class ColorInputMediator @Inject constructor(
     private val colorConverter: ColorConverter,
 ) {
 
-    private val abstractColorFlow = MutableStateFlow<Color.Abstract?>(null)
+    private val stateFlow = MutableStateFlow<ColorState?>(null)
     private var lastUsedInputType: InputType =
         InputType.Hex // TODO: I don't like that it is hardcoded
 
     val hexColorInputFlow: Flow<ColorInput.Hex> =
-        abstractColorFlow.transform { abstract ->
-            if (lastUsedInputType == InputType.Hex) return@transform // prevent user input interrupting
-            if (abstract == null) {
-                val empty = ColorInput.Hex(string = "")
-                emit(empty)
-                return@transform
+        stateFlow
+            .filterNotNull()
+            .transform { state ->
+                if (lastUsedInputType == InputType.Hex) return@transform // prevent user input interrupting
+                val input = when (state) {
+                    is ColorState.Invalid -> ColorInput.Hex(string = "")
+                    is ColorState.Valid -> with(colorConverter) { state.color.toHex() }.toColorInput()
+                }
+                emit(input)
             }
-            val input = with(colorConverter) { abstract.toHex() }.toColorInput()
-            emit(input)
-        }
 
     val rgbColorInputFlow: Flow<ColorInput.Rgb> =
-        abstractColorFlow.transform { abstract ->
-            if (lastUsedInputType == InputType.Rgb) return@transform // prevent user input interrupting
-            if (abstract == null) {
-                val empty = ColorInput.Rgb(r = "", g = "", b = "")
-                emit(empty)
-                return@transform
+        stateFlow
+            .filterNotNull()
+            .transform { state ->
+                if (lastUsedInputType == InputType.Rgb) return@transform // prevent user input interrupting
+                val input = when (state) {
+                    is ColorState.Invalid -> ColorInput.Rgb(r = "", g = "", b = "")
+                    is ColorState.Valid -> with(colorConverter) { state.color.toRgb() }.toColorInput()
+                }
+                emit(input)
             }
-            val input = with(colorConverter) { abstract.toRgb() }.toColorInput()
-            emit(input)
-        }
 
     fun send(input: ColorInput) {
-        fun clearStateFlowValue() {
-            abstractColorFlow.value = null
-        }
-
-        fun updateLastUsedInputType() {
+        fun abort() {
+            stateFlow.value = ColorState.Invalid
             lastUsedInputType = input.type()
         }
 
         if (!input.isCompleteFromUserPerspective()) {
-            clearStateFlowValue()
-            updateLastUsedInputType()
+            abort()
             return // If color becomes incomplete, clear other color input Views
         }
         val prototype = input.toDomain()
         val color = with(colorPrototypeConverter) { prototype.toColorOrNull() }
         if (color == null) {
-            clearStateFlowValue()
-            updateLastUsedInputType()
+            abort()
             return // If color is not valid, clear other color input Views
         }
         val abstract = with(colorConverter) { color.toAbstract() }
-        updateLastUsedInputType()
-        abstractColorFlow.value = abstract
+
+        lastUsedInputType = input.type()
+        stateFlow.value = ColorState.Valid(abstract)
     }
 
     private fun ColorInput.type() =
@@ -86,6 +83,12 @@ class ColorInputMediator @Inject constructor(
             is ColorInput.Hex -> InputType.Hex
             is ColorInput.Rgb -> InputType.Rgb
         }
+
+    /** State of the color the user is currently working with in color input View */
+    private sealed interface ColorState {
+        data object Invalid : ColorState // unfinished color
+        data class Valid(val color: Color.Abstract) : ColorState
+    }
 
     /** Used to differentiate between color input Views. */
     private enum class InputType {
