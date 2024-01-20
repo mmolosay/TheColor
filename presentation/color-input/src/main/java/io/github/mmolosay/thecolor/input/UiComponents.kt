@@ -33,7 +33,7 @@ import io.github.mmolosay.thecolor.input.field.TextFieldUiData.TrailingButton
 /**
  * Reusable UI components for color input Views.
  */
-object Components {
+internal object UiComponents {
 
     @Composable
     fun TextField(
