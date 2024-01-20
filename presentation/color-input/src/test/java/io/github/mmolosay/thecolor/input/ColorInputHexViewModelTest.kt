@@ -165,7 +165,7 @@ class ColorInputHexViewModelTest {
             viewData = viewData,
             initialTextProvider = initialTextProvider,
             mediator = mediator,
-            defaultDispatcher = mainDispatcherRule.testDispatcher,
+            mediatorUpdatesCollectionDispatcher = mainDispatcherRule.testDispatcher,
         ).also {
             sut = it
         }

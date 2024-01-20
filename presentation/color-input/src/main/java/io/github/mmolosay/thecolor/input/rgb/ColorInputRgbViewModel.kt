@@ -20,13 +20,14 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Named
 
 @HiltViewModel(assistedFactory = ColorInputRgbViewModel.Factory::class)
 class ColorInputRgbViewModel @AssistedInject constructor(
     @Assisted viewData: ColorInputRgbViewData,
     initialTextProvider: InitialTextProvider,
     private val mediator: ColorInputMediator,
-    private val defaultDispatcher: CoroutineDispatcher,
+    @Named("mediatorUpdatesCollectionDispatcher") private val mediatorUpdatesCollectionDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val rTextInputVm =
@@ -71,7 +72,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     }
 
     private fun collectMediatorUpdates() {
-        viewModelScope.launch(defaultDispatcher) {
+        viewModelScope.launch(mediatorUpdatesCollectionDispatcher) {
             mediator.rgbColorInputFlow.collect { input ->
                 rTextInputVm updateWith Text(input.r)
                 gTextInputVm updateWith Text(input.g)

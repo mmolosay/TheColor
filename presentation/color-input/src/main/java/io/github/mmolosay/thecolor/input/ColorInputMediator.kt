@@ -29,8 +29,7 @@ class ColorInputMediator @Inject constructor(
 ) {
 
     private val stateFlow = MutableStateFlow<ColorState?>(null)
-    private var lastUsedInputType: InputType =
-        InputType.Hex // TODO: I don't like that it is hardcoded
+    private var lastUsedInputType: InputType? = null
 
     val hexColorInputFlow: Flow<ColorInput.Hex> =
         stateFlow

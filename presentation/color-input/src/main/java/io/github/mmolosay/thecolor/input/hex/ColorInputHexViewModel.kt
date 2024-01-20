@@ -21,13 +21,14 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Named
 
 @HiltViewModel(assistedFactory = ColorInputHexViewModel.Factory::class)
 class ColorInputHexViewModel @AssistedInject constructor(
     @Assisted viewData: ViewData,
     initialTextProvider: InitialTextProvider,
     private val mediator: ColorInputMediator,
-    private val defaultDispatcher: CoroutineDispatcher,
+    @Named("mediatorUpdatesCollectionDispatcher") private val mediatorUpdatesCollectionDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val textFieldVm =
@@ -53,7 +54,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
     }
 
     private fun collectMediatorUpdates() {
-        viewModelScope.launch(defaultDispatcher) {
+        viewModelScope.launch(mediatorUpdatesCollectionDispatcher) {
             mediator.hexColorInputFlow.collect { input ->
                 textFieldVm updateWith Text(input.string)
             }
