@@ -6,13 +6,19 @@ import io.github.mmolosay.thecolor.input.field.TextFieldUiData.ViewData.Trailing
 import io.github.mmolosay.thecolor.input.rgb.ColorInputRgbUiData
 import io.github.mmolosay.thecolor.input.rgb.ColorInputRgbViewData
 import io.github.mmolosay.thecolor.input.rgb.ColorInputRgbViewModel
+import io.github.mmolosay.thecolor.presentation.color.ColorInput
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
+import io.mockk.verify
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 
@@ -128,6 +134,72 @@ class ColorInputRgbViewModelTest {
 
         result.string shouldBe "25"
     }
+
+    @Test
+    fun `initial UiData is not sent to mediator`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            createSut()
+            val collectionJob = launch {
+                sut.uiDataFlow.collect() // subscriber to activate the flow
+            }
+
+            verify(exactly = 0) { mediator.send(any()) }
+            collectionJob.cancel()
+        }
+
+    @Test
+    fun `updated UiData is sent to mediator`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            every { initialTextProvider.rgbR } returns Text("")
+            every { initialTextProvider.rgbG } returns Text("")
+            every { initialTextProvider.rgbB } returns Text("")
+            createSut()
+            val collectionJob = launch {
+                sut.uiDataFlow.collect() // subscriber to activate the flow
+            }
+
+            uiData.rTextField.onTextChange(Text("18"))
+
+            val sentColorInput = ColorInput.Rgb(r = "18", g = "", b = "")
+            verify(exactly = 1) { mediator.send(sentColorInput) }
+            collectionJob.cancel()
+        }
+
+    @Test
+    fun `emission from mediator updates UiData`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val rgbColorInputFlow = MutableSharedFlow<ColorInput.Rgb>()
+            every { mediator.rgbColorInputFlow } returns rgbColorInputFlow
+            createSut()
+            val collectionJob = launch {
+                sut.uiDataFlow.collect() // subscriber to activate the flow
+            }
+
+            ColorInput.Rgb(r = "18", g = "1", b = "20")
+                .also { rgbColorInputFlow.emit(it) }
+
+            uiData.rTextField.text.string shouldBe "18"
+            uiData.gTextField.text.string shouldBe "1"
+            uiData.bTextField.text.string shouldBe "20"
+            collectionJob.cancel()
+        }
+
+    @Test
+    fun `emission from mediator is not emitted to mediator back and loop is not created`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val rgbColorInputFlow = MutableSharedFlow<ColorInput.Rgb>()
+            every { mediator.rgbColorInputFlow } returns rgbColorInputFlow
+            createSut()
+            val collectionJob = launch {
+                sut.uiDataFlow.collect() // subscriber to activate the flow
+            }
+
+            val sentColorInput = ColorInput.Rgb(r = "18", g = "1", b = "20")
+            rgbColorInputFlow.emit(sentColorInput)
+
+            verify(exactly = 0) { mediator.send(sentColorInput) }
+            collectionJob.cancel()
+        }
 
     fun createSut() =
         ColorInputRgbViewModel(
