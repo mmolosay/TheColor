@@ -27,12 +27,12 @@ class ColorInputMediator @Inject constructor(
     private val colorConverter: ColorConverter,
 ) {
 
-    private val stateFlow = MutableStateFlow<Color.Abstract?>(null)
+    private val abstractColorFlow = MutableStateFlow<Color.Abstract?>(null)
     private var lastUsedInputType: InputType =
         InputType.Hex // TODO: I don't like that it is hardcoded
 
-    val hexStateFlow: Flow<ColorInput.Hex> =
-        stateFlow.transform { abstract ->
+    val hexColorInputFlow: Flow<ColorInput.Hex> =
+        abstractColorFlow.transform { abstract ->
             if (lastUsedInputType == InputType.Hex) return@transform // prevent user input interrupting
             if (abstract == null) {
                 val empty = ColorInput.Hex(string = "")
@@ -43,8 +43,8 @@ class ColorInputMediator @Inject constructor(
             emit(input)
         }
 
-    val rgbStateFlow: Flow<ColorInput.Rgb> =
-        stateFlow.transform { abstract ->
+    val rgbColorInputFlow: Flow<ColorInput.Rgb> =
+        abstractColorFlow.transform { abstract ->
             if (lastUsedInputType == InputType.Rgb) return@transform // prevent user input interrupting
             if (abstract == null) {
                 val empty = ColorInput.Rgb(r = "", g = "", b = "")
@@ -57,7 +57,7 @@ class ColorInputMediator @Inject constructor(
 
     fun send(input: ColorInput) {
         fun clearStateFlowValue() {
-            stateFlow.value = null
+            abstractColorFlow.value = null
         }
 
         fun updateLastUsedInputType() {
@@ -78,7 +78,7 @@ class ColorInputMediator @Inject constructor(
         }
         val abstract = with(colorConverter) { color.toAbstract() }
         updateLastUsedInputType()
-        stateFlow.value = abstract
+        abstractColorFlow.value = abstract
     }
 
     private fun ColorInput.type() =

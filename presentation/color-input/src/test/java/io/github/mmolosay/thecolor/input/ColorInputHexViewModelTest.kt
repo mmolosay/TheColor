@@ -36,7 +36,7 @@ class ColorInputHexViewModelTest {
     }
 
     val mediator: ColorInputMediator = mockk {
-        every { hexStateFlow } returns emptyFlow()
+        every { hexColorInputFlow } returns emptyFlow()
         every { send<ColorPrototype.Hex>(any()) } just runs
     }
 
@@ -129,7 +129,7 @@ class ColorInputHexViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             val initialState = State.Populated(ColorPrototype.Hex("not empty"))
             val hexStateFlow = MutableStateFlow<State<ColorPrototype.Hex>>(initialState)
-            every { mediator.hexStateFlow } returns hexStateFlow
+            every { mediator.hexColorInputFlow } returns hexStateFlow
             createSut()
             val collectionJob = launch {
                 sut.uiDataFlow.collect() // subscriber to activate the flow
@@ -147,7 +147,7 @@ class ColorInputHexViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             val initialState = State.Empty
             val hexStateFlow = MutableStateFlow<State<ColorPrototype.Hex>>(initialState)
-            every { mediator.hexStateFlow } returns hexStateFlow
+            every { mediator.hexColorInputFlow } returns hexStateFlow
             createSut()
             val collectionJob = launch {
                 sut.uiDataFlow.collect() // subscriber to activate the flow

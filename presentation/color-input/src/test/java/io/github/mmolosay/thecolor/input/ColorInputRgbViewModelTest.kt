@@ -46,7 +46,7 @@ class ColorInputRgbViewModelTest {
     }
 
     val mediator: ColorInputMediator = mockk {
-        every { rgbStateFlow } returns emptyFlow()
+        every { rgbColorInputFlow } returns emptyFlow()
         every { send<ColorPrototype.Hex>(any()) } just runs
     }
 
@@ -144,7 +144,7 @@ class ColorInputRgbViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             val initialState = State.Populated(ColorPrototype.Rgb(r = 18, g = null, b = null))
             val rgbStateFlow = MutableStateFlow<State<ColorPrototype.Rgb>>(initialState)
-            every { mediator.rgbStateFlow } returns rgbStateFlow
+            every { mediator.rgbColorInputFlow } returns rgbStateFlow
             createSut()
             val collectionJob = launch {
                 sut.uiDataFlow.collect() // subscriber to activate the flow
@@ -162,7 +162,7 @@ class ColorInputRgbViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             val initialState = State.Empty
             val rgbStateFlow = MutableStateFlow<State<ColorPrototype.Rgb>>(initialState)
-            every { mediator.rgbStateFlow } returns rgbStateFlow
+            every { mediator.rgbColorInputFlow } returns rgbStateFlow
             createSut()
             val collectionJob = launch {
                 sut.uiDataFlow.collect() // subscriber to activate the flow

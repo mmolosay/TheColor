@@ -54,7 +54,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
 
     private fun collectMediatorUpdates() {
         viewModelScope.launch(defaultDispatcher) {
-            mediator.hexStateFlow.collect { input ->
+            mediator.hexColorInputFlow.collect { input ->
                 textFieldVm updateWith Text(input.string)
             }
         }

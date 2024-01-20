@@ -72,7 +72,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
 
     private fun collectMediatorUpdates() {
         viewModelScope.launch(defaultDispatcher) {
-            mediator.rgbStateFlow.collect { input ->
+            mediator.rgbColorInputFlow.collect { input ->
                 rTextInputVm updateWith Text(input.r)
                 gTextInputVm updateWith Text(input.g)
                 bTextInputVm updateWith Text(input.b)
