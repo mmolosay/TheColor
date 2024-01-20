@@ -19,6 +19,11 @@ data class TextFieldUiData(
     /**
      * Text that was filtered and is ready to be displayed in UI.
      * Can be obtained from [filterUserInput].
+     *
+     * The main point of having this `value class` is to avoid accidents with data types.
+     * Function [filterUserInput] takes String from UI and returns filtered [Text].
+     * At the same time, [onTextChange] takes [Text], not String.
+     * This depicts that [onTextChange] should receive preemptively filtered text from [filterUserInput].
      */
     @JvmInline
     value class Text(val string: String)
