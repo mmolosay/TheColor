@@ -66,6 +66,69 @@ class ColorInputRgbViewModelTest {
         result.string shouldBe "123"
     }
 
+    @Test
+    fun `filtering of empty string returns empty string`() {
+        createSut()
+
+        val result = uiData.rTextField.filterUserInput("")
+
+        result.string shouldBe ""
+    }
+
+    @Test
+    fun `filtering of 0 returns 0`() {
+        createSut()
+
+        val result = uiData.rTextField.filterUserInput("0")
+
+        result.string shouldBe "0"
+    }
+
+    @Test
+    fun `filtering of 003 returns 3`() {
+        createSut()
+
+        val result = uiData.rTextField.filterUserInput("003")
+
+        result.string shouldBe "3"
+    }
+
+    @Test
+    fun `filtering of 000 returns 0`() {
+        createSut()
+
+        val result = uiData.rTextField.filterUserInput("000")
+
+        result.string shouldBe "0"
+    }
+
+    @Test
+    fun `filtering of 30 returns 30`() {
+        createSut()
+
+        val result = uiData.rTextField.filterUserInput("30")
+
+        result.string shouldBe "30"
+    }
+
+    @Test
+    fun `filtering of 255 returns 255`() {
+        createSut()
+
+        val result = uiData.rTextField.filterUserInput("255")
+
+        result.string shouldBe "255"
+    }
+
+    @Test
+    fun `filtering of 256 returns 25`() {
+        createSut()
+
+        val result = uiData.rTextField.filterUserInput("256")
+
+        result.string shouldBe "25"
+    }
+
     fun createSut() =
         ColorInputRgbViewModel(
             viewData = viewData,
