@@ -52,7 +52,7 @@ class TextFieldViewModel(
     ): TrailingButton =
         if (trailingIcon is ViewData.TrailingIcon.Exists && showTrailingButton(text)) {
             TrailingButton.Visible(
-                onClick = { updateText(Text("") causedByUser true) },
+                onClick = { onTextChangeFromView(Text("")) },
                 iconContentDesc = trailingIcon.contentDesc,
             )
         } else {
