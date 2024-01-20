@@ -11,7 +11,6 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
 class TextFieldViewModelTest {
@@ -29,7 +28,7 @@ class TextFieldViewModelTest {
         get() = uiDataUpdate.data
 
     @Test
-    fun `initial text is set to initial UiData`() = runTest {
+    fun `initial text is set to initial UiData`() {
         val initialText = Text("anything")
 
         createSut(initialText)
@@ -38,14 +37,14 @@ class TextFieldViewModelTest {
     }
 
     @Test
-    fun `initial UiData update is not caused by user`() = runTest {
+    fun `initial UiData update is not caused by user`() {
         createSut()
 
         uiDataUpdate.causedByUser shouldBe false
     }
 
     @Test
-    fun `text change causes update of UiData by user`() = runTest {
+    fun `text change causes update of UiData by user`() {
         createSut()
         val initialUiData = uiData
 
@@ -57,7 +56,7 @@ class TextFieldViewModelTest {
     }
 
     @Test
-    fun `trailing button is visible when text is non-empty`() = runTest {
+    fun `trailing button is visible when text is non-empty`() {
         every { viewData.trailingIcon } returns mockk<TrailingIcon.Exists>(relaxed = true)
         createSut()
 
@@ -67,7 +66,7 @@ class TextFieldViewModelTest {
     }
 
     @Test
-    fun `trailing button is hidden when text is empty`() = runTest {
+    fun `trailing button is hidden when text is empty`() {
         every { viewData.trailingIcon } returns mockk<TrailingIcon.Exists>(relaxed = true)
         createSut()
 
@@ -77,7 +76,7 @@ class TextFieldViewModelTest {
     }
 
     @Test
-    fun `trailing button is hidden when there should be no such`() = runTest {
+    fun `trailing button is hidden when there should be no such`() {
         every { viewData.trailingIcon } returns TrailingIcon.None
         createSut()
 
@@ -87,7 +86,7 @@ class TextFieldViewModelTest {
     }
 
     @Test
-    fun `text is cleared on trailing button click`() = runTest {
+    fun `text is cleared on trailing button click`() {
         every { viewData.trailingIcon } returns mockk<TrailingIcon.Exists>(relaxed = true)
         createSut(initialText = Text("non empty so trailing button is visible"))
 
@@ -97,7 +96,7 @@ class TextFieldViewModelTest {
     }
 
     @Test
-    fun `trailing button click causes update of UiData by user`() = runTest {
+    fun `trailing button click causes update of UiData by user`() {
         every { viewData.trailingIcon } returns mockk<TrailingIcon.Exists>(relaxed = true)
         createSut(initialText = Text("non empty so trailing button is visible"))
 
@@ -114,7 +113,9 @@ class TextFieldViewModelTest {
             initialText = initialText,
             viewData = viewData,
             filterUserInput = filterUserInput,
-        ).also { this.sut = it }
+        ).also {
+            sut = it
+        }
 
     val noopFilterUserInput: (String) -> Text = { Text(it) }
 }
