@@ -17,13 +17,6 @@ sealed interface ColorInput {
     ) : ColorInput
 }
 
-// TODO: remove if unused
-fun ColorInput.isEmpty(): Boolean =
-    when (this) {
-        is ColorInput.Hex -> string.isEmpty()
-        is ColorInput.Rgb -> (r + g + b).isEmpty()
-    }
-
 /**
  * Imagine user enters "1" into hex color input View.
  * From data validation perspective, it is a valid, finished color: 0x1 == 0x000001 or RGB(0, 0, 1).
