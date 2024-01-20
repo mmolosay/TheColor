@@ -62,7 +62,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
 
     private fun onEachUiDataUpdate(update: Update<ColorInputHexUiData>) {
         if (!update.causedByUser) return // don't synchronize this update with other Views
-        val (uiData) = update
+        val uiData = update.data
         val input = uiData.assembleColorInput()
         mediator.send(input)
     }

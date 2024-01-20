@@ -28,7 +28,7 @@ class TextFieldViewModel(
     private fun updateText(update: Update<Text>) {
         _uiDataUpdatesFlow.update {
             val text = update.data
-            val (oldUiData) = it
+            val oldUiData = it.data
             val newUiData = oldUiData.smartCopy(text)
             newUiData causedByUser update.causedByUser
         }
