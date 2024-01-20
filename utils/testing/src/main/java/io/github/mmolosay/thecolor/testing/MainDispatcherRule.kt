@@ -9,6 +9,10 @@ import kotlinx.coroutines.test.setMain
 import org.junit.rules.TestWatcher
 import org.junit.runner.Description
 
+/**
+ * [Dispatchers.Main] is hardcoded in some components (like `viewModelScope`).
+ * Use this rule to replace it with provided [TestDispatcher].
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 class MainDispatcherRule(
     val testDispatcher: TestDispatcher = UnconfinedTestDispatcher(),
