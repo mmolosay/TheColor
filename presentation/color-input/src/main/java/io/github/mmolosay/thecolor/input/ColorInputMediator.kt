@@ -57,25 +57,22 @@ class ColorInputMediator @Inject constructor(
             }
 
     fun send(input: ColorInput) {
-        fun abort() {
-            stateFlow.value = ColorState.Invalid
-            lastUsedInputType = input.type()
-        }
-
-        if (!input.isCompleteFromUserPerspective()) {
-            abort()
-            return // If color becomes incomplete, clear other color input Views
-        }
-        val prototype = input.toDomain()
-        val color = with(colorPrototypeConverter) { prototype.toColorOrNull() }
-        if (color == null) {
-            abort()
-            return // If color is not valid, clear other color input Views
-        }
-        val abstract = with(colorConverter) { color.toAbstract() }
-
         lastUsedInputType = input.type()
-        stateFlow.value = ColorState.Valid(abstract)
+        val result = runCatching {
+            if (!input.isCompleteFromUserPerspective())
+                error("Color in not complete from user perspective yet, thus invalid")
+            val prototype = input.toDomain()
+            val color = with(colorPrototypeConverter) { prototype.toColorOrNull() }
+                ?: error("Color is invalid")
+            with(colorConverter) { color.toAbstract() }
+        }
+        val color = result.getOrNull()
+        val state = if (color != null) {
+            ColorState.Valid(color)
+        } else {
+            ColorState.Invalid
+        }
+        stateFlow.value = state
     }
 
     private fun ColorInput.type() =
