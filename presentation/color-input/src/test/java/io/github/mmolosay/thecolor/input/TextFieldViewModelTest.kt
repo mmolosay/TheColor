@@ -8,7 +8,6 @@ import io.github.mmolosay.thecolor.input.field.TextFieldViewModel
 import io.github.mmolosay.thecolor.input.field.TextFieldViewModel.Companion.updateWith
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
 import io.mockk.every
 import io.mockk.mockk
@@ -45,7 +44,7 @@ class TextFieldViewModelTest {
     }
 
     @Test
-    fun `text change by View causes update of UiData by user`() {
+    fun `UiData update is caused by user when text is changed from UI`() {
         createSut()
         val initialUiData = uiData
 
@@ -57,7 +56,7 @@ class TextFieldViewModelTest {
     }
 
     @Test
-    fun `text change by companion causes update of UiData by not user`() {
+    fun `UiData update is not caused by user when text is changed by companion`() {
         createSut()
         val initialUiData = uiData
 
@@ -109,7 +108,7 @@ class TextFieldViewModelTest {
     }
 
     @Test
-    fun `trailing button click causes update of UiData by user`() {
+    fun `UiData update is caused by user when trailing button is clicked`() {
         every { viewData.trailingIcon } returns mockk<TrailingIcon.Exists>(relaxed = true)
         createSut(initialText = Text("non empty so trailing button is visible"))
 

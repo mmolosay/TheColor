@@ -71,7 +71,7 @@ class ColorInputHexViewModelTest {
         }
 
     @Test
-    fun `updated UiData is sent to mediator`() =
+    fun `UiData updated from UI is sent to mediator`() =
         runTest(mainDispatcherRule.testDispatcher) {
             createSut()
             val collectionJob = launch {
@@ -102,7 +102,7 @@ class ColorInputHexViewModelTest {
         }
 
     @Test
-    fun `emission from mediator is not emitted to mediator back and loop is not created`() =
+    fun `emission from mediator is not sent back to mediator and emission loop is not created`() =
         runTest(mainDispatcherRule.testDispatcher) {
             val hexColorInputFlow = MutableSharedFlow<ColorInput.Hex>()
             every { mediator.hexColorInputFlow } returns hexColorInputFlow
