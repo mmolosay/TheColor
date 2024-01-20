@@ -9,8 +9,9 @@ import io.github.mmolosay.thecolor.presentation.mapper.toColorInput
 import io.github.mmolosay.thecolor.presentation.mapper.toDomain
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.transform
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -34,25 +35,23 @@ class ColorInputMediator @Inject constructor(
     val hexColorInputFlow: Flow<ColorInput.Hex> =
         stateFlow
             .filterNotNull()
-            .transform { state ->
-                if (lastUsedInputType == InputType.Hex) return@transform // prevent user input interrupting
-                val input = when (state) {
+            .filter { lastUsedInputType != InputType.Hex } // prevent interrupting user
+            .map {
+                when (it) {
                     is ColorState.Invalid -> ColorInput.Hex(string = "")
-                    is ColorState.Valid -> with(colorConverter) { state.color.toHex() }.toColorInput()
+                    is ColorState.Valid -> with(colorConverter) { it.color.toHex() }.toColorInput()
                 }
-                emit(input)
             }
 
     val rgbColorInputFlow: Flow<ColorInput.Rgb> =
         stateFlow
             .filterNotNull()
-            .transform { state ->
-                if (lastUsedInputType == InputType.Rgb) return@transform // prevent user input interrupting
-                val input = when (state) {
+            .filter { lastUsedInputType != InputType.Rgb } // prevent interrupting user
+            .map {
+                when (it) {
                     is ColorState.Invalid -> ColorInput.Rgb(r = "", g = "", b = "")
-                    is ColorState.Valid -> with(colorConverter) { state.color.toRgb() }.toColorInput()
+                    is ColorState.Valid -> with(colorConverter) { it.color.toRgb() }.toColorInput()
                 }
-                emit(input)
             }
 
     fun send(input: ColorInput) {
