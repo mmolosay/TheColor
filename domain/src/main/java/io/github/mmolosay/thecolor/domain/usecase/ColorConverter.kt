@@ -15,7 +15,7 @@ class ColorConverter @Inject constructor() {
 
     fun Color.Hex.toAbstract(): Color.Abstract {
         val int = this.value
-        return AbstractColorImpl(int)
+        return Color.Abstract(int)
     }
 
     fun Color.Rgb.toAbstract(): Color.Abstract {
@@ -23,22 +23,19 @@ class ColorConverter @Inject constructor() {
         val g = this.g shl 8
         val b = this.b
         val int = r or g or b
-        return AbstractColorImpl(int)
+        return Color.Abstract(int)
     }
 
     fun Color.Abstract.toHex(): Color.Hex {
-        val abstract = this as AbstractColorImpl
+        val abstract = this as Color.Abstract
         return Color.Hex(value = abstract.int)
     }
 
     fun Color.Abstract.toRgb(): Color.Rgb {
-        val abstract = this as AbstractColorImpl
+        val abstract = this as Color.Abstract
         val r = (abstract.int shr 16) and 0xFF
         val g = (abstract.int shr 8) and 0xFF
         val b = abstract.int and 0xFF
         return Color.Rgb(r, g, b)
     }
-
-    @JvmInline
-    private value class AbstractColorImpl(val int: Int) : Color.Abstract
 }

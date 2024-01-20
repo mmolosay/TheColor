@@ -9,7 +9,8 @@ sealed interface Color {
      * Color in no particular color space.
      * Serves as an adapter between different color spaces.
      */
-    interface Abstract : Color
+    @JvmInline
+    value class Abstract internal constructor(internal val int: Int) : Color
 
     data class Hex(
         val value: Int,
