@@ -5,6 +5,7 @@ import io.github.mmolosay.thecolor.input.field.TextFieldUiData.Text
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData.TrailingButton
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData.ViewData.TrailingIcon
 import io.github.mmolosay.thecolor.input.field.TextFieldViewModel
+import io.github.mmolosay.thecolor.input.field.TextFieldViewModel.Companion.updateWith
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -44,15 +45,27 @@ class TextFieldViewModelTest {
     }
 
     @Test
-    fun `text change causes update of UiData by user`() {
+    fun `text change by View causes update of UiData by user`() {
         createSut()
         val initialUiData = uiData
 
         uiData.onTextChange(Text("new"))
         val newUiData = uiData
 
-        newUiData shouldNotBe initialUiData
+        newUiData shouldBe initialUiData.copy(text = Text("new"))
         uiDataUpdate.causedByUser shouldBe true
+    }
+
+    @Test
+    fun `text change by companion causes update of UiData by not user`() {
+        createSut()
+        val initialUiData = uiData
+
+        sut updateWith Text("new")
+        val newUiData = uiData
+
+        newUiData shouldBe initialUiData.copy(text = Text("new"))
+        uiDataUpdate.causedByUser shouldBe false
     }
 
     @Test
