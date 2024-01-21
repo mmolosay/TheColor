@@ -2,7 +2,7 @@ package io.github.mmolosay.thecolor.input
 
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
-import io.github.mmolosay.thecolor.domain.usecase.ColorPrototypeConverter
+import io.github.mmolosay.thecolor.domain.usecase.ColorFactory
 import io.github.mmolosay.thecolor.domain.usecase.GetInitialColorUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,7 +24,7 @@ import javax.inject.Singleton
 class ColorInputMediator @Inject constructor(
     getInitialColor: GetInitialColorUseCase,
     private val colorInputMapper: ColorInputMapper,
-    private val colorPrototypeConverter: ColorPrototypeConverter,
+    private val colorFactory: ColorFactory,
     private val colorConverter: ColorConverter,
 ) {
 
@@ -71,7 +71,7 @@ class ColorInputMediator @Inject constructor(
             if (!input.isCompleteFromUserPerspective())
                 error("Color in not complete from user perspective yet, thus invalid")
             val prototype = with(colorInputMapper) { input.toPrototype() }
-            val color = with(colorPrototypeConverter) { prototype.toColorOrNull() }
+            val color = colorFactory.from(prototype)
                 ?: error("Color is invalid")
             with(colorConverter) { color.toAbstract() }
         }
