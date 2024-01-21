@@ -3,11 +3,8 @@ package io.github.mmolosay.thecolor.input.rgb
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -20,6 +17,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.mmolosay.thecolor.input.UiComponents.Loading
 import io.github.mmolosay.thecolor.input.UiComponents.TextField
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData.Text
@@ -31,11 +29,7 @@ fun ColorInputRgb(
 ) {
     val uiData = vm.uiDataFlow.collectAsStateWithLifecycle().value
     if (uiData == null) {
-        CircularProgressIndicator(
-            modifier = Modifier
-                .fillMaxSize()
-                .wrapContentSize()
-        )
+        Loading()
     } else {
         ColorInputRgb(
             uiData = uiData,
