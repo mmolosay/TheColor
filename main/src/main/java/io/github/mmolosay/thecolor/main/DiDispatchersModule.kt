@@ -14,5 +14,6 @@ object DiDispatchersModule {
 
     @Provides
     @Named("uiDataUpdateDispatcher")
-    fun provideDefaultDispatcher(): CoroutineDispatcher = Dispatchers.Main.immediate
+    fun provideDefaultDispatcher(): CoroutineDispatcher =
+        Dispatchers.Main.immediate // https://medium.com/androiddevelopers/effective-state-management-for-textfield-in-compose-d6e5b070fbe5
 }
