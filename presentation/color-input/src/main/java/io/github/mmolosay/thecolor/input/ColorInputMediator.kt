@@ -26,6 +26,7 @@ class ColorInputMediator @Inject constructor(
     private val colorInputMapper: ColorInputMapper,
     private val colorFactory: ColorFactory,
     private val colorConverter: ColorConverter,
+    private val colorInputFactory: ColorInputFactory,
 ) {
 
     private val stateFlow =
@@ -44,7 +45,7 @@ class ColorInputMediator @Inject constructor(
             .filter { lastUsedInputType != InputType.Hex } // prevent interrupting user
             .map {
                 when (it) {
-                    is ColorState.Invalid -> ColorInput.Hex(string = "")
+                    is ColorState.Invalid -> colorInputFactory.emptyHex()
                     is ColorState.Valid -> {
                         val domainColor = with(colorConverter) { it.color.toHex() }
                         with(colorInputMapper) { domainColor.toColorInput() }
@@ -57,7 +58,7 @@ class ColorInputMediator @Inject constructor(
             .filter { lastUsedInputType != InputType.Rgb } // prevent interrupting user
             .map {
                 when (it) {
-                    is ColorState.Invalid -> ColorInput.Rgb(r = "", g = "", b = "")
+                    is ColorState.Invalid -> colorInputFactory.emptyRgb()
                     is ColorState.Valid -> {
                         val domainColor = with(colorConverter) { it.color.toRgb() }
                         with(colorInputMapper) { domainColor.toColorInput() }

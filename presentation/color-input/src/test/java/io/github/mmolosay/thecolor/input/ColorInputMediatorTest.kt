@@ -37,6 +37,11 @@ class ColorInputMediatorTest {
         every { any<Color.Abstract>().toRgb() } returns Color.Rgb(0, 0, 0)
     }
 
+    val colorInputFactory: ColorInputFactory = mockk {
+        every { emptyHex() } returns ColorInput.Hex("")
+        every { emptyRgb() } returns ColorInput.Rgb("", "", "")
+    }
+
     lateinit var sut: ColorInputMediator
 
     @Test
@@ -107,6 +112,7 @@ class ColorInputMediatorTest {
             colorInputMapper = colorInputMapper,
             colorFactory = colorFactory,
             colorConverter = colorConverter,
+            colorInputFactory = colorInputFactory,
         ).also {
             sut = it
         }
