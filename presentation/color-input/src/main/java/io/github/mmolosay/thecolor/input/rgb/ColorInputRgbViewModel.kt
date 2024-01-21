@@ -7,15 +7,17 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.input.ColorInputMediator
-import io.github.mmolosay.thecolor.input.model.Update
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData.Text
 import io.github.mmolosay.thecolor.input.field.TextFieldViewModel
 import io.github.mmolosay.thecolor.input.field.TextFieldViewModel.Companion.updateWith
+import io.github.mmolosay.thecolor.input.model.Update
+import io.github.mmolosay.thecolor.input.model.causedByUser
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -45,22 +47,19 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             filterUserInput = ::filterUserInput,
         )
 
-    val uiDataFlow: StateFlow<ColorInputRgbUiData> = combine(
+    val uiDataFlow: StateFlow<ColorInputRgbUiData?> = combine(
         rTextInputVm.uiDataUpdatesFlow,
         gTextInputVm.uiDataUpdatesFlow,
         bTextInputVm.uiDataUpdatesFlow,
-    ) { r, g, b ->
-        Update(
-            data = makeUiData(r.data, g.data, b.data),
-            causedByUser = listOf(r, g, b).any { it.causedByUser },
-        )
-    }
+        ::combineTextInputUpdates,
+    )
+        .filterNotNull()
         .onEach(::onEachUiDataUpdate)
         .map { it.data }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = makeInitialUiData(),
+            initialValue = null,
         )
 
     init {
@@ -75,6 +74,16 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                 bTextInputVm updateWith Text(input.b)
             }
         }
+    }
+
+    private fun combineTextInputUpdates(
+        r: Update<TextFieldUiData>?,
+        g: Update<TextFieldUiData>?,
+        b: Update<TextFieldUiData>?,
+    ): Update<ColorInputRgbUiData>? {
+        if (r == null || g == null || b == null) return null
+        val uiData = makeUiData(r.data, g.data, b.data)
+        return uiData causedByUser listOf(r, g, b).any { it.causedByUser }
     }
 
     private fun onEachUiDataUpdate(update: Update<ColorInputRgbUiData>) {
@@ -98,13 +107,6 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                 int.toString()
             }
             .let { Text(it) }
-
-    private fun makeInitialUiData() =
-        makeUiData(
-            rTextInputVm.uiDataUpdatesFlow.value.data,
-            gTextInputVm.uiDataUpdatesFlow.value.data,
-            bTextInputVm.uiDataUpdatesFlow.value.data,
-        )
 
     private fun makeUiData(
         rTextField: TextFieldUiData,

@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -26,7 +25,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class ColorInputMediator @Inject constructor(
-    getInitialColor: GetInitialColorUseCase,
+    private val getInitialColor: GetInitialColorUseCase,
     private val colorInputMapper: ColorInputMapper,
     private val colorFactory: ColorFactory,
     private val colorConverter: ColorConverter,
@@ -39,11 +38,8 @@ class ColorInputMediator @Inject constructor(
     )
     private var lastUsedInputType: InputType? = null
 
-    init {
-        // TODO: use real coroutine scope
-        runBlocking {
-            stateFlow.emit(getInitialColor().toState())
-        }
+    suspend fun init() {
+        stateFlow.tryEmit(getInitialColor().toState())
     }
 
     val hexColorInputFlow: Flow<ColorInput.Hex> =

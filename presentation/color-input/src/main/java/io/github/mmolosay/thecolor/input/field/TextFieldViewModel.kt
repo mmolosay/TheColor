@@ -1,11 +1,10 @@
 package io.github.mmolosay.thecolor.input.field
 
-import io.github.mmolosay.thecolor.input.model.Update
-import io.github.mmolosay.thecolor.input.model.causedByUser
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData.Text
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData.TrailingButton
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData.ViewData
-import io.github.mmolosay.thecolor.input.field.TextFieldViewModel.Companion.updateWith
+import io.github.mmolosay.thecolor.input.model.Update
+import io.github.mmolosay.thecolor.input.model.causedByUser
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -14,26 +13,24 @@ import kotlinx.coroutines.flow.update
  * Not a ViewModel-ViewModel in terms of Android development.
  * It doesn't derive from [androidx.lifecycle.ViewModel], so should only be used in "real" ViewModels
  * which do derive from Android-aware implementation.
- *
- * @param [initialText] used primarily in tests.
- * The real initial text will be set later using [updateWith] function.
  */
 class TextFieldViewModel(
-    initialText: Text = Text(""),
     private val viewData: ViewData,
     private val filterUserInput: (String) -> Text,
 ) {
 
-    private val _uiDataUpdatesFlow = MutableStateFlow(
-        makeInitialUiData(text = initialText) causedByUser false
-    )
+    private val _uiDataUpdatesFlow = MutableStateFlow<Update<TextFieldUiData>?>(null)
     val uiDataUpdatesFlow = _uiDataUpdatesFlow.asStateFlow()
 
     private fun updateText(update: Update<Text>) {
         _uiDataUpdatesFlow.update {
             val text = update.data
-            val oldUiData = it.data
-            val newUiData = oldUiData.smartCopy(text)
+            val newUiData = if (it == null) {
+                makeInitialUiData(text)
+            } else {
+                val oldUiData = it.data
+                oldUiData.smartCopy(text)
+            }
             newUiData causedByUser update.causedByUser
         }
     }

@@ -7,12 +7,12 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.input.ColorInputMediator
-import io.github.mmolosay.thecolor.input.model.Update
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData.Text
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData.ViewData
 import io.github.mmolosay.thecolor.input.field.TextFieldViewModel
 import io.github.mmolosay.thecolor.input.field.TextFieldViewModel.Companion.updateWith
+import io.github.mmolosay.thecolor.input.model.Update
 import io.github.mmolosay.thecolor.input.model.map
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
@@ -37,7 +37,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
             filterUserInput = ::filterUserInput,
         )
 
-    val uiDataFlow: StateFlow<ColorInputHexUiData> =
+    val uiDataFlow: StateFlow<ColorInputHexUiData?> =
         textFieldVm.uiDataUpdatesFlow
             .filterNotNull()
             .map { it.map(::makeUiData) }
@@ -46,7 +46,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000),
-                initialValue = makeInitialUiData(),
+                initialValue = null,
             )
 
     init {
@@ -78,9 +78,6 @@ class ColorInputHexViewModel @AssistedInject constructor(
 
     private fun makeUiData(textField: TextFieldUiData) =
         ColorInputHexUiData(textField)
-
-    private fun makeInitialUiData() =
-        makeUiData(textFieldVm.uiDataUpdatesFlow.value.data)
 
     private companion object {
         const val MAX_SYMBOLS_IN_HEX_COLOR = 6
