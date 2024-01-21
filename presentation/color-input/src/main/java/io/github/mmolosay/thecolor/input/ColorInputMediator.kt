@@ -6,8 +6,6 @@ import io.github.mmolosay.thecolor.domain.usecase.ColorPrototypeConverter
 import io.github.mmolosay.thecolor.domain.usecase.GetInitialColorUseCase
 import io.github.mmolosay.thecolor.presentation.color.ColorInput
 import io.github.mmolosay.thecolor.presentation.color.isCompleteFromUserPerspective
-import io.github.mmolosay.thecolor.presentation.mapper.toColorInput
-import io.github.mmolosay.thecolor.presentation.mapper.toDomain
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
@@ -27,6 +25,7 @@ import javax.inject.Singleton
 @Singleton
 class ColorInputMediator @Inject constructor(
     getInitialColor: GetInitialColorUseCase,
+    private val colorInputMapper: ColorInputMapper,
     private val colorPrototypeConverter: ColorPrototypeConverter,
     private val colorConverter: ColorConverter,
 ) {
@@ -48,7 +47,10 @@ class ColorInputMediator @Inject constructor(
             .map {
                 when (it) {
                     is ColorState.Invalid -> ColorInput.Hex(string = "")
-                    is ColorState.Valid -> with(colorConverter) { it.color.toHex() }.toColorInput()
+                    is ColorState.Valid -> {
+                        val domainColor = with(colorConverter) { it.color.toHex() }
+                        with(colorInputMapper) { domainColor.toColorInput() }
+                    }
                 }
             }
 
@@ -58,7 +60,10 @@ class ColorInputMediator @Inject constructor(
             .map {
                 when (it) {
                     is ColorState.Invalid -> ColorInput.Rgb(r = "", g = "", b = "")
-                    is ColorState.Valid -> with(colorConverter) { it.color.toRgb() }.toColorInput()
+                    is ColorState.Valid -> {
+                        val domainColor = with(colorConverter) { it.color.toRgb() }
+                        with(colorInputMapper) { domainColor.toColorInput() }
+                    }
                 }
             }
 
@@ -67,7 +72,7 @@ class ColorInputMediator @Inject constructor(
         val result = runCatching {
             if (!input.isCompleteFromUserPerspective())
                 error("Color in not complete from user perspective yet, thus invalid")
-            val prototype = input.toDomain()
+            val prototype = with(colorInputMapper) { input.toPrototype() }
             val color = with(colorPrototypeConverter) { prototype.toColorOrNull() }
                 ?: error("Color is invalid")
             with(colorConverter) { color.toAbstract() }
