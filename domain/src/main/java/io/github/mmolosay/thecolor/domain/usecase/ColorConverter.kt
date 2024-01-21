@@ -3,6 +3,9 @@ package io.github.mmolosay.thecolor.domain.usecase
 import io.github.mmolosay.thecolor.domain.model.Color
 import javax.inject.Inject
 
+/**
+ * Converts between different instances of [Color].
+ */
 // TODO: use third-party library for converting
 class ColorConverter @Inject constructor() {
 
