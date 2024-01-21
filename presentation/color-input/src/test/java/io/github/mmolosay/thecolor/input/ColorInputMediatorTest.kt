@@ -26,9 +26,7 @@ class ColorInputMediatorTest {
         coEvery { this@mockk.invoke() } returns null
     }
 
-    val colorInputMapper: ColorInputMapper = mockk {
-//        every {  }
-    }
+    val colorInputMapper: ColorInputMapper = mockk()
 
     val colorFactory: ColorFactory = mockk {
         every { from(any<ColorPrototype>()) } returns null
@@ -58,6 +56,16 @@ class ColorInputMediatorTest {
 
         sut.hexColorInputFlow.first() shouldBe hexInput
         sut.rgbColorInputFlow.first() shouldBe rgbInput
+    }
+
+    @Test
+    fun `initial null color from use case is emitted from flows`() = runTest(testDispatcher) {
+        coEvery { getInitialColor() } returns null
+
+        createSut()
+
+        sut.hexColorInputFlow.first() shouldBe ColorInput.Hex("")
+        sut.rgbColorInputFlow.first() shouldBe ColorInput.Rgb("", "", "")
     }
 
     @Test
