@@ -5,17 +5,22 @@ import io.github.mmolosay.thecolor.domain.model.ColorPrototype
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.domain.usecase.ColorFactory
 import io.github.mmolosay.thecolor.domain.usecase.GetInitialColorUseCase
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.timeout
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
+import kotlin.time.Duration.Companion.milliseconds
 
 class ColorInputMediatorTest {
 
@@ -32,14 +37,11 @@ class ColorInputMediatorTest {
         every { from(any<ColorPrototype>()) } returns null
     }
 
-    val colorConverter: ColorConverter = mockk {
-        every { any<Color.Abstract>().toHex() } returns Color.Hex(0)
-        every { any<Color.Abstract>().toRgb() } returns Color.Rgb(0, 0, 0)
-    }
+    val colorConverter: ColorConverter = mockk()
 
     val colorInputFactory: ColorInputFactory = mockk {
-        every { emptyHex() } returns ColorInput.Hex("")
-        every { emptyRgb() } returns ColorInput.Rgb("", "", "")
+        every { emptyHex() } returns ColorInput.Hex("mocked")
+        every { emptyRgb() } returns ColorInput.Rgb("mocked", "mocked", "mocked")
     }
 
     lateinit var sut: ColorInputMediator
@@ -66,44 +68,65 @@ class ColorInputMediatorTest {
     @Test
     fun `initial null color from use case is emitted from flows`() = runTest(testDispatcher) {
         coEvery { getInitialColor() } returns null
+        every { colorInputFactory.emptyHex() } returns ColorInput.Hex("empty")
+        every { colorInputFactory.emptyRgb() } returns ColorInput.Rgb("em", "p", "ty")
 
         createSut()
 
-        sut.hexColorInputFlow.first() shouldBe ColorInput.Hex("")
-        sut.rgbColorInputFlow.first() shouldBe ColorInput.Rgb("", "", "")
+        sut.hexColorInputFlow.first() shouldBe ColorInput.Hex("empty")
+        sut.rgbColorInputFlow.first() shouldBe ColorInput.Rgb("em", "p", "ty")
     }
 
     @Test
+    @OptIn(FlowPreview::class)
     fun `received HEX color input is not emitted from HEX flow`() = runTest(testDispatcher) {
+        val sentColorInput: ColorInput = ColorInput.Hex("00BFFF")
+        val prototype: ColorPrototype = ColorPrototype.Hex(0x00bff)
+        val colorFromFactory: Color = Color.Hex(0x00bff)
+        val abstract = newAbstractColor()
+        val hex = Color.Hex(0x00bff)
+        every { with(colorInputMapper) { sentColorInput.toPrototype() } } returns prototype
+        every { colorFactory.from(prototype) } returns colorFromFactory
+        every { with(colorConverter) { colorFromFactory.toAbstract() } } returns abstract
+        every { with(colorConverter) { abstract.toHex() } } returns hex
         createSut()
-        var afterInitial: ColorInput.Hex? = null
 
-        val collectionJob = launch {
-            sut.hexColorInputFlow
-                .drop(1) // ignore initial color
-                .collect { afterInitial = it }
+        launch {
+            shouldThrow<TimeoutCancellationException> {
+                sut.hexColorInputFlow
+                    .drop(1)
+                    .timeout(1000.milliseconds)
+                    .first()
+            }
         }
-        val colorInput = ColorInput.Hex("anything")
-        sut.send(colorInput)
 
-        afterInitial shouldBe null
-        collectionJob.cancel()
+        sut.send(sentColorInput)
     }
 
     @Test
     fun `received HEX color input is emitted from flows other than HEX`() =
         runTest(testDispatcher) {
+            val sentColorInput: ColorInput = ColorInput.Hex("00BFFF")
+            val prototype: ColorPrototype = ColorPrototype.Hex(0x00bff)
+            val colorFromFactory: Color = Color.Hex(0x00bff)
+            val abstract = newAbstractColor()
+            val rgb = Color.Rgb(0, 191, 255)
+            val emittedRgbColorInput = ColorInput.Rgb("0", "191", "255")
+            every { with(colorInputMapper) { sentColorInput.toPrototype() } } returns prototype
+            every { colorFactory.from(prototype) } returns colorFromFactory
+            every { with(colorConverter) { colorFromFactory.toAbstract() } } returns abstract
+            every { with(colorConverter) { abstract.toRgb() } } returns rgb
+            every { with(colorInputMapper) { rgb.toColorInput() } } returns emittedRgbColorInput
             createSut()
 
             val collectionJob = launch {
                 sut.rgbColorInputFlow
                     .drop(1) // ignore initial color
-                    .first() shouldBe ColorInput.Rgb("", "", "") // empty from invalid
+                    .first() shouldBe emittedRgbColorInput
             }
 
-            val colorInput = ColorInput.Hex("anything") // invalid
-            sut.send(colorInput)
-            collectionJob.cancel()
+            sut.send(sentColorInput)
+            collectionJob.join()
         }
 
     fun createSut() =
