@@ -20,7 +20,7 @@ class ColorFactory @Inject constructor(
     fun from(prototype: ColorPrototype.Hex): Color.Hex? {
         val valid = with(colorPrototypeValidator) { prototype.isValid() }
         if (valid.not()) return null
-        return Color.Hex(value = prototype.value!!) // TODO: use contracts
+        return Color.Hex(value = prototype.value!!)
     }
 
     fun from(prototype: ColorPrototype.Rgb): Color.Rgb? {
@@ -30,6 +30,6 @@ class ColorFactory @Inject constructor(
             r = prototype.r!!,
             g = prototype.g!!,
             b = prototype.b!!,
-        ) // TODO: use contracts
+        )
     }
 }
