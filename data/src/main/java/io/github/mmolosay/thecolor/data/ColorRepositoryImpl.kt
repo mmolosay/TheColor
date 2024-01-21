@@ -2,6 +2,7 @@ package io.github.mmolosay.thecolor.data
 
 import io.github.mmolosay.thecolor.data.remote.api.TheColorApiService
 import io.github.mmolosay.thecolor.data.remote.mapper.toDomain
+import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.ColorDetails
 import io.github.mmolosay.thecolor.domain.model.ColorScheme
 import io.github.mmolosay.thecolor.domain.model.ColorSchemeRequest
@@ -9,8 +10,11 @@ import io.github.mmolosay.thecolor.domain.repository.ColorRepository
 import javax.inject.Inject
 
 class ColorRepositoryImpl @Inject constructor(
-    private val api: TheColorApiService
+    private val api: TheColorApiService,
 ) : ColorRepository {
+
+    override suspend fun lastSearchedColor(): Color.Abstract? =
+        null
 
     override suspend fun getColorDetails(colorHex: String): ColorDetails {
         val response = api.getColorDetails(hex = colorHex)

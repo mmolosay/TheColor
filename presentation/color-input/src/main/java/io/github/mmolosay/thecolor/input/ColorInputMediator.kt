@@ -3,6 +3,7 @@ package io.github.mmolosay.thecolor.input
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.domain.usecase.ColorPrototypeConverter
+import io.github.mmolosay.thecolor.domain.usecase.GetInitialColorUseCase
 import io.github.mmolosay.thecolor.presentation.color.ColorInput
 import io.github.mmolosay.thecolor.presentation.color.isCompleteFromUserPerspective
 import io.github.mmolosay.thecolor.presentation.mapper.toColorInput
@@ -11,6 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -24,13 +26,21 @@ import javax.inject.Singleton
  */
 @Singleton
 class ColorInputMediator @Inject constructor(
-    initialColorProvider: InitialColorProvider,
+    getInitialColor: GetInitialColorUseCase,
     private val colorPrototypeConverter: ColorPrototypeConverter,
     private val colorConverter: ColorConverter,
 ) {
 
-    private val stateFlow = MutableStateFlow(initialColorProvider.color.toState())
+    private val stateFlow =
+        MutableStateFlow<ColorState>(ColorState.Invalid) // TODO: make nullable or introduce Loading state
     private var lastUsedInputType: InputType? = null
+
+    init {
+        // TODO: use real coroutine scope
+        runBlocking {
+            stateFlow.value = getInitialColor().toState()
+        }
+    }
 
     val hexColorInputFlow: Flow<ColorInput.Hex> =
         stateFlow
@@ -63,11 +73,6 @@ class ColorInputMediator @Inject constructor(
             with(colorConverter) { color.toAbstract() }
         }
         stateFlow.value = result.getOrNull().toState()
-    }
-
-    // could be using Repository if initial color comes from persistence
-    class InitialColorProvider @Inject constructor() {
-        val color: Color.Abstract? = null
     }
 
     private fun Color.Abstract?.toState(): ColorState =
