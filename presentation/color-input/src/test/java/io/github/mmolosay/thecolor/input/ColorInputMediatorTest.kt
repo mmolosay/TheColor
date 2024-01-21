@@ -10,6 +10,8 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkAll
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.TimeoutCancellationException
@@ -127,6 +129,34 @@ class ColorInputMediatorTest {
 
             sut.send(sentColorInput)
             collectionJob.join()
+        }
+
+    @Test
+    fun `incomplete color input results in emission of empty color input`() =
+        runTest(testDispatcher) {
+            val initialColor = newAbstractColor()
+            coEvery { getInitialColor() } returns initialColor
+            every { with(colorConverter) { initialColor.toHex() } } returns mockk()
+            every { with(colorConverter) { initialColor.toRgb() } } returns mockk()
+            every { with(colorInputMapper) { any<Color.Hex>().toColorInput() } } returns mockk()
+            every { with(colorInputMapper) { any<Color.Rgb>().toColorInput() } } returns mockk()
+
+            val sentColorInput: ColorInput = ColorInput.Hex("gibberish")
+            val emittedRgbColorInput = ColorInput.Rgb("", "", "")
+            mockkStatic(ColorInput::isCompleteFromUserPerspective)
+            every { sentColorInput.isCompleteFromUserPerspective() } returns false
+            every { colorInputFactory.emptyRgb() } returns emittedRgbColorInput
+            createSut()
+
+            launch {
+                sut.rgbColorInputFlow
+                    .drop(1) // ignore initial color
+                    .first() shouldBe emittedRgbColorInput
+            }
+
+            sut.send(sentColorInput)
+
+            unmockkAll()
         }
 
     fun createSut() =
