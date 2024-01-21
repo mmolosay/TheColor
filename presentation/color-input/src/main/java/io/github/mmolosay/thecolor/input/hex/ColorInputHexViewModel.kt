@@ -7,6 +7,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.input.ColorInputMediator
+import io.github.mmolosay.thecolor.input.SharingStartedEagerlyAnd
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData.Text
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData.ViewData
@@ -16,6 +17,7 @@ import io.github.mmolosay.thecolor.input.model.Update
 import io.github.mmolosay.thecolor.input.model.map
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
@@ -45,7 +47,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
             .map { it.data }
             .stateIn(
                 scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000),
+                started = SharingStartedEagerlyAnd(WhileSubscribed(5000)),
                 initialValue = null,
             )
 

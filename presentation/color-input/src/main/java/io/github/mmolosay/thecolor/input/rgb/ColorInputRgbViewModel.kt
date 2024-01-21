@@ -7,6 +7,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.input.ColorInputMediator
+import io.github.mmolosay.thecolor.input.SharingStartedEagerlyAnd
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData.Text
 import io.github.mmolosay.thecolor.input.field.TextFieldViewModel
@@ -14,7 +15,7 @@ import io.github.mmolosay.thecolor.input.field.TextFieldViewModel.Companion.upda
 import io.github.mmolosay.thecolor.input.model.Update
 import io.github.mmolosay.thecolor.input.model.causedByUser
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
@@ -58,7 +59,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         .map { it.data }
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
+            started = SharingStartedEagerlyAnd(WhileSubscribed(5000)),
             initialValue = null,
         )
 
