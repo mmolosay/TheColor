@@ -8,11 +8,12 @@ import io.github.mmolosay.thecolor.input.rgb.ColorInputRgbViewData
 import io.github.mmolosay.thecolor.input.rgb.ColorInputRgbViewModel
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
 import io.kotest.matchers.shouldBe
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
-import io.mockk.verify
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emptyFlow
@@ -39,7 +40,7 @@ class ColorInputRgbViewModelTest {
 
     val mediator: ColorInputMediator = mockk {
         every { rgbColorInputFlow } returns emptyFlow()
-        every { send(any()) } just runs
+        coEvery { send(any()) } just runs
     }
 
     lateinit var sut: ColorInputRgbViewModel
@@ -136,7 +137,7 @@ class ColorInputRgbViewModelTest {
                 sut.uiDataFlow.collect() // subscriber to activate the flow
             }
 
-            verify(exactly = 0) { mediator.send(any()) }
+            coVerify(exactly = 0) { mediator.send(any()) }
             collectionJob.cancel()
         }
 
@@ -151,7 +152,7 @@ class ColorInputRgbViewModelTest {
             uiData.rTextField.onTextChange(Text("18"))
 
             val sentColorInput = ColorInput.Rgb(r = "18", g = "", b = "")
-            verify(exactly = 1) { mediator.send(sentColorInput) }
+            coVerify(exactly = 1) { mediator.send(sentColorInput) }
             collectionJob.cancel()
         }
 
@@ -187,7 +188,7 @@ class ColorInputRgbViewModelTest {
             val sentColorInput = ColorInput.Rgb(r = "18", g = "1", b = "20")
             rgbColorInputFlow.emit(sentColorInput)
 
-            verify(exactly = 0) { mediator.send(sentColorInput) }
+            coVerify(exactly = 0) { mediator.send(sentColorInput) }
             collectionJob.cancel()
         }
 
@@ -195,7 +196,7 @@ class ColorInputRgbViewModelTest {
         ColorInputRgbViewModel(
             viewData = viewData,
             mediator = mediator,
-            mediatorUpdatesCollectionDispatcher = mainDispatcherRule.testDispatcher,
+            uiDataUpdateDispatcher = mainDispatcherRule.testDispatcher,
         ).also {
             sut = it
         }

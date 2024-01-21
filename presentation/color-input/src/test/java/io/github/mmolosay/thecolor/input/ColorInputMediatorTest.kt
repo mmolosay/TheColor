@@ -134,10 +134,11 @@ class ColorInputMediatorTest {
     @Test
     fun `incomplete color input results in emission of empty color input`() =
         runTest(testDispatcher) {
-            val initialColor = newAbstractColor()
-            coEvery { getInitialColor() } returns initialColor
-            every { with(colorConverter) { initialColor.toHex() } } returns mockk()
-            every { with(colorConverter) { initialColor.toRgb() } } returns mockk()
+            // due to impl of StateFlow, we can't emit two equal values consecutively
+            // se emitting some non-empty initial value first
+            coEvery { getInitialColor() } returns newAbstractColor()
+            every { with(colorConverter) { any<Color.Abstract>().toHex() } } returns mockk()
+            every { with(colorConverter) { any<Color.Abstract>().toRgb() } } returns mockk()
             every { with(colorInputMapper) { any<Color.Hex>().toColorInput() } } returns mockk()
             every { with(colorInputMapper) { any<Color.Rgb>().toColorInput() } } returns mockk()
 

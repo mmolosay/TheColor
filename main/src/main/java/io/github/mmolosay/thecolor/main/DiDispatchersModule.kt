@@ -13,6 +13,6 @@ import javax.inject.Named
 object DiDispatchersModule {
 
     @Provides
-    @Named("mediatorUpdatesCollectionDispatcher")
+    @Named("uiDataUpdateDispatcher")
     fun provideDefaultDispatcher(): CoroutineDispatcher = Dispatchers.Main.immediate
 }

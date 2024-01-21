@@ -4,8 +4,9 @@ import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.domain.usecase.ColorFactory
 import io.github.mmolosay.thecolor.domain.usecase.GetInitialColorUseCase
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
@@ -30,13 +31,16 @@ class ColorInputMediator @Inject constructor(
     private val colorInputFactory: ColorInputFactory,
 ) {
 
-    private val stateFlow = MutableStateFlow<ColorState?>(null)
+    private val stateFlow = MutableSharedFlow<ColorState?>(
+        replay = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
     private var lastUsedInputType: InputType? = null
 
     init {
         // TODO: use real coroutine scope
         runBlocking {
-            stateFlow.value = getInitialColor().toState()
+            stateFlow.emit(getInitialColor().toState())
         }
     }
 
@@ -68,9 +72,10 @@ class ColorInputMediator @Inject constructor(
                 }
             }
 
-    fun send(input: ColorInput) {
+    suspend fun send(input: ColorInput) {
         lastUsedInputType = input.type()
-        stateFlow.value = input.toAbstractOrNull().toState()
+        input.toAbstractOrNull().toState()
+            .also { stateFlow.emit(it) }
     }
 
     private fun ColorInput.toAbstractOrNull(): Color.Abstract? {

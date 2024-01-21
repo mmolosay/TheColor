@@ -26,7 +26,7 @@ import javax.inject.Named
 class ColorInputRgbViewModel @AssistedInject constructor(
     @Assisted viewData: ColorInputRgbViewData,
     private val mediator: ColorInputMediator,
-    @Named("mediatorUpdatesCollectionDispatcher") private val mediatorUpdatesCollectionDispatcher: CoroutineDispatcher,
+    @Named("uiDataUpdateDispatcher") private val uiDataUpdateDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val rTextInputVm =
@@ -68,7 +68,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     }
 
     private fun collectMediatorUpdates() {
-        viewModelScope.launch(mediatorUpdatesCollectionDispatcher) {
+        viewModelScope.launch(uiDataUpdateDispatcher) {
             mediator.rgbColorInputFlow.collect { input ->
                 rTextInputVm updateWith Text(input.r)
                 gTextInputVm updateWith Text(input.g)
@@ -81,7 +81,9 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         if (!update.causedByUser) return // don't synchronize this update with other Views
         val uiData = update.data
         val input = uiData.assembleColorInput()
-        mediator.send(input)
+        viewModelScope.launch(uiDataUpdateDispatcher) {
+            mediator.send(input)
+        }
     }
 
     private fun filterUserInput(input: String): Text =

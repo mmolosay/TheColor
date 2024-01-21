@@ -7,6 +7,8 @@ import io.github.mmolosay.thecolor.input.hex.ColorInputHexUiData
 import io.github.mmolosay.thecolor.input.hex.ColorInputHexViewModel
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
 import io.kotest.matchers.shouldBe
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -31,7 +33,7 @@ class ColorInputHexViewModelTest {
 
     val mediator: ColorInputMediator = mockk {
         every { hexColorInputFlow } returns emptyFlow()
-        every { send(any()) } just runs
+        coEvery { send(any()) } just runs
     }
 
     lateinit var sut: ColorInputHexViewModel
@@ -65,7 +67,7 @@ class ColorInputHexViewModelTest {
                 sut.uiDataFlow.collect() // subscriber to activate the flow
             }
 
-            verify(exactly = 0) { mediator.send(any()) }
+            coVerify(exactly = 0) { mediator.send(any()) }
             collectionJob.cancel()
         }
 
@@ -80,7 +82,7 @@ class ColorInputHexViewModelTest {
             uiData.textField.onTextChange(Text("1F"))
 
             val sentColorInput = ColorInput.Hex("1F")
-            verify(exactly = 1) { mediator.send(sentColorInput) }
+            coVerify(exactly = 1) { mediator.send(sentColorInput) }
             collectionJob.cancel()
         }
 
@@ -113,7 +115,7 @@ class ColorInputHexViewModelTest {
             val sentColorInput = ColorInput.Hex("1F")
             hexColorInputFlow.emit(sentColorInput)
 
-            verify(exactly = 0) { mediator.send(sentColorInput) }
+            coVerify(exactly = 0) { mediator.send(sentColorInput) }
             collectionJob.cancel()
         }
 
@@ -121,7 +123,7 @@ class ColorInputHexViewModelTest {
         ColorInputHexViewModel(
             viewData = viewData,
             mediator = mediator,
-            mediatorUpdatesCollectionDispatcher = mainDispatcherRule.testDispatcher,
+            uiDataUpdateDispatcher = mainDispatcherRule.testDispatcher,
         ).also {
             sut = it
         }

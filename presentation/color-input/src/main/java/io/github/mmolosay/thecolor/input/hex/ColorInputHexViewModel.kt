@@ -28,7 +28,7 @@ import javax.inject.Named
 class ColorInputHexViewModel @AssistedInject constructor(
     @Assisted viewData: ViewData,
     private val mediator: ColorInputMediator,
-    @Named("mediatorUpdatesCollectionDispatcher") private val mediatorUpdatesCollectionDispatcher: CoroutineDispatcher,
+    @Named("uiDataUpdateDispatcher") private val uiDataUpdateDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val textFieldVm =
@@ -54,7 +54,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
     }
 
     private fun collectMediatorUpdates() {
-        viewModelScope.launch(mediatorUpdatesCollectionDispatcher) {
+        viewModelScope.launch(uiDataUpdateDispatcher) {
             mediator.hexColorInputFlow.collect { input ->
                 textFieldVm updateWith Text(input.string)
             }
@@ -65,7 +65,9 @@ class ColorInputHexViewModel @AssistedInject constructor(
         if (!update.causedByUser) return // don't synchronize this update with other Views
         val uiData = update.data
         val input = uiData.assembleColorInput()
-        mediator.send(input)
+        viewModelScope.launch(uiDataUpdateDispatcher) {
+            mediator.send(input)
+        }
     }
 
     private fun filterUserInput(input: String): Text =
