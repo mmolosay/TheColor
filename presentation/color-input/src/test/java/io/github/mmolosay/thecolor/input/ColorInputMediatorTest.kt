@@ -5,7 +5,6 @@ import io.github.mmolosay.thecolor.domain.model.ColorPrototype
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.domain.usecase.ColorPrototypeConverter
 import io.github.mmolosay.thecolor.domain.usecase.GetInitialColorUseCase
-import io.github.mmolosay.thecolor.presentation.color.ColorInput
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.every

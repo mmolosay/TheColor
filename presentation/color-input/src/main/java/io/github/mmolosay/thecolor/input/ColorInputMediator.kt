@@ -4,8 +4,6 @@ import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.domain.usecase.ColorPrototypeConverter
 import io.github.mmolosay.thecolor.domain.usecase.GetInitialColorUseCase
-import io.github.mmolosay.thecolor.presentation.color.ColorInput
-import io.github.mmolosay.thecolor.presentation.color.isCompleteFromUserPerspective
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter

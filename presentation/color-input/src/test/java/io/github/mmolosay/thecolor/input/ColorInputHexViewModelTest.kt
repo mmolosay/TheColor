@@ -5,7 +5,6 @@ import io.github.mmolosay.thecolor.input.field.TextFieldUiData.Text
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData.ViewData.TrailingIcon
 import io.github.mmolosay.thecolor.input.hex.ColorInputHexUiData
 import io.github.mmolosay.thecolor.input.hex.ColorInputHexViewModel
-import io.github.mmolosay.thecolor.presentation.color.ColorInput
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
 import io.kotest.matchers.shouldBe
 import io.mockk.every

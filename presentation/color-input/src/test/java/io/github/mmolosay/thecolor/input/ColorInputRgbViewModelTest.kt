@@ -6,7 +6,6 @@ import io.github.mmolosay.thecolor.input.field.TextFieldUiData.ViewData.Trailing
 import io.github.mmolosay.thecolor.input.rgb.ColorInputRgbUiData
 import io.github.mmolosay.thecolor.input.rgb.ColorInputRgbViewData
 import io.github.mmolosay.thecolor.input.rgb.ColorInputRgbViewModel
-import io.github.mmolosay.thecolor.presentation.color.ColorInput
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
 import io.kotest.matchers.shouldBe
 import io.mockk.every

@@ -1,7 +1,6 @@
 package io.github.mmolosay.thecolor.input
 
 import io.github.mmolosay.thecolor.domain.model.ColorPrototype
-import io.github.mmolosay.thecolor.presentation.color.ColorInput
 import javax.inject.Inject
 import io.github.mmolosay.thecolor.domain.model.Color as DomainColor
 
