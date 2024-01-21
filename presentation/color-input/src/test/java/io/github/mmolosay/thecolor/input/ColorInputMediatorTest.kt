@@ -6,6 +6,7 @@ import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.domain.usecase.ColorFactory
 import io.github.mmolosay.thecolor.domain.usecase.GetInitialColorUseCase
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.every
@@ -17,7 +18,9 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.timeout
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -134,14 +137,6 @@ class ColorInputMediatorTest {
     @Test
     fun `incomplete color input results in emission of empty color input`() =
         runTest(testDispatcher) {
-            // due to impl of StateFlow, we can't emit two equal values consecutively
-            // se emitting some non-empty initial value first
-            coEvery { getInitialColor() } returns newAbstractColor()
-            every { with(colorConverter) { any<Color.Abstract>().toHex() } } returns mockk()
-            every { with(colorConverter) { any<Color.Abstract>().toRgb() } } returns mockk()
-            every { with(colorInputMapper) { any<Color.Hex>().toColorInput() } } returns mockk()
-            every { with(colorInputMapper) { any<Color.Rgb>().toColorInput() } } returns mockk()
-
             val sentColorInput: ColorInput = ColorInput.Hex("gibberish")
             val emittedRgbColorInput = ColorInput.Rgb("", "", "")
             mockkStatic(ColorInput::isCompleteFromUserPerspective)
@@ -157,6 +152,30 @@ class ColorInputMediatorTest {
 
             sut.send(sentColorInput)
 
+            unmockkAll()
+        }
+
+    @Test
+    fun `two consecutive incomplete color inputs result in two emissions of empty color inputs`() =
+        runTest(testDispatcher) {
+            val emittedRgbColorInput = ColorInput.Rgb("", "", "")
+            mockkStatic(ColorInput::isCompleteFromUserPerspective)
+            every { any<ColorInput>().isCompleteFromUserPerspective() } returns false
+            every { colorInputFactory.emptyRgb() } returns emittedRgbColorInput
+            createSut()
+            val collected = mutableListOf<ColorInput.Rgb>()
+
+            launch {
+                sut.rgbColorInputFlow
+                    .drop(1) // ignore initial color
+                    .take(2)
+                    .toList(collected)
+            }
+
+            sut.send(ColorInput.Hex("gibberish-1"))
+            sut.send(ColorInput.Hex("gibberish-2"))
+
+            collected shouldContainExactly listOf(emittedRgbColorInput, emittedRgbColorInput)
             unmockkAll()
         }
 
