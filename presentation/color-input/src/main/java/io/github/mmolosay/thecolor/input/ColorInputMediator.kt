@@ -7,6 +7,7 @@ import io.github.mmolosay.thecolor.domain.usecase.GetInitialColorUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
@@ -29,8 +30,7 @@ class ColorInputMediator @Inject constructor(
     private val colorInputFactory: ColorInputFactory,
 ) {
 
-    private val stateFlow =
-        MutableStateFlow<ColorState>(ColorState.Invalid) // TODO: make nullable or introduce Loading state
+    private val stateFlow = MutableStateFlow<ColorState?>(null)
     private var lastUsedInputType: InputType? = null
 
     init {
@@ -42,6 +42,7 @@ class ColorInputMediator @Inject constructor(
 
     val hexColorInputFlow: Flow<ColorInput.Hex> =
         stateFlow
+            .filterNotNull()
             .filter { lastUsedInputType != InputType.Hex } // prevent interrupting user
             .map {
                 when (it) {
@@ -55,6 +56,7 @@ class ColorInputMediator @Inject constructor(
 
     val rgbColorInputFlow: Flow<ColorInput.Rgb> =
         stateFlow
+            .filterNotNull()
             .filter { lastUsedInputType != InputType.Rgb } // prevent interrupting user
             .map {
                 when (it) {
