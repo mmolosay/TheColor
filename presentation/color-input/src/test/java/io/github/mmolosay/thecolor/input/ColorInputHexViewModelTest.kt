@@ -5,6 +5,7 @@ import io.github.mmolosay.thecolor.input.field.TextFieldUiData.Text
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData.ViewData.TrailingIcon
 import io.github.mmolosay.thecolor.input.hex.ColorInputHexUiData
 import io.github.mmolosay.thecolor.input.hex.ColorInputHexViewModel
+import io.github.mmolosay.thecolor.input.model.ColorInput
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
@@ -13,7 +14,6 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
-import io.mockk.verify
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emptyFlow

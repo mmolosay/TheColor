@@ -3,6 +3,7 @@ package io.github.mmolosay.thecolor.input
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData.Text
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData.ViewData.TrailingIcon
+import io.github.mmolosay.thecolor.input.model.ColorInput
 import io.github.mmolosay.thecolor.input.rgb.ColorInputRgbUiData
 import io.github.mmolosay.thecolor.input.rgb.ColorInputRgbViewData
 import io.github.mmolosay.thecolor.input.rgb.ColorInputRgbViewModel

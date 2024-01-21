@@ -6,6 +6,7 @@ import io.github.mmolosay.thecolor.input.field.TextFieldUiData.TrailingButton
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData.ViewData.TrailingIcon
 import io.github.mmolosay.thecolor.input.field.TextFieldViewModel
 import io.github.mmolosay.thecolor.input.field.TextFieldViewModel.Companion.updateWith
+import io.github.mmolosay.thecolor.input.model.Update
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType

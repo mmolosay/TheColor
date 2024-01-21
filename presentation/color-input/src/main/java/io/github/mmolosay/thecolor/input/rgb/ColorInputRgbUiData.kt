@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.input.rgb
 
-import io.github.mmolosay.thecolor.input.ColorInput
+import io.github.mmolosay.thecolor.input.model.ColorInput
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData
 
 data class ColorInputRgbUiData(

@@ -1,7 +1,7 @@
 package io.github.mmolosay.thecolor.input.field
 
-import io.github.mmolosay.thecolor.input.Update
-import io.github.mmolosay.thecolor.input.causedByUser
+import io.github.mmolosay.thecolor.input.model.Update
+import io.github.mmolosay.thecolor.input.model.causedByUser
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData.Text
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData.TrailingButton
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData.ViewData

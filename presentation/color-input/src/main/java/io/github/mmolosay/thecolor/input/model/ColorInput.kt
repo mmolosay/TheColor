@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.input
+package io.github.mmolosay.thecolor.input.model
 
 /**
  * Data, that was entered by user via UI of color input View.

@@ -5,6 +5,8 @@ import io.github.mmolosay.thecolor.domain.model.ColorPrototype
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.domain.usecase.ColorFactory
 import io.github.mmolosay.thecolor.domain.usecase.GetInitialColorUseCase
+import io.github.mmolosay.thecolor.input.model.ColorInput
+import io.github.mmolosay.thecolor.input.model.isCompleteFromUserPerspective
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe

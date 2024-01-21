@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.input
+package io.github.mmolosay.thecolor.input.model
 
 /**
  * Encapsulates a command to update some data of type [T] with new [data].

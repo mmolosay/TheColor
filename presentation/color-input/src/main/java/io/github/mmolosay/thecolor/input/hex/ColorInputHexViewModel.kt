@@ -7,13 +7,13 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.input.ColorInputMediator
-import io.github.mmolosay.thecolor.input.Update
+import io.github.mmolosay.thecolor.input.model.Update
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData.Text
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData.ViewData
 import io.github.mmolosay.thecolor.input.field.TextFieldViewModel
 import io.github.mmolosay.thecolor.input.field.TextFieldViewModel.Companion.updateWith
-import io.github.mmolosay.thecolor.input.map
+import io.github.mmolosay.thecolor.input.model.map
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
