@@ -12,13 +12,13 @@ data class Update<T>(
 )
 
 /** Syntactic sugar for creating [Update]. */
-infix fun <UiData> UiData.causedByUser(causedByUser: Boolean) =
+internal infix fun <UiData> UiData.causedByUser(causedByUser: Boolean) =
     Update(data = this, causedByUser = causedByUser)
 
 /**
  * Maps data of receiver to different type.
  */
-inline fun <T, R> Update<T>.map(
+internal inline fun <T, R> Update<T>.map(
     transform: (T) -> R,
 ) =
     Update(

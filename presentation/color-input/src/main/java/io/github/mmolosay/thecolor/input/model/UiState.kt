@@ -5,6 +5,6 @@ sealed interface UiState<out T> {
     data class Ready<T>(val uiData: T) : UiState<T>
 }
 
-fun <UiData> UiData?.toUiSate(): UiState<UiData> =
+internal fun <UiData> UiData?.toUiSate(): UiState<UiData> =
     if (this == null) UiState.BeingInitialized
     else UiState.Ready(uiData = this)
