@@ -21,19 +21,17 @@ import io.github.mmolosay.thecolor.input.UiComponents.Loading
 import io.github.mmolosay.thecolor.input.UiComponents.TextField
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData.Text
+import io.github.mmolosay.thecolor.input.model.UiState
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 
 @Composable
 fun ColorInputRgb(
     vm: ColorInputRgbViewModel,
 ) {
-    val uiData = vm.uiDataFlow.collectAsStateWithLifecycle().value
-    if (uiData == null) {
-        Loading()
-    } else {
-        ColorInputRgb(
-            uiData = uiData,
-        )
+    val state = vm.uiStateFlow.collectAsStateWithLifecycle().value
+    when (state) {
+        is UiState.BeingInitialized -> Loading()
+        is UiState.Ready -> ColorInputRgb(state.uiData)
     }
 }
 

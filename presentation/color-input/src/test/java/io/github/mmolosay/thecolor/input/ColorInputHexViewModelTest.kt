@@ -39,7 +39,7 @@ class ColorInputHexViewModelTest {
     lateinit var sut: ColorInputHexViewModel
 
     val uiData: ColorInputHexUiData
-        get() = sut.uiDataFlow.value
+        get() = sut.uiStateFlow.value
 
     @Test
     fun `filtering keeps only digits and letters A-F`() = runTest {
@@ -64,7 +64,7 @@ class ColorInputHexViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             createSut()
             val collectionJob = launch {
-                sut.uiDataFlow.collect() // subscriber to activate the flow
+                sut.uiStateFlow.collect() // subscriber to activate the flow
             }
 
             coVerify(exactly = 0) { mediator.send(any()) }
@@ -76,7 +76,7 @@ class ColorInputHexViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             createSut()
             val collectionJob = launch {
-                sut.uiDataFlow.collect() // subscriber to activate the flow
+                sut.uiStateFlow.collect() // subscriber to activate the flow
             }
 
             uiData.textField.onTextChange(Text("1F"))
@@ -93,7 +93,7 @@ class ColorInputHexViewModelTest {
             every { mediator.hexColorInputFlow } returns hexColorInputFlow
             createSut()
             val collectionJob = launch {
-                sut.uiDataFlow.collect() // subscriber to activate the flow
+                sut.uiStateFlow.collect() // subscriber to activate the flow
             }
 
             hexColorInputFlow.emit(ColorInput.Hex("1F"))
@@ -109,7 +109,7 @@ class ColorInputHexViewModelTest {
             every { mediator.hexColorInputFlow } returns hexColorInputFlow
             createSut()
             val collectionJob = launch {
-                sut.uiDataFlow.collect() // subscriber to activate the flow
+                sut.uiStateFlow.collect() // subscriber to activate the flow
             }
 
             val sentColorInput = ColorInput.Hex("1F")

@@ -47,7 +47,7 @@ class ColorInputRgbViewModelTest {
     lateinit var sut: ColorInputRgbViewModel
 
     val uiData: ColorInputRgbUiData
-        get() = sut.uiDataFlow.value
+        get() = sut.uiStateFlow.value
 
     @Test
     fun `filtering keeps only digits`() {
@@ -135,7 +135,7 @@ class ColorInputRgbViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             createSut()
             val collectionJob = launch {
-                sut.uiDataFlow.collect() // subscriber to activate the flow
+                sut.uiStateFlow.collect() // subscriber to activate the flow
             }
 
             coVerify(exactly = 0) { mediator.send(any()) }
@@ -147,7 +147,7 @@ class ColorInputRgbViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             createSut()
             val collectionJob = launch {
-                sut.uiDataFlow.collect() // subscriber to activate the flow
+                sut.uiStateFlow.collect() // subscriber to activate the flow
             }
 
             uiData.rTextField.onTextChange(Text("18"))
@@ -164,7 +164,7 @@ class ColorInputRgbViewModelTest {
             every { mediator.rgbColorInputFlow } returns rgbColorInputFlow
             createSut()
             val collectionJob = launch {
-                sut.uiDataFlow.collect() // subscriber to activate the flow
+                sut.uiStateFlow.collect() // subscriber to activate the flow
             }
 
             ColorInput.Rgb(r = "18", g = "1", b = "20")
@@ -183,7 +183,7 @@ class ColorInputRgbViewModelTest {
             every { mediator.rgbColorInputFlow } returns rgbColorInputFlow
             createSut()
             val collectionJob = launch {
-                sut.uiDataFlow.collect() // subscriber to activate the flow
+                sut.uiStateFlow.collect() // subscriber to activate the flow
             }
 
             val sentColorInput = ColorInput.Rgb(r = "18", g = "1", b = "20")

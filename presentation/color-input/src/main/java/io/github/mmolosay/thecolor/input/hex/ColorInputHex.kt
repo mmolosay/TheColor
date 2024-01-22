@@ -20,19 +20,17 @@ import io.github.mmolosay.thecolor.input.UiComponents.TextField
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData.Text
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData.TrailingButton
+import io.github.mmolosay.thecolor.input.model.UiState
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 
 @Composable
 fun ColorInputHex(
     vm: ColorInputHexViewModel,
 ) {
-    val uiData = vm.uiDataFlow.collectAsStateWithLifecycle().value
-    if (uiData == null) {
-        Loading()
-    } else {
-        ColorInputHex(
-            uiData = uiData,
-        )
+    val state = vm.uiStateFlow.collectAsStateWithLifecycle().value
+    when (state) {
+        is UiState.BeingInitialized -> Loading()
+        is UiState.Ready -> ColorInputHex(state.uiData)
     }
 }
 

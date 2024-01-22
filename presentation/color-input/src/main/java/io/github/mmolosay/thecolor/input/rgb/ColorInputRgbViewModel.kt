@@ -12,13 +12,14 @@ import io.github.mmolosay.thecolor.input.field.TextFieldUiData
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData.Text
 import io.github.mmolosay.thecolor.input.field.TextFieldViewModel
 import io.github.mmolosay.thecolor.input.field.TextFieldViewModel.Companion.updateWith
+import io.github.mmolosay.thecolor.input.model.UiState
 import io.github.mmolosay.thecolor.input.model.Update
 import io.github.mmolosay.thecolor.input.model.causedByUser
+import io.github.mmolosay.thecolor.input.model.toUiSate
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -48,19 +49,18 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             filterUserInput = ::filterUserInput,
         )
 
-    val uiDataFlow: StateFlow<ColorInputRgbUiData?> = combine(
+    val uiStateFlow: StateFlow<UiState<ColorInputRgbUiData>> = combine(
         rTextInputVm.uiDataUpdatesFlow,
         gTextInputVm.uiDataUpdatesFlow,
         bTextInputVm.uiDataUpdatesFlow,
         ::combineTextInputUpdates,
     )
-        .filterNotNull()
         .onEach(::onEachUiDataUpdate)
-        .map { it.data }
+        .map { it?.data.toUiSate() }
         .stateIn(
             scope = viewModelScope,
             started = SharingStartedEagerlyAnd(WhileSubscribed(5000)),
-            initialValue = null,
+            initialValue = UiState.BeingInitialized,
         )
 
     init {
@@ -87,7 +87,8 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         return uiData causedByUser listOf(r, g, b).any { it.causedByUser }
     }
 
-    private fun onEachUiDataUpdate(update: Update<ColorInputRgbUiData>) {
+    private fun onEachUiDataUpdate(update: Update<ColorInputRgbUiData>?) {
+        update ?: return
         if (!update.causedByUser) return // don't synchronize this update with other Views
         val uiData = update.data
         val input = uiData.assembleColorInput()
