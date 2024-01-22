@@ -14,6 +14,7 @@ object DiDispatchersModule {
 
     @Provides
     @Named("uiDataUpdateDispatcher")
+    // TODO: BasicTextField2 migration
     fun provideDefaultDispatcher(): CoroutineDispatcher =
         Dispatchers.Main.immediate // https://medium.com/androiddevelopers/effective-state-management-for-textfield-in-compose-d6e5b070fbe5
 }
