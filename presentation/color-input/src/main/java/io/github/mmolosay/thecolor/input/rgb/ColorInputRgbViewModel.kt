@@ -16,12 +16,12 @@ import io.github.mmolosay.thecolor.input.model.UiState
 import io.github.mmolosay.thecolor.input.model.Update
 import io.github.mmolosay.thecolor.input.model.causedByUser
 import io.github.mmolosay.thecolor.input.model.toUiSate
+import io.github.mmolosay.thecolor.utils.onEachNotNull
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Named
@@ -55,7 +55,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         bTextInputVm.uiDataUpdatesFlow,
         ::combineTextInputUpdates,
     )
-        .onEach(::onEachUiDataUpdate)
+        .onEachNotNull(::onEachUiDataUpdate)
         .map { it?.data.toUiSate() }
         .stateIn(
             scope = viewModelScope,
@@ -87,8 +87,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         return uiData causedByUser listOf(r, g, b).any { it.causedByUser }
     }
 
-    private fun onEachUiDataUpdate(update: Update<ColorInputRgbUiData>?) {
-        update ?: return
+    private fun onEachUiDataUpdate(update: Update<ColorInputRgbUiData>) {
         if (!update.causedByUser) return // don't synchronize this update with other Views
         val uiData = update.data
         val input = uiData.assembleColorInput()

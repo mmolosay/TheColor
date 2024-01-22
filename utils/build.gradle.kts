@@ -9,3 +9,7 @@ java {
         languageVersion.set(JavaLanguageVersion.of(version))
     }
 }
+
+dependencies {
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.coroutines.get()}")
+}

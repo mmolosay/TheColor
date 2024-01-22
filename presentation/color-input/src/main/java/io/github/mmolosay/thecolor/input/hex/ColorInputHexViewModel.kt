@@ -17,11 +17,11 @@ import io.github.mmolosay.thecolor.input.model.UiState
 import io.github.mmolosay.thecolor.input.model.Update
 import io.github.mmolosay.thecolor.input.model.map
 import io.github.mmolosay.thecolor.input.model.toUiSate
+import io.github.mmolosay.thecolor.utils.onEachNotNull
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Named
@@ -42,7 +42,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
     val uiStateFlow: StateFlow<UiState<ColorInputHexUiData>> =
         textFieldVm.uiDataUpdatesFlow
             .map { it?.map(::makeUiData) }
-            .onEach(::onEachUiDataUpdate)
+            .onEachNotNull(::onEachUiDataUpdate)
             .map { it?.data.toUiSate() }
             .stateIn(
                 scope = viewModelScope,
@@ -62,8 +62,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
         }
     }
 
-    private fun onEachUiDataUpdate(update: Update<ColorInputHexUiData>?) {
-        update ?: return
+    private fun onEachUiDataUpdate(update: Update<ColorInputHexUiData>) {
         if (!update.causedByUser) return // don't synchronize this update with other Views
         val uiData = update.data
         val input = uiData.assembleColorInput()
