@@ -2,7 +2,7 @@ package io.github.mmolosay.thecolor.input
 
 data class ColorInputUiData(
     val viewType: ViewType,
-    val onInputTypeSelect: (ViewType) -> Unit,
+    val onInputTypeChange: (ViewType) -> Unit,
     val hexLabel: String,
     val rgbLabel: String,
 ) {

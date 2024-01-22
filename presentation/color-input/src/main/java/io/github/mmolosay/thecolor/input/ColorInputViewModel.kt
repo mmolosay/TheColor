@@ -27,7 +27,7 @@ class ColorInputViewModel @AssistedInject constructor(
         }
     }
 
-    private fun onInputTypeSelect(type: ViewType) {
+    private fun onInputTypeChange(type: ViewType) {
         _uiDataFlow.update {
             it.copy(viewType = type)
         }
@@ -36,7 +36,7 @@ class ColorInputViewModel @AssistedInject constructor(
     private fun initialUiData(viewData: ColorInputUiData.ViewData) =
         ColorInputUiData(
             viewType = ViewType.Hex,
-            onInputTypeSelect = ::onInputTypeSelect,
+            onInputTypeChange = ::onInputTypeChange,
             hexLabel = viewData.hexLabel,
             rgbLabel = viewData.rgbLabel,
         )

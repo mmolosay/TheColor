@@ -92,7 +92,7 @@ private fun InputSelector(
             val labelText = type.label(uiData)
             FilterChip(
                 selected = (type == uiData.viewType),
-                onClick = { uiData.onInputTypeSelect(type) },
+                onClick = { uiData.onInputTypeChange(type) },
                 label = { ChipLabel(labelText) }
             )
         }
@@ -133,7 +133,7 @@ private fun Preview() {
 private fun previewUiData() =
     ColorInputUiData(
         viewType = ViewType.Hex,
-        onInputTypeSelect = {},
+        onInputTypeChange = {},
         hexLabel = "HEX",
         rgbLabel = "RGB",
     )
