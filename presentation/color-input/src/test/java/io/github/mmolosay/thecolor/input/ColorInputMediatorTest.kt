@@ -10,6 +10,7 @@ import io.github.mmolosay.thecolor.input.model.isCompleteFromUserPerspective
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -18,12 +19,14 @@ import io.mockk.unmockkAll
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.timeout
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -53,6 +56,43 @@ class ColorInputMediatorTest {
 
     lateinit var sut: ColorInputMediator
 
+    @OptIn(FlowPreview::class)
+    @Test
+    fun `sut emits no values from flows when created and not initialized`() {
+        createSut()
+
+        runBlocking {
+            shouldThrow<TimeoutCancellationException> {
+                sut.hexColorInputFlow
+                    .timeout(100.milliseconds)
+                    .collect()
+            }
+        }
+    }
+
+    @Test
+    fun `sut emits from flows when initialized and initial color is not null`() =
+        runTest(testDispatcher) {
+            val initialColor = newAbstractColor()
+            val hexColor = Color.Hex(0x00bfff)
+            val rgbColor = Color.Rgb(0, 191, 255)
+            val hexInput = ColorInput.Hex("00BFFF")
+            val rgbInput = ColorInput.Rgb("0", "191", "255")
+            coEvery { getInitialColor() } returns initialColor
+            every { with(colorConverter) { initialColor.toHex() } } returns hexColor
+            every { with(colorConverter) { initialColor.toRgb() } } returns rgbColor
+            every { with(colorInputMapper) { hexColor.toColorInput() } } returns hexInput
+            every { with(colorInputMapper) { rgbColor.toColorInput() } } returns rgbInput
+            createSut()
+
+            sut.init()
+
+            // value check doesn't matter here: if flow doesn't emmit, never finished
+            // supsending call will cause the test to timeout and failure
+            sut.hexColorInputFlow.first() shouldNotBe null
+            sut.rgbColorInputFlow.first() shouldNotBe null
+        }
+
     @Test
     fun `initial not-null color from use case is emitted from flows`() = runTest(testDispatcher) {
         val initialColor = newAbstractColor()
@@ -67,6 +107,7 @@ class ColorInputMediatorTest {
         every { with(colorInputMapper) { rgbColor.toColorInput() } } returns rgbInput
 
         createSut()
+        sut.init()
 
         sut.hexColorInputFlow.first() shouldBe hexInput
         sut.rgbColorInputFlow.first() shouldBe rgbInput
@@ -79,6 +120,7 @@ class ColorInputMediatorTest {
         every { colorInputFactory.emptyRgb() } returns ColorInput.Rgb("em", "p", "ty")
 
         createSut()
+        sut.init()
 
         sut.hexColorInputFlow.first() shouldBe ColorInput.Hex("empty")
         sut.rgbColorInputFlow.first() shouldBe ColorInput.Rgb("em", "p", "ty")
@@ -97,17 +139,17 @@ class ColorInputMediatorTest {
         every { with(colorConverter) { colorFromFactory.toAbstract() } } returns abstract
         every { with(colorConverter) { abstract.toHex() } } returns hex
         createSut()
-
-        launch {
-            shouldThrow<TimeoutCancellationException> {
-                sut.hexColorInputFlow
-                    .drop(1)
-                    .timeout(1000.milliseconds)
-                    .first()
-            }
-        }
+        sut.init()
 
         sut.send(sentColorInput)
+
+        runBlocking {
+            shouldThrow<TimeoutCancellationException> {
+                sut.hexColorInputFlow
+                    .timeout(100.milliseconds)
+                    .collect()
+            }
+        }
     }
 
     @Test
@@ -125,15 +167,11 @@ class ColorInputMediatorTest {
             every { with(colorConverter) { abstract.toRgb() } } returns rgb
             every { with(colorInputMapper) { rgb.toColorInput() } } returns emittedRgbColorInput
             createSut()
-
-            val collectionJob = launch {
-                sut.rgbColorInputFlow
-                    .drop(1) // ignore initial color
-                    .first() shouldBe emittedRgbColorInput
-            }
+            sut.init()
 
             sut.send(sentColorInput)
-            collectionJob.join()
+
+            sut.rgbColorInputFlow.first() shouldBe emittedRgbColorInput
         }
 
     @Test
@@ -145,15 +183,11 @@ class ColorInputMediatorTest {
             every { sentColorInput.isCompleteFromUserPerspective() } returns false
             every { colorInputFactory.emptyRgb() } returns emittedRgbColorInput
             createSut()
-
-            launch {
-                sut.rgbColorInputFlow
-                    .drop(1) // ignore initial color
-                    .first() shouldBe emittedRgbColorInput
-            }
+            sut.init()
 
             sut.send(sentColorInput)
 
+            sut.rgbColorInputFlow.first() shouldBe emittedRgbColorInput
             unmockkAll()
         }
 
@@ -165,6 +199,7 @@ class ColorInputMediatorTest {
             every { any<ColorInput>().isCompleteFromUserPerspective() } returns false
             every { colorInputFactory.emptyRgb() } returns emittedRgbColorInput
             createSut()
+            sut.init()
             val collected = mutableListOf<ColorInput.Rgb>()
 
             launch {
