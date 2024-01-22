@@ -2,6 +2,7 @@ package io.github.mmolosay.thecolor.input
 
 import io.github.mmolosay.thecolor.domain.model.ColorPrototype
 import io.github.mmolosay.thecolor.input.model.ColorInput
+import io.github.mmolosay.thecolor.input.model.isInShortForm
 import javax.inject.Inject
 import io.github.mmolosay.thecolor.domain.model.Color as DomainColor
 
@@ -16,10 +17,13 @@ class ColorInputMapper @Inject constructor() {
             is ColorInput.Rgb -> this.toPrototype()
         }
 
-    fun ColorInput.Hex.toPrototype(): ColorPrototype.Hex =
-        ColorPrototype.Hex(
-            value = this.string.toIntOrNull(radix = 16),
+    fun ColorInput.Hex.toPrototype(): ColorPrototype.Hex {
+        val finalString = string.takeUnless { isInShortForm } ?: string.doubleEveryChar()
+        return ColorPrototype.Hex(
+            value = finalString.toIntOrNull(radix = 16),
         )
+    }
+
 
     fun ColorInput.Rgb.toPrototype(): ColorPrototype.Rgb =
         ColorPrototype.Rgb(
@@ -28,10 +32,10 @@ class ColorInputMapper @Inject constructor() {
             b = this.b.toIntOrNull(),
         )
 
-    @OptIn(ExperimentalStdlibApi::class)
     fun DomainColor.Hex.toColorInput(): ColorInput.Hex {
         val string = this.value
-            .toHexString(format = HexFormat.UpperCase)
+            .toString(radix = 16)
+            .uppercase()
             .trimStart { it == '0' }
             .padStart(6, '0')
         return ColorInput.Hex(string)
@@ -43,4 +47,12 @@ class ColorInputMapper @Inject constructor() {
             g = this.g.toString(),
             b = this.b.toString(),
         )
+
+    private fun String.doubleEveryChar(): String {
+        val result = StringBuilder()
+        for (char in this) {
+            repeat(2) { result.append(char) }
+        }
+        return result.toString()
+    }
 }

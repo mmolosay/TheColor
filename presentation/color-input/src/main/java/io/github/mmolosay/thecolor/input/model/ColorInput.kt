@@ -17,6 +17,12 @@ sealed interface ColorInput {
     ) : ColorInput
 }
 
+val ColorInput.Hex.isInShortForm: Boolean
+    get() = string.length == 3
+
+val ColorInput.Hex.isInFullForm: Boolean
+    get() = string.length == 6
+
 /**
  * Imagine user enters "1" into hex color input View.
  * From data validation perspective, it is a valid, finished color: 0x1 == 0x000001 or RGB(0, 0, 1).
@@ -29,11 +35,8 @@ fun ColorInput.isCompleteFromUserPerspective(): Boolean =
         is ColorInput.Rgb -> this.isCompleteFromUserPerspective()
     }
 
-fun ColorInput.Hex.isCompleteFromUserPerspective(): Boolean {
-    fun shortForm() = string.length == 3
-    fun fullForm() = string.length == 6
-    return shortForm() || fullForm()
-}
+fun ColorInput.Hex.isCompleteFromUserPerspective(): Boolean =
+    isInShortForm || isInFullForm
 
 fun ColorInput.Rgb.isCompleteFromUserPerspective(): Boolean =
     r.isNotEmpty() && g.isNotEmpty() && b.isNotEmpty()
