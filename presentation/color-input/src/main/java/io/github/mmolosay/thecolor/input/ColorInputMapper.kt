@@ -8,7 +8,6 @@ import io.github.mmolosay.thecolor.domain.model.Color as DomainColor
 /**
  * Maps [ColorInput] to and from domain models.
  */
-// TODO: this component is in ":color-input" module, so should be 'ColorInput'
 class ColorInputMapper @Inject constructor() {
 
     fun ColorInput.toPrototype(): ColorPrototype =
