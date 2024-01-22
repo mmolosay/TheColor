@@ -23,55 +23,81 @@ class TextFieldViewModelTest {
     lateinit var sut: TextFieldViewModel
 
     val uiDataUpdate: Update<TextFieldUiData>
-        get() = sut.uiDataUpdatesFlow.value
+        get() = requireNotNull(sut.uiDataUpdatesFlow.value)
 
     val uiData: TextFieldUiData
         get() = uiDataUpdate.data
 
     @Test
-    fun `initial text is set to initial UiData`() {
-        val initialText = Text("anything")
+    fun `sut is created with null UiData`() {
+        createSut()
 
-        createSut(initialText)
-
-        uiData.text shouldBe initialText
+        sut.uiDataUpdatesFlow.value shouldBe null
     }
 
     @Test
-    fun `initial UiData update is not caused by user`() {
+    fun `UiData is initialized when text is changed by companion`() {
         createSut()
 
-        uiDataUpdate.causedByUser shouldBe false
-    }
+        sut updateWith Text("initial")
 
-    @Test
-    fun `UiData update is caused by user when text is changed from UI`() {
-        createSut()
-        val initialUiData = uiData
-
-        uiData.onTextChange(Text("new"))
-        val newUiData = uiData
-
-        newUiData shouldBe initialUiData.copy(text = Text("new"))
-        uiDataUpdate.causedByUser shouldBe true
+        uiData.text shouldBe Text("initial")
     }
 
     @Test
     fun `UiData update is not caused by user when text is changed by companion`() {
         createSut()
-        val initialUiData = uiData
 
-        sut updateWith Text("new")
-        val newUiData = uiData
+        sut updateWith Text("initial")
 
-        newUiData shouldBe initialUiData.copy(text = Text("new"))
         uiDataUpdate.causedByUser shouldBe false
     }
 
     @Test
-    fun `trailing button is visible when text is non-empty`() {
+    fun `UiData text is updated when text is changed from UI`() {
+        createSut()
+        sut updateWith Text("initial")
+
+        uiData.onTextChange(Text("new"))
+
+        uiData.text shouldBe Text("new")
+    }
+
+    @Test
+    fun `UiData update is caused by user when text is changed from UI`() {
+        createSut()
+        sut updateWith Text("initial")
+
+        uiData.onTextChange(Text("new"))
+
+        uiDataUpdate.causedByUser shouldBe true
+    }
+
+    @Test
+    fun `trailing button is visible on initialization when text is non-empty`() {
         every { viewData.trailingIcon } returns mockk<TrailingIcon.Exists>(relaxed = true)
         createSut()
+
+        sut updateWith Text("non-empty text")
+
+        uiData.trailingButton should beOfType<TrailingButton.Visible>()
+    }
+
+    @Test
+    fun `trailing button is hidden on initialization when text is empty`() {
+        every { viewData.trailingIcon } returns mockk<TrailingIcon.Exists>(relaxed = true)
+        createSut()
+
+        sut updateWith Text("")
+
+        uiData.trailingButton should beOfType<TrailingButton.Hidden>()
+    }
+
+    @Test
+    fun `trailing button is visible when text is changed from UI and text is non-empty`() {
+        every { viewData.trailingIcon } returns mockk<TrailingIcon.Exists>(relaxed = true)
+        createSut()
+        sut updateWith Text("initial")
 
         uiData.onTextChange(Text("non-empty text"))
 
@@ -79,9 +105,10 @@ class TextFieldViewModelTest {
     }
 
     @Test
-    fun `trailing button is hidden when text is empty`() {
+    fun `trailing button is hidden when text is changed from UI and text is empty`() {
         every { viewData.trailingIcon } returns mockk<TrailingIcon.Exists>(relaxed = true)
         createSut()
+        sut updateWith Text("initial")
 
         uiData.onTextChange(Text(""))
 
@@ -92,6 +119,7 @@ class TextFieldViewModelTest {
     fun `trailing button is hidden when there should be no such`() {
         every { viewData.trailingIcon } returns TrailingIcon.None
         createSut()
+        sut updateWith Text("initial")
 
         uiData.onTextChange(Text("any text"))
 
@@ -101,34 +129,30 @@ class TextFieldViewModelTest {
     @Test
     fun `text is cleared on trailing button click`() {
         every { viewData.trailingIcon } returns mockk<TrailingIcon.Exists>(relaxed = true)
-        createSut(initialText = Text("non empty so trailing button is visible"))
+        createSut()
+        sut updateWith Text("initial non-empty text")
 
         (uiData.trailingButton as TrailingButton.Visible).onClick()
 
-        uiData.text.string shouldBe ""
+        uiData.text shouldBe Text("")
     }
 
     @Test
     fun `UiData update is caused by user when trailing button is clicked`() {
         every { viewData.trailingIcon } returns mockk<TrailingIcon.Exists>(relaxed = true)
-        createSut(initialText = Text("non empty so trailing button is visible"))
+        createSut()
+        sut updateWith Text("initial non-empty text")
 
         (uiData.trailingButton as TrailingButton.Visible).onClick()
 
         uiDataUpdate.causedByUser shouldBe true
     }
 
-    fun createSut(
-        initialText: Text = Text(""),
-        filterUserInput: (String) -> Text = noopFilterUserInput,
-    ) =
+    fun createSut() =
         TextFieldViewModel(
-            initialText = initialText,
             viewData = viewData,
-            filterUserInput = filterUserInput,
+            filterUserInput = { Text(it) },
         ).also {
             sut = it
         }
-
-    val noopFilterUserInput: (String) -> Text = { Text(it) }
 }
