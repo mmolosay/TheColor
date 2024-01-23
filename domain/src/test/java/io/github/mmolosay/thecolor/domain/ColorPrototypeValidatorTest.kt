@@ -2,6 +2,7 @@ package io.github.mmolosay.thecolor.domain
 
 import io.github.mmolosay.thecolor.domain.model.ColorPrototype
 import io.github.mmolosay.thecolor.domain.usecase.ColorPrototypeValidator
+import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -18,7 +19,10 @@ class ColorPrototypeValidatorTest(
     @Test
     fun `color prototype validation`() {
         val result = with(sut) { prototype.isValid() }
-        result shouldBe expectedValid
+
+        withClue("Prototype $prototype should be valid=$expectedValid") {
+            result shouldBe expectedValid
+        }
     }
 
     companion object {
@@ -36,7 +40,7 @@ class ColorPrototypeValidatorTest(
             /* #7  */ ColorPrototype.Hex(0xAD8027) shouldBeValid true,
             /* #8  */ ColorPrototype.Hex(0xFFFFFF) shouldBeValid true,
             /* #9  */ ColorPrototype.Hex(0x1000000) shouldBeValid false,
-            /* #10  */ ColorPrototype.Hex(0x963FF20) shouldBeValid false,
+            /* #10 */ ColorPrototype.Hex(0x963FF20) shouldBeValid false,
 
             /* #11 */ ColorPrototype.Rgb(null, 1, 2) shouldBeValid false,
             /* #12 */ ColorPrototype.Rgb(0, null, 2) shouldBeValid false,
@@ -51,7 +55,7 @@ class ColorPrototypeValidatorTest(
             /* #21 */ ColorPrototype.Rgb(0, 0, 256) shouldBeValid false,
         )
 
-        infix fun ColorPrototype.shouldBeValid(expected: Boolean): Array<Any> =
-            arrayOf(this, expected)
+        infix fun ColorPrototype.shouldBeValid(expectedValid: Boolean): Array<Any> =
+            arrayOf(this, expectedValid)
     }
 }
