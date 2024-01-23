@@ -6,7 +6,6 @@ import javax.inject.Inject
 /**
  * Converts between different instances of [Color].
  */
-// TODO: use third-party library for converting
 class ColorConverter @Inject constructor() {
 
     fun Color.toAbstract(): Color.Abstract =
