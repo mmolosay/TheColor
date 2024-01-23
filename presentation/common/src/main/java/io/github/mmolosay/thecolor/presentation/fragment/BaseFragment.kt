@@ -96,7 +96,9 @@ abstract class BaseFragment : Fragment() {
      * Sets fragment's views and configures them.
      * Being called in [Fragment.onViewCreated] method.
      */
-    protected abstract fun setViews()
+    protected open fun setViews() {
+        // default empty implementation
+    }
 
     // endregion
 

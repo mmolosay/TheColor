@@ -112,7 +112,7 @@ inline fun <reified T> Fragment.parentOf(): T? {
     return null
 }
 
-inline fun <reified T> Fragment.requireParentOf(): T =
+inline fun <reified T> Fragment.requireParentFragmentOfType(): T =
     requireNotNull(this.parentFragment) as T
 
 inline fun <reified T> Fragment.ancestorOf(): T? {

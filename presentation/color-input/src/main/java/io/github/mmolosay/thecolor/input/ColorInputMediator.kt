@@ -32,18 +32,14 @@ class ColorInputMediator @Inject constructor(
     private val colorInputFactory: ColorInputFactory,
 ) {
 
-    private val stateFlow = MutableSharedFlow<ColorState?>(
+    val colorStateFlow = MutableSharedFlow<ColorState?>(
         replay = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
     )
     private var lastUsedInputType: InputType? = null
 
-    suspend fun init() {
-        stateFlow.tryEmit(getInitialColor().toState())
-    }
-
     val hexColorInputFlow: Flow<ColorInput.Hex> =
-        stateFlow
+        colorStateFlow
             .filterNotNull()
             .filter { lastUsedInputType != InputType.Hex } // prevent interrupting user
             .map {
@@ -57,7 +53,7 @@ class ColorInputMediator @Inject constructor(
             }
 
     val rgbColorInputFlow: Flow<ColorInput.Rgb> =
-        stateFlow
+        colorStateFlow
             .filterNotNull()
             .filter { lastUsedInputType != InputType.Rgb } // prevent interrupting user
             .map {
@@ -70,10 +66,14 @@ class ColorInputMediator @Inject constructor(
                 }
             }
 
+    suspend fun init() {
+        colorStateFlow.emit(getInitialColor().toState())
+    }
+
     suspend fun send(input: ColorInput) {
         lastUsedInputType = input.type()
         input.toAbstractOrNull().toState()
-            .also { stateFlow.emit(it) }
+            .also { colorStateFlow.emit(it) }
     }
 
     private fun ColorInput.toAbstractOrNull(): Color.Abstract? {
@@ -97,7 +97,7 @@ class ColorInputMediator @Inject constructor(
         }
 
     /** State of the color the user is currently working with in color input View */
-    private sealed interface ColorState {
+    sealed interface ColorState {
         data object Invalid : ColorState // unfinished color
         data class Valid(val color: Color.Abstract) : ColorState
     }

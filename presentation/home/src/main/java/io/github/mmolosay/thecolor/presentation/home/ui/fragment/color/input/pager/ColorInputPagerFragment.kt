@@ -7,20 +7,29 @@ import android.view.ViewGroup
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.lifecycle.withCreationCallback
+import io.github.mmolosay.thecolor.domain.model.Color
+import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.input.ColorInput
+import io.github.mmolosay.thecolor.input.ColorInputMapper
 import io.github.mmolosay.thecolor.input.ColorInputViewData
 import io.github.mmolosay.thecolor.input.ColorInputViewModel
 import io.github.mmolosay.thecolor.input.hex.ColorInputHexViewData
 import io.github.mmolosay.thecolor.input.hex.ColorInputHexViewModel
 import io.github.mmolosay.thecolor.input.rgb.ColorInputRgbViewData
 import io.github.mmolosay.thecolor.input.rgb.ColorInputRgbViewModel
-import io.github.mmolosay.thecolor.presentation.color.Color
-import io.github.mmolosay.thecolor.presentation.color.ColorPrototype
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.fragment.BaseFragment
 import io.github.mmolosay.thecolor.presentation.home.ui.fragment.color.input.page.ColorInputParent
+import io.github.mmolosay.thecolor.presentation.util.ext.requireParentFragmentOfType
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+import io.github.mmolosay.thecolor.presentation.color.Color as OldColor
+import io.github.mmolosay.thecolor.presentation.color.ColorPrototype as OldColorPrototype
 
 /**
  * `Fragment` with `ViewPager` which contains `Fragment`s of specific color scheme inputs.
@@ -32,12 +41,15 @@ class ColorInputPagerFragment :
     ColorInputPagerView,
     ColorInputParent {
 
-//    private val binding by viewBinding(ColorInputPagerFragmentBinding::bind)
-//    private val colorInputVM: ColorInputViewModel by viewModels()
-//
-//    private val parent: ColorInputParent? by lazy { requireParentOf() }
+    @Inject
+    lateinit var colorInputMapper: ColorInputMapper
 
-    private val inputViewModel: ColorInputViewModel by viewModels(
+    @Inject
+    lateinit var colorConverter: ColorConverter
+
+    private val parent: ColorInputParent? by lazy { requireParentFragmentOfType() }
+
+    private val colorInputViewModel: ColorInputViewModel by viewModels(
         extrasProducer = {
             defaultViewModelCreationExtras.withCreationCallback<ColorInputViewModel.Factory> { factory ->
                 val viewData = ColorInputViewData(requireContext())
@@ -74,7 +86,7 @@ class ColorInputPagerFragment :
             setContent {
                 TheColorTheme {
                     ColorInput(
-                        vm = inputViewModel,
+                        vm = colorInputViewModel,
                         hexViewModel = hexViewModel,
                         rgbViewModel = rgbViewModel,
                     )
@@ -82,52 +94,49 @@ class ColorInputPagerFragment :
             }
         }
 
-    // region Set views
-
-    override fun setViews() {
-//        setViewPager()
-//        setTabs()
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        collectCurrentColorFlow()
     }
 
-//    private fun setViewPager() = binding.run {
-//        val adapter = ColorInputPagerAdapter(this@ColorInputPagerFragment)
-//        val decoration = MarginDecoration.Horizontal(
-//            resources,
-//            CommonR.dimen.offset_content_horizontal
-//        )
-//        pager.adapter = adapter
-//        pager.offscreenPageLimit = adapter.itemCount
-//        pager.addItemDecoration(decoration)
-//    }
+    private fun collectCurrentColorFlow() =
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                colorInputViewModel.currentColorFlow.collect(::currentColorFlowCollector)
+            }
+        }
 
-//    private fun setTabs() = binding.run {
-//        TabLayoutMediator(tabs, pager, ::configureInputTab).attach()
-//    }
+    private fun currentColorFlowCollector(color: Color.Abstract?) {
+        if (color != null) {
+            val oldPrototype = color.toOldColorPrototype()
+            onInputChanged(oldPrototype)
+        } else {
+            onInputChanged(OldColorPrototype.Hex(value = null))
+        }
+    }
 
-//    private fun configureInputTab(tab: TabLayout.Tab, position: Int) {
-//        val page = getFromEnumOrNull<ColorInputPagerAdapter.Page>(position) ?: return
-//        tab.setText(page.titleRes)
-//    }
-
-    // endregion
+    private fun Color.Abstract.toOldColorPrototype(): OldColorPrototype {
+        val colorHex = with(colorConverter) { toHex() }
+        val colorInputHex = with(colorInputMapper) { colorHex.toColorInput() }
+        return OldColorPrototype.Hex(value = colorInputHex.string)
+    }
 
     // region ColorInputPagerView
 
-    override fun updateCurrentColor(color: Color) {
-//        colorInputVM.updateCurrentColor(color)
+    override fun updateCurrentColor(color: OldColor) {
+        // TODO: this feature doesn't work temporarily. Update after View UI is gone.
     }
 
     override fun clearCurrentColor() {
-//        colorInputVM.clearColorInput()
+        // TODO: this feature doesn't work temporarily. Update after View UI is gone.
     }
 
     // endregion
 
     // region ColorInputParent
 
-    // delegates
-    override fun onInputChanged(input: ColorPrototype) {
-//        parent?.onInputChanged(input)
+    override fun onInputChanged(input: OldColorPrototype) {
+        parent?.onInputChanged(input)
     }
 
     // endregion
