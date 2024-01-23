@@ -9,6 +9,8 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.emptyFlow
 import org.junit.Rule
 import org.junit.Test
 
@@ -24,6 +26,8 @@ class ColorInputViewModelTest {
 
     val mediator: ColorInputMediator = mockk {
         coEvery { init() } just runs
+        // TODO: probably will require some changes / refinements when View UI is gone
+        every { colorStateFlow } returns MutableSharedFlow()
     }
 
     lateinit var sut: ColorInputViewModel
