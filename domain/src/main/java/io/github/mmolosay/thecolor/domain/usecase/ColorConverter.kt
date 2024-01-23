@@ -30,15 +30,13 @@ class ColorConverter @Inject constructor() {
     }
 
     fun Color.Abstract.toHex(): Color.Hex {
-        val abstract = this as Color.Abstract
-        return Color.Hex(value = abstract.int)
+        return Color.Hex(value = this.int)
     }
 
     fun Color.Abstract.toRgb(): Color.Rgb {
-        val abstract = this as Color.Abstract
-        val r = (abstract.int shr 16) and 0xFF
-        val g = (abstract.int shr 8) and 0xFF
-        val b = abstract.int and 0xFF
+        val r = (this.int shr 16) and 0xFF
+        val g = (this.int shr 8) and 0xFF
+        val b = this.int and 0xFF
         return Color.Rgb(r, g, b)
     }
 }
