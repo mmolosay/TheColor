@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- TODO: remove once View UI is gone -->
     <!-- region Generic -->
 
     <string name="generic_yes">Yes</string>
