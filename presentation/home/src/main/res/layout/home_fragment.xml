@@ -54,6 +54,7 @@
             android:id="@+id/proceedBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/offset_16"
             android:enabled="false"
             android:text="@string/home_proceed_btn"
 

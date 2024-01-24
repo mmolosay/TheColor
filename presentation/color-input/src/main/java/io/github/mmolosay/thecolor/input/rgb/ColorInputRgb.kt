@@ -1,6 +1,5 @@
 package io.github.mmolosay.thecolor.input.rgb
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
@@ -39,9 +38,7 @@ fun ColorInputRgb(
 fun ColorInputRgb(
     uiData: ColorInputRgbUiData,
 ) {
-    Row(
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
+    Row {
         @Composable
         fun SpacerInBetween() = Spacer(modifier = Modifier.width(16.dp))
 

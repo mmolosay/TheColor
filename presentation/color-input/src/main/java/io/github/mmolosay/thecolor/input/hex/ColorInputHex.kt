@@ -1,14 +1,12 @@
 package io.github.mmolosay.thecolor.input.hex
 
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -40,9 +38,7 @@ fun ColorInputHex(
 ) {
     var value by remember { mutableStateOf(TextFieldValue(text = uiData.textField.text.string)) }
     TextField(
-        modifier = Modifier
-            .wrapContentSize(align = Alignment.TopCenter) // ComposeView propagates min=max constraints
-            .fillMaxWidth(0.5f),
+        modifier = Modifier.fillMaxWidth(0.5f),
         uiData = uiData.textField,
         value = value,
         updateValue = { new -> value = new },

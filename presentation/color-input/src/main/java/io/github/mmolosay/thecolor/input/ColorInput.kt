@@ -12,16 +12,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.input.ColorInputUiData.ViewType
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData
 import io.github.mmolosay.thecolor.input.hex.ColorInputHex
@@ -30,6 +31,7 @@ import io.github.mmolosay.thecolor.input.hex.ColorInputHexViewModel
 import io.github.mmolosay.thecolor.input.rgb.ColorInputRgb
 import io.github.mmolosay.thecolor.input.rgb.ColorInputRgbUiData
 import io.github.mmolosay.thecolor.input.rgb.ColorInputRgbViewModel
+import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 
 @Composable
 fun ColorInput(
@@ -75,7 +77,7 @@ fun ColorInput(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
         InputSelector(uiData)
     }
 }
@@ -88,13 +90,17 @@ private fun InputSelector(
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        ViewType.entries.forEach { type ->
-            val labelText = type.label(uiData)
-            FilterChip(
-                selected = (type == uiData.viewType),
-                onClick = { uiData.onInputTypeChange(type) },
-                label = { ChipLabel(labelText) }
-            )
+        CompositionLocalProvider(
+            LocalMinimumInteractiveComponentEnforcement provides false,
+        ) {
+            ViewType.entries.forEach { type ->
+                val labelText = type.label(uiData)
+                FilterChip(
+                    selected = (type == uiData.viewType),
+                    onClick = { uiData.onInputTypeChange(type) },
+                    label = { ChipLabel(labelText) }
+                )
+            }
         }
     }
 }
