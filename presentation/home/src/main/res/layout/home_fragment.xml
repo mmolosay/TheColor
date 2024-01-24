@@ -42,7 +42,7 @@
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/colorInputFragmentContainer"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/color_input_pager_fragment_height"
+            android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/offset_16"
 
             app:layout_constraintEnd_toEndOf="parent"
