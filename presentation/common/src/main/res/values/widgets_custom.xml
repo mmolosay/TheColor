@@ -35,7 +35,7 @@
         <item name="dividerInsetEnd">@dimen/offset_content_horizontal</item>
     </style>
 
-    <!-- solution to override any specified textApearance's fontFamily -->
+    <!-- solution to override any specified textAppearance's fontFamily -->
     <style name="Widget.TextView.Value" parent="">
         <item name="fontFamily">sans-serif</item>
         <item name="android:fontFamily">sans-serif</item>
