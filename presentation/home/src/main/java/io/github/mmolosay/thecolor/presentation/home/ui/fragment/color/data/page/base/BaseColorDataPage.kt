@@ -18,7 +18,7 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.color.data.ColorD
 import io.github.mmolosay.thecolor.presentation.util.ext.getNextFor
 import io.github.mmolosay.thecolor.presentation.util.ext.parentViewModels
 import io.github.mmolosay.thecolor.presentation.util.ext.setFragmentOrGet
-import io.github.mmolosay.thecolor.presentation.R as CommonR
+import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 abstract class BaseColorDataPage :
     BaseFragment(),
@@ -47,9 +47,9 @@ abstract class BaseColorDataPage :
         /* ViewPager2 inflates its fragments without container,
         * thus parent view group theme can not be used :< */
         val themeOverlay = if (color?.isDark() == true) {
-            CommonR.style.ThemeOverlay_TheColor_Dark
+            DesignR.style.ThemeOverlay_TheColor_Dark
         } else {
-            CommonR.style.ThemeOverlay_TheColor_Light
+            DesignR.style.ThemeOverlay_TheColor_Light
         }
         val themedContext = ContextThemeWrapper(context, themeOverlay)
         return inflater

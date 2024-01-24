@@ -23,7 +23,7 @@ import io.github.mmolosay.thecolor.presentation.util.ext.ancestorOf
 import io.github.mmolosay.thecolor.presentation.util.ext.by
 import io.github.mmolosay.thecolor.presentation.util.ext.mediumAnimDuration
 import io.github.mmolosay.thecolor.presentation.util.ext.setFragmentOrGet
-import io.github.mmolosay.thecolor.presentation.R as CommonR
+import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 /**
  * Editor fragment for color scheme. It can:
@@ -45,7 +45,7 @@ class ColorSchemeEditorFragment :
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
         return inflater
             .cloneInViewContext(container)
@@ -102,7 +102,7 @@ class ColorSchemeEditorFragment :
     private fun animDispatchChangesBtn(show: Boolean) =
         binding.dispatchChangesBtn.apply {
             if (show == !isInvisible) return@apply // already in dest state
-            val translation = resources.getDimension(CommonR.dimen.offset_12)
+            val translation = resources.getDimension(DesignR.dimen.offset_12)
             val alphaValues = 1f to 0f
             val translationValues = 0f to translation
             alpha = alphaValues by !show // initial
@@ -148,7 +148,7 @@ class ColorSchemeEditorFragment :
 
     override fun onCurrentConfigChanged(
         applied: ColorSchemeRequest.Config,
-        current: ColorSchemeRequest.Config
+        current: ColorSchemeRequest.Config,
     ) {
         val hasChanges = (current != applied)
         animDispatchChangesBtn(show = hasChanges)

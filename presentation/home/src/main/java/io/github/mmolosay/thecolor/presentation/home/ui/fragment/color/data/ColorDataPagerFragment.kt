@@ -16,7 +16,7 @@ import io.github.mmolosay.thecolor.presentation.home.R
 import io.github.mmolosay.thecolor.presentation.home.databinding.ColorDataPagerFragmentBinding
 import io.github.mmolosay.thecolor.presentation.home.ui.adapter.pager.ColorDataPagerAdapter
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.color.data.ColorDataViewModel
-import io.github.mmolosay.thecolor.presentation.R as CommonR
+import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 @AndroidEntryPoint
 class ColorDataPagerFragment :
@@ -34,9 +34,9 @@ class ColorDataPagerFragment :
         savedInstanceState: Bundle?
     ): View? {
         val themeOverlay = if (color?.isDark() == true) {
-            CommonR.style.ThemeOverlay_TheColor_Dark
+            DesignR.style.ThemeOverlay_TheColor_Dark
         } else {
-            CommonR.style.ThemeOverlay_TheColor_Light
+            DesignR.style.ThemeOverlay_TheColor_Light
         }
         val themedContext = ContextThemeWrapper(context, themeOverlay)
         return inflater

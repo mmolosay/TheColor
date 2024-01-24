@@ -12,7 +12,7 @@
     </style>
 
     <style name="TextAppearance.Widget.TabLayout" parent="TextAppearance.TheColor.TitleSmall">
-        <item name="android:textColor">@color/cls_widget_tab_layout_text</item>
+        <item name="android:textColor">@color/csl_widget_tab_layout_text</item>
     </style>
 
 </resources>

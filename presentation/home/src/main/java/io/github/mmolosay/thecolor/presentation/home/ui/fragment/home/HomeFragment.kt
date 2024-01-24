@@ -58,7 +58,7 @@ import io.github.mmolosay.thecolor.presentation.util.setNavigationBarColor
 import io.github.mmolosay.thecolor.presentation.util.struct.AnimatorDestination
 import android.graphics.Color as ColorAndroid
 import com.google.android.material.R as RMaterial
-import io.github.mmolosay.thecolor.presentation.R as CommonR
+import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 @AndroidEntryPoint
 class HomeFragment :
@@ -77,7 +77,7 @@ class HomeFragment :
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View? {
         return inflater.inflate(R.layout.home_fragment, container, false)
     }
@@ -427,7 +427,7 @@ class HomeFragment :
     private fun calcColorDataRevealCenter(): Point {
         val data = binding.colorDataWrapper
         val bottom = data.getBottomVisibleInParent(binding.root) ?: data.height
-        val padding = resources.getDimensionPixelSize(CommonR.dimen.offset_32)
+        val padding = resources.getDimensionPixelSize(DesignR.dimen.offset_32)
         val previewRadius = binding.previewGroup.height / 2
         val x = data.width / 2
         val yApprox = bottom - padding - previewRadius

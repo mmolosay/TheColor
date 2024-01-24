@@ -15,7 +15,7 @@ import io.github.mmolosay.thecolor.presentation.home.ui.fragment.color.data.sche
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.color.data.scheme.ColorSchemeObtainViewModel
 import io.github.mmolosay.thecolor.utils.Resource
 import kotlinx.coroutines.flow.Flow
-import io.github.mmolosay.thecolor.presentation.R as CommonR
+import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 @AndroidEntryPoint
 class ColorSchemeObtainFragment :
@@ -29,7 +29,7 @@ class ColorSchemeObtainFragment :
     override fun setViews() {
         super.setViews()
         view?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-            topMargin = resources.getDimensionPixelSize(CommonR.dimen.offset_16)
+            topMargin = resources.getDimensionPixelSize(DesignR.dimen.offset_16)
         }
     }
 

@@ -23,7 +23,7 @@ import io.github.mmolosay.thecolor.presentation.util.ext.showToast
 import io.github.mmolosay.thecolor.utils.Resource
 import kotlinx.coroutines.flow.Flow
 import java.net.UnknownHostException
-import io.github.mmolosay.thecolor.presentation.R as CommonR
+import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 /**
  * Obtains [color] data of type [D] and passes it to child 'display-data-only' Fragment.
@@ -57,7 +57,7 @@ abstract class ColorDataObtainFragment<D> :
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View? {
         return inflater.cloneInViewContext(container)
             .inflate(R.layout.color_data_obtain_fragment, container, false)
@@ -177,7 +177,7 @@ abstract class ColorDataObtainFragment<D> :
 
     private fun animContentVisibility(visible: Boolean, instant: Boolean = false) {
         val content = binding.defaultFragmentContainer
-        val translation = resources.getDimension(CommonR.dimen.offset_8)
+        val translation = resources.getDimension(DesignR.dimen.offset_8)
         if (visible) content.translationY = translation
         val translationY = 0f to translation by visible
         val alpha = 1f to 0f by visible
