@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.merge
 /**
  * Combination of [SharingStarted.Eagerly] and [other] sharing strategy.
  *
- * We need to start eagerly so UiState flows of color input ViewModels can pre-compute
+ * We need to start eagerly so flows of color input ViewModels can pre-compute
  * their first emission. This way when UI subscribes to these flows, already emitted value
  * is replayed to them, so UI doesn't wait for a data transformation for even a moment.
  *
