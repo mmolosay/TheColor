@@ -12,7 +12,7 @@ import io.github.mmolosay.thecolor.input.field.TextFieldViewModel.Companion.upda
 import io.github.mmolosay.thecolor.input.model.DataState
 import io.github.mmolosay.thecolor.input.model.Update
 import io.github.mmolosay.thecolor.input.model.map
-import io.github.mmolosay.thecolor.input.model.toUiSate
+import io.github.mmolosay.thecolor.input.model.asDataState
 import io.github.mmolosay.thecolor.utils.onEachNotNull
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
@@ -38,7 +38,7 @@ class ColorInputHexViewModel @Inject constructor(
         textFieldVm.dataUpdatesFlow
             .map { it?.map(::makeData) }
             .onEachNotNull(::onEachUiDataUpdate)
-            .map { it?.data.toUiSate() }
+            .map { it?.data.asDataState() }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStartedEagerlyAnd(WhileSubscribed(5000)),
