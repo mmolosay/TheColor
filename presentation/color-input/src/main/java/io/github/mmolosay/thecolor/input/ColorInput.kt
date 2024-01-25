@@ -17,13 +17,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import io.github.mmolosay.thecolor.input.ColorInputUiData.ViewType
+import io.github.mmolosay.thecolor.input.ColorInputData.ViewType
+import io.github.mmolosay.thecolor.input.ColorInputUiData.ViewData
+import io.github.mmolosay.thecolor.input.field.TextFieldData
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData
 import io.github.mmolosay.thecolor.input.hex.ColorInputHex
 import io.github.mmolosay.thecolor.input.hex.ColorInputHexUiData
@@ -39,7 +43,9 @@ fun ColorInput(
     hexViewModel: ColorInputHexViewModel,
     rgbViewModel: ColorInputRgbViewModel,
 ) {
-    val uiData = vm.uiDataFlow.collectAsStateWithLifecycle().value
+    val viewData = rememberViewData()
+    val data = vm.dataFlow.collectAsStateWithLifecycle().value
+    val uiData = rememberUiData(data, viewData)
     ColorInput(
         uiData = uiData,
         hexInput = {
@@ -120,6 +126,19 @@ private fun ViewType.label(uiData: ColorInputUiData): String =
         ViewType.Rgb -> uiData.rgbLabel
     }
 
+@Composable
+private fun rememberViewData(): ViewData {
+    val context = LocalContext.current
+    return remember { ColorInputViewData(context) }
+}
+
+@Composable
+private fun rememberUiData(
+    data: ColorInputData,
+    viewData: ViewData,
+): ColorInputUiData =
+    remember(data) { data + viewData }
+
 @Preview(showBackground = true)
 @Composable
 private fun Preview() {
@@ -147,9 +166,9 @@ private fun previewUiData() =
 private fun previewInputHexUiData() =
     ColorInputHexUiData(
         textField = TextFieldUiData(
-            text = TextFieldUiData.Text(""),
+            text = TextFieldData.Text(""),
             onTextChange = {},
-            filterUserInput = { TextFieldUiData.Text(it) },
+            filterUserInput = { TextFieldData.Text(it) },
             label = "HEX",
             placeholder = "000000",
             prefix = "#",
@@ -163,9 +182,9 @@ private fun previewInputHexUiData() =
 private fun previewInputRgbUiData() =
     ColorInputRgbUiData(
         rTextField = TextFieldUiData(
-            text = TextFieldUiData.Text("12"),
+            text = TextFieldData.Text("12"),
             onTextChange = {},
-            filterUserInput = { TextFieldUiData.Text(it) },
+            filterUserInput = { TextFieldData.Text(it) },
             label = "R",
             placeholder = "0",
             prefix = "",
@@ -175,9 +194,9 @@ private fun previewInputRgbUiData() =
             ),
         ),
         gTextField = TextFieldUiData(
-            text = TextFieldUiData.Text(""),
+            text = TextFieldData.Text(""),
             onTextChange = {},
-            filterUserInput = { TextFieldUiData.Text(it) },
+            filterUserInput = { TextFieldData.Text(it) },
             label = "G",
             placeholder = "0",
             prefix = "",
@@ -187,9 +206,9 @@ private fun previewInputRgbUiData() =
             ),
         ),
         bTextField = TextFieldUiData(
-            text = TextFieldUiData.Text("255"),
+            text = TextFieldData.Text("255"),
             onTextChange = {},
-            filterUserInput = { TextFieldUiData.Text(it) },
+            filterUserInput = { TextFieldData.Text(it) },
             label = "B",
             placeholder = "0",
             prefix = "",

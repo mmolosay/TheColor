@@ -2,13 +2,10 @@ package io.github.mmolosay.thecolor.input
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.model.Color
+import io.github.mmolosay.thecolor.input.ColorInputData.ViewType
 import io.github.mmolosay.thecolor.input.ColorInputMediator.ColorState
-import io.github.mmolosay.thecolor.input.ColorInputUiData.ViewType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -18,15 +15,15 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-@HiltViewModel(assistedFactory = ColorInputViewModel.Factory::class)
-class ColorInputViewModel @AssistedInject constructor(
-    @Assisted viewData: ColorInputUiData.ViewData,
+@HiltViewModel
+class ColorInputViewModel @Inject constructor(
     private val mediator: ColorInputMediator,
 ) : ViewModel() {
 
-    private val _uiDataFlow = MutableStateFlow(initialUiData(viewData))
-    val uiDataFlow = _uiDataFlow.asStateFlow()
+    private val _dataFlow = MutableStateFlow(initialData())
+    val dataFlow = _dataFlow.asStateFlow()
 
     // TODO: used to connect Compose-oriented ViewModel with old UI in View.
     //       Refactor once old UI is gone.
@@ -52,21 +49,14 @@ class ColorInputViewModel @AssistedInject constructor(
     }
 
     private fun onInputTypeChange(type: ViewType) {
-        _uiDataFlow.update {
+        _dataFlow.update {
             it.copy(viewType = type)
         }
     }
 
-    private fun initialUiData(viewData: ColorInputUiData.ViewData) =
-        ColorInputUiData(
+    private fun initialData() =
+        ColorInputData(
             viewType = ViewType.Hex,
             onInputTypeChange = ::onInputTypeChange,
-            hexLabel = viewData.hexLabel,
-            rgbLabel = viewData.rgbLabel,
         )
-
-    @AssistedFactory
-    interface Factory {
-        fun create(viewData: ColorInputUiData.ViewData): ColorInputViewModel
-    }
 }

@@ -11,16 +11,12 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import dagger.hilt.android.lifecycle.withCreationCallback
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.input.ColorInput
 import io.github.mmolosay.thecolor.input.ColorInputMapper
-import io.github.mmolosay.thecolor.input.ColorInputViewData
 import io.github.mmolosay.thecolor.input.ColorInputViewModel
-import io.github.mmolosay.thecolor.input.hex.ColorInputHexViewData
 import io.github.mmolosay.thecolor.input.hex.ColorInputHexViewModel
-import io.github.mmolosay.thecolor.input.rgb.ColorInputRgbViewData
 import io.github.mmolosay.thecolor.input.rgb.ColorInputRgbViewModel
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.fragment.BaseFragment
@@ -49,32 +45,9 @@ class ColorInputPagerFragment :
 
     private val parent: ColorInputParent? by lazy { requireParentFragmentOfType() }
 
-    private val colorInputViewModel: ColorInputViewModel by viewModels(
-        extrasProducer = {
-            defaultViewModelCreationExtras.withCreationCallback<ColorInputViewModel.Factory> { factory ->
-                val viewData = ColorInputViewData(requireContext())
-                factory.create(viewData)
-            }
-        }
-    )
-
-    private val hexViewModel: ColorInputHexViewModel by viewModels(
-        extrasProducer = {
-            defaultViewModelCreationExtras.withCreationCallback<ColorInputHexViewModel.Factory> { factory ->
-                val viewData = ColorInputHexViewData(requireContext())
-                factory.create(viewData)
-            }
-        }
-    )
-
-    private val rgbViewModel: ColorInputRgbViewModel by viewModels(
-        extrasProducer = {
-            defaultViewModelCreationExtras.withCreationCallback<ColorInputRgbViewModel.Factory> { factory ->
-                val viewData = ColorInputRgbViewData(requireContext())
-                factory.create(viewData)
-            }
-        }
-    )
+    private val colorInputViewModel: ColorInputViewModel by viewModels()
+    private val hexViewModel: ColorInputHexViewModel by viewModels()
+    private val rgbViewModel: ColorInputRgbViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,

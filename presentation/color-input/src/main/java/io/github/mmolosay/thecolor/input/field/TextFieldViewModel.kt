@@ -1,8 +1,7 @@
 package io.github.mmolosay.thecolor.input.field
 
-import io.github.mmolosay.thecolor.input.field.TextFieldUiData.Text
-import io.github.mmolosay.thecolor.input.field.TextFieldUiData.TrailingButton
-import io.github.mmolosay.thecolor.input.field.TextFieldUiData.ViewData
+import io.github.mmolosay.thecolor.input.field.TextFieldData.Text
+import io.github.mmolosay.thecolor.input.field.TextFieldData.TrailingButton
 import io.github.mmolosay.thecolor.input.model.Update
 import io.github.mmolosay.thecolor.input.model.causedByUser
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,63 +14,49 @@ import kotlinx.coroutines.flow.update
  * which do derive from Android-aware implementation.
  */
 class TextFieldViewModel(
-    private val viewData: ViewData,
     private val filterUserInput: (String) -> Text,
 ) {
 
-    private val _uiDataUpdatesFlow = MutableStateFlow<Update<TextFieldUiData>?>(null)
-    val uiDataUpdatesFlow = _uiDataUpdatesFlow.asStateFlow()
+    private val _dataUpdatesFlow = MutableStateFlow<Update<TextFieldData>?>(null)
+    val dataUpdatesFlow = _dataUpdatesFlow.asStateFlow()
 
     private fun updateText(update: Update<Text>) {
-        _uiDataUpdatesFlow.update {
+        _dataUpdatesFlow.update {
             val text = update.data
-            val newUiData = if (it == null) {
-                makeInitialUiData(text)
+            val newData = if (it == null) {
+                makeInitialData(text)
             } else {
-                val oldUiData = it.data
-                oldUiData.smartCopy(text)
+                val oldData = it.data
+                oldData.smartCopy(text)
             }
-            newUiData causedByUser update.causedByUser
+            newData causedByUser update.causedByUser
         }
     }
 
     private fun onTextChangeFromView(text: Text) =
         updateText(text causedByUser true)
 
-    private fun TextFieldUiData.smartCopy(text: Text) =
+    private fun TextFieldData.smartCopy(text: Text) =
         copy(
             text = text,
-            trailingButton = trailingButton(
-                text = text,
-                trailingIcon = viewData.trailingIcon,
-            ),
+            trailingButton = trailingButton(text),
         )
 
-    private fun trailingButton(
-        text: Text,
-        trailingIcon: ViewData.TrailingIcon,
-    ): TrailingButton =
-        if (trailingIcon is ViewData.TrailingIcon.Exists && showTrailingButton(text)) {
-            TrailingButton.Visible(
-                onClick = { onTextChangeFromView(Text("")) },
-                iconContentDesc = trailingIcon.contentDesc,
-            )
-        } else {
-            TrailingButton.Hidden
+    private fun trailingButton(text: Text): TrailingButton =
+        when (showTrailingButton(text)) {
+            true -> TrailingButton.Visible(onClick = { onTextChangeFromView(Text("")) })
+            false -> TrailingButton.Hidden
         }
 
     private fun showTrailingButton(text: Text): Boolean =
         text.string.isNotEmpty()
 
-    private fun makeInitialUiData(text: Text) =
-        TextFieldUiData(
+    private fun makeInitialData(text: Text) =
+        TextFieldData(
             text = text,
             onTextChange = ::onTextChangeFromView,
             filterUserInput = filterUserInput,
-            label = viewData.label,
-            placeholder = viewData.placeholder,
-            prefix = viewData.prefix,
-            trailingButton = trailingButton(text, viewData.trailingIcon),
+            trailingButton = trailingButton(text),
         )
 
     companion object {

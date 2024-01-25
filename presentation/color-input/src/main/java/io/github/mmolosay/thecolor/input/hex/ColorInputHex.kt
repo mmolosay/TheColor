@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
@@ -15,20 +16,25 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.input.UiComponents.Loading
 import io.github.mmolosay.thecolor.input.UiComponents.TextField
+import io.github.mmolosay.thecolor.input.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData
-import io.github.mmolosay.thecolor.input.field.TextFieldUiData.Text
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData.TrailingButton
-import io.github.mmolosay.thecolor.input.model.UiState
+import io.github.mmolosay.thecolor.input.hex.ColorInputHexUiData.ViewData
+import io.github.mmolosay.thecolor.input.model.DataState
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 
 @Composable
 fun ColorInputHex(
     vm: ColorInputHexViewModel,
 ) {
-    val state = vm.uiStateFlow.collectAsStateWithLifecycle().value
+    val viewData = rememberViewData()
+    val state = vm.dataStateFlow.collectAsStateWithLifecycle().value
     when (state) {
-        is UiState.BeingInitialized -> Loading()
-        is UiState.Ready -> ColorInputHex(state.uiData)
+        is DataState.BeingInitialized -> Loading()
+        is DataState.Ready -> {
+            val uiData = rememberUiData(data = state.data, viewData = viewData)
+            ColorInputHex(uiData)
+        }
     }
 }
 
@@ -48,6 +54,19 @@ fun ColorInputHex(
         ),
     )
 }
+
+@Composable
+private fun rememberViewData(): ViewData {
+    val context = LocalContext.current
+    return remember { ColorInputHexViewData(context) }
+}
+
+@Composable
+private fun rememberUiData(
+    data: ColorInputHexData,
+    viewData: ViewData,
+): ColorInputHexUiData =
+    remember(data) { data + viewData } // TODO: do in background?
 
 @Preview(showBackground = true)
 @Composable

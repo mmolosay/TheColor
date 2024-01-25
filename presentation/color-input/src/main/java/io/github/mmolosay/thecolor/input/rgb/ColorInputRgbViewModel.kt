@@ -2,17 +2,14 @@ package io.github.mmolosay.thecolor.input.rgb
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.input.ColorInputMediator
 import io.github.mmolosay.thecolor.input.SharingStartedEagerlyAnd
-import io.github.mmolosay.thecolor.input.field.TextFieldUiData
-import io.github.mmolosay.thecolor.input.field.TextFieldUiData.Text
+import io.github.mmolosay.thecolor.input.field.TextFieldData
+import io.github.mmolosay.thecolor.input.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.input.field.TextFieldViewModel
 import io.github.mmolosay.thecolor.input.field.TextFieldViewModel.Companion.updateWith
-import io.github.mmolosay.thecolor.input.model.UiState
+import io.github.mmolosay.thecolor.input.model.DataState
 import io.github.mmolosay.thecolor.input.model.Update
 import io.github.mmolosay.thecolor.input.model.causedByUser
 import io.github.mmolosay.thecolor.input.model.toUiSate
@@ -24,43 +21,40 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 import javax.inject.Named
 
-@HiltViewModel(assistedFactory = ColorInputRgbViewModel.Factory::class)
-class ColorInputRgbViewModel @AssistedInject constructor(
-    @Assisted viewData: ColorInputRgbViewData,
+@HiltViewModel
+class ColorInputRgbViewModel @Inject constructor(
     private val mediator: ColorInputMediator,
     @Named("uiDataUpdateDispatcher") private val uiDataUpdateDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val rTextInputVm =
         TextFieldViewModel(
-            viewData = viewData.rInputField,
             filterUserInput = ::filterUserInput,
         )
     private val gTextInputVm =
         TextFieldViewModel(
-            viewData = viewData.gInputField,
             filterUserInput = ::filterUserInput,
         )
     private val bTextInputVm =
         TextFieldViewModel(
-            viewData = viewData.bInputField,
             filterUserInput = ::filterUserInput,
         )
 
-    val uiStateFlow: StateFlow<UiState<ColorInputRgbUiData>> = combine(
-        rTextInputVm.uiDataUpdatesFlow,
-        gTextInputVm.uiDataUpdatesFlow,
-        bTextInputVm.uiDataUpdatesFlow,
+    val dataStateFlow: StateFlow<DataState<ColorInputRgbData>> = combine(
+        rTextInputVm.dataUpdatesFlow,
+        gTextInputVm.dataUpdatesFlow,
+        bTextInputVm.dataUpdatesFlow,
         ::combineTextInputUpdates,
     )
-        .onEachNotNull(::onEachUiDataUpdate)
+        .onEachNotNull(::onEachDataUpdate)
         .map { it?.data.toUiSate() }
         .stateIn(
             scope = viewModelScope,
             started = SharingStartedEagerlyAnd(WhileSubscribed(5000)),
-            initialValue = UiState.BeingInitialized,
+            initialValue = DataState.BeingInitialized,
         )
 
     init {
@@ -78,16 +72,16 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     }
 
     private fun combineTextInputUpdates(
-        r: Update<TextFieldUiData>?,
-        g: Update<TextFieldUiData>?,
-        b: Update<TextFieldUiData>?,
-    ): Update<ColorInputRgbUiData>? {
+        r: Update<TextFieldData>?,
+        g: Update<TextFieldData>?,
+        b: Update<TextFieldData>?,
+    ): Update<ColorInputRgbData>? {
         if (r == null || g == null || b == null) return null
-        val uiData = makeUiData(r.data, g.data, b.data)
-        return uiData causedByUser listOf(r, g, b).any { it.causedByUser }
+        val data = makeData(r.data, g.data, b.data)
+        return data causedByUser listOf(r, g, b).any { it.causedByUser }
     }
 
-    private fun onEachUiDataUpdate(update: Update<ColorInputRgbUiData>) {
+    private fun onEachDataUpdate(update: Update<ColorInputRgbData>) {
         if (!update.causedByUser) return // don't synchronize this update with other Views
         val uiData = update.data
         val input = uiData.assembleColorInput()
@@ -102,24 +96,19 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             .take(MAX_SYMBOLS_IN_RGB_COMPONENT)
             .let { string ->
                 if (string.isEmpty()) return@let ""
-                var int = string.toIntOrNull() ?: MIN_RGB_COMPONENT_VALUE // removes leading zeros
-                while (int > MAX_RGB_COMPONENT_VALUE) // reduces int from right until it's in range
+                var int = string.toIntOrNull() ?: MIN_RGB_COMPONENT_VALUE // remove leading zeros
+                while (int > MAX_RGB_COMPONENT_VALUE) // reduce int from right until it's in range
                     int /= 10
                 int.toString()
             }
             .let { Text(it) }
 
-    private fun makeUiData(
-        rTextField: TextFieldUiData,
-        gTextField: TextFieldUiData,
-        bTextField: TextFieldUiData,
+    private fun makeData(
+        rTextField: TextFieldData,
+        gTextField: TextFieldData,
+        bTextField: TextFieldData,
     ) =
-        ColorInputRgbUiData(rTextField, gTextField, bTextField)
-
-    @AssistedFactory
-    interface Factory {
-        fun create(viewData: ColorInputRgbViewData): ColorInputRgbViewModel
-    }
+        ColorInputRgbData(rTextField, gTextField, bTextField)
 
     private companion object {
         const val MAX_SYMBOLS_IN_RGB_COMPONENT = 3
