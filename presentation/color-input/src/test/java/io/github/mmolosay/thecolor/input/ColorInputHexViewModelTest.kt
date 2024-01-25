@@ -1,12 +1,10 @@
 package io.github.mmolosay.thecolor.input
 
-import io.github.mmolosay.thecolor.input.field.TextFieldUiData
-import io.github.mmolosay.thecolor.input.field.TextFieldUiData.Text
-import io.github.mmolosay.thecolor.input.field.TextFieldUiData.ViewData.TrailingIcon
-import io.github.mmolosay.thecolor.input.hex.ColorInputHexUiData
+import io.github.mmolosay.thecolor.input.field.TextFieldData.Text
+import io.github.mmolosay.thecolor.input.hex.ColorInputHexData
 import io.github.mmolosay.thecolor.input.hex.ColorInputHexViewModel
 import io.github.mmolosay.thecolor.input.model.ColorInput
-import io.github.mmolosay.thecolor.input.model.UiState
+import io.github.mmolosay.thecolor.input.model.DataState
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -31,10 +29,6 @@ class ColorInputHexViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    val viewData: TextFieldUiData.ViewData = mockk(relaxed = true) {
-        every { trailingIcon } returns TrailingIcon.None
-    }
-
     val mediator: ColorInputMediator = mockk {
         every { hexColorInputFlow } returns flowOf(ColorInput.Hex(""))
         coEvery { send(any()) } just runs
@@ -42,33 +36,33 @@ class ColorInputHexViewModelTest {
 
     lateinit var sut: ColorInputHexViewModel
 
-    val uiState: UiState<ColorInputHexUiData>
-        get() = sut.uiStateFlow.value
+    val dataState: DataState<ColorInputHexData>
+        get() = sut.dataStateFlow.value
 
-    val uiData: ColorInputHexUiData
+    val data: ColorInputHexData
         get() {
-            uiState should beOfType<UiState.Ready<*>>() // assertion for clear failure message
-            return (uiState as UiState.Ready).uiData
+            dataState should beOfType<DataState.Ready<*>>() // assertion for clear failure message
+            return (dataState as DataState.Ready).data
         }
 
     @Test
-    fun `sut is created with UiState BeingInitialized if mediator HEX flow has no value yet`() {
+    fun `sut is created with state BeingInitialized if mediator HEX flow has no value yet`() {
         every { mediator.hexColorInputFlow } returns emptyFlow()
 
         createSut()
 
-        uiState should beOfType<UiState.BeingInitialized>()
+        dataState should beOfType<DataState.BeingInitialized>()
     }
 
     @Test
-    fun `sut is created with UiState Ready if mediator HEX flow has value already`() {
+    fun `sut is created with state Ready if mediator HEX flow has value already`() {
         createSut()
 
-        uiState should beOfType<UiState.Ready<*>>()
+        dataState should beOfType<DataState.Ready<*>>()
     }
 
     @Test
-    fun `UiState becomes Ready when mediator emits first value from HEX flow`() =
+    fun `state becomes Ready when mediator emits first value from HEX flow`() =
         runTest(mainDispatcherRule.testDispatcher) {
             val hexColorInputFlow = MutableSharedFlow<ColorInput.Hex>()
             every { mediator.hexColorInputFlow } returns hexColorInputFlow
@@ -76,14 +70,14 @@ class ColorInputHexViewModelTest {
 
             hexColorInputFlow.emit(ColorInput.Hex(""))
 
-            uiState should beOfType<UiState.Ready<*>>()
+            dataState should beOfType<DataState.Ready<*>>()
         }
 
     @Test
     fun `filtering keeps only digits and letters A-F`() {
         createSut()
 
-        val result = uiData.textField.filterUserInput("123abc_!.@ABG")
+        val result = data.textField.filterUserInput("123abc_!.@ABG")
 
         result.string shouldBe "123AB"
     }
@@ -92,17 +86,17 @@ class ColorInputHexViewModelTest {
     fun `filtering keeps only first 6 characters`() {
         createSut()
 
-        val result = uiData.textField.filterUserInput("123456789ABCDEF")
+        val result = data.textField.filterUserInput("123456789ABCDEF")
 
         result.string shouldBe "123456"
     }
 
     @Test
-    fun `initial UiData is not sent to mediator`() =
+    fun `initial data is not sent to mediator`() =
         runTest(mainDispatcherRule.testDispatcher) {
             createSut()
             val collectionJob = launch {
-                sut.uiStateFlow.collect() // subscriber to activate the flow
+                sut.dataStateFlow.collect() // subscriber to activate the flow
             }
 
             coVerify(exactly = 0) { mediator.send(any()) }
@@ -110,14 +104,14 @@ class ColorInputHexViewModelTest {
         }
 
     @Test
-    fun `UiData updated from UI is sent to mediator`() =
+    fun `data updated from UI is sent to mediator`() =
         runTest(mainDispatcherRule.testDispatcher) {
             createSut()
             val collectionJob = launch {
-                sut.uiStateFlow.collect() // subscriber to activate the flow
+                sut.dataStateFlow.collect() // subscriber to activate the flow
             }
 
-            uiData.textField.onTextChange(Text("1F"))
+            data.textField.onTextChange(Text("1F"))
 
             val sentColorInput = ColorInput.Hex("1F")
             coVerify(exactly = 1) { mediator.send(sentColorInput) }
@@ -125,18 +119,18 @@ class ColorInputHexViewModelTest {
         }
 
     @Test
-    fun `emission from mediator updates UiData`() =
+    fun `emission from mediator updates data`() =
         runTest(mainDispatcherRule.testDispatcher) {
             val hexColorInputFlow = MutableSharedFlow<ColorInput.Hex>()
             every { mediator.hexColorInputFlow } returns hexColorInputFlow
             createSut()
             val collectionJob = launch {
-                sut.uiStateFlow.collect() // subscriber to activate the flow
+                sut.dataStateFlow.collect() // subscriber to activate the flow
             }
 
             hexColorInputFlow.emit(ColorInput.Hex("1F"))
 
-            uiData.textField.text.string shouldBe "1F"
+            data.textField.text.string shouldBe "1F"
             collectionJob.cancel()
         }
 
@@ -147,7 +141,7 @@ class ColorInputHexViewModelTest {
             every { mediator.hexColorInputFlow } returns hexColorInputFlow
             createSut()
             val collectionJob = launch {
-                sut.uiStateFlow.collect() // subscriber to activate the flow
+                sut.dataStateFlow.collect() // subscriber to activate the flow
             }
 
             val sentColorInput = ColorInput.Hex("1F")
@@ -159,7 +153,6 @@ class ColorInputHexViewModelTest {
 
     fun createSut() =
         ColorInputHexViewModel(
-            viewData = viewData,
             mediator = mediator,
             uiDataUpdateDispatcher = mainDispatcherRule.testDispatcher,
         ).also {

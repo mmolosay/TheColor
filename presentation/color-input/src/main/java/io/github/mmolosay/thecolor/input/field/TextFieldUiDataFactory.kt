@@ -28,7 +28,7 @@ private fun DataTrailingButton.toUiTrailingButton(
         is DataTrailingButton.Hidden -> UiTrailingButton.Hidden
         is DataTrailingButton.Visible -> {
             when (trailingIcon) {
-                is ViewData.TrailingIcon.None -> UiTrailingButton.Hidden
+                is ViewData.TrailingIcon.None -> UiTrailingButton.Hidden // View didn't supply trailing icon, thus don't show trailing button
                 is ViewData.TrailingIcon.Exists -> UiTrailingButton.Visible(
                     onClick = this.onClick,
                     iconContentDesc = trailingIcon.contentDesc
