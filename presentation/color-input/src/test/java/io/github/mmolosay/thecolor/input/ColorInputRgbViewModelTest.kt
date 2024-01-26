@@ -6,6 +6,7 @@ import io.github.mmolosay.thecolor.input.model.DataState
 import io.github.mmolosay.thecolor.input.rgb.ColorInputRgbData
 import io.github.mmolosay.thecolor.input.rgb.ColorInputRgbViewModel
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
+import io.kotest.assertions.withClue
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
@@ -23,8 +24,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
-class ColorInputRgbViewModelTest {
+abstract class ColorInputRgbViewModelTest {
 
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
@@ -44,6 +47,57 @@ class ColorInputRgbViewModelTest {
             dataState should beOfType<DataState.Ready<*>>() // assertion for clear failure message
             return (dataState as DataState.Ready).data
         }
+
+    fun createSut() =
+        ColorInputRgbViewModel(
+            mediator = mediator,
+            uiDataUpdateDispatcher = mainDispatcherRule.testDispatcher,
+        ).also {
+            sut = it
+        }
+}
+
+@RunWith(Parameterized::class)
+class FilterUserInputTest(
+    val string: String,
+    val expectedTextString: String,
+) : ColorInputRgbViewModelTest() {
+
+    @Test
+    fun `filtering user input`() {
+        createSut()
+
+        val text = uiData.rTextField.filterUserInput(string)
+
+        withClue("Filtering user input \"$string\" should return $expectedTextString") {
+            text shouldBe Text(expectedTextString)
+        }
+    }
+
+    companion object {
+
+        @JvmStatic
+        @Parameterized.Parameters
+        fun data() = listOf(
+            // can't work with Text() directly because it's a value class and inlined in runtime
+            /* #0  */ "abc1def2ghi3" shouldBeFilteredTo "123",
+            /* #1  */ "1234567890" shouldBeFilteredTo "123",
+            /* #2  */ "" shouldBeFilteredTo "",
+            /* #3  */ "0" shouldBeFilteredTo "0",
+            /* #4  */ "03" shouldBeFilteredTo "3",
+            /* #5  */ "003" shouldBeFilteredTo "3",
+            /* #6  */ "000" shouldBeFilteredTo "0",
+            /* #7  */ "30" shouldBeFilteredTo "30",
+            /* #8  */ "255" shouldBeFilteredTo "255",
+            /* #9  */ "256" shouldBeFilteredTo "25",
+        )
+
+        infix fun String.shouldBeFilteredTo(expectedText: String): Array<Any> =
+            arrayOf(this, expectedText)
+    }
+}
+
+class Other : ColorInputRgbViewModelTest() {
 
     @Test
     fun `sut is created with state BeingInitialized if mediator RGB flow has no value yet`() {
@@ -72,87 +126,6 @@ class ColorInputRgbViewModelTest {
 
             dataState should beOfType<DataState.Ready<*>>()
         }
-
-    @Test
-    fun `filtering keeps only digits`() {
-        createSut()
-
-        val result = uiData.rTextField.filterUserInput("abc1def2ghi3")
-
-        result.string shouldBe "123"
-    }
-
-    @Test
-    fun `filtering keeps only first 3 characters`() {
-        createSut()
-
-        val result = uiData.rTextField.filterUserInput("1234567890")
-
-        result.string shouldBe "123"
-    }
-
-    @Test
-    fun `filtering of empty string returns empty string`() {
-        createSut()
-
-        val result = uiData.rTextField.filterUserInput("")
-
-        result.string shouldBe ""
-    }
-
-    @Test
-    fun `filtering of 0 returns 0`() {
-        createSut()
-
-        val result = uiData.rTextField.filterUserInput("0")
-
-        result.string shouldBe "0"
-    }
-
-    @Test
-    fun `filtering of 003 returns 3`() {
-        createSut()
-
-        val result = uiData.rTextField.filterUserInput("003")
-
-        result.string shouldBe "3"
-    }
-
-    @Test
-    fun `filtering of 000 returns 0`() {
-        createSut()
-
-        val result = uiData.rTextField.filterUserInput("000")
-
-        result.string shouldBe "0"
-    }
-
-    @Test
-    fun `filtering of 30 returns 30`() {
-        createSut()
-
-        val result = uiData.rTextField.filterUserInput("30")
-
-        result.string shouldBe "30"
-    }
-
-    @Test
-    fun `filtering of 255 returns 255`() {
-        createSut()
-
-        val result = uiData.rTextField.filterUserInput("255")
-
-        result.string shouldBe "255"
-    }
-
-    @Test
-    fun `filtering of 256 returns 25`() {
-        createSut()
-
-        val result = uiData.rTextField.filterUserInput("256")
-
-        result.string shouldBe "25"
-    }
 
     @Test
     fun `initial data is not sent to mediator`() =
@@ -219,11 +192,4 @@ class ColorInputRgbViewModelTest {
             collectionJob.cancel()
         }
 
-    fun createSut() =
-        ColorInputRgbViewModel(
-            mediator = mediator,
-            uiDataUpdateDispatcher = mainDispatcherRule.testDispatcher,
-        ).also {
-            sut = it
-        }
 }
