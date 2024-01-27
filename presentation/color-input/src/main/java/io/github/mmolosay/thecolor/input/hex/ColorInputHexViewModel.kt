@@ -11,8 +11,8 @@ import io.github.mmolosay.thecolor.input.field.TextFieldViewModel
 import io.github.mmolosay.thecolor.input.field.TextFieldViewModel.Companion.updateWith
 import io.github.mmolosay.thecolor.input.model.DataState
 import io.github.mmolosay.thecolor.input.model.Update
-import io.github.mmolosay.thecolor.input.model.map
 import io.github.mmolosay.thecolor.input.model.asDataState
+import io.github.mmolosay.thecolor.input.model.map
 import io.github.mmolosay.thecolor.utils.onEachNotNull
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
@@ -67,6 +67,7 @@ class ColorInputHexViewModel @Inject constructor(
 
     private fun filterUserInput(input: String): Text =
         input
+            .uppercase()
             .filter { it.isDigit() || it in 'A'..'F' }
             .take(MAX_SYMBOLS_IN_HEX_COLOR)
             .let { Text(it) }

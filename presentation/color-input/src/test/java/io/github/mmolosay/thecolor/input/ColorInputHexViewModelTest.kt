@@ -73,13 +73,15 @@ class ColorInputHexViewModelTest {
             dataState should beOfType<DataState.Ready<*>>()
         }
 
+    // TODO: make tests for filtering parameterized and add more test cases
+
     @Test
     fun `filtering keeps only digits and letters A-F`() {
         createSut()
 
         val result = data.textField.filterUserInput("123abc_!.@ABG")
 
-        result.string shouldBe "123AB"
+        result.string shouldBe "123ABC"
     }
 
     @Test
