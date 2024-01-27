@@ -5,9 +5,9 @@ import io.github.mmolosay.thecolor.input.field.TextFieldData.TrailingButton as D
 import io.github.mmolosay.thecolor.input.field.TextFieldUiData.TrailingButton as UiTrailingButton
 
 operator fun TextFieldData.plus(viewData: ViewData): TextFieldUiData =
-    combine(data = this, viewData = viewData)
+    TextFieldUiData(data = this, viewData = viewData)
 
-private fun combine(
+private fun TextFieldUiData(
     data: TextFieldData,
     viewData: ViewData,
 ): TextFieldUiData =
@@ -18,20 +18,21 @@ private fun combine(
         label = viewData.label,
         placeholder = viewData.placeholder,
         prefix = viewData.prefix,
-        trailingButton = data.trailingButton.toUiTrailingButton(viewData.trailingIcon),
+        trailingButton = TrailingButton(data.trailingButton, viewData.trailingIcon),
     )
 
-private fun DataTrailingButton.toUiTrailingButton(
-    trailingIcon: ViewData.TrailingIcon,
+private fun TrailingButton(
+    data: TextFieldData.TrailingButton,
+    icon: ViewData.TrailingIcon,
 ): UiTrailingButton =
-    when (this) {
+    when (data) {
         is DataTrailingButton.Hidden -> UiTrailingButton.Hidden
         is DataTrailingButton.Visible -> {
-            when (trailingIcon) {
+            when (icon) {
                 is ViewData.TrailingIcon.None -> UiTrailingButton.Hidden // View didn't supply trailing icon, thus don't show trailing button
                 is ViewData.TrailingIcon.Exists -> UiTrailingButton.Visible(
-                    onClick = this.onClick,
-                    iconContentDesc = trailingIcon.contentDesc
+                    onClick = data.onClick,
+                    iconContentDesc = icon.contentDesc
                 )
             }
         }
