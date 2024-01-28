@@ -87,14 +87,14 @@ abstract class ColorDataObtainFragment<D> :
         getColorDataFlow().collectOnLifecycle { resource ->
             resource.fold(
                 onEmpty = ::onColorDataEmpty,
-                onLoading = ::onColorDataLoading,
+//                onLoading = ::onColorDataLoading,
                 onSuccess = ::onColorDataSuccess,
-                onFailure = ::onColorDataFailure,
+//                onFailure = ::onColorDataFailure,
             )
         }
 
     private fun onColorDataEmpty() {
-        animContentVisibility(visible = false)
+//        animContentVisibility(visible = false)
     }
 
     private fun onColorDataLoading() {
@@ -103,7 +103,7 @@ abstract class ColorDataObtainFragment<D> :
 
     private fun onColorDataSuccess(data: D) {
         populateViews(data)
-        animContentVisibility(visible = true)
+//        animContentVisibility(visible = true)
     }
 
     @Suppress("UNUSED_PARAMETER")
@@ -122,9 +122,8 @@ abstract class ColorDataObtainFragment<D> :
     // region Set fragments
 
     override fun setFragments() {
-        super.setFragments()
-        setColorDataFragment()
-        setContentShimmerFragment()
+//        setColorDataFragment()
+//        setContentShimmerFragment()
     }
 
     private fun setColorDataFragment() {
@@ -144,7 +143,7 @@ abstract class ColorDataObtainFragment<D> :
 
     @CallSuper
     override fun setViews() {
-        setRetryBtn()
+//        setRetryBtn()
     }
 
     private fun setRetryBtn() {

@@ -25,6 +25,7 @@ android {
     }
 }
 
+@Suppress("SpellCheckingInspection")
 dependencies {
     implementation(project(":domain"))
     implementation(project(":utils"))
@@ -33,4 +34,6 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.coroutines.get()}")
     implementation("javax.inject:javax.inject:1")
+
+    implementation("com.github.ajalt.colormath:colormath:3.4.0")
 }

@@ -10,7 +10,7 @@ class ColorDataDetailsPage : BaseColorDataPage() {
 
     // region IColorDataPage
 
-    override val page = io.github.mmolosay.thecolor.presentation.home.ui.adapter.pager.ColorDataPagerAdapter.Page.DETAILS
+    override val page = ColorDataPagerAdapter.Page.DETAILS
 
     override fun makeColorDataFragmentNewInstance(): Fragment =
         ColorDetailsObtainFragment.newInstance(details = null)

@@ -7,10 +7,13 @@ import io.github.mmolosay.thecolor.domain.model.ColorDetails
 import io.github.mmolosay.thecolor.domain.model.ColorScheme
 import io.github.mmolosay.thecolor.domain.model.ColorSchemeRequest
 import io.github.mmolosay.thecolor.domain.repository.ColorRepository
+import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import javax.inject.Inject
 
 class ColorRepositoryImpl @Inject constructor(
     private val api: TheColorApiService,
+    private val colorConverter: ColorConverter,
+    private val colorMapper: ColorMapper,
 ) : ColorRepository {
 
     override suspend fun lastSearchedColor(): Color.Abstract? =
@@ -21,8 +24,14 @@ class ColorRepositoryImpl @Inject constructor(
         return response.toDomain()
     }
 
+    override suspend fun getColorDetails(color: Color): ColorDetails {
+        val hex = with(colorConverter) { color.toAbstract().toHex() }
+        val string = with(colorMapper) { hex.toHexString() }
+        return getColorDetails(colorHex = string)
+    }
+
     override suspend fun getColorScheme(request: ColorSchemeRequest): ColorScheme {
-        val mode = TheColorApiService.SchemeMode.values()[request.modeOrdinal]
+        val mode = TheColorApiService.SchemeMode.entries[request.modeOrdinal]
         val response = api.getColorScheme(
             hex = request.seedHex,
             mode = mode,

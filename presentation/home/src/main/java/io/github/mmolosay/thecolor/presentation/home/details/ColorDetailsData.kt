@@ -17,7 +17,7 @@ data class ColorDetailsData(
 ) {
 
     @JvmInline
-    value class ColorInt(val srgb: Long)
+    value class ColorInt(val hex: Int)
 
     data class Hex(
         val value: String,

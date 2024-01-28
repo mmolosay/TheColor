@@ -3,9 +3,12 @@ package io.github.mmolosay.thecolor.presentation.home.details
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -18,20 +21,29 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsUiData.ContentColors
 import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsUiData.Divider
 import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsUiData.Headline
 import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsUiData.ViewColorSchemeButton
 import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsUiData.ViewData
+import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsViewModel.State.Loading
+import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsViewModel.State.Ready
 import androidx.compose.material3.Divider as MaterialDivider
 
-@Suppress("UNREACHABLE_CODE") // TODO: remove once ViewModel is used
 @Composable
-fun ColorDetails() {
-    val data: ColorDetailsData = TODO("should come from ViewModel")
+fun ColorDetails(
+    vm: ColorDetailsViewModel,
+) {
+    val state = vm.dataState.collectAsStateWithLifecycle().value
     val viewData = rememberViewData()
-    ColorDetails(data, viewData)
+    when (state) {
+        is Loading ->
+            Loading()
+        is Ready ->
+            ColorDetails(state.data, viewData)
+    }
 }
 
 @Composable
@@ -114,6 +126,14 @@ private fun ViewColorSchemeButton(uiData: ViewColorSchemeButton) {
 }
 
 @Composable
+private fun Loading() =
+    CircularProgressIndicator(
+        modifier = Modifier
+            .fillMaxSize()
+            .wrapContentSize(),
+    )
+
+@Composable
 private fun rememberViewData(): ViewData {
     val context = LocalContext.current
     return remember { ColorDetailsViewData(context) }
@@ -157,7 +177,7 @@ private fun previewData(
     useLightContentColors: Boolean,
 ) =
     ColorDetailsData(
-        color = ColorDetailsData.ColorInt(0xFF1A803F),
+        color = ColorDetailsData.ColorInt(0x1A803F),
         colorName = "Jewel",
         useLightContentColors = useLightContentColors,
         hex = ColorDetailsData.Hex(
@@ -186,7 +206,7 @@ private fun previewData(
         ),
         exactMatch = ColorDetailsData.ExactMatch.No(
             exactValue = "#126B40",
-            exactColor = ColorDetailsData.ColorInt(0xFF126B40),
+            exactColor = ColorDetailsData.ColorInt(0x126B40),
             onExactClick = {},
             deviation = "1366"
         ),

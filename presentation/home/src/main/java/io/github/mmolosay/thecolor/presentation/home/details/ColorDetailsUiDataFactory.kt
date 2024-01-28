@@ -213,4 +213,4 @@ private fun ViewColorSchemeButton(
     )
 
 private fun ColorInt.toCompose(): Color =
-    Color(this.srgb)
+    Color(this.hex) // TODO: check in runtime

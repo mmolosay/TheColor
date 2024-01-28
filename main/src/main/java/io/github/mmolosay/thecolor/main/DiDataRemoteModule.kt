@@ -9,6 +9,8 @@ import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.migration.DisableInstallInCheck
+import io.github.mmolosay.thecolor.data.ColorLightnessRepositoryImpl
+import io.github.mmolosay.thecolor.domain.repository.ColorLightnessRepository
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -72,4 +74,7 @@ interface DiDataRemoteBindModule {
 
     @Binds
     fun bindColorsHistoryRepository(impl: ColorsHistoryRepositoryImpl): ColorsHistoryRepository
+
+    @Binds
+    fun bindColorLightnessRepository(impl: ColorLightnessRepositoryImpl): ColorLightnessRepository
 }

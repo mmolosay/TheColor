@@ -53,5 +53,5 @@ dependencies {
      * and constant redrawing of such complex view is dramatic for performance.
      * implementation("io.github.florent37:shapeofview:1.4.7")
      */
-    implementation("com.github.ajalt.colormath:colormath:2.1.0")
+    implementation("com.github.ajalt.colormath:colormath:3.4.0")
 }

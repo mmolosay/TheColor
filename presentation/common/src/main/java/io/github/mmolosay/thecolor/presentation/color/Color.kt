@@ -71,9 +71,9 @@ fun Color.toHex() =
 fun Color.toRgb(): ColorPrototype.Rgb {
     val rgb = ColorUtil.hexToRgb(this.hex)
     return ColorPrototype.Rgb(
-        r = rgb.r,
-        g = rgb.g,
-        b = rgb.b
+        r = rgb.redInt,
+        g = rgb.greenInt,
+        b = rgb.blueInt,
     )
 }
 

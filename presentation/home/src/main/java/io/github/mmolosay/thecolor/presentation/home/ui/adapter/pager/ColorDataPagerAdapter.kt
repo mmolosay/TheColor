@@ -11,10 +11,10 @@ import io.github.mmolosay.thecolor.presentation.util.ext.getFromEnum
 class ColorDataPagerAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
 
     override fun createFragment(position: Int): Fragment =
-        getFromEnum<io.github.mmolosay.thecolor.presentation.home.ui.adapter.pager.ColorDataPagerAdapter.Page>(position).getFragmentNewInstance()
+        getFromEnum<Page>(position).getFragmentNewInstance()
 
     override fun getItemCount(): Int =
-        getEnumSize<io.github.mmolosay.thecolor.presentation.home.ui.adapter.pager.ColorDataPagerAdapter.Page>()
+        getEnumSize<Page>()
 
     @Suppress("unused")
     enum class Page : EnumFragmentPage {

@@ -15,6 +15,22 @@ class ColorConverter @Inject constructor() {
             is Color.Rgb -> this.toAbstract()
         }
 
+    // TODO: add unit tests
+    fun Color.toHex(): Color.Hex =
+        when (this) {
+            is Color.Abstract -> this.toHex()
+            is Color.Hex -> this
+            is Color.Rgb -> this.toAbstract().toHex()
+        }
+
+    // TODO: add unit tests
+    fun Color.toRgb(): Color.Rgb =
+        when (this) {
+            is Color.Abstract -> this.toRgb()
+            is Color.Hex -> this.toAbstract().toRgb()
+            is Color.Rgb -> this
+        }
+
     fun Color.Hex.toAbstract(): Color.Abstract {
         val int = this.value
         return Color.Abstract(int)

@@ -1,7 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.util
 
 import androidx.annotation.IntRange
-import com.github.ajalt.colormath.RGB
+import com.github.ajalt.colormath.model.RGB
 
 // TODO: ColorUtil should be a singleton class, which instance
 //  would be injected by DI handler in places of usage.

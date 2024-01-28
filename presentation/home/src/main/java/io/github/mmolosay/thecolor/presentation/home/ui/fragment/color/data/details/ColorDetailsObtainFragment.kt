@@ -1,17 +1,25 @@
 package io.github.mmolosay.thecolor.presentation.home.ui.fragment.color.data.details
 
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import io.github.mmolosay.thecolor.presentation.home.ui.fragment.color.data.ColorDataObtainFragment
 import io.github.mmolosay.thecolor.presentation.home.ui.fragment.color.data.base.BaseColorDataFragment
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.color.data.details.ColorDetailsObtainViewModel
-import io.github.mmolosay.thecolor.presentation.color.Color
 import io.github.mmolosay.thecolor.presentation.color.data.ColorDetails
 import io.github.mmolosay.thecolor.utils.Resource
 import dagger.hilt.android.AndroidEntryPoint
+import io.github.mmolosay.thecolor.domain.model.Color
+import io.github.mmolosay.thecolor.presentation.home.details.ColorDetails
+import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsViewModel
 import kotlinx.coroutines.flow.Flow
+import io.github.mmolosay.thecolor.presentation.color.Color as OldColor
 
 @AndroidEntryPoint
 class ColorDetailsObtainFragment :
@@ -21,6 +29,24 @@ class ColorDetailsObtainFragment :
     private var details: ColorDetails? = null
 
     private val colorDetailsObtainVM: ColorDetailsObtainViewModel by viewModels()
+
+    private val colorDetailsViewModel: ColorDetailsViewModel by viewModels()
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?,
+    ): View =
+        ComposeView(inflater.context).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnLifecycleDestroyed(lifecycle))
+            setContent {
+                ColorDetails(vm = colorDetailsViewModel)
+            }
+        }
+
+    override fun setFragments() {
+        super.setFragments()
+    }
 
     // region Set up
 
@@ -63,8 +89,11 @@ class ColorDetailsObtainFragment :
 
     // region ColorDetailsObtainView
 
-    override fun obtainColorDetails(color: Color) {
-        colorDetailsObtainVM.getColorDetails(color)
+    override fun obtainColorDetails(color: OldColor) {
+        colorDetailsObtainVM.getColorDetails(color) // old
+
+        val domainColor = Color.Hex(color.hexSignless.toInt(radix = 16))
+        colorDetailsViewModel.getColorDetails(domainColor) // new
     }
 
     // endregion

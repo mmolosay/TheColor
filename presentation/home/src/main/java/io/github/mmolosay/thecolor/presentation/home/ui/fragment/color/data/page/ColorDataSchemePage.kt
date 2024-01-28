@@ -10,7 +10,7 @@ class ColorDataSchemePage : BaseColorDataPage() {
 
     // region IColorDataPage
 
-    override val page = io.github.mmolosay.thecolor.presentation.home.ui.adapter.pager.ColorDataPagerAdapter.Page.SCHEME
+    override val page = ColorDataPagerAdapter.Page.SCHEME
 
     override fun makeColorDataFragmentNewInstance(): Fragment =
         ColorSchemeObtainFragment.newInstance()
@@ -19,7 +19,6 @@ class ColorDataSchemePage : BaseColorDataPage() {
         resources.getString(R.string.color_data_scheme_page_change_page_btn)
 
     // endregion
-
 
     companion object {
         fun newInstance() =

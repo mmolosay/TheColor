@@ -1,16 +1,16 @@
 package io.github.mmolosay.thecolor.presentation.home.viewmodel.color.data.details
 
-import io.github.mmolosay.thecolor.domain.usecase.GetColorDetailsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.mmolosay.thecolor.presentation.mapper.toPresentation
+import io.github.mmolosay.thecolor.domain.usecase.GetColorDetailsUseCase
 import io.github.mmolosay.thecolor.presentation.color.Color
 import io.github.mmolosay.thecolor.presentation.color.data.ColorDetails
+import io.github.mmolosay.thecolor.presentation.mapper.toPresentation
+import io.github.mmolosay.thecolor.presentation.viewmodel.BaseViewModel
 import io.github.mmolosay.thecolor.utils.Resource
 import io.github.mmolosay.thecolor.utils.empty
 import io.github.mmolosay.thecolor.utils.failure
 import io.github.mmolosay.thecolor.utils.loading
 import io.github.mmolosay.thecolor.utils.success
-import io.github.mmolosay.thecolor.presentation.viewmodel.BaseViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,7 +19,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ColorDetailsObtainViewModel @Inject constructor(
-    private val getColorDetails: GetColorDetailsUseCase
+    private val getColorDetails: GetColorDetailsUseCase,
 ) : BaseViewModel() {
 
     private val _details = MutableStateFlow<Resource<ColorDetails>>(Resource.empty())
