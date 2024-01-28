@@ -16,6 +16,7 @@ import io.github.mmolosay.thecolor.presentation.color.data.ColorDetails
 import io.github.mmolosay.thecolor.utils.Resource
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.mmolosay.thecolor.domain.model.Color
+import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.home.details.ColorDetails
 import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsViewModel
 import kotlinx.coroutines.flow.Flow
@@ -40,7 +41,9 @@ class ColorDetailsObtainFragment :
         ComposeView(inflater.context).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnLifecycleDestroyed(lifecycle))
             setContent {
-                ColorDetails(vm = colorDetailsViewModel)
+                TheColorTheme {
+                    ColorDetails(vm = colorDetailsViewModel)
+                }
             }
         }
 
