@@ -83,7 +83,7 @@ private fun ExactValue(uiData: ColorSpec.ExactValue) {
     Column {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             Label(
                 text = uiData.label,
@@ -97,12 +97,11 @@ private fun ExactValue(uiData: ColorSpec.ExactValue) {
                 )
                 IconButton(
                     onClick = uiData.onClick,
-                    modifier = Modifier
-                        .size(16.dp)
-                        .padding(all = 2.dp),
+                    modifier = Modifier.size(20.dp),
                     colors = colors,
                 ) {
                     Icon(
+                        modifier = Modifier.padding(all = 4.dp),
                         painter = painterResource(DesignR.drawable.ic_open_in_new),
                         contentDescription = stringResource(R.string.color_details_exact_value_icon_content_desc),
                     )
