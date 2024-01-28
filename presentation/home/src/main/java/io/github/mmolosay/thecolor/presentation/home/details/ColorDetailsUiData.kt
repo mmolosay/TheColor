@@ -1,10 +1,13 @@
 package io.github.mmolosay.thecolor.presentation.home.details
 
 import android.content.Context
+import androidx.compose.material.ripple.RippleAlpha
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import io.github.mmolosay.thecolor.presentation.home.R
 import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsUiData.ContentColors
 import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsUiData.ViewData
+import androidx.compose.material.ripple.RippleTheme as BaseRippleTheme
 
 /**
  * Framework-oriented data required for color details View to be presented by Compose.
@@ -159,6 +162,7 @@ data class ColorDetailsUiData(
      * [ContentColors]. They are constant, defined by design and private to View.
      */
     data class ContentColors(
+        val rippleTheme: RippleTheme,
         val headline: Color,
         val translation: ColorTranslation,
         val divider: Color,
@@ -174,6 +178,26 @@ data class ColorDetailsUiData(
             val label: Color,
             val value: Color,
         )
+
+        class RippleTheme(
+            private val contentColor: Color,
+            private val lightTheme: Boolean,
+        ) : BaseRippleTheme {
+
+            @Composable
+            override fun defaultColor(): Color =
+                BaseRippleTheme.defaultRippleColor(
+                    contentColor = contentColor,
+                    lightTheme = lightTheme,
+                )
+
+            @Composable
+            override fun rippleAlpha(): RippleAlpha =
+                BaseRippleTheme.defaultRippleAlpha(
+                    contentColor = contentColor,
+                    lightTheme = lightTheme,
+                )
+        }
     }
 }
 
@@ -198,6 +222,10 @@ fun ColorDetailsContentColors(useLight: Boolean): ContentColors =
 
 private fun LightContentColors() =
     ContentColors(
+        rippleTheme = ContentColors.RippleTheme(
+            contentColor = Color(0xDE_FFFFFF),
+            lightTheme = true,
+        ),
         headline = Color(0xDE_FFFFFF),
         translation = ContentColors.ColorTranslation(
             label = Color(0x99_FFFFFF),
@@ -213,6 +241,10 @@ private fun LightContentColors() =
 
 private fun DarkContentColors() =
     ContentColors(
+        rippleTheme = ContentColors.RippleTheme(
+            contentColor = Color(0xDE_000000),
+            lightTheme = true,
+        ),
         headline = Color(0xDE_000000),
         translation = ContentColors.ColorTranslation(
             label = Color(0x99_000000),
