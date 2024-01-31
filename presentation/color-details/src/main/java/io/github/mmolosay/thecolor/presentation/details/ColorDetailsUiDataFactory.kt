@@ -213,4 +213,4 @@ private fun ViewColorSchemeButton(
     )
 
 private fun ColorInt.toCompose(): Color =
-    Color(this.hex) // TODO: check in runtime
+    Color(0xFF_000000 or this.hex.toLong())

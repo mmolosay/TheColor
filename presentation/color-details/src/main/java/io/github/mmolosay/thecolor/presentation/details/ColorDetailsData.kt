@@ -16,6 +16,9 @@ data class ColorDetailsData(
     val onViewColorSchemeClick: () -> Unit,
 ) {
 
+    /**
+     * Solid color in RRGGBB format without alpha channel.
+     */
     @JvmInline
     value class ColorInt(val hex: Int)
 
