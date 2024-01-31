@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.home.details
+package io.github.mmolosay.thecolor.presentation.details
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -7,8 +7,8 @@ import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.domain.usecase.GetColorDetailsUseCase
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
-import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsData.ColorInt
-import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsData.ExactMatch
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.ColorInt
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.ExactMatch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

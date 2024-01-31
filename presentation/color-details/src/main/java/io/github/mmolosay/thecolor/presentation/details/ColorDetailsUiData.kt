@@ -1,12 +1,11 @@
-package io.github.mmolosay.thecolor.presentation.home.details
+package io.github.mmolosay.thecolor.presentation.details
 
 import android.content.Context
 import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import io.github.mmolosay.thecolor.presentation.home.R
-import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsUiData.ContentColors
-import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsUiData.ViewData
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ContentColors
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ViewData
 import androidx.compose.material.ripple.RippleTheme as BaseRippleTheme
 
 /**

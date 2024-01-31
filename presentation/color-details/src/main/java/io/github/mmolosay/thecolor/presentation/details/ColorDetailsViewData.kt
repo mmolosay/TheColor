@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.home.details
+package io.github.mmolosay.thecolor.presentation.details
 
 // TODO: fill with real values
 fun ColorDetailsViewData() =

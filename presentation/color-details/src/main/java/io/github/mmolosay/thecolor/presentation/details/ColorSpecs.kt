@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.home.details
+package io.github.mmolosay.thecolor.presentation.details
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -25,8 +25,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
-import io.github.mmolosay.thecolor.presentation.home.R
-import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsUiData.ColorSpec
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorSpec
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 @Composable

@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.home.details
+package io.github.mmolosay.thecolor.presentation.details
 
 /**
  * Platform-agnostic data provided by ViewModel to color details View.

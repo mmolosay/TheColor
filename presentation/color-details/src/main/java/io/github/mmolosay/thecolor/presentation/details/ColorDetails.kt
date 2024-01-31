@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.home.details
+package io.github.mmolosay.thecolor.presentation.details
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -25,13 +25,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsUiData.ContentColors
-import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsUiData.Divider
-import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsUiData.Headline
-import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsUiData.ViewColorSchemeButton
-import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsUiData.ViewData
-import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsViewModel.State.Loading
-import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsViewModel.State.Ready
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ContentColors
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.Divider
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.Headline
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ViewColorSchemeButton
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ViewData
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel.State.Loading
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel.State.Ready
 import androidx.compose.material3.Divider as MaterialDivider
 
 @Composable

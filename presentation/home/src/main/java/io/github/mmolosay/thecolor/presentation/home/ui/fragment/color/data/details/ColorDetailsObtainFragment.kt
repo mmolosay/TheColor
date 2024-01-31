@@ -17,8 +17,8 @@ import io.github.mmolosay.thecolor.utils.Resource
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.home.details.ColorDetails
-import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsViewModel
+import io.github.mmolosay.thecolor.presentation.details.ColorDetails
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel
 import kotlinx.coroutines.flow.Flow
 import io.github.mmolosay.thecolor.presentation.color.Color as OldColor
 

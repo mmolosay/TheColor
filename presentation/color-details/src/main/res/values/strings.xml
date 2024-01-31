@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="color_details_hex_label" translatable="false">HEX</string>
+    <string name="color_details_rgb_label" translatable="false">RGB</string>
+    <string name="color_details_hsl_label" translatable="false">HSL</string>
+    <string name="color_details_hsv_label" translatable="false">HSV</string>
+    <string name="color_details_cmyk_label" translatable="false">CMYK</string>
+    <string name="color_details_name_label">NAME</string>
+    <string name="color_details_exact_match_label">EXACT MATCH</string>
+    <string name="color_details_exact_match_yes">Yes</string>
+    <string name="color_details_exact_match_no">No</string>
+    <string name="color_details_exact_value_label">EXACT VALUE</string>
+    <string name="color_details_exact_value_icon_content_desc">Open exact color</string>
+    <string name="color_details_deviation_label">DEVIATION</string>
+    <string name="color_details_view_color_scheme_button_text">View color scheme</string>
+
+</resources>

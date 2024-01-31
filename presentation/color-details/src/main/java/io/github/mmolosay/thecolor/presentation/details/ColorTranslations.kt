@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.home.details
+package io.github.mmolosay.thecolor.presentation.details
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,8 +11,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsUiData.ColorTranslation
-import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsUiData.ColorTranslations
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorTranslation
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorTranslations
 
 @Composable
 internal fun ColorTranslations(uiData: ColorTranslations) =

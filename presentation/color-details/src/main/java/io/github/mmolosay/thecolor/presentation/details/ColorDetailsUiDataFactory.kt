@@ -1,14 +1,14 @@
-package io.github.mmolosay.thecolor.presentation.home.details
+package io.github.mmolosay.thecolor.presentation.details
 
 import androidx.compose.ui.graphics.Color
-import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsData.ColorInt
-import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsUiData.ColorSpec
-import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsUiData.ColorTranslation
-import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsUiData.ColorTranslations
-import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsUiData.ContentColors
-import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsUiData.Divider
-import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsUiData.ViewColorSchemeButton
-import io.github.mmolosay.thecolor.presentation.home.details.ColorDetailsUiData.ViewData
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.ColorInt
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorSpec
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorTranslation
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorTranslations
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ContentColors
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.Divider
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ViewColorSchemeButton
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ViewData
 
 fun ColorDetailsUiData(
     data: ColorDetailsData,
