@@ -9,8 +9,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorTranslation
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorTranslations
 
@@ -29,66 +29,59 @@ private fun Hex(uiData: ColorTranslation.Hex) =
     Row {
         Label(
             text = uiData.label,
-            color = uiData.labelColor,
         )
         SpacerBetweenLabelAndValue()
         Value(
             text = uiData.value,
-            color = uiData.valueColor,
         )
     }
 
 @Composable
 private fun Rgb(uiData: ColorTranslation.Rgb) =
     Row {
-        Text(
+        Label(
             text = uiData.label,
-            color = uiData.labelColor,
         )
 
         SpacerBetweenLabelAndValue()
         Value(
             text = uiData.r,
-            color = uiData.valueColor,
         )
 
+        // TODO: use nested Row with spacedBy
         SpacerBetweenValues()
         Value(
             text = uiData.g,
-            color = uiData.valueColor,
         )
 
         SpacerBetweenValues()
         Value(
             text = uiData.b,
-            color = uiData.valueColor,
         )
     }
 
 @Composable
 private fun Label(
     text: String,
-    color: Color,
 ) =
     Text(
         text = text,
-        color = color,
+        color = colorsOnTintedSurface.muted,
     )
 
 @Composable
-private fun SpacerBetweenLabelAndValue() =
-    Spacer(modifier = Modifier.width(12.dp))
+private fun Value(
+    text: String,
+) =
+    Text(
+        text = text,
+        color = colorsOnTintedSurface.accent,
+    )
 
 @Composable
 private fun SpacerBetweenValues() =
     Spacer(modifier = Modifier.width(8.dp))
 
 @Composable
-private fun Value(
-    text: String,
-    color: Color,
-) =
-    Text(
-        text = text,
-        color = color,
-    )
+private fun SpacerBetweenLabelAndValue() =
+    Spacer(modifier = Modifier.width(12.dp))

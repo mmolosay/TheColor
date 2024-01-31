@@ -43,7 +43,7 @@ class ColorDetailsViewModel @Inject constructor(
         ColorDetailsData(
             color = ColorInt(details.color),
             colorName = details.name,
-            useLightContentColors = useLightContentColor(details.color),
+            useLightContentColors = useLightContentColors(details.color),
             hex = ColorDetailsData.Hex(value = details.hexValue),
             rgb = ColorDetailsData.Rgb(
                 r = details.rgbR.toString(),
@@ -75,7 +75,7 @@ class ColorDetailsViewModel @Inject constructor(
         return ColorInt(hex = hex.value)
     }
 
-    private fun useLightContentColor(backgroundColor: Color): Boolean {
+    private fun useLightContentColors(backgroundColor: Color): Boolean {
         val isBackgroundLight = with(isColorLight) { backgroundColor.isLight() }
         return !isBackgroundLight // dark content on light and vice versa
     }

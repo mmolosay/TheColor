@@ -25,6 +25,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
+import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorSpec
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
@@ -53,11 +54,9 @@ private fun Name(uiData: ColorSpec.Name) {
     Column {
         Label(
             text = uiData.label,
-            color = uiData.labelColor,
         )
         Value(
             text = uiData.value,
-            color = uiData.valueColor,
         )
     }
 }
@@ -67,11 +66,9 @@ private fun ExactMatch(uiData: ColorSpec.ExactMatch) {
     Column {
         Label(
             text = uiData.label,
-            color = uiData.labelColor,
         )
         Value(
             text = uiData.value,
-            color = uiData.valueColor,
         )
     }
 }
@@ -86,13 +83,12 @@ private fun ExactValue(uiData: ColorSpec.ExactValue) {
         ) {
             Label(
                 text = uiData.label,
-                color = uiData.labelColor,
             )
             CompositionLocalProvider(
                 LocalMinimumInteractiveComponentEnforcement provides false,
             ) {
                 val colors = IconButtonDefaults.iconButtonColors(
-                    contentColor = uiData.iconColor,
+                    contentColor = colorsOnTintedSurface.accent,
                 )
                 IconButton(
                     onClick = uiData.onClick,
@@ -113,7 +109,6 @@ private fun ExactValue(uiData: ColorSpec.ExactValue) {
         ) {
             Value(
                 text = uiData.value,
-                color = uiData.valueColor,
             )
             ColorPreview(color = uiData.exactColor)
         }
@@ -134,11 +129,9 @@ private fun Deviation(uiData: ColorSpec.Deviation) {
     Column {
         Label(
             text = uiData.label,
-            color = uiData.labelColor,
         )
         Value(
             text = uiData.value,
-            color = uiData.valueColor,
         )
     }
 }
@@ -146,11 +139,10 @@ private fun Deviation(uiData: ColorSpec.Deviation) {
 @Composable
 private fun Label(
     text: String,
-    color: Color,
 ) =
     Text(
         text = text,
-        color = color,
+        color = colorsOnTintedSurface.muted,
         style = MaterialTheme.typography.labelSmall.copy(
             letterSpacing = 0.1666.em,
         )
@@ -159,10 +151,9 @@ private fun Label(
 @Composable
 private fun Value(
     text: String,
-    color: Color,
 ) =
     Text(
         text = text,
-        color = color,
+        color = colorsOnTintedSurface.accent,
         style = MaterialTheme.typography.bodyLarge,
     )
