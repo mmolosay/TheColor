@@ -72,7 +72,7 @@ fun ColorDetails(
             .background(uiData.background),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Spacer(modifier = Modifier.height(32.dp))
+//        Spacer(modifier = Modifier.height(32.dp)) // TODO: use when wrapping fragment with its own margin is gone
         Headline(uiData.headline)
 
         Spacer(modifier = Modifier.height(24.dp))
