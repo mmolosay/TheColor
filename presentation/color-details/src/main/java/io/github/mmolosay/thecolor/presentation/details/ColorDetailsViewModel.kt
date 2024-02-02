@@ -9,11 +9,12 @@ import io.github.mmolosay.thecolor.domain.usecase.GetColorDetailsUseCase
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.ColorInt
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.ExactMatch
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import javax.inject.Named
 import io.github.mmolosay.thecolor.domain.model.ColorDetails as DomainColorDetails
 
 @HiltViewModel
@@ -21,13 +22,14 @@ class ColorDetailsViewModel @Inject constructor(
     private val getColorDetails: GetColorDetailsUseCase,
     private val colorConverter: ColorConverter,
     private val isColorLight: IsColorLightUseCase,
+    @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val _dataState = MutableStateFlow<State>(State.Loading)
     val dataState = _dataState.asStateFlow()
 
     fun getColorDetails(color: Color) {
-        viewModelScope.launch(Dispatchers.IO) { // TODO: inject dispatcher
+        viewModelScope.launch(ioDispatcher) {
             val details = getColorDetails.invoke(color)
             val data = ColorDetailsData(details)
             _dataState.value = State.Ready(data)
