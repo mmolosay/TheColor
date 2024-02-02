@@ -23,6 +23,9 @@ internal fun ColorTranslations(uiData: ColorTranslations) =
     ) {
         Hex(uiData.hex)
         Rgb(uiData.rgb)
+        Hsl(uiData.hsl)
+        Hsv(uiData.hsv)
+        Cmyk(uiData.cmyk)
     }
 
 @Composable
@@ -54,6 +57,72 @@ private fun Rgb(uiData: ColorTranslation.Rgb) =
             )
             Value(
                 text = uiData.b,
+            )
+        }
+    }
+
+@Composable
+private fun Hsl(uiData: ColorTranslation.Hsl) =
+    Row {
+        Label(
+            text = uiData.label,
+        )
+
+        SpacerBetweenLabelAndValue()
+        RowOfValues {
+            Value(
+                text = uiData.h,
+            )
+            Value(
+                text = uiData.s,
+            )
+            Value(
+                text = uiData.l,
+            )
+        }
+    }
+
+@Composable
+private fun Hsv(uiData: ColorTranslation.Hsv) =
+    Row {
+        Label(
+            text = uiData.label,
+        )
+
+        SpacerBetweenLabelAndValue()
+        RowOfValues {
+            Value(
+                text = uiData.h,
+            )
+            Value(
+                text = uiData.s,
+            )
+            Value(
+                text = uiData.v,
+            )
+        }
+    }
+
+@Composable
+private fun Cmyk(uiData: ColorTranslation.Cmyk) =
+    Row {
+        Label(
+            text = uiData.label,
+        )
+
+        SpacerBetweenLabelAndValue()
+        RowOfValues {
+            Value(
+                text = uiData.c,
+            )
+            Value(
+                text = uiData.m,
+            )
+            Value(
+                text = uiData.y,
+            )
+            Value(
+                text = uiData.k,
             )
         }
     }
