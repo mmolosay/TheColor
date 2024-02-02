@@ -13,11 +13,11 @@ import androidx.lifecycle.repeatOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
-import io.github.mmolosay.thecolor.input.ColorInput
-import io.github.mmolosay.thecolor.input.ColorInputMapper
-import io.github.mmolosay.thecolor.input.ColorInputViewModel
-import io.github.mmolosay.thecolor.input.hex.ColorInputHexViewModel
-import io.github.mmolosay.thecolor.input.rgb.ColorInputRgbViewModel
+import io.github.mmolosay.thecolor.presentation.input.ColorInput
+import io.github.mmolosay.thecolor.presentation.input.ColorInputMapper
+import io.github.mmolosay.thecolor.presentation.input.ColorInputViewModel
+import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexViewModel
+import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbViewModel
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.fragment.BaseFragment
 import io.github.mmolosay.thecolor.presentation.home.ui.fragment.color.input.page.ColorInputParent

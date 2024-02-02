@@ -7,7 +7,6 @@ plugins {
 }
 
 android {
-    // TODO: make root package the same as namespace
     namespace = "io.github.mmolosay.thecolor.presentation.input"
     compileSdk = libs.versions.compileSdk.get().toInt()
 
