@@ -3,6 +3,7 @@ package io.github.mmolosay.thecolor.presentation.details
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
@@ -44,20 +45,17 @@ private fun Rgb(uiData: ColorTranslation.Rgb) =
         )
 
         SpacerBetweenLabelAndValue()
-        Value(
-            text = uiData.r,
-        )
-
-        // TODO: use nested Row with spacedBy
-        SpacerBetweenValues()
-        Value(
-            text = uiData.g,
-        )
-
-        SpacerBetweenValues()
-        Value(
-            text = uiData.b,
-        )
+        RowOfValues {
+            Value(
+                text = uiData.r,
+            )
+            Value(
+                text = uiData.g,
+            )
+            Value(
+                text = uiData.b,
+            )
+        }
     }
 
 @Composable
@@ -79,8 +77,13 @@ private fun Value(
     )
 
 @Composable
-private fun SpacerBetweenValues() =
-    Spacer(modifier = Modifier.width(8.dp))
+private fun RowOfValues(
+    content: @Composable RowScope.() -> Unit,
+) =
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        content = content,
+    )
 
 @Composable
 private fun SpacerBetweenLabelAndValue() =
