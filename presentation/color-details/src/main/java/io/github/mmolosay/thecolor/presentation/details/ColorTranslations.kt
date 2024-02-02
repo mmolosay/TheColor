@@ -30,100 +30,51 @@ internal fun ColorTranslations(uiData: ColorTranslations) =
 
 @Composable
 private fun Hex(uiData: ColorTranslation.Hex) =
-    Row {
-        Label(
-            text = uiData.label,
-        )
-        SpacerBetweenLabelAndValue()
-        Value(
-            text = uiData.value,
-        )
-    }
+    ColorTranslation(
+        label = uiData.label,
+        values = with(uiData) { listOf(value) },
+    )
 
 @Composable
 private fun Rgb(uiData: ColorTranslation.Rgb) =
-    Row {
-        Label(
-            text = uiData.label,
-        )
-
-        SpacerBetweenLabelAndValue()
-        RowOfValues {
-            Value(
-                text = uiData.r,
-            )
-            Value(
-                text = uiData.g,
-            )
-            Value(
-                text = uiData.b,
-            )
-        }
-    }
+    ColorTranslation(
+        label = uiData.label,
+        values = with(uiData) { listOf(r, g, b) },
+    )
 
 @Composable
 private fun Hsl(uiData: ColorTranslation.Hsl) =
-    Row {
-        Label(
-            text = uiData.label,
-        )
-
-        SpacerBetweenLabelAndValue()
-        RowOfValues {
-            Value(
-                text = uiData.h,
-            )
-            Value(
-                text = uiData.s,
-            )
-            Value(
-                text = uiData.l,
-            )
-        }
-    }
+    ColorTranslation(
+        label = uiData.label,
+        values = with(uiData) { listOf(h, s, l) },
+    )
 
 @Composable
 private fun Hsv(uiData: ColorTranslation.Hsv) =
-    Row {
-        Label(
-            text = uiData.label,
-        )
-
-        SpacerBetweenLabelAndValue()
-        RowOfValues {
-            Value(
-                text = uiData.h,
-            )
-            Value(
-                text = uiData.s,
-            )
-            Value(
-                text = uiData.v,
-            )
-        }
-    }
+    ColorTranslation(
+        label = uiData.label,
+        values = with(uiData) { listOf(h, s, v) },
+    )
 
 @Composable
 private fun Cmyk(uiData: ColorTranslation.Cmyk) =
-    Row {
-        Label(
-            text = uiData.label,
-        )
+    ColorTranslation(
+        label = uiData.label,
+        values = with(uiData) { listOf(c, m, y, k) },
+    )
 
-        SpacerBetweenLabelAndValue()
+@Composable
+private fun ColorTranslation(
+    label: String,
+    values: List<String>,
+) =
+    Row {
+        Label(text = label)
+        Spacer(modifier = Modifier.width(12.dp))
         RowOfValues {
-            Value(
-                text = uiData.c,
-            )
-            Value(
-                text = uiData.m,
-            )
-            Value(
-                text = uiData.y,
-            )
-            Value(
-                text = uiData.k,
-            )
+            values.forEach { value ->
+                Value(text = value)
+            }
         }
     }
 
@@ -153,7 +104,3 @@ private fun RowOfValues(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         content = content,
     )
-
-@Composable
-private fun SpacerBetweenLabelAndValue() =
-    Spacer(modifier = Modifier.width(12.dp))
