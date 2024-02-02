@@ -40,7 +40,6 @@ class ColorDetailsViewModel @Inject constructor(
         // TODO: implement
     }
 
-    // TODO: extract into individual class
     private fun ColorDetailsData(details: DomainColorDetails) =
         ColorDetailsData(
             color = ColorInt(details.color),
