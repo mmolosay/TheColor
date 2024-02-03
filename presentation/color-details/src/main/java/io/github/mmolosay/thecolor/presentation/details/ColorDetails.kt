@@ -7,9 +7,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.KeyboardArrowRight
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -21,6 +25,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -121,6 +128,15 @@ private fun ViewColorSchemeButton(uiData: ViewColorSchemeButton) {
     val border = ButtonDefaults.outlinedButtonBorder.copy(
         brush = SolidColor(colorsOnTintedSurface.accent),
     )
+    val addedTextStyle = TextStyle(
+        platformStyle = PlatformTextStyle(
+            includeFontPadding = false,
+        ),
+        lineHeightStyle = LineHeightStyle(
+            alignment = LineHeightStyle.Alignment.Proportional,
+            trim = LineHeightStyle.Trim.FirstLineTop,
+        )
+    )
     OutlinedButton(
         onClick = uiData.onClick,
         colors = colors,
@@ -128,6 +144,11 @@ private fun ViewColorSchemeButton(uiData: ViewColorSchemeButton) {
     ) {
         Text(
             text = uiData.text,
+            style = LocalTextStyle.current.merge(addedTextStyle),
+        )
+        Icon(
+            imageVector = Icons.Rounded.KeyboardArrowRight,
+            contentDescription = null, // described by text above
         )
     }
 }
