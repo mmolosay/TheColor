@@ -23,8 +23,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
+import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorSpec
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
@@ -32,7 +34,7 @@ import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 @Composable
 internal fun ColorSpecs(
     specs: List<ColorSpec>,
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier,
@@ -156,4 +158,34 @@ private fun Value(
         text = text,
         color = colorsOnTintedSurface.accent,
         style = MaterialTheme.typography.bodyLarge,
+    )
+
+@Preview(showBackground = true)
+@Composable
+private fun PreviewLight() {
+    TheColorTheme {
+        ColorSpecs(specs = previewColorSpecs())
+    }
+}
+
+private fun previewColorSpecs() =
+    listOf(
+        ColorSpec.Name(
+            label = "NAME",
+            value = "Jewel",
+        ),
+        ColorSpec.ExactMatch(
+            label = "EXACT MATCH",
+            value = "No",
+        ),
+        ColorSpec.ExactValue(
+            label = "EXACT VALUE",
+            value = "#126B40",
+            exactColor = Color(0xFF126B40),
+            onClick = {},
+        ),
+        ColorSpec.Deviation(
+            label = "DEVIATION",
+            value = "1366",
+        ),
     )

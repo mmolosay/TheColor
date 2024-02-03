@@ -10,7 +10,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorTranslation
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorTranslations
@@ -103,4 +105,45 @@ private fun RowOfValues(
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         content = content,
+    )
+
+@Preview(showBackground = true)
+@Composable
+private fun PreviewLight() {
+    TheColorTheme {
+        ColorTranslations(uiData = previewUiData())
+    }
+}
+
+private fun previewUiData() =
+    ColorTranslations(
+        hex = ColorTranslation.Hex(
+            label = "HEX",
+            value = "#1A803F",
+        ),
+        rgb = ColorTranslation.Rgb(
+            label = "RGB",
+            r = "26",
+            g = "128",
+            b = "63",
+        ),
+        hsl = ColorTranslation.Hsl(
+            label = "HSL",
+            h = "142",
+            s = "66",
+            l = "30",
+        ),
+        hsv = ColorTranslation.Hsv(
+            label = "HSV",
+            h = "142",
+            s = "80",
+            v = "50",
+        ),
+        cmyk = ColorTranslation.Cmyk(
+            label = "CMYK",
+            c = "80",
+            m = "0",
+            y = "51",
+            k = "50",
+        ),
     )
