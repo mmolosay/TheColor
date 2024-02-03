@@ -26,7 +26,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
+import io.github.mmolosay.thecolor.presentation.design.LocalColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
+import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorSpec
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
@@ -164,7 +166,11 @@ private fun Value(
 @Composable
 private fun PreviewLight() {
     TheColorTheme {
-        ColorSpecs(specs = previewColorSpecs())
+        CompositionLocalProvider(
+            LocalColorsOnTintedSurface provides colorsOnLightSurface(),
+        ) {
+            ColorSpecs(specs = previewColorSpecs())
+        }
     }
 }
 

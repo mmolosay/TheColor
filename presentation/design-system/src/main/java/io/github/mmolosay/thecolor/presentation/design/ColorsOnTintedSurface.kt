@@ -4,7 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Color
 
-val LocalColorsOnTintedSurface = compositionLocalOf { colorsOnLightSurface() }
+val LocalColorsOnTintedSurface = compositionLocalOf<ColorsOnTintedSurface> {
+    error("CompositionLocal \"LocalColorsOnTintedSurface\" doesn't have value by default.")
+}
 
 val colorsOnTintedSurface: ColorsOnTintedSurface
     @Composable
