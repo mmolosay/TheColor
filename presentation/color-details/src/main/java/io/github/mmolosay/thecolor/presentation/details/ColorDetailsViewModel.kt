@@ -72,7 +72,7 @@ class ColorDetailsViewModel @Inject constructor(
         )
 
     private fun ColorInt(color: Color): ColorInt {
-        val hex = with(colorConverter) { color.toAbstract().toHex() }
+        val hex = with(colorConverter) { color.toHex() }
         return ColorInt(hex = hex.value)
     }
 
