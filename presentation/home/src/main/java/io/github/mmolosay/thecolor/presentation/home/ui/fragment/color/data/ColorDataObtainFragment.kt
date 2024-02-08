@@ -78,7 +78,7 @@ abstract class ColorDataObtainFragment<D> :
 
     // region Set up
 
-    @CallSuper
+//    @CallSuper
     override fun collectViewModelsData() {
         collectColorData()
     }
@@ -122,8 +122,8 @@ abstract class ColorDataObtainFragment<D> :
     // region Set fragments
 
     override fun setFragments() {
-//        setColorDataFragment()
-//        setContentShimmerFragment()
+        setColorDataFragment()
+        setContentShimmerFragment()
     }
 
     private fun setColorDataFragment() {

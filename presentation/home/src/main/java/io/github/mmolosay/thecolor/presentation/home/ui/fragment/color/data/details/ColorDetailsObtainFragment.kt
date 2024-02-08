@@ -47,8 +47,12 @@ class ColorDetailsObtainFragment :
             }
         }
 
+//    override fun collectViewModelsData() {
+//        // collects from Compose
+//    }
+
     override fun setFragments() {
-        super.setFragments()
+        // uses Compose, don't need to set Fragments
     }
 
     // region Set up
