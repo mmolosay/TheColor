@@ -25,7 +25,7 @@ class ColorToAbstract(
 ) : ColorConverterTest() {
 
     @Test
-    fun `color to abstract conversion`() {
+    fun `color is converted to expected abstract color`() {
         val abstract = with(sut) { color.toAbstract() }
 
         withClue("Color $color should be $expectedAbstract") {
@@ -61,7 +61,7 @@ class AbstractToHex(
 ) : ColorConverterTest() {
 
     @Test
-    fun `abstract to hex conversion`() {
+    fun `abstract color is converted to expected HEX color`() {
         val hex = with(sut) { abstract.toHex() }
 
         withClue("Abstract color $abstract should be $expectedHex") {
@@ -89,7 +89,7 @@ class AbstractToRgb(
 ) : ColorConverterTest() {
 
     @Test
-    fun `abstract to rgb conversion`() {
+    fun `abstract color is converted to expected RGB color`() {
         val hex = with(sut) { abstract.toRgb() }
 
         withClue("Abstract color $abstract should be $expectedRgb") {

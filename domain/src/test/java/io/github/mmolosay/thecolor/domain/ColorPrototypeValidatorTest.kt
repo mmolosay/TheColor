@@ -17,7 +17,7 @@ class ColorPrototypeValidatorTest(
     val sut = ColorPrototypeValidator()
 
     @Test
-    fun `color prototype validation`() {
+    fun `color prototype should be valid or not valid as expected`() {
         val result = with(sut) { prototype.isValid() }
 
         withClue("Prototype $prototype should be valid=$expectedValid") {

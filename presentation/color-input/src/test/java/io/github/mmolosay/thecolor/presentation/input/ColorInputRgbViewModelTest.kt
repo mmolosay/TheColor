@@ -64,7 +64,7 @@ class FilterUserInputTest(
 ) : ColorInputRgbViewModelTest() {
 
     @Test
-    fun `filtering user input`() {
+    fun `user input is filtered as expected`() {
         createSut()
 
         val text = uiData.rTextField.filterUserInput(string)

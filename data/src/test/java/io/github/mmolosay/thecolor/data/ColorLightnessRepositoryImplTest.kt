@@ -23,7 +23,7 @@ class ColorLightnessRepositoryImplTest(
     )
 
     @Test
-    fun `color lightness validation`() {
+    fun `color lightness is as expected`() {
         val lightness = with(sut) { hslLightness(color) }
 
         lightness shouldBeInEqualityRangeWith expectedLightness
