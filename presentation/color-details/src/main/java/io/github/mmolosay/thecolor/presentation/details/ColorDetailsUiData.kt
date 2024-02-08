@@ -102,9 +102,6 @@ data class ColorDetailsUiData(
      *
      * Created by View, since string resources are tied to platform-specific
      * components (like Context), which should be avoided in ViewModels.
-     *
-     * It is provided to View, meaning that you are able to pass different instances of [ViewData]
-     * for testing purposes to verify that everything looks good (e.g. in Compose Preview).
      */
     data class ViewData(
         val hexLabel: String,
