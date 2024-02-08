@@ -17,10 +17,10 @@ class ColorMapper @Inject constructor(
      * The same algorithm can be found in io.github.mmolosay.thecolor.input.ColorConverter.
      * However, these pieces of code should not be unified and reused. This is a false duplication.
      *
-     * This method serves for data layer.
+     * This method serves data layer.
      * Its algorithm depends on what data APIs expect as input.
      *
-     * The other method serves for presentation layer.
+     * The other method serves presentation layer.
      * Its algorithm depends on design and how it was decided to present data.
      *
      * These methods will change at different time for different reasons. They serve different
