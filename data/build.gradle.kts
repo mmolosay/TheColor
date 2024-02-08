@@ -36,4 +36,10 @@ dependencies {
     implementation("javax.inject:javax.inject:1")
 
     implementation("com.github.ajalt.colormath:colormath:3.4.0")
+
+    // Testing
+    testImplementation("junit:junit:${libs.versions.junit.get()}")
+    testImplementation("io.mockk:mockk:${libs.versions.mockk.get()}")
+    testImplementation("io.kotest:kotest-assertions-core:${libs.versions.kotestAssertions.get()}")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:${libs.versions.coroutines.get()}")
 }
