@@ -1,6 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.scheme
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +15,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
@@ -97,7 +100,16 @@ fun ColorScheme(
 private fun Swatches(
     colors: List<Color>,
 ) {
-    Row {
+    val scrollState = rememberScrollState()
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentWidth()
+            .horizontalScroll(
+                state = scrollState,
+            ),
+        horizontalArrangement = Arrangement.spacedBy((-32).dp),
+    ) {
         colors.forEach { color ->
             Swatch(color)
         }
