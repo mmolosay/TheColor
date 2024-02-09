@@ -12,13 +12,11 @@ import androidx.compose.material.icons.rounded.KeyboardArrowRight
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,7 +31,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
-import io.github.mmolosay.thecolor.presentation.design.LocalColorsOnTintedSurface
+import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
@@ -69,10 +67,7 @@ fun ColorDetails(
     uiData: ColorDetailsUiData,
 ) {
     val colors = rememberContentColors(isSurfaceDark = uiData.background.isDark)
-    CompositionLocalProvider(
-        LocalColorsOnTintedSurface provides colors,
-        LocalContentColor provides colors.accent, // for MaterialRippleTheme
-    ) {
+    ProvideColorsOnTintedSurface(colors) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
