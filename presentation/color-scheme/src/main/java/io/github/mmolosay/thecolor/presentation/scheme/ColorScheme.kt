@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.scheme
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -30,7 +31,11 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -277,22 +282,31 @@ private fun ApplyChangesButton(
     uiData: ApplyChangesButton,
     modifier: Modifier = Modifier,
 ) {
-    if (uiData !is ApplyChangesButton.Visible) return
-    val colors = ButtonDefaults.outlinedButtonColors(
-        contentColor = colorsOnTintedSurface.accent,
-    )
-    val border = ButtonDefaults.outlinedButtonBorder.copy(
-        brush = SolidColor(colorsOnTintedSurface.muted),
-    )
-    OutlinedButton(
-        onClick = uiData.onClick,
+    var visibleUiData by remember { mutableStateOf<ApplyChangesButton.Visible?>(null) }
+    // when uiData is Hidden, we want to have memoized Visible data for some time while "exit" animation is running
+    AnimatedVisibility(
+        visible = uiData is ApplyChangesButton.Visible,
         modifier = modifier,
-        colors = colors,
-        border = border,
     ) {
-        Text(
-            text = uiData.text,
+        val lastVisible = visibleUiData ?: return@AnimatedVisibility
+        val colors = ButtonDefaults.outlinedButtonColors(
+            contentColor = colorsOnTintedSurface.accent,
         )
+        val border = ButtonDefaults.outlinedButtonBorder.copy(
+            brush = SolidColor(colorsOnTintedSurface.muted),
+        )
+        OutlinedButton(
+            onClick = lastVisible.onClick,
+            colors = colors,
+            border = border,
+        ) {
+            Text(
+                text = lastVisible.text,
+            )
+        }
+    }
+    LaunchedEffect(uiData) {
+        visibleUiData = uiData as? ApplyChangesButton.Visible ?: return@LaunchedEffect
     }
 }
 

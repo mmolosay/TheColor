@@ -48,6 +48,8 @@ class ColorSchemeViewModel @Inject constructor(
     }
 
     private fun onApplyChangesClick() {
+        val data = dataState.value.asReadyOrNull()?.data ?: return
+        if (data.applyChangesButton !is ApplyChangesButton.Visible) return // ignore clicks during button hiding animation
         getColorScheme(seed = Color.Hex(0x1A803F)) // TODO: use real color
     }
 
@@ -116,6 +118,7 @@ class ColorSchemeViewModel @Inject constructor(
             listOf(3, 4, 6, 9, 13, 18).map { SwatchCount(it) }
 
         private val InitialOrFallbackMode = ColorScheme.Mode.Monochrome
-        private val InitialOrFallbackSwatchCount = SwatchCount(6) // TODO: refactor PossibleSwatchCountItems to enum
+        private val InitialOrFallbackSwatchCount =
+            SwatchCount(6) // TODO: refactor PossibleSwatchCountItems to enum
     }
 }
