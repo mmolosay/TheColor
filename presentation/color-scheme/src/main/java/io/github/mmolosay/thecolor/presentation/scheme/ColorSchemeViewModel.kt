@@ -111,8 +111,11 @@ class ColorSchemeViewModel @Inject constructor(
         data class Ready(val data: ColorSchemeData) : State
     }
 
-    private companion object {
-        val InitialOrFallbackMode = ColorScheme.Mode.Monochrome
-        val InitialOrFallbackSwatchCount = SwatchCount(5)
+    companion object {
+        val PossibleSwatchCountItems =
+            listOf(3, 4, 6, 9, 13, 18).map { SwatchCount(it) }
+
+        private val InitialOrFallbackMode = ColorScheme.Mode.Monochrome
+        private val InitialOrFallbackSwatchCount = SwatchCount(6) // TODO: refactor PossibleSwatchCountItems to enum
     }
 }

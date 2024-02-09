@@ -44,7 +44,7 @@ private fun SwatchCountSection(
     SwatchCountSection(
         label = viewData.swatchCountLabel,
         value = data.activeSwatchCount.value.toString(),
-        swatchCountItems = PossibleSwatchCountItems.map { item ->
+        swatchCountItems = ColorSchemeViewModel.PossibleSwatchCountItems.map { item ->
             SwatchCountSection.SwatchCount(
                 text = item.value.toString(),
                 isSelected = (item == data.selectedSwatchCount),
@@ -79,13 +79,3 @@ private fun ColorScheme.Mode.name(
         ColorScheme.Mode.Triad -> viewData.modeTriadName
         ColorScheme.Mode.Quad -> viewData.modeQuadName
     }
-
-private val PossibleSwatchCountItems =
-    listOf(
-        ColorSchemeData.SwatchCount(3),
-        ColorSchemeData.SwatchCount(4),
-        ColorSchemeData.SwatchCount(6),
-        ColorSchemeData.SwatchCount(9),
-        ColorSchemeData.SwatchCount(13),
-        ColorSchemeData.SwatchCount(18),
-    )
