@@ -65,10 +65,10 @@ abstract class ColorDataObtainFragment<D> :
 
     override fun onResume() {
         super.onResume()
-        if (!wasOnResumeCalled) {
+//        if (!wasOnResumeCalled) {
             obtainColorData()
-            this.wasOnResumeCalled = true
-        }
+//            this.wasOnResumeCalled = true
+//        }
     }
 
     override fun onDestroy() {

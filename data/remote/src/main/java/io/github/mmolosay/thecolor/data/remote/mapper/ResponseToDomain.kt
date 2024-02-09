@@ -45,14 +45,14 @@ fun ColorDetailsResponse.toDomain() = ColorDetails(
     xyzZ = this.XYZ.Z,
     xyzValue = this.XYZ.value,
 
-    cmykFractionC = this.cmyk.fraction.c,
-    cmykFractionM = this.cmyk.fraction.m,
-    cmykFractionY = this.cmyk.fraction.y,
-    cmykFractionK = this.cmyk.fraction.k,
-    cmykC = this.cmyk.c,
-    cmykM = this.cmyk.m,
-    cmykY = this.cmyk.y,
-    cmykK = this.cmyk.k,
+    cmykFractionC = this.cmyk.fraction.c ?: 0f, // BE returns 'null' but means 0
+    cmykFractionM = this.cmyk.fraction.m ?: 0f, // BE returns 'null' but means 0
+    cmykFractionY = this.cmyk.fraction.y ?: 0f, // BE returns 'null' but means 0
+    cmykFractionK = this.cmyk.fraction.k ?: 0f, // BE returns 'null' but means 0
+    cmykC = this.cmyk.c ?: 0, // BE returns 'null' but means 0
+    cmykM = this.cmyk.m ?: 0, // BE returns 'null' but means 0
+    cmykY = this.cmyk.y ?: 0, // BE returns 'null' but means 0
+    cmykK = this.cmyk.k ?: 0, // BE returns 'null' but means 0
     cmykValue = this.cmyk.value,
 
     name = this.name.value,

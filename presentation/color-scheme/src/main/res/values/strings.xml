@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="color_scheme_mode_label">Mode: </string>
+    <string name="color_scheme_mode_name_monochrome">monochrome</string>
+    <string name="color_scheme_mode_name_monochrome_dark">monochrome-dark</string>
+    <string name="color_scheme_mode_name_monochrome_light">monochrome-light</string>
+    <string name="color_scheme_mode_name_analogic">analogic</string>
+    <string name="color_scheme_mode_name_complement">complement</string>
+    <string name="color_scheme_mode_name_analogic_complement">analogic-complement</string>
+    <string name="color_scheme_mode_name_triad">triad</string>
+    <string name="color_scheme_mode_name_quad">quad</string>
+    <string name="color_scheme_swatch_count_label">Swatch count: </string>
+    <string name="color_scheme_apply_changes_button_text">Apply changes</string>
+
+</resources>

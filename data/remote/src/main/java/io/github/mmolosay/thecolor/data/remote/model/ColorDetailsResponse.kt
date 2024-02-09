@@ -77,18 +77,18 @@ data class XyzModelFractionResponse(
 
 data class CmykModelResponse(
     val fraction: CmykModelFractionResponse,
-    val c: Int,
-    val m: Int,
-    val y: Int,
-    val k: Int,
+    val c: Int?,
+    val m: Int?,
+    val y: Int?,
+    val k: Int?,
     val value: String,
 )
 
 data class CmykModelFractionResponse(
-    val c: Float,
-    val m: Float,
-    val y: Float,
-    val k: Float,
+    val c: Float?,
+    val m: Float?,
+    val y: Float?,
+    val k: Float?,
 )
 
 data class NameResponse(

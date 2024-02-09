@@ -8,13 +8,16 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -30,11 +33,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
@@ -44,6 +49,23 @@ import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.ApplyChangesButton
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.ModeSection
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.SwatchCountSection
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.State
+
+@Composable
+fun ColorScheme(
+    vm: ColorSchemeViewModel,
+) {
+    val state = vm.dataState.collectAsStateWithLifecycle().value
+    val viewData = rememberViewData()
+    when (state) {
+        is State.Loading ->
+            Loading()
+        is State.Ready -> {
+            val uiData = rememberUiData(state.data, viewData)
+            ColorScheme(uiData)
+        }
+    }
+}
 
 @Composable
 fun ColorScheme(
@@ -244,6 +266,27 @@ private fun ApplyChangesButton(
         )
     }
 }
+
+@Composable
+private fun Loading() =
+    CircularProgressIndicator(
+        modifier = Modifier
+            .fillMaxSize()
+            .wrapContentSize(),
+    )
+
+@Composable
+private fun rememberViewData(): ColorSchemeUiData.ViewData {
+    val context = LocalContext.current
+    return remember { ColorSchemeViewData(context) }
+}
+
+@Composable
+private fun rememberUiData(
+    data: ColorSchemeData,
+    viewData: ColorSchemeUiData.ViewData,
+): ColorSchemeUiData =
+    remember(data) { ColorSchemeUiData(data, viewData) }
 
 @Composable
 private fun rememberContentColors(isSurfaceDark: Boolean): ColorsOnTintedSurface =

@@ -50,6 +50,7 @@ dependencies {
     implementation(project(":presentation:design-system"))
     implementation(project(":presentation:color-input"))
     implementation(project(":presentation:color-details"))
+    implementation(project(":presentation:color-scheme"))
 
     // Kotlin
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.coroutines.get()}")
