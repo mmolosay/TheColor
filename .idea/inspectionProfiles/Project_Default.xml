@@ -248,6 +248,7 @@
     <inspection_tool class="AndroidLintMissingTvBanner" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="AndroidLintMissingVersion" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="AndroidLintMockLocation" enabled="true" level="ERROR" enabled_by_default="true" />
+    <inspection_tool class="AndroidLintModifierFactoryUnreferencedReceiver" enabled="false" level="ERROR" enabled_by_default="false" />
     <inspection_tool class="AndroidLintModifierParameter" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="AndroidLintMonochromeLauncherIcon" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="AndroidLintMotionLayoutInvalidSceneFileReference" enabled="true" level="ERROR" enabled_by_default="true" />

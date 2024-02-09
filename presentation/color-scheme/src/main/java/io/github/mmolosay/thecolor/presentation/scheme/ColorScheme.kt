@@ -36,11 +36,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
@@ -103,6 +105,7 @@ private fun Swatches(
     val scrollState = rememberScrollState()
     Row(
         modifier = Modifier
+            .edgeToEdge(parentTotalHorizontalPadding = 32.dp)
             .fillMaxWidth()
             .wrapContentWidth()
             .horizontalScroll(
@@ -124,6 +127,19 @@ private fun Swatch(color: Color) =
             .clip(CircleShape)
             .background(color)
     )
+
+private fun Modifier.edgeToEdge(
+    parentTotalHorizontalPadding: Dp,
+): Modifier =
+    layout { measurable, constraints ->
+        val expandedConstraints = constraints.copy(
+            maxWidth = constraints.maxWidth + parentTotalHorizontalPadding.roundToPx(),
+        )
+        val placeable = measurable.measure(expandedConstraints)
+        layout(placeable.width, placeable.height) {
+            placeable.placeRelative(x = 0, y = 0)
+        }
+    }
 
 @Composable
 private fun ModeSection(uiData: ModeSection) {
