@@ -324,7 +324,17 @@ private fun PreviewDark() {
 @Suppress("MoveLambdaOutsideParentheses")
 private fun previewUiData() =
     ColorSchemeUiData(
-        swatches = listOf(),
+        swatches = listOf(
+            Color(0xFF_05160B),
+            Color(0xFF_0A2D17),
+            Color(0xFF_0F4522),
+            Color(0xFF_135C2E),
+            Color(0xFF_187439),
+            Color(0xFF_1C8C45),
+            Color(0xFF_20A450),
+            Color(0xFF_24BC5C),
+            Color(0xFF_28D567),
+        ),
         modeSection = ModeSection(
             label = "Mode:",
             value = "analogic-complement",
