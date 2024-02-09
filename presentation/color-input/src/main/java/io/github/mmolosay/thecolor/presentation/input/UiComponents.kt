@@ -100,9 +100,9 @@ internal object UiComponents {
 
     @Composable
     private fun TrailingButton(uiData: TrailingButton) {
-        val resizingAlignment = Alignment.Center
         // when uiData is Hidden, we want to have memoized Visible data for some time while "exit" animation is running
         var visibleUiData by remember { mutableStateOf<TrailingButton.Visible?>(null) }
+        val resizingAlignment = Alignment.Center
         AnimatedVisibility(
             visible = uiData is TrailingButton.Visible,
             enter = fadeIn() + expandIn(expandFrom = resizingAlignment),

@@ -1,6 +1,12 @@
 package io.github.mmolosay.thecolor.presentation.scheme
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FiniteAnimationSpec
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -43,6 +49,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
@@ -282,10 +289,24 @@ private fun ApplyChangesButton(
     uiData: ApplyChangesButton,
     modifier: Modifier = Modifier,
 ) {
-    var visibleUiData by remember { mutableStateOf<ApplyChangesButton.Visible?>(null) }
     // when uiData is Hidden, we want to have memoized Visible data for some time while "exit" animation is running
+    var visibleUiData by remember { mutableStateOf<ApplyChangesButton.Visible?>(null) }
+    val translation = with(LocalDensity.current) { 12.dp.roundToPx() }
+    fun <T> animationSpec(): FiniteAnimationSpec<T> = spring(stiffness = 1_000f)
     AnimatedVisibility(
         visible = uiData is ApplyChangesButton.Visible,
+        enter = slideInHorizontally(
+            animationSpec = animationSpec(),
+            initialOffsetX = { translation },
+        ) + fadeIn(
+            animationSpec = animationSpec(),
+        ),
+        exit = slideOutHorizontally(
+            animationSpec = animationSpec(),
+            targetOffsetX = { translation },
+        ) + fadeOut(
+            animationSpec = animationSpec(),
+        ),
         modifier = modifier,
     ) {
         val lastVisible = visibleUiData ?: return@AnimatedVisibility
