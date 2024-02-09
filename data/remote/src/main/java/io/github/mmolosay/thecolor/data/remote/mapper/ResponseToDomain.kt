@@ -4,6 +4,7 @@ import io.github.mmolosay.thecolor.data.remote.model.ColorDetailsResponse
 import io.github.mmolosay.thecolor.data.remote.model.ColorSchemeResponse
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.ColorDetails
+import io.github.mmolosay.thecolor.domain.model.ColorScheme
 import io.github.mmolosay.thecolor.domain.model.OldColorScheme
 
 fun ColorDetailsResponse.toDomain() = ColorDetails(
@@ -66,9 +67,14 @@ fun ColorDetailsResponse.toDomain() = ColorDetails(
     contrastHex = this.contrast.value,
 )
 
-fun ColorSchemeResponse.toDomain() = OldColorScheme(
+fun ColorSchemeResponse.toDomainOld() = OldColorScheme(
     modeOrdinal = this.mode.ordinal,
     sampleCount = this.sampleCount,
     colors = this.colors.map { it.toDomain() },
     seed = this.seed.toDomain()
 )
+
+fun ColorSchemeResponse.toDomain() =
+    ColorScheme(
+        swatchDetails = this.colors.map { it.toDomain() },
+    )

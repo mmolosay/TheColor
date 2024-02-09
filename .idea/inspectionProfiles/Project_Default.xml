@@ -71,6 +71,7 @@
     <inspection_tool class="AndroidLintCoarseFineLocation" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="AndroidLintCommitPrefEdits" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="AndroidLintCommitTransaction" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="AndroidLintComposableNaming" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="AndroidLintConstantLocale" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="AndroidLintContentDescription" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="AndroidLintConvertToWebp" enabled="false" level="WARNING" enabled_by_default="false" />
@@ -184,6 +185,7 @@
     <inspection_tool class="AndroidLintIntentWithNullActionLaunch" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="AndroidLintInternalInsetResource" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="AndroidLintInvalidAnalyticsName" enabled="true" level="ERROR" enabled_by_default="true" />
+    <inspection_tool class="AndroidLintInvalidColorHexValue" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="AndroidLintInvalidId" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="AndroidLintInvalidImeActionId" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="AndroidLintInvalidNavigation" enabled="true" level="WARNING" enabled_by_default="true" />
@@ -227,6 +229,7 @@
     <inspection_tool class="AndroidLintMissingApplicationIcon" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="AndroidLintMissingBackupPin" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="AndroidLintMissingClass" enabled="true" level="ERROR" enabled_by_default="true" />
+    <inspection_tool class="AndroidLintMissingColorAlphaChannel" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="AndroidLintMissingConstraints" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="AndroidLintMissingDefaultResource" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="AndroidLintMissingFirebaseInstanceTokenRefresh" enabled="true" level="WARNING" enabled_by_default="true" />
@@ -245,6 +248,7 @@
     <inspection_tool class="AndroidLintMissingTvBanner" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="AndroidLintMissingVersion" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="AndroidLintMockLocation" enabled="true" level="ERROR" enabled_by_default="true" />
+    <inspection_tool class="AndroidLintModifierParameter" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="AndroidLintMonochromeLauncherIcon" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="AndroidLintMotionLayoutInvalidSceneFileReference" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="AndroidLintMotionLayoutMissingId" enabled="true" level="ERROR" enabled_by_default="true" />
@@ -312,6 +316,7 @@
     <inspection_tool class="AndroidLintReferenceType" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="AndroidLintRegistered" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="AndroidLintRelativeOverlap" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="AndroidLintRememberReturnType" enabled="false" level="ERROR" enabled_by_default="false" />
     <inspection_tool class="AndroidLintRemoteViewLayout" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="AndroidLintReportShortcutUsage" enabled="true" level="INFO" enabled_by_default="true" />
     <inspection_tool class="AndroidLintRequiredSize" enabled="true" level="ERROR" enabled_by_default="true" />

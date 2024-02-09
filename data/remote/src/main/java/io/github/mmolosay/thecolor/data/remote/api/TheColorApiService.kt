@@ -31,7 +31,7 @@ interface TheColorApiService {
         @Query("cmyk") cmyk: String? = null,
         @Query("format") format: ResponseFormat = ResponseFormat.JSON,
         @Query("mode") mode: SchemeMode = SchemeMode.ANALOGIC,
-        @Query("count") sampleCount: Int = 5,
+        @Query("count") swatchCount: Int = 5,
         @Query("w") svgSize: Int = 100,
         @Query("named") doPrintNames: Boolean = true,
     ) : ColorSchemeResponse
