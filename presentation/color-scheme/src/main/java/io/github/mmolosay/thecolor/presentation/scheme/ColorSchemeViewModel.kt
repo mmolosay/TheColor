@@ -94,7 +94,7 @@ class ColorSchemeViewModel @Inject constructor(
         selectedSwatchCount: SwatchCount = this.selectedSwatchCount,
     ): ColorSchemeData {
         fun hasModeChanged() = (selectedMode != this.activeMode)
-        fun hasSwatchCountChanged() = (selectedSwatchCount != this.selectedSwatchCount)
+        fun hasSwatchCountChanged() = (selectedSwatchCount != this.activeSwatchCount)
         val areThereChangesToApply = (hasModeChanged() || hasSwatchCountChanged())
         return this.copy(
             selectedMode = selectedMode,
