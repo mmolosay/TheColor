@@ -11,6 +11,10 @@ sealed interface Color {
      */
     data class Abstract internal constructor(internal val int: Int) : Color
 
+    /**
+     * Solid color in RRGGBB format without alpha channel.
+     * Example: `value = 0x1A803F`.
+     */
     data class Hex(
         val value: Int,
     ) : Color
