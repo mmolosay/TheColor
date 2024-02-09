@@ -7,7 +7,7 @@ import io.github.mmolosay.thecolor.presentation.color.data.ColorScheme
 import io.github.mmolosay.thecolor.presentation.util.ext.getFromEnumOrNull
 import io.github.mmolosay.thecolor.domain.model.Color as ColorDomain
 import io.github.mmolosay.thecolor.domain.model.ColorDetails as ColorDetailsDomain
-import io.github.mmolosay.thecolor.domain.model.ColorScheme as ColorSchemeDomain
+import io.github.mmolosay.thecolor.domain.model.OldColorScheme as ColorSchemeDomain
 
 // region ColorPrototype
 

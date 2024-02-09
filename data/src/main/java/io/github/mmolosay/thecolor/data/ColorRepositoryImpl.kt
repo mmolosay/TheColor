@@ -4,7 +4,7 @@ import io.github.mmolosay.thecolor.data.remote.api.TheColorApiService
 import io.github.mmolosay.thecolor.data.remote.mapper.toDomain
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.ColorDetails
-import io.github.mmolosay.thecolor.domain.model.ColorScheme
+import io.github.mmolosay.thecolor.domain.model.OldColorScheme
 import io.github.mmolosay.thecolor.domain.model.ColorSchemeRequest
 import io.github.mmolosay.thecolor.domain.repository.ColorRepository
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
@@ -30,7 +30,7 @@ class ColorRepositoryImpl @Inject constructor(
         return getColorDetails(colorHex = string)
     }
 
-    override suspend fun getColorScheme(request: ColorSchemeRequest): ColorScheme {
+    override suspend fun getColorScheme(request: ColorSchemeRequest): OldColorScheme {
         val mode = TheColorApiService.SchemeMode.entries[request.modeOrdinal]
         val response = api.getColorScheme(
             hex = request.seedHex,

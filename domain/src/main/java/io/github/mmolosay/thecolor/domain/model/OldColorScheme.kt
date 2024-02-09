@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.domain.model
 
-data class ColorScheme(
+data class OldColorScheme(
     val modeOrdinal: Int,
     val sampleCount: Int,
     val colors: List<ColorDetails>,
