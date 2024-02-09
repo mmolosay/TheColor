@@ -194,6 +194,7 @@ private fun SectionTitle(
             withStyle(SpanStyle(color = labelColor)) {
                 append(label)
             }
+            append(' ')
             withStyle(SpanStyle(color = valueColor)) {
                 append(value)
             }
@@ -325,7 +326,7 @@ private fun previewUiData() =
     ColorSchemeUiData(
         swatches = listOf(),
         modeSection = ModeSection(
-            label = "Mode: ",
+            label = "Mode:",
             value = "analogic-complement",
             modes = listOf(
                 ModeSection.Mode("monochrome", false, {}),
@@ -339,7 +340,7 @@ private fun previewUiData() =
             ),
         ),
         swatchCountSection = SwatchCountSection(
-            label = "Swatch count: ",
+            label = "Swatch count:",
             value = "12",
             swatchCountItems = listOf(
                 SwatchCountSection.SwatchCount("5", false, {}),
