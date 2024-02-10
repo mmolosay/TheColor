@@ -240,7 +240,10 @@ private fun SectionTitle(
             }
         }
     }
-    Text(text = text)
+    Text(
+        text = text,
+        style = MaterialTheme.typography.titleMedium,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
