@@ -7,8 +7,8 @@ import io.github.mmolosay.thecolor.data.remote.mapper.toDto
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.ColorDetails
 import io.github.mmolosay.thecolor.domain.model.ColorScheme
-import io.github.mmolosay.thecolor.domain.model.OldColorScheme
 import io.github.mmolosay.thecolor.domain.model.ColorSchemeRequest
+import io.github.mmolosay.thecolor.domain.model.OldColorScheme
 import io.github.mmolosay.thecolor.domain.repository.ColorRepository
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase

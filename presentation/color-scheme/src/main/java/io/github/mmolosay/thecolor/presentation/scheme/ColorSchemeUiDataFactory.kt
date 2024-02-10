@@ -44,11 +44,11 @@ private fun SwatchCountSection(
     SwatchCountSection(
         label = viewData.swatchCountLabel,
         value = data.activeSwatchCount.value.toString(),
-        swatchCountItems = ColorSchemeViewModel.PossibleSwatchCountItems.map { item ->
+        swatchCountItems = ColorSchemeData.SwatchCount.entries.map { count ->
             SwatchCountSection.SwatchCount(
-                text = item.value.toString(),
-                isSelected = (item == data.selectedSwatchCount),
-                onSelect = { data.onSwatchCountSelect(item) },
+                text = count.value.toString(),
+                isSelected = (count == data.selectedSwatchCount),
+                onSelect = { data.onSwatchCountSelect(count) },
             )
         },
     )

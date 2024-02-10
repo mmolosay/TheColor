@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.ColorScheme
+import io.github.mmolosay.thecolor.domain.model.ColorScheme.Mode
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.ApplyChangesButton
@@ -37,7 +38,7 @@ class ColorSchemeViewModel @Inject constructor(
         }
     }
 
-    private fun onModeSelect(mode: ColorScheme.Mode) {
+    private fun onModeSelect(mode: Mode) {
         val data = dataState.value.asReadyOrNull()?.data ?: return
         _dataState.value = data.smartCopy(selectedMode = mode).let { State.Ready(it) }
     }
@@ -71,8 +72,8 @@ class ColorSchemeViewModel @Inject constructor(
             activeMode = request.mode,
             selectedMode = request.mode,
             onModeSelect = ::onModeSelect,
-            activeSwatchCount = SwatchCount(request.swatchCount),
-            selectedSwatchCount = SwatchCount(request.swatchCount),
+            activeSwatchCount = SwatchCount.entries.first { it.value == request.swatchCount }, // TODO: refactor
+            selectedSwatchCount = SwatchCount.entries.first { it.value == request.swatchCount }, // TODO: refactor
             onSwatchCountSelect = ::onSwatchCountSelect,
             applyChangesButton = ApplyChangesButton(areThereChangesToApply = false), // initial selected config is equal to the active one
         )
@@ -88,11 +89,11 @@ class ColorSchemeViewModel @Inject constructor(
                 onClick = ::onApplyChangesClick,
             )
         } else {
-            ApplyChangesButton.Hidden // no changes to be applied
+            ApplyChangesButton.Hidden
         }
 
     private fun ColorSchemeData.smartCopy(
-        selectedMode: ColorScheme.Mode = this.selectedMode,
+        selectedMode: Mode = this.selectedMode,
         selectedSwatchCount: SwatchCount = this.selectedSwatchCount,
     ): ColorSchemeData {
         fun hasModeChanged() = (selectedMode != this.activeMode)
@@ -114,11 +115,7 @@ class ColorSchemeViewModel @Inject constructor(
     }
 
     companion object {
-        val PossibleSwatchCountItems =
-            listOf(3, 4, 6, 9, 13, 18).map { SwatchCount(it) }
-
-        private val InitialOrFallbackMode = ColorScheme.Mode.Monochrome
-        private val InitialOrFallbackSwatchCount =
-            SwatchCount(6) // TODO: refactor PossibleSwatchCountItems to enum
+        private val InitialOrFallbackMode = Mode.Monochrome
+        private val InitialOrFallbackSwatchCount = SwatchCount.Six
     }
 }
