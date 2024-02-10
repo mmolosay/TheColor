@@ -28,10 +28,14 @@ class ColorSchemeViewModel @Inject constructor(
     private val _dataState = MutableStateFlow<State>(State.Loading)
     val dataState = _dataState.asStateFlow()
 
+    // TODO: never changes, ViewModel is created for a particular color; refactor to injected ColorProvider
+    private var lastUsedSeed: Color? = null
+
     fun getColorScheme(seed: Color) {
         val requestConfig = assembleRequestConfigFromCurrentData()
         val request = requestConfig.toDomainRequest(seed)
         _dataState.value = State.Loading
+        lastUsedSeed = seed
         viewModelScope.launch(ioDispatcher) {
             val scheme = getColorScheme(request)
             val data = ColorSchemeData(scheme, requestConfig)
@@ -52,7 +56,8 @@ class ColorSchemeViewModel @Inject constructor(
     private fun onApplyChangesClick() {
         val data = dataState.value.asReadyOrNull()?.data ?: return
         if (data.applyChangesButton !is ApplyChangesButton.Visible) return // ignore clicks during button hiding animation
-        getColorScheme(seed = Color.Hex(0x1A803F)) // TODO: use real color
+        val seed = lastUsedSeed ?: return
+        getColorScheme(seed)
     }
 
     private fun assembleRequestConfigFromCurrentData(): Config {
