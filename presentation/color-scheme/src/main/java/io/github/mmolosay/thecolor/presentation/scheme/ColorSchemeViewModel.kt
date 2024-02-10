@@ -29,11 +29,12 @@ class ColorSchemeViewModel @Inject constructor(
     val dataState = _dataState.asStateFlow()
 
     fun getColorScheme(seed: Color) {
-        val request = assembleRequestFromCurrentData(seed)
+        val requestConfig = assembleRequestConfigFromCurrentData()
+        val request = requestConfig.toDomainRequest(seed)
         _dataState.value = State.Loading
         viewModelScope.launch(ioDispatcher) {
             val scheme = getColorScheme(request)
-            val data = ColorSchemeData(scheme, request)
+            val data = ColorSchemeData(scheme, requestConfig)
             _dataState.value = State.Ready(data)
         }
     }
@@ -54,26 +55,32 @@ class ColorSchemeViewModel @Inject constructor(
         getColorScheme(seed = Color.Hex(0x1A803F)) // TODO: use real color
     }
 
-    private fun assembleRequestFromCurrentData(seed: Color): GetColorSchemeUseCase.Request {
+    private fun assembleRequestConfigFromCurrentData(): Config {
         val data = dataState.value.asReadyOrNull()?.data
-        return GetColorSchemeUseCase.Request(
-            seed = seed,
+        return Config(
             mode = data?.selectedMode ?: InitialOrFallbackMode,
-            swatchCount = (data?.selectedSwatchCount ?: InitialOrFallbackSwatchCount).value,
+            swatchCount = data?.selectedSwatchCount ?: InitialOrFallbackSwatchCount,
         )
     }
 
+    private fun Config.toDomainRequest(seed: Color): GetColorSchemeUseCase.Request =
+        GetColorSchemeUseCase.Request(
+            seed = seed,
+            mode = this.mode,
+            swatchCount = this.swatchCount.value,
+        )
+
     private fun ColorSchemeData(
         scheme: ColorScheme,
-        request: GetColorSchemeUseCase.Request,
+        config: Config,
     ): ColorSchemeData =
         ColorSchemeData(
             swatches = scheme.swatchDetails.map { ColorInt(it.color) },
-            activeMode = request.mode,
-            selectedMode = request.mode,
+            activeMode = config.mode,
+            selectedMode = config.mode,
             onModeSelect = ::onModeSelect,
-            activeSwatchCount = SwatchCount.entries.first { it.value == request.swatchCount }, // TODO: refactor
-            selectedSwatchCount = SwatchCount.entries.first { it.value == request.swatchCount }, // TODO: refactor
+            activeSwatchCount = config.swatchCount,
+            selectedSwatchCount = config.swatchCount,
             onSwatchCountSelect = ::onSwatchCountSelect,
             applyChangesButton = ApplyChangesButton(areThereChangesToApply = false), // initial selected config is equal to the active one
         )
@@ -108,6 +115,12 @@ class ColorSchemeViewModel @Inject constructor(
 
     private fun State.asReadyOrNull() =
         this as? State.Ready
+
+    /** [GetColorSchemeUseCase.Request] mapped to presentation layer model. */
+    private data class Config(
+        val mode: Mode,
+        val swatchCount: SwatchCount,
+    )
 
     sealed interface State {
         data object Loading : State
