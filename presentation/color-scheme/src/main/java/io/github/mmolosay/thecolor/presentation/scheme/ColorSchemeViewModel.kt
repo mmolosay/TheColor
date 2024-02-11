@@ -11,21 +11,24 @@ import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.ApplyChangesButton
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.ColorInt
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.SwatchCount
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.State
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Named
+import javax.inject.Singleton
 
 @HiltViewModel
 class ColorSchemeViewModel @Inject constructor(
+    getInitialState: GetInitialStateUseCase,
     private val getColorScheme: GetColorSchemeUseCase,
     private val colorConverter: ColorConverter,
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
-    private val _dataStateFlow = MutableStateFlow<State>(State.Loading)
+    private val _dataStateFlow = MutableStateFlow(getInitialState())
     val dataStateFlow = _dataStateFlow.asStateFlow()
 
     // TODO: never changes, ViewModel is created for a particular color; refactor to injected ColorProvider
@@ -136,4 +139,9 @@ class ColorSchemeViewModel @Inject constructor(
         private val InitialOrFallbackMode = Mode.Monochrome
         private val InitialOrFallbackSwatchCount = SwatchCount.Six
     }
+}
+
+@Singleton
+class GetInitialStateUseCase @Inject constructor() : () -> State {
+    override fun invoke(): State = State.Loading
 }

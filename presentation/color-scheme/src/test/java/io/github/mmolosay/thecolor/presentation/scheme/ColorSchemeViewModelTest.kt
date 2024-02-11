@@ -21,13 +21,16 @@ class ColorSchemeViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
+    val getInitialState: GetInitialStateUseCase = mockk()
     val getColorScheme: GetColorSchemeUseCase = mockk()
     val colorConverter: ColorConverter = mockk()
 
     lateinit var sut: ColorSchemeViewModel
 
     @Test
-    fun `initial data state is Loading`() {
+    fun `initial data state is as provided`() {
+        every { getInitialState() } returns State.Loading
+
         createSut()
 
         sut.dataStateFlow.value should beOfType<State.Loading>()
@@ -36,6 +39,7 @@ class ColorSchemeViewModelTest {
     @Test
     fun `call to 'get color scheme' emits Ready state from flow`() =
         runTest(mainDispatcherRule.testDispatcher) {
+            every { getInitialState() } returns State.Loading
             val color = Color.Hex(0x1A803F)
             val domainColorScheme = DomainColorScheme()
             coEvery { getColorScheme(request = any<GetColorSchemeUseCase.Request>()) } returns domainColorScheme
@@ -63,6 +67,7 @@ class ColorSchemeViewModelTest {
 
     fun createSut() =
         ColorSchemeViewModel(
+            getInitialState = getInitialState,
             getColorScheme = getColorScheme,
             colorConverter = colorConverter,
             ioDispatcher = mainDispatcherRule.testDispatcher,
