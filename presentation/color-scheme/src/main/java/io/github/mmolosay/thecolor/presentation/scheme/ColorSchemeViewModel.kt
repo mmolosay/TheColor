@@ -10,9 +10,7 @@ import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Changes
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.ColorInt
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.SwatchCount
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.Actions
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.Config
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.State
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,15 +22,15 @@ import io.github.mmolosay.thecolor.domain.model.ColorScheme as DomainColorScheme
 
 @HiltViewModel
 class ColorSchemeViewModel @Inject constructor(
-    getInitialState: GetInitialStateUseCase,
+    private val getInitialModels: GetInitialDataModelsUseCase,
     private val getColorScheme: GetColorSchemeUseCase,
-    private val colorSchemeDataFactory: ColorSchemeDataFactory,
+    private val colorSchemeDataModelsFactory: ColorSchemeDataModelsFactory,
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
-    private val actions = Actions()
+    private val actions = actions()
 
-    private val _dataStateFlow = MutableStateFlow(getInitialState(actions))
+    private val _dataStateFlow = MutableStateFlow(initialState())
     val dataStateFlow = _dataStateFlow.asStateFlow()
 
     // TODO: never changes, ViewModel is created for a particular color; refactor to injected ColorProvider
@@ -45,11 +43,11 @@ class ColorSchemeViewModel @Inject constructor(
         lastUsedSeed = seed
         viewModelScope.launch(ioDispatcher) {
             val scheme = getColorScheme(request)
-            val data = colorSchemeDataFactory.create(
+            val models = colorSchemeDataModelsFactory.create(
                 scheme = scheme,
                 config = requestConfig,
-                actions = actions,
             )
+            val data = ColorSchemeDataFactory.create(models, actions)
             _dataStateFlow.value = State.Ready(data)
         }
     }
@@ -113,6 +111,19 @@ class ColorSchemeViewModel @Inject constructor(
             Changes.None
         }
 
+    private fun initialState(): State {
+        val models = getInitialModels() ?: return State.Loading
+        val data = ColorSchemeDataFactory.create(models, actions)
+        return State.Ready(data)
+    }
+
+    private fun actions() =
+        ColorSchemeData.Actions(
+            onModeSelect = ::selectMode,
+            onSwatchCountSelect = ::selectSwatchCount,
+            applyChanges = ::applyChanges,
+        )
+
     private fun State.asReadyOrNull() =
         this as? State.Ready
 
@@ -120,12 +131,6 @@ class ColorSchemeViewModel @Inject constructor(
     data class Config(
         val mode: Mode,
         val swatchCount: SwatchCount,
-    )
-
-    inner class Actions(
-        val onModeSelect: (Mode) -> Unit = ::selectMode,
-        val onSwatchCountSelect: (SwatchCount) -> Unit = ::selectSwatchCount,
-        val applyChanges: () -> Unit = ::applyChanges,
     )
 
     sealed interface State {
@@ -140,31 +145,28 @@ class ColorSchemeViewModel @Inject constructor(
 }
 
 @Singleton
-@Suppress("UNUSED_PARAMETER") // used in tests
-class GetInitialStateUseCase @Inject constructor() {
-    operator fun invoke(actions: Actions): State =
-        State.Loading
+class GetInitialDataModelsUseCase @Inject constructor() {
+    operator fun invoke(): ColorSchemeData.Models? =
+        null
 }
 
+/** Maps [DomainColorScheme] to presentation layer [ColorSchemeData.Models]. */
 @Singleton
-class ColorSchemeDataFactory @Inject constructor(
+class ColorSchemeDataModelsFactory @Inject constructor(
     private val colorConverter: ColorConverter,
 ) {
 
     fun create(
         scheme: DomainColorScheme,
         config: Config,
-        actions: Actions,
     ) =
-        ColorSchemeData(
+        ColorSchemeData.Models(
             swatches = scheme.swatchDetails.map { it.color.toColorInt() },
             activeMode = config.mode,
             selectedMode = config.mode,
-            onModeSelect = actions.onModeSelect,
             activeSwatchCount = config.swatchCount,
             selectedSwatchCount = config.swatchCount,
-            onSwatchCountSelect = actions.onSwatchCountSelect,
-            changes = Changes.None, // selected and active configs are the same
+            hasChanges = false, // selected and active configs are the same
         )
 
     private fun Color.toColorInt(): ColorInt {

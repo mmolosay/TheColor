@@ -1,13 +1,20 @@
 package io.github.mmolosay.thecolor.presentation.scheme
 
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Actions
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Models
 import io.github.mmolosay.thecolor.domain.model.ColorScheme.Mode as DomainMode
 
 /**
  * Platform-agnostic data provided by ViewModel to color scheme View.
+ * Assembled from [Models] and [Actions].
+ *
+ * Such separation is required, because [Models] and [Actions] originate from different places.
+ * [Models] are created by mapping domain models to presentation counterparts.
+ * [Actions] belong to ViewModel and should only be exposed to View as a part of [ColorSchemeData].
  */
 data class ColorSchemeData(
     val swatches: List<ColorInt>,
-    val activeMode: DomainMode, // it's ok to use domain model if it doesn't require mapping to presentation
+    val activeMode: DomainMode,
     val selectedMode: DomainMode,
     val onModeSelect: (DomainMode) -> Unit,
     val activeSwatchCount: SwatchCount,
@@ -15,6 +22,21 @@ data class ColorSchemeData(
     val onSwatchCountSelect: (SwatchCount) -> Unit,
     val changes: Changes,
 ) {
+
+    data class Models(
+        val swatches: List<ColorInt>,
+        val activeMode: DomainMode, // it's ok to use domain model if it doesn't require mapping to presentation
+        val selectedMode: DomainMode,
+        val activeSwatchCount: SwatchCount,
+        val selectedSwatchCount: SwatchCount,
+        val hasChanges: Boolean,
+    )
+
+    class Actions(
+        val onModeSelect: (DomainMode) -> Unit,
+        val onSwatchCountSelect: (SwatchCount) -> Unit,
+        val applyChanges: () -> Unit,
+    )
 
     /**
      * Solid color in RRGGBB format without alpha channel.
@@ -31,6 +53,7 @@ data class ColorSchemeData(
      * Set of possible [DomainMode]s is fixed.
      * Meanwhile, swatch count can be any [Int], and it's purely on presentation layer,
      * what options to give to the user.
+     * In other words, defined by UI design.
      */
     enum class SwatchCount(val value: Int) {
         Three(3),

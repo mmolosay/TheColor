@@ -4,7 +4,6 @@ import io.github.mmolosay.thecolor.domain.model.ColorScheme.Mode
 import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Changes
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.SwatchCount
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.Actions
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.State
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
 import io.kotest.matchers.should
@@ -13,11 +12,14 @@ import io.kotest.matchers.types.beOfType
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.slot
+import io.mockk.mockkObject
+import io.mockk.unmockkAll
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -26,9 +28,9 @@ class ColorSchemeViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    val getInitialState: GetInitialStateUseCase = mockk()
+    val getInitialModels: GetInitialDataModelsUseCase = mockk()
     val getColorScheme: GetColorSchemeUseCase = mockk()
-    val colorSchemeDataFactory: ColorSchemeDataFactory = mockk()
+    val colorSchemeDataModelsFactory: ColorSchemeDataModelsFactory = mockk()
 
     lateinit var sut: ColorSchemeViewModel
 
@@ -38,9 +40,19 @@ class ColorSchemeViewModelTest {
             return (this.dataStateFlow.value as State.Ready).data
         }
 
+    @Before
+    fun setUp() {
+        mockkObject(ColorSchemeDataFactory)
+    }
+
+    @After
+    fun tearDown() {
+        unmockkAll()
+    }
+
     @Test
-    fun `initial data state is as provided`() {
-        every { getInitialState(any()) } returns State.Loading
+    fun `initial 'null' models initialize flow with Loading state`() {
+        every { getInitialModels() } returns null
 
         createSut()
 
@@ -48,19 +60,35 @@ class ColorSchemeViewModelTest {
     }
 
     @Test
+    fun `initial not-null models initialize flow with Ready state`() {
+        every { getInitialModels() } returns mockk()
+        every { ColorSchemeDataFactory.create(models = any(), actions = any()) } returns mockk()
+
+        createSut()
+
+        sut.dataStateFlow.value should beOfType<State.Ready>()
+    }
+
+    @Test
     fun `call to 'get color scheme' emits Loading state from flow`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            val data: ColorSchemeData = mockk {
+            val initialModels: ColorSchemeData.Models = mockk()
+            every { getInitialModels() } returns initialModels
+            every {
+                ColorSchemeDataFactory.create(models = initialModels, actions = any())
+            } returns mockk {
                 every { selectedMode } returns Mode.Monochrome
                 every { selectedSwatchCount } returns SwatchCount.Six
             }
-            every { getInitialState(any()) } returns State.Ready(data)
             coEvery { getColorScheme(request = any<GetColorSchemeUseCase.Request>()) } returns mockk()
+            val models: ColorSchemeData.Models = mockk()
             every {
-                colorSchemeDataFactory.create(
-                    scheme = any(),
-                    config = any(),
-                    actions = any(),
+                colorSchemeDataModelsFactory.create(scheme = any(), config = any())
+            } returns models
+            every {
+                ColorSchemeDataFactory.create(
+                    models = models,
+                    actions = any()
                 )
             } returns mockk()
             createSut()
@@ -79,15 +107,13 @@ class ColorSchemeViewModelTest {
     @Test
     fun `call to 'get color scheme' emits Ready state from flow`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            every { getInitialState(any()) } returns State.Loading
+            every { getInitialModels() } returns null
             coEvery { getColorScheme(request = any<GetColorSchemeUseCase.Request>()) } returns mockk()
             every {
-                colorSchemeDataFactory.create(
-                    scheme = any(),
-                    config = any(),
-                    actions = any(),
-                )
+                colorSchemeDataModelsFactory.create(scheme = any(), config = any())
             } returns mockk()
+            every { ColorSchemeDataFactory.create(models = any(), actions = any()) } returns mockk()
+
             createSut()
 
             sut.getColorScheme(seed = mockk())
@@ -98,20 +124,15 @@ class ColorSchemeViewModelTest {
     @Test
     fun `selecting new mode updates selected mode`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            val actionsSlot = slot<Actions>()
-            every { getInitialState(actions = capture(actionsSlot)) } answers {
-                ColorSchemeData(
+            every { getInitialModels() } answers {
+                ColorSchemeData.Models(
                     swatches = listOf(),
                     activeMode = Mode.Monochrome,
                     selectedMode = Mode.Monochrome,
-                    onModeSelect = actionsSlot.captured.onModeSelect,
                     activeSwatchCount = SwatchCount.Six,
                     selectedSwatchCount = SwatchCount.Six,
-                    onSwatchCountSelect = {},
-                    changes = Changes.None,
-                ).let {
-                    State.Ready(it)
-                }
+                    hasChanges = false,
+                )
             }
             createSut()
 
@@ -123,20 +144,15 @@ class ColorSchemeViewModelTest {
     @Test
     fun `selecting new mode that is different from the active mode makes 'apply changes' button visible`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            val actionsSlot = slot<Actions>()
-            every { getInitialState(actions = capture(actionsSlot)) } answers {
-                ColorSchemeData(
+            every { getInitialModels() } answers {
+                ColorSchemeData.Models(
                     swatches = listOf(),
                     activeMode = Mode.Monochrome,
                     selectedMode = Mode.Monochrome,
-                    onModeSelect = actionsSlot.captured.onModeSelect,
                     activeSwatchCount = SwatchCount.Six,
                     selectedSwatchCount = SwatchCount.Six,
-                    onSwatchCountSelect = {},
-                    changes = Changes.None,
-                ).let {
-                    State.Ready(it)
-                }
+                    hasChanges = false,
+                )
             }
             createSut()
 
@@ -148,20 +164,15 @@ class ColorSchemeViewModelTest {
     @Test
     fun `selecting new mode that is same as the active mode makes 'apply changes' button hidden`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            val actionsSlot = slot<Actions>()
-            every { getInitialState(actions = capture(actionsSlot)) } answers {
-                ColorSchemeData(
+            every { getInitialModels() } answers {
+                ColorSchemeData.Models(
                     swatches = listOf(),
                     activeMode = Mode.Monochrome,
                     selectedMode = Mode.Analogic,
-                    onModeSelect = actionsSlot.captured.onModeSelect,
                     activeSwatchCount = SwatchCount.Six,
                     selectedSwatchCount = SwatchCount.Six,
-                    onSwatchCountSelect = {},
-                    changes = Changes.None,
-                ).let {
-                    State.Ready(it)
-                }
+                    hasChanges = false,
+                )
             }
             createSut()
 
@@ -173,20 +184,15 @@ class ColorSchemeViewModelTest {
     @Test
     fun `selecting new swatch count updates selected swatch count`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            val actionsSlot = slot<Actions>()
-            every { getInitialState(actions = capture(actionsSlot)) } answers {
-                ColorSchemeData(
+            every { getInitialModels() } answers {
+                ColorSchemeData.Models(
                     swatches = listOf(),
                     activeMode = Mode.Monochrome,
                     selectedMode = Mode.Monochrome,
-                    onModeSelect = {},
                     activeSwatchCount = SwatchCount.Six,
                     selectedSwatchCount = SwatchCount.Six,
-                    onSwatchCountSelect = actionsSlot.captured.onSwatchCountSelect,
-                    changes = Changes.None,
-                ).let {
-                    State.Ready(it)
-                }
+                    hasChanges = false,
+                )
             }
             createSut()
 
@@ -198,20 +204,15 @@ class ColorSchemeViewModelTest {
     @Test
     fun `selecting new swatch count that is different from the active swatch count makes 'apply changes' button visible`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            val actionsSlot = slot<Actions>()
-            every { getInitialState(actions = capture(actionsSlot)) } answers {
-                ColorSchemeData(
+            every { getInitialModels() } answers {
+                ColorSchemeData.Models(
                     swatches = listOf(),
                     activeMode = Mode.Monochrome,
                     selectedMode = Mode.Monochrome,
-                    onModeSelect = {},
                     activeSwatchCount = SwatchCount.Six,
                     selectedSwatchCount = SwatchCount.Six,
-                    onSwatchCountSelect = actionsSlot.captured.onSwatchCountSelect,
-                    changes = Changes.None,
-                ).let {
-                    State.Ready(it)
-                }
+                    hasChanges = false,
+                )
             }
             createSut()
 
@@ -223,20 +224,15 @@ class ColorSchemeViewModelTest {
     @Test
     fun `selecting new swatch count that is same as the active swatch count makes 'apply changes' button hidden`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            val actionsSlot = slot<Actions>()
-            every { getInitialState(actions = capture(actionsSlot)) } answers {
-                ColorSchemeData(
+            every { getInitialModels() } answers {
+                ColorSchemeData.Models(
                     swatches = listOf(),
                     activeMode = Mode.Monochrome,
                     selectedMode = Mode.Monochrome,
-                    onModeSelect = {},
                     activeSwatchCount = SwatchCount.Six,
                     selectedSwatchCount = SwatchCount.Thirteen,
-                    onSwatchCountSelect = actionsSlot.captured.onSwatchCountSelect,
-                    changes = Changes.None,
-                ).let {
-                    State.Ready(it)
-                }
+                    hasChanges = false,
+                )
             }
             createSut()
 
@@ -275,9 +271,9 @@ class ColorSchemeViewModelTest {
 
     fun createSut() =
         ColorSchemeViewModel(
-            getInitialState = getInitialState,
+            getInitialModels = getInitialModels,
             getColorScheme = getColorScheme,
-            colorSchemeDataFactory = colorSchemeDataFactory,
+            colorSchemeDataModelsFactory = colorSchemeDataModelsFactory,
             ioDispatcher = mainDispatcherRule.testDispatcher,
         ).also {
             sut = it
