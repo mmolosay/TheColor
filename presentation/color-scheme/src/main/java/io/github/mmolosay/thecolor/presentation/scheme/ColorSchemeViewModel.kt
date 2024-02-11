@@ -39,7 +39,7 @@ class ColorSchemeViewModel @Inject constructor(
     private var lastUsedSeed: Color? = null
 
     fun getColorScheme(seed: Color) {
-        val requestConfig = assembleRequestConfigFromCurrentData()
+        val requestConfig = assembleRequestConfig()
         val request = requestConfig.toDomainRequest(seed)
         _dataStateFlow.value = State.Loading
         lastUsedSeed = seed
@@ -71,12 +71,18 @@ class ColorSchemeViewModel @Inject constructor(
         getColorScheme(seed)
     }
 
-    private fun assembleRequestConfigFromCurrentData(): Config {
+    private fun assembleRequestConfig(): Config {
         val data = dataStateFlow.value.asReadyOrNull()?.data
-        return Config(
-            mode = data?.selectedMode ?: InitialOrFallbackMode,
-            swatchCount = data?.selectedSwatchCount ?: InitialOrFallbackSwatchCount,
-        )
+        return if (data != null)
+            Config(
+                mode = data.selectedMode,
+                swatchCount = data.selectedSwatchCount,
+            )
+        else
+            Config(
+                mode = InitialOrFallbackMode,
+                swatchCount = InitialOrFallbackSwatchCount,
+            )
     }
 
     private fun Config.toDomainRequest(seed: Color): GetColorSchemeUseCase.Request =
