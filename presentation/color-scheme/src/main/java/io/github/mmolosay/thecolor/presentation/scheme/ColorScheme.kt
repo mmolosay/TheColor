@@ -21,16 +21,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -324,6 +328,12 @@ private fun ApplyChangesButton(
             colors = colors,
             border = border,
         ) {
+            Icon(
+                imageVector = Icons.Rounded.Check,
+                contentDescription = null, // described by text above
+                modifier = Modifier.size(16.dp),
+            )
+            Spacer(modifier = Modifier.width(4.dp))
             Text(
                 text = lastVisible.text,
             )
