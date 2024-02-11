@@ -13,7 +13,7 @@ data class ColorSchemeData(
     val activeSwatchCount: SwatchCount,
     val selectedSwatchCount: SwatchCount,
     val onSwatchCountSelect: (SwatchCount) -> Unit,
-    val applyChangesButton: ApplyChangesButton,
+    val changes: Changes,
 ) {
 
     /**
@@ -41,8 +41,8 @@ data class ColorSchemeData(
         Eighteen(18),
     }
 
-    sealed interface ApplyChangesButton {
-        data object Hidden : ApplyChangesButton
-        data class Visible(val onClick: () -> Unit) : ApplyChangesButton
+    sealed interface Changes {
+        data object None : Changes
+        data class Present(val applyChanges: () -> Unit) : Changes
     }
 }

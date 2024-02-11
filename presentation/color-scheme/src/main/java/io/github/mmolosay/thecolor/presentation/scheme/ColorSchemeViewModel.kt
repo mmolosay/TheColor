@@ -7,7 +7,7 @@ import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.ColorScheme.Mode
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.ApplyChangesButton
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Changes
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.ColorInt
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.SwatchCount
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.Actions
@@ -54,19 +54,19 @@ class ColorSchemeViewModel @Inject constructor(
         }
     }
 
-    private fun onModeSelect(mode: Mode) {
+    private fun selectMode(mode: Mode) {
         val data = dataStateFlow.value.asReadyOrNull()?.data ?: return
         _dataStateFlow.value = data.smartCopy(selectedMode = mode).let { State.Ready(it) }
     }
 
-    private fun onSwatchCountSelect(count: SwatchCount) {
+    private fun selectSwatchCount(count: SwatchCount) {
         val data = dataStateFlow.value.asReadyOrNull()?.data ?: return
         _dataStateFlow.value = data.smartCopy(selectedSwatchCount = count).let { State.Ready(it) }
     }
 
-    private fun onApplyChangesClick() {
+    private fun applyChanges() {
         val data = dataStateFlow.value.asReadyOrNull()?.data ?: return
-        if (data.applyChangesButton !is ApplyChangesButton.Visible) return // ignore clicks during button hiding animation
+        if (data.changes !is Changes.Present) return // ignore clicks during button hiding animation
         val seed = lastUsedSeed ?: return
         getColorScheme(seed)
     }
@@ -86,13 +86,11 @@ class ColorSchemeViewModel @Inject constructor(
             swatchCount = this.swatchCount.value,
         )
 
-    private fun ApplyChangesButton(areThereChangesToApply: Boolean): ApplyChangesButton =
+    private fun ApplyChangesButton(areThereChangesToApply: Boolean): Changes =
         if (areThereChangesToApply) {
-            ApplyChangesButton.Visible(
-                onClick = ::onApplyChangesClick,
-            )
+            Changes.Present(applyChanges = ::applyChanges)
         } else {
-            ApplyChangesButton.Hidden
+            Changes.None
         }
 
     private fun ColorSchemeData.smartCopy(
@@ -105,7 +103,7 @@ class ColorSchemeViewModel @Inject constructor(
         return this.copy(
             selectedMode = selectedMode,
             selectedSwatchCount = selectedSwatchCount,
-            applyChangesButton = ApplyChangesButton(areThereChangesToApply),
+            changes = ApplyChangesButton(areThereChangesToApply),
         )
     }
 
@@ -119,9 +117,9 @@ class ColorSchemeViewModel @Inject constructor(
     )
 
     inner class Actions(
-        val onModeSelect: (Mode) -> Unit = ::onModeSelect,
-        val onSwatchCountSelect: (SwatchCount) -> Unit = ::onSwatchCountSelect,
-        val onApplyChangesClick: () -> Unit = ::onApplyChangesClick,
+        val onModeSelect: (Mode) -> Unit = ::selectMode,
+        val onSwatchCountSelect: (SwatchCount) -> Unit = ::selectSwatchCount,
+        val applyChanges: () -> Unit = ::applyChanges,
     )
 
     sealed interface State {
@@ -160,7 +158,7 @@ class ColorSchemeDataFactory @Inject constructor(
             activeSwatchCount = config.swatchCount,
             selectedSwatchCount = config.swatchCount,
             onSwatchCountSelect = actions.onSwatchCountSelect,
-            applyChangesButton = ApplyChangesButton.Hidden, // selected and active configs are the same, no changes to apply
+            changes = Changes.None, // selected and active configs are the same
         )
 
     private fun Color.toColorInt(): ColorInt {

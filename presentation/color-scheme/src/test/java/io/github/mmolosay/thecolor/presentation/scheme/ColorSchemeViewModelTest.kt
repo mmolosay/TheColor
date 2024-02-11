@@ -2,7 +2,7 @@ package io.github.mmolosay.thecolor.presentation.scheme
 
 import io.github.mmolosay.thecolor.domain.model.ColorScheme.Mode
 import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.ApplyChangesButton
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Changes
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.SwatchCount
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.Actions
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.State
@@ -108,7 +108,7 @@ class ColorSchemeViewModelTest {
                     activeSwatchCount = SwatchCount.Six,
                     selectedSwatchCount = SwatchCount.Six,
                     onSwatchCountSelect = {},
-                    applyChangesButton = ApplyChangesButton.Hidden,
+                    changes = Changes.None,
                 ).let {
                     State.Ready(it)
                 }
@@ -133,7 +133,7 @@ class ColorSchemeViewModelTest {
                     activeSwatchCount = SwatchCount.Six,
                     selectedSwatchCount = SwatchCount.Six,
                     onSwatchCountSelect = {},
-                    applyChangesButton = ApplyChangesButton.Hidden,
+                    changes = Changes.None,
                 ).let {
                     State.Ready(it)
                 }
@@ -142,7 +142,7 @@ class ColorSchemeViewModelTest {
 
             sut.data.onModeSelect(Mode.Analogic)
 
-            sut.data.applyChangesButton should beOfType<ApplyChangesButton.Visible>()
+            sut.data.changes should beOfType<Changes.Present>()
         }
 
     @Test
@@ -158,7 +158,7 @@ class ColorSchemeViewModelTest {
                     activeSwatchCount = SwatchCount.Six,
                     selectedSwatchCount = SwatchCount.Six,
                     onSwatchCountSelect = {},
-                    applyChangesButton = ApplyChangesButton.Hidden,
+                    changes = Changes.None,
                 ).let {
                     State.Ready(it)
                 }
@@ -167,7 +167,7 @@ class ColorSchemeViewModelTest {
 
             sut.data.onModeSelect(Mode.Monochrome)
 
-            sut.data.applyChangesButton should beOfType<ApplyChangesButton.Hidden>()
+            sut.data.changes should beOfType<Changes.None>()
         }
 
     @Test
@@ -183,7 +183,7 @@ class ColorSchemeViewModelTest {
                     activeSwatchCount = SwatchCount.Six,
                     selectedSwatchCount = SwatchCount.Six,
                     onSwatchCountSelect = actionsSlot.captured.onSwatchCountSelect,
-                    applyChangesButton = ApplyChangesButton.Hidden,
+                    changes = Changes.None,
                 ).let {
                     State.Ready(it)
                 }
@@ -208,7 +208,7 @@ class ColorSchemeViewModelTest {
                     activeSwatchCount = SwatchCount.Six,
                     selectedSwatchCount = SwatchCount.Six,
                     onSwatchCountSelect = actionsSlot.captured.onSwatchCountSelect,
-                    applyChangesButton = ApplyChangesButton.Hidden,
+                    changes = Changes.None,
                 ).let {
                     State.Ready(it)
                 }
@@ -217,7 +217,7 @@ class ColorSchemeViewModelTest {
 
             sut.data.onSwatchCountSelect(SwatchCount.Thirteen)
 
-            sut.data.applyChangesButton should beOfType<ApplyChangesButton.Visible>()
+            sut.data.changes should beOfType<Changes.Present>()
         }
 
     @Test
@@ -233,7 +233,7 @@ class ColorSchemeViewModelTest {
                     activeSwatchCount = SwatchCount.Six,
                     selectedSwatchCount = SwatchCount.Thirteen,
                     onSwatchCountSelect = actionsSlot.captured.onSwatchCountSelect,
-                    applyChangesButton = ApplyChangesButton.Hidden,
+                    changes = Changes.None,
                 ).let {
                     State.Ready(it)
                 }
@@ -242,11 +242,11 @@ class ColorSchemeViewModelTest {
 
             sut.data.onSwatchCountSelect(SwatchCount.Six)
 
-            sut.data.applyChangesButton should beOfType<ApplyChangesButton.Hidden>()
+            sut.data.changes should beOfType<Changes.None>()
         }
 
     @Test
-    fun `clicking 'apply changes' applies selected values to their actual conterparts`() =
+    fun `calling 'apply changes' applies selected values to their actual conterparts`() =
         runTest(mainDispatcherRule.testDispatcher) {
 
         }

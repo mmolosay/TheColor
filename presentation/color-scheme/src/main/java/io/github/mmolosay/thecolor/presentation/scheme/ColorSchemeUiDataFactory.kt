@@ -57,12 +57,13 @@ private fun ApplyChangesButton(
     data: ColorSchemeData,
     viewData: ColorSchemeUiData.ViewData,
 ): ApplyChangesButton =
-    when (data.applyChangesButton) {
-        is ColorSchemeData.ApplyChangesButton.Hidden -> ApplyChangesButton.Hidden
-        is ColorSchemeData.ApplyChangesButton.Visible ->
+    when (data.changes) {
+        is ColorSchemeData.Changes.None ->
+            ApplyChangesButton.Hidden
+        is ColorSchemeData.Changes.Present ->
             ApplyChangesButton.Visible(
                 text = viewData.applyChangesButtonText,
-                onClick = data.applyChangesButton.onClick,
+                onClick = data.changes.applyChanges,
             )
     }
 
