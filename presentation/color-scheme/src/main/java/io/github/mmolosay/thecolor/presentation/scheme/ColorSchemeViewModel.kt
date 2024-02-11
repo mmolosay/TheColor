@@ -92,13 +92,6 @@ class ColorSchemeViewModel @Inject constructor(
             swatchCount = this.swatchCount.value,
         )
 
-    private fun ApplyChangesButton(areThereChangesToApply: Boolean): Changes =
-        if (areThereChangesToApply) {
-            Changes.Present(applyChanges = ::applyChanges)
-        } else {
-            Changes.None
-        }
-
     private fun ColorSchemeData.smartCopy(
         selectedMode: Mode = this.selectedMode,
         selectedSwatchCount: SwatchCount = this.selectedSwatchCount,
@@ -112,6 +105,13 @@ class ColorSchemeViewModel @Inject constructor(
             changes = ApplyChangesButton(areThereChangesToApply),
         )
     }
+
+    private fun ApplyChangesButton(areThereChangesToApply: Boolean): Changes =
+        if (areThereChangesToApply) {
+            Changes.Present(applyChanges = ::applyChanges)
+        } else {
+            Changes.None
+        }
 
     private fun State.asReadyOrNull() =
         this as? State.Ready
