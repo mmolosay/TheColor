@@ -100,11 +100,11 @@ class ColorSchemeViewModel @Inject constructor(
         return this.copy(
             selectedMode = selectedMode,
             selectedSwatchCount = selectedSwatchCount,
-            changes = ApplyChangesButton(areThereChangesToApply),
+            changes = Changes(areThereChangesToApply),
         )
     }
 
-    private fun ApplyChangesButton(areThereChangesToApply: Boolean): Changes =
+    private fun Changes(areThereChangesToApply: Boolean): Changes =
         if (areThereChangesToApply) {
             Changes.Present(applyChanges = ::applyChanges)
         } else {

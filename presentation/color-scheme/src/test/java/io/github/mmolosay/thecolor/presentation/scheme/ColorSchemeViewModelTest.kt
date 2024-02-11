@@ -142,7 +142,7 @@ class ColorSchemeViewModelTest {
         }
 
     @Test
-    fun `selecting new mode that is different from the active mode makes 'apply changes' button visible`() =
+    fun `selecting new mode that is different from the active mode results in present changes`() =
         runTest(mainDispatcherRule.testDispatcher) {
             every { getInitialModels() } answers {
                 ColorSchemeData.Models(
@@ -162,7 +162,7 @@ class ColorSchemeViewModelTest {
         }
 
     @Test
-    fun `selecting new mode that is same as the active mode makes 'apply changes' button hidden`() =
+    fun `selecting new mode that is same as the active mode results in none changes`() =
         runTest(mainDispatcherRule.testDispatcher) {
             every { getInitialModels() } answers {
                 ColorSchemeData.Models(
@@ -202,7 +202,7 @@ class ColorSchemeViewModelTest {
         }
 
     @Test
-    fun `selecting new swatch count that is different from the active swatch count makes 'apply changes' button visible`() =
+    fun `selecting new swatch count that is different from the active swatch count results in present changes`() =
         runTest(mainDispatcherRule.testDispatcher) {
             every { getInitialModels() } answers {
                 ColorSchemeData.Models(
@@ -222,7 +222,7 @@ class ColorSchemeViewModelTest {
         }
 
     @Test
-    fun `selecting new swatch count that is same as the active swatch count makes 'apply changes' button hidden`() =
+    fun `selecting new swatch count that is same as the active swatch count results in none changes`() =
         runTest(mainDispatcherRule.testDispatcher) {
             every { getInitialModels() } answers {
                 ColorSchemeData.Models(
