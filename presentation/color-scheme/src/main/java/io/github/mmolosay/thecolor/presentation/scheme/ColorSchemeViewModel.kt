@@ -10,6 +10,7 @@ import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.ApplyChangesButton
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.ColorInt
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.SwatchCount
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.Actions
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.Config
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.State
 import kotlinx.coroutines.CoroutineDispatcher
@@ -29,7 +30,9 @@ class ColorSchemeViewModel @Inject constructor(
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
-    private val _dataStateFlow = MutableStateFlow(getInitialState())
+    private val actions = Actions()
+
+    private val _dataStateFlow = MutableStateFlow(getInitialState(actions))
     val dataStateFlow = _dataStateFlow.asStateFlow()
 
     // TODO: never changes, ViewModel is created for a particular color; refactor to injected ColorProvider
@@ -45,8 +48,7 @@ class ColorSchemeViewModel @Inject constructor(
             val data = colorSchemeDataFactory.create(
                 scheme = scheme,
                 config = requestConfig,
-                onModeSelect = ::onModeSelect,
-                onSwatchCountSelect = ::onSwatchCountSelect,
+                actions = actions,
             )
             _dataStateFlow.value = State.Ready(data)
         }
@@ -116,6 +118,12 @@ class ColorSchemeViewModel @Inject constructor(
         val swatchCount: SwatchCount,
     )
 
+    inner class Actions(
+        val onModeSelect: (Mode) -> Unit = ::onModeSelect,
+        val onSwatchCountSelect: (SwatchCount) -> Unit = ::onSwatchCountSelect,
+        val onApplyChangesClick: () -> Unit = ::onApplyChangesClick,
+    )
+
     sealed interface State {
         data object Loading : State
         data class Ready(val data: ColorSchemeData) : State
@@ -128,8 +136,10 @@ class ColorSchemeViewModel @Inject constructor(
 }
 
 @Singleton
-class GetInitialStateUseCase @Inject constructor() : () -> State {
-    override fun invoke(): State = State.Loading
+@Suppress("UNUSED_PARAMETER") // used in tests
+class GetInitialStateUseCase @Inject constructor() {
+    operator fun invoke(actions: Actions): State =
+        State.Loading
 }
 
 @Singleton
@@ -140,17 +150,16 @@ class ColorSchemeDataFactory @Inject constructor(
     fun create(
         scheme: DomainColorScheme,
         config: Config,
-        onModeSelect: (Mode) -> Unit,
-        onSwatchCountSelect: (SwatchCount) -> Unit,
+        actions: Actions,
     ) =
         ColorSchemeData(
             swatches = scheme.swatchDetails.map { it.color.toColorInt() },
             activeMode = config.mode,
             selectedMode = config.mode,
-            onModeSelect = onModeSelect,
+            onModeSelect = actions.onModeSelect,
             activeSwatchCount = config.swatchCount,
             selectedSwatchCount = config.swatchCount,
-            onSwatchCountSelect = onSwatchCountSelect,
+            onSwatchCountSelect = actions.onSwatchCountSelect,
             applyChangesButton = ApplyChangesButton.Hidden, // selected and active configs are the same, no changes to apply
         )
 
