@@ -144,6 +144,10 @@ class ColorSchemeViewModel @Inject constructor(
     }
 }
 
+/**
+ * Exists to make unit testing easier.
+ * Replaces chain of actions that configure the ViewModel's state before "when" part of the test.
+ */
 @Singleton
 class GetInitialDataModelsUseCase @Inject constructor() {
     operator fun invoke(): ColorSchemeData.Models? =
