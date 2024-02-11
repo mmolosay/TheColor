@@ -40,7 +40,7 @@ class ColorDetailsViewModelTest {
 
         sut.getColorDetails(color)
 
-        sut.dataState.value should beOfType<State.Ready>()
+        sut.dataStateFlow.value should beOfType<State.Ready>()
     }
 
     @Test
@@ -55,7 +55,7 @@ class ColorDetailsViewModelTest {
 
         sut.getColorDetails(color)
 
-        val data = (sut.dataState.value as State.Ready).data
+        val data = (sut.dataStateFlow.value as State.Ready).data
         val comparableData = data.copyWithNoopLambdas()
         comparableData shouldBe ColorDetailsData(
             color = ColorInt(0x1A803F),

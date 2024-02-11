@@ -50,7 +50,7 @@ import androidx.compose.material3.Divider as MaterialDivider
 fun ColorDetails(
     vm: ColorDetailsViewModel,
 ) {
-    val state = vm.dataState.collectAsStateWithLifecycle().value
+    val state = vm.dataStateFlow.collectAsStateWithLifecycle().value
     val viewData = rememberViewData()
     when (state) {
         is Loading ->

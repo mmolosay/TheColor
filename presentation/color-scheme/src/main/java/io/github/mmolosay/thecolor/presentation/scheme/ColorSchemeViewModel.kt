@@ -25,8 +25,8 @@ class ColorSchemeViewModel @Inject constructor(
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
-    private val _dataState = MutableStateFlow<State>(State.Loading)
-    val dataState = _dataState.asStateFlow()
+    private val _dataStateFlow = MutableStateFlow<State>(State.Loading)
+    val dataStateFlow = _dataStateFlow.asStateFlow()
 
     // TODO: never changes, ViewModel is created for a particular color; refactor to injected ColorProvider
     private var lastUsedSeed: Color? = null
@@ -34,34 +34,34 @@ class ColorSchemeViewModel @Inject constructor(
     fun getColorScheme(seed: Color) {
         val requestConfig = assembleRequestConfigFromCurrentData()
         val request = requestConfig.toDomainRequest(seed)
-        _dataState.value = State.Loading
+        _dataStateFlow.value = State.Loading
         lastUsedSeed = seed
         viewModelScope.launch(ioDispatcher) {
             val scheme = getColorScheme(request)
             val data = ColorSchemeData(scheme, requestConfig)
-            _dataState.value = State.Ready(data)
+            _dataStateFlow.value = State.Ready(data)
         }
     }
 
     private fun onModeSelect(mode: Mode) {
-        val data = dataState.value.asReadyOrNull()?.data ?: return
-        _dataState.value = data.smartCopy(selectedMode = mode).let { State.Ready(it) }
+        val data = dataStateFlow.value.asReadyOrNull()?.data ?: return
+        _dataStateFlow.value = data.smartCopy(selectedMode = mode).let { State.Ready(it) }
     }
 
     private fun onSwatchCountSelect(count: SwatchCount) {
-        val data = dataState.value.asReadyOrNull()?.data ?: return
-        _dataState.value = data.smartCopy(selectedSwatchCount = count).let { State.Ready(it) }
+        val data = dataStateFlow.value.asReadyOrNull()?.data ?: return
+        _dataStateFlow.value = data.smartCopy(selectedSwatchCount = count).let { State.Ready(it) }
     }
 
     private fun onApplyChangesClick() {
-        val data = dataState.value.asReadyOrNull()?.data ?: return
+        val data = dataStateFlow.value.asReadyOrNull()?.data ?: return
         if (data.applyChangesButton !is ApplyChangesButton.Visible) return // ignore clicks during button hiding animation
         val seed = lastUsedSeed ?: return
         getColorScheme(seed)
     }
 
     private fun assembleRequestConfigFromCurrentData(): Config {
-        val data = dataState.value.asReadyOrNull()?.data
+        val data = dataStateFlow.value.asReadyOrNull()?.data
         return Config(
             mode = data?.selectedMode ?: InitialOrFallbackMode,
             swatchCount = data?.selectedSwatchCount ?: InitialOrFallbackSwatchCount,

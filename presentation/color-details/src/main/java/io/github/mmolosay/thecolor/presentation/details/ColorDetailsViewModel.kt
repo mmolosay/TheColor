@@ -25,14 +25,14 @@ class ColorDetailsViewModel @Inject constructor(
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
-    private val _dataState = MutableStateFlow<State>(State.Loading)
-    val dataState = _dataState.asStateFlow()
+    private val _dataStateFlow = MutableStateFlow<State>(State.Loading)
+    val dataStateFlow = _dataStateFlow.asStateFlow()
 
     fun getColorDetails(color: Color) {
         viewModelScope.launch(ioDispatcher) {
             val details = getColorDetails.invoke(color)
             val data = ColorDetailsData(details)
-            _dataState.value = State.Ready(data)
+            _dataStateFlow.value = State.Ready(data)
         }
     }
 

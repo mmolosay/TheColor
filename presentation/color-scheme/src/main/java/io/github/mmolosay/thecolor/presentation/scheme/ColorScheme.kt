@@ -72,7 +72,7 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.Stat
 fun ColorScheme(
     vm: ColorSchemeViewModel,
 ) {
-    val state = vm.dataState.collectAsStateWithLifecycle().value
+    val state = vm.dataStateFlow.collectAsStateWithLifecycle().value
     val viewData = rememberViewData()
     when (state) {
         is State.Loading ->
