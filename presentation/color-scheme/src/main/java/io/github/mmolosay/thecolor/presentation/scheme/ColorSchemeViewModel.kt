@@ -4,13 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.model.Color
-import io.github.mmolosay.thecolor.domain.model.ColorScheme
 import io.github.mmolosay.thecolor.domain.model.ColorScheme.Mode
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.ApplyChangesButton
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.ColorInt
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.SwatchCount
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.Config
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.State
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,12 +19,13 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
+import io.github.mmolosay.thecolor.domain.model.ColorScheme as DomainColorScheme
 
 @HiltViewModel
 class ColorSchemeViewModel @Inject constructor(
     getInitialState: GetInitialStateUseCase,
     private val getColorScheme: GetColorSchemeUseCase,
-    private val colorConverter: ColorConverter,
+    private val colorSchemeDataFactory: ColorSchemeDataFactory,
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -41,7 +42,12 @@ class ColorSchemeViewModel @Inject constructor(
         lastUsedSeed = seed
         viewModelScope.launch(ioDispatcher) {
             val scheme = getColorScheme(request)
-            val data = ColorSchemeData(scheme, requestConfig)
+            val data = colorSchemeDataFactory.create(
+                scheme = scheme,
+                config = requestConfig,
+                onModeSelect = ::onModeSelect,
+                onSwatchCountSelect = ::onSwatchCountSelect,
+            )
             _dataStateFlow.value = State.Ready(data)
         }
     }
@@ -78,26 +84,6 @@ class ColorSchemeViewModel @Inject constructor(
             swatchCount = this.swatchCount.value,
         )
 
-    private fun ColorSchemeData(
-        scheme: ColorScheme,
-        config: Config,
-    ): ColorSchemeData =
-        ColorSchemeData(
-            swatches = scheme.swatchDetails.map { ColorInt(it.color) },
-            activeMode = config.mode,
-            selectedMode = config.mode,
-            onModeSelect = ::onModeSelect,
-            activeSwatchCount = config.swatchCount,
-            selectedSwatchCount = config.swatchCount,
-            onSwatchCountSelect = ::onSwatchCountSelect,
-            applyChangesButton = ApplyChangesButton(areThereChangesToApply = false), // initial selected config is equal to the active one
-        )
-
-    private fun ColorInt(color: Color): ColorInt {
-        val hex = with(colorConverter) { color.toHex() }
-        return ColorInt(hex = hex.value)
-    }
-
     private fun ApplyChangesButton(areThereChangesToApply: Boolean): ApplyChangesButton =
         if (areThereChangesToApply) {
             ApplyChangesButton.Visible(
@@ -125,7 +111,7 @@ class ColorSchemeViewModel @Inject constructor(
         this as? State.Ready
 
     /** [GetColorSchemeUseCase.Request] mapped to presentation layer model. */
-    private data class Config(
+    data class Config(
         val mode: Mode,
         val swatchCount: SwatchCount,
     )
@@ -144,4 +130,33 @@ class ColorSchemeViewModel @Inject constructor(
 @Singleton
 class GetInitialStateUseCase @Inject constructor() : () -> State {
     override fun invoke(): State = State.Loading
+}
+
+@Singleton
+class ColorSchemeDataFactory @Inject constructor(
+    private val colorConverter: ColorConverter,
+) {
+
+    fun create(
+        scheme: DomainColorScheme,
+        config: Config,
+        onModeSelect: (Mode) -> Unit,
+        onSwatchCountSelect: (SwatchCount) -> Unit,
+    ) =
+        ColorSchemeData(
+            swatches = scheme.swatchDetails.map { it.color.toColorInt() },
+            activeMode = config.mode,
+            selectedMode = config.mode,
+            onModeSelect = onModeSelect,
+            activeSwatchCount = config.swatchCount,
+            selectedSwatchCount = config.swatchCount,
+            onSwatchCountSelect = onSwatchCountSelect,
+            applyChangesButton = ApplyChangesButton.Hidden, // selected and active configs are the same, no changes to apply
+        )
+
+    private fun Color.toColorInt(): ColorInt {
+        val color = this
+        val hex = with(colorConverter) { color.toHex() }
+        return ColorInt(hex = hex.value)
+    }
 }
