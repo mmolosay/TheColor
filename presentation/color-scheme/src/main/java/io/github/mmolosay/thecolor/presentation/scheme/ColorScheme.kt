@@ -255,7 +255,7 @@ private fun SelectableChip(
 ) {
     val colors = FilterChipDefaults.filterChipColors(
         containerColor = Color.Transparent,
-        selectedContainerColor = colorsOnTintedSurface.muted.copy(alpha = 0.20f),
+        selectedContainerColor = colorsOnTintedSurface.muted.copy(alpha = 0.15f),
         labelColor = colorsOnTintedSurface.muted,
         selectedLabelColor = colorsOnTintedSurface.accent,
     )
@@ -298,6 +298,7 @@ private fun ApplyChangesButton(
     fun <T> animationSpec(): FiniteAnimationSpec<T> = spring(stiffness = 1_000f)
     AnimatedVisibility(
         visible = uiData is ApplyChangesButton.Visible,
+        modifier = modifier,
         enter = slideInHorizontally(
             animationSpec = animationSpec(),
             initialOffsetX = { translation },
@@ -310,7 +311,6 @@ private fun ApplyChangesButton(
         ) + fadeOut(
             animationSpec = animationSpec(),
         ),
-        modifier = modifier,
     ) {
         val lastVisible = visibleUiData ?: return@AnimatedVisibility
         val colors = ButtonDefaults.outlinedButtonColors(
