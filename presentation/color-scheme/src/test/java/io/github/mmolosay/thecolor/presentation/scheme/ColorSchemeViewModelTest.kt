@@ -27,8 +27,8 @@ class ColorSchemeViewModelTest {
 
     val getInitialModels: GetInitialDataModelsUseCase = mockk()
     val getColorScheme: GetColorSchemeUseCase = mockk()
-    val modelsFactory: ColorSchemeDataModelsFactory = mockk()
-    val dataFactory: ColorSchemeDataFactory = spyk()
+    val createModels: CreateDataModelsUseCase = mockk()
+    val createData: CreateDataUseCase = spyk()
 
     lateinit var sut: ColorSchemeViewModel
 
@@ -50,7 +50,7 @@ class ColorSchemeViewModelTest {
     @Test
     fun `initial not-null models initialize flow with Ready state`() {
         every { getInitialModels() } returns mockk()
-        every { dataFactory.create(models = any(), actions = any()) } returns mockk()
+        every { createData(models = any(), actions = any()) } returns mockk()
 
         createSut()
 
@@ -63,7 +63,7 @@ class ColorSchemeViewModelTest {
             val initialModels: ColorSchemeData.Models = mockk()
             every { getInitialModels() } returns initialModels
             every {
-                dataFactory.create(models = initialModels, actions = any())
+                createData(models = initialModels, actions = any())
             } returns mockk {
                 every { selectedMode } returns Mode.Monochrome
                 every { selectedSwatchCount } returns SwatchCount.Six
@@ -71,10 +71,10 @@ class ColorSchemeViewModelTest {
             coEvery { getColorScheme(request = any<GetColorSchemeUseCase.Request>()) } returns mockk()
             val models: ColorSchemeData.Models = mockk()
             every {
-                modelsFactory.create(scheme = any(), config = any())
+                createModels(scheme = any(), config = any())
             } returns models
             every {
-                dataFactory.create(models = models, actions = any())
+                createData(models = models, actions = any())
             } returns mockk()
             createSut()
 
@@ -95,9 +95,9 @@ class ColorSchemeViewModelTest {
             every { getInitialModels() } returns null
             coEvery { getColorScheme(request = any<GetColorSchemeUseCase.Request>()) } returns mockk()
             every {
-                modelsFactory.create(scheme = any(), config = any())
+                createModels(scheme = any(), config = any())
             } returns mockk()
-            every { dataFactory.create(models = any(), actions = any()) } returns mockk()
+            every { createData(models = any(), actions = any()) } returns mockk()
 
             createSut()
 
@@ -258,8 +258,8 @@ class ColorSchemeViewModelTest {
         ColorSchemeViewModel(
             getInitialModels = getInitialModels,
             getColorScheme = getColorScheme,
-            modelsFactory = modelsFactory,
-            dataFactory = dataFactory,
+            createModels = createModels,
+            createData = createData,
             ioDispatcher = mainDispatcherRule.testDispatcher,
         ).also {
             sut = it

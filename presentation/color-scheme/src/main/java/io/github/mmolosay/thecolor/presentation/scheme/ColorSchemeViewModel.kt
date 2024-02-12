@@ -24,8 +24,8 @@ import io.github.mmolosay.thecolor.domain.model.ColorScheme as DomainColorScheme
 class ColorSchemeViewModel @Inject constructor(
     private val getInitialModels: GetInitialDataModelsUseCase,
     private val getColorScheme: GetColorSchemeUseCase,
-    private val modelsFactory: ColorSchemeDataModelsFactory,
-    private val dataFactory: ColorSchemeDataFactory,
+    private val createModels: CreateDataModelsUseCase,
+    private val createData: CreateDataUseCase,
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -44,11 +44,8 @@ class ColorSchemeViewModel @Inject constructor(
         lastUsedSeed = seed
         viewModelScope.launch(ioDispatcher) {
             val scheme = getColorScheme(request)
-            val models = modelsFactory.create(
-                scheme = scheme,
-                config = requestConfig,
-            )
-            val data = dataFactory.create(models, actions)
+            val models = createModels(scheme = scheme, config = requestConfig)
+            val data = createData(models, actions)
             _dataStateFlow.value = State.Ready(data)
         }
     }
@@ -114,7 +111,7 @@ class ColorSchemeViewModel @Inject constructor(
 
     private fun initialState(): State {
         val models = getInitialModels() ?: return State.Loading
-        val data = dataFactory.create(models, actions)
+        val data = createData(models, actions)
         return State.Ready(data)
     }
 
@@ -157,11 +154,11 @@ class GetInitialDataModelsUseCase @Inject constructor() {
 
 /** Maps [DomainColorScheme] to presentation layer [ColorSchemeData.Models]. */
 @Singleton
-class ColorSchemeDataModelsFactory @Inject constructor(
+class CreateDataModelsUseCase @Inject constructor(
     private val colorConverter: ColorConverter,
 ) {
 
-    fun create(
+    operator fun invoke(
         scheme: DomainColorScheme,
         config: Config,
     ) =
@@ -182,9 +179,9 @@ class ColorSchemeDataModelsFactory @Inject constructor(
 }
 
 @Singleton
-class ColorSchemeDataFactory @Inject constructor() {
+class CreateDataUseCase @Inject constructor() {
 
-    fun create(
+    operator fun invoke(
         models: ColorSchemeData.Models,
         actions: ColorSchemeData.Actions,
     ) =
