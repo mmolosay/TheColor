@@ -24,7 +24,8 @@ import io.github.mmolosay.thecolor.domain.model.ColorScheme as DomainColorScheme
 class ColorSchemeViewModel @Inject constructor(
     private val getInitialModels: GetInitialDataModelsUseCase,
     private val getColorScheme: GetColorSchemeUseCase,
-    private val colorSchemeDataModelsFactory: ColorSchemeDataModelsFactory,
+    private val modelsFactory: ColorSchemeDataModelsFactory,
+    private val dataFactory: ColorSchemeDataFactory,
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -43,11 +44,11 @@ class ColorSchemeViewModel @Inject constructor(
         lastUsedSeed = seed
         viewModelScope.launch(ioDispatcher) {
             val scheme = getColorScheme(request)
-            val models = colorSchemeDataModelsFactory.create(
+            val models = modelsFactory.create(
                 scheme = scheme,
                 config = requestConfig,
             )
-            val data = ColorSchemeDataFactory.create(models, actions)
+            val data = dataFactory.create(models, actions)
             _dataStateFlow.value = State.Ready(data)
         }
     }
@@ -113,7 +114,7 @@ class ColorSchemeViewModel @Inject constructor(
 
     private fun initialState(): State {
         val models = getInitialModels() ?: return State.Loading
-        val data = ColorSchemeDataFactory.create(models, actions)
+        val data = dataFactory.create(models, actions)
         return State.Ready(data)
     }
 
@@ -180,7 +181,8 @@ class ColorSchemeDataModelsFactory @Inject constructor(
     }
 }
 
-object ColorSchemeDataFactory {
+@Singleton
+class ColorSchemeDataFactory @Inject constructor() {
 
     fun create(
         models: ColorSchemeData.Models,
