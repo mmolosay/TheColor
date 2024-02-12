@@ -179,3 +179,30 @@ class ColorSchemeDataModelsFactory @Inject constructor(
         return ColorInt(hex = hex.value)
     }
 }
+
+object ColorSchemeDataFactory {
+
+    fun create(
+        models: ColorSchemeData.Models,
+        actions: ColorSchemeData.Actions,
+    ) =
+        ColorSchemeData(
+            swatches = models.swatches,
+            activeMode = models.activeMode,
+            selectedMode = models.selectedMode,
+            onModeSelect = actions.onModeSelect,
+            activeSwatchCount = models.activeSwatchCount,
+            selectedSwatchCount = models.selectedSwatchCount,
+            onSwatchCountSelect = actions.onSwatchCountSelect,
+            changes = Changes(models, actions),
+        )
+
+    private fun Changes(
+        models: ColorSchemeData.Models,
+        actions: ColorSchemeData.Actions,
+    ) =
+        if (models.hasChanges)
+            Changes.Present(applyChanges = actions.applyChanges)
+        else
+            Changes.None
+}
