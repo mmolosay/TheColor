@@ -12,7 +12,6 @@ import io.kotest.matchers.types.beOfType
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.spyk
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -28,7 +27,6 @@ class ColorSchemeViewModelTest {
     val getInitialModels: GetInitialDataModelsUseCase = mockk()
     val getColorScheme: GetColorSchemeUseCase = mockk()
     val createModels: CreateDataModelsUseCase = mockk()
-    val createData: CreateDataUseCase = spyk()
 
     lateinit var sut: ColorSchemeViewModel
 
@@ -49,8 +47,7 @@ class ColorSchemeViewModelTest {
 
     @Test
     fun `initial not-null models initialize flow with Ready state`() {
-        every { getInitialModels() } returns mockk()
-        every { createData(models = any(), actions = any()) } returns mockk()
+        every { getInitialModels() } returns someModels()
 
         createSut()
 
@@ -60,22 +57,9 @@ class ColorSchemeViewModelTest {
     @Test
     fun `call to 'get color scheme' emits Loading state from flow`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            val initialModels: ColorSchemeData.Models = mockk()
-            every { getInitialModels() } returns initialModels
-            every {
-                createData(models = initialModels, actions = any())
-            } returns mockk {
-                every { selectedMode } returns Mode.Monochrome
-                every { selectedSwatchCount } returns SwatchCount.Six
-            }
+            every { getInitialModels() } returns someModels()
             coEvery { getColorScheme(request = any<GetColorSchemeUseCase.Request>()) } returns mockk()
-            val models: ColorSchemeData.Models = mockk()
-            every {
-                createModels(scheme = any(), config = any())
-            } returns models
-            every {
-                createData(models = models, actions = any())
-            } returns mockk()
+            every { createModels(scheme = any(), config = any()) } returns someModels()
             createSut()
 
             // "then" block
@@ -94,11 +78,7 @@ class ColorSchemeViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             every { getInitialModels() } returns null
             coEvery { getColorScheme(request = any<GetColorSchemeUseCase.Request>()) } returns mockk()
-            every {
-                createModels(scheme = any(), config = any())
-            } returns mockk()
-            every { createData(models = any(), actions = any()) } returns mockk()
-
+            every { createModels(scheme = any(), config = any()) } returns someModels()
             createSut()
 
             sut.getColorScheme(seed = mockk())
@@ -109,16 +89,7 @@ class ColorSchemeViewModelTest {
     @Test
     fun `selecting new mode updates selected mode`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            every { getInitialModels() } answers {
-                ColorSchemeData.Models(
-                    swatches = listOf(),
-                    activeMode = Mode.Monochrome,
-                    selectedMode = Mode.Monochrome,
-                    activeSwatchCount = SwatchCount.Six,
-                    selectedSwatchCount = SwatchCount.Six,
-                    hasChanges = false,
-                )
-            }
+            every { getInitialModels() } returns someModels()
             createSut()
 
             sut.data.onModeSelect(Mode.Analogic)
@@ -129,16 +100,7 @@ class ColorSchemeViewModelTest {
     @Test
     fun `selecting new mode that is different from the active mode results in present changes`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            every { getInitialModels() } answers {
-                ColorSchemeData.Models(
-                    swatches = listOf(),
-                    activeMode = Mode.Monochrome,
-                    selectedMode = Mode.Monochrome,
-                    activeSwatchCount = SwatchCount.Six,
-                    selectedSwatchCount = SwatchCount.Six,
-                    hasChanges = false,
-                )
-            }
+            every { getInitialModels() } returns someModels()
             createSut()
 
             sut.data.onModeSelect(Mode.Analogic)
@@ -149,16 +111,10 @@ class ColorSchemeViewModelTest {
     @Test
     fun `selecting new mode that is same as the active mode results in none changes`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            every { getInitialModels() } answers {
-                ColorSchemeData.Models(
-                    swatches = listOf(),
-                    activeMode = Mode.Monochrome,
-                    selectedMode = Mode.Analogic,
-                    activeSwatchCount = SwatchCount.Six,
-                    selectedSwatchCount = SwatchCount.Six,
-                    hasChanges = false,
-                )
-            }
+            every { getInitialModels() } returns someModels().copy(
+                activeMode = Mode.Monochrome,
+                selectedMode = Mode.Analogic,
+            )
             createSut()
 
             sut.data.onModeSelect(Mode.Monochrome)
@@ -169,16 +125,7 @@ class ColorSchemeViewModelTest {
     @Test
     fun `selecting new swatch count updates selected swatch count`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            every { getInitialModels() } answers {
-                ColorSchemeData.Models(
-                    swatches = listOf(),
-                    activeMode = Mode.Monochrome,
-                    selectedMode = Mode.Monochrome,
-                    activeSwatchCount = SwatchCount.Six,
-                    selectedSwatchCount = SwatchCount.Six,
-                    hasChanges = false,
-                )
-            }
+            every { getInitialModels() } returns someModels()
             createSut()
 
             sut.data.onSwatchCountSelect(SwatchCount.Thirteen)
@@ -189,16 +136,7 @@ class ColorSchemeViewModelTest {
     @Test
     fun `selecting new swatch count that is different from the active swatch count results in present changes`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            every { getInitialModels() } answers {
-                ColorSchemeData.Models(
-                    swatches = listOf(),
-                    activeMode = Mode.Monochrome,
-                    selectedMode = Mode.Monochrome,
-                    activeSwatchCount = SwatchCount.Six,
-                    selectedSwatchCount = SwatchCount.Six,
-                    hasChanges = false,
-                )
-            }
+            every { getInitialModels() } returns someModels()
             createSut()
 
             sut.data.onSwatchCountSelect(SwatchCount.Thirteen)
@@ -209,16 +147,10 @@ class ColorSchemeViewModelTest {
     @Test
     fun `selecting new swatch count that is same as the active swatch count results in none changes`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            every { getInitialModels() } answers {
-                ColorSchemeData.Models(
-                    swatches = listOf(),
-                    activeMode = Mode.Monochrome,
-                    selectedMode = Mode.Monochrome,
-                    activeSwatchCount = SwatchCount.Six,
-                    selectedSwatchCount = SwatchCount.Thirteen,
-                    hasChanges = false,
-                )
-            }
+            every { getInitialModels() } returns someModels().copy(
+                activeSwatchCount = SwatchCount.Six,
+                selectedSwatchCount = SwatchCount.Thirteen,
+            )
             createSut()
 
             sut.data.onSwatchCountSelect(SwatchCount.Six)
@@ -259,9 +191,18 @@ class ColorSchemeViewModelTest {
             getInitialModels = getInitialModels,
             getColorScheme = getColorScheme,
             createModels = createModels,
-            createData = createData,
             ioDispatcher = mainDispatcherRule.testDispatcher,
         ).also {
             sut = it
         }
+
+    fun someModels() =
+        ColorSchemeData.Models(
+            swatches = listOf(),
+            activeMode = Mode.Monochrome,
+            selectedMode = Mode.Monochrome,
+            activeSwatchCount = SwatchCount.Six,
+            selectedSwatchCount = SwatchCount.Six,
+            hasChanges = false,
+        )
 }

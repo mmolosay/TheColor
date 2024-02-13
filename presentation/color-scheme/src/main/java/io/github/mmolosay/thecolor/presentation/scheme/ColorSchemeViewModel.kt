@@ -25,7 +25,6 @@ class ColorSchemeViewModel @Inject constructor(
     private val getInitialModels: GetInitialDataModelsUseCase,
     private val getColorScheme: GetColorSchemeUseCase,
     private val createModels: CreateDataModelsUseCase,
-    private val createData: CreateDataUseCase,
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -45,7 +44,7 @@ class ColorSchemeViewModel @Inject constructor(
         viewModelScope.launch(ioDispatcher) {
             val scheme = getColorScheme(request)
             val models = createModels(scheme = scheme, config = requestConfig)
-            val data = createData(models, actions)
+            val data = ColorSchemeData(models, actions)
             _dataStateFlow.value = State.Ready(data)
         }
     }
@@ -88,6 +87,28 @@ class ColorSchemeViewModel @Inject constructor(
             swatchCount = this.swatchCount.value,
         )
 
+    private fun ColorSchemeData(
+        models: ColorSchemeData.Models,
+        actions: ColorSchemeData.Actions,
+    ) =
+        ColorSchemeData(
+            swatches = models.swatches,
+            activeMode = models.activeMode,
+            selectedMode = models.selectedMode,
+            onModeSelect = actions.onModeSelect,
+            activeSwatchCount = models.activeSwatchCount,
+            selectedSwatchCount = models.selectedSwatchCount,
+            onSwatchCountSelect = actions.onSwatchCountSelect,
+            changes = Changes(models.hasChanges), // TODO: abolish Models.hasChanges
+        )
+
+    private fun Changes(areThereChangesToApply: Boolean): Changes =
+        if (areThereChangesToApply) {
+            Changes.Present(applyChanges = actions.applyChanges)
+        } else {
+            Changes.None
+        }
+
     private fun ColorSchemeData.smartCopy(
         selectedMode: Mode = this.selectedMode,
         selectedSwatchCount: SwatchCount = this.selectedSwatchCount,
@@ -102,16 +123,9 @@ class ColorSchemeViewModel @Inject constructor(
         )
     }
 
-    private fun Changes(areThereChangesToApply: Boolean): Changes =
-        if (areThereChangesToApply) {
-            Changes.Present(applyChanges = actions.applyChanges)
-        } else {
-            Changes.None
-        }
-
     private fun initialState(): State {
         val models = getInitialModels() ?: return State.Loading
-        val data = createData(models, actions)
+        val data = ColorSchemeData(models, actions)
         return State.Ready(data)
     }
 
@@ -176,32 +190,4 @@ class CreateDataModelsUseCase @Inject constructor(
         val hex = with(colorConverter) { color.toHex() }
         return ColorInt(hex = hex.value)
     }
-}
-
-@Singleton
-class CreateDataUseCase @Inject constructor() {
-
-    operator fun invoke(
-        models: ColorSchemeData.Models,
-        actions: ColorSchemeData.Actions,
-    ) =
-        ColorSchemeData(
-            swatches = models.swatches,
-            activeMode = models.activeMode,
-            selectedMode = models.selectedMode,
-            onModeSelect = actions.onModeSelect,
-            activeSwatchCount = models.activeSwatchCount,
-            selectedSwatchCount = models.selectedSwatchCount,
-            onSwatchCountSelect = actions.onSwatchCountSelect,
-            changes = Changes(models, actions),
-        )
-
-    private fun Changes(
-        models: ColorSchemeData.Models,
-        actions: ColorSchemeData.Actions,
-    ) =
-        if (models.hasChanges)
-            Changes.Present(applyChanges = actions.applyChanges)
-        else
-            Changes.None
 }
