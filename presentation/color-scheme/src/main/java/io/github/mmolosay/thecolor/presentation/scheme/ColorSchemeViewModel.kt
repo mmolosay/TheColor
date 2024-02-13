@@ -104,7 +104,7 @@ class ColorSchemeViewModel @Inject constructor(
 
     private fun Changes(areThereChangesToApply: Boolean): Changes =
         if (areThereChangesToApply) {
-            Changes.Present(applyChanges = ::applyChanges)
+            Changes.Present(applyChanges = actions.applyChanges)
         } else {
             Changes.None
         }
