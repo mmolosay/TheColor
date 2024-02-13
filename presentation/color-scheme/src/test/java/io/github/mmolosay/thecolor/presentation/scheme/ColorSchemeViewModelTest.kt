@@ -24,7 +24,7 @@ class ColorSchemeViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    val getInitialModels: GetInitialDataModelsUseCase = mockk()
+    val getInitialModelsState: GetInitialModelsStateUseCase = mockk()
     val getColorScheme: GetColorSchemeUseCase = mockk()
     val createModels: CreateDataModelsUseCase = mockk()
 
@@ -32,13 +32,13 @@ class ColorSchemeViewModelTest {
 
     val ColorSchemeViewModel.data: ColorSchemeData
         get() {
-            this.dataStateFlow.value should beOfType<State.Ready>() // // assertion for clear failure message
+            this.dataStateFlow.value should beOfType<State.Ready<*>>() // // assertion for clear failure message
             return (this.dataStateFlow.value as State.Ready).data
         }
 
     @Test
-    fun `initial 'null' models initialize flow with Loading state`() {
-        every { getInitialModels() } returns null
+    fun `initial Loading models state initializes flow with Loading state`() {
+        every { getInitialModelsState() } returns State.Loading
 
         createSut()
 
@@ -46,18 +46,18 @@ class ColorSchemeViewModelTest {
     }
 
     @Test
-    fun `initial not-null models initialize flow with Ready state`() {
-        every { getInitialModels() } returns someModels()
+    fun `initial Ready models state initializes flow with Ready state`() {
+        every { getInitialModelsState() } returns State.Ready(someModels())
 
         createSut()
 
-        sut.dataStateFlow.value should beOfType<State.Ready>()
+        sut.dataStateFlow.value should beOfType<State.Ready<*>>()
     }
 
     @Test
     fun `call to 'get color scheme' emits Loading state from flow`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            every { getInitialModels() } returns someModels()
+            every { getInitialModelsState() } returns State.Ready(someModels())
             coEvery { getColorScheme(request = any<GetColorSchemeUseCase.Request>()) } returns mockk()
             every { createModels(scheme = any(), config = any()) } returns someModels()
             createSut()
@@ -76,20 +76,20 @@ class ColorSchemeViewModelTest {
     @Test
     fun `call to 'get color scheme' emits Ready state from flow`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            every { getInitialModels() } returns null
+            every { getInitialModelsState() } returns State.Loading
             coEvery { getColorScheme(request = any<GetColorSchemeUseCase.Request>()) } returns mockk()
             every { createModels(scheme = any(), config = any()) } returns someModels()
             createSut()
 
             sut.getColorScheme(seed = mockk())
 
-            sut.dataStateFlow.value should beOfType<State.Ready>()
+            sut.dataStateFlow.value should beOfType<State.Ready<*>>()
         }
 
     @Test
     fun `selecting new mode updates selected mode`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            every { getInitialModels() } returns someModels()
+            every { getInitialModelsState() } returns State.Ready(someModels())
             createSut()
 
             sut.data.onModeSelect(Mode.Analogic)
@@ -100,7 +100,7 @@ class ColorSchemeViewModelTest {
     @Test
     fun `selecting new mode that is different from the active mode results in present changes`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            every { getInitialModels() } returns someModels()
+            every { getInitialModelsState() } returns State.Ready(someModels())
             createSut()
 
             sut.data.onModeSelect(Mode.Analogic)
@@ -111,10 +111,10 @@ class ColorSchemeViewModelTest {
     @Test
     fun `selecting new mode that is same as the active mode results in none changes`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            every { getInitialModels() } returns someModels().copy(
+            every { getInitialModelsState() } returns someModels().copy(
                 activeMode = Mode.Monochrome,
                 selectedMode = Mode.Analogic,
-            )
+            ).let { State.Ready(it) }
             createSut()
 
             sut.data.onModeSelect(Mode.Monochrome)
@@ -125,7 +125,7 @@ class ColorSchemeViewModelTest {
     @Test
     fun `selecting new swatch count updates selected swatch count`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            every { getInitialModels() } returns someModels()
+            every { getInitialModelsState() } returns State.Ready(someModels())
             createSut()
 
             sut.data.onSwatchCountSelect(SwatchCount.Thirteen)
@@ -136,7 +136,7 @@ class ColorSchemeViewModelTest {
     @Test
     fun `selecting new swatch count that is different from the active swatch count results in present changes`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            every { getInitialModels() } returns someModels()
+            every { getInitialModelsState() } returns State.Ready(someModels())
             createSut()
 
             sut.data.onSwatchCountSelect(SwatchCount.Thirteen)
@@ -147,10 +147,10 @@ class ColorSchemeViewModelTest {
     @Test
     fun `selecting new swatch count that is same as the active swatch count results in none changes`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            every { getInitialModels() } returns someModels().copy(
+            every { getInitialModelsState() } returns someModels().copy(
                 activeSwatchCount = SwatchCount.Six,
                 selectedSwatchCount = SwatchCount.Thirteen,
-            )
+            ).let { State.Ready(it) }
             createSut()
 
             sut.data.onSwatchCountSelect(SwatchCount.Six)
@@ -159,7 +159,7 @@ class ColorSchemeViewModelTest {
         }
 
 //    @Test
-//    fun `calling 'apply changes' applies selected values to their actual conterparts`() =
+//    fun `calling 'apply changes' applies 'selected' values to their 'active' conterparts`() =
 //        runTest(mainDispatcherRule.testDispatcher) {
 //            val actionsSlot = slot<Actions>()
 //            every { getInitialState(actions = capture(actionsSlot)) } answers {
@@ -188,7 +188,7 @@ class ColorSchemeViewModelTest {
 
     fun createSut() =
         ColorSchemeViewModel(
-            getInitialModels = getInitialModels,
+            getInitialModelsState = getInitialModelsState,
             getColorScheme = getColorScheme,
             createModels = createModels,
             ioDispatcher = mainDispatcherRule.testDispatcher,
@@ -203,6 +203,5 @@ class ColorSchemeViewModelTest {
             selectedMode = Mode.Monochrome,
             activeSwatchCount = SwatchCount.Six,
             selectedSwatchCount = SwatchCount.Six,
-            hasChanges = false,
         )
 }

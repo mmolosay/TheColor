@@ -1,16 +1,15 @@
 package io.github.mmolosay.thecolor.presentation.scheme
 
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Actions
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Models
 import io.github.mmolosay.thecolor.domain.model.ColorScheme.Mode as DomainMode
 
 /**
  * Platform-agnostic data provided by ViewModel to color scheme View.
- * Assembled from [Models] and [Actions].
+ * Assembled from [Models] and lambda actions that are private to ViewModel.
  *
- * Such separation is required, because [Models] and [Actions] originate from different places.
+ * Such separation is required, because [Models] and action originate from different places.
  * [Models] are created by mapping domain models to presentation counterparts.
- * [Actions] belong to ViewModel and should only be exposed to View as a part of [ColorSchemeData].
+ * Actions belong to ViewModel and should only be exposed to View as a part of [ColorSchemeData].
  */
 data class ColorSchemeData(
     val swatches: List<ColorInt>,
@@ -29,13 +28,6 @@ data class ColorSchemeData(
         val selectedMode: DomainMode,
         val activeSwatchCount: SwatchCount,
         val selectedSwatchCount: SwatchCount,
-        val hasChanges: Boolean,
-    )
-
-    class Actions(
-        val onModeSelect: (DomainMode) -> Unit,
-        val onSwatchCountSelect: (SwatchCount) -> Unit,
-        val applyChanges: () -> Unit,
     )
 
     /**
