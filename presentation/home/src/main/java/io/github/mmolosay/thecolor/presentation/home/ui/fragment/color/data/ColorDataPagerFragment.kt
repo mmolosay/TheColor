@@ -4,45 +4,81 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.view.ContextThemeWrapper
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy.DisposeOnLifecycleDestroyed
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
-import by.kirich1409.viewbindingdelegate.viewBinding
 import dagger.hilt.android.AndroidEntryPoint
-import io.github.mmolosay.thecolor.presentation.color.Color
-import io.github.mmolosay.thecolor.presentation.color.isDark
+import io.github.mmolosay.thecolor.domain.model.Color
+import io.github.mmolosay.thecolor.presentation.center.ColorCenter
+import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
+import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
+import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
+import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
+import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
+import io.github.mmolosay.thecolor.presentation.details.ColorDetails
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.fragment.BaseFragment
-import io.github.mmolosay.thecolor.presentation.home.R
-import io.github.mmolosay.thecolor.presentation.home.databinding.ColorDataPagerFragmentBinding
-import io.github.mmolosay.thecolor.presentation.home.ui.adapter.pager.ColorDataPagerAdapter
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.color.data.ColorDataViewModel
-import io.github.mmolosay.thecolor.presentation.design.R as DesignR
+import io.github.mmolosay.thecolor.presentation.scheme.ColorScheme
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
+import io.github.mmolosay.thecolor.presentation.color.Color as OldColor
 
 @AndroidEntryPoint
 class ColorDataPagerFragment :
     BaseFragment(),
     ColorThemedView {
 
-    private val binding by viewBinding(ColorDataPagerFragmentBinding::bind)
+//    private val binding by viewBinding(ColorDataPagerFragmentBinding::bind)
     private val colorDataVM: ColorDataViewModel by viewModels()
 
-    override var color: Color? = null
+    private val detailsViewModel: ColorDetailsViewModel by viewModels()
+    private val schemeViewModel: ColorSchemeViewModel by viewModels()
+
+    override var color: OldColor? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        val themeOverlay = if (color?.isDark() == true) {
-            DesignR.style.ThemeOverlay_TheColor_Dark
-        } else {
-            DesignR.style.ThemeOverlay_TheColor_Light
+        savedInstanceState: Bundle?,
+    ): View =
+        ComposeView(inflater.context).apply {
+            setViewCompositionStrategy(DisposeOnLifecycleDestroyed(lifecycle))
+            setContent {
+                TheColorTheme {
+                    // TODO: move ProvideColorsOnTintedSurface() to outside?
+                    val colors = rememberContentColors(isSurfaceDark = true) // TODO: use real value
+                    ProvideColorsOnTintedSurface(colors) {
+                        ColorCenter()
+                    }
+                }
+            }
         }
-        val themedContext = ContextThemeWrapper(context, themeOverlay)
-        return inflater
-            .cloneInContext(themedContext)
-            .inflate(R.layout.color_data_pager_fragment, container, false)
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val oldColor = color ?: return
+        val color = Color.Hex(oldColor.hexSignless.toInt(radix = 16))
+        detailsViewModel.getColorDetails(color)
+        schemeViewModel.getColorScheme(color)
     }
+
+    @Composable
+    private fun ColorCenter() {
+        ColorCenter(
+            { ColorDetails(vm = detailsViewModel) },
+            { ColorScheme(vm = schemeViewModel) },
+        )
+    }
+
+    @Composable
+    private fun rememberContentColors(isSurfaceDark: Boolean): ColorsOnTintedSurface =
+        remember(isSurfaceDark) {
+            if (isSurfaceDark) colorsOnDarkSurface() else colorsOnLightSurface()
+        }
 
     // region Set up
 
@@ -72,7 +108,7 @@ class ColorDataPagerFragment :
     private fun collectChangePageCommand() =
         colorDataVM.changePageCommand.collectOnLifecycle { resource ->
             resource.ifSuccess { page ->
-                binding.pager.setCurrentItem(page.ordinal, /*smoothScroll*/ true)
+//                binding.pager.setCurrentItem(page.ordinal, /*smoothScroll*/ true)
             }
         }
 
@@ -84,12 +120,12 @@ class ColorDataPagerFragment :
         setViewPager()
     }
 
-    private fun setViewPager() =
-        binding.pager.let { pager ->
-            val adapter = ColorDataPagerAdapter(this)
-            pager.adapter = adapter
-            pager.offscreenPageLimit = adapter.itemCount
-        }
+    private fun setViewPager() = Unit
+//        binding.pager.let { pager ->
+//            val adapter = ColorDataPagerAdapter(this)
+//            pager.adapter = adapter
+//            pager.offscreenPageLimit = adapter.itemCount
+//        }
 
     // endregion
 
@@ -97,7 +133,7 @@ class ColorDataPagerFragment :
 
         private const val ARGUMENTS_KEY_COLOR = "ARGUMENTS_KEY_COLOR"
 
-        fun newInstance(color: Color?) =
+        fun newInstance(color: OldColor?) =
             ColorDataPagerFragment().apply {
                 arguments = bundleOf(
                     ARGUMENTS_KEY_COLOR to color
