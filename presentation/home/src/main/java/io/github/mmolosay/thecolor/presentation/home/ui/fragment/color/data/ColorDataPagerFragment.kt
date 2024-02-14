@@ -4,10 +4,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color as ComposeColor
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy.DisposeOnLifecycleDestroyed
 import androidx.compose.ui.unit.dp
@@ -16,6 +20,7 @@ import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.presentation.center.ColorCenter
+import io.github.mmolosay.thecolor.presentation.center.ColorCenterShape
 import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
@@ -71,11 +76,19 @@ class ColorDataPagerFragment :
 
     @Composable
     private fun ColorCenter() {
-        ColorCenter(
-            { ColorDetails(vm = detailsViewModel) },
-            { ColorScheme(vm = schemeViewModel) },
-            modifier = Modifier.padding(top = 48.dp),
-        )
+        Box(modifier = Modifier
+            .graphicsLayer {
+                clip = true
+                shape = ColorCenterShape
+            }
+            .background(ComposeColor(0xFF_123456)) // TODO: use real color
+        ) {
+            ColorCenter(
+                { ColorDetails(vm = detailsViewModel) },
+                { ColorScheme(vm = schemeViewModel) },
+                modifier = Modifier.padding(top = 24.dp),
+            )
+        }
     }
 
     @Composable
