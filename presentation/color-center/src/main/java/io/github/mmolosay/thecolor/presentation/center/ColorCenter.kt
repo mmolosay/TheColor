@@ -15,9 +15,13 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 @Composable
 fun ColorCenter(
     vararg pages: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val pagerState = rememberPagerState(pageCount = { pages.size })
-    HorizontalPager(state = pagerState) { pageIndex ->
+    HorizontalPager(
+        state = pagerState,
+        modifier = modifier,
+    ) { pageIndex ->
         val page = pages[pageIndex]
         page()
     }

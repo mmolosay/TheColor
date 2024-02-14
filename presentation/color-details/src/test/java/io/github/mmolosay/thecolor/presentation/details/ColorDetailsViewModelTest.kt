@@ -58,7 +58,6 @@ class ColorDetailsViewModelTest {
         val data = (sut.dataStateFlow.value as State.Ready).data
         val comparableData = data.copyWithNoopLambdas()
         comparableData shouldBe ColorDetailsData(
-            color = ColorInt(0x1A803F),
             colorName = "Jewel",
             useLightContentColors = true,
             hex = ColorDetailsData.Hex(value = "#1A803F"),

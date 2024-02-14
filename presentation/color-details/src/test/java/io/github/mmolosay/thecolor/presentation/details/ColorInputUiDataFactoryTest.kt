@@ -49,7 +49,6 @@ private object TestParameters {
     // region #0
 
     fun data0() = ColorDetailsData(
-        color = ColorDetailsData.ColorInt(0x1A803F),
         colorName = "Jewel",
         useLightContentColors = true,
         hex = ColorDetailsData.Hex("#1A803F"),
@@ -83,10 +82,6 @@ private object TestParameters {
 
     fun uiData0() =
         ColorDetailsUiData(
-            background = ColorDetailsUiData.Background(
-                color = Color(0xFF1A803F),
-                isDark = true,
-            ),
             headline = "Jewel",
             translations = ColorDetailsUiData.ColorTranslations(
                 hex = ColorDetailsUiData.ColorTranslation.Hex(
@@ -150,7 +145,6 @@ private object TestParameters {
     // region #1
 
     fun data1() = ColorDetailsData(
-        color = ColorDetailsData.ColorInt(0xF0F8FF),
         colorName = "Alice Blue",
         useLightContentColors = false,
         hex = ColorDetailsData.Hex("#F0F8FF"),
@@ -179,10 +173,6 @@ private object TestParameters {
 
     fun uiData1() =
         ColorDetailsUiData(
-            background = ColorDetailsUiData.Background(
-                color = Color(0xFFF0F8FF),
-                isDark = false,
-            ),
             headline = "Alice Blue",
             translations = ColorDetailsUiData.ColorTranslations(
                 hex = ColorDetailsUiData.ColorTranslation.Hex(

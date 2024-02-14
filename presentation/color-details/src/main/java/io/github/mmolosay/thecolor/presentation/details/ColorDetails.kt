@@ -30,13 +30,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
-import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.Background
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorSpec
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorTranslation
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorTranslations
@@ -65,37 +63,33 @@ fun ColorDetails(
 @Composable
 fun ColorDetails(
     uiData: ColorDetailsUiData,
+    modifier: Modifier = Modifier,
 ) {
-    val colors = rememberContentColors(isSurfaceDark = uiData.background.isDark)
-    ProvideColorsOnTintedSurface(colors) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(uiData.background.color),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
 //        Spacer(modifier = Modifier.height(32.dp)) // TODO: use when wrapping fragment with its own margin is gone
-            Headline(uiData.headline)
+        Headline(uiData.headline)
 
-            Spacer(modifier = Modifier.height(24.dp))
-            ColorTranslations(uiData.translations)
+        Spacer(modifier = Modifier.height(24.dp))
+        ColorTranslations(uiData.translations)
 
-            Spacer(modifier = Modifier.height(24.dp))
-            Column(
-                modifier = Modifier.fillMaxWidth(0.75f),
-            ) {
-                Divider()
-
-                Spacer(modifier = Modifier.height(16.dp))
-                ColorSpecs(
-                    specs = uiData.specs,
-                    modifier = Modifier.align(Alignment.Start),
-                )
-            }
+        Spacer(modifier = Modifier.height(24.dp))
+        Column(
+            modifier = Modifier.fillMaxWidth(0.75f),
+        ) {
+            Divider()
 
             Spacer(modifier = Modifier.height(16.dp))
-            ViewColorSchemeButton(uiData.viewColorSchemeButtonText)
+            ColorSpecs(
+                specs = uiData.specs,
+                modifier = Modifier.align(Alignment.Start),
+            )
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+        ViewColorSchemeButton(uiData.viewColorSchemeButtonText)
     }
 }
 
@@ -169,17 +163,17 @@ private fun rememberUiData(
 ): ColorDetailsUiData =
     remember(data) { ColorDetailsUiData(data, viewData) }
 
-@Composable
-private fun rememberContentColors(isSurfaceDark: Boolean): ColorsOnTintedSurface =
-    remember(isSurfaceDark) { if (isSurfaceDark) colorsOnDarkSurface() else colorsOnLightSurface() }
-
 @Preview(showBackground = true)
 @Composable
 private fun PreviewLight() {
     TheColorTheme {
-        ColorDetails(
-            uiData = previewUiData(isBackgroundDark = true),
-        )
+        val colors = remember { colorsOnDarkSurface() }
+        ProvideColorsOnTintedSurface(colors) {
+            ColorDetails(
+                uiData = previewUiData(),
+                modifier = Modifier.background(Color(0xFF_1A803F)),
+            )
+        }
     }
 }
 
@@ -187,20 +181,18 @@ private fun PreviewLight() {
 @Composable
 private fun PreviewDark() {
     TheColorTheme {
-        ColorDetails(
-            uiData = previewUiData(isBackgroundDark = false),
-        )
+        val colors = remember { colorsOnLightSurface() }
+        ProvideColorsOnTintedSurface(colors) {
+            ColorDetails(
+                uiData = previewUiData(),
+                modifier = Modifier.background(Color(0xFF_F0F8FF)),
+            )
+        }
     }
 }
 
-private fun previewUiData(
-    isBackgroundDark: Boolean,
-) =
+private fun previewUiData() =
     ColorDetailsUiData(
-        background = Background(
-            color = Color(0xFF1A803F),
-            isDark = isBackgroundDark,
-        ),
         headline = "Jewel",
         translations = ColorTranslations(
             hex = ColorTranslation.Hex(

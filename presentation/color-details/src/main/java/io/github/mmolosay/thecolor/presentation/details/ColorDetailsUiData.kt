@@ -9,17 +9,11 @@ import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ViewD
  * It is a combination of [ColorDetailsData] and [ViewData].
  */
 data class ColorDetailsUiData(
-    val background: Background,
     val headline: String,
     val translations: ColorTranslations,
     val specs: List<ColorSpec>,
     val viewColorSchemeButtonText: ViewColorSchemeButton,
 ) {
-
-    data class Background(
-        val color: Color,
-        val isDark: Boolean,
-    )
 
     data class ColorTranslations(
         val hex: ColorTranslation.Hex,

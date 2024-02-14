@@ -4,7 +4,6 @@ package io.github.mmolosay.thecolor.presentation.details
  * Platform-agnostic data provided by ViewModel to color details View.
  */
 data class ColorDetailsData(
-    val color: ColorInt,
     val colorName: String,
     val useLightContentColors: Boolean,
     val hex: Hex,

@@ -42,7 +42,6 @@ class ColorDetailsViewModel @Inject constructor(
 
     private fun ColorDetailsData(details: DomainColorDetails) =
         ColorDetailsData(
-            color = ColorInt(details.color),
             colorName = details.name,
             useLightContentColors = useLightContentColors(details.color),
             hex = ColorDetailsData.Hex(value = details.hexValue),

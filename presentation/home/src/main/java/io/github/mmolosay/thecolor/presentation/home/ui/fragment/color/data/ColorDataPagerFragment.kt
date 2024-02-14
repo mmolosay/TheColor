@@ -4,10 +4,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy.DisposeOnLifecycleDestroyed
+import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
@@ -31,7 +34,7 @@ class ColorDataPagerFragment :
     BaseFragment(),
     ColorThemedView {
 
-//    private val binding by viewBinding(ColorDataPagerFragmentBinding::bind)
+    //    private val binding by viewBinding(ColorDataPagerFragmentBinding::bind)
     private val colorDataVM: ColorDataViewModel by viewModels()
 
     private val detailsViewModel: ColorDetailsViewModel by viewModels()
@@ -71,6 +74,7 @@ class ColorDataPagerFragment :
         ColorCenter(
             { ColorDetails(vm = detailsViewModel) },
             { ColorScheme(vm = schemeViewModel) },
+            modifier = Modifier.padding(top = 32.dp),
         )
     }
 

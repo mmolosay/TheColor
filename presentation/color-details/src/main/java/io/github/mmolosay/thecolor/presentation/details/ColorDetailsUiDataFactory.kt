@@ -13,19 +13,10 @@ fun ColorDetailsUiData(
     viewData: ViewData,
 ): ColorDetailsUiData =
     ColorDetailsUiData(
-        background = Background(data),
         headline = data.colorName,
         translations = ColorTranslations(data, viewData),
         specs = ColorSpecs(data, viewData),
         viewColorSchemeButtonText = ViewColorSchemeButton(data, viewData),
-    )
-
-private fun Background(
-    data: ColorDetailsData,
-) =
-    ColorDetailsUiData.Background(
-        color = data.color.toCompose(),
-        isDark = data.useLightContentColors
     )
 
 private fun ColorTranslations(
