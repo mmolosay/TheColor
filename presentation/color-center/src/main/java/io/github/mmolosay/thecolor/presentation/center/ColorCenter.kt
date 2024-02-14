@@ -7,6 +7,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
@@ -21,6 +22,8 @@ fun ColorCenter(
     HorizontalPager(
         state = pagerState,
         modifier = modifier,
+        verticalAlignment = Alignment.Top,
+        beyondBoundsPageCount = pages.size, // keep all pages loaded to keep height of Pager constant
     ) { pageIndex ->
         val page = pages[pageIndex]
         page()
