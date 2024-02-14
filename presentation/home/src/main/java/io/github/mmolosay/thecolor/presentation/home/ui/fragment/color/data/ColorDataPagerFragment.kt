@@ -74,7 +74,7 @@ class ColorDataPagerFragment :
         ColorCenter(
             { ColorDetails(vm = detailsViewModel) },
             { ColorScheme(vm = schemeViewModel) },
-            modifier = Modifier.padding(top = 32.dp),
+            modifier = Modifier.padding(top = 48.dp),
         )
     }
 
