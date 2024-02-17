@@ -90,12 +90,8 @@ fun ColorCenter(
 
     LaunchedEffect(page) {
         with(pagerState) {
-            val target = this.targetPage
-            val current = this.currentPage
-            val settled = this.settledPage
-            println("targetPage: $target, currentPage: $current, settledPage: $settled")
-//            if (settledPage != targetPage) return@LaunchedEffect // already animating due to user gesture
-            pagerState.animateScrollToPage(page = page)
+            if (isScrollInProgress) return@LaunchedEffect // prevent user interrupting
+            animateScrollToPage(page = page)
         }
     }
     LaunchedEffect(pagerState) {

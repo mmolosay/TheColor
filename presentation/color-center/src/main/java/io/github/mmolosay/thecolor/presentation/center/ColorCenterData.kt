@@ -2,6 +2,10 @@ package io.github.mmolosay.thecolor.presentation.center
 
 /**
  * Platform-agnostic data provided by ViewModel to color center View.
+ *
+ * @param changePage an action to be invoked by View to change the current page to some different page.
+ * @param onPageChanged an action to be invoked by View when page was changed by user gesture
+ * and now this new page index should be propagated to ViewModel to ensure data synchronisation.
  */
 data class ColorCenterData(
     val page: Int,
