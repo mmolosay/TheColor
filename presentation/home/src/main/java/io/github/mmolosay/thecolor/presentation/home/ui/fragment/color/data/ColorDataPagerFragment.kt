@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color as ComposeColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy.DisposeOnLifecycleDestroyed
@@ -21,6 +20,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.presentation.center.ColorCenter
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterShape
+import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
@@ -32,6 +32,7 @@ import io.github.mmolosay.thecolor.presentation.fragment.BaseFragment
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.color.data.ColorDataViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorScheme
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
+import androidx.compose.ui.graphics.Color as ComposeColor
 import io.github.mmolosay.thecolor.presentation.color.Color as OldColor
 
 @AndroidEntryPoint
@@ -42,8 +43,9 @@ class ColorDataPagerFragment :
     //    private val binding by viewBinding(ColorDataPagerFragmentBinding::bind)
     private val colorDataVM: ColorDataViewModel by viewModels()
 
-    private val detailsViewModel: ColorDetailsViewModel by viewModels()
-    private val schemeViewModel: ColorSchemeViewModel by viewModels()
+    private val colorDetailsViewModel: ColorDetailsViewModel by viewModels()
+    private val colorSchemeViewModel: ColorSchemeViewModel by viewModels()
+    private val colorCenterViewModel: ColorCenterViewModel by viewModels()
 
     override var color: OldColor? = null
 
@@ -70,22 +72,24 @@ class ColorDataPagerFragment :
 
         val oldColor = color ?: return
         val color = Color.Hex(oldColor.hexSignless.toInt(radix = 16))
-        detailsViewModel.getColorDetails(color)
-        schemeViewModel.getColorScheme(color)
+        colorDetailsViewModel.getColorDetails(color)
+        colorSchemeViewModel.getColorScheme(color)
     }
 
     @Composable
     private fun ColorCenter() {
-        Box(modifier = Modifier
-            .graphicsLayer {
-                clip = true
-                shape = ColorCenterShape
-            }
-            .background(ComposeColor(0xFF_123456)) // TODO: use real color
+        Box(
+            modifier = Modifier
+                .graphicsLayer {
+                    clip = true
+                    shape = ColorCenterShape
+                }
+                .background(ComposeColor(0xFF_123456)) // TODO: use real color
         ) {
             ColorCenter(
-                { ColorDetails(vm = detailsViewModel) },
-                { ColorScheme(vm = schemeViewModel) },
+                vm = colorCenterViewModel,
+                details = { ColorDetails(vm = colorDetailsViewModel) },
+                scheme = { ColorScheme(vm = colorSchemeViewModel) },
                 modifier = Modifier.padding(top = 24.dp),
             )
         }

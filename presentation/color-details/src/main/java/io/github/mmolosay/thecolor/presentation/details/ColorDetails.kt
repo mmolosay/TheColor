@@ -87,9 +87,6 @@ fun ColorDetails(
                 modifier = Modifier.align(Alignment.Start),
             )
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-        ViewColorSchemeButton(uiData.viewColorSchemeButtonText)
     }
 }
 
@@ -108,39 +105,6 @@ private fun Divider() =
         thickness = 1.dp,
         color = colorsOnTintedSurface.muted.copy(alpha = 0.30f),
     )
-
-@Composable
-private fun ViewColorSchemeButton(uiData: ViewColorSchemeButton) {
-    val colors = ButtonDefaults.outlinedButtonColors(
-        contentColor = colorsOnTintedSurface.accent,
-    )
-    val border = ButtonDefaults.outlinedButtonBorder.copy(
-        brush = SolidColor(colorsOnTintedSurface.accent),
-    )
-    val addedTextStyle = TextStyle(
-        platformStyle = PlatformTextStyle(
-            includeFontPadding = false,
-        ),
-        lineHeightStyle = LineHeightStyle(
-            alignment = LineHeightStyle.Alignment.Proportional,
-            trim = LineHeightStyle.Trim.FirstLineTop,
-        )
-    )
-    OutlinedButton(
-        onClick = uiData.onClick,
-        colors = colors,
-        border = border,
-    ) {
-        Text(
-            text = uiData.text,
-            style = LocalTextStyle.current.merge(addedTextStyle),
-        )
-        Icon(
-            imageVector = Icons.Rounded.KeyboardArrowRight,
-            contentDescription = null, // described by text above
-        )
-    }
-}
 
 @Composable
 private fun Loading() =

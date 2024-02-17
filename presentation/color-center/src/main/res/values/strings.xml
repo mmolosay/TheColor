@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="color_center_details_page_change_button_text">View color scheme</string>
+    <string name="color_center_scheme_page_change_button_text">View color details</string>
+
+</resources>
