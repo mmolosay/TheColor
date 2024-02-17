@@ -8,7 +8,8 @@ import io.github.mmolosay.thecolor.presentation.center.ColorCenterUiData.ViewDat
  * It is a combination of [ColorCenterData] and [ViewData].
  */
 data class ColorCenterUiData(
-    val pageIndex: Int,
+    val page: Int,
+    val onPageChanged: OnPageChangedAction,
     val detailsPage: Page,
     val schemePage: Page,
 ) {
@@ -22,6 +23,10 @@ data class ColorCenterUiData(
         val text: String,
         val onClick: () -> Unit,
     )
+
+    fun interface OnPageChangedAction : (Int) -> Unit {
+        override operator fun invoke(newPage: Int)
+    }
 
     /**
      * Part of to-be [ColorCenterUiData].

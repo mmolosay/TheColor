@@ -7,19 +7,20 @@ import io.github.mmolosay.thecolor.presentation.center.ColorCenterUiData.ViewDat
 fun ColorCenterUiData(
     data: ColorCenterData,
     viewData: ViewData,
-) =
+): ColorCenterUiData =
     ColorCenterUiData(
-        pageIndex = data.pageIndex,
+        page = data.page,
+        onPageChanged = data.onPageChanged,
         detailsPage = Page(
             changePageButton = ChangePageButton(
                 text = viewData.detailsPageChangePageButtonText,
-                onClick = { data.changePage(destPageIndex = 1) },
+                onClick = { data.changePage(destPage = 1) },
             ),
         ),
         schemePage = Page(
             changePageButton = ChangePageButton(
                 text = viewData.schemePageChangePageButtonText,
-                onClick = { data.changePage(destPageIndex = 0) },
+                onClick = { data.changePage(destPage = 0) },
             ),
         ),
     )

@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -60,7 +61,8 @@ fun ColorCenter(
                 uiData = uiData.schemePage,
             )
         },
-        pageIndex = uiData.pageIndex,
+        page = uiData.page,
+        onPageChanged = uiData.onPageChanged,
         modifier = modifier,
     )
 }
@@ -69,11 +71,11 @@ fun ColorCenter(
 @Composable
 fun ColorCenter(
     vararg pages: @Composable () -> Unit,
-    pageIndex: Int,
+    page: Int,
+    onPageChanged: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val pagerState = rememberPagerState(
-        initialPage = pageIndex,
         pageCount = { pages.size },
     )
     HorizontalPager(
@@ -81,13 +83,25 @@ fun ColorCenter(
         modifier = modifier,
         verticalAlignment = Alignment.Top,
         beyondBoundsPageCount = pages.size, // keep all pages loaded to keep height of Pager constant, TODO: solve with SubcomposeLayout?
-    ) { pageIndex ->
-        val page = pages[pageIndex]
+    ) { i ->
+        val page = pages[i]
         page()
     }
 
-    LaunchedEffect(pageIndex) {
-        pagerState.animateScrollToPage(page = pageIndex)
+    LaunchedEffect(page) {
+        with(pagerState) {
+            val target = this.targetPage
+            val current = this.currentPage
+            val settled = this.settledPage
+            println("targetPage: $target, currentPage: $current, settledPage: $settled")
+//            if (settledPage != targetPage) return@LaunchedEffect // already animating due to user gesture
+            pagerState.animateScrollToPage(page = page)
+        }
+    }
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.settledPage }.collect { newPage ->
+            onPageChanged(newPage)
+        }
     }
 }
 
@@ -127,7 +141,8 @@ private fun Preview() {
 
 private fun previewUiData() =
     ColorCenterUiData(
-        pageIndex = 0,
+        page = 0,
+        onPageChanged = {},
         detailsPage = ColorCenterUiData.Page(
             changePageButton = ColorCenterUiData.ChangePageButton(
                 text = "View color scheme",
