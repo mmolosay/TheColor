@@ -135,7 +135,7 @@ class HomeFragment :
 
     override fun setFragments() {
         setColorInputFragment()
-        setColorDataFragment()
+//        setColorDataFragment()
     }
 
     private fun setColorInputFragment() {
