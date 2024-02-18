@@ -13,7 +13,7 @@ import io.github.mmolosay.thecolor.domain.model.ColorScheme.Mode as DomainMode
  */
 data class ColorSchemeData(
     val swatches: List<Swatch>,
-    val onSwatchClick: (index: Int) -> Unit,
+    val onSwatchClick: (index: Int) -> Unit, // TODO: "click" and other View-related terms shouldn't appear in ViewModel data
     val activeMode: DomainMode,
     val selectedMode: DomainMode,
     val onModeSelect: (DomainMode) -> Unit,

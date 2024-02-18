@@ -7,6 +7,10 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.ApplyCh
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.ModeSection
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.Swatch
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.SwatchCountSection
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiDataComponents.OnModeSelect
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiDataComponents.OnSwatchClick
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiDataComponents.OnSwatchCountSelect
+import org.jetbrains.annotations.VisibleForTesting
 
 fun ColorSchemeUiData(
     data: ColorSchemeData,
@@ -29,7 +33,7 @@ private fun Swatches(
         Swatch(
             color = swatch.color.toCompose(),
             useLightContentColors = swatch.isDark,  // light content on dark and vice versa
-            onClick = { data.onSwatchClick(index) },
+            onClick = OnSwatchClick(data, index),
         )
     }
 
@@ -44,7 +48,7 @@ private fun ModeSection(
             ModeSection.Mode(
                 name = mode.name(viewData),
                 isSelected = (mode == data.selectedMode),
-                onSelect = { data.onModeSelect(mode) },
+                onSelect = OnModeSelect(data, mode),
             )
         },
     )
@@ -60,7 +64,7 @@ private fun SwatchCountSection(
             SwatchCountSection.SwatchCount(
                 text = count.value.toString(),
                 isSelected = (count == data.selectedSwatchCount),
-                onSelect = { data.onSwatchCountSelect(count) },
+                onSelect = OnSwatchCountSelect(data, count),
             )
         },
     )
@@ -92,3 +96,32 @@ private fun ColorScheme.Mode.name(
         ColorScheme.Mode.Triad -> viewData.modeTriadName
         ColorScheme.Mode.Quad -> viewData.modeQuadName
     }
+
+/*
+ * Inline created lambdas (like {}) are not equal.
+ * Extracting lambda creation into a mockable component allows easy testing.
+ */
+@VisibleForTesting
+internal object ColorSchemeUiDataComponents {
+
+    fun OnSwatchClick(
+        data: ColorSchemeData,
+        swatchIndex: Int,
+    ): () -> Unit = {
+        data.onSwatchClick(swatchIndex)
+    }
+
+    fun OnModeSelect(
+        data: ColorSchemeData,
+        mode: ColorScheme.Mode,
+    ): () -> Unit = {
+        data.onModeSelect(mode)
+    }
+
+    fun OnSwatchCountSelect(
+        data: ColorSchemeData,
+        count: ColorSchemeData.SwatchCount,
+    ): () -> Unit = {
+        data.onSwatchCountSelect(count)
+    }
+}
