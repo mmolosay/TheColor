@@ -43,7 +43,7 @@ class ColorDetailsViewModel @Inject constructor(
     private fun ColorDetailsData(details: DomainColorDetails) =
         ColorDetailsData(
             colorName = details.name,
-            useLightContentColors = useLightContentColors(details.color),
+            useLightContentColors = useLightContentColors(details.color), // TODO: remove
             hex = ColorDetailsData.Hex(value = details.hexValue),
             rgb = ColorDetailsData.Rgb(
                 r = details.rgbR.toString(),

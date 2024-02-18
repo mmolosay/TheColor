@@ -8,11 +8,17 @@ import androidx.compose.ui.graphics.Color
  * It is a combination of [ColorSchemeData] and [ViewData].
  */
 data class ColorSchemeUiData(
-    val swatches: List<Color>,
+    val swatches: List<Swatch>,
     val modeSection: ModeSection,
     val swatchCountSection: SwatchCountSection,
     val applyChangesButton: ApplyChangesButton,
 ) {
+
+    data class Swatch(
+        val color: Color,
+        val useLightContentColors: Boolean,
+        val onClick: () -> Unit,
+    )
 
     data class ModeSection(
         val label: String,

@@ -12,7 +12,8 @@ import io.github.mmolosay.thecolor.domain.model.ColorScheme.Mode as DomainMode
  * Actions belong to ViewModel and should only be exposed to View as a part of [ColorSchemeData].
  */
 data class ColorSchemeData(
-    val swatches: List<ColorInt>,
+    val swatches: List<Swatch>,
+    val onSwatchClick: (index: Int) -> Unit,
     val activeMode: DomainMode,
     val selectedMode: DomainMode,
     val onModeSelect: (DomainMode) -> Unit,
@@ -22,8 +23,13 @@ data class ColorSchemeData(
     val changes: Changes,
 ) {
 
+    data class Swatch(
+        val color: ColorInt,
+        val isDark: Boolean,
+    )
+
     data class Models(
-        val swatches: List<ColorInt>,
+        val swatches: List<Swatch>,
         val activeMode: DomainMode, // it's ok to use domain model if it doesn't require mapping to presentation
         val selectedMode: DomainMode,
         val activeSwatchCount: SwatchCount,

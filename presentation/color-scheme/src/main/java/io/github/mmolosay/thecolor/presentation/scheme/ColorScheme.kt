@@ -8,6 +8,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -70,6 +71,7 @@ import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.ApplyChangesButton
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.ModeSection
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.Swatch
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.SwatchCountSection
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.State
 
@@ -99,7 +101,7 @@ fun ColorScheme(
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
     ) {
-        Swatches(colors = uiData.swatches)
+        Swatches(swatches = uiData.swatches)
 
         Spacer(modifier = Modifier.height(16.dp))
         ModeSection(uiData = uiData.modeSection)
@@ -116,9 +118,7 @@ fun ColorScheme(
 }
 
 @Composable
-private fun Swatches(
-    colors: List<Color>,
-) {
+private fun Swatches(swatches: List<Swatch>) {
     val scrollState = rememberScrollState()
     Row(
         modifier = Modifier
@@ -130,20 +130,25 @@ private fun Swatches(
             ),
         horizontalArrangement = Arrangement.spacedBy((-32).dp),
     ) {
-        colors.forEach { color ->
-            Swatch(color)
+        swatches.forEach { swatch ->
+            Swatch(swatch)
         }
     }
 }
 
 @Composable
-private fun Swatch(color: Color) =
-    Box(
-        modifier = Modifier
-            .size(64.dp)
-            .clip(CircleShape)
-            .background(color)
-    )
+private fun Swatch(swatch: Swatch) {
+    val colors = rememberContentColors(useLight = swatch.useLightContentColors)
+    ProvideColorsOnTintedSurface(colors) { // provides correct ripple
+        Box(
+            modifier = Modifier
+                .size(64.dp)
+                .clip(CircleShape)
+                .background(swatch.color)
+                .clickable(onClick = swatch.onClick),
+        )
+    }
+}
 
 private fun Modifier.edgeToEdge(
     parentTotalHorizontalPadding: Dp,
@@ -368,14 +373,14 @@ private fun rememberUiData(
     remember(data) { ColorSchemeUiData(data, viewData) }
 
 @Composable
-private fun rememberContentColors(isSurfaceDark: Boolean): ColorsOnTintedSurface =
-    remember(isSurfaceDark) { if (isSurfaceDark) colorsOnDarkSurface() else colorsOnLightSurface() }
+private fun rememberContentColors(useLight: Boolean): ColorsOnTintedSurface =
+    remember(useLight) { if (useLight) colorsOnDarkSurface() else colorsOnLightSurface() }
 
 @Preview(showBackground = true)
 @Composable
 private fun PreviewLight() {
     TheColorTheme {
-        val colors = rememberContentColors(isSurfaceDark = true)
+        val colors = rememberContentColors(useLight = true)
         ProvideColorsOnTintedSurface(colors) {
             ColorScheme(
                 uiData = previewUiData(),
@@ -389,7 +394,7 @@ private fun PreviewLight() {
 @Composable
 private fun PreviewDark() {
     TheColorTheme {
-        val colors = rememberContentColors(isSurfaceDark = false)
+        val colors = rememberContentColors(useLight = false)
         ProvideColorsOnTintedSurface(colors) {
             ColorScheme(
                 uiData = previewUiData(),
@@ -403,15 +408,51 @@ private fun PreviewDark() {
 private fun previewUiData() =
     ColorSchemeUiData(
         swatches = listOf(
-            Color(0xFF_05160B),
-            Color(0xFF_0A2D17),
-            Color(0xFF_0F4522),
-            Color(0xFF_135C2E),
-            Color(0xFF_187439),
-            Color(0xFF_1C8C45),
-            Color(0xFF_20A450),
-            Color(0xFF_24BC5C),
-            Color(0xFF_28D567),
+            Swatch(
+                color = Color(0xFF_05160B),
+                useLightContentColors = true,
+                onClick = {},
+            ),
+            Swatch(
+                color = Color(0xFF_0A2D17),
+                useLightContentColors = true,
+                onClick = {},
+            ),
+            Swatch(
+                color = Color(0xFF_0F4522),
+                useLightContentColors = true,
+                onClick = {},
+            ),
+            Swatch(
+                color = Color(0xFF_135C2E),
+                useLightContentColors = true,
+                onClick = {},
+            ),
+            Swatch(
+                color = Color(0xFF_187439),
+                useLightContentColors = true,
+                onClick = {},
+            ),
+            Swatch(
+                color = Color(0xFF_1C8C45),
+                useLightContentColors = false,
+                onClick = {},
+            ),
+            Swatch(
+                color = Color(0xFF_20A450),
+                useLightContentColors = false,
+                onClick = {},
+            ),
+            Swatch(
+                color = Color(0xFF_24BC5C),
+                useLightContentColors = false,
+                onClick = {},
+            ),
+            Swatch(
+                color = Color(0xFF_28D567),
+                useLightContentColors = false,
+                onClick = {},
+            ),
         ),
         modeSection = ModeSection(
             label = "Mode:",

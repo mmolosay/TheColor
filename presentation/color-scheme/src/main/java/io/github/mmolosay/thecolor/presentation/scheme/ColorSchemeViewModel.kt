@@ -7,8 +7,10 @@ import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.ColorScheme.Mode
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase
+import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Changes
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.ColorInt
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Swatch
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.SwatchCount
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.Config
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.State
@@ -62,6 +64,11 @@ class ColorSchemeViewModel @Inject constructor(
         }
     }
 
+    // TODO: add unit tests
+    private fun goToSwatchDetails(index: Int) {
+        // TODO: implement
+    }
+
     private fun selectMode(mode: Mode) {
         val models = modelsStateFlow.value.asReadyOrNull()?.data ?: return
         val newModels = models.copy(selectedMode = mode)
@@ -105,6 +112,7 @@ class ColorSchemeViewModel @Inject constructor(
     private fun ColorSchemeData(models: ColorSchemeData.Models) =
         ColorSchemeData(
             swatches = models.swatches,
+            onSwatchClick = ::goToSwatchDetails,
             activeMode = models.activeMode,
             selectedMode = models.selectedMode,
             onModeSelect = ::selectMode,
@@ -165,6 +173,7 @@ class GetInitialModelsStateUseCase @Inject constructor() {
 @Singleton
 class CreateDataModelsUseCase @Inject constructor(
     private val colorConverter: ColorConverter,
+    private val isColorLight: IsColorLightUseCase,
 ) {
 
     operator fun invoke(
@@ -172,11 +181,19 @@ class CreateDataModelsUseCase @Inject constructor(
         config: Config,
     ) =
         ColorSchemeData.Models(
-            swatches = scheme.swatchDetails.map { it.color.toColorInt() },
+            swatches = scheme.swatchDetails.map { details ->
+                details.color.toSwatch()
+            },
             activeMode = config.mode,
             selectedMode = config.mode,
             activeSwatchCount = config.swatchCount,
             selectedSwatchCount = config.swatchCount,
+        )
+
+    private fun Color.toSwatch() =
+        Swatch(
+            color = this.toColorInt(),
+            isDark = with(isColorLight) { isLight().not() },
         )
 
     private fun Color.toColorInt(): ColorInt {

@@ -5,6 +5,7 @@ import io.github.mmolosay.thecolor.domain.model.ColorScheme
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.ColorInt
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.ApplyChangesButton
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.ModeSection
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.Swatch
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.SwatchCountSection
 
 fun ColorSchemeUiData(
@@ -12,7 +13,7 @@ fun ColorSchemeUiData(
     viewData: ColorSchemeUiData.ViewData,
 ): ColorSchemeUiData =
     ColorSchemeUiData(
-        swatches = data.swatches.map { it.toCompose() },
+        swatches = Swatches(data),
         modeSection = ModeSection(data, viewData),
         swatchCountSection = SwatchCountSection(data, viewData),
         applyChangesButton = ApplyChangesButton(data, viewData),
@@ -20,6 +21,17 @@ fun ColorSchemeUiData(
 
 private fun ColorInt.toCompose(): Color =
     Color(0xFF_000000 or this.hex.toLong())
+
+private fun Swatches(
+    data: ColorSchemeData,
+): List<Swatch> =
+    data.swatches.mapIndexed { index, swatch ->
+        Swatch(
+            color = swatch.color.toCompose(),
+            useLightContentColors = swatch.isDark,  // light content on dark and vice versa
+            onClick = { data.onSwatchClick(index) },
+        )
+    }
 
 private fun ModeSection(
     data: ColorSchemeData,
