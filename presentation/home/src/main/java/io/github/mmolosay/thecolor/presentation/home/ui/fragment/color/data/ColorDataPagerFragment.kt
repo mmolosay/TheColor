@@ -59,7 +59,7 @@ class ColorDataPagerFragment :
             setContent {
                 TheColorTheme {
                     // TODO: move ProvideColorsOnTintedSurface() to outside?
-                    val colors = rememberContentColors(isSurfaceDark = true) // TODO: use real value
+                    val colors = rememberContentColors(useLight = true) // TODO: use real value
                     ProvideColorsOnTintedSurface(colors) {
                         ColorCenter()
                     }
@@ -96,9 +96,9 @@ class ColorDataPagerFragment :
     }
 
     @Composable
-    private fun rememberContentColors(isSurfaceDark: Boolean): ColorsOnTintedSurface =
-        remember(isSurfaceDark) {
-            if (isSurfaceDark) colorsOnDarkSurface() else colorsOnLightSurface()
+    private fun rememberContentColors(useLight: Boolean): ColorsOnTintedSurface =
+        remember(useLight) {
+            if (useLight) colorsOnDarkSurface() else colorsOnLightSurface()
         }
 
     // region Set up
