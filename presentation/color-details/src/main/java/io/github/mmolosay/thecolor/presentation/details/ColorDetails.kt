@@ -7,25 +7,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.KeyboardArrowRight
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.PlatformTextStyle
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -38,7 +28,6 @@ import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorSpec
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorTranslation
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorTranslations
-import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ViewColorSchemeButton
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ViewData
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel.State.Loading
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel.State.Ready
@@ -208,9 +197,5 @@ private fun previewUiData() =
                 label = "DEVIATION",
                 value = "1366",
             ),
-        ),
-        viewColorSchemeButtonText = ViewColorSchemeButton(
-            text = "View color scheme",
-            onClick = {},
         ),
     )

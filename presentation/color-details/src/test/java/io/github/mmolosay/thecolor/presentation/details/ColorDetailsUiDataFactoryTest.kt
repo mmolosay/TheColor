@@ -44,7 +44,6 @@ private object TestParameters {
 
     // inline lambdas like '{}' aren't equal, so reusing the same instance
     val OnExactColorClick: () -> Unit = {}
-    val OnViewColorSchemeClick: () -> Unit = {}
 
     // region #0
 
@@ -61,7 +60,6 @@ private object TestParameters {
             onExactClick = OnExactColorClick,
             deviation = "1366",
         ),
-        onViewColorSchemeClick = OnViewColorSchemeClick,
     )
 
     fun viewData0() = ColorDetailsUiData.ViewData(
@@ -133,10 +131,6 @@ private object TestParameters {
                     value = "1366",
                 ),
             ),
-            viewColorSchemeButtonText = ColorDetailsUiData.ViewColorSchemeButton(
-                text = "View color scheme",
-                onClick = OnViewColorSchemeClick,
-            ),
         )
 
     // endregion
@@ -151,7 +145,6 @@ private object TestParameters {
         hsv = ColorDetailsData.Hsv("208", "6", "100"),
         cmyk = ColorDetailsData.Cmyk("6", "3", "0", "0"),
         exactMatch = ColorDetailsData.ExactMatch.Yes,
-        onViewColorSchemeClick = OnViewColorSchemeClick,
     )
 
     fun viewData1() = ColorDetailsUiData.ViewData(
@@ -212,10 +205,6 @@ private object TestParameters {
                     label = "literal exact match label",
                     value = "literal yes",
                 ),
-            ),
-            viewColorSchemeButtonText = ColorDetailsUiData.ViewColorSchemeButton(
-                text = "literal view color scheme button text",
-                onClick = OnViewColorSchemeClick,
             ),
         )
 

@@ -5,7 +5,6 @@ import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.ColorIn
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorSpec
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorTranslation
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorTranslations
-import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ViewColorSchemeButton
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ViewData
 
 fun ColorDetailsUiData(
@@ -16,7 +15,6 @@ fun ColorDetailsUiData(
         headline = data.colorName,
         translations = ColorTranslations(data, viewData),
         specs = ColorSpecs(data, viewData),
-        viewColorSchemeButtonText = ViewColorSchemeButton(data, viewData),
     )
 
 private fun ColorTranslations(
@@ -147,15 +145,6 @@ private fun DeviationSpec(
     ColorSpec.Deviation(
         label = viewData.deviationLabel,
         value = data.deviation,
-    )
-
-private fun ViewColorSchemeButton(
-    data: ColorDetailsData,
-    viewData: ViewData,
-) =
-    ViewColorSchemeButton(
-        text = viewData.viewColorSchemeButtonText,
-        onClick = data.onViewColorSchemeClick,
     )
 
 private fun ColorInt.toCompose(): Color =

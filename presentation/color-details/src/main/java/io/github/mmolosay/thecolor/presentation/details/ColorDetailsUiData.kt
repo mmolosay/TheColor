@@ -12,7 +12,6 @@ data class ColorDetailsUiData(
     val headline: String,
     val translations: ColorTranslations,
     val specs: List<ColorSpec>,
-    val viewColorSchemeButtonText: ViewColorSchemeButton,
 ) {
 
     data class ColorTranslations(
@@ -84,11 +83,6 @@ data class ColorDetailsUiData(
             val value: String,
         ) : ColorSpec
     }
-
-    data class ViewColorSchemeButton(
-        val text: String,
-        val onClick: () -> Unit,
-    )
 
     /**
      * Part of to-be [ColorDetailsUiData].

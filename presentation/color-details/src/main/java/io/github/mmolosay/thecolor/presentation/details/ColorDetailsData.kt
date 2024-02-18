@@ -11,7 +11,6 @@ data class ColorDetailsData(
     val hsv: Hsv,
     val cmyk: Cmyk,
     val exactMatch: ExactMatch,
-    val onViewColorSchemeClick: () -> Unit,
 ) {
 
     /**

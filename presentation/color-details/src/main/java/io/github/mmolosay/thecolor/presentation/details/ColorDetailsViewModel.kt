@@ -34,10 +34,6 @@ class ColorDetailsViewModel @Inject constructor(
         }
     }
 
-    private fun onViewColorSchemeClick() {
-        // TODO: implement
-    }
-
     private fun ColorDetailsData(details: DomainColorDetails) =
         ColorDetailsData(
             colorName = details.name,
@@ -64,7 +60,6 @@ class ColorDetailsViewModel @Inject constructor(
                 k = details.cmykK.toString(),
             ),
             exactMatch = ExactMatch(details),
-            onViewColorSchemeClick = ::onViewColorSchemeClick,
         )
 
     private fun ColorInt(color: Color): ColorInt {

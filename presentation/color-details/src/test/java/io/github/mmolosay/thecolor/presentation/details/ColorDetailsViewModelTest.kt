@@ -83,7 +83,6 @@ class ColorDetailsViewModelTest {
                 onExactClick = NoopOnClickAction,
                 deviation = "1366",
             ),
-            onViewColorSchemeClick = NoopOnClickAction,
         )
     }
 
@@ -160,7 +159,6 @@ class ColorDetailsViewModelTest {
                     is ColorDetailsData.ExactMatch.Yes -> this
                 }
             },
-            onViewColorSchemeClick = NoopOnClickAction,
         )
 
     object NoopOnClickAction : () -> Unit {
