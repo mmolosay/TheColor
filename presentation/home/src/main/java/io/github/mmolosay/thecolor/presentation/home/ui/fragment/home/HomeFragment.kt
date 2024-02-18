@@ -29,6 +29,7 @@ import io.github.mmolosay.thecolor.presentation.color.ColorPreview
 import io.github.mmolosay.thecolor.presentation.color.ColorPrototype
 import io.github.mmolosay.thecolor.presentation.color.toColorInt
 import io.github.mmolosay.thecolor.presentation.fragment.BaseFragment
+import io.github.mmolosay.thecolor.presentation.home.HomeViewModelNew
 import io.github.mmolosay.thecolor.presentation.home.R
 import io.github.mmolosay.thecolor.presentation.home.databinding.HomeFragmentBinding
 import io.github.mmolosay.thecolor.presentation.home.ui.fragment.color.data.ColorDataPagerFragment
@@ -69,6 +70,7 @@ class HomeFragment :
 
     private val binding by viewBinding(HomeFragmentBinding::bind)
     private val homeVM: HomeViewModel by viewModels()
+    private val homeViewModel: HomeViewModelNew by viewModels()
     private val colorValidatorVM: ColorValidatorViewModel by viewModels()
 
     private var inputPagerView: ColorInputPagerView? = null

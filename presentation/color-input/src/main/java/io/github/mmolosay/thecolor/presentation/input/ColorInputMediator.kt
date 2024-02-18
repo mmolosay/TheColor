@@ -4,6 +4,7 @@ import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.domain.usecase.ColorFactory
 import io.github.mmolosay.thecolor.domain.usecase.GetInitialColorUseCase
+import io.github.mmolosay.thecolor.presentation.CurrentColorStore
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.model.isCompleteFromUserPerspective
 import kotlinx.coroutines.channels.BufferOverflow
@@ -30,6 +31,7 @@ class ColorInputMediator @Inject constructor(
     private val colorFactory: ColorFactory,
     private val colorConverter: ColorConverter,
     private val colorInputFactory: ColorInputFactory,
+    private val currentColorStore: CurrentColorStore,
 ) {
 
     val colorStateFlow = MutableSharedFlow<ColorState?>(
@@ -72,8 +74,10 @@ class ColorInputMediator @Inject constructor(
 
     suspend fun send(input: ColorInput) {
         lastUsedInputType = input.type()
-        input.toAbstractOrNull().toState()
-            .also { colorStateFlow.emit(it) }
+        val color = input.toAbstractOrNull()
+        currentColorStore.color = color // TODO: add unit tests
+        val state = color.toState()
+        colorStateFlow.emit(state)
     }
 
     private fun ColorInput.toAbstractOrNull(): Color.Abstract? {
