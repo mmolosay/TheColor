@@ -7,7 +7,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 @RunWith(Parameterized::class)
-class ColorInputUiDataFactoryTest(
+class ColorDetailsUiDataFactoryTest(
     val data: ColorDetailsData,
     val viewData: ColorDetailsUiData.ViewData,
     val expectedUiData: ColorDetailsUiData,
@@ -50,7 +50,6 @@ private object TestParameters {
 
     fun data0() = ColorDetailsData(
         colorName = "Jewel",
-        useLightContentColors = true,
         hex = ColorDetailsData.Hex("#1A803F"),
         rgb = ColorDetailsData.Rgb("26", "128", "63"),
         hsl = ColorDetailsData.Hsl("142", "66", "30"),
@@ -146,7 +145,6 @@ private object TestParameters {
 
     fun data1() = ColorDetailsData(
         colorName = "Alice Blue",
-        useLightContentColors = false,
         hex = ColorDetailsData.Hex("#F0F8FF"),
         rgb = ColorDetailsData.Rgb("240", "248", "255"),
         hsl = ColorDetailsData.Hsl("208", "100", "97"),

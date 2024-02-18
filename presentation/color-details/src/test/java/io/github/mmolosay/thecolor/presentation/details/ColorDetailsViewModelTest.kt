@@ -4,7 +4,6 @@ import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.ColorDetails
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.domain.usecase.GetColorDetailsUseCase
-import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.ColorInt
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel.State
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
@@ -24,7 +23,6 @@ class ColorDetailsViewModelTest {
 
     val getColorDetails: GetColorDetailsUseCase = mockk()
     val colorConverter: ColorConverter = mockk()
-    val isColorLight: IsColorLightUseCase = mockk()
 
     lateinit var sut: ColorDetailsViewModel
 
@@ -35,7 +33,6 @@ class ColorDetailsViewModelTest {
         val hex = Color.Hex(0x1A803F)
         coEvery { getColorDetails.invoke(any<Color>()) } returns domainDetails
         every { with(colorConverter) { any<Color>().toHex() } } returns hex
-        every { with(isColorLight) { any<Color>().isLight() } } returns false
         createSut()
 
         sut.getColorDetails(color)
@@ -50,7 +47,6 @@ class ColorDetailsViewModelTest {
         coEvery { getColorDetails.invoke(any<Color>()) } returns domainDetails
         every { with(colorConverter) { Color.Hex(0x1A803F).toHex() } } returns Color.Hex(0x1A803F)
         every { with(colorConverter) { Color.Hex(0x126B40).toHex() } } returns Color.Hex(0x126B40)
-        every { with(isColorLight) { any<Color>().isLight() } } returns false
         createSut()
 
         sut.getColorDetails(color)
@@ -59,7 +55,6 @@ class ColorDetailsViewModelTest {
         val comparableData = data.copyWithNoopLambdas()
         comparableData shouldBe ColorDetailsData(
             colorName = "Jewel",
-            useLightContentColors = true,
             hex = ColorDetailsData.Hex(value = "#1A803F"),
             rgb = ColorDetailsData.Rgb(
                 r = "26",
@@ -96,7 +91,6 @@ class ColorDetailsViewModelTest {
         ColorDetailsViewModel(
             getColorDetails = getColorDetails,
             colorConverter = colorConverter,
-            isColorLight = isColorLight,
             ioDispatcher = mainDispatcherRule.testDispatcher,
         ).also {
             sut = it
