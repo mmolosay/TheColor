@@ -6,7 +6,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.domain.usecase.GetColorDetailsUseCase
-import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.ColorInt
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.ExactMatch
 import kotlinx.coroutines.CoroutineDispatcher
@@ -21,7 +20,6 @@ import io.github.mmolosay.thecolor.domain.model.ColorDetails as DomainColorDetai
 class ColorDetailsViewModel @Inject constructor(
     private val getColorDetails: GetColorDetailsUseCase,
     private val colorConverter: ColorConverter,
-    private val isColorLight: IsColorLightUseCase,
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -43,7 +41,6 @@ class ColorDetailsViewModel @Inject constructor(
     private fun ColorDetailsData(details: DomainColorDetails) =
         ColorDetailsData(
             colorName = details.name,
-            useLightContentColors = useLightContentColors(details.color), // TODO: remove
             hex = ColorDetailsData.Hex(value = details.hexValue),
             rgb = ColorDetailsData.Rgb(
                 r = details.rgbR.toString(),
@@ -73,11 +70,6 @@ class ColorDetailsViewModel @Inject constructor(
     private fun ColorInt(color: Color): ColorInt {
         val hex = with(colorConverter) { color.toHex() }
         return ColorInt(hex = hex.value)
-    }
-
-    private fun useLightContentColors(backgroundColor: Color): Boolean {
-        val isBackgroundLight = with(isColorLight) { backgroundColor.isLight() }
-        return !isBackgroundLight // dark content on light and vice versa
     }
 
     private fun ExactMatch(details: DomainColorDetails): ExactMatch =

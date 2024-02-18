@@ -5,7 +5,6 @@ package io.github.mmolosay.thecolor.presentation.details
  */
 data class ColorDetailsData(
     val colorName: String,
-    val useLightContentColors: Boolean,
     val hex: Hex,
     val rgb: Rgb,
     val hsl: Hsl,
