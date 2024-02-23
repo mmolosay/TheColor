@@ -1,8 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.scheme
 
-import androidx.compose.ui.graphics.Color
 import io.github.mmolosay.thecolor.domain.model.ColorScheme
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.ColorInt
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.ApplyChangesButton
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.ModeSection
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.Swatch
@@ -10,6 +8,7 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.SwatchC
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiDataComponents.OnModeSelect
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiDataComponents.OnSwatchClick
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiDataComponents.OnSwatchCountSelect
+import io.github.mmolosay.thecolor.presentation.toCompose
 import org.jetbrains.annotations.VisibleForTesting
 
 fun ColorSchemeUiData(
@@ -22,9 +21,6 @@ fun ColorSchemeUiData(
         swatchCountSection = SwatchCountSection(data, viewData),
         applyChangesButton = ApplyChangesButton(data, viewData),
     )
-
-private fun ColorInt.toCompose(): Color =
-    Color(0xFF_000000 or this.hex.toLong())
 
 private fun Swatches(
     data: ColorSchemeData,

@@ -2,6 +2,7 @@ package io.github.mmolosay.thecolor.presentation.scheme
 
 import androidx.compose.ui.graphics.Color
 import io.github.mmolosay.thecolor.domain.model.ColorScheme.Mode
+import io.github.mmolosay.thecolor.presentation.ColorInt
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockkObject
@@ -81,39 +82,39 @@ private object TestParameters {
         ColorSchemeData(
             swatches = listOf(
                 ColorSchemeData.Swatch(
-                    color = ColorSchemeData.ColorInt(0x05160B),
+                    color = ColorInt(0x05160B),
                     isDark = true,
                 ),
                 ColorSchemeData.Swatch(
-                    color = ColorSchemeData.ColorInt(0x0A2D17),
+                    color = ColorInt(0x0A2D17),
                     isDark = true,
                 ),
                 ColorSchemeData.Swatch(
-                    color = ColorSchemeData.ColorInt(0x0F4522),
+                    color = ColorInt(0x0F4522),
                     isDark = true,
                 ),
                 ColorSchemeData.Swatch(
-                    color = ColorSchemeData.ColorInt(0x135C2E),
+                    color = ColorInt(0x135C2E),
                     isDark = true,
                 ),
                 ColorSchemeData.Swatch(
-                    color = ColorSchemeData.ColorInt(0x187439),
+                    color = ColorInt(0x187439),
                     isDark = true,
                 ),
                 ColorSchemeData.Swatch(
-                    color = ColorSchemeData.ColorInt(0x1C8C45),
+                    color = ColorInt(0x1C8C45),
                     isDark = false,
                 ),
                 ColorSchemeData.Swatch(
-                    color = ColorSchemeData.ColorInt(0x20A450),
+                    color = ColorInt(0x20A450),
                     isDark = false,
                 ),
                 ColorSchemeData.Swatch(
-                    color = ColorSchemeData.ColorInt(0x24BC5C),
+                    color = ColorInt(0x24BC5C),
                     isDark = false,
                 ),
                 ColorSchemeData.Swatch(
-                    color = ColorSchemeData.ColorInt(0x28D567),
+                    color = ColorInt(0x28D567),
                     isDark = false,
                 ),
             ),

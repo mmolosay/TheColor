@@ -1,5 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.details
 
+import io.github.mmolosay.thecolor.presentation.ColorInt
+
 /**
  * Platform-agnostic data provided by ViewModel to color details View.
  */
@@ -12,12 +14,6 @@ data class ColorDetailsData(
     val cmyk: Cmyk,
     val exactMatch: ExactMatch,
 ) {
-
-    /**
-     * Solid color in RRGGBB format without alpha channel.
-     */
-    @JvmInline
-    value class ColorInt(val hex: Int)
 
     data class Hex(
         val value: String,

@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.scheme
 
+import io.github.mmolosay.thecolor.presentation.ColorInt
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Models
 import io.github.mmolosay.thecolor.domain.model.ColorScheme.Mode as DomainMode
 
@@ -35,12 +36,6 @@ data class ColorSchemeData(
         val activeSwatchCount: SwatchCount,
         val selectedSwatchCount: SwatchCount,
     )
-
-    /**
-     * Solid color in RRGGBB format without alpha channel.
-     */
-    @JvmInline
-    value class ColorInt(val hex: Int)
 
     /**
      * Options of swatch count.

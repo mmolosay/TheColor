@@ -4,11 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.model.Color
-import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.domain.usecase.GetColorDetailsUseCase
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommandProvider
+import io.github.mmolosay.thecolor.presentation.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.Command
-import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.ColorInt
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.ExactMatch
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,11 +21,12 @@ import io.github.mmolosay.thecolor.domain.model.ColorDetails as DomainColorDetai
 class ColorDetailsViewModel @Inject constructor(
     private val commandProvider: ColorCenterCommandProvider,
     private val getColorDetails: GetColorDetailsUseCase,
-    private val colorConverter: ColorConverter,
+    private val colorToColorInt: ColorToColorIntUseCase,
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
-    private val _dataStateFlow = MutableStateFlow<State>(State.Loading) // TODO: inject initial state as in ColorSchemeViewModel for better testing
+    private val _dataStateFlow =
+        MutableStateFlow<State>(State.Loading) // TODO: inject initial state as in ColorSchemeViewModel for better testing
     val dataStateFlow = _dataStateFlow.asStateFlow()
 
     init {
@@ -79,18 +79,13 @@ class ColorDetailsViewModel @Inject constructor(
             exactMatch = ExactMatch(details),
         )
 
-    private fun ColorInt(color: Color): ColorInt {
-        val hex = with(colorConverter) { color.toHex() }
-        return ColorInt(hex = hex.value)
-    }
-
     private fun ExactMatch(details: DomainColorDetails): ExactMatch =
         if (details.isNameMatchExact) {
             ExactMatch.Yes
         } else {
             ExactMatch.No(
                 exactValue = details.exactNameHex,
-                exactColor = ColorInt(details.exact),
+                exactColor = with(colorToColorInt) { details.exact.toColorInt() },
                 onExactClick = { /* TODO */ },
                 deviation = details.exactNameHexDistance.toString(),
             )

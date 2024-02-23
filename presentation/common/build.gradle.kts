@@ -19,6 +19,9 @@ android {
             isMinifyEnabled = false
         }
     }
+    buildFeatures {
+        compose = true
+    }
 
     java {
         toolchain {
@@ -26,10 +29,18 @@ android {
             languageVersion.set(JavaLanguageVersion.of(version))
         }
     }
+
+    kapt {
+        correctErrorTypes = true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = libs.versions.compose.compiler.get()
+    }
 }
 
+@Suppress("SpellCheckingInspection")
 dependencies {
-
     implementation(project(":domain"))
     implementation(project(":presentation:design-system"))
 
@@ -39,6 +50,18 @@ dependencies {
     implementation("androidx.fragment:fragment-ktx:1.6.2")
 
     implementation("androidx.recyclerview:recyclerview:1.2.1")
+
+    // Compose
+    val composeBom = platform("androidx.compose:compose-bom:${libs.versions.compose.bom.get()}")
+    implementation(composeBom)
+    androidTestImplementation(composeBom)
+
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    debugImplementation("androidx.compose.ui:ui-tooling")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+    implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
 
     // Lifecycle
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")

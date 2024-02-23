@@ -5,13 +5,12 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.ColorScheme.Mode
-import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommandProvider
+import io.github.mmolosay.thecolor.presentation.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.Command
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Changes
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.ColorInt
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Swatch
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.SwatchCount
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.Config
@@ -192,7 +191,7 @@ class GetInitialModelsStateUseCase @Inject constructor() {
 /** Maps [DomainColorScheme] to presentation layer [ColorSchemeData.Models]. */
 @Singleton
 class CreateDataModelsUseCase @Inject constructor(
-    private val colorConverter: ColorConverter,
+    private val colorToColorInt: ColorToColorIntUseCase,
     private val isColorLight: IsColorLightUseCase,
 ) {
 
@@ -212,13 +211,7 @@ class CreateDataModelsUseCase @Inject constructor(
 
     private fun Color.toSwatch() =
         Swatch(
-            color = this.toColorInt(),
+            color = with(colorToColorInt) { toColorInt() },
             isDark = with(isColorLight) { isLight().not() },
         )
-
-    private fun Color.toColorInt(): ColorInt {
-        val color = this
-        val hex = with(colorConverter) { color.toHex() }
-        return ColorInt(hex = hex.value)
-    }
 }

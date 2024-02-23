@@ -1,6 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.details
 
 import androidx.compose.ui.graphics.Color
+import io.github.mmolosay.thecolor.presentation.ColorInt
 import io.kotest.matchers.shouldBe
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -56,7 +57,7 @@ private object TestParameters {
         cmyk = ColorDetailsData.Cmyk("80", "0", "51", "50"),
         exactMatch = ColorDetailsData.ExactMatch.No(
             exactValue = "#126B40",
-            exactColor = ColorDetailsData.ColorInt(0x126B40),
+            exactColor = ColorInt(0x126B40),
             onExactClick = OnExactColorClick,
             deviation = "1366",
         ),

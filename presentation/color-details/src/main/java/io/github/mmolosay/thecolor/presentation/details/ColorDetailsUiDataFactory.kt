@@ -1,11 +1,10 @@
 package io.github.mmolosay.thecolor.presentation.details
 
-import androidx.compose.ui.graphics.Color
-import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.ColorInt
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorSpec
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorTranslation
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorTranslations
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ViewData
+import io.github.mmolosay.thecolor.presentation.toCompose
 
 fun ColorDetailsUiData(
     data: ColorDetailsData,
@@ -146,6 +145,3 @@ private fun DeviationSpec(
         label = viewData.deviationLabel,
         value = data.deviation,
     )
-
-private fun ColorInt.toCompose(): Color =
-    Color(0xFF_000000 or this.hex.toLong())

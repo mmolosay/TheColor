@@ -2,11 +2,11 @@ package io.github.mmolosay.thecolor.presentation.details
 
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.ColorDetails
-import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.domain.usecase.GetColorDetailsUseCase
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommandProvider
+import io.github.mmolosay.thecolor.presentation.ColorInt
+import io.github.mmolosay.thecolor.presentation.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.Command
-import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.ColorInt
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel.State
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
 import io.kotest.matchers.should
@@ -28,7 +28,7 @@ class ColorDetailsViewModelTest {
 
     val commandProvider: ColorCenterCommandProvider = mockk()
     val getColorDetails: GetColorDetailsUseCase = mockk()
-    val colorConverter: ColorConverter = mockk()
+    val colorToColorInt: ColorToColorIntUseCase = mockk()
 
     lateinit var sut: ColorDetailsViewModel
 
@@ -45,11 +45,10 @@ class ColorDetailsViewModelTest {
     fun `emission of 'fetch data' command results in emission of Ready state`() =
         runTest(mainDispatcherRule.testDispatcher) {
             val color = Color.Hex(0x1A803F)
-            val hex = Color.Hex(0x1A803F)
             val commandFlow = MutableSharedFlow<Command>()
             every { commandProvider.commandFlow } returns commandFlow
             coEvery { getColorDetails.invoke(any<Color>()) } returns ColorDetails()
-            every { with(colorConverter) { any<Color>().toHex() } } returns hex
+            every { with(colorToColorInt) { any<Color>().toColorInt() } } returns ColorInt(0x1A803F)
             createSut()
 
             commandFlow.emit(Command.FetchData(color))
@@ -65,8 +64,8 @@ class ColorDetailsViewModelTest {
             val commandFlow = MutableSharedFlow<Command>()
             every { commandProvider.commandFlow } returns commandFlow
             coEvery { getColorDetails.invoke(any<Color>()) } returns domainDetails
-            every { with(colorConverter) { Color.Hex(0x1A803F).toHex() } } returns Color.Hex(0x1A803F)
-            every { with(colorConverter) { Color.Hex(0x126B40).toHex() } } returns Color.Hex(0x126B40)
+            every { with(colorToColorInt) { Color.Hex(0x1A803F).toColorInt() } } returns ColorInt(0x1A803F)
+            every { with(colorToColorInt) { Color.Hex(0x126B40).toColorInt() } } returns ColorInt(0x126B40)
             createSut()
 
             commandFlow.emit(Command.FetchData(color))
@@ -110,7 +109,7 @@ class ColorDetailsViewModelTest {
         ColorDetailsViewModel(
             commandProvider = commandProvider,
             getColorDetails = getColorDetails,
-            colorConverter = colorConverter,
+            colorToColorInt = colorToColorInt,
             ioDispatcher = mainDispatcherRule.testDispatcher,
         ).also {
             sut = it
