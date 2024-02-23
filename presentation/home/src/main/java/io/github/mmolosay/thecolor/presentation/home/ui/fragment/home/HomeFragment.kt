@@ -53,10 +53,13 @@ import io.github.mmolosay.thecolor.presentation.home.databinding.HomeFragmentBin
 import io.github.mmolosay.thecolor.presentation.home.ui.fragment.color.data.ColorDataPagerFragment
 import io.github.mmolosay.thecolor.presentation.home.ui.fragment.color.data.details.ColorDetailsParent
 import io.github.mmolosay.thecolor.presentation.home.ui.fragment.color.input.page.ColorInputParent
-import io.github.mmolosay.thecolor.presentation.home.ui.fragment.color.input.pager.ColorInputPagerFragment
 import io.github.mmolosay.thecolor.presentation.home.ui.fragment.color.input.pager.ColorInputPagerView
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.color.input.ColorValidatorViewModel
+import io.github.mmolosay.thecolor.presentation.input.ColorInput
+import io.github.mmolosay.thecolor.presentation.input.ColorInputViewModel
+import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexViewModel
+import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorScheme
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
 import io.github.mmolosay.thecolor.presentation.util.AnimationUtils
@@ -72,7 +75,6 @@ import io.github.mmolosay.thecolor.presentation.util.ext.mediumAnimDuration
 import io.github.mmolosay.thecolor.presentation.util.ext.propertyAnimator
 import io.github.mmolosay.thecolor.presentation.util.ext.propertyAnimatorOrNull
 import io.github.mmolosay.thecolor.presentation.util.ext.replaceFragment
-import io.github.mmolosay.thecolor.presentation.util.ext.setFragmentOrGet
 import io.github.mmolosay.thecolor.presentation.util.ext.shortAnimDuration
 import io.github.mmolosay.thecolor.presentation.util.restoreNavigationBarColor
 import io.github.mmolosay.thecolor.presentation.util.setNavigationBarColor
@@ -97,6 +99,11 @@ class HomeFragment :
     private val previewResizeDest = AnimatorDestination()
 
     private val homeViewModelNew: HomeViewModelNew by viewModels()
+
+    private val colorInputViewModel: ColorInputViewModel by viewModels()
+    private val colorInputHexViewModel: ColorInputHexViewModel by viewModels()
+    private val colorInputRgbViewModel: ColorInputRgbViewModel by viewModels()
+
     private val colorCenterViewModel: ColorCenterViewModel by viewModels()
     private val colorDetailsViewModel: ColorDetailsViewModel by viewModels()
     private val colorSchemeViewModel: ColorSchemeViewModel by viewModels()
@@ -156,26 +163,28 @@ class HomeFragment :
 
     // endregion
 
-    // region Set fragments
-
-    override fun setFragments() {
-        setColorInputFragment()
-    }
-
-    private fun setColorInputFragment() {
-        val container = binding.colorInputFragmentContainer
-        this.inputPagerView = setFragmentOrGet(container.id) {
-            ColorInputPagerFragment.newInstance()
-        }
-    }
-
-    // endregion
-
     // region Set views
 
     override fun setViews() {
+        setColorInputView()
         setProceedBtn()
         setColorCenterView()
+    }
+
+    private fun setColorInputView() {
+//        val container = binding.colorInputFragmentContainer
+//        this.inputPagerView = setFragmentOrGet(container.id) {
+//            ColorInputPagerFragment.newInstance()
+//        }
+        binding.colorInputView.setContent {
+            TheColorTheme {
+                ColorInput(
+                    vm = colorInputViewModel,
+                    hexViewModel = colorInputHexViewModel,
+                    rgbViewModel = colorInputRgbViewModel,
+                )
+            }
+        }
     }
 
     private fun setProceedBtn() =
@@ -193,7 +202,6 @@ class HomeFragment :
 //        setFragmentOrGet(container.id) {
 //            ColorDataPagerFragment.newInstance(color = null)
 //        }
-
         binding.colorCenterView.setContent {
             TheColorTheme {
                 // TODO: move ProvideColorsOnTintedSurface() to outside?

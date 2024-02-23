@@ -39,9 +39,9 @@
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/colorInputFragmentContainer"
-            android:layout_width="match_parent"
+        <androidx.compose.ui.platform.ComposeView
+            android:id="@+id/colorInputView"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/offset_16"
 
@@ -60,7 +60,7 @@
 
             app:layout_constraintEnd_toEndOf="@id/glEnd"
             app:layout_constraintStart_toStartOf="@id/glStart"
-            app:layout_constraintTop_toBottomOf="@id/colorInputFragmentContainer" />
+            app:layout_constraintTop_toBottomOf="@id/colorInputView" />
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/previewGroup"
