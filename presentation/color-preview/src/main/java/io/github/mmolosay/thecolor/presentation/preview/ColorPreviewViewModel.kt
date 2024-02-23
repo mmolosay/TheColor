@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.presentation.ColorInputColorProvider
+import io.github.mmolosay.thecolor.presentation.ColorToColorIntUseCase
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -13,6 +14,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ColorPreviewViewModel @Inject constructor(
     private val colorInputColorProvider: ColorInputColorProvider,
+    private val colorToColorInt: ColorToColorIntUseCase,
 ) : ViewModel() {
 
     val stateFlow: StateFlow<State> =
@@ -20,7 +22,7 @@ class ColorPreviewViewModel @Inject constructor(
             .map { color ->
                 if (color != null) {
                     val data = ColorPreviewData(
-                        color = ColorPreviewData.ColorInt(0x001122), // TODO: real color
+                        color = with(colorToColorInt) { color.toColorInt() },
                     )
                     State.Present(data)
                 } else {

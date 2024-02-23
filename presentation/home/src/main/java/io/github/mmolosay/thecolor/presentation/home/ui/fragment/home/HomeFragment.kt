@@ -60,6 +60,8 @@ import io.github.mmolosay.thecolor.presentation.input.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.ColorInputViewModel
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexViewModel
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbViewModel
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreview
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorScheme
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
 import io.github.mmolosay.thecolor.presentation.util.AnimationUtils
@@ -103,6 +105,8 @@ class HomeFragment :
     private val colorInputViewModel: ColorInputViewModel by viewModels()
     private val colorInputHexViewModel: ColorInputHexViewModel by viewModels()
     private val colorInputRgbViewModel: ColorInputRgbViewModel by viewModels()
+
+    private val colorPreviewViewModel: ColorPreviewViewModel by viewModels()
 
     private val colorCenterViewModel: ColorCenterViewModel by viewModels()
     private val colorDetailsViewModel: ColorDetailsViewModel by viewModels()
@@ -168,6 +172,7 @@ class HomeFragment :
     override fun setViews() {
         setColorInputView()
         setProceedBtn()
+        setColorPreviewView()
         setColorCenterView()
     }
 
@@ -198,6 +203,17 @@ class HomeFragment :
 
         homeViewModelNew.proceedActionAvailabilityFlow.collectOnLifecycle { available ->
             binding.proceedBtn.isEnabled = available
+            if (!available) {
+                binding.colorCenterWrapper.isVisible = false
+            }
+        }
+    }
+
+    private fun setColorPreviewView() {
+        binding.colorPreview.setContent {
+            TheColorTheme {
+                ColorPreview(vm = colorPreviewViewModel)
+            }
         }
     }
 

@@ -62,6 +62,15 @@
             app:layout_constraintStart_toStartOf="@id/glStart"
             app:layout_constraintTop_toBottomOf="@id/colorInputView" />
 
+        <androidx.compose.ui.platform.ComposeView
+            android:id="@+id/colorPreview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/offset_8"
+            app:layout_constraintEnd_toStartOf="@+id/glEnd"
+            app:layout_constraintStart_toStartOf="@+id/glStart"
+            app:layout_constraintTop_toBottomOf="@+id/proceedBtn" />
+
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/previewGroup"
             style="?attr/materialCardViewElevatedStyle"
