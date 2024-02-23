@@ -95,7 +95,7 @@
         </com.google.android.material.card.MaterialCardView>
 
         <FrameLayout
-            android:id="@+id/colorDataWrapper"
+            android:id="@+id/colorCenterWrapper"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_marginTop="@dimen/offset_16"
@@ -108,11 +108,10 @@
             app:layout_constraintVertical_bias="0.0"
             tools:visibility="visible">
 
-            <androidx.fragment.app.FragmentContainerView
-                android:id="@+id/colorDataFragmentContainer"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                tools:layout="@layout/color_data_pager_fragment" />
+            <androidx.compose.ui.platform.ComposeView
+                android:id="@+id/colorCenterView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
 
         </FrameLayout>
 

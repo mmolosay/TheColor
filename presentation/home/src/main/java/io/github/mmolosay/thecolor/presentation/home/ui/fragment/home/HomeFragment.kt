@@ -15,6 +15,14 @@ import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.AnticipateOvershootInterpolator
 import androidx.annotation.ColorInt
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.dp
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
 import androidx.core.view.doOnLayout
@@ -24,10 +32,20 @@ import androidx.fragment.app.viewModels
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import by.kirich1409.viewbindingdelegate.viewBinding
 import dagger.hilt.android.AndroidEntryPoint
+import io.github.mmolosay.thecolor.presentation.center.ColorCenter
+import io.github.mmolosay.thecolor.presentation.center.ColorCenterShape
+import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.color.Color
 import io.github.mmolosay.thecolor.presentation.color.ColorPreview
 import io.github.mmolosay.thecolor.presentation.color.ColorPrototype
 import io.github.mmolosay.thecolor.presentation.color.toColorInt
+import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
+import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
+import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
+import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
+import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
+import io.github.mmolosay.thecolor.presentation.details.ColorDetails
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.fragment.BaseFragment
 import io.github.mmolosay.thecolor.presentation.home.HomeViewModelNew
 import io.github.mmolosay.thecolor.presentation.home.R
@@ -39,6 +57,8 @@ import io.github.mmolosay.thecolor.presentation.home.ui.fragment.color.input.pag
 import io.github.mmolosay.thecolor.presentation.home.ui.fragment.color.input.pager.ColorInputPagerView
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.color.input.ColorValidatorViewModel
+import io.github.mmolosay.thecolor.presentation.scheme.ColorScheme
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
 import io.github.mmolosay.thecolor.presentation.util.AnimationUtils
 import io.github.mmolosay.thecolor.presentation.util.ext.bindPropertyAnimator
 import io.github.mmolosay.thecolor.presentation.util.ext.by
@@ -58,6 +78,7 @@ import io.github.mmolosay.thecolor.presentation.util.restoreNavigationBarColor
 import io.github.mmolosay.thecolor.presentation.util.setNavigationBarColor
 import io.github.mmolosay.thecolor.presentation.util.struct.AnimatorDestination
 import android.graphics.Color as ColorAndroid
+import androidx.compose.ui.graphics.Color as ComposeColor
 import com.google.android.material.R as RMaterial
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
@@ -70,11 +91,15 @@ class HomeFragment :
 
     private val binding by viewBinding(HomeFragmentBinding::bind)
     private val homeVM: HomeViewModel by viewModels()
-    private val homeViewModelNew: HomeViewModelNew by viewModels()
     private val colorValidatorVM: ColorValidatorViewModel by viewModels()
 
     private var inputPagerView: ColorInputPagerView? = null
     private val previewResizeDest = AnimatorDestination()
+
+    private val homeViewModelNew: HomeViewModelNew by viewModels()
+    private val colorCenterViewModel: ColorCenterViewModel by viewModels()
+    private val colorDetailsViewModel: ColorDetailsViewModel by viewModels()
+    private val colorSchemeViewModel: ColorSchemeViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -135,7 +160,6 @@ class HomeFragment :
 
     override fun setFragments() {
         setColorInputFragment()
-//        setColorDataFragment()
     }
 
     private fun setColorInputFragment() {
@@ -145,19 +169,13 @@ class HomeFragment :
         }
     }
 
-    private fun setColorDataFragment() {
-        val container = binding.colorDataFragmentContainer
-        setFragmentOrGet(container.id) {
-            ColorDataPagerFragment.newInstance(color = null)
-        }
-    }
-
     // endregion
 
     // region Set views
 
     override fun setViews() {
         setProceedBtn()
+        setColorCenterView()
     }
 
     private fun setProceedBtn() =
@@ -170,13 +188,55 @@ class HomeFragment :
             }
         }
 
+    private fun setColorCenterView() {
+//        val container = binding.colorDataFragmentContainer
+//        setFragmentOrGet(container.id) {
+//            ColorDataPagerFragment.newInstance(color = null)
+//        }
+
+        binding.colorCenterView.setContent {
+            TheColorTheme {
+                // TODO: move ProvideColorsOnTintedSurface() to outside?
+                val colors = rememberContentColors(useLight = true) // TODO: use real value
+                ProvideColorsOnTintedSurface(colors) {
+                    ColorCenter()
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun ColorCenter() {
+        Box(
+            modifier = Modifier
+                .graphicsLayer {
+                    clip = true
+                    shape = ColorCenterShape
+                }
+                .background(ComposeColor(0xFF_123456)) // TODO: use real color
+        ) {
+            ColorCenter(
+                vm = colorCenterViewModel,
+                details = { ColorDetails(vm = colorDetailsViewModel) },
+                scheme = { ColorScheme(vm = colorSchemeViewModel) },
+                modifier = Modifier.padding(top = 24.dp),
+            )
+        }
+    }
+
+    @Composable
+    private fun rememberContentColors(useLight: Boolean): ColorsOnTintedSurface =
+        remember(useLight) {
+            if (useLight) colorsOnDarkSurface() else colorsOnLightSurface()
+        }
+
     // endregion
 
     // region View utils
 
     private fun replaceColorDataFragment(color: Color) {
         val fragment = ColorDataPagerFragment.newInstance(color)
-        replaceFragment(fragment, binding.colorDataFragmentContainer.id)
+        replaceFragment(fragment, binding.colorCenterView.id)
     }
 
     private fun showPreviewGroup(visible: Boolean) {
@@ -196,24 +256,24 @@ class HomeFragment :
     }
 
     private fun showDataWrapper(visible: Boolean) {
-        binding.colorDataWrapper.isInvisible = !visible
+        binding.colorCenterWrapper.isInvisible = !visible
     }
 
     @ColorInt
     private fun getDataWrapperTint(): Int? {
-        return binding.colorDataWrapper.backgroundTintList?.defaultColor
+        return binding.colorCenterWrapper.backgroundTintList?.defaultColor
     }
 
     private fun tintDataWrapper(color: Color) =
-        binding.colorDataWrapper.doOnLayout {
-            binding.colorDataWrapper.backgroundTintList =
+        binding.colorCenterWrapper.doOnLayout {
+            binding.colorCenterWrapper.backgroundTintList =
                 ColorStateList.valueOf(color.toColorInt())
             activity?.setNavigationBarColor(color)
         }
 
     private fun clearDataWrapperTint() =
-        binding.colorDataWrapper.doOnLayout {
-            binding.colorDataWrapper.backgroundTintList =
+        binding.colorCenterWrapper.doOnLayout {
+            binding.colorCenterWrapper.backgroundTintList =
                 ColorStateList.valueOf(ColorAndroid.TRANSPARENT)
             activity?.restoreNavigationBarColor()
         }
@@ -403,12 +463,12 @@ class HomeFragment :
     }
 
     private fun makeColorDataRevealAnimation(hide: Boolean): Animator {
-        val data = binding.colorDataWrapper
+        val wrapper = binding.colorCenterWrapper
         val preview = binding.previewGroup
         val center = calcColorDataRevealCenter()
         val sr = preview.width.toFloat() / 2
-        val er = AnimationUtils.getCircularRevealMaxRadius(data, center)
-        return data.createCircularRevealAnimation(!hide, center.x, center.y, sr, er).apply {
+        val er = AnimationUtils.getCircularRevealMaxRadius(wrapper, center)
+        return wrapper.createCircularRevealAnimation(!hide, center.x, center.y, sr, er).apply {
             duration = longAnimDuration
             interpolator = AccelerateDecelerateInterpolator()
             doOnStart {
@@ -429,20 +489,20 @@ class HomeFragment :
     }
 
     private fun calcColorDataRevealCenter(): Point {
-        val data = binding.colorDataWrapper
-        val bottom = data.getBottomVisibleInParent(binding.root) ?: data.height
+        val wrapper = binding.colorCenterWrapper
+        val bottom = wrapper.getBottomVisibleInParent(binding.root) ?: wrapper.height
         val padding = resources.getDimensionPixelSize(DesignR.dimen.offset_32)
         val previewRadius = binding.previewGroup.height / 2
-        val x = data.width / 2
+        val x = wrapper.width / 2
         val yApprox = bottom - padding - previewRadius
-        val y = yApprox.coerceIn(0, data.height)
+        val y = yApprox.coerceIn(0, wrapper.height)
         return Point(x, y)
     }
 
     private fun calcPreviewTranslation(): Float {
         val preview = binding.previewGroup
-        val data = binding.colorDataWrapper
-        val distance = preview.getDistanceToViewInParent(data, view)?.y ?: 0
+        val wrapper = binding.colorCenterWrapper
+        val distance = preview.getDistanceToViewInParent(wrapper, this.view)?.y ?: 0
         val addend = calcColorDataRevealCenter().y
         val radius = preview.height / 2
         return distance.toFloat() + addend - radius
@@ -537,7 +597,7 @@ class HomeFragment :
         override fun showData(color: Color) {
             hideSoftInput()
             animColorDataExpanding(color)
-            replaceColorDataFragment(color)
+//            replaceColorDataFragment(color)
             view.changeState(Type.DATA)
         }
     }
