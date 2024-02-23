@@ -187,15 +187,19 @@ class HomeFragment :
         }
     }
 
-    private fun setProceedBtn() =
-        binding.run {
-            proceedBtn.setOnClickListener l@{
-                val color = homeVM.preview ?: return@l
-                state.showData(color)
+    private fun setProceedBtn() {
+        binding.proceedBtn.setOnClickListener l@{
+            homeViewModelNew.proceed()
+            binding.colorCenterWrapper.isVisible = true
 
-                homeViewModelNew.proceed()
-            }
+            val color = homeVM.preview ?: return@l
+            state.showData(color)
         }
+
+        homeViewModelNew.proceedActionAvailabilityFlow.collectOnLifecycle { available ->
+            binding.proceedBtn.isEnabled = available
+        }
+    }
 
     private fun setColorCenterView() {
 //        val container = binding.colorDataFragmentContainer
