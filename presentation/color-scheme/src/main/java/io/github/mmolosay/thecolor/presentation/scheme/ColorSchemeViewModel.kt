@@ -8,6 +8,8 @@ import io.github.mmolosay.thecolor.domain.model.ColorScheme.Mode
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
+import io.github.mmolosay.thecolor.presentation.ColorCenterCommandProvider
+import io.github.mmolosay.thecolor.presentation.Command
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Changes
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.ColorInt
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Swatch
@@ -32,6 +34,7 @@ internal typealias DataState = State<ColorSchemeData>
 @HiltViewModel
 class ColorSchemeViewModel @Inject constructor(
     getInitialModelsState: GetInitialModelsStateUseCase,
+    private val commandProvider: ColorCenterCommandProvider,
     private val getColorScheme: GetColorSchemeUseCase,
     private val createModels: CreateDataModelsUseCase,
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
@@ -49,14 +52,31 @@ class ColorSchemeViewModel @Inject constructor(
             initialValue = State.Loading,
         )
 
-    // TODO: never changes, ViewModel is created for a particular color; refactor to injected ColorProvider
     private var lastUsedSeed: Color? = null
 
-    fun getColorScheme(seed: Color) {
+    init {
+        collectColorCenterCommands()
+    }
+
+    private fun collectColorCenterCommands() =
+        viewModelScope.launch { // TODO: not main dispatcher?
+            commandProvider.commandFlow.collect { command ->
+                when (command) {
+                    is Command.FetchData -> onFetchDataCommand(command)
+                }
+            }
+        }
+
+    private fun onFetchDataCommand(command: Command.FetchData) {
+        val seed = command.color
+        lastUsedSeed = seed
+        getColorScheme(seed)
+    }
+
+    private fun getColorScheme(seed: Color) {
         val requestConfig = assembleRequestConfig()
         val request = requestConfig.toDomainRequest(seed)
         modelsStateFlow.value = State.Loading
-        lastUsedSeed = seed
         viewModelScope.launch(ioDispatcher) {
             val scheme = getColorScheme(request)
             val models = createModels(scheme = scheme, config = requestConfig)

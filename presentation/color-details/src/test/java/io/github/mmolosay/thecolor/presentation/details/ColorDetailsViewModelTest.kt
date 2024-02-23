@@ -4,6 +4,8 @@ import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.ColorDetails
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.domain.usecase.GetColorDetailsUseCase
+import io.github.mmolosay.thecolor.presentation.ColorCenterCommandProvider
+import io.github.mmolosay.thecolor.presentation.Command
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.ColorInt
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel.State
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
@@ -13,6 +15,9 @@ import io.kotest.matchers.types.beOfType
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 
@@ -21,73 +26,89 @@ class ColorDetailsViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
+    val commandProvider: ColorCenterCommandProvider = mockk()
     val getColorDetails: GetColorDetailsUseCase = mockk()
     val colorConverter: ColorConverter = mockk()
 
     lateinit var sut: ColorDetailsViewModel
 
     @Test
-    fun `call to 'get color details' emits Ready state from flow`() {
-        val color = Color.Hex(0x1A803F)
-        val domainDetails = ColorDetails()
-        val hex = Color.Hex(0x1A803F)
-        coEvery { getColorDetails.invoke(any<Color>()) } returns domainDetails
-        every { with(colorConverter) { any<Color>().toHex() } } returns hex
+    fun `SUT remains dormant if there's no 'fetch data' command emitted`() {
+        every { commandProvider.commandFlow } returns emptyFlow()
+
         createSut()
 
-        sut.getColorDetails(color)
-
-        sut.dataStateFlow.value should beOfType<State.Ready>()
+        sut.dataStateFlow.value shouldBe State.Loading
     }
 
     @Test
-    fun `call to 'get color details' emits Ready state with correct data from flow`() {
-        val color = Color.Hex(0x1A803F)
-        val domainDetails = ColorDetails()
-        coEvery { getColorDetails.invoke(any<Color>()) } returns domainDetails
-        every { with(colorConverter) { Color.Hex(0x1A803F).toHex() } } returns Color.Hex(0x1A803F)
-        every { with(colorConverter) { Color.Hex(0x126B40).toHex() } } returns Color.Hex(0x126B40)
-        createSut()
+    fun `emission of 'fetch data' command results in emission of Ready state`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val color = Color.Hex(0x1A803F)
+            val hex = Color.Hex(0x1A803F)
+            val commandFlow = MutableSharedFlow<Command>()
+            every { commandProvider.commandFlow } returns commandFlow
+            coEvery { getColorDetails.invoke(any<Color>()) } returns ColorDetails()
+            every { with(colorConverter) { any<Color>().toHex() } } returns hex
+            createSut()
 
-        sut.getColorDetails(color)
+            commandFlow.emit(Command.FetchData(color))
 
-        val data = (sut.dataStateFlow.value as State.Ready).data
-        val comparableData = data.copyWithNoopLambdas()
-        comparableData shouldBe ColorDetailsData(
-            colorName = "Jewel",
-            hex = ColorDetailsData.Hex(value = "#1A803F"),
-            rgb = ColorDetailsData.Rgb(
-                r = "26",
-                g = "128",
-                b = "63",
-            ),
-            hsl = ColorDetailsData.Hsl(
-                h = "142",
-                s = "66",
-                l = "30",
-            ),
-            hsv = ColorDetailsData.Hsv(
-                h = "142",
-                s = "80",
-                v = "50",
-            ),
-            cmyk = ColorDetailsData.Cmyk(
-                c = "80",
-                m = "0",
-                y = "51",
-                k = "50",
-            ),
-            exactMatch = ColorDetailsData.ExactMatch.No(
-                exactValue = "#126B40",
-                exactColor = ColorInt(0x126B40),
-                onExactClick = NoopOnClickAction,
-                deviation = "1366",
-            ),
-        )
-    }
+            sut.dataStateFlow.value should beOfType<State.Ready>()
+        }
+
+    @Test
+    fun `emission of 'fetch data' command results in emission of Ready state with correct data`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val color = Color.Hex(0x1A803F)
+            val domainDetails = ColorDetails()
+            val commandFlow = MutableSharedFlow<Command>()
+            every { commandProvider.commandFlow } returns commandFlow
+            coEvery { getColorDetails.invoke(any<Color>()) } returns domainDetails
+            every { with(colorConverter) { Color.Hex(0x1A803F).toHex() } } returns Color.Hex(0x1A803F)
+            every { with(colorConverter) { Color.Hex(0x126B40).toHex() } } returns Color.Hex(0x126B40)
+            createSut()
+
+            commandFlow.emit(Command.FetchData(color))
+
+            val data = (sut.dataStateFlow.value as State.Ready).data
+            val comparableData = data.copyWithNoopLambdas()
+            comparableData shouldBe ColorDetailsData(
+                colorName = "Jewel",
+                hex = ColorDetailsData.Hex(value = "#1A803F"),
+                rgb = ColorDetailsData.Rgb(
+                    r = "26",
+                    g = "128",
+                    b = "63",
+                ),
+                hsl = ColorDetailsData.Hsl(
+                    h = "142",
+                    s = "66",
+                    l = "30",
+                ),
+                hsv = ColorDetailsData.Hsv(
+                    h = "142",
+                    s = "80",
+                    v = "50",
+                ),
+                cmyk = ColorDetailsData.Cmyk(
+                    c = "80",
+                    m = "0",
+                    y = "51",
+                    k = "50",
+                ),
+                exactMatch = ColorDetailsData.ExactMatch.No(
+                    exactValue = "#126B40",
+                    exactColor = ColorInt(0x126B40),
+                    onExactClick = NoopOnClickAction,
+                    deviation = "1366",
+                ),
+            )
+        }
 
     fun createSut() =
         ColorDetailsViewModel(
+            commandProvider = commandProvider,
             getColorDetails = getColorDetails,
             colorConverter = colorConverter,
             ioDispatcher = mainDispatcherRule.testDispatcher,

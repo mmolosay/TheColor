@@ -94,7 +94,7 @@ class ColorSchemeObtainFragment :
 
         val color = color ?: return
         val domainColor = Color.Hex(color.hexSignless.toInt(radix = 16))
-        colorSchemeViewModel.getColorScheme(domainColor) // new
+//        colorSchemeViewModel.getColorScheme(domainColor) // new
     }
 
     override fun makeColorDataFragment(): BaseColorDataFragment<ColorScheme> =

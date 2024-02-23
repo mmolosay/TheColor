@@ -6,6 +6,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.domain.usecase.GetColorDetailsUseCase
+import io.github.mmolosay.thecolor.presentation.ColorCenterCommandProvider
+import io.github.mmolosay.thecolor.presentation.Command
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.ColorInt
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.ExactMatch
 import kotlinx.coroutines.CoroutineDispatcher
@@ -18,15 +20,29 @@ import io.github.mmolosay.thecolor.domain.model.ColorDetails as DomainColorDetai
 
 @HiltViewModel
 class ColorDetailsViewModel @Inject constructor(
+    private val commandProvider: ColorCenterCommandProvider,
     private val getColorDetails: GetColorDetailsUseCase,
     private val colorConverter: ColorConverter,
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
-    private val _dataStateFlow = MutableStateFlow<State>(State.Loading)
+    private val _dataStateFlow = MutableStateFlow<State>(State.Loading) // TODO: inject initial state as in ColorSchemeViewModel for better testing
     val dataStateFlow = _dataStateFlow.asStateFlow()
 
-    fun getColorDetails(color: Color) {
+    init {
+        collectColorCenterCommands()
+    }
+
+    private fun collectColorCenterCommands() =
+        viewModelScope.launch { // TODO: not main dispatcher?
+            commandProvider.commandFlow.collect { command ->
+                when (command) {
+                    is Command.FetchData -> getColorDetails(color = command.color)
+                }
+            }
+        }
+
+    private fun getColorDetails(color: Color) {
         viewModelScope.launch(ioDispatcher) {
             val details = getColorDetails.invoke(color)
             val data = ColorDetailsData(details)
@@ -34,6 +50,7 @@ class ColorDetailsViewModel @Inject constructor(
         }
     }
 
+    // TODO: extract into separate 'CreateColorDetailsDataUseCase' to simplify testing of VM
     private fun ColorDetailsData(details: DomainColorDetails) =
         ColorDetailsData(
             colorName = details.name,
@@ -74,7 +91,7 @@ class ColorDetailsViewModel @Inject constructor(
             ExactMatch.No(
                 exactValue = details.exactNameHex,
                 exactColor = ColorInt(details.exact),
-                onExactClick = {},
+                onExactClick = { /* TODO */ },
                 deviation = details.exactNameHexDistance.toString(),
             )
         }

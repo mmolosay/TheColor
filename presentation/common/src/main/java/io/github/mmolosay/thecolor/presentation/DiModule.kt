@@ -21,6 +21,9 @@ object DiModule {
     interface BindModule {
 
         @Binds
-        fun bindCurrentColorProvider(impl: CurrentColorStore): CurrentColorProvider
+        fun bindCurrentColorProvider(impl: ColorInputColorStore): ColorInputColorProvider
+
+        @Binds
+        fun bindColorCenterCommandProvider(impl: ColorCenterCommandStore): ColorCenterCommandProvider
     }
 }

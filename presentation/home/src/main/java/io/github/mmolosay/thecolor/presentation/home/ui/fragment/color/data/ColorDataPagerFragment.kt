@@ -17,7 +17,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
-import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.presentation.center.ColorCenter
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterShape
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
@@ -66,15 +65,6 @@ class ColorDataPagerFragment :
                 }
             }
         }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        val oldColor = color ?: return
-        val color = Color.Hex(oldColor.hexSignless.toInt(radix = 16))
-        colorDetailsViewModel.getColorDetails(color)
-        colorSchemeViewModel.getColorScheme(color)
-    }
 
     @Composable
     private fun ColorCenter() {

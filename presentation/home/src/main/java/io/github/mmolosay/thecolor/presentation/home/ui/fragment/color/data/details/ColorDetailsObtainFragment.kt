@@ -100,7 +100,7 @@ class ColorDetailsObtainFragment :
         colorDetailsObtainVM.getColorDetails(color) // old
 
         val domainColor = Color.Hex(color.hexSignless.toInt(radix = 16))
-        colorDetailsViewModel.getColorDetails(domainColor) // new
+//        colorDetailsViewModel.getColorDetails(domainColor) // new
     }
 
     // endregion

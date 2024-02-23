@@ -70,7 +70,7 @@ class HomeFragment :
 
     private val binding by viewBinding(HomeFragmentBinding::bind)
     private val homeVM: HomeViewModel by viewModels()
-    private val homeViewModel: HomeViewModelNew by viewModels()
+    private val homeViewModelNew: HomeViewModelNew by viewModels()
     private val colorValidatorVM: ColorValidatorViewModel by viewModels()
 
     private var inputPagerView: ColorInputPagerView? = null
@@ -165,6 +165,8 @@ class HomeFragment :
             proceedBtn.setOnClickListener l@{
                 val color = homeVM.preview ?: return@l
                 state.showData(color)
+
+                homeViewModelNew.proceed()
             }
         }
 

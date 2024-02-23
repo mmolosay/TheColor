@@ -5,17 +5,22 @@ import io.github.mmolosay.thecolor.domain.model.ColorPrototype
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.domain.usecase.ColorFactory
 import io.github.mmolosay.thecolor.domain.usecase.GetInitialColorUseCase
+import io.github.mmolosay.thecolor.presentation.ColorInputColorStore
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.model.isCompleteFromUserPerspective
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.mockk.called
 import io.mockk.coEvery
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkStatic
+import io.mockk.runs
 import io.mockk.unmockkAll
+import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.TimeoutCancellationException
@@ -52,6 +57,10 @@ class ColorInputMediatorTest {
     val colorInputFactory: ColorInputFactory = mockk {
         every { emptyHex() } returns ColorInput.Hex("mocked")
         every { emptyRgb() } returns ColorInput.Rgb("mocked", "mocked", "mocked")
+    }
+
+    val colorInputColorStore: ColorInputColorStore = mockk {
+        coEvery { updateWith(any()) } just runs
     }
 
     lateinit var sut: ColorInputMediator
@@ -216,6 +225,35 @@ class ColorInputMediatorTest {
             unmockkAll()
         }
 
+    @Test
+    fun `incomplete color input is sent to color input store as null`() =
+        runTest(testDispatcher) {
+            mockkStatic(ColorInput::isCompleteFromUserPerspective)
+            every { any<ColorInput>().isCompleteFromUserPerspective() } returns false
+            createSut()
+            sut.init()
+
+            sut.send(ColorInput.Hex("gibberish"))
+
+            verify { colorInputColorStore.updateWith(null) }
+            unmockkAll()
+        }
+
+    // TODO: fix
+//    @Test
+//    fun `complete color input is sent to color input store as color`() =
+//        runTest(testDispatcher) {
+//            mockkStatic(ColorInput::isCompleteFromUserPerspective)
+//            every { any<ColorInput>().isCompleteFromUserPerspective() } returns true
+//            createSut()
+//            sut.init()
+//
+//            sut.send(ColorInput.Hex("00BFFF"))
+//
+//            verify { colorInputColorStore.updateWith() } // TODO: concrete color
+//            unmockkAll()
+//        }
+
     fun createSut() =
         ColorInputMediator(
             getInitialColor = getInitialColor,
@@ -223,6 +261,7 @@ class ColorInputMediatorTest {
             colorFactory = colorFactory,
             colorConverter = colorConverter,
             colorInputFactory = colorInputFactory,
+            colorInputColorStore = colorInputColorStore,
         ).also {
             sut = it
         }

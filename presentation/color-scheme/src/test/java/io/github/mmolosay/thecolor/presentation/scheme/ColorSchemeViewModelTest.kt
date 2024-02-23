@@ -1,7 +1,11 @@
 package io.github.mmolosay.thecolor.presentation.scheme
 
+import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.ColorScheme.Mode
 import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase
+import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase.Request
+import io.github.mmolosay.thecolor.presentation.ColorCenterCommandProvider
+import io.github.mmolosay.thecolor.presentation.Command
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Changes
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.SwatchCount
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.State
@@ -10,10 +14,16 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
+import io.mockk.verify
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
@@ -25,16 +35,13 @@ class ColorSchemeViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     val getInitialModelsState: GetInitialModelsStateUseCase = mockk()
+    val commandProvider: ColorCenterCommandProvider = mockk {
+        every { commandFlow } returns emptyFlow()
+    }
     val getColorScheme: GetColorSchemeUseCase = mockk()
     val createModels: CreateDataModelsUseCase = mockk()
 
     lateinit var sut: ColorSchemeViewModel
-
-    val ColorSchemeViewModel.data: ColorSchemeData
-        get() {
-            this.dataStateFlow.value should beOfType<State.Ready<*>>() // // assertion for clear failure message
-            return (this.dataStateFlow.value as State.Ready).data
-        }
 
     @Test
     fun `initial Loading models state initializes flow with Loading state`() {
@@ -55,10 +62,12 @@ class ColorSchemeViewModelTest {
     }
 
     @Test
-    fun `call to 'get color scheme' emits Loading state from flow`() =
+    fun `emission of 'fetch data' command results in emission of Loading state`() =
         runTest(mainDispatcherRule.testDispatcher) {
             every { getInitialModelsState() } returns State.Ready(someModels())
-            coEvery { getColorScheme(request = any<GetColorSchemeUseCase.Request>()) } returns mockk()
+            val commandFlow = MutableSharedFlow<Command>()
+            every { commandProvider.commandFlow } returns commandFlow
+            coEvery { getColorScheme(request = any<Request>()) } returns mockk()
             every { createModels(scheme = any(), config = any()) } returns someModels()
             createSut()
 
@@ -70,18 +79,22 @@ class ColorSchemeViewModelTest {
             }
 
             // "when" block
-            sut.getColorScheme(seed = mockk())
+            val command = Command.FetchData(color = mockk())
+            commandFlow.emit(command)
         }
 
     @Test
-    fun `call to 'get color scheme' emits Ready state from flow`() =
+    fun `emission of 'fetch data' command results in emission of Ready`() =
         runTest(mainDispatcherRule.testDispatcher) {
             every { getInitialModelsState() } returns State.Loading
-            coEvery { getColorScheme(request = any<GetColorSchemeUseCase.Request>()) } returns mockk()
+            val commandFlow = MutableSharedFlow<Command>()
+            every { commandProvider.commandFlow } returns commandFlow
+            coEvery { getColorScheme(request = any<Request>()) } returns mockk()
             every { createModels(scheme = any(), config = any()) } returns someModels()
             createSut()
 
-            sut.getColorScheme(seed = mockk())
+            val command = Command.FetchData(color = mockk())
+            commandFlow.emit(command)
 
             sut.dataStateFlow.value should beOfType<State.Ready<*>>()
         }
@@ -158,37 +171,30 @@ class ColorSchemeViewModelTest {
             sut.data.changes should beOfType<Changes.None>()
         }
 
-//    @Test
-//    fun `calling 'apply changes' applies 'selected' values to their 'active' conterparts`() =
-//        runTest(mainDispatcherRule.testDispatcher) {
-//            val actionsSlot = slot<Actions>()
-//            every { getInitialState(actions = capture(actionsSlot)) } answers {
-//                ColorSchemeData(
-//                    swatches = listOf(),
-//                    activeMode = Mode.Monochrome,
-//                    selectedMode = Mode.Analogic,
-//                    onModeSelect = {},
-//                    activeSwatchCount = SwatchCount.Six,
-//                    selectedSwatchCount = SwatchCount.Thirteen,
-//                    onSwatchCountSelect = {},
-//                    changes = Changes.Present(applyChanges = actionsSlot.captured.applyChanges),
-//                ).let {
-//                    State.Ready(it)
-//                }
-//            }
-//            createSut()
-//
-//            sut.data.changes should beOfType<Changes.Present>()
-//            (sut.data.changes as Changes.Present).applyChanges()
-//
-//            // TODO: this test fails at the moment. 'lastUsedSeed' is not initialized
-//            sut.data.selectedMode shouldBe sut.data.activeMode
-//            sut.data.selectedSwatchCount shouldBe sut.data.selectedSwatchCount
-//        }
+    @Test
+    fun `calling 'apply changes' uses color of last 'fetch data' command as seed`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            every { getInitialModelsState() } returns State.Loading
+            val color: Color = mockk()
+            every { commandProvider.commandFlow } returns flowOf(Command.FetchData(color))
+            coEvery { getColorScheme(request = any<Request>()) } returns mockk()
+            every { createModels(scheme = any(), config = any()) } returns someModels().copy(
+                activeMode = Mode.Monochrome, // different modes for Changes.Present
+                selectedMode = Mode.Analogic, // different modes for Changes.Present
+            )
+            createSut()
+
+            sut.data.changes.asPresent().applyChanges()
+
+            val requests = mutableListOf<Request>()
+            coVerify { getColorScheme.invoke(request = capture(requests)) }
+            requests.last().seed shouldBe color
+        }
 
     fun createSut() =
         ColorSchemeViewModel(
             getInitialModelsState = getInitialModelsState,
+            commandProvider = commandProvider,
             getColorScheme = getColorScheme,
             createModels = createModels,
             ioDispatcher = mainDispatcherRule.testDispatcher,
@@ -204,4 +210,15 @@ class ColorSchemeViewModelTest {
             activeSwatchCount = SwatchCount.Six,
             selectedSwatchCount = SwatchCount.Six,
         )
+
+    val ColorSchemeViewModel.data: ColorSchemeData
+        get() {
+            this.dataStateFlow.value should beOfType<State.Ready<*>>() // assertion for clear failure message
+            return (this.dataStateFlow.value as State.Ready).data
+        }
+
+    fun Changes.asPresent(): Changes.Present {
+        this should beOfType<Changes.Present>() // assertion for clear failure message
+        return (this as Changes.Present)
+    }
 }
