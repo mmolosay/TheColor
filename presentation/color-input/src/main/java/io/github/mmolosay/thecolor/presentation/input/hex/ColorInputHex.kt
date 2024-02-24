@@ -1,14 +1,17 @@
 package io.github.mmolosay.thecolor.presentation.input.hex
 
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
@@ -38,11 +41,13 @@ fun ColorInputHex(
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ColorInputHex(
     uiData: ColorInputHexUiData,
 ) {
     var value by remember { mutableStateOf(TextFieldValue(text = uiData.textField.text.string)) }
+    val keyboardController = LocalSoftwareKeyboardController.current
     TextField(
         modifier = Modifier.fillMaxWidth(0.5f),
         uiData = uiData.textField,
@@ -51,6 +56,11 @@ fun ColorInputHex(
         keyboardOptions = KeyboardOptions(
             imeAction = ImeAction.Done,
             capitalization = KeyboardCapitalization.Characters,
+        ),
+        keyboardActions = KeyboardActions(
+            onDone = {
+                keyboardController?.hide()
+            },
         ),
     )
 }

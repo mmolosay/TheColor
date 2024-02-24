@@ -53,6 +53,7 @@ internal object UiComponents {
         value: TextFieldValue,
         updateValue: (TextFieldValue) -> Unit,
         keyboardOptions: KeyboardOptions,
+        keyboardActions: KeyboardActions,
     ) =
         with(uiData) {
             OutlinedTextField(
@@ -75,7 +76,7 @@ internal object UiComponents {
                 trailingIcon = { TrailingButton(trailingButton) },
                 prefix = if (prefix != null) ({ Prefix(prefix) }) else null,
                 keyboardOptions = keyboardOptions,
-                keyboardActions = KeyboardActions(),
+                keyboardActions = keyboardActions,
                 singleLine = true,
             )
             // for when text is cleared with trailing button
