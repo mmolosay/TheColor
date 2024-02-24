@@ -2,8 +2,6 @@ package io.github.mmolosay.thecolor.presentation.preview
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandIn
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -48,8 +46,8 @@ fun ColorPreview(
         AnimatedVisibility(
             visible = uiState is ColorPreviewUiState.Visible,
             modifier = Modifier.clip(CircleShape),
-            enter = fadeIn() + expandIn(expandFrom = resizingAlignment),
-            exit = fadeOut() + shrinkOut(shrinkTowards = resizingAlignment),
+            enter = expandIn(expandFrom = resizingAlignment),
+            exit = shrinkOut(shrinkTowards = resizingAlignment),
         ) {
             val lastVisible = visibleState ?: return@AnimatedVisibility
             Box(
