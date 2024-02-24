@@ -75,7 +75,7 @@ class ColorInputMediator @Inject constructor(
     suspend fun send(input: ColorInput) {
         lastUsedInputType = input.type()
         val color = input.toAbstractOrNull()
-        colorInputColorStore.updateWith(color) // TODO: add unit tests
+        colorInputColorStore.updateWith(color)
         val state = color.toState()
         colorStateFlow.emit(state)
     }
