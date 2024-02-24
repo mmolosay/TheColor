@@ -15,13 +15,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Named
+import javax.inject.Singleton
 import io.github.mmolosay.thecolor.domain.model.ColorDetails as DomainColorDetails
 
 @HiltViewModel
 class ColorDetailsViewModel @Inject constructor(
     private val commandProvider: ColorCenterCommandProvider,
     private val getColorDetails: GetColorDetailsUseCase,
-    private val colorToColorInt: ColorToColorIntUseCase,
+    private val createData: CreateColorDetailsDataUseCase,
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -45,13 +46,23 @@ class ColorDetailsViewModel @Inject constructor(
     private fun getColorDetails(color: Color) {
         viewModelScope.launch(ioDispatcher) {
             val details = getColorDetails.invoke(color)
-            val data = ColorDetailsData(details)
+            val data = createData(details)
             _dataStateFlow.value = State.Ready(data)
         }
     }
 
-    // TODO: extract into separate 'CreateColorDetailsDataUseCase' to simplify testing of VM
-    private fun ColorDetailsData(details: DomainColorDetails) =
+    sealed interface State {
+        data object Loading : State
+        data class Ready(val data: ColorDetailsData) : State
+    }
+}
+
+@Singleton
+class CreateColorDetailsDataUseCase @Inject constructor(
+    private val colorToColorInt: ColorToColorIntUseCase,
+) {
+
+    operator fun invoke(details: DomainColorDetails) =
         ColorDetailsData(
             colorName = details.name,
             hex = ColorDetailsData.Hex(value = details.hexValue),
@@ -90,9 +101,4 @@ class ColorDetailsViewModel @Inject constructor(
                 deviation = details.exactNameHexDistance.toString(),
             )
         }
-
-    sealed interface State {
-        data object Loading : State
-        data class Ready(val data: ColorDetailsData) : State
-    }
 }
