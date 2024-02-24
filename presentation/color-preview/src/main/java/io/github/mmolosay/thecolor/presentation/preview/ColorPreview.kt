@@ -30,37 +30,36 @@ fun ColorPreview(
     vm: ColorPreviewViewModel,
 ) {
     val data = vm.stateFlow.collectAsStateWithLifecycle().value
-    val uiData = ColorPreviewUiData(data)
-    ColorPreview(uiData)
+    val uiState = ColorPreviewUiState(data)
+    ColorPreview(uiState)
 }
 
 @Composable
 fun ColorPreview(
-    uiData: ColorPreviewUiData,
+    uiState: ColorPreviewUiState,
 ) {
     Box(
         modifier = Modifier.size(48.dp),
         contentAlignment = Alignment.Center,
     ) {
         // when preview is Hidden, we want to have memoized Visible data for some time while "exit" animation is running
-        var visiblePreview by remember { mutableStateOf<ColorPreviewUiData.Preview.Visible?>(null) }
+        var visibleState by remember { mutableStateOf<ColorPreviewUiState.Visible?>(null) }
         val resizingAlignment = Alignment.Center
         AnimatedVisibility(
-            visible = uiData.preview is ColorPreviewUiData.Preview.Visible,
+            visible = uiState is ColorPreviewUiState.Visible,
             modifier = Modifier.clip(CircleShape),
             enter = fadeIn() + expandIn(expandFrom = resizingAlignment),
             exit = fadeOut() + shrinkOut(shrinkTowards = resizingAlignment),
         ) {
-            val lastVisible = visiblePreview ?: return@AnimatedVisibility
+            val lastVisible = visibleState ?: return@AnimatedVisibility
             Box(
                 modifier = Modifier
                     .aspectRatio(1f) // square
                     .background(lastVisible.color),
             )
         }
-        LaunchedEffect(uiData) {
-            visiblePreview = uiData.preview as? ColorPreviewUiData.Preview.Visible
-                ?: return@LaunchedEffect
+        LaunchedEffect(uiState) {
+            visibleState = uiState as? ColorPreviewUiState.Visible ?: return@LaunchedEffect
         }
     }
 }
@@ -69,11 +68,11 @@ fun ColorPreview(
 @Composable
 private fun Preview() {
     TheColorTheme {
-        ColorPreview(uiData = previewUiData())
+        ColorPreview(uiState = previewUiState())
     }
 }
 
-private fun previewUiData() =
-    ColorPreviewUiData(
-        preview = ColorPreviewUiData.Preview.Visible(color = Color(0xFF_13264D)),
+private fun previewUiState() =
+    ColorPreviewUiState.Visible(
+        color = Color(0xFF_13264D),
     )
