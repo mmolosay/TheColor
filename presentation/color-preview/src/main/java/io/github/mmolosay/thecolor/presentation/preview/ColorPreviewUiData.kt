@@ -7,5 +7,11 @@ import androidx.compose.ui.graphics.Color
  * It is a derivative from [ColorPreviewData].
  */
 data class ColorPreviewUiData(
-    val color: Color,
-)
+    val preview: Preview,
+) {
+
+    sealed interface Preview {
+        data object Hidden : Preview
+        data class Visible(val color: Color) : Preview
+    }
+}

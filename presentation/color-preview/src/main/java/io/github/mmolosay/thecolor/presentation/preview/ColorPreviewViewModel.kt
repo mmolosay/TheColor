@@ -13,30 +13,20 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ColorPreviewViewModel @Inject constructor(
-    private val colorInputColorProvider: ColorInputColorProvider,
+    colorInputColorProvider: ColorInputColorProvider,
     private val colorToColorInt: ColorToColorIntUseCase,
 ) : ViewModel() {
 
-    val stateFlow: StateFlow<State> =
+    val stateFlow: StateFlow<ColorPreviewData> =
         colorInputColorProvider.colorFlow
             .map { color ->
-                if (color != null) {
-                    val data = ColorPreviewData(
-                        color = with(colorToColorInt) { color.toColorInt() },
-                    )
-                    State.Present(data)
-                } else {
-                    State.Absent
-                }
+                ColorPreviewData(
+                    color = with(colorToColorInt) { color?.toColorInt() },
+                )
             }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.Eagerly,
-                initialValue = State.Absent,
+                initialValue = ColorPreviewData(color = null),
             )
-
-    sealed interface State {
-        data object Absent : State
-        data class Present(val data: ColorPreviewData) : State
-    }
 }
