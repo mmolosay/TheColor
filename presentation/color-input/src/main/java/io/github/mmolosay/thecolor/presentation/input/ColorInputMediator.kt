@@ -27,8 +27,8 @@ import javax.inject.Singleton
 @Singleton
 class ColorInputMediator @Inject constructor(
     private val getInitialColor: GetInitialColorUseCase,
+    private val colorInputToAbstract: ColorInputToAbstractColorUseCase,
     private val colorInputMapper: ColorInputMapper,
-    private val colorFactory: ColorFactory,
     private val colorConverter: ColorConverter,
     private val colorInputFactory: ColorInputFactory,
     private val colorInputColorStore: ColorInputColorStore,
@@ -74,18 +74,10 @@ class ColorInputMediator @Inject constructor(
 
     suspend fun send(input: ColorInput) {
         lastUsedInputType = input.type()
-        val color = input.toAbstractOrNull()
+        val color = with(colorInputToAbstract) { input.toAbstractOrNull() }
         colorInputColorStore.updateWith(color)
         val state = color.toState()
         colorStateFlow.emit(state)
-    }
-
-    // TODO: extract into individual component
-    private fun ColorInput.toAbstractOrNull(): Color.Abstract? {
-        if (!isCompleteFromUserPerspective()) return null
-        val prototype = with(colorInputMapper) { toPrototype() }
-        val color = colorFactory.from(prototype) ?: return null
-        return with(colorConverter) { color.toAbstract() }
     }
 
     private fun Color.Abstract?.toState(): ColorState =
@@ -111,5 +103,20 @@ class ColorInputMediator @Inject constructor(
     private enum class InputType {
         Hex,
         Rgb,
+    }
+}
+
+@Singleton
+class ColorInputToAbstractColorUseCase @Inject constructor(
+    private val colorInputMapper: ColorInputMapper,
+    private val colorFactory: ColorFactory,
+    private val colorConverter: ColorConverter,
+) {
+
+    fun ColorInput.toAbstractOrNull(): Color.Abstract? {
+        if (!isCompleteFromUserPerspective()) return null
+        val prototype = with(colorInputMapper) { toPrototype() }
+        val color = colorFactory.from(prototype) ?: return null
+        return with(colorConverter) { color.toAbstract() }
     }
 }
