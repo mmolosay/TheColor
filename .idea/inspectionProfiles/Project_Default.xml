@@ -282,6 +282,7 @@
     <inspection_tool class="AndroidLintObsoleteSdkInt" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="AndroidLintOldTargetApi" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="AndroidLintOnClick" enabled="true" level="ERROR" enabled_by_default="true" />
+    <inspection_tool class="AndroidLintOpaqueUnitKey" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="AndroidLintOpenForTesting" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="AndroidLintOrientation" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="AndroidLintOutdatedLibrary" enabled="true" level="WARNING" enabled_by_default="true" />
