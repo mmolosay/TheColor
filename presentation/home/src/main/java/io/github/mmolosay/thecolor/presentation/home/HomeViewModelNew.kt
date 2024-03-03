@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -36,22 +37,38 @@ class HomeViewModelNew @Inject constructor(
     private val _dataFlow = MutableStateFlow(initialData())
     val dataFlow = _dataFlow.asStateFlow()
 
+    init {
+        collectColorInputColor()
+    }
+
+    private fun collectColorInputColor() =
+        viewModelScope.launch {  // TODO: not main dispatcher?
+            colorInputColorProvider.colorFlow.collect { color ->
+                _dataFlow.update {
+                    it.copy(canProceed = CanProceed(color))
+                }
+            }
+        }
+
     // TODO: make a part of exposed data
     fun proceed() {
         val color = currentColor ?: return
         val command = Command.FetchData(color)
-        viewModelScope.launch {
+        viewModelScope.launch {  // TODO: not main dispatcher?
             colorCenterCommandStore.updateWith(command)
         }
     }
 
     private fun initialData() =
         HomeData(
-            canProceed = when (currentColor != null) {
-                true -> CanProceed.Yes(action = ::proceed)
-                false -> CanProceed.No
-            },
+            canProceed = CanProceed(currentColor),
         )
+
+    private fun CanProceed(color: Color?) =
+        when (color != null) {
+            true -> CanProceed.Yes(action = ::proceed)
+            false -> CanProceed.No
+        }
 
     private val currentColor: Color?
         get() = colorInputColorProvider.colorFlow.value
