@@ -22,6 +22,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy.*
 import androidx.compose.ui.unit.dp
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
@@ -47,8 +49,8 @@ import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.details.ColorDetails
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.fragment.BaseFragment
+import io.github.mmolosay.thecolor.presentation.home.HomeScreen
 import io.github.mmolosay.thecolor.presentation.home.HomeViewModelNew
-import io.github.mmolosay.thecolor.presentation.home.R
 import io.github.mmolosay.thecolor.presentation.home.databinding.HomeFragmentBinding
 import io.github.mmolosay.thecolor.presentation.home.ui.fragment.color.data.ColorDataPagerFragment
 import io.github.mmolosay.thecolor.presentation.home.ui.fragment.color.data.details.ColorDetailsParent
@@ -117,13 +119,67 @@ class HomeFragment :
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View? {
-        return inflater.inflate(R.layout.home_fragment, container, false)
+//        return inflater.inflate(R.layout.home_fragment, container, false)
+        return ComposeView(inflater.context).apply {
+            setViewCompositionStrategy(DisposeOnLifecycleDestroyed(lifecycle))
+            setContent {
+                TheColorTheme {
+                    HomeScreen(
+                        vm = homeViewModelNew,
+                        colorInput = { ColorInput() },
+                        colorPreview = { ColorPreview() },
+                        colorCenter = { ColorCenter() },
+                    )
+                }
+            }
+        }
     }
+
+    @Composable
+    private fun ColorInput() =
+        ColorInput(
+            vm = colorInputViewModel,
+            hexViewModel = colorInputHexViewModel,
+            rgbViewModel = colorInputRgbViewModel,
+        )
+
+    @Composable
+    private fun ColorPreview() =
+        ColorPreview(vm = colorPreviewViewModel)
+
+    @Composable
+    private fun ColorCenter() {
+        // TODO: move ProvideColorsOnTintedSurface() to outside?
+        val colors = rememberContentColors(useLight = true) // TODO: use real value
+        ProvideColorsOnTintedSurface(colors) {
+            Box(
+                modifier = Modifier
+                    .graphicsLayer {
+                        clip = true
+                        shape = ColorCenterShape
+                    }
+                    .background(ComposeColor(0xFF_123456)) // TODO: use real color
+            ) {
+                ColorCenter(
+                    vm = colorCenterViewModel,
+                    details = { ColorDetails(vm = colorDetailsViewModel) },
+                    scheme = { ColorScheme(vm = colorSchemeViewModel) },
+                    modifier = Modifier.padding(top = 24.dp),
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun rememberContentColors(useLight: Boolean): ColorsOnTintedSurface =
+        remember(useLight) {
+            if (useLight) colorsOnDarkSurface() else colorsOnLightSurface()
+        }
 
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
         super.onViewStateRestored(savedInstanceState)
-        this.state = createStateByType(homeVM.stateType)
-        state.restoreState()
+//        this.state = createStateByType(homeVM.stateType)
+//        state.restoreState()
     }
 
     override fun onStop() {
@@ -139,7 +195,7 @@ class HomeFragment :
     // region Collect ViewModels data
 
     override fun collectViewModelsData() {
-        collectColorPreview()
+//        collectColorPreview()
     }
 
     private fun collectColorPreview() =
@@ -170,10 +226,10 @@ class HomeFragment :
     // region Set views
 
     override fun setViews() {
-        setColorInputView()
-        setProceedBtn()
-        setColorPreviewView()
-        setColorCenterView()
+//        setColorInputView()
+//        setProceedBtn()
+//        setColorPreviewView()
+//        setColorCenterView()
     }
 
     private fun setColorInputView() {
@@ -183,11 +239,7 @@ class HomeFragment :
 //        }
         binding.colorInputView.setContent {
             TheColorTheme {
-                ColorInput(
-                    vm = colorInputViewModel,
-                    hexViewModel = colorInputHexViewModel,
-                    rgbViewModel = colorInputRgbViewModel,
-                )
+                ColorInput()
             }
         }
     }
@@ -212,7 +264,7 @@ class HomeFragment :
     private fun setColorPreviewView() {
         binding.colorPreview.setContent {
             TheColorTheme {
-                ColorPreview(vm = colorPreviewViewModel)
+                ColorPreview()
             }
         }
     }
@@ -224,39 +276,10 @@ class HomeFragment :
 //        }
         binding.colorCenterView.setContent {
             TheColorTheme {
-                // TODO: move ProvideColorsOnTintedSurface() to outside?
-                val colors = rememberContentColors(useLight = true) // TODO: use real value
-                ProvideColorsOnTintedSurface(colors) {
-                    ColorCenter()
-                }
+                ColorCenter()
             }
         }
     }
-
-    @Composable
-    private fun ColorCenter() {
-        Box(
-            modifier = Modifier
-                .graphicsLayer {
-                    clip = true
-                    shape = ColorCenterShape
-                }
-                .background(ComposeColor(0xFF_123456)) // TODO: use real color
-        ) {
-            ColorCenter(
-                vm = colorCenterViewModel,
-                details = { ColorDetails(vm = colorDetailsViewModel) },
-                scheme = { ColorScheme(vm = colorSchemeViewModel) },
-                modifier = Modifier.padding(top = 24.dp),
-            )
-        }
-    }
-
-    @Composable
-    private fun rememberContentColors(useLight: Boolean): ColorsOnTintedSurface =
-        remember(useLight) {
-            if (useLight) colorsOnDarkSurface() else colorsOnLightSurface()
-        }
 
     // endregion
 
@@ -543,8 +566,8 @@ class HomeFragment :
     override var state: HomeView.State = BlankState()
 
     override fun changeState(type: HomeView.State.Type) {
-        this.state = createStateByType(type)
-        homeVM.stateType = type
+//        this.state = createStateByType(type)
+//        homeVM.stateType = type
     }
 
     // endregion

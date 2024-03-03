@@ -3,7 +3,6 @@ package io.github.mmolosay.thecolor.presentation.home
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -12,25 +11,50 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
+
+@Composable
+fun HomeScreen(
+    vm: HomeViewModelNew,
+    colorInput: @Composable () -> Unit,
+    colorPreview: @Composable () -> Unit,
+    colorCenter: @Composable () -> Unit,
+) {
+    val data = vm.dataFlow.collectAsStateWithLifecycle().value
+    val viewData = rememberViewData()
+    val uiData = HomeUiData(data, viewData)
+    HomeScreen(
+        uiData = uiData,
+        colorInput = colorInput,
+        colorPreview = colorPreview,
+        colorCenter = colorCenter,
+    )
+}
 
 @Composable
 fun HomeScreen(
     uiData: HomeUiData,
     colorInput: @Composable () -> Unit,
+    colorPreview: @Composable () -> Unit,
+    colorCenter: @Composable () -> Unit,
 ) {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize(),
+        /* TODO: scrollable */
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Spacer(modifier = Modifier.fillMaxHeight(0.30f)) // 160.dp in XML
+        Spacer(modifier = Modifier.height(160.dp))
         Text(
-            text = uiData.title,
+            text = uiData.headline,
             style = MaterialTheme.typography.titleLarge,
         )
 
@@ -38,19 +62,31 @@ fun HomeScreen(
         colorInput()
 
         ProceedButton(uiData.proceedButton)
+
+        Spacer(modifier = Modifier.height(8.dp))
+        colorPreview()
+
+        Spacer(modifier = Modifier.weight(1f))
+        colorCenter()
     }
 }
 
 @Composable
 private fun ProceedButton(
-    button: HomeUiData.Button,
+    uiData: HomeUiData.ProceedButton,
 ) {
     Button(
-        onClick = button.onClick,
-        enabled = button.enabled,
+        onClick = uiData.onClick,
+        enabled = uiData.enabled,
     ) {
-        Text(text = button.text)
+        Text(text = uiData.text)
     }
+}
+
+@Composable
+private fun rememberViewData(): HomeUiData.ViewData {
+    val context = LocalContext.current
+    return remember { HomeViewData(context) }
 }
 
 @Preview(showBackground = true)
@@ -69,14 +105,31 @@ private fun Preview() {
                     text = "Color Input",
                 )
             },
+            colorPreview = {
+                Text(
+                    modifier = Modifier
+                        .background(Color.LightGray),
+                    text = "Color Preview",
+                )
+            },
+            colorCenter = {
+                Text(
+                    modifier = Modifier
+                        .background(Color.LightGray)
+                        .fillMaxWidth()
+                        .height(300.dp)
+                        .wrapContentSize(),
+                    text = "Color Input",
+                )
+            },
         )
     }
 }
 
 private fun previewUiData() =
     HomeUiData(
-        title = "Find your color",
-        proceedButton = HomeUiData.Button(
+        headline = "Find your color",
+        proceedButton = HomeUiData.ProceedButton(
             onClick = {},
             enabled = true,
             text = "Proceed",

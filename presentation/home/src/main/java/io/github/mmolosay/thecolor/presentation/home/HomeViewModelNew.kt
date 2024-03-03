@@ -2,16 +2,16 @@ package io.github.mmolosay.thecolor.presentation.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommandStore
 import io.github.mmolosay.thecolor.presentation.ColorInputColorProvider
-import io.github.mmolosay.thecolor.presentation.ColorInputColorStore
 import io.github.mmolosay.thecolor.presentation.Command
+import io.github.mmolosay.thecolor.presentation.home.HomeData.CanProceed
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -33,12 +33,26 @@ class HomeViewModelNew @Inject constructor(
                 initialValue = false,
             )
 
+    private val _dataFlow = MutableStateFlow(initialData())
+    val dataFlow = _dataFlow.asStateFlow()
+
     // TODO: make a part of exposed data
     fun proceed() {
-        val color = colorInputColorProvider.colorFlow.value ?: return
+        val color = currentColor ?: return
         val command = Command.FetchData(color)
         viewModelScope.launch {
             colorCenterCommandStore.updateWith(command)
         }
     }
+
+    private fun initialData() =
+        HomeData(
+            canProceed = when (currentColor != null) {
+                true -> CanProceed.Yes(action = ::proceed)
+                false -> CanProceed.No
+            },
+        )
+
+    private val currentColor: Color?
+        get() = colorInputColorProvider.colorFlow.value
 }

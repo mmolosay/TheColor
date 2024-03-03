@@ -25,6 +25,3 @@ class ColorInputColorStore @Inject constructor() : ColorInputColorProvider {
 interface ColorInputColorProvider {
     val colorFlow: StateFlow<Color?>
 }
-
-val ColorInputColorProvider.requireColor: Color
-    get() = requireNotNull(colorFlow.value)
