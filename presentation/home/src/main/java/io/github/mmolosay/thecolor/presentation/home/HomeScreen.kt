@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -48,8 +50,8 @@ fun HomeScreen(
 ) {
     Column(
         modifier = Modifier
-            .fillMaxSize(),
-        /* TODO: scrollable */
+            .fillMaxSize()
+            .verticalScroll(state = rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Spacer(modifier = Modifier.height(160.dp))
@@ -66,7 +68,8 @@ fun HomeScreen(
         Spacer(modifier = Modifier.height(8.dp))
         colorPreview()
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.height(16.dp)) // minimum
+        Spacer(modifier = Modifier.weight(1f)) // maximum
         colorCenter()
     }
 }
