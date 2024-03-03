@@ -1,7 +1,6 @@
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    id("kotlin-parcelize")
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
     id("androidx.navigation.safeargs.kotlin")
@@ -28,7 +27,7 @@ android {
         }
     }
     buildFeatures {
-        viewBinding = true
+        compose = true
     }
 
     java {
@@ -40,6 +39,10 @@ android {
 
     kapt {
         correctErrorTypes = true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = libs.versions.compose.compiler.get()
     }
 }
 
@@ -56,11 +59,17 @@ dependencies {
     // Jetpack
     implementation("androidx.appcompat:appcompat:${libs.versions.androidx.appcompat.get()}")
 
-    implementation("androidx.navigation:navigation-fragment-ktx:2.4.1")
-    implementation("androidx.navigation:navigation-ui-ktx:2.4.1")
+    // Compose
+    val composeBom = platform("androidx.compose:compose-bom:${libs.versions.compose.bom.get()}")
+    implementation(composeBom)
+    androidTestImplementation(composeBom)
 
-    // Third Party Libraries
-    implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.5.9")
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    debugImplementation("androidx.compose.ui:ui-tooling")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+    implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
 
     // Hilt
     implementation("com.google.dagger:hilt-android:${libs.versions.hilt.get()}")

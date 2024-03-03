@@ -2,17 +2,23 @@ package io.github.mmolosay.thecolor
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import by.kirich1409.viewbindingdelegate.viewBinding
+import androidx.fragment.app.FragmentContainerView
 import dagger.hilt.android.AndroidEntryPoint
-import io.github.mmolosay.thecolor.databinding.ActivityMainBinding
+import io.github.mmolosay.thecolor.presentation.home.HomeFragment
 
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity(R.layout.activity_main) {
+class MainActivity : AppCompatActivity() {
 
-    private val binding by viewBinding(ActivityMainBinding::bind)
+    private val fragmentContainer by lazy {
+        findViewById<FragmentContainerView>(R.id.nav_host_fragment)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding // bind
+        setContentView(R.layout.activity_main)
+        supportFragmentManager.beginTransaction().apply {
+            val homeFragment = HomeFragment()
+            add(fragmentContainer.id, homeFragment, "home_fragment")
+        }.commit()
     }
 }
