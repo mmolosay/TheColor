@@ -25,7 +25,7 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 
 @Composable
 fun HomeScreen(
-    vm: HomeViewModelNew,
+    vm: HomeViewModel,
     colorInput: @Composable () -> Unit,
     colorPreview: @Composable () -> Unit,
     colorCenter: @Composable () -> Unit,

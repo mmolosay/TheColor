@@ -6,7 +6,7 @@
 
     <fragment
         android:id="@+id/homeFragment"
-        android:name="io.github.mmolosay.thecolor.presentation.home.ui.fragment.home.HomeFragment"
+        android:name="io.github.mmolosay.thecolor.presentation.home.HomeFragment"
         android:label="HomeFragment" />
 
 </navigation>

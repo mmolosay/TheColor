@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.util
+package io.github.mmolosay.thecolor.presentation
 
 import android.app.Activity
 import android.os.Build
@@ -8,9 +8,6 @@ import androidx.core.content.res.use
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import com.google.android.material.color.MaterialColors
-import io.github.mmolosay.thecolor.presentation.color.Color
-import io.github.mmolosay.thecolor.presentation.color.isDark
-import io.github.mmolosay.thecolor.presentation.color.toColorInt
 import android.graphics.Color as ColorAndroid
 
 fun AppCompatActivity.setTransparentSystemBars() {
@@ -43,7 +40,7 @@ fun Activity.restoreNavigationBarColor() {
     }
 }
 
-fun Activity.setNavigationBarColor(color: Color) {
-    window.navigationBarColor = color.toColorInt()
-    this.setLightNavigationBar(light = !color.isDark())
+fun Activity.setNavigationBarColor(colorInt: Int, isLight: Boolean) {
+    window.navigationBarColor = colorInt
+    this.setLightNavigationBar(light = isLight)
 }

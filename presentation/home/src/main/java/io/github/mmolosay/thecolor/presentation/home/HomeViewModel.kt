@@ -20,7 +20,7 @@ import javax.inject.Inject
 
 // TODO: remove "New" suffix once the old ViewModel is gone
 @HiltViewModel
-class HomeViewModelNew @Inject constructor(
+class HomeViewModel @Inject constructor(
     private val colorInputColorProvider: ColorInputColorProvider,
     private val colorCenterCommandStore: ColorCenterCommandStore,
 ) : ViewModel() {

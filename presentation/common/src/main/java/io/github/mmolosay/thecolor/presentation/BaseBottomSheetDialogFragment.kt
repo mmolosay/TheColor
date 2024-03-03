@@ -1,11 +1,9 @@
-package io.github.mmolosay.thecolor.presentation.ui.dialog
+package io.github.mmolosay.thecolor.presentation
 
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import io.github.mmolosay.thecolor.presentation.util.ext.getDefaultTransactionTag
 
 abstract class BaseBottomSheetDialogFragment : BottomSheetDialogFragment() {
 
@@ -69,9 +67,4 @@ abstract class BaseBottomSheetDialogFragment : BottomSheetDialogFragment() {
     protected abstract fun setViews()
 
     // endregion
-
-    fun show(manager: FragmentManager) {
-        val tag = this.getDefaultTransactionTag()
-        super.show(manager, tag)
-    }
 }
