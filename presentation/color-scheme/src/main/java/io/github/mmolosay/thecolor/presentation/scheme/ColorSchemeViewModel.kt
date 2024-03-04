@@ -180,7 +180,8 @@ class ColorSchemeViewModel @Inject constructor(
 
 /**
  * Exists to make unit testing easier.
- * Replaces chain of actions that configure the ViewModel's state in "given" part of the test.
+ * Replaces a long chain of actions that set [ColorSchemeViewModel.dataStateFlow] in "given" part
+ * of the test to required value.
  */
 @Singleton
 class GetInitialModelsStateUseCase @Inject constructor() {

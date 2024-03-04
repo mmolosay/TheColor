@@ -6,9 +6,9 @@ import io.github.mmolosay.thecolor.domain.model.ColorScheme.Mode as DomainMode
 
 /**
  * Platform-agnostic data provided by ViewModel to color scheme View.
- * Assembled from [Models] and lambda actions that are private to ViewModel.
+ * Assembled from [Models] and and private methods of ViewModel.
  *
- * Such separation is required, because [Models] and action originate from different places.
+ * Such separation is required, because [Models] and actions (lambdas) originate from different places.
  * [Models] are created by mapping domain models to presentation counterparts.
  * Actions belong to ViewModel and should only be exposed to View as a part of [ColorSchemeData].
  */
