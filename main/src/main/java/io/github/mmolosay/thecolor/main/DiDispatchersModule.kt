@@ -18,6 +18,12 @@ object DiDispatchersModule {
     fun provideDefaultDispatcher(): CoroutineDispatcher =
         Dispatchers.Main.immediate // https://medium.com/androiddevelopers/effective-state-management-for-textfield-in-compose-d6e5b070fbe5
 
+    // TODO: use me
+//    @Provides
+//    @Named("defaultDispatcher")
+//    fun provideDefaultDispatcher(): CoroutineDispatcher =
+//        Dispatchers.Default
+
     @Provides
     @Named("ioDispatcher")
     fun provideIoDispatcher(): CoroutineDispatcher =

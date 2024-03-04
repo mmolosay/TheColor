@@ -1,6 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,11 +18,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.mmolosay.thecolor.presentation.center.ColorCenterShape
+import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
+import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
+import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
+import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
+import io.github.mmolosay.thecolor.presentation.home.HomeUiData.ProceedButton
+import io.github.mmolosay.thecolor.presentation.home.HomeUiData.ShowColorCenter
 
 @Composable
 fun HomeScreen(
@@ -70,13 +79,16 @@ fun HomeScreen(
 
         Spacer(modifier = Modifier.height(16.dp)) // minimum
         Spacer(modifier = Modifier.weight(1f)) // maximum
-        colorCenter()
+        ColorCenterOnTintedSurface(
+            state = uiData.showColorCenter,
+            colorCenter = colorCenter,
+        )
     }
 }
 
 @Composable
 private fun ProceedButton(
-    uiData: HomeUiData.ProceedButton,
+    uiData: ProceedButton,
 ) {
     Button(
         onClick = uiData.onClick,
@@ -87,10 +99,37 @@ private fun ProceedButton(
 }
 
 @Composable
+private fun ColorCenterOnTintedSurface(
+    state: ShowColorCenter,
+    colorCenter: @Composable () -> Unit,
+) {
+    if (state !is ShowColorCenter.Yes) return
+    val colors = rememberContentColors(useLight = state.useLightContentColors)
+    ProvideColorsOnTintedSurface(colors) {
+        Box(
+            modifier = Modifier
+                .graphicsLayer {
+                    clip = true
+                    shape = ColorCenterShape
+                }
+                .background(state.backgroundColor)
+        ) {
+            colorCenter()
+        }
+    }
+}
+
+@Composable
 private fun rememberViewData(): HomeUiData.ViewData {
     val context = LocalContext.current
     return remember { HomeViewData(context) }
 }
+
+@Composable
+private fun rememberContentColors(useLight: Boolean): ColorsOnTintedSurface =
+    remember(useLight) {
+        if (useLight) colorsOnDarkSurface() else colorsOnLightSurface()
+    }
 
 @Preview(showBackground = true)
 @Composable
@@ -132,9 +171,13 @@ private fun Preview() {
 private fun previewUiData() =
     HomeUiData(
         headline = "Find your color",
-        proceedButton = HomeUiData.ProceedButton(
+        proceedButton = ProceedButton(
             onClick = {},
             enabled = true,
             text = "Proceed",
+        ),
+        showColorCenter = ShowColorCenter.Yes(
+            backgroundColor = Color(0xFF_123456),
+            useLightContentColors = true,
         ),
     )

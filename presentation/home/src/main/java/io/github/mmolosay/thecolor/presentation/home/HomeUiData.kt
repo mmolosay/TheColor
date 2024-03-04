@@ -1,6 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.home
 
 import android.content.Context
+import androidx.compose.ui.graphics.Color
 
 /**
  * Framework-oriented data required for Home screen to be presented by Compose.
@@ -9,6 +10,7 @@ import android.content.Context
 data class HomeUiData(
     val headline: String,
     val proceedButton: ProceedButton,
+    val showColorCenter: ShowColorCenter,
 ) {
 
     data class ProceedButton(
@@ -16,6 +18,14 @@ data class HomeUiData(
         val enabled: Boolean,
         val text: String,
     )
+
+    sealed interface ShowColorCenter {
+        data object No : ShowColorCenter
+        data class Yes(
+            val backgroundColor: Color,
+            val useLightContentColors: Boolean,
+        ) : ShowColorCenter
+    }
 
     /**
      * Part of to-be [HomeUiData].

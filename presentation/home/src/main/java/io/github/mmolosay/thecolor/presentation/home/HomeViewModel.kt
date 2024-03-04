@@ -4,35 +4,26 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.model.Color
+import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommandStore
 import io.github.mmolosay.thecolor.presentation.ColorInputColorProvider
+import io.github.mmolosay.thecolor.presentation.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.Command
 import io.github.mmolosay.thecolor.presentation.home.HomeData.CanProceed
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-// TODO: remove "New" suffix once the old ViewModel is gone
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val colorInputColorProvider: ColorInputColorProvider,
     private val colorCenterCommandStore: ColorCenterCommandStore,
+    private val colorToColorInt: ColorToColorIntUseCase,
+    private val isColorLight: IsColorLightUseCase,
+//    @Named("defa") private val defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
-
-    val proceedActionAvailabilityFlow: StateFlow<Boolean> =
-        colorInputColorProvider.colorFlow
-            .map { color -> color != null }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.Eagerly,
-                initialValue = false,
-            )
 
     private val _dataFlow = MutableStateFlow(initialData())
     val dataFlow = _dataFlow.asStateFlow()
@@ -45,23 +36,29 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {  // TODO: not main dispatcher?
             colorInputColorProvider.colorFlow.collect { color ->
                 _dataFlow.update {
-                    it.copy(canProceed = CanProceed(color))
+                    it.copy(
+                        canProceed = CanProceed(color),
+                        colorUsedToProceed = null,
+                    )
                 }
             }
         }
 
-    // TODO: make a part of exposed data
-    fun proceed() {
+    private fun proceed() {
         val color = currentColor ?: return
         val command = Command.FetchData(color)
         viewModelScope.launch {  // TODO: not main dispatcher?
             colorCenterCommandStore.updateWith(command)
+            _dataFlow.update {
+                it.copy(colorUsedToProceed = ColorFromColorInput(color))
+            }
         }
     }
 
     private fun initialData() =
         HomeData(
             canProceed = CanProceed(currentColor),
+            colorUsedToProceed = currentColor?.let { ColorFromColorInput(it) },
         )
 
     private fun CanProceed(color: Color?) =
@@ -69,6 +66,12 @@ class HomeViewModel @Inject constructor(
             true -> CanProceed.Yes(action = ::proceed)
             false -> CanProceed.No
         }
+
+    private fun ColorFromColorInput(color: Color) =
+        HomeData.ColorFromColorInput(
+            color = with(colorToColorInt) { color.toColorInt() },
+            isDark = with(isColorLight) { color.isLight().not() },
+        )
 
     private val currentColor: Color?
         get() = colorInputColorProvider.colorFlow.value
