@@ -10,11 +10,13 @@ import io.github.mmolosay.thecolor.presentation.ColorInputColorProvider
 import io.github.mmolosay.thecolor.presentation.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.Command
 import io.github.mmolosay.thecolor.presentation.home.HomeData.CanProceed
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import javax.inject.Named
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -22,7 +24,7 @@ class HomeViewModel @Inject constructor(
     private val colorCenterCommandStore: ColorCenterCommandStore,
     private val colorToColorInt: ColorToColorIntUseCase,
     private val isColorLight: IsColorLightUseCase,
-//    @Named("defa") private val defaultDispatcher: CoroutineDispatcher,
+    @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val _dataFlow = MutableStateFlow(initialData())
@@ -33,7 +35,7 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun collectColorInputColor() =
-        viewModelScope.launch {  // TODO: not main dispatcher?
+        viewModelScope.launch(defaultDispatcher) {
             colorInputColorProvider.colorFlow.collect { color ->
                 _dataFlow.update {
                     it.copy(
@@ -47,7 +49,7 @@ class HomeViewModel @Inject constructor(
     private fun proceed() {
         val color = currentColor ?: return
         val command = Command.FetchData(color)
-        viewModelScope.launch {  // TODO: not main dispatcher?
+        viewModelScope.launch(defaultDispatcher) {
             colorCenterCommandStore.issue(command)
             _dataFlow.update {
                 it.copy(colorUsedToProceed = ColorFromColorInput(color))
