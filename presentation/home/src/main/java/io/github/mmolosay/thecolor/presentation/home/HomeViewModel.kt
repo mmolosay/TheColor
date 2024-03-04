@@ -48,7 +48,7 @@ class HomeViewModel @Inject constructor(
         val color = currentColor ?: return
         val command = Command.FetchData(color)
         viewModelScope.launch {  // TODO: not main dispatcher?
-            colorCenterCommandStore.updateWith(command)
+            colorCenterCommandStore.issue(command)
             _dataFlow.update {
                 it.copy(colorUsedToProceed = ColorFromColorInput(color))
             }

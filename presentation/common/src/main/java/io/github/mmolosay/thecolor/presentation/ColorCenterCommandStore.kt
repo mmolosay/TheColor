@@ -16,8 +16,7 @@ class ColorCenterCommandStore @Inject constructor() : ColorCenterCommandProvider
     private val _commandFlow = MutableSharedFlow<Command>(replay = 1)
     override val commandFlow: Flow<Command> = _commandFlow.asSharedFlow()
 
-    // TODO: rename to "issue"
-    suspend fun updateWith(command: Command) {
+    suspend infix fun issue(command: Command) {
         _commandFlow.emit(command)
     }
 }
