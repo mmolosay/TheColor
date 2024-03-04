@@ -17,64 +17,88 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Named
+import javax.inject.Singleton
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
+    getInitialModels: GetInitialModelsUseCase,
     private val colorInputColorProvider: ColorInputColorProvider,
     private val colorCenterCommandStore: ColorCenterCommandStore,
-    private val colorToColorInt: ColorToColorIntUseCase,
-    private val isColorLight: IsColorLightUseCase,
+    private val createColorFromColorInput: CreateColorFromColorInputModelUseCase,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
-    private val _dataFlow = MutableStateFlow(initialData())
+    private val _dataFlow = MutableStateFlow(HomeData(getInitialModels()))
     val dataFlow = _dataFlow.asStateFlow()
 
     init {
-        collectColorInputColor()
+        collectColorFromColorInput()
     }
 
-    private fun collectColorInputColor() =
+    private fun collectColorFromColorInput() =
         viewModelScope.launch(defaultDispatcher) {
-            colorInputColorProvider.colorFlow.collect { color ->
-                _dataFlow.update {
-                    it.copy(
-                        canProceed = CanProceed(color),
-                        colorUsedToProceed = null,
-                    )
-                }
-            }
+            colorInputColorProvider.colorFlow.collect(::onColorFromColorInput)
         }
 
+    private fun onColorFromColorInput(color: Color?) {
+        val models = HomeData.Models(
+            canProceed = (color != null),
+            colorUsedToProceed = null, // 'proceed' action wasn't invoked yet
+        )
+        _dataFlow updateWith models
+    }
+
     private fun proceed() {
-        val color = currentColor ?: return
+        val color = colorInputColorProvider.colorFlow.value ?: return
         val command = Command.FetchData(color)
         viewModelScope.launch(defaultDispatcher) {
             colorCenterCommandStore.issue(command)
             _dataFlow.update {
-                it.copy(colorUsedToProceed = ColorFromColorInput(color))
+                it.copy(colorUsedToProceed = createColorFromColorInput(color))
             }
         }
     }
 
-    private fun initialData() =
+    /** Creates [HomeData] by combining passed [models] with ViewModel methods. */
+    private fun HomeData(models: HomeData.Models) =
         HomeData(
-            canProceed = CanProceed(currentColor),
-            colorUsedToProceed = currentColor?.let { ColorFromColorInput(it) },
+            canProceed = if (models.canProceed) CanProceed.Yes(action = ::proceed) else CanProceed.No,
+            colorUsedToProceed = models.colorUsedToProceed,
         )
 
-    private fun CanProceed(color: Color?) =
-        when (color != null) {
-            true -> CanProceed.Yes(action = ::proceed)
-            false -> CanProceed.No
-        }
+    private infix fun MutableStateFlow<HomeData>.updateWith(models: HomeData.Models) {
+        this.value = HomeData(models)
+    }
+}
 
-    private fun ColorFromColorInput(color: Color) =
+/**
+ * Exists to make unit testing easier.
+ * Replaces a long chain of actions that set [HomeViewModel.dataFlow] in "given" part
+ * of the test to required value.
+ */
+@Singleton
+class GetInitialModelsUseCase @Inject constructor(
+    private val colorInputColorProvider: ColorInputColorProvider,
+) {
+
+    operator fun invoke(): HomeData.Models {
+        val color = colorInputColorProvider.colorFlow.value
+        return HomeData.Models(
+            canProceed = (color != null),
+            colorUsedToProceed = null, // 'proceed' action wasn't invoked yet
+        )
+    }
+}
+
+@Singleton
+class CreateColorFromColorInputModelUseCase @Inject constructor(
+    private val colorToColorInt: ColorToColorIntUseCase,
+    private val isColorLight: IsColorLightUseCase,
+) {
+
+    operator fun invoke(color: Color) =
         HomeData.ColorFromColorInput(
             color = with(colorToColorInt) { color.toColorInt() },
             isDark = with(isColorLight) { color.isLight().not() },
         )
-
-    private val currentColor: Color?
-        get() = colorInputColorProvider.colorFlow.value
 }
