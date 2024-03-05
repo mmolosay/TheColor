@@ -13,6 +13,7 @@ import io.github.mmolosay.thecolor.presentation.home.HomeData.CanProceed
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -24,7 +25,7 @@ class HomeViewModel @Inject constructor(
     getInitialModels: GetInitialModelsUseCase,
     private val colorInputColorProvider: ColorInputColorProvider,
     private val colorCenterCommandStore: ColorCenterCommandStore,
-    private val createColorFromColorInput: CreateColorFromColorInputModelUseCase,
+    private val createColorData: CreateColorDataUseCase,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -54,7 +55,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch(defaultDispatcher) {
             colorCenterCommandStore.issue(command)
             _dataFlow.update {
-                it.copy(colorUsedToProceed = createColorFromColorInput(color))
+                it.copy(colorUsedToProceed = createColorData(color))
             }
         }
     }
@@ -91,13 +92,13 @@ class GetInitialModelsUseCase @Inject constructor(
 }
 
 @Singleton
-class CreateColorFromColorInputModelUseCase @Inject constructor(
+class CreateColorDataUseCase @Inject constructor(
     private val colorToColorInt: ColorToColorIntUseCase,
     private val isColorLight: IsColorLightUseCase,
 ) {
 
     operator fun invoke(color: Color) =
-        HomeData.ColorFromColorInput(
+        HomeData.ColorData(
             color = with(colorToColorInt) { color.toColorInt() },
             isDark = with(isColorLight) { color.isLight().not() },
         )

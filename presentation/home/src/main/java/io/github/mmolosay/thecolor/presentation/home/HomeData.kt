@@ -13,7 +13,7 @@ import io.github.mmolosay.thecolor.presentation.home.HomeData.Models
  */
 data class HomeData(
     val canProceed: CanProceed,
-    val colorUsedToProceed: ColorFromColorInput?,
+    val colorUsedToProceed: ColorData?,
 ) {
 
     sealed interface CanProceed {
@@ -21,13 +21,13 @@ data class HomeData(
         data class Yes(val action: () -> Unit) : CanProceed
     }
 
-    data class ColorFromColorInput(
+    data class ColorData(
         val color: ColorInt,
         val isDark: Boolean,
     )
 
     data class Models(
         val canProceed: Boolean,
-        val colorUsedToProceed: ColorFromColorInput?,
+        val colorUsedToProceed: ColorData?,
     )
 }

@@ -12,7 +12,7 @@ fun HomeUiData(
         showColorCenter = ShowColorCenter(data.colorUsedToProceed)
     )
 
-private fun ShowColorCenter(data: HomeData.ColorFromColorInput?) =
+private fun ShowColorCenter(data: HomeData.ColorData?) =
     when (data != null) {
         true -> HomeUiData.ShowColorCenter.Yes(
             backgroundColor = data.color.toCompose(),

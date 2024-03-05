@@ -4,7 +4,7 @@ import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommandStore
 import io.github.mmolosay.thecolor.presentation.ColorInputColorProvider
 import io.github.mmolosay.thecolor.presentation.home.HomeData.CanProceed
-import io.github.mmolosay.thecolor.presentation.home.HomeData.ColorFromColorInput
+import io.github.mmolosay.thecolor.presentation.home.HomeData.ColorData
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -27,7 +27,7 @@ class HomeViewModelTest {
     val getInitialModels: GetInitialModelsUseCase = mockk()
     val colorInputColorProvider: ColorInputColorProvider = mockk()
     val colorCenterCommandStore: ColorCenterCommandStore = mockk()
-    val createColorFromColorInput: CreateColorFromColorInputModelUseCase = mockk()
+    val createColorFromColorInput: CreateColorDataUseCase = mockk()
 
     lateinit var sut: HomeViewModel
 
@@ -105,7 +105,7 @@ class HomeViewModelTest {
         )
         every { colorInputColorProvider.colorFlow } returns MutableStateFlow(/*color*/ mockk())
         coEvery { colorCenterCommandStore.issue(command = any()) } just runs
-        val colorUsedToProceed: ColorFromColorInput = mockk()
+        val colorUsedToProceed: ColorData = mockk()
         every { createColorFromColorInput(color = any()) } returns colorUsedToProceed
         createSut()
 
@@ -159,7 +159,7 @@ class HomeViewModelTest {
             getInitialModels = getInitialModels,
             colorInputColorProvider = colorInputColorProvider,
             colorCenterCommandStore = colorCenterCommandStore,
-            createColorFromColorInput = createColorFromColorInput,
+            createColorData = createColorFromColorInput,
             defaultDispatcher = mainDispatcherRule.testDispatcher,
         ).also {
             sut = it
