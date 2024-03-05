@@ -38,7 +38,9 @@ class HomeViewModel @Inject constructor(
 
     private fun collectColorFromColorInput() =
         viewModelScope.launch(defaultDispatcher) {
-            colorInputColorProvider.colorFlow.collect(::onColorFromColorInput)
+            colorInputColorProvider.colorFlow
+                .drop(1) // replayed value
+                .collect(::onColorFromColorInput)
         }
 
     private fun onColorFromColorInput(color: Color?) {
