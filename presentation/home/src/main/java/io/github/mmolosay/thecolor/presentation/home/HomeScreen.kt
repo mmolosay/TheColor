@@ -17,11 +17,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -91,12 +93,20 @@ fun HomeScreen(
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun ProceedButton(
     uiData: ProceedButton,
 ) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val wrappedOnClick: () -> Unit = remember(uiData) {
+        {
+            uiData.onClick()
+            keyboardController?.hide()
+        }
+    }
     Button(
-        onClick = uiData.onClick,
+        onClick = wrappedOnClick,
         enabled = uiData.enabled,
     ) {
         Text(text = uiData.text)
