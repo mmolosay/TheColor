@@ -108,6 +108,15 @@ private fun ColorCenterOnTintedSurface(
     state: ShowColorCenter,
     colorCenter: @Composable () -> Unit,
 ) {
+    val view = LocalView.current
+    SideEffect {
+        if (view.isInEditMode) return@SideEffect
+        val window = view.context.findActivityContext().window
+        val controller = WindowCompat.getInsetsController(window, window.decorView)
+        window.navigationBarColor = Color.White.toArgb() // TODO: hardcoded
+        controller.isAppearanceLightNavigationBars = true // TODO: hardcoded
+    }
+
     if (state !is ShowColorCenter.Yes) return
     val colors = rememberContentColors(useLight = state.useLightContentColors)
     ProvideColorsOnTintedSurface(colors) {
@@ -123,7 +132,6 @@ private fun ColorCenterOnTintedSurface(
         }
     }
 
-    val view = LocalView.current
     SideEffect {
         if (view.isInEditMode) return@SideEffect
         val window = view.context.findActivityContext().window
