@@ -14,14 +14,18 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterShape
 import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
@@ -29,6 +33,7 @@ import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurf
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
+import io.github.mmolosay.thecolor.presentation.findActivityContext
 import io.github.mmolosay.thecolor.presentation.home.HomeUiData.ProceedButton
 import io.github.mmolosay.thecolor.presentation.home.HomeUiData.ShowColorCenter
 
@@ -116,6 +121,15 @@ private fun ColorCenterOnTintedSurface(
         ) {
             colorCenter()
         }
+    }
+
+    val view = LocalView.current
+    SideEffect {
+        if (view.isInEditMode) return@SideEffect
+        val window = view.context.findActivityContext().window
+        val controller = WindowCompat.getInsetsController(window, window.decorView)
+        window.navigationBarColor = state.backgroundColor.toArgb()
+        controller.isAppearanceLightNavigationBars = !state.useLightContentColors
     }
 }
 
