@@ -1,39 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="feature_home">Home</string>
-
-    <!-- region Home -->
-
     <string name="home_headline">Find your color</string>
     <string name="home_proceed_btn">Proceed</string>
-
-    <!-- endregion -->
-
-    <!-- region Color General -->
-
-    <string name="color_hex_label" translatable="false">HEX</string>
-    <string name="color_rgb_label" translatable="false">RGB</string>
-
-    <!-- endregion -->
-
-    <!-- region Color Data -->
-
-    <string name="color_data_no_content_message">Can\'t fetch color information :(</string>
-    <string name="color_data_no_content_button">Retry</string>
-
-    <string name="color_data_details_page_change_page_btn">View color scheme</string>
-    <string name="color_data_scheme_page_change_page_btn">View color details</string>
-
-    <!-- endregion -->
-
-    <!-- region Color Scheme -->
-
-    <string name="color_scheme_config_mode_title">Mode:</string>
-    <string name="color_scheme_config_sample_count_title">Sample count:</string>
-
-    <string name="color_scheme_editor_dispatch_changes_btn">Apply changes</string>
-
-    <!-- endregion -->
 
 </resources>

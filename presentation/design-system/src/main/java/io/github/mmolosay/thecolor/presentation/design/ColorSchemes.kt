@@ -4,7 +4,6 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 
 @Composable
 internal fun UiTheme.colorScheme() =
@@ -21,9 +20,7 @@ private fun colorScheme(dark: Boolean) =
     }
 
 private val lightColorScheme by lazy {
-    lightColorScheme(
-        primary = Color(0xFF6200EE),
-    )
+    lightColorScheme()
 }
 
 private val darkColorScheme by lazy {

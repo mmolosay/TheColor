@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-
-    Copied from material_on_background_disabled.xml and tweaked
--->
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:alpha="@dimen/material_emphasis_disabled_background" android:color="?attr/colorOnBackground"/>
-</selector>
