@@ -18,10 +18,34 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
+import io.github.mmolosay.thecolor.presentation.details.ColorDetails
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel
+import io.github.mmolosay.thecolor.presentation.scheme.ColorScheme
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
+
+@Composable
+fun ColorCenter(
+    vm: ColorCenterViewModel,
+    modifier: Modifier = Modifier,
+) {
+    val detailsViewModel: ColorDetailsViewModel = hiltViewModel()
+    val schemeViewModel: ColorSchemeViewModel = hiltViewModel()
+    ColorCenter(
+        vm = vm,
+        details = {
+            ColorDetails(vm = detailsViewModel)
+        },
+        scheme = {
+            ColorScheme(vm = schemeViewModel)
+        },
+        modifier = modifier,
+    )
+}
 
 @Composable
 fun ColorCenter(

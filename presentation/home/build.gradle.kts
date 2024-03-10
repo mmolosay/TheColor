@@ -46,10 +46,8 @@ dependencies {
     implementation(project(":presentation:common"))
     implementation(project(":presentation:design-system"))
     implementation(project(":presentation:color-input"))
-    implementation(project(":presentation:color-details"))
-    implementation(project(":presentation:color-scheme"))
-    implementation(project(":presentation:color-center"))
     implementation(project(":presentation:color-preview"))
+    implementation(project(":presentation:color-center"))
 
     // Kotlin
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.coroutines.get()}")

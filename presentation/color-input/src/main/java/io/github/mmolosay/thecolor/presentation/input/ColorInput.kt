@@ -24,7 +24,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.input.ColorInputData.ViewType
 import io.github.mmolosay.thecolor.presentation.input.ColorInputUiData.ViewData
 import io.github.mmolosay.thecolor.presentation.input.field.TextFieldData
@@ -35,14 +37,13 @@ import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexViewModel
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgb
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbUiData
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbViewModel
-import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 
 @Composable
 fun ColorInput(
     vm: ColorInputViewModel,
-    hexViewModel: ColorInputHexViewModel,
-    rgbViewModel: ColorInputRgbViewModel,
 ) {
+    val hexViewModel: ColorInputHexViewModel = hiltViewModel()
+    val rgbViewModel: ColorInputRgbViewModel = hiltViewModel()
     val viewData = rememberViewData()
     val data = vm.dataFlow.collectAsStateWithLifecycle().value
     val uiData = rememberUiData(data, viewData)

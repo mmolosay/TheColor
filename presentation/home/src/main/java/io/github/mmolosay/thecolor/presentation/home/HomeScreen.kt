@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -28,8 +29,11 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.mmolosay.thecolor.presentation.center.ColorCenter
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterShape
+import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
@@ -38,6 +42,38 @@ import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.findActivityContext
 import io.github.mmolosay.thecolor.presentation.home.HomeUiData.ProceedButton
 import io.github.mmolosay.thecolor.presentation.home.HomeUiData.ShowColorCenter
+import io.github.mmolosay.thecolor.presentation.input.ColorInput
+import io.github.mmolosay.thecolor.presentation.input.ColorInputViewModel
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreview
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
+
+@Composable
+fun HomeScreen(
+    vm: HomeViewModel,
+) {
+    val colorInputViewModel: ColorInputViewModel = hiltViewModel()
+    val colorPreviewViewModel: ColorPreviewViewModel = hiltViewModel()
+    val colorCenterViewModel: ColorCenterViewModel = hiltViewModel()
+    HomeScreen(
+        vm = vm,
+        colorInput = {
+            ColorInput(
+                vm = colorInputViewModel,
+            )
+        },
+        colorPreview = {
+            ColorPreview(
+                vm = colorPreviewViewModel,
+            )
+        },
+        colorCenter = {
+            ColorCenter(
+                vm = colorCenterViewModel,
+                modifier = Modifier.padding(top = 24.dp),
+            )
+        },
+    )
+}
 
 @Composable
 fun HomeScreen(
