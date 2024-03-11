@@ -55,45 +55,47 @@ fun HomeScreen(
     val colorInputViewModel: ColorInputViewModel = hiltViewModel()
     val colorPreviewViewModel: ColorPreviewViewModel = hiltViewModel()
     val colorCenterViewModel: ColorCenterViewModel = hiltViewModel()
-    Scaffold { // TODO: use paddings
-        Home(
-            vm = vm,
-            colorInput = {
-                ColorInput(
-                    vm = colorInputViewModel,
-                )
-            },
-            colorPreview = {
-                ColorPreview(
-                    vm = colorPreviewViewModel,
-                )
-            },
-            colorCenter = {
-                ColorCenter(
-                    vm = colorCenterViewModel,
-                    modifier = Modifier.padding(top = 24.dp),
-                )
-            },
-        )
-    }
+
+    val data = vm.dataFlow.collectAsStateWithLifecycle().value
+    val viewData = rememberViewData()
+    val uiData = HomeUiData(data, viewData)
+
+    HomeScreen(
+        uiData = uiData,
+        colorInput = {
+            ColorInput(
+                vm = colorInputViewModel,
+            )
+        },
+        colorPreview = {
+            ColorPreview(
+                vm = colorPreviewViewModel,
+            )
+        },
+        colorCenter = {
+            ColorCenter(
+                vm = colorCenterViewModel,
+                modifier = Modifier.padding(top = 24.dp),
+            )
+        },
+    )
 }
 
 @Composable
-fun Home(
-    vm: HomeViewModel,
+fun HomeScreen(
+    uiData: HomeUiData,
     colorInput: @Composable () -> Unit,
     colorPreview: @Composable () -> Unit,
     colorCenter: @Composable () -> Unit,
 ) {
-    val data = vm.dataFlow.collectAsStateWithLifecycle().value
-    val viewData = rememberViewData()
-    val uiData = HomeUiData(data, viewData)
-    Home(
-        uiData = uiData,
-        colorInput = colorInput,
-        colorPreview = colorPreview,
-        colorCenter = colorCenter,
-    )
+    Scaffold { // TODO: use paddings
+        Home(
+            uiData = uiData,
+            colorInput = colorInput,
+            colorPreview = colorPreview,
+            colorCenter = colorCenter,
+        )
+    }
 }
 
 @Composable
@@ -206,7 +208,7 @@ private fun rememberContentColors(useLight: Boolean): ColorsOnTintedSurface =
 @Composable
 private fun Preview() {
     TheColorTheme {
-        Home(
+        HomeScreen(
             uiData = previewUiData(),
             colorInput = {
                 Text(
