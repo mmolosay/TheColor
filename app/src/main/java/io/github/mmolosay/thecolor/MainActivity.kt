@@ -46,36 +46,36 @@ class MainActivity : AppCompatActivity() {
                 darkScrim = Color.TRANSPARENT,
             ),
         )
+}
 
-    @Composable
-    private fun Application() {
-        val navController = rememberNavController()
-        NavHost(
-            navController = navController,
-            modifier = Modifier
-                .statusBarsPadding()
-                .navigationBarsPadding(),
-        )
+@Composable
+private fun Application() {
+    val navController = rememberNavController()
+    AppNavHost(
+        navController = navController,
+        modifier = Modifier
+            .statusBarsPadding()
+            .navigationBarsPadding(),
+    )
+}
+
+@Composable
+private fun AppNavHost(
+    navController: NavHostController,
+    modifier: Modifier = Modifier,
+) =
+    NavHost(
+        navController = navController,
+        startDestination = NavDest.Home.route,
+        modifier = modifier,
+    ) {
+        home()
     }
 
-    @Composable
-    private fun NavHost(
-        navController: NavHostController,
-        modifier: Modifier = Modifier,
-    ) =
-        NavHost(
-            navController = navController,
-            startDestination = NavDest.Home.route,
-            modifier = modifier,
-        ) {
-            home()
-        }
-
-    private fun NavGraphBuilder.home() =
-        composable(route = NavDest.Home.route) {
-            val homeViewModel: HomeViewModel = hiltViewModel()
-            HomeScreen(
-                vm = homeViewModel,
-            )
-        }
-}
+private fun NavGraphBuilder.home() =
+    composable(route = NavDest.Home.route) {
+        val homeViewModel: HomeViewModel = hiltViewModel()
+        HomeScreen(
+            vm = homeViewModel,
+        )
+    }
