@@ -13,6 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
@@ -54,25 +55,27 @@ fun HomeScreen(
     val colorInputViewModel: ColorInputViewModel = hiltViewModel()
     val colorPreviewViewModel: ColorPreviewViewModel = hiltViewModel()
     val colorCenterViewModel: ColorCenterViewModel = hiltViewModel()
-    HomeScreen(
-        vm = vm,
-        colorInput = {
-            ColorInput(
-                vm = colorInputViewModel,
-            )
-        },
-        colorPreview = {
-            ColorPreview(
-                vm = colorPreviewViewModel,
-            )
-        },
-        colorCenter = {
-            ColorCenter(
-                vm = colorCenterViewModel,
-                modifier = Modifier.padding(top = 24.dp),
-            )
-        },
-    )
+    Scaffold { // TODO: use paddings
+        HomeScreen(
+            vm = vm,
+            colorInput = {
+                ColorInput(
+                    vm = colorInputViewModel,
+                )
+            },
+            colorPreview = {
+                ColorPreview(
+                    vm = colorPreviewViewModel,
+                )
+            },
+            colorCenter = {
+                ColorCenter(
+                    vm = colorCenterViewModel,
+                    modifier = Modifier.padding(top = 24.dp),
+                )
+            },
+        )
+    }
 }
 
 @Composable

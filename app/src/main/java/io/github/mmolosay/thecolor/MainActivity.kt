@@ -6,8 +6,6 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -53,9 +51,6 @@ private fun Application() {
     val navController = rememberNavController()
     AppNavHost(
         navController = navController,
-        modifier = Modifier
-            .statusBarsPadding()
-            .navigationBarsPadding(),
     )
 }
 
