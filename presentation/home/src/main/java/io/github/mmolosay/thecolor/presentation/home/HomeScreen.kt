@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
@@ -88,12 +89,13 @@ fun HomeScreen(
     colorPreview: @Composable () -> Unit,
     colorCenter: @Composable () -> Unit,
 ) {
-    Scaffold { // TODO: use paddings
+    Scaffold { contentPadding ->
         Home(
             uiData = uiData,
             colorInput = colorInput,
             colorPreview = colorPreview,
             colorCenter = colorCenter,
+            modifier = Modifier.padding(contentPadding),
         )
     }
 }
@@ -104,9 +106,10 @@ fun Home(
     colorInput: @Composable () -> Unit,
     colorPreview: @Composable () -> Unit,
     colorCenter: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .verticalScroll(state = rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -160,12 +163,13 @@ private fun ColorCenterOnTintedSurface(
     colorCenter: @Composable () -> Unit,
 ) {
     val view = LocalView.current
+    val window = view.context.findActivityContext().window
     SideEffect {
         if (view.isInEditMode) return@SideEffect
-        val window = view.context.findActivityContext().window
-        val controller = WindowCompat.getInsetsController(window, window.decorView)
-        window.navigationBarColor = Color.White.toArgb() // TODO: hardcoded
-        controller.isAppearanceLightNavigationBars = true // TODO: hardcoded
+        window.navigationBarColor = Color.Transparent.toArgb()
+        WindowCompat.getInsetsController(window, window.decorView).run {
+            isAppearanceLightNavigationBars = true // TODO: hardcoded
+        }
     }
 
     if (state !is ShowColorCenter.Yes) return
@@ -185,10 +189,10 @@ private fun ColorCenterOnTintedSurface(
 
     SideEffect {
         if (view.isInEditMode) return@SideEffect
-        val window = view.context.findActivityContext().window
-        val controller = WindowCompat.getInsetsController(window, window.decorView)
         window.navigationBarColor = state.backgroundColor.toArgb()
-        controller.isAppearanceLightNavigationBars = !state.useLightContentColors
+        WindowCompat.getInsetsController(window, window.decorView).run {
+            isAppearanceLightNavigationBars = !state.useLightContentColors
+        }
     }
 }
 
