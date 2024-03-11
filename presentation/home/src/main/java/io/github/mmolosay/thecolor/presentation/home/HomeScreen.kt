@@ -56,7 +56,7 @@ fun HomeScreen(
     val colorPreviewViewModel: ColorPreviewViewModel = hiltViewModel()
     val colorCenterViewModel: ColorCenterViewModel = hiltViewModel()
     Scaffold { // TODO: use paddings
-        HomeScreen(
+        Home(
             vm = vm,
             colorInput = {
                 ColorInput(
@@ -79,7 +79,7 @@ fun HomeScreen(
 }
 
 @Composable
-fun HomeScreen(
+fun Home(
     vm: HomeViewModel,
     colorInput: @Composable () -> Unit,
     colorPreview: @Composable () -> Unit,
@@ -88,7 +88,7 @@ fun HomeScreen(
     val data = vm.dataFlow.collectAsStateWithLifecycle().value
     val viewData = rememberViewData()
     val uiData = HomeUiData(data, viewData)
-    HomeScreen(
+    Home(
         uiData = uiData,
         colorInput = colorInput,
         colorPreview = colorPreview,
@@ -97,7 +97,7 @@ fun HomeScreen(
 }
 
 @Composable
-fun HomeScreen(
+fun Home(
     uiData: HomeUiData,
     colorInput: @Composable () -> Unit,
     colorPreview: @Composable () -> Unit,
@@ -206,7 +206,7 @@ private fun rememberContentColors(useLight: Boolean): ColorsOnTintedSurface =
 @Composable
 private fun Preview() {
     TheColorTheme {
-        HomeScreen(
+        Home(
             uiData = previewUiData(),
             colorInput = {
                 Text(
