@@ -107,6 +107,7 @@ fun ColorCenter(
         modifier = modifier,
         verticalAlignment = Alignment.Top,
         beyondBoundsPageCount = pages.size, // keep all pages loaded to keep height of Pager constant, TODO: solve with SubcomposeLayout?
+        key = { index -> index }, // doesn't change
     ) { i ->
         val page = pages[i]
         page()
