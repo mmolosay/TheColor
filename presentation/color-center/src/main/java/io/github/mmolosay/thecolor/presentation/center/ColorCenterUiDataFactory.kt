@@ -9,18 +9,23 @@ fun ColorCenterUiData(
     viewData: ViewData,
 ): ColorCenterUiData =
     ColorCenterUiData(
-        page = data.page,
-        onPageChanged = data.onPageChanged,
         detailsPage = Page(
             changePageButton = ChangePageButton(
                 text = viewData.detailsPageChangePageButtonText,
-                onClick = { data.changePage(destPage = 1) },
+                onClick = { data.changePage(1) },
             ),
         ),
         schemePage = Page(
             changePageButton = ChangePageButton(
                 text = viewData.schemePageChangePageButtonText,
-                onClick = { data.changePage(destPage = 0) },
+                onClick = { data.changePage(0) },
             ),
         ),
+        changePageEvent = data.changePageEvent?.toUi(),
+    )
+
+private fun ColorCenterData.ChangePageEvent.toUi() =
+    ColorCenterUiData.ChangePageEvent(
+        destPage = this.destPage,
+        onConsumed = this.onConsumed,
     )

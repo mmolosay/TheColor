@@ -10,8 +10,10 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -65,6 +67,7 @@ fun ColorCenter(
     )
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ColorCenter(
     uiData: ColorCenterUiData,
@@ -72,57 +75,44 @@ fun ColorCenter(
     scheme: @Composable () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    ColorCenter(
-        {
-            DetailsPage(
-                content = details,
-                uiData = uiData.detailsPage,
-            )
-        },
-        {
-            SchemePage(
-                content = scheme,
-                uiData = uiData.schemePage,
-            )
-        },
-        page = uiData.page,
-        onPageChanged = uiData.onPageChanged,
-        modifier = modifier,
-    )
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun ColorCenter(
-    vararg pages: @Composable () -> Unit,
-    page: Int,
-    onPageChanged: (Int) -> Unit,
-    modifier: Modifier = Modifier,
-) {
+    val pages: List<@Composable () -> Unit> = remember {
+        listOf(
+            {
+                DetailsPage(
+                    content = details,
+                    uiData = uiData.detailsPage,
+                )
+            },
+            {
+                SchemePage(
+                    content = scheme,
+                    uiData = uiData.schemePage,
+                )
+            },
+        )
+    }
     val pagerState = rememberPagerState(
         pageCount = { pages.size },
     )
+    var userScrollEnabled by remember { mutableStateOf(true) }
     HorizontalPager(
         state = pagerState,
         modifier = modifier,
         verticalAlignment = Alignment.Top,
         beyondBoundsPageCount = pages.size, // keep all pages loaded to keep height of Pager constant, TODO: solve with SubcomposeLayout?
-        key = { index -> index }, // doesn't change
+        userScrollEnabled = userScrollEnabled,
+        key = { index -> index }, // list of pages doesn't change
     ) { i ->
         val page = pages[i]
         page()
     }
 
-    LaunchedEffect(page) {
-        with(pagerState) {
-            if (isScrollInProgress) return@LaunchedEffect // prevent user interrupting
-            animateScrollToPage(page = page)
-        }
-    }
-    LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.settledPage }.collect { newPage ->
-            onPageChanged(newPage)
-        }
+    LaunchedEffect(uiData.changePageEvent) {
+        val event = uiData.changePageEvent ?: return@LaunchedEffect
+        userScrollEnabled = false
+        pagerState.animateScrollToPage(page = event.destPage)
+        event.onConsumed()
+        userScrollEnabled = true
     }
 }
 
@@ -162,8 +152,6 @@ private fun Preview() {
 
 private fun previewUiData() =
     ColorCenterUiData(
-        page = 0,
-        onPageChanged = {},
         detailsPage = ColorCenterUiData.Page(
             changePageButton = ColorCenterUiData.ChangePageButton(
                 text = "View color scheme",
@@ -176,4 +164,5 @@ private fun previewUiData() =
                 onClick = {},
             ),
         ),
+        changePageEvent = null,
     )

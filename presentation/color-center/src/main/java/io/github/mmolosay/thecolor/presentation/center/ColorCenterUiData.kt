@@ -8,10 +8,9 @@ import io.github.mmolosay.thecolor.presentation.center.ColorCenterUiData.ViewDat
  * It is a combination of [ColorCenterData] and [ViewData].
  */
 data class ColorCenterUiData(
-    val page: Int,
-    val onPageChanged: OnPageChangedAction,
     val detailsPage: Page,
     val schemePage: Page,
+    val changePageEvent: ChangePageEvent?,
 ) {
 
     data class Page(
@@ -24,9 +23,18 @@ data class ColorCenterUiData(
         val onClick: () -> Unit,
     )
 
-    fun interface OnPageChangedAction : (Int) -> Unit {
-        override operator fun invoke(newPage: Int)
-    }
+    /*
+     * Same as ColorCenterData.ChangePageEvent. It's a coincidence and a case of false duplication.
+     * Those two models speak in different languages, even though it has happened that the fields are the same.
+     *
+     * Imagine: if HorizontalPager() Composable was using String type for tracking pages (instead of Int),
+     * and ViewModel would've still be using Int for this purpose, then reusing the same model (with either String or Int)
+     * would have caused additional conversion logic (String <-> Int) in the wrong place.
+     */
+    data class ChangePageEvent(
+        val destPage: Int,
+        val onConsumed: () -> Unit,
+    )
 
     /**
      * Part of to-be [ColorCenterUiData].
