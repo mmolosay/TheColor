@@ -9,9 +9,6 @@ class GetColorDetailsUseCase @Inject constructor(
     private val colorRepository: ColorRepository,
 ) {
 
-    suspend operator fun invoke(colorHex: String): ColorDetails =
-        colorRepository.getColorDetails(colorHex)
-
     suspend operator fun invoke(color: Color): ColorDetails =
         colorRepository.getColorDetails(color)
 
