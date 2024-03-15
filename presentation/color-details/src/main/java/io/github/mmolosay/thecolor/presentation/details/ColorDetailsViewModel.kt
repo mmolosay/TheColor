@@ -64,41 +64,41 @@ class CreateColorDetailsDataUseCase @Inject constructor(
 
     operator fun invoke(details: DomainColorDetails) =
         ColorDetailsData(
-            colorName = details.name,
-            hex = ColorDetailsData.Hex(value = details.hexValue),
+            colorName = details.colorName,
+            hex = ColorDetailsData.Hex(value = details.colorHexString.withNumberSign),
             rgb = ColorDetailsData.Rgb(
-                r = details.rgbR.toString(),
-                g = details.rgbG.toString(),
-                b = details.rgbB.toString(),
+                r = details.colorTranslations.rgb.standard.r.toString(),
+                g = details.colorTranslations.rgb.standard.g.toString(),
+                b = details.colorTranslations.rgb.standard.b.toString(),
             ),
             hsl = ColorDetailsData.Hsl(
-                h = details.hslH.toString(),
-                s = details.hslS.toString(),
-                l = details.hslL.toString(),
+                h = details.colorTranslations.hsl.standard.h.toString(),
+                s = details.colorTranslations.hsl.standard.s.toString(),
+                l = details.colorTranslations.hsl.standard.l.toString(),
             ),
             hsv = ColorDetailsData.Hsv(
-                h = details.hsvH.toString(),
-                s = details.hsvS.toString(),
-                v = details.hsvV.toString(),
+                h = details.colorTranslations.hsv.standard.h.toString(),
+                s = details.colorTranslations.hsv.standard.s.toString(),
+                v = details.colorTranslations.hsv.standard.v.toString(),
             ),
             cmyk = ColorDetailsData.Cmyk(
-                c = details.cmykC.toString(),
-                m = details.cmykM.toString(),
-                y = details.cmykY.toString(),
-                k = details.cmykK.toString(),
+                c = details.colorTranslations.cmyk.standard.c.toString(),
+                m = details.colorTranslations.cmyk.standard.m.toString(),
+                y = details.colorTranslations.cmyk.standard.y.toString(),
+                k = details.colorTranslations.cmyk.standard.k.toString(),
             ),
             exactMatch = ExactMatch(details),
         )
 
     private fun ExactMatch(details: DomainColorDetails): ExactMatch =
-        if (details.isNameMatchExact) {
+        if (details.matchesExact) {
             ExactMatch.Yes
         } else {
             ExactMatch.No(
-                exactValue = details.exactNameHex,
-                exactColor = with(colorToColorInt) { details.exact.toColorInt() },
+                exactValue = details.exact.hexStringWithNumberSign,
+                exactColor = with(colorToColorInt) { details.exact.color.toColorInt() },
                 onExactClick = { /* TODO */ },
-                deviation = details.exactNameHexDistance.toString(),
+                deviation = details.distanceFromExact.toString(),
             )
         }
 }

@@ -1,70 +1,123 @@
 package io.github.mmolosay.thecolor.data.remote.mapper
 
+import io.github.mmolosay.thecolor.data.remote.model.CmykModelResponse
 import io.github.mmolosay.thecolor.data.remote.model.ColorDetailsResponse
 import io.github.mmolosay.thecolor.data.remote.model.ColorSchemeResponse
+import io.github.mmolosay.thecolor.data.remote.model.HslModelResponse
+import io.github.mmolosay.thecolor.data.remote.model.HsvModelResponse
+import io.github.mmolosay.thecolor.data.remote.model.NameResponse
+import io.github.mmolosay.thecolor.data.remote.model.RgbModelResponse
+import io.github.mmolosay.thecolor.data.remote.model.XyzModelResponse
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.ColorDetails
 import io.github.mmolosay.thecolor.domain.model.ColorScheme
 
-fun ColorDetailsResponse.toDomain() = ColorDetails(
-    color = Color.Hex(this.hex.clean.toInt(radix = 16)), // TODO: use ColorFactory
+fun ColorDetailsResponse.toDomain() =
+    ColorDetails(
+        color = Color.Hex(this.hex.clean.toInt(radix = 16)), // TODO: use ColorFactory
+        colorHexString = this.toDomainHexString(),
+        colorTranslations = this.toDomainColorTranslations(),
+        colorName = this.name.value,
+        exact = this.name.toDomainExact(),
+        matchesExact = this.name.exact_match_name,
+        distanceFromExact = this.name.distance,
+    )
 
-    hexValue = this.hex.value,
-    hexClean = this.hex.clean,
+private fun ColorDetailsResponse.toDomainHexString() =
+    ColorDetails.ColorHexString(
+        withNumberSign = this.hex.value,
+        withoutNumberSign = this.hex.clean,
+    )
 
-    rgbFractionR = this.rgb.fraction.r,
-    rgbFractionG = this.rgb.fraction.g,
-    rgbFractionB = this.rgb.fraction.b,
-    rgbR = this.rgb.r,
-    rgbG = this.rgb.g,
-    rgbB = this.rgb.b,
-    rgbValue = this.rgb.value,
+private fun ColorDetailsResponse.toDomainColorTranslations() =
+    ColorDetails.ColorTranslations(
+        rgb = this.rgb.toDomainRgbColorTranslation(),
+        hsl = this.hsl.toDomainHslColorTranslation(),
+        hsv = this.hsv.toDomainHsvColorTranslation(),
+        xyz = this.XYZ.toDomainXyzColorTranslation(),
+        cmyk = this.cmyk.toDomainCmykColorTranslation(),
+    )
 
-    hslFractionH = this.hsl.fraction.h,
-    hslFractionS = this.hsl.fraction.s,
-    hslFractionL = this.hsl.fraction.l,
-    hslH = this.hsl.h,
-    hslS = this.hsl.s,
-    hslL = this.hsl.l,
-    hslValue = this.hsl.value,
+private fun RgbModelResponse.toDomainRgbColorTranslation() =
+    ColorDetails.ColorTranslation.Rgb(
+        standard = ColorDetails.ColorTranslation.Rgb.StandardValues(
+            r = this.r,
+            g = this.g,
+            b = this.b,
+        ),
+        normalized = ColorDetails.ColorTranslation.Rgb.NormalizedValues(
+            r = this.fraction.r,
+            g = this.fraction.g,
+            b = this.fraction.b,
+        ),
+    )
 
-    hsvFractionH = this.hsv.fraction.h,
-    hsvFractionS = this.hsv.fraction.s,
-    hsvFractionV = this.hsv.fraction.v,
-    hsvH = this.hsv.h,
-    hsvS = this.hsv.s,
-    hsvV = this.hsv.v,
-    hsvValue = this.hsv.value,
+private fun HslModelResponse.toDomainHslColorTranslation() =
+    ColorDetails.ColorTranslation.Hsl(
+        standard = ColorDetails.ColorTranslation.Hsl.StandardValues(
+            h = this.h,
+            s = this.s,
+            l = this.l,
+        ),
+        normalized = ColorDetails.ColorTranslation.Hsl.NormalizedValues(
+            h = this.fraction.h,
+            s = this.fraction.s,
+            l = this.fraction.l,
+        ),
+    )
 
-    xyzFractionX = this.XYZ.fraction.X,
-    xyzFractionY = this.XYZ.fraction.Y,
-    xyzFractionZ = this.XYZ.fraction.Z,
-    xyzX = this.XYZ.X,
-    xyzY = this.XYZ.Y,
-    xyzZ = this.XYZ.Z,
-    xyzValue = this.XYZ.value,
+private fun HsvModelResponse.toDomainHsvColorTranslation() =
+    ColorDetails.ColorTranslation.Hsv(
+        standard = ColorDetails.ColorTranslation.Hsv.StandardValues(
+            h = this.h,
+            s = this.s,
+            v = this.v,
+        ),
+        normalized = ColorDetails.ColorTranslation.Hsv.NormalizedValues(
+            h = this.fraction.h,
+            s = this.fraction.s,
+            v = this.fraction.v,
+        ),
+    )
 
-    cmykFractionC = this.cmyk.fraction.c ?: 0f, // BE returns 'null' but means 0
-    cmykFractionM = this.cmyk.fraction.m ?: 0f, // BE returns 'null' but means 0
-    cmykFractionY = this.cmyk.fraction.y ?: 0f, // BE returns 'null' but means 0
-    cmykFractionK = this.cmyk.fraction.k ?: 0f, // BE returns 'null' but means 0
-    cmykC = this.cmyk.c ?: 0, // BE returns 'null' but means 0
-    cmykM = this.cmyk.m ?: 0, // BE returns 'null' but means 0
-    cmykY = this.cmyk.y ?: 0, // BE returns 'null' but means 0
-    cmykK = this.cmyk.k ?: 0, // BE returns 'null' but means 0
-    cmykValue = this.cmyk.value,
+private fun XyzModelResponse.toDomainXyzColorTranslation() =
+    ColorDetails.ColorTranslation.Xyz(
+        standard = ColorDetails.ColorTranslation.Xyz.StandardValues(
+            x = this.X,
+            y = this.Y,
+            z = this.X,
+        ),
+        normalized = ColorDetails.ColorTranslation.Xyz.NormalizedValues(
+            x = this.fraction.X,
+            y = this.fraction.Y,
+            z = this.fraction.Z,
+        ),
+    )
 
-    name = this.name.value,
-    exact = Color.Hex(this.name.closest_named_hex.trimStart('#').toInt(radix = 16)), // TODO: use ColorFactory
-    exactNameHex = this.name.closest_named_hex,
-    isNameMatchExact = this.name.exact_match_name,
-    exactNameHexDistance = this.name.distance,
+private fun CmykModelResponse.toDomainCmykColorTranslation() =
+    ColorDetails.ColorTranslation.Cmyk(
+        // for some colors backend returns 'null', but means zero
+        standard = ColorDetails.ColorTranslation.Cmyk.StandardValues(
+            c = this.c ?: 0,
+            m = this.m ?: 0,
+            y = this.y ?: 0,
+            k = this.k ?: 0,
+        ),
+        normalized = ColorDetails.ColorTranslation.Cmyk.NormalizedValues(
+            c = this.fraction.c ?: 0f,
+            m = this.fraction.m ?: 0f,
+            y = this.fraction.y ?: 0f,
+            k = this.fraction.k ?: 0f,
+        ),
+    )
 
-    imageBareUrl = this.image.bare,
-    imageNamedUrl = this.image.named,
-
-    contrastHex = this.contrast.value,
-)
+private fun NameResponse.toDomainExact() =
+    ColorDetails.Exact(
+        color = Color.Hex(
+            this.closest_named_hex.trimStart('#').toInt(radix = 16)
+        ), // TODO: use ColorFactory,
+        hexStringWithNumberSign = this.closest_named_hex,
+    )
 
 fun ColorSchemeResponse.toDomain() =
     ColorScheme(

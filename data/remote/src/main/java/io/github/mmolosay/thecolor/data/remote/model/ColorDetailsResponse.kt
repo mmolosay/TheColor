@@ -2,6 +2,8 @@
 
 package io.github.mmolosay.thecolor.data.remote.model
 
+// TODO: refine names (..Dto)
+
 data class ColorDetailsResponse(
     val hex: HexModelResponse,
     val rgb: RgbModelResponse,
