@@ -3,7 +3,7 @@ package io.github.mmolosay.thecolor.presentation.details
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.GetColorDetailsUseCase
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommandProvider
-import io.github.mmolosay.thecolor.presentation.Command
+import io.github.mmolosay.thecolor.presentation.ColorCenterCommand
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel.State
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
 import io.kotest.matchers.should
@@ -42,13 +42,13 @@ class ColorDetailsViewModelTest {
     fun `emission of 'fetch data' command results in emission of Ready state`() =
         runTest(mainDispatcherRule.testDispatcher) {
             val color = Color.Hex(0x1A803F)
-            val commandFlow = MutableSharedFlow<Command>()
+            val commandFlow = MutableSharedFlow<ColorCenterCommand>()
             every { commandProvider.commandFlow } returns commandFlow
             coEvery { getColorDetails.invoke(any<Color>()) } returns mockk()
             every { createData(details = any()) } returns mockk()
             createSut()
 
-            commandFlow.emit(Command.FetchData(color))
+            commandFlow.emit(ColorCenterCommand.FetchData(color))
 
             sut.dataStateFlow.value should beOfType<State.Ready>()
         }

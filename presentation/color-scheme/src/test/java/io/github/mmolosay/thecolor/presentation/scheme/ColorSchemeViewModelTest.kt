@@ -5,7 +5,7 @@ import io.github.mmolosay.thecolor.domain.model.ColorScheme.Mode
 import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase
 import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase.Request
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommandProvider
-import io.github.mmolosay.thecolor.presentation.Command
+import io.github.mmolosay.thecolor.presentation.ColorCenterCommand
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Changes
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.SwatchCount
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.State
@@ -17,8 +17,6 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.slot
-import io.mockk.verify
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.emptyFlow
@@ -65,7 +63,7 @@ class ColorSchemeViewModelTest {
     fun `emission of 'fetch data' command results in emission of Loading state`() =
         runTest(mainDispatcherRule.testDispatcher) {
             every { getInitialModelsState() } returns State.Ready(someModels())
-            val commandFlow = MutableSharedFlow<Command>()
+            val commandFlow = MutableSharedFlow<ColorCenterCommand>()
             every { commandProvider.commandFlow } returns commandFlow
             coEvery { getColorScheme(request = any<Request>()) } returns mockk()
             every { createModels(scheme = any(), config = any()) } returns someModels()
@@ -79,7 +77,7 @@ class ColorSchemeViewModelTest {
             }
 
             // "when" block
-            val command = Command.FetchData(color = mockk())
+            val command = ColorCenterCommand.FetchData(color = mockk())
             commandFlow.emit(command)
         }
 
@@ -87,13 +85,13 @@ class ColorSchemeViewModelTest {
     fun `emission of 'fetch data' command results in emission of Ready`() =
         runTest(mainDispatcherRule.testDispatcher) {
             every { getInitialModelsState() } returns State.Loading
-            val commandFlow = MutableSharedFlow<Command>()
+            val commandFlow = MutableSharedFlow<ColorCenterCommand>()
             every { commandProvider.commandFlow } returns commandFlow
             coEvery { getColorScheme(request = any<Request>()) } returns mockk()
             every { createModels(scheme = any(), config = any()) } returns someModels()
             createSut()
 
-            val command = Command.FetchData(color = mockk())
+            val command = ColorCenterCommand.FetchData(color = mockk())
             commandFlow.emit(command)
 
             sut.dataStateFlow.value should beOfType<State.Ready<*>>()
@@ -176,7 +174,7 @@ class ColorSchemeViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             every { getInitialModelsState() } returns State.Loading
             val color: Color = mockk()
-            every { commandProvider.commandFlow } returns flowOf(Command.FetchData(color))
+            every { commandProvider.commandFlow } returns flowOf(ColorCenterCommand.FetchData(color))
             coEvery { getColorScheme(request = any<Request>()) } returns mockk()
             every { createModels(scheme = any(), config = any()) } returns someModels().copy(
                 activeMode = Mode.Monochrome, // different modes for Changes.Present

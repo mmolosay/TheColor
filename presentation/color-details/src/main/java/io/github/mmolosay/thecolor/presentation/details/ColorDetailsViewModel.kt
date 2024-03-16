@@ -7,7 +7,7 @@ import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.GetColorDetailsUseCase
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommandProvider
 import io.github.mmolosay.thecolor.presentation.ColorToColorIntUseCase
-import io.github.mmolosay.thecolor.presentation.Command
+import io.github.mmolosay.thecolor.presentation.ColorCenterCommand
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.ExactMatch
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,7 +38,7 @@ class ColorDetailsViewModel @Inject constructor(
         viewModelScope.launch { // TODO: not main dispatcher?
             commandProvider.commandFlow.collect { command ->
                 when (command) {
-                    is Command.FetchData -> getColorDetails(color = command.color)
+                    is ColorCenterCommand.FetchData -> getColorDetails(color = command.color)
                 }
             }
         }

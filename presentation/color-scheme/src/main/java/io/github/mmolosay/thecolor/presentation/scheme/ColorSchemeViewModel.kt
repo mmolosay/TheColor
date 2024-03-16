@@ -9,7 +9,7 @@ import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommandProvider
 import io.github.mmolosay.thecolor.presentation.ColorToColorIntUseCase
-import io.github.mmolosay.thecolor.presentation.Command
+import io.github.mmolosay.thecolor.presentation.ColorCenterCommand
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Changes
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Swatch
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.SwatchCount
@@ -61,12 +61,12 @@ class ColorSchemeViewModel @Inject constructor(
         viewModelScope.launch { // TODO: not main dispatcher?
             commandProvider.commandFlow.collect { command ->
                 when (command) {
-                    is Command.FetchData -> onFetchDataCommand(command)
+                    is ColorCenterCommand.FetchData -> onFetchDataCommand(command)
                 }
             }
         }
 
-    private fun onFetchDataCommand(command: Command.FetchData) {
+    private fun onFetchDataCommand(command: ColorCenterCommand.FetchData) {
         val seed = command.color
         lastUsedSeed = seed
         getColorScheme(seed)

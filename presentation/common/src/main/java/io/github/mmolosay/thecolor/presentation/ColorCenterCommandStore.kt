@@ -8,24 +8,24 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Storage that holds a [Flow] of [Command]s for a color center View to handle.
+ * Storage that holds a [Flow] of [ColorCenterCommand]s for a color center View to handle.
  */
 @Singleton
 class ColorCenterCommandStore @Inject constructor() : ColorCenterCommandProvider {
 
-    private val _commandFlow = MutableSharedFlow<Command>(replay = 1)
-    override val commandFlow: Flow<Command> = _commandFlow.asSharedFlow()
+    private val _commandFlow = MutableSharedFlow<ColorCenterCommand>(replay = 1)
+    override val commandFlow: Flow<ColorCenterCommand> = _commandFlow.asSharedFlow()
 
-    suspend infix fun issue(command: Command) {
+    suspend infix fun issue(command: ColorCenterCommand) {
         _commandFlow.emit(command)
     }
 }
 
 /** Read-only provider. */
 interface ColorCenterCommandProvider {
-    val commandFlow: Flow<Command>
+    val commandFlow: Flow<ColorCenterCommand>
 }
 
-sealed interface Command {
-    data class FetchData(val color: Color) : Command
+sealed interface ColorCenterCommand {
+    data class FetchData(val color: Color) : ColorCenterCommand
 }
