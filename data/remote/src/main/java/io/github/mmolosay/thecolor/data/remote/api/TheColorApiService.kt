@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.data.remote.api
 
-import io.github.mmolosay.thecolor.data.remote.model.ColorDetailsResponse
+import io.github.mmolosay.thecolor.data.remote.model.ColorDetailsDto
 import io.github.mmolosay.thecolor.data.remote.model.ColorSchemeResponse
 import com.squareup.moshi.Json
 import retrofit2.http.GET
@@ -21,7 +21,7 @@ interface TheColorApiService {
         @Query("hsl") hsl: String? = null,
         @Query("cmyk") cmyk: String? = null,
         @Query("format") format: ResponseFormat = ResponseFormat.JSON
-    ): ColorDetailsResponse
+    ): ColorDetailsDto
 
     @GET("scheme")
     suspend fun getColorScheme(
