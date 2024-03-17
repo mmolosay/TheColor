@@ -5,10 +5,12 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
+import io.github.mmolosay.thecolor.presentation.ColorCenterCommand
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommandStore
 import io.github.mmolosay.thecolor.presentation.ColorInputColorProvider
+import io.github.mmolosay.thecolor.presentation.ColorInputEvent
+import io.github.mmolosay.thecolor.presentation.ColorInputEventProvider
 import io.github.mmolosay.thecolor.presentation.ColorToColorIntUseCase
-import io.github.mmolosay.thecolor.presentation.ColorCenterCommand
 import io.github.mmolosay.thecolor.presentation.home.HomeData.CanProceed
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,6 +26,7 @@ import javax.inject.Singleton
 class HomeViewModel @Inject constructor(
     getInitialModels: GetInitialModelsUseCase,
     private val colorInputColorProvider: ColorInputColorProvider,
+    private val colorInputEventProvider: ColorInputEventProvider,
     private val colorCenterCommandStore: ColorCenterCommandStore,
     private val createColorData: CreateColorDataUseCase,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
@@ -33,14 +36,21 @@ class HomeViewModel @Inject constructor(
     val dataFlow = _dataFlow.asStateFlow()
 
     init {
-        collectColorFromColorInput()
+        collectColorsFromColorInput()
+        collectEventsFromColorInput()
     }
 
-    private fun collectColorFromColorInput() =
+    private fun collectColorsFromColorInput() =
         viewModelScope.launch(defaultDispatcher) {
             colorInputColorProvider.colorFlow
                 .drop(1) // replayed value
                 .collect(::onColorFromColorInput)
+        }
+
+    private fun collectEventsFromColorInput() =
+        viewModelScope.launch(defaultDispatcher) {
+            colorInputEventProvider.eventFlow
+                .collect(::onEventFromColorInput)
         }
 
     private fun onColorFromColorInput(color: Color?) {
@@ -51,7 +61,14 @@ class HomeViewModel @Inject constructor(
         _dataFlow updateWith models
     }
 
+    private fun onEventFromColorInput(event: ColorInputEvent) {
+        when (event) {
+            is ColorInputEvent.Submit -> proceed()
+        }
+    }
+
     private fun proceed() {
+        // TODO: add handling of case with no valid color in color input, so that user is notified
         val color = colorInputColorProvider.colorFlow.value ?: return
         val command = ColorCenterCommand.FetchData(color)
         viewModelScope.launch(defaultDispatcher) {

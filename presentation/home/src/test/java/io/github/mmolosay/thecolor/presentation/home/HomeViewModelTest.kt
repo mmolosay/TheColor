@@ -1,8 +1,11 @@
 package io.github.mmolosay.thecolor.presentation.home
 
 import io.github.mmolosay.thecolor.domain.model.Color
+import io.github.mmolosay.thecolor.presentation.ColorCenterCommand
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommandStore
 import io.github.mmolosay.thecolor.presentation.ColorInputColorProvider
+import io.github.mmolosay.thecolor.presentation.ColorInputEvent
+import io.github.mmolosay.thecolor.presentation.ColorInputEventProvider
 import io.github.mmolosay.thecolor.presentation.home.HomeData.CanProceed
 import io.github.mmolosay.thecolor.presentation.home.HomeData.ColorData
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
@@ -15,7 +18,9 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 
@@ -26,6 +31,7 @@ class HomeViewModelTest {
 
     val getInitialModels: GetInitialModelsUseCase = mockk()
     val colorInputColorProvider: ColorInputColorProvider = mockk()
+    val colorInputEventProvider: ColorInputEventProvider = mockk()
     val colorCenterCommandStore: ColorCenterCommandStore = mockk()
     val createColorFromColorInput: CreateColorDataUseCase = mockk()
 
@@ -100,7 +106,7 @@ class HomeViewModelTest {
 
         data.canProceedYes.action.invoke() // we know from other tests that it would be CanProceed.Yes
 
-        coVerify { colorCenterCommandStore.issue(any()) }
+        coVerify { colorCenterCommandStore.issue(command = any<ColorCenterCommand.FetchData>()) }
     }
 
     @Test
@@ -119,6 +125,47 @@ class HomeViewModelTest {
 
         data.colorUsedToProceed shouldBe colorUsedToProceed
     }
+
+    @Test
+    fun `when receiving a 'Sumbit' event from Color Input, 'proceed' action is invoked, thus 'FetchData' command is issued to Color Center`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            // initial models don't matter
+            every { getInitialModels() } returns HomeData.Models(
+                canProceed = true,
+                colorUsedToProceed = null,
+            )
+            every { colorInputColorProvider.colorFlow } returns MutableStateFlow(/*color*/ mockk())
+            val eventsFlow = MutableSharedFlow<ColorInputEvent>()
+            every { colorInputEventProvider.eventFlow } returns eventsFlow
+            every { createColorFromColorInput(color = any()) } returns mockk()
+            coEvery { colorCenterCommandStore.issue(any()) } just runs
+            createSut()
+
+            eventsFlow.emit(ColorInputEvent.Submit)
+
+            coVerify { colorCenterCommandStore.issue(command = any<ColorCenterCommand.FetchData>()) }
+        }
+
+    @Test
+    fun `when receiving a 'Submit' event from Color Input, 'proceed' action is invoked, thus 'colorUsedToProceed' is updated`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            // initial models don't matter
+            every { getInitialModels() } returns HomeData.Models(
+                canProceed = true,
+                colorUsedToProceed = null,
+            )
+            every { colorInputColorProvider.colorFlow } returns MutableStateFlow(/*color*/ mockk())
+            val eventsFlow = MutableSharedFlow<ColorInputEvent>()
+            every { colorInputEventProvider.eventFlow } returns eventsFlow
+            coEvery { colorCenterCommandStore.issue(command = any()) } just runs
+            val colorUsedToProceed: ColorData = mockk()
+            every { createColorFromColorInput(color = any()) } returns colorUsedToProceed
+            createSut()
+
+            eventsFlow.emit(ColorInputEvent.Submit)
+
+            data.colorUsedToProceed shouldBe colorUsedToProceed
+        }
 
     @Test
     fun `when receiving 'null' color from Color Input after 'proceed' was invoked, then 'colorUsedToProceed' is cleared`() {
@@ -162,6 +209,7 @@ class HomeViewModelTest {
         HomeViewModel(
             getInitialModels = getInitialModels,
             colorInputColorProvider = colorInputColorProvider,
+            colorInputEventProvider = colorInputEventProvider,
             colorCenterCommandStore = colorCenterCommandStore,
             createColorData = createColorFromColorInput,
             defaultDispatcher = mainDispatcherRule.testDispatcher,

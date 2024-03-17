@@ -14,4 +14,5 @@ private fun ColorInputRgbUiData(
         rTextField = data.rTextField + viewData.rTextField,
         gTextField = data.gTextField + viewData.gTextField,
         bTextField = data.bTextField + viewData.bTextField,
+        onImeActionDone = data.submitColor,
     )

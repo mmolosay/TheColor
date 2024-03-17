@@ -3,6 +3,8 @@ package io.github.mmolosay.thecolor.presentation.input.hex
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.mmolosay.thecolor.presentation.ColorInputEvent
+import io.github.mmolosay.thecolor.presentation.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.SharingStartedEagerlyAnd
 import io.github.mmolosay.thecolor.presentation.input.field.TextFieldData
@@ -26,6 +28,7 @@ import javax.inject.Named
 @HiltViewModel
 class ColorInputHexViewModel @Inject constructor(
     private val mediator: ColorInputMediator,
+    private val eventStore: ColorInputEventStore,
     @Named("uiDataUpdateDispatcher") private val uiDataUpdateDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -72,9 +75,16 @@ class ColorInputHexViewModel @Inject constructor(
             .take(MAX_SYMBOLS_IN_HEX_COLOR)
             .let { Text(it) }
 
+    private fun sendProceedEvent() {
+        viewModelScope.launch {
+            eventStore.send(ColorInputEvent.Submit)
+        }
+    }
+
     private fun makeData(textField: TextFieldData) =
         ColorInputHexData(
             textField = textField,
+            submitColor = ::sendProceedEvent,
         )
 
     private companion object {

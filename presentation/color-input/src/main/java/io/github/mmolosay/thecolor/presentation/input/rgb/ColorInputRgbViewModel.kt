@@ -3,6 +3,8 @@ package io.github.mmolosay.thecolor.presentation.input.rgb
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.mmolosay.thecolor.presentation.ColorInputEvent
+import io.github.mmolosay.thecolor.presentation.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.SharingStartedEagerlyAnd
 import io.github.mmolosay.thecolor.presentation.input.field.TextFieldData
@@ -11,8 +13,8 @@ import io.github.mmolosay.thecolor.presentation.input.field.TextFieldViewModel
 import io.github.mmolosay.thecolor.presentation.input.field.TextFieldViewModel.Companion.updateWith
 import io.github.mmolosay.thecolor.presentation.input.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.model.Update
-import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.model.asDataState
+import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
 import io.github.mmolosay.thecolor.utils.onEachNotNull
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
@@ -27,6 +29,7 @@ import javax.inject.Named
 @HiltViewModel
 class ColorInputRgbViewModel @Inject constructor(
     private val mediator: ColorInputMediator,
+    private val eventStore: ColorInputEventStore,
     @Named("uiDataUpdateDispatcher") private val uiDataUpdateDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -103,12 +106,24 @@ class ColorInputRgbViewModel @Inject constructor(
             }
             .let { Text(it) }
 
+    private fun sendProceedEvent() {
+        // TODO: repeated in ColorInputHexViewModel; reuse? base abstract class?
+        viewModelScope.launch {
+            eventStore.send(ColorInputEvent.Submit)
+        }
+    }
+
     private fun makeData(
         rTextField: TextFieldData,
         gTextField: TextFieldData,
         bTextField: TextFieldData,
     ) =
-        ColorInputRgbData(rTextField, gTextField, bTextField)
+        ColorInputRgbData(
+            rTextField = rTextField,
+            gTextField = gTextField,
+            bTextField = bTextField,
+            submitColor = ::sendProceedEvent,
+        )
 
     private companion object {
         const val MAX_SYMBOLS_IN_RGB_COMPONENT = 3

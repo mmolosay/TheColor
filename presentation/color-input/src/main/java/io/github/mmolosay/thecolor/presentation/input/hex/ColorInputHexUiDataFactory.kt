@@ -12,4 +12,5 @@ private fun ColorInputHexUiData(
 ): ColorInputHexUiData =
     ColorInputHexUiData(
         textField = data.textField + viewData.textField,
+        onImeActionDone = data.submitColor,
     )

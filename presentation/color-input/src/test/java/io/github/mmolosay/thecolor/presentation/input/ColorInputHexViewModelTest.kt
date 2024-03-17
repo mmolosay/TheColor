@@ -1,5 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.input
 
+import io.github.mmolosay.thecolor.presentation.ColorInputEvent
+import io.github.mmolosay.thecolor.presentation.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.input.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexData
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexViewModel
@@ -15,6 +17,7 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
+import io.mockk.verify
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emptyFlow
@@ -33,6 +36,7 @@ class ColorInputHexViewModelTest {
         every { hexColorInputFlow } returns flowOf(ColorInput.Hex(""))
         coEvery { send(any()) } just runs
     }
+    val eventStore: ColorInputEventStore = mockk()
 
     lateinit var sut: ColorInputHexViewModel
 
@@ -153,9 +157,20 @@ class ColorInputHexViewModelTest {
             collectionJob.cancel()
         }
 
+    @Test
+    fun `invoking 'submit color' sends 'Submit' event`() {
+        coEvery { eventStore.send(event = any()) } just runs
+        createSut()
+
+        data.submitColor()
+
+        coVerify(exactly = 1) { eventStore.send(event = ColorInputEvent.Submit) }
+    }
+
     fun createSut() =
         ColorInputHexViewModel(
             mediator = mediator,
+            eventStore = eventStore,
             uiDataUpdateDispatcher = mainDispatcherRule.testDispatcher,
         ).also {
             sut = it

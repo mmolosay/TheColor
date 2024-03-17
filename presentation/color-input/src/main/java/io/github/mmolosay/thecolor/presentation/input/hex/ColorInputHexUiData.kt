@@ -9,6 +9,7 @@ import io.github.mmolosay.thecolor.presentation.input.field.TextFieldUiData
  */
 data class ColorInputHexUiData(
     val textField: TextFieldUiData,
+    val onImeActionDone: () -> Unit,
 ) {
 
     /**

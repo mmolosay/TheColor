@@ -25,5 +25,8 @@ object DiModule {
 
         @Binds
         fun bindColorCenterCommandProvider(impl: ColorCenterCommandStore): ColorCenterCommandProvider
+
+        @Binds
+        fun bindColorInputEventProvider(impl: ColorInputEventStore): ColorInputEventProvider
     }
 }

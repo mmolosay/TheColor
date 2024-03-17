@@ -177,7 +177,8 @@ private fun previewInputHexUiData() =
                 onClick = {},
                 iconContentDesc = "",
             ),
-        )
+        ),
+        onImeActionDone = {},
     )
 
 private fun previewInputRgbUiData() =
@@ -218,4 +219,5 @@ private fun previewInputRgbUiData() =
                 iconContentDesc = "",
             ),
         ),
+        onImeActionDone = {},
     )

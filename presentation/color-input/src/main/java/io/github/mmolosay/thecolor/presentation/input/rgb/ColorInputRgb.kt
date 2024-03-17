@@ -76,6 +76,7 @@ fun ColorInputRgb(
             keyboardActions = KeyboardActions(
                 onDone = {
                     keyboardController?.hide()
+                    uiData.onImeActionDone()
                 },
             ),
         )
@@ -164,4 +165,5 @@ private fun previewUiData() =
                 iconContentDesc = "",
             ),
         ),
+        onImeActionDone = {},
     )

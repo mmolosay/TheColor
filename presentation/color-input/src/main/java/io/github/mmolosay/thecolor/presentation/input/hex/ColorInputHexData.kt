@@ -8,6 +8,7 @@ import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
  */
 data class ColorInputHexData(
     val textField: TextFieldData,
+    val submitColor: () -> Unit,
 )
 
 fun ColorInputHexData.assembleColorInput() =

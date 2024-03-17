@@ -60,6 +60,7 @@ fun ColorInputHex(
         keyboardActions = KeyboardActions(
             onDone = {
                 keyboardController?.hide()
+                uiData.onImeActionDone()
             },
         ),
     )
@@ -98,5 +99,6 @@ private fun previewUiData() =
             placeholder = "000000",
             prefix = "#",
             trailingButton = TrailingButton.Visible(onClick = {}, iconContentDesc = ""),
-        )
+        ),
+        onImeActionDone = {},
     )

@@ -1,5 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.input
 
+import io.github.mmolosay.thecolor.presentation.ColorInputEvent
+import io.github.mmolosay.thecolor.presentation.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.input.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.model.DataState
@@ -36,13 +38,14 @@ abstract class ColorInputRgbViewModelTest {
         every { rgbColorInputFlow } returns flowOf(ColorInput.Rgb("", "", ""))
         coEvery { send(any()) } just runs
     }
+    val eventStore: ColorInputEventStore = mockk()
 
     lateinit var sut: ColorInputRgbViewModel
 
     val dataState: DataState<ColorInputRgbData>
         get() = sut.dataStateFlow.value
 
-    val uiData: ColorInputRgbData
+    val data: ColorInputRgbData
         get() {
             dataState should beOfType<DataState.Ready<*>>() // assertion for clear failure message
             return (dataState as DataState.Ready).data
@@ -51,6 +54,7 @@ abstract class ColorInputRgbViewModelTest {
     fun createSut() =
         ColorInputRgbViewModel(
             mediator = mediator,
+            eventStore = eventStore,
             uiDataUpdateDispatcher = mainDispatcherRule.testDispatcher,
         ).also {
             sut = it
@@ -67,7 +71,7 @@ class FilterUserInputTest(
     fun `user input is filtered as expected`() {
         createSut()
 
-        val text = uiData.rTextField.filterUserInput(string)
+        val text = data.rTextField.filterUserInput(string)
 
         withClue("Filtering user input \"$string\" should return $expectedTextString") {
             text shouldBe Text(expectedTextString)
@@ -147,9 +151,9 @@ class Other : ColorInputRgbViewModelTest() {
                 sut.dataStateFlow.collect() // subscriber to activate the flow
             }
 
-            uiData.rTextField.onTextChange(Text("18"))
-            uiData.gTextField.onTextChange(Text("1"))
-            uiData.bTextField.onTextChange(Text("20"))
+            data.rTextField.onTextChange(Text("18"))
+            data.gTextField.onTextChange(Text("1"))
+            data.bTextField.onTextChange(Text("20"))
 
             val sentColorInput = ColorInput.Rgb(r = "18", g = "1", b = "20")
             coVerify(exactly = 1) { mediator.send(sentColorInput) }
@@ -169,9 +173,9 @@ class Other : ColorInputRgbViewModelTest() {
             ColorInput.Rgb(r = "18", g = "1", b = "20")
                 .also { rgbColorInputFlow.emit(it) }
 
-            uiData.rTextField.text.string shouldBe "18"
-            uiData.gTextField.text.string shouldBe "1"
-            uiData.bTextField.text.string shouldBe "20"
+            data.rTextField.text.string shouldBe "18"
+            data.gTextField.text.string shouldBe "1"
+            data.bTextField.text.string shouldBe "20"
             collectionJob.cancel()
         }
 
@@ -192,4 +196,13 @@ class Other : ColorInputRgbViewModelTest() {
             collectionJob.cancel()
         }
 
+    @Test
+    fun `invoking 'submit color' sends 'Submit' event`() {
+        coEvery { eventStore.send(event = any()) } just runs
+        createSut()
+
+        data.submitColor()
+
+        coVerify(exactly = 1) { eventStore.send(event = ColorInputEvent.Submit) }
+    }
 }
