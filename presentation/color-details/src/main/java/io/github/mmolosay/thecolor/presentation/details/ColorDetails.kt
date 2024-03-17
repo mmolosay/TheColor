@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LocalContentColor
@@ -59,8 +60,10 @@ fun ColorDetails(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-//        Spacer(modifier = Modifier.height(32.dp)) // TODO: use when wrapping fragment with its own margin is gone
-        Headline(uiData.headline)
+        Headline(
+            text = uiData.headline,
+            modifier = Modifier.padding(horizontal = 16.dp),
+        )
 
         Spacer(modifier = Modifier.height(24.dp))
         ColorTranslations(uiData.translations)
@@ -81,9 +84,13 @@ fun ColorDetails(
 }
 
 @Composable
-private fun Headline(text: String) =
+private fun Headline(
+    text: String,
+    modifier: Modifier = Modifier,
+) =
     Text(
         text = text,
+        modifier = modifier,
         textAlign = TextAlign.Center,
         color = colorsOnTintedSurface.accent,
         style = MaterialTheme.typography.displayLarge,
