@@ -28,7 +28,7 @@ data class ColorDetails(
 
     data class Exact(
         val color: Color,
-        val hexStringWithNumberSign: String, // TODO: should it really be in a potentially reusable domain model?
+        val hexStringWithNumberSign: String,
     )
 
     object ColorTranslation {
