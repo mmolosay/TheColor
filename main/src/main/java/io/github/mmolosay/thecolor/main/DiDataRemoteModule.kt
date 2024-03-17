@@ -1,16 +1,14 @@
 package io.github.mmolosay.thecolor.main
 
+import dagger.Binds
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.migration.DisableInstallInCheck
 import io.github.mmolosay.thecolor.data.ColorRepositoryImpl
 import io.github.mmolosay.thecolor.data.ColorsHistoryRepositoryImpl
 import io.github.mmolosay.thecolor.data.remote.api.TheColorApiService
 import io.github.mmolosay.thecolor.domain.repository.ColorRepository
 import io.github.mmolosay.thecolor.domain.repository.ColorsHistoryRepository
-import dagger.Binds
-import dagger.Module
-import dagger.Provides
-import dagger.hilt.migration.DisableInstallInCheck
-import io.github.mmolosay.thecolor.data.ColorLightnessRepositoryImpl
-import io.github.mmolosay.thecolor.domain.repository.ColorLightnessRepository
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -74,7 +72,4 @@ interface DiDataRemoteBindModule {
 
     @Binds
     fun bindColorsHistoryRepository(impl: ColorsHistoryRepositoryImpl): ColorsHistoryRepository
-
-    @Binds
-    fun bindColorLightnessRepository(impl: ColorLightnessRepositoryImpl): ColorLightnessRepository
 }

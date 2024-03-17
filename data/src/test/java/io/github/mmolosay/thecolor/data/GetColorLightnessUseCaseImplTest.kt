@@ -9,7 +9,7 @@ import org.junit.runners.Parameterized
 import kotlin.math.abs
 
 @RunWith(Parameterized::class)
-class ColorLightnessRepositoryImplTest(
+class GetColorLightnessUseCaseImplTest(
     val color: Color,
     val expectedLightness: Float,
 ) {
@@ -17,14 +17,14 @@ class ColorLightnessRepositoryImplTest(
     val colorConverter: ColorConverter = ColorConverter()
     val colorMapper: ColorMapper = ColorMapper()
 
-    val sut = ColorLightnessRepositoryImpl(
+    val sut = GetColorLightnessUseCaseImpl(
         colorConverter = colorConverter,
         colorMapper = colorMapper,
     )
 
     @Test
     fun `color lightness is as expected`() {
-        val lightness = with(sut) { hslLightness(color) }
+        val lightness = with(sut) { color.hslLightness() }
 
         lightness shouldBeInEqualityRangeWith expectedLightness
     }
