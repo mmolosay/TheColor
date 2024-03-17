@@ -1,7 +1,7 @@
 package io.github.mmolosay.thecolor.domain.model
 
 /**
- * Represents a valid color.
+ * Represents a valid, opaque color.
  */
 sealed interface Color {
 
