@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
@@ -37,6 +36,7 @@ import io.github.mmolosay.thecolor.presentation.center.ColorCenter
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterShape
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
+import io.github.mmolosay.thecolor.presentation.design.LocalIsNavigationBarLight
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
@@ -164,11 +164,12 @@ private fun ColorCenterOnTintedSurface(
 ) {
     val view = LocalView.current
     val window = view.context.findActivityContext().window
+    val isNavigationBarLight = LocalIsNavigationBarLight.current
     SideEffect {
         if (view.isInEditMode) return@SideEffect
         window.navigationBarColor = Color.Transparent.toArgb()
         WindowCompat.getInsetsController(window, window.decorView).run {
-            isAppearanceLightNavigationBars = true // TODO: hardcoded
+            isAppearanceLightNavigationBars = isNavigationBarLight
         }
     }
 

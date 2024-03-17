@@ -1,22 +1,26 @@
 package io.github.mmolosay.thecolor.presentation.design
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 
 @Composable
 fun TheColorTheme(
     theme: UiTheme = UiTheme.DayNight,
     content: @Composable () -> Unit,
 ) {
-    MaterialTheme(
-        colorScheme = theme.colorScheme(),
-        typography = typography(),
-        content = content,
-    )
+    CompositionLocalProvider(
+        LocalIsNavigationBarLight provides theme.isNavigationBarLight(),
+    ) {
+        MaterialTheme(
+            colorScheme = theme.colorScheme(),
+            typography = typography(),
+            content = content,
+        )
+    }
 }
 
-enum class UiTheme {
-    Light,
-    Dark,
-    DayNight,
-}
+@Composable
+private fun UiTheme.isNavigationBarLight() =
+    this.isLight(isSystemInDarkTheme())
