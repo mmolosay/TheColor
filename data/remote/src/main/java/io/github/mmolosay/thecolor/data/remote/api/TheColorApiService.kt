@@ -1,8 +1,9 @@
 package io.github.mmolosay.thecolor.data.remote.api
 
 import io.github.mmolosay.thecolor.data.remote.model.ColorDetailsDto
-import io.github.mmolosay.thecolor.data.remote.model.ColorSchemeResponse
-import com.squareup.moshi.Json
+import io.github.mmolosay.thecolor.data.remote.model.ColorSchemeDto
+import io.github.mmolosay.thecolor.data.remote.model.ResponseFormatDto
+import io.github.mmolosay.thecolor.data.remote.model.SchemeModeDto
 import retrofit2.http.GET
 import retrofit2.http.Query
 
@@ -20,7 +21,7 @@ interface TheColorApiService {
         @Query("rgb") rgb: String? = null,
         @Query("hsl") hsl: String? = null,
         @Query("cmyk") cmyk: String? = null,
-        @Query("format") format: ResponseFormat = ResponseFormat.JSON
+        @Query("format") format: ResponseFormatDto = ResponseFormatDto.JSON,
     ): ColorDetailsDto
 
     @GET("scheme")
@@ -29,35 +30,10 @@ interface TheColorApiService {
         @Query("rgb") rgb: String? = null,
         @Query("hsl") hsl: String? = null,
         @Query("cmyk") cmyk: String? = null,
-        @Query("format") format: ResponseFormat = ResponseFormat.JSON,
-        @Query("mode") mode: SchemeMode = SchemeMode.ANALOGIC,
+        @Query("format") format: ResponseFormatDto = ResponseFormatDto.JSON,
+        @Query("mode") mode: SchemeModeDto = SchemeModeDto.Analogic,
         @Query("count") swatchCount: Int = 5,
         @Query("w") svgSize: Int = 100,
         @Query("named") doPrintNames: Boolean = true,
-    ) : ColorSchemeResponse
-
-    enum class ResponseFormat {
-        JSON,
-        HTML,
-        SVG;
-
-        override fun toString(): String {
-            return this.name.lowercase()
-        }
-    }
-
-    enum class SchemeMode {
-        @Json(name = "monochrome") MONOCHROME,
-        @Json(name = "monochrome-dark") MONOCHROME_DARK,
-        @Json(name = "monochrome-light") MONOCHROME_LIGHT,
-        @Json(name = "analogic") ANALOGIC,
-        @Json(name = "complement") COMPLEMENT,
-        @Json(name = "analogic-complement") ANALOGIC_COMPLEMENT,
-        @Json(name = "triad") TRIAD,
-        @Json(name = "quad") QUAD;
-
-        override fun toString(): String {
-            return this.name.lowercase().replace(oldChar = '_', newChar = '-')
-        }
-    }
+    ) : ColorSchemeDto
 }

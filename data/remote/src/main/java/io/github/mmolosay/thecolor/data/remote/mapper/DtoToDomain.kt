@@ -1,7 +1,7 @@
 package io.github.mmolosay.thecolor.data.remote.mapper
 
 import io.github.mmolosay.thecolor.data.remote.model.ColorDetailsDto
-import io.github.mmolosay.thecolor.data.remote.model.ColorSchemeResponse
+import io.github.mmolosay.thecolor.data.remote.model.ColorSchemeDto
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.ColorDetails
 import io.github.mmolosay.thecolor.domain.model.ColorScheme
@@ -113,7 +113,7 @@ private fun ColorDetailsDto.Name.toDomainExact() =
         hexStringWithNumberSign = this.hexValueWithNumberSignOfExactColor,
     )
 
-fun ColorSchemeResponse.toDomain() =
+fun ColorSchemeDto.toDomain() =
     ColorScheme(
-        swatchDetails = this.colors.map { it.toDomain() },
+        swatchDetails = this.swatches.map { it.toDomain() },
     )
