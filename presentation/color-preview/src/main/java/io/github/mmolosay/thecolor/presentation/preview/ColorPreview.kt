@@ -1,11 +1,9 @@
 package io.github.mmolosay.thecolor.presentation.preview
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.expandIn
-import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -50,43 +48,54 @@ fun ColorPreview(
         contentAlignment = Alignment.Center,
     ) {
         val updates = remember { mutableStateListOf<VisibleStateUpdate>() }
-        val resizingAlignment = Alignment.Center
-
-        AnimatedVisibility(
-            visible = uiState is Visible,
-            modifier = Modifier.clip(CircleShape),
-            enter = expandIn(expandFrom = resizingAlignment),
-            exit = shrinkOut(shrinkTowards = resizingAlignment),
-        ) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center,
-            ) {
-                var main by remember { mutableStateOf(uiState as Visible) }
-                Main(visibleState = main)
-
-                updates.forEach { update ->
-                    // https://medium.com/@android-world/understanding-the-key-function-in-jetpack-compose-34accc92d567
-                    key(update) {
-                        UpdateRipple(
-                            visibleState = update.uiState,
-                            onAnimationFinished = {
-                                updates.remove(update)
-                                main = update.uiState
-                            },
-                        )
-                    }
+        // we want to have last Visible state memoized to show animation of scaling the preview down
+        // once the state becomes Hidden
+        var main by remember { mutableStateOf(uiState) }
+        val scale by animateFloatAsState(
+            targetValue = if (uiState is Visible) 1f else 0f,
+            label = "preview scale",
+            finishedListener = { value ->
+                // we need to keep last Visible state until the preview is completely scaled down
+                // and gone. Only after it the actual value can be set
+                if (value == 0f) {
+                    main = Hidden
                 }
-                LaunchedEffect(uiState) {
-                    val isAnUpdate = (uiState != main || updates.isNotEmpty())
-                    if (uiState is Visible && isAnUpdate) {
-                        val id = updates.lastOrNull()?.id?.let { it + 1 } ?: 0
-                        val update = VisibleStateUpdate(uiState, id)
-                        updates.add(update)
-                    }
-                    if (uiState is Hidden) {
-                        updates.clear()
-                    }
+            },
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .scale(scale),
+            contentAlignment = Alignment.Center,
+        ) {
+            main.let {
+                if (it is Visible) {
+                    Main(visibleState = it)
+                }
+            }
+
+            updates.forEach { update ->
+                // https://medium.com/@android-world/understanding-the-key-function-in-jetpack-compose-34accc92d567
+                key(update) {
+                    UpdateRipple(
+                        visibleState = update.uiState,
+                        onAnimationFinished = {
+                            updates.remove(update)
+                            main = update.uiState
+                        },
+                    )
+                }
+            }
+            LaunchedEffect(uiState) {
+                val isAnUpdate = (uiState != main || updates.isNotEmpty())
+                if (uiState is Visible && isAnUpdate) {
+                    val id = updates.lastOrNull()?.id?.let { it + 1 } ?: 0
+                    val update = VisibleStateUpdate(uiState, id)
+                    updates.add(update)
+                }
+                if (uiState is Hidden) {
+                    updates.clear()
                 }
             }
         }
@@ -99,7 +108,7 @@ private fun Main(
 ) {
     Surface(
         modifier = Modifier.fillMaxSize(),
-        shape = CircleShape, // so shadow has the circular shape // TODO: shadow clipping issue should be solved when this Composable is integrated inside whole Composable screen
+        shape = CircleShape, // so shadow has the circular shape
         color = visibleState.color,
         shadowElevation = 4.dp,
         content = {},
