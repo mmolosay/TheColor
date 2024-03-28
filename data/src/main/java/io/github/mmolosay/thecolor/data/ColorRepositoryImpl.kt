@@ -1,9 +1,9 @@
 package io.github.mmolosay.thecolor.data
 
 import io.github.mmolosay.thecolor.data.remote.api.TheColorApiService
-import io.github.mmolosay.thecolor.data.remote.mapper.ColorDetailsMapper
-import io.github.mmolosay.thecolor.data.remote.mapper.ColorSchemeMapper
-import io.github.mmolosay.thecolor.data.remote.mapper.toDto
+import io.github.mmolosay.thecolor.data.mapper.ColorDetailsMapper
+import io.github.mmolosay.thecolor.data.mapper.ColorSchemeMapper
+import io.github.mmolosay.thecolor.data.mapper.toDto
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.ColorDetails
 import io.github.mmolosay.thecolor.domain.model.ColorScheme

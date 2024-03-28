@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.data.remote.mapper
+package io.github.mmolosay.thecolor.data.mapper
 
 import io.github.mmolosay.thecolor.domain.model.Color
 import javax.inject.Inject
