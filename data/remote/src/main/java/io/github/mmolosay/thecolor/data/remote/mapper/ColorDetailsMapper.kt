@@ -8,11 +8,13 @@ import javax.inject.Inject
 /**
  * Maps [ColorDetailsDto] model of Data layer to [ColorDetails] model of Domain layer.
  */
-class ColorDetailsMapper @Inject constructor() {
+class ColorDetailsMapper @Inject constructor(
+    private val colorHexMapper: ColorHexMapper,
+) {
 
     fun ColorDetailsDto.toDomain(): ColorDetails =
         ColorDetails(
-            color = Color.Hex(this.hex.valueWithoutNumberSign.toInt(radix = 16)), // TODO: use ColorFactory
+            color = with(colorHexMapper) { hex.valueWithoutNumberSign.toColorHex() },
             colorHexString = this.toDomainHexString(),
             colorTranslations = this.toDomainColorTranslations(),
             colorName = this.name.colorName,
@@ -111,9 +113,7 @@ class ColorDetailsMapper @Inject constructor() {
 
     private fun ColorDetailsDto.Name.toDomainExact() =
         ColorDetails.Exact(
-            color = Color.Hex(
-                this.hexValueWithNumberSignOfExactColor.trimStart('#').toInt(radix = 16)
-            ), // TODO: use ColorFactory,
+            color = with(colorHexMapper) { hexValueWithNumberSignOfExactColor.toColorHex() },
             hexStringWithNumberSign = this.hexValueWithNumberSignOfExactColor,
         )
 }
