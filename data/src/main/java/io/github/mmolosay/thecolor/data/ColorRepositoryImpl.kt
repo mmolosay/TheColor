@@ -1,7 +1,8 @@
 package io.github.mmolosay.thecolor.data
 
 import io.github.mmolosay.thecolor.data.remote.api.TheColorApiService
-import io.github.mmolosay.thecolor.data.remote.mapper.toDomain
+import io.github.mmolosay.thecolor.data.remote.mapper.ColorDetailsMapper
+import io.github.mmolosay.thecolor.data.remote.mapper.ColorSchemeMapper
 import io.github.mmolosay.thecolor.data.remote.mapper.toDto
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.ColorDetails
@@ -15,6 +16,8 @@ class ColorRepositoryImpl @Inject constructor(
     private val api: TheColorApiService,
     private val colorConverter: ColorConverter,
     private val colorMapper: ColorMapper,
+    private val colorDetailsMapper: ColorDetailsMapper,
+    private val colorSchemeMapper: ColorSchemeMapper,
 ) : ColorRepository {
 
     override suspend fun lastSearchedColor(): Color.Abstract? =
@@ -23,18 +26,18 @@ class ColorRepositoryImpl @Inject constructor(
     override suspend fun getColorDetails(color: Color): ColorDetails {
         val hex = with(colorConverter) { color.toAbstract().toHex() }
         val string = with(colorMapper) { hex.toHexString() }
-        val response = api.getColorDetails(hex = string)
-        return response.toDomain()
+        val colorDetailsDto = api.getColorDetails(hex = string)
+        return with(colorDetailsMapper) { colorDetailsDto.toDomain() }
     }
 
     override suspend fun getColorScheme(request: GetColorSchemeUseCase.Request): ColorScheme {
         val seed = with(colorConverter) { request.seed.toAbstract().toHex() }
         val seedHex = with(colorMapper) { seed.toHexString() }
-        val response = api.getColorScheme(
+        val colorSchemeDto = api.getColorScheme(
             hex = seedHex,
             mode = request.mode.toDto(),
             swatchCount = request.swatchCount,
         )
-        return response.toDomain()
+        return with(colorSchemeMapper) { colorSchemeDto.toDomain() }
     }
 }
