@@ -43,60 +43,56 @@ fun ColorPreview(
 fun ColorPreview(
     uiState: ColorPreviewUiState,
 ) {
+    val updates = remember { mutableStateListOf<VisibleStateUpdate>() }
+    // we want to have last Visible state memoized to show animation of scaling the preview down
+    // once the state becomes Hidden
+    var main by remember { mutableStateOf(uiState) }
+    val scale by animateFloatAsState(
+        targetValue = if (uiState is Visible) 1f else 0f,
+        label = "preview scale",
+        finishedListener = { value ->
+            // we need to keep last Visible state until the preview is completely scaled down
+            // and gone. Only after it the actual value can be set
+            if (value == 0f) {
+                main = Hidden
+            }
+        },
+    )
+
     Box(
-        modifier = Modifier.size(48.dp),
+        modifier = Modifier
+            .size(48.dp)
+            .scale(scale),
         contentAlignment = Alignment.Center,
     ) {
-        val updates = remember { mutableStateListOf<VisibleStateUpdate>() }
-        // we want to have last Visible state memoized to show animation of scaling the preview down
-        // once the state becomes Hidden
-        var main by remember { mutableStateOf(uiState) }
-        val scale by animateFloatAsState(
-            targetValue = if (uiState is Visible) 1f else 0f,
-            label = "preview scale",
-            finishedListener = { value ->
-                // we need to keep last Visible state until the preview is completely scaled down
-                // and gone. Only after it the actual value can be set
-                if (value == 0f) {
-                    main = Hidden
-                }
-            },
-        )
-
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .scale(scale),
-            contentAlignment = Alignment.Center,
-        ) {
-            main.let {
-                if (it is Visible) {
-                    Main(visibleState = it)
-                }
+        main.let {
+            if (it is Visible) {
+                Main(visibleState = it)
             }
+        }
 
-            updates.forEach { update ->
-                // https://medium.com/@android-world/understanding-the-key-function-in-jetpack-compose-34accc92d567
-                key(update) {
-                    UpdateRipple(
-                        visibleState = update.uiState,
-                        onAnimationFinished = {
-                            updates.remove(update)
-                            main = update.uiState
-                        },
-                    )
-                }
+        updates.forEach { update ->
+            // https://medium.com/@android-world/understanding-the-key-function-in-jetpack-compose-34accc92d567
+            key(update) {
+                UpdateRipple(
+                    visibleState = update.uiState,
+                    onAnimationFinished = {
+                        updates.remove(update)
+                        main = update.uiState
+                    },
+                )
             }
-            LaunchedEffect(uiState) {
-                val isAnUpdate = (uiState != main || updates.isNotEmpty())
-                if (uiState is Visible && isAnUpdate) {
-                    val id = updates.lastOrNull()?.id?.let { it + 1 } ?: 0
-                    val update = VisibleStateUpdate(uiState, id)
-                    updates.add(update)
-                }
-                if (uiState is Hidden) {
-                    updates.clear()
-                }
+        }
+
+        LaunchedEffect(uiState) {
+            val isAnUpdate = (uiState != main || updates.isNotEmpty())
+            if (uiState is Visible && isAnUpdate) {
+                val id = updates.lastOrNull()?.id?.let { it + 1 } ?: 0
+                val update = VisibleStateUpdate(uiState, id)
+                updates.add(update)
+            }
+            if (uiState is Hidden) {
+                updates.clear()
             }
         }
     }
