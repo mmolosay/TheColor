@@ -20,6 +20,7 @@ import io.mockk.mockk
 import io.mockk.runs
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -43,6 +44,8 @@ class HomeViewModelTest {
             canProceed = true,
             colorUsedToProceed = null,
         )
+        every { colorInputColorProvider.colorFlow } returns MutableStateFlow(null)
+        every { colorInputEventProvider.eventFlow } returns emptyFlow()
 
         createSut()
 
@@ -55,6 +58,8 @@ class HomeViewModelTest {
             canProceed = false,
             colorUsedToProceed = null,
         )
+        every { colorInputColorProvider.colorFlow } returns MutableStateFlow(null)
+        every { colorInputEventProvider.eventFlow } returns emptyFlow()
 
         createSut()
 
@@ -70,6 +75,7 @@ class HomeViewModelTest {
         )
         val colorFlow = MutableStateFlow<Color?>(null)
         every { colorInputColorProvider.colorFlow } returns colorFlow
+        every { colorInputEventProvider.eventFlow } returns emptyFlow()
         createSut()
 
         colorFlow.value = mockk()
@@ -87,6 +93,7 @@ class HomeViewModelTest {
         )
         val colorFlow = MutableStateFlow<Color?>(null)
         every { colorInputColorProvider.colorFlow } returns colorFlow
+        every { colorInputEventProvider.eventFlow } returns emptyFlow()
         createSut()
 
         colorFlow.value = null
@@ -101,7 +108,9 @@ class HomeViewModelTest {
             colorUsedToProceed = null,
         )
         every { colorInputColorProvider.colorFlow } returns MutableStateFlow(/*color*/ mockk())
+        every { colorInputEventProvider.eventFlow } returns emptyFlow()
         every { createColorFromColorInput(color = any()) } returns mockk()
+        coEvery { colorCenterCommandStore.issue(command = any()) } just runs
         createSut()
 
         data.canProceedYes.action.invoke() // we know from other tests that it would be CanProceed.Yes
@@ -116,6 +125,7 @@ class HomeViewModelTest {
             colorUsedToProceed = null,
         )
         every { colorInputColorProvider.colorFlow } returns MutableStateFlow(/*color*/ mockk())
+        every { colorInputEventProvider.eventFlow } returns emptyFlow()
         coEvery { colorCenterCommandStore.issue(command = any()) } just runs
         val colorUsedToProceed: ColorData = mockk()
         every { createColorFromColorInput(color = any()) } returns colorUsedToProceed
@@ -176,6 +186,7 @@ class HomeViewModelTest {
         val initialColor = Color.Hex(0x0)
         val colorFlow = MutableStateFlow<Color?>(initialColor)
         every { colorInputColorProvider.colorFlow } returns colorFlow
+        every { colorInputEventProvider.eventFlow } returns emptyFlow()
         coEvery { colorCenterCommandStore.issue(command = any()) } just runs
         every { createColorFromColorInput(color = any()) } returns mockk()
         createSut()
@@ -195,6 +206,7 @@ class HomeViewModelTest {
         val initialColor = Color.Hex(0x0)
         val colorFlow = MutableStateFlow<Color?>(initialColor)
         every { colorInputColorProvider.colorFlow } returns colorFlow
+        every { colorInputEventProvider.eventFlow } returns emptyFlow()
         coEvery { colorCenterCommandStore.issue(command = any()) } just runs
         every { createColorFromColorInput(color = any()) } returns mockk()
         createSut()
