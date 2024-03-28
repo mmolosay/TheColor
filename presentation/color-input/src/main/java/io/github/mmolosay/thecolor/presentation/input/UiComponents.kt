@@ -96,7 +96,12 @@ internal object UiComponents {
     private fun Placeholder(text: String) =
         Text(
             text = text,
-            style = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.SansSerif),
+            style = with(MaterialTheme.typography.bodyLarge) {
+                copy(
+                    fontFamily = FontFamily.SansSerif,
+                    color = this.color.copy(alpha = 0.45f),
+                )
+            },
         )
 
     @Composable
