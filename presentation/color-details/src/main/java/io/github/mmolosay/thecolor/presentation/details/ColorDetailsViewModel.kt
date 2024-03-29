@@ -5,9 +5,9 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.GetColorDetailsUseCase
+import io.github.mmolosay.thecolor.presentation.ColorCenterCommand
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommandProvider
 import io.github.mmolosay.thecolor.presentation.ColorToColorIntUseCase
-import io.github.mmolosay.thecolor.presentation.ColorCenterCommand
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.ExactMatch
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,6 +44,7 @@ class ColorDetailsViewModel @Inject constructor(
         }
 
     private fun getColorDetails(color: Color) {
+        _dataStateFlow.value = State.Loading
         viewModelScope.launch(ioDispatcher) {
             val details = getColorDetails.invoke(color)
             val data = createData(details)
