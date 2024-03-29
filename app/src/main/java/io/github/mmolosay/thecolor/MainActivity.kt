@@ -6,7 +6,12 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
@@ -19,16 +24,24 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.home.HomeScreen
 import io.github.mmolosay.thecolor.presentation.home.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.navigation.NavDest
+import io.github.mmolosay.thecolor.presentation.navigation.Navigator
+import io.github.mmolosay.thecolor.presentation.navigation.handle
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
+
+    @Inject
+    lateinit var navigator: Navigator
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent {
             TheColorTheme {
-                Application()
+                Application(
+                    navigator = navigator,
+                )
             }
         }
     }
@@ -47,24 +60,31 @@ class MainActivity : AppCompatActivity() {
 }
 
 @Composable
-private fun Application() {
+private fun Application(
+    navigator: Navigator,
+) {
     val navController = rememberNavController()
     AppNavHost(
         navController = navController,
     )
+    LaunchedEffect(Unit) {
+        navigator.navEventFlow.collect { navEvent ->
+            navController handle navEvent
+        }
+    }
+
 }
 
 @Composable
 private fun AppNavHost(
     navController: NavHostController,
-    modifier: Modifier = Modifier,
 ) =
     NavHost(
         navController = navController,
         startDestination = NavDest.Home.route,
-        modifier = modifier,
     ) {
         home()
+        settings()
     }
 
 private fun NavGraphBuilder.home() =
@@ -73,4 +93,14 @@ private fun NavGraphBuilder.home() =
         HomeScreen(
             vm = homeViewModel,
         )
+    }
+
+private fun NavGraphBuilder.settings() =
+    composable(route = NavDest.Settings.route) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(text = "Settings")
+        }
     }
