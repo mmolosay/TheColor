@@ -3,13 +3,9 @@ package io.github.mmolosay.thecolor.presentation.details
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,7 +42,7 @@ fun ColorDetails(
         is Idle ->
             Unit // Color Details shouldn't be visible at Home at this point
         is Loading ->
-            Loading()
+            ColorDetailsLoading()
         is Ready -> {
             val uiData = rememberUiData(state.data, viewData)
             ColorDetails(uiData)
@@ -104,15 +100,6 @@ private fun Divider() =
     MaterialDivider(
         thickness = 1.dp,
         color = colorsOnTintedSurface.muted.copy(alpha = 0.30f),
-    )
-
-@Composable
-private fun Loading() =
-    CircularProgressIndicator(
-        modifier = Modifier
-            .fillMaxSize()
-            .wrapContentSize(),
-        color = LocalContentColor.current,
     )
 
 @Composable

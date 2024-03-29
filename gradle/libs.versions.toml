@@ -39,3 +39,4 @@ mockk = "1.13.3"
 kotestAssertions = "5.5.5"
 
 # Misc (preserve alphabetical order)
+valentinilkShimmer = "1.2.0"
