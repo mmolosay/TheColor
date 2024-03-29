@@ -31,6 +31,7 @@ import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.Color
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorTranslation
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorTranslations
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ViewData
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel.State.Idle
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel.State.Loading
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel.State.Ready
 import androidx.compose.material3.Divider as MaterialDivider
@@ -42,6 +43,8 @@ fun ColorDetails(
     val state = vm.dataStateFlow.collectAsStateWithLifecycle().value
     val viewData = rememberViewData()
     when (state) {
+        is Idle ->
+            Unit // Color Details shouldn't be visible at Home at this point
         is Loading ->
             Loading()
         is Ready -> {

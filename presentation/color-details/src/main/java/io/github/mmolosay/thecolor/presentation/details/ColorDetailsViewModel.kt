@@ -27,7 +27,7 @@ class ColorDetailsViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _dataStateFlow =
-        MutableStateFlow<State>(State.Loading) // TODO: inject initial state as in ColorSchemeViewModel for better testing
+        MutableStateFlow<State>(State.Idle) // TODO: inject initial state as in ColorSchemeViewModel for better testing
     val dataStateFlow = _dataStateFlow.asStateFlow()
 
     init {
@@ -53,6 +53,7 @@ class ColorDetailsViewModel @Inject constructor(
     }
 
     sealed interface State {
+        data object Idle : State
         data object Loading : State
         data class Ready(val data: ColorDetailsData) : State
     }

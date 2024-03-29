@@ -13,6 +13,7 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -32,12 +33,12 @@ class ColorDetailsViewModelTest {
     lateinit var sut: ColorDetailsViewModel
 
     @Test
-    fun `SUT remains dormant if there's no 'fetch data' command emitted`() {
+    fun `SUT remains with initial Idle state if there's no 'fetch data' command emitted`() {
         every { commandProvider.commandFlow } returns emptyFlow()
 
         createSut()
 
-        sut.dataStateFlow.value shouldBe State.Loading
+        sut.dataStateFlow.value shouldBe State.Idle
     }
 
     @Test
@@ -67,7 +68,9 @@ class ColorDetailsViewModelTest {
 
             // "then"
             launch {
-                sut.dataStateFlow.first() should beOfType<State.Loading>()
+                sut.dataStateFlow
+                    .drop(1) // ignore initial Idle state
+                    .first() should beOfType<State.Loading>()
             }
 
             // "when"
