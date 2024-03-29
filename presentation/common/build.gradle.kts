@@ -74,7 +74,6 @@ dependencies {
     kapt("com.google.dagger:hilt-compiler:${libs.versions.hilt.get()}")
 
     // Third Party Libraries
-    implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:${libs.versions.viewbindingpropertydelegate.get()}")
     implementation("com.michael-bull.kotlin-result:kotlin-result:1.1.12")
     /*
      * Was used for clipping color data with its custom background, but uses LAYER_TYPE_SOFTWARE,

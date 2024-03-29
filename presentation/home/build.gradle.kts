@@ -86,7 +86,6 @@ dependencies {
     implementation("androidx.dynamicanimation:dynamicanimation:1.0.0")
 
     // Third Party Libraries
-    implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:${libs.versions.viewbindingpropertydelegate.get()}")
     implementation("com.michael-bull.kotlin-result:kotlin-result:1.1.12")
     implementation("com.facebook.shimmer:shimmer:0.5.0")
 
