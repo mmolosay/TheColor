@@ -270,6 +270,8 @@ private fun SelectableChip(
         selectedLabelColor = colorsOnTintedSurface.accent,
     )
     val border = FilterChipDefaults.filterChipBorder(
+        enabled = true,
+        selected = selected,
         borderColor = colorsOnTintedSurface.muted,
         borderWidth = 0.5.dp,
         selectedBorderWidth = 0.dp,
