@@ -29,6 +29,8 @@ import io.github.mmolosay.thecolor.presentation.details.ColorDetails
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorScheme
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 
 @Composable
 fun ColorCenter(
@@ -75,8 +77,8 @@ fun ColorCenter(
     scheme: @Composable () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val pages: List<@Composable () -> Unit> = remember {
-        listOf(
+    val pages: ImmutableList<@Composable () -> Unit> = remember {
+        persistentListOf(
             {
                 DetailsPage(
                     content = details,
