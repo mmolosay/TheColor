@@ -53,6 +53,7 @@ dependencies {
     implementation(project(":main"))
     implementation(project(":presentation:design-system"))
     implementation(project(":presentation:common"))
+    implementation(project(":presentation:navigation"))
     implementation(project(":presentation:home"))
 
     // Jetpack
