@@ -11,9 +11,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.navigation.NavDest
 import io.github.mmolosay.thecolor.presentation.navigation.Navigator
-import io.github.mmolosay.thecolor.presentation.navigation.handle
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -57,7 +55,9 @@ private fun Application(
     )
     LaunchedEffect(Unit) {
         navigator.navEventFlow.collect { navEvent ->
-            navController handle navEvent
+            navEvent.handle(
+                mainNavController = navController,
+            )
         }
     }
 
