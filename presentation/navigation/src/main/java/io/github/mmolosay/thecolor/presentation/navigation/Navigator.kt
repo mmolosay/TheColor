@@ -11,6 +11,9 @@ import javax.inject.Singleton
  *
  * Any component that can handle these [NavEvent]s should collect [navEventFlow]
  * and perform according navigation.
+ *
+ * P.S.: I'm not a fan of name `"Navigator"`. This component is more like `"NavEventsStore"`.
+ * However, this name if very concise and easy to spot.
  */
 @Singleton
 class Navigator @Inject constructor() {
