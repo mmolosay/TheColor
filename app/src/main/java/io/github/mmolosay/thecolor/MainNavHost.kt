@@ -47,3 +47,12 @@ private fun NavGraphBuilder.settings() =
             Text(text = "Settings")
         }
     }
+
+/**
+ * Maps [NavDest] to a unique [String] identifier.
+ */
+internal val NavDest.route: String
+    get() = when (this) {
+        NavDest.Home -> "home"
+        NavDest.Settings -> "settings"
+    }
