@@ -54,11 +54,12 @@ class HomeViewModel @Inject constructor(
         }
 
     private fun onColorFromColorInput(color: Color?) {
-        val models = HomeData.Models(
-            canProceed = (color != null),
-            colorUsedToProceed = null, // 'proceed' action wasn't invoked yet
-        )
-        _dataFlow updateWith models
+        _dataFlow.update {
+            it.copy(
+                canProceed = CanProceed(canProceed = (color != null)),
+                colorUsedToProceed = null, // 'proceed' action wasn't invoked yet
+            )
+        }
     }
 
     private fun onEventFromColorInput(event: ColorInputEvent) {
@@ -79,16 +80,37 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    private fun setGoToSettingsNavEvent() {
+        _dataFlow.update {
+            it.copy(navEvent = NavEventGoToSettings())
+        }
+    }
+
+    private fun clearNavEvent() {
+        _dataFlow.update {
+            it.copy(navEvent = null)
+        }
+    }
+
     /** Creates [HomeData] by combining passed [models] with ViewModel methods. */
     private fun HomeData(models: HomeData.Models) =
         HomeData(
-            canProceed = if (models.canProceed) CanProceed.Yes(action = ::proceed) else CanProceed.No,
+            canProceed = CanProceed(canProceed = models.canProceed),
             colorUsedToProceed = models.colorUsedToProceed,
+            goToSettings = ::setGoToSettingsNavEvent,
+            navEvent = when (models.navEvent) {
+                is HomeData.Models.NavEvent.GoToSettings -> NavEventGoToSettings()
+                null -> null
+            },
         )
 
-    private infix fun MutableStateFlow<HomeData>.updateWith(models: HomeData.Models) {
-        this.value = HomeData(models)
-    }
+    private fun CanProceed(canProceed: Boolean): CanProceed =
+        if (canProceed) CanProceed.Yes(action = ::proceed) else CanProceed.No
+
+    private fun NavEventGoToSettings() =
+        HomeData.NavEvent.GoToSettings(
+            onConsumed = ::clearNavEvent,
+        )
 }
 
 /**
@@ -106,6 +128,7 @@ class GetInitialModelsUseCase @Inject constructor(
         return HomeData.Models(
             canProceed = (color != null),
             colorUsedToProceed = null, // 'proceed' action wasn't invoked yet
+            navEvent = null,
         )
     }
 }

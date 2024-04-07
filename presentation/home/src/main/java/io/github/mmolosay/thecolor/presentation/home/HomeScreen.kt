@@ -1,8 +1,10 @@
 package io.github.mmolosay.thecolor.presentation.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,15 +13,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -51,13 +57,14 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 
 @Composable
 fun HomeScreen(
-    vm: HomeViewModel,
+    viewModel: HomeViewModel,
+    navigateToSettings: () -> Unit,
 ) {
     val colorInputViewModel: ColorInputViewModel = hiltViewModel()
     val colorPreviewViewModel: ColorPreviewViewModel = hiltViewModel()
     val colorCenterViewModel: ColorCenterViewModel = hiltViewModel()
 
-    val data = vm.dataFlow.collectAsStateWithLifecycle().value
+    val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
     val viewData = rememberViewData()
     val uiData = HomeUiData(data, viewData)
 
@@ -79,6 +86,7 @@ fun HomeScreen(
                 modifier = Modifier.padding(top = 24.dp),
             )
         },
+        navigateToSettings = navigateToSettings,
     )
 }
 
@@ -88,6 +96,7 @@ fun HomeScreen(
     colorInput: @Composable () -> Unit,
     colorPreview: @Composable () -> Unit,
     colorCenter: @Composable () -> Unit,
+    navigateToSettings: () -> Unit,
 ) {
     Scaffold { contentPadding ->
         Home(
@@ -95,6 +104,7 @@ fun HomeScreen(
             colorInput = colorInput,
             colorPreview = colorPreview,
             colorCenter = colorCenter,
+            navigateToSettings = navigateToSettings,
             modifier = Modifier.padding(contentPadding),
         )
     }
@@ -106,6 +116,7 @@ fun Home(
     colorInput: @Composable () -> Unit,
     colorPreview: @Composable () -> Unit,
     colorCenter: @Composable () -> Unit,
+    navigateToSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -114,6 +125,8 @@ fun Home(
             .verticalScroll(state = rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        TopBar(uiData = uiData.topBar)
+
         Spacer(modifier = Modifier.height(160.dp))
         Text(
             text = uiData.headline,
@@ -135,9 +148,16 @@ fun Home(
             colorCenter = colorCenter,
         )
     }
+
+    LaunchedEffect(uiData.navEvent) {
+        val event = uiData.navEvent ?: return@LaunchedEffect
+        when (event) {
+            is HomeData.NavEvent.GoToSettings -> navigateToSettings()
+        }
+        event.onConsumed()
+    }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun ProceedButton(
     uiData: ProceedButton,
@@ -198,6 +218,23 @@ private fun ColorCenterOnTintedSurface(
 }
 
 @Composable
+private fun TopBar(
+    uiData: HomeUiData.TopBar,
+) {
+    Row(
+        horizontalArrangement = Arrangement.End,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        IconButton(onClick = uiData.settingsAction.onClick) {
+            Icon(
+                imageVector = Icons.Rounded.Settings,
+                contentDescription = uiData.settingsAction.iconContentDescription,
+            )
+        }
+    }
+}
+
+@Composable
 private fun rememberViewData(): HomeUiData.ViewData {
     val context = LocalContext.current
     return remember { HomeViewData(context) }
@@ -242,12 +279,19 @@ private fun Preview() {
                     text = "Color Input",
                 )
             },
+            navigateToSettings = {},
         )
     }
 }
 
 private fun previewUiData() =
     HomeUiData(
+        topBar = HomeUiData.TopBar(
+            settingsAction = HomeUiData.TopBar.SettingsAction(
+                onClick = {},
+                iconContentDescription = "",
+            ),
+        ),
         headline = "Find your color",
         proceedButton = ProceedButton(
             onClick = {},
@@ -258,4 +302,5 @@ private fun previewUiData() =
             backgroundColor = Color(0xFF_123456),
             useLightContentColors = true,
         ),
+        navEvent = null,
     )

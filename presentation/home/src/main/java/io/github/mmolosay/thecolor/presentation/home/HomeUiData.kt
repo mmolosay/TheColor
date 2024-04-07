@@ -8,10 +8,21 @@ import androidx.compose.ui.graphics.Color
  * It's a derivative from [HomeData].
  */
 data class HomeUiData(
+    val topBar: TopBar,
     val headline: String,
     val proceedButton: ProceedButton,
     val showColorCenter: ShowColorCenter,
+    val navEvent: HomeData.NavEvent?,
 ) {
+
+    data class TopBar(
+        val settingsAction: SettingsAction,
+    ) {
+        data class SettingsAction(
+            val onClick: () -> Unit,
+            val iconContentDescription: String,
+        )
+    }
 
     data class ProceedButton(
         val onClick: () -> Unit,
@@ -34,6 +45,7 @@ data class HomeUiData(
      * components (like Context), which should be avoided in ViewModels.
      */
     data class ViewData(
+        val settingsIconContentDesc: String,
         val headline: String,
         val proceedButtonText: String,
     )
@@ -41,6 +53,7 @@ data class HomeUiData(
 
 fun HomeViewData(context: Context) =
     HomeUiData.ViewData(
+        settingsIconContentDesc = context.getString(R.string.home_settings_icon_content_desc),
         headline = context.getString(R.string.home_headline),
         proceedButtonText = context.getString(R.string.home_proceed_btn),
     )

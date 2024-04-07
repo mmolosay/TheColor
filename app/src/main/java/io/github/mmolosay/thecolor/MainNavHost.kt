@@ -1,19 +1,16 @@
 package io.github.mmolosay.thecolor
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import io.github.mmolosay.thecolor.presentation.home.HomeScreen
 import io.github.mmolosay.thecolor.presentation.home.HomeViewModel
-import io.github.mmolosay.thecolor.presentation.navigation.NavDest
+import io.github.mmolosay.thecolor.presentation.settings.Settings
+import io.github.mmolosay.thecolor.presentation.settings.SettingsViewModel
 
 /**
  * A top-level [NavHost] of the entire application.
@@ -24,35 +21,43 @@ internal fun MainNavHost(
 ) =
     NavHost(
         navController = navController,
-        startDestination = NavDest.Home.route,
+        startDestination = AppNavDest.Home.route,
     ) {
-        home()
-        settings()
-    }
-
-private fun NavGraphBuilder.home() =
-    composable(route = NavDest.Home.route) {
-        val homeViewModel: HomeViewModel = hiltViewModel()
-        HomeScreen(
-            vm = homeViewModel,
+        home(
+            mainNavController = navController,
+        )
+        settings(
+            mainNavController = navController,
         )
     }
 
-private fun NavGraphBuilder.settings() =
-    composable(route = NavDest.Settings.route) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(text = "Settings")
-        }
+private fun NavGraphBuilder.home(
+    mainNavController: NavController,
+) =
+    composable(route = AppNavDest.Home.route) {
+        val homeViewModel: HomeViewModel = hiltViewModel()
+        HomeScreen(
+            viewModel = homeViewModel,
+            navigateToSettings = {
+                mainNavController.navigate(route = AppNavDest.Settings.route)
+            },
+        )
     }
 
-/**
- * Maps [NavDest] to a unique [String] identifier.
- */
-internal val NavDest.route: String
-    get() = when (this) {
-        NavDest.Home -> "home"
-        NavDest.Settings -> "settings"
+private fun NavGraphBuilder.settings(
+    mainNavController: NavController,
+) =
+    composable(route = AppNavDest.Settings.route) {
+        val settingsViewModel: SettingsViewModel = hiltViewModel()
+        Settings(
+            viewModel = settingsViewModel,
+            navigateToHome = {
+                val previous = mainNavController.previousBackStackEntry
+                if (previous?.destination?.route == AppNavDest.Home.route) {
+                    mainNavController.popBackStack()
+                } else {
+                    mainNavController.navigate(route = AppNavDest.Home.route)
+                }
+            },
+        )
     }

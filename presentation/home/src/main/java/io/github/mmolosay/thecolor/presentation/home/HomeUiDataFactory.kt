@@ -7,9 +7,22 @@ fun HomeUiData(
     viewData: HomeUiData.ViewData,
 ) =
     HomeUiData(
+        topBar = TopBar(data, viewData),
         headline = viewData.headline,
         proceedButton = ProceedButton(data, viewData),
-        showColorCenter = ShowColorCenter(data.colorUsedToProceed)
+        showColorCenter = ShowColorCenter(data.colorUsedToProceed),
+        navEvent = data.navEvent,
+    )
+
+private fun TopBar(
+    data: HomeData,
+    viewData: HomeUiData.ViewData,
+) =
+    HomeUiData.TopBar(
+        settingsAction = HomeUiData.TopBar.SettingsAction(
+            onClick = data.goToSettings,
+            iconContentDescription = viewData.settingsIconContentDesc,
+        )
     )
 
 private fun ShowColorCenter(data: HomeData.ColorData?) =

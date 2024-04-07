@@ -53,8 +53,8 @@ dependencies {
     implementation(project(":main"))
     implementation(project(":presentation:design-system"))
     implementation(project(":presentation:common"))
-    implementation(project(":presentation:navigation"))
     implementation(project(":presentation:home"))
+    implementation(project(":presentation:settings"))
 
     // Jetpack
     implementation("androidx.appcompat:appcompat:${libs.versions.androidx.appcompat.get()}")
