@@ -22,6 +22,7 @@ fun Settings(
 ) {
     Settings(
         data = viewModel.dataFlow.collectAsStateWithLifecycle().value,
+        navEvent = viewModel.navEventFlow.collectAsStateWithLifecycle().value,
         navigateToHome = navigateToHome,
     )
 }
@@ -29,6 +30,7 @@ fun Settings(
 @Composable
 fun Settings(
     data: SettingsData,
+    navEvent: SettingsNavEvent?,
     navigateToHome: () -> Unit,
 ) {
     Box(
@@ -43,10 +45,10 @@ fun Settings(
         }
     }
 
-    LaunchedEffect(data.navEvent) {
-        val event = data.navEvent ?: return@LaunchedEffect
+    LaunchedEffect(navEvent) {
+        val event = navEvent ?: return@LaunchedEffect
         when (event) {
-            is SettingsData.NavEvent.GoToHome -> navigateToHome()
+            is SettingsNavEvent.GoToHome -> navigateToHome()
         }
         event.onConsumed()
     }
