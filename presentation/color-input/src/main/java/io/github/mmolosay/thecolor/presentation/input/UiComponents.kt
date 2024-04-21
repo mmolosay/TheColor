@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -96,12 +97,9 @@ internal object UiComponents {
     private fun Placeholder(text: String) =
         Text(
             text = text,
-            style = with(MaterialTheme.typography.bodyLarge) {
-                copy(
-                    fontFamily = FontFamily.SansSerif,
-                    color = this.color.copy(alpha = 0.45f),
-                )
-            },
+            color = LocalContentColor.current.copy(alpha = 0.45f),
+            style = MaterialTheme.typography.bodyLarge
+                .copy(fontFamily = FontFamily.SansSerif),
         )
 
     @Composable
