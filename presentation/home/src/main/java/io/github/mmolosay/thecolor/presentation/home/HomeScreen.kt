@@ -23,31 +23,27 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.center.ColorCenter
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterShape
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
+import io.github.mmolosay.thecolor.presentation.design.ChangeNavigationBarAsSideEffect
 import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
-import io.github.mmolosay.thecolor.presentation.design.LocalIsNavigationBarLight
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
+import io.github.mmolosay.thecolor.presentation.design.RestoreNavigationBarAsSideEffect
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
-import io.github.mmolosay.thecolor.presentation.findActivityContext
 import io.github.mmolosay.thecolor.presentation.home.HomeUiData.ProceedButton
 import io.github.mmolosay.thecolor.presentation.home.HomeUiData.ShowColorCenter
 import io.github.mmolosay.thecolor.presentation.input.ColorInput
@@ -182,18 +178,9 @@ private fun ColorCenterOnTintedSurface(
     state: ShowColorCenter,
     colorCenter: @Composable () -> Unit,
 ) {
-    val view = LocalView.current
-    val window = view.context.findActivityContext().window
-    val isNavigationBarLight = LocalIsNavigationBarLight.current
-    SideEffect {
-        if (view.isInEditMode) return@SideEffect
-        window.navigationBarColor = Color.Transparent.toArgb()
-        WindowCompat.getInsetsController(window, window.decorView).run {
-            isAppearanceLightNavigationBars = isNavigationBarLight
-        }
-    }
-
+    RestoreNavigationBarAsSideEffect()
     if (state !is ShowColorCenter.Yes) return
+
     val colors = rememberContentColors(useLight = state.useLightContentColors)
     ProvideColorsOnTintedSurface(colors) {
         Box(
@@ -207,14 +194,10 @@ private fun ColorCenterOnTintedSurface(
             colorCenter()
         }
     }
-
-    SideEffect {
-        if (view.isInEditMode) return@SideEffect
-        window.navigationBarColor = state.backgroundColor.toArgb()
-        WindowCompat.getInsetsController(window, window.decorView).run {
-            isAppearanceLightNavigationBars = !state.useLightContentColors
-        }
-    }
+    ChangeNavigationBarAsSideEffect(
+        navigationBarColor = state.backgroundColor,
+        isAppearanceLightNavigationBars = !state.useLightContentColors,
+    )
 }
 
 @Composable
