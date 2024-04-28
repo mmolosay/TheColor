@@ -89,6 +89,7 @@ dependencies {
     // Third Party Libraries
     implementation("com.michael-bull.kotlin-result:kotlin-result:1.1.12")
     implementation("com.facebook.shimmer:shimmer:0.5.0")
+    implementation("io.github.mmolosay:debounce:${libs.versions.mmolosayDebounce.get()}")
 
     // Hilt
     implementation("com.google.dagger:hilt-android:${libs.versions.hilt.get()}")

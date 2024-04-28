@@ -34,6 +34,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.mmolosay.debounce.debounced
 import io.github.mmolosay.thecolor.presentation.center.ColorCenter
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterShape
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
@@ -204,11 +205,15 @@ private fun ColorCenterOnTintedSurface(
 private fun TopBar(
     uiData: HomeUiData.TopBar,
 ) {
+    val onClick = uiData.settingsAction.onClick
+    val debouncedOnClick: () -> Unit = remember(onClick) {
+        debounced(action = onClick)
+    }
     Row(
         horizontalArrangement = Arrangement.End,
         modifier = Modifier.fillMaxWidth(),
     ) {
-        IconButton(onClick = uiData.settingsAction.onClick) {
+        IconButton(onClick = debouncedOnClick) {
             Icon(
                 imageVector = Icons.Rounded.Settings,
                 contentDescription = uiData.settingsAction.iconContentDescription,
