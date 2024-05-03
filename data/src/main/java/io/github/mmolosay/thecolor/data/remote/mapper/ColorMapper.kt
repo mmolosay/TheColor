@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.data
+package io.github.mmolosay.thecolor.data.remote.mapper
 
 import io.github.mmolosay.thecolor.domain.model.Color
 import javax.inject.Inject
@@ -11,7 +11,7 @@ import javax.inject.Singleton
 class ColorMapper @Inject constructor() {
 
     /*
-     * The same algorithm can be found in io.github.mmolosay.thecolor.input.ColorConverter.
+     * The same algorithm can be found in io.github.mmolosay.thecolor.presentation.input.ColorInputMapper.
      * However, these pieces of code should not be unified and reused. This is a false duplication.
      *
      * This method serves data layer.

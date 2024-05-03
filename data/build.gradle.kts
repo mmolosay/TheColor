@@ -1,6 +1,7 @@
 plugins {
     id("com.android.library")
     id("kotlin-android")
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -29,13 +30,22 @@ android {
 dependencies {
     implementation(project(":domain"))
     implementation(project(":utils"))
-    implementation(project(":data:local"))
-    implementation(project(":data:remote"))
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.coroutines.get()}")
     implementation("javax.inject:javax.inject:1")
-
     implementation("com.github.ajalt.colormath:colormath:3.4.0")
+
+    // Local
+    val roomVersion = libs.versions.room.get()
+    implementation("androidx.room:room-runtime:$roomVersion")
+    implementation("androidx.room:room-ktx:$roomVersion")
+    ksp("androidx.room:room-compiler:$roomVersion")
+
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+    // Remote
+    implementation("com.squareup.retrofit2:retrofit:${libs.versions.retrofit.library.get()}")
+    implementation("com.squareup.retrofit2:converter-moshi:${libs.versions.retrofit.moshi.get()}")
 
     // Testing
     testImplementation("junit:junit:${libs.versions.junit.get()}")
