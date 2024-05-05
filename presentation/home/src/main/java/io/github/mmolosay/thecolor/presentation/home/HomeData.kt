@@ -16,7 +16,7 @@ data class HomeData(
     val canProceed: CanProceed,
     val colorUsedToProceed: ColorData?,
     val goToSettings: () -> Unit,
-    val navEvent: NavEvent?,
+    val navEvent: NavEvent?, // TODO: extract nav event from HomeData and expose as separate flow from ViewModel: see 'SettingsNavEvent' for example
 ) {
 
     sealed interface CanProceed {
