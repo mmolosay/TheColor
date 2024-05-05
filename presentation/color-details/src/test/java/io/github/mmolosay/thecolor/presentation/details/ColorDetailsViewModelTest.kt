@@ -29,6 +29,7 @@ class ColorDetailsViewModelTest {
     val commandProvider: ColorCenterCommandProvider = mockk()
     val getColorDetails: GetColorDetailsUseCase = mockk()
     val createData: CreateColorDetailsDataUseCase = mockk()
+    val createError: CreateColorDetailsErrorUseCase = mockk()
 
     lateinit var sut: ColorDetailsViewModel
 
@@ -47,7 +48,7 @@ class ColorDetailsViewModelTest {
             val color = Color.Hex(0x1A803F)
             val commandFlow = MutableSharedFlow<ColorCenterCommand>()
             every { commandProvider.commandFlow } returns commandFlow
-            coEvery { getColorDetails.invoke(any<Color>()) } returns mockk()
+            coEvery { getColorDetails.invoke(any<Color>()) } returns Result.success(value = mockk())
             every { createData(details = any()) } returns mockk()
             createSut()
 
@@ -62,7 +63,7 @@ class ColorDetailsViewModelTest {
             val color = mockk<Color.Hex>()
             val commandFlow = MutableSharedFlow<ColorCenterCommand>()
             every { commandProvider.commandFlow } returns commandFlow
-            coEvery { getColorDetails.invoke(any<Color>()) } returns mockk()
+            coEvery { getColorDetails.invoke(any<Color>()) } returns Result.success(value = mockk())
             every { createData(details = any()) } returns mockk()
             createSut()
 
@@ -77,11 +78,29 @@ class ColorDetailsViewModelTest {
             commandFlow.emit(ColorCenterCommand.FetchData(color))
         }
 
+    @Test
+    fun `emission of 'fetch data' command results in emission of Error state`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val color = Color.Hex(0x1A803F)
+            val commandFlow = MutableSharedFlow<ColorCenterCommand>()
+            every { commandProvider.commandFlow } returns commandFlow
+            coEvery { getColorDetails.invoke(any<Color>()) } returns Result.failure(
+                exception = Exception("test exception"),
+            )
+            every { createError(exception = any()) } returns mockk()
+            createSut()
+
+            commandFlow.emit(ColorCenterCommand.FetchData(color))
+
+            sut.dataStateFlow.value should beOfType<State.Error>()
+        }
+
     fun createSut() =
         ColorDetailsViewModel(
             commandProvider = commandProvider,
             getColorDetails = getColorDetails,
             createData = createData,
+            createError = createError,
             ioDispatcher = mainDispatcherRule.testDispatcher,
         ).also {
             sut = it

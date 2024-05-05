@@ -11,6 +11,7 @@ import io.github.mmolosay.thecolor.domain.model.ColorScheme
 import io.github.mmolosay.thecolor.domain.repository.ColorRepository
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase
+import io.github.mmolosay.thecolor.utils.mapFailure
 import javax.inject.Inject
 
 /**
@@ -27,10 +28,17 @@ class ColorRepositoryRemoteImpl @Inject constructor(
     override suspend fun lastSearchedColor(): Color.Abstract? =
         null
 
-    override suspend fun getColorDetails(color: Color): ColorDetails {
-        val string = color.toDtoString()
-        val colorDetailsDto = api.getColorDetails(hex = string)
-        return with(colorDetailsMapper) { colorDetailsDto.toDomain() }
+    override suspend fun getColorDetails(color: Color): Result<ColorDetails> {
+        val colorString = color.toDtoString()
+        return runCatching {
+            api.getColorDetails(hex = colorString)
+        }
+            .map { colorDetailsDto ->
+                with(colorDetailsMapper) { colorDetailsDto.toDomain() }
+            }
+            .mapFailure {
+                it.asHttpFailureOrNull() ?: it
+            }
     }
 
     override suspend fun getColorScheme(request: GetColorSchemeUseCase.Request): ColorScheme {

@@ -1,8 +1,10 @@
 package io.github.mmolosay.thecolor.presentation.details
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -27,6 +29,7 @@ import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.Color
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorTranslation
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorTranslations
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ViewData
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel.State.Error
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel.State.Idle
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel.State.Loading
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel.State.Ready
@@ -46,6 +49,10 @@ fun ColorDetails(
         is Ready -> {
             val uiData = rememberUiData(state.data, viewData)
             ColorDetails(uiData)
+        }
+        is Error -> {
+            val uiError = rememberUiError(state.error, viewData)
+            Error(uiError = uiError)
         }
     }
 }
@@ -95,6 +102,7 @@ private fun Headline(
         style = MaterialTheme.typography.displayLarge,
     )
 
+// TODO: fix deprecation
 @Composable
 private fun Divider() =
     MaterialDivider(
@@ -114,6 +122,32 @@ private fun rememberUiData(
     viewData: ViewData,
 ): ColorDetailsUiData =
     remember(data) { ColorDetailsUiData(data, viewData) }
+
+@Composable
+private fun rememberUiError(
+    error: ColorDetailsError,
+    viewData: ViewData,
+): ColorDetailsUiError =
+    remember(error) { ColorDetailsUiError(error, viewData) }
+
+@Composable
+private fun Error(
+    uiError: ColorDetailsUiError,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .padding(horizontal = 24.dp)
+            .fillMaxWidth()
+            .defaultMinSize(minHeight = 200.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = uiError.text,
+        )
+    }
+}
 
 @Preview(showBackground = true)
 @Composable
@@ -137,6 +171,20 @@ private fun PreviewDark() {
         ProvideColorsOnTintedSurface(colors) {
             ColorDetails(
                 uiData = previewUiData(),
+                modifier = Modifier.background(Color(0xFF_F0F8FF)),
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PreviewError() {
+    TheColorTheme {
+        val colors = remember { colorsOnLightSurface() }
+        ProvideColorsOnTintedSurface(colors) {
+            Error(
+                uiError = previewUiError(),
                 modifier = Modifier.background(Color(0xFF_F0F8FF)),
             )
         }
@@ -197,4 +245,9 @@ private fun previewUiData() =
                 value = "1366",
             ),
         ),
+    )
+
+private fun previewUiError() =
+    ColorDetailsUiError(
+        text = "There is no connection to the internet",
     )

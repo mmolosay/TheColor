@@ -6,7 +6,7 @@ import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.Color
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ViewData
 import io.github.mmolosay.thecolor.presentation.toCompose
 
-fun ColorDetailsUiData(
+internal fun ColorDetailsUiData(
     data: ColorDetailsData,
     viewData: ViewData,
 ): ColorDetailsUiData =

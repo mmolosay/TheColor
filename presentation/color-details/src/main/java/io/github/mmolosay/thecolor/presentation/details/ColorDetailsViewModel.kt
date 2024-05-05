@@ -3,12 +3,14 @@ package io.github.mmolosay.thecolor.presentation.details
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.mmolosay.thecolor.domain.failure.HttpFailure
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.GetColorDetailsUseCase
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommand
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommandProvider
 import io.github.mmolosay.thecolor.presentation.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.ExactMatch
+import io.github.mmolosay.thecolor.utils.rethrowCancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,6 +25,7 @@ class ColorDetailsViewModel @Inject constructor(
     private val commandProvider: ColorCenterCommandProvider,
     private val getColorDetails: GetColorDetailsUseCase,
     private val createData: CreateColorDetailsDataUseCase,
+    private val createError: CreateColorDetailsErrorUseCase,
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -46,20 +49,31 @@ class ColorDetailsViewModel @Inject constructor(
     private fun getColorDetails(color: Color) {
         _dataStateFlow.value = State.Loading
         viewModelScope.launch(ioDispatcher) {
-            val details = getColorDetails.invoke(color)
-            val data = createData(details)
-            _dataStateFlow.value = State.Ready(data)
+            getColorDetails.invoke(color)
+                .rethrowCancellationException()
+                .onSuccess { details ->
+                    val data = createData(details)
+                    _dataStateFlow.value = State.Ready(data)
+                }
+                .onFailure { exception ->
+                    val error = createError(exception)
+                    _dataStateFlow.value = State.Error(error)
+                }
         }
     }
 
+
+    /** Depicts possible states of color details data. */
     sealed interface State {
         data object Idle : State
         data object Loading : State
         data class Ready(val data: ColorDetailsData) : State
+        data class Error(val error: ColorDetailsError) : State
     }
 }
 
 @Singleton
+/* private but Dagger */
 class CreateColorDetailsDataUseCase @Inject constructor(
     private val colorToColorInt: ColorToColorIntUseCase,
 ) {
@@ -102,5 +116,23 @@ class CreateColorDetailsDataUseCase @Inject constructor(
                 onExactClick = { /* TODO */ },
                 deviation = details.distanceFromExact.toString(),
             )
+        }
+}
+
+@Singleton
+/* private but Dagger */
+class CreateColorDetailsErrorUseCase @Inject constructor() {
+
+    operator fun invoke(exception: Throwable): ColorDetailsError {
+        val errorType = exception.asErrorTypeOrNull()
+        return ColorDetailsError(type = errorType)
+    }
+
+    private fun Throwable.asErrorTypeOrNull(): ColorDetailsError.Type? =
+        when (this) {
+            is HttpFailure.UnknownHost -> ColorDetailsError.Type.NoConnection
+            is HttpFailure.Timeout -> ColorDetailsError.Type.Timeout
+            is HttpFailure.ErrorResponse -> ColorDetailsError.Type.ErrorResponse
+            else -> null
         }
 }
