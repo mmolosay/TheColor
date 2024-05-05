@@ -11,7 +11,6 @@ import io.github.mmolosay.thecolor.domain.model.ColorScheme
 import io.github.mmolosay.thecolor.domain.repository.ColorRepository
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase
-import io.github.mmolosay.thecolor.utils.mapFailure
 import javax.inject.Inject
 
 /**
@@ -35,9 +34,6 @@ class ColorRepositoryRemoteImpl @Inject constructor(
         }
             .map { colorDetailsDto ->
                 with(colorDetailsMapper) { colorDetailsDto.toDomain() }
-            }
-            .mapFailure {
-                it.asHttpFailureOrNull() ?: it
             }
     }
 

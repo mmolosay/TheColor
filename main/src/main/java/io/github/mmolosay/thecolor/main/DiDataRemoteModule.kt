@@ -7,9 +7,11 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.migration.DisableInstallInCheck
 import io.github.mmolosay.thecolor.data.remote.ColorRepositoryRemoteImpl
+import io.github.mmolosay.thecolor.data.remote.HttpFailureFactoryImpl
 import io.github.mmolosay.thecolor.data.remote.api.TheColorApiService
 import io.github.mmolosay.thecolor.data.remote.model.SchemeModeDtoAdapter
 import io.github.mmolosay.thecolor.domain.repository.ColorRepository
+import io.github.mmolosay.thecolor.domain.usecase.HttpFailureFactory
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -76,6 +78,9 @@ object DiDataRemoteProvideModule {
 @Module
 @DisableInstallInCheck
 interface DiDataRemoteBindModule {
+
+    @Binds
+    fun bindHttpFailureFactory(impl: HttpFailureFactoryImpl): HttpFailureFactory
 
     @Binds
     fun bindColorRepositoryRemoteImpl(impl: ColorRepositoryRemoteImpl): ColorRepository

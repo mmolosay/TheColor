@@ -3,7 +3,7 @@ package io.github.mmolosay.thecolor.domain.failure
 /**
  * Represents a type of [Failure] that occurred during an HTTP call.
  */
-sealed class HttpFailure : Failure() {
+sealed class HttpFailure : Failure {
 
     class UnknownHost(override val cause: Throwable) : HttpFailure()
     class Timeout(override val cause: Throwable) : HttpFailure()
@@ -11,7 +11,6 @@ sealed class HttpFailure : Failure() {
     class ErrorResponse(
         override val cause: Throwable,
         val code: Int,
-        override val message: String,
+        val message: String,
     ) : HttpFailure()
 }
-

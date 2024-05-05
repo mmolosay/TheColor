@@ -3,8 +3,10 @@ package io.github.mmolosay.thecolor.presentation.details
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.mmolosay.thecolor.domain.failure.Failure
 import io.github.mmolosay.thecolor.domain.failure.HttpFailure
 import io.github.mmolosay.thecolor.domain.model.Color
+import io.github.mmolosay.thecolor.domain.usecase.FailureFactory
 import io.github.mmolosay.thecolor.domain.usecase.GetColorDetailsUseCase
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommand
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommandProvider
@@ -121,14 +123,17 @@ class CreateColorDetailsDataUseCase @Inject constructor(
 
 @Singleton
 /* private but Dagger */
-class CreateColorDetailsErrorUseCase @Inject constructor() {
+class CreateColorDetailsErrorUseCase @Inject constructor(
+    private val failureFactory: FailureFactory,
+) {
 
     operator fun invoke(exception: Throwable): ColorDetailsError {
-        val errorType = exception.asErrorTypeOrNull()
+        val failure = with(failureFactory) { exception.asFailureOrNull() }
+        val errorType = failure?.asErrorTypeOrNull()
         return ColorDetailsError(type = errorType)
     }
 
-    private fun Throwable.asErrorTypeOrNull(): ColorDetailsError.Type? =
+    private fun Failure.asErrorTypeOrNull(): ColorDetailsError.Type? =
         when (this) {
             is HttpFailure.UnknownHost -> ColorDetailsError.Type.NoConnection
             is HttpFailure.Timeout -> ColorDetailsError.Type.Timeout
