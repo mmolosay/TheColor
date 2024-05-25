@@ -1,7 +1,7 @@
 package io.github.mmolosay.thecolor.data.remote
 
-import io.github.mmolosay.thecolor.domain.failure.HttpFailure
-import io.github.mmolosay.thecolor.domain.usecase.HttpFailureFactory
+import io.github.mmolosay.thecolor.domain.result.HttpFailure
+import io.github.mmolosay.thecolor.domain.result.HttpFailureFactory
 import retrofit2.HttpException
 import java.io.IOException
 import java.net.SocketTimeoutException

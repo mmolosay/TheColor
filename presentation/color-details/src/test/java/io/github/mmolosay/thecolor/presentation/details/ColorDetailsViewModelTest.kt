@@ -1,6 +1,8 @@
 package io.github.mmolosay.thecolor.presentation.details
 
 import io.github.mmolosay.thecolor.domain.model.Color
+import io.github.mmolosay.thecolor.domain.result.HttpFailure
+import io.github.mmolosay.thecolor.domain.result.Result
 import io.github.mmolosay.thecolor.domain.usecase.GetColorDetailsUseCase
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommand
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommandProvider
@@ -29,7 +31,6 @@ class ColorDetailsViewModelTest {
     val commandProvider: ColorCenterCommandProvider = mockk()
     val getColorDetails: GetColorDetailsUseCase = mockk()
     val createData: CreateColorDetailsDataUseCase = mockk()
-    val createError: CreateColorDetailsErrorUseCase = mockk()
 
     lateinit var sut: ColorDetailsViewModel
 
@@ -48,7 +49,7 @@ class ColorDetailsViewModelTest {
             val color = Color.Hex(0x1A803F)
             val commandFlow = MutableSharedFlow<ColorCenterCommand>()
             every { commandProvider.commandFlow } returns commandFlow
-            coEvery { getColorDetails.invoke(any<Color>()) } returns Result.success(value = mockk())
+            coEvery { getColorDetails.invoke(any<Color>()) } returns Result.Success(value = mockk())
             every { createData(details = any()) } returns mockk()
             createSut()
 
@@ -63,7 +64,7 @@ class ColorDetailsViewModelTest {
             val color = mockk<Color.Hex>()
             val commandFlow = MutableSharedFlow<ColorCenterCommand>()
             every { commandProvider.commandFlow } returns commandFlow
-            coEvery { getColorDetails.invoke(any<Color>()) } returns Result.success(value = mockk())
+            coEvery { getColorDetails.invoke(any<Color>()) } returns Result.Success(value = mockk())
             every { createData(details = any()) } returns mockk()
             createSut()
 
@@ -84,10 +85,9 @@ class ColorDetailsViewModelTest {
             val color = Color.Hex(0x1A803F)
             val commandFlow = MutableSharedFlow<ColorCenterCommand>()
             every { commandProvider.commandFlow } returns commandFlow
-            coEvery { getColorDetails.invoke(any<Color>()) } returns Result.failure(
-                exception = Exception("test exception"),
+            coEvery { getColorDetails.invoke(any<Color>()) } returns HttpFailure.Timeout(
+                cause = Exception("test exception"),
             )
-            every { createError(exception = any()) } returns mockk()
             createSut()
 
             commandFlow.emit(ColorCenterCommand.FetchData(color))
@@ -100,7 +100,6 @@ class ColorDetailsViewModelTest {
             commandProvider = commandProvider,
             getColorDetails = getColorDetails,
             createData = createData,
-            createError = createError,
             ioDispatcher = mainDispatcherRule.testDispatcher,
         ).also {
             sut = it

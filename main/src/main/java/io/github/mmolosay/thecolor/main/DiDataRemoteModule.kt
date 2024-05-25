@@ -11,7 +11,7 @@ import io.github.mmolosay.thecolor.data.remote.HttpFailureFactoryImpl
 import io.github.mmolosay.thecolor.data.remote.api.TheColorApiService
 import io.github.mmolosay.thecolor.data.remote.model.SchemeModeDtoAdapter
 import io.github.mmolosay.thecolor.domain.repository.ColorRepository
-import io.github.mmolosay.thecolor.domain.usecase.HttpFailureFactory
+import io.github.mmolosay.thecolor.domain.result.HttpFailureFactory
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit

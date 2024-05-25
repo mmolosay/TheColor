@@ -9,6 +9,8 @@ import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.ColorDetails
 import io.github.mmolosay.thecolor.domain.model.ColorScheme
 import io.github.mmolosay.thecolor.domain.repository.ColorRepository
+import io.github.mmolosay.thecolor.domain.result.Result
+import io.github.mmolosay.thecolor.domain.result.ResultMapper
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase
 import javax.inject.Inject
@@ -22,6 +24,7 @@ class ColorRepositoryRemoteImpl @Inject constructor(
     private val colorMapper: ColorMapper,
     private val colorDetailsMapper: ColorDetailsMapper,
     private val colorSchemeMapper: ColorSchemeMapper,
+    private val resultMapper: ResultMapper,
 ) : ColorRepository {
 
     override suspend fun lastSearchedColor(): Color.Abstract? =
@@ -29,12 +32,13 @@ class ColorRepositoryRemoteImpl @Inject constructor(
 
     override suspend fun getColorDetails(color: Color): Result<ColorDetails> {
         val colorString = color.toDtoString()
-        return runCatching {
+        val kotlinResult = runCatching {
             api.getColorDetails(hex = colorString)
         }
             .map { colorDetailsDto ->
                 with(colorDetailsMapper) { colorDetailsDto.toDomain() }
             }
+        return with(resultMapper) { kotlinResult.toDomainResult() }
     }
 
     override suspend fun getColorScheme(request: GetColorSchemeUseCase.Request): ColorScheme {
