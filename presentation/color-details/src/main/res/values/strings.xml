@@ -15,9 +15,4 @@
     <string name="color_details_deviation_label">DEVIATION</string>
     <string name="color_details_view_color_scheme_button_text">View color scheme</string>
 
-    <string name="color_details_error_message_no_connection">There is no connection to the internet.</string>
-    <string name="color_details_error_message_timeout">There was a connection timeout.</string>
-    <string name="color_details_error_message_any_error_response">Server responded with an error.</string>
-    <string name="color_details_error_message_unexpected_error">There was an unknown error.</string>
-
 </resources>

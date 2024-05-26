@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.model.Color
-import io.github.mmolosay.thecolor.domain.result.HttpFailure
 import io.github.mmolosay.thecolor.domain.result.Result
 import io.github.mmolosay.thecolor.domain.result.onFailure
 import io.github.mmolosay.thecolor.domain.result.onSuccess
@@ -56,20 +55,9 @@ class ColorDetailsViewModel @Inject constructor(
                     _dataStateFlow.value = State.Ready(data)
                 }
                 .onFailure { failure ->
-                    val error = failure.toError()
-                    _dataStateFlow.value = State.Error(error)
+                    _dataStateFlow.value = State.Error(failure)
                 }
         }
-    }
-
-    private fun Result.Failure.toError(): ColorDetailsError {
-        val errorType = when (this) {
-            is HttpFailure.UnknownHost -> ColorDetailsError.Type.NoConnection
-            is HttpFailure.Timeout -> ColorDetailsError.Type.Timeout
-            is HttpFailure.ErrorResponse -> ColorDetailsError.Type.ErrorResponse
-            else -> null
-        }
-        return ColorDetailsError(type = errorType)
     }
 
     /** Depicts possible states of color details data. */
@@ -77,7 +65,7 @@ class ColorDetailsViewModel @Inject constructor(
         data object Idle : State
         data object Loading : State
         data class Ready(val data: ColorDetailsData) : State
-        data class Error(val error: ColorDetailsError) : State
+        data class Error(val failure: Result.Failure) : State
     }
 }
 

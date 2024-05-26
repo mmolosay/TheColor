@@ -46,6 +46,7 @@ dependencies {
     implementation(project(":utils"))
     implementation(project(":presentation:common"))
     implementation(project(":presentation:design-system"))
+    implementation(project(":presentation:errors"))
 
     // Kotlin
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.coroutines.get()}")

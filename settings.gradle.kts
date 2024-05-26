@@ -26,6 +26,8 @@ include(":main")
 include(":app")
 include(":presentation:common")
 include(":presentation:design-system")
+include(":presentation:errors")
+
 include(":presentation:home")
 include(":presentation:color-input")
 include(":presentation:color-details")

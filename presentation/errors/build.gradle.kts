@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "io.github.mmolosay.thecolor.presentation.scheme"
+    namespace = "io.github.mmolosay.thecolor.presentation.errors"
     compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
@@ -46,10 +46,10 @@ dependencies {
     implementation(project(":utils"))
     implementation(project(":presentation:common"))
     implementation(project(":presentation:design-system"))
-    implementation(project(":presentation:errors"))
 
     // Kotlin
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.coroutines.get()}")
+    implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.7") // for Compose
 
     // Jetpack
     implementation("androidx.core:core-ktx:${libs.versions.androidx.core.coreKtx.get()}")

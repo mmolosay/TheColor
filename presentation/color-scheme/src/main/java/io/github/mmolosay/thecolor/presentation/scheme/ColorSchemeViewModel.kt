@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.ColorScheme.Mode
-import io.github.mmolosay.thecolor.domain.result.HttpFailure
 import io.github.mmolosay.thecolor.domain.result.Result
 import io.github.mmolosay.thecolor.domain.result.onFailure
 import io.github.mmolosay.thecolor.domain.result.onSuccess
@@ -87,20 +86,9 @@ class ColorSchemeViewModel @Inject constructor(
                     modelsStateFlow.value = State.Ready(models)
                 }
                 .onFailure { failure ->
-                    val error = failure.toError()
-                    modelsStateFlow.value = State.Error(error)
+                    modelsStateFlow.value = State.Error(failure)
                 }
         }
-    }
-
-    private fun Result.Failure.toError(): ColorSchemeError {
-        val errorType = when (this) {
-            is HttpFailure.UnknownHost -> ColorSchemeError.Type.NoConnection
-            is HttpFailure.Timeout -> ColorSchemeError.Type.Timeout
-            is HttpFailure.ErrorResponse -> ColorSchemeError.Type.ErrorResponse
-            else -> null
-        }
-        return ColorSchemeError(type = errorType)
     }
 
     // TODO: add unit tests
@@ -179,7 +167,7 @@ class ColorSchemeViewModel @Inject constructor(
         when (this) {
             is State.Idle -> this
             is State.Loading -> this
-            is State.Error -> State.Error(this.error)
+            is State.Error -> State.Error(this.failure)
             is State.Ready -> transform(data).let { State.Ready(it) }
         }
 
@@ -193,7 +181,7 @@ class ColorSchemeViewModel @Inject constructor(
         data object Idle : State<Nothing>
         data object Loading : State<Nothing>
         data class Ready<T>(val data: T) : State<T>
-        data class Error<T>(val error: ColorSchemeError) : State<T>
+        data class Error<T>(val failure: Result.Failure) : State<T>
     }
 
     companion object {

@@ -13,9 +13,4 @@
     <string name="color_scheme_swatch_count_label">Swatch count: </string>
     <string name="color_scheme_apply_changes_button_text">Apply changes</string>
 
-    <string name="color_scheme_error_message_no_connection">There is no connection to the internet.</string>
-    <string name="color_scheme_error_message_timeout">There was a connection timeout.</string>
-    <string name="color_scheme_error_message_any_error_response">Server responded with an error.</string>
-    <string name="color_scheme_error_message_unexpected_error">There was an unknown error.</string>
-
 </resources>

@@ -1,10 +1,8 @@
 package io.github.mmolosay.thecolor.presentation.details
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -20,6 +18,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.mmolosay.thecolor.domain.result.Result
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
@@ -29,10 +28,8 @@ import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.Color
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorTranslation
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorTranslations
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ViewData
-import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel.State.Error
-import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel.State.Idle
-import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel.State.Loading
-import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel.State.Ready
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel.State
+import io.github.mmolosay.thecolor.presentation.errors.ErrorMessage
 import androidx.compose.material3.Divider as MaterialDivider
 
 @Composable
@@ -42,18 +39,16 @@ fun ColorDetails(
     val state = vm.dataStateFlow.collectAsStateWithLifecycle().value
     val viewData = rememberViewData()
     when (state) {
-        is Idle ->
+        is State.Idle ->
             Unit // Color Details shouldn't be visible at Home at this point
-        is Loading ->
+        is State.Loading ->
             ColorDetailsLoading()
-        is Ready -> {
+        is State.Ready -> {
             val uiData = rememberUiData(state.data, viewData)
             ColorDetails(uiData)
         }
-        is Error -> {
-            val uiError = rememberUiError(state.error, viewData)
-            Error(uiError = uiError)
-        }
+        is State.Error ->
+            Error(failure = state.failure)
     }
 }
 
@@ -111,6 +106,18 @@ private fun Divider() =
     )
 
 @Composable
+private fun Error(
+    failure: Result.Failure,
+) {
+    ErrorMessage(
+        failure = failure,
+        modifier = Modifier
+            .padding(horizontal = 24.dp)
+            .fillMaxWidth(),
+    )
+}
+
+@Composable
 private fun rememberViewData(): ViewData {
     val context = LocalContext.current
     return remember { ColorDetailsViewData(context) }
@@ -122,32 +129,6 @@ private fun rememberUiData(
     viewData: ViewData,
 ): ColorDetailsUiData =
     remember(data) { ColorDetailsUiData(data, viewData) }
-
-@Composable
-private fun rememberUiError(
-    error: ColorDetailsError,
-    viewData: ViewData,
-): ColorDetailsUiError =
-    remember(error) { ColorDetailsUiError(error, viewData) }
-
-@Composable
-private fun Error(
-    uiError: ColorDetailsUiError,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier
-            .padding(horizontal = 24.dp)
-            .fillMaxWidth()
-            .defaultMinSize(minHeight = 200.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(
-            text = uiError.text,
-        )
-    }
-}
 
 @Preview(showBackground = true)
 @Composable
@@ -171,20 +152,6 @@ private fun PreviewDark() {
         ProvideColorsOnTintedSurface(colors) {
             ColorDetails(
                 uiData = previewUiData(),
-                modifier = Modifier.background(Color(0xFF_F0F8FF)),
-            )
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun PreviewError() {
-    TheColorTheme {
-        val colors = remember { colorsOnLightSurface() }
-        ProvideColorsOnTintedSurface(colors) {
-            Error(
-                uiError = previewUiError(),
                 modifier = Modifier.background(Color(0xFF_F0F8FF)),
             )
         }
@@ -245,9 +212,4 @@ private fun previewUiData() =
                 value = "1366",
             ),
         ),
-    )
-
-private fun previewUiError() =
-    ColorDetailsUiError(
-        text = "There is no connection to the internet",
     )

@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -64,12 +63,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.mmolosay.thecolor.domain.result.Result
 import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
+import io.github.mmolosay.thecolor.presentation.errors.ErrorMessage
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.ApplyChangesButton
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.ModeSection
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.Swatch
@@ -91,10 +92,8 @@ fun ColorScheme(
             val uiData = rememberUiData(state.data, viewData)
             ColorScheme(uiData)
         }
-        is State.Error -> {
-            val uiError = rememberUiError(state.error, viewData)
-            Error(uiError = uiError)
-        }
+        is State.Error ->
+            Error(failure = state.failure)
     }
 }
 
@@ -370,21 +369,14 @@ private fun Loading() =
 
 @Composable
 private fun Error(
-    uiError: ColorSchemeUiError,
-    modifier: Modifier = Modifier,
+    failure: Result.Failure,
 ) {
-    Column(
-        modifier = modifier
+    ErrorMessage(
+        failure = failure,
+        modifier = Modifier
             .padding(horizontal = 24.dp)
-            .fillMaxWidth()
-            .defaultMinSize(minHeight = 200.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(
-            text = uiError.text,
-        )
-    }
+            .fillMaxWidth(),
+    )
 }
 
 @Composable
@@ -399,13 +391,6 @@ private fun rememberUiData(
     viewData: ColorSchemeUiData.ViewData,
 ): ColorSchemeUiData =
     remember(data) { ColorSchemeUiData(data, viewData) }
-
-@Composable
-private fun rememberUiError(
-    error: ColorSchemeError,
-    viewData: ColorSchemeUiData.ViewData,
-): ColorSchemeUiError =
-    remember(error) { ColorSchemeUiError(error, viewData) }
 
 @Composable
 private fun rememberContentColors(useLight: Boolean): ColorsOnTintedSurface =

@@ -85,7 +85,7 @@ data class ColorDetailsUiData(
     }
 
     /**
-     * Part of to-be [ColorDetailsUiData] and [ColorDetailsUiError].
+     * Part of to-be [ColorDetailsUiData].
      * Framework-oriented.
      *
      * Created by View, since string resources are tied to platform-specific
@@ -104,12 +104,6 @@ data class ColorDetailsUiData(
         val exactValueLabel: String,
         val deviationLabel: String,
         val viewColorSchemeButtonText: String,
-
-        // TODO: separate into two ViewData-s, for UiData and for UiError
-        val errorMessageNoConnection: String,
-        val errorMessageTimeout: String,
-        val errorMessageErrorResponse: String,
-        val errorMessageUnexpectedError: String,
     )
 }
 
@@ -127,9 +121,4 @@ fun ColorDetailsViewData(context: Context) =
         exactValueLabel = context.getString(R.string.color_details_exact_value_label),
         deviationLabel = context.getString(R.string.color_details_deviation_label),
         viewColorSchemeButtonText = context.getString(R.string.color_details_view_color_scheme_button_text),
-
-        errorMessageNoConnection = context.getString(R.string.color_details_error_message_no_connection),
-        errorMessageTimeout = context.getString(R.string.color_details_error_message_timeout),
-        errorMessageErrorResponse = context.getString(R.string.color_details_error_message_any_error_response),
-        errorMessageUnexpectedError = context.getString(R.string.color_details_error_message_unexpected_error),
     )
