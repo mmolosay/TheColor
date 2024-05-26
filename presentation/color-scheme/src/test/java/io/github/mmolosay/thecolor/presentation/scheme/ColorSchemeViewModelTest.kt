@@ -2,10 +2,11 @@ package io.github.mmolosay.thecolor.presentation.scheme
 
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.ColorScheme.Mode
+import io.github.mmolosay.thecolor.domain.result.Result
 import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase
 import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase.Request
-import io.github.mmolosay.thecolor.presentation.ColorCenterCommandProvider
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommand
+import io.github.mmolosay.thecolor.presentation.ColorCenterCommandProvider
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Changes
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.SwatchCount
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.State
@@ -87,7 +88,7 @@ class ColorSchemeViewModelTest {
             every { getInitialModelsState() } returns State.Loading
             val commandFlow = MutableSharedFlow<ColorCenterCommand>()
             every { commandProvider.commandFlow } returns commandFlow
-            coEvery { getColorScheme(request = any<Request>()) } returns mockk()
+            coEvery { getColorScheme(request = any<Request>()) } returns Result.Success(value = mockk())
             every { createModels(scheme = any(), config = any()) } returns someModels()
             createSut()
 
@@ -175,7 +176,7 @@ class ColorSchemeViewModelTest {
             every { getInitialModelsState() } returns State.Loading
             val color: Color = mockk()
             every { commandProvider.commandFlow } returns flowOf(ColorCenterCommand.FetchData(color))
-            coEvery { getColorScheme(request = any<Request>()) } returns mockk()
+            coEvery { getColorScheme(request = any<Request>()) } returns Result.Success(value = mockk())
             every { createModels(scheme = any(), config = any()) } returns someModels().copy(
                 activeMode = Mode.Monochrome, // different modes for Changes.Present
                 selectedMode = Mode.Analogic, // different modes for Changes.Present

@@ -76,11 +76,6 @@ private object TestParameters {
         exactValueLabel = "EXACT VALUE",
         deviationLabel = "DEVIATION",
         viewColorSchemeButtonText = "View color scheme",
-
-        errorMessageNoConnection = "No connection",
-        errorMessageTimeout = "Timeout",
-        errorMessageErrorResponse = "Error response",
-        errorMessageUnexpectedError = "Unexpected error",
     )
 
     fun uiData0() =
@@ -166,11 +161,6 @@ private object TestParameters {
         exactValueLabel = "literal exact value label",
         deviationLabel = "literal deviation",
         viewColorSchemeButtonText = "literal view color scheme button text",
-
-        errorMessageNoConnection = "literal error message no connection",
-        errorMessageTimeout = "literal error message timeout",
-        errorMessageErrorResponse = "literal error message error response",
-        errorMessageUnexpectedError = "literal error message unexpected error",
     )
 
     fun uiData1() =
