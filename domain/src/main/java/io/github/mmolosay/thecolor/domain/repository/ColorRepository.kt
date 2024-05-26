@@ -9,5 +9,5 @@ import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase
 interface ColorRepository {
     suspend fun lastSearchedColor(): Color.Abstract?
     suspend fun getColorDetails(color: Color): Result<ColorDetails>
-    suspend fun getColorScheme(request: GetColorSchemeUseCase.Request): ColorScheme
+    suspend fun getColorScheme(request: GetColorSchemeUseCase.Request): Result<ColorScheme>
 }

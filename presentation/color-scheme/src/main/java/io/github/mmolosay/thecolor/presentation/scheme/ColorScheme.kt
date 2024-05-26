@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -82,11 +83,17 @@ fun ColorScheme(
     val state = vm.dataStateFlow.collectAsStateWithLifecycle().value
     val viewData = rememberViewData()
     when (state) {
+        is State.Idle ->
+            Unit // Color Details shouldn't be visible at Home at this point
         is State.Loading ->
             Loading()
         is State.Ready -> {
             val uiData = rememberUiData(state.data, viewData)
             ColorScheme(uiData)
+        }
+        is State.Error -> {
+            val uiError = rememberUiError(state.error, viewData)
+            Error(uiError = uiError)
         }
     }
 }
@@ -362,6 +369,25 @@ private fun Loading() =
     )
 
 @Composable
+private fun Error(
+    uiError: ColorSchemeUiError,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .padding(horizontal = 24.dp)
+            .fillMaxWidth()
+            .defaultMinSize(minHeight = 200.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = uiError.text,
+        )
+    }
+}
+
+@Composable
 private fun rememberViewData(): ColorSchemeUiData.ViewData {
     val context = LocalContext.current
     return remember { ColorSchemeViewData(context) }
@@ -373,6 +399,13 @@ private fun rememberUiData(
     viewData: ColorSchemeUiData.ViewData,
 ): ColorSchemeUiData =
     remember(data) { ColorSchemeUiData(data, viewData) }
+
+@Composable
+private fun rememberUiError(
+    error: ColorSchemeError,
+    viewData: ColorSchemeUiData.ViewData,
+): ColorSchemeUiError =
+    remember(error) { ColorSchemeUiError(error, viewData) }
 
 @Composable
 private fun rememberContentColors(useLight: Boolean): ColorsOnTintedSurface =

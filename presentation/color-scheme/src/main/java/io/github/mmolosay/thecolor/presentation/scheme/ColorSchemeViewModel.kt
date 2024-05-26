@@ -5,11 +5,15 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.ColorScheme.Mode
+import io.github.mmolosay.thecolor.domain.result.HttpFailure
+import io.github.mmolosay.thecolor.domain.result.Result
+import io.github.mmolosay.thecolor.domain.result.onFailure
+import io.github.mmolosay.thecolor.domain.result.onSuccess
 import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
+import io.github.mmolosay.thecolor.presentation.ColorCenterCommand
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommandProvider
 import io.github.mmolosay.thecolor.presentation.ColorToColorIntUseCase
-import io.github.mmolosay.thecolor.presentation.ColorCenterCommand
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Changes
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Swatch
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.SwatchCount
@@ -77,10 +81,26 @@ class ColorSchemeViewModel @Inject constructor(
         val request = requestConfig.toDomainRequest(seed)
         modelsStateFlow.value = State.Loading
         viewModelScope.launch(ioDispatcher) {
-            val scheme = getColorScheme(request)
-            val models = createModels(scheme = scheme, config = requestConfig)
-            modelsStateFlow.value = State.Ready(models)
+            getColorScheme(request)
+                .onSuccess { scheme ->
+                    val models = createModels(scheme = scheme, config = requestConfig)
+                    modelsStateFlow.value = State.Ready(models)
+                }
+                .onFailure { failure ->
+                    val error = failure.toError()
+                    modelsStateFlow.value = State.Error(error)
+                }
         }
+    }
+
+    private fun Result.Failure.toError(): ColorSchemeError {
+        val errorType = when (this) {
+            is HttpFailure.UnknownHost -> ColorSchemeError.Type.NoConnection
+            is HttpFailure.Timeout -> ColorSchemeError.Type.Timeout
+            is HttpFailure.ErrorResponse -> ColorSchemeError.Type.ErrorResponse
+            else -> null
+        }
+        return ColorSchemeError(type = errorType)
     }
 
     // TODO: add unit tests
@@ -157,7 +177,9 @@ class ColorSchemeViewModel @Inject constructor(
 
     private fun <T, R> State<T>.mapType(transform: (T) -> R): State<R> =
         when (this) {
+            is State.Idle -> this
             is State.Loading -> this
+            is State.Error -> State.Error(this.error)
             is State.Ready -> transform(data).let { State.Ready(it) }
         }
 
@@ -168,8 +190,10 @@ class ColorSchemeViewModel @Inject constructor(
     )
 
     sealed interface State<out T> {
+        data object Idle : State<Nothing>
         data object Loading : State<Nothing>
         data class Ready<T>(val data: T) : State<T>
+        data class Error<T>(val error: ColorSchemeError) : State<T>
     }
 
     companion object {
@@ -186,7 +210,7 @@ class ColorSchemeViewModel @Inject constructor(
 @Singleton
 class GetInitialModelsStateUseCase @Inject constructor() {
     operator fun invoke(): ModelsState =
-        State.Loading
+        State.Idle
 }
 
 /** Maps [DomainColorScheme] to presentation layer [ColorSchemeData.Models]. */

@@ -2,6 +2,7 @@ package io.github.mmolosay.thecolor.presentation.scheme
 
 import android.content.Context
 import androidx.compose.ui.graphics.Color
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.ViewData
 
 /**
  * Framework-oriented data required for color scheme View to be presented by Compose.
@@ -71,6 +72,12 @@ data class ColorSchemeUiData(
         val modeQuadName: String,
         val swatchCountLabel: String,
         val applyChangesButtonText: String,
+
+        // TODO: separate into two ViewData-s, for UiData and for UiError
+        val errorMessageNoConnection: String,
+        val errorMessageTimeout: String,
+        val errorMessageErrorResponse: String,
+        val errorMessageUnexpectedError: String,
     )
 }
 
@@ -87,4 +94,9 @@ fun ColorSchemeViewData(context: Context) =
         modeQuadName = context.getString(R.string.color_scheme_mode_name_quad),
         swatchCountLabel = context.getString(R.string.color_scheme_swatch_count_label),
         applyChangesButtonText = context.getString(R.string.color_scheme_apply_changes_button_text),
+
+        errorMessageNoConnection = context.getString(R.string.color_scheme_error_message_no_connection),
+        errorMessageTimeout = context.getString(R.string.color_scheme_error_message_timeout),
+        errorMessageErrorResponse = context.getString(R.string.color_scheme_error_message_any_error_response),
+        errorMessageUnexpectedError = context.getString(R.string.color_scheme_error_message_unexpected_error),
     )

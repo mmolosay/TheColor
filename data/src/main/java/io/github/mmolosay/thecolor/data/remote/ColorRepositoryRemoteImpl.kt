@@ -41,14 +41,19 @@ class ColorRepositoryRemoteImpl @Inject constructor(
         return with(resultMapper) { kotlinResult.toDomainResult() }
     }
 
-    override suspend fun getColorScheme(request: GetColorSchemeUseCase.Request): ColorScheme {
+    override suspend fun getColorScheme(request: GetColorSchemeUseCase.Request): Result<ColorScheme> {
         val seedHex = request.seed.toDtoString()
-        val colorSchemeDto = api.getColorScheme(
-            hex = seedHex,
-            mode = request.mode.toDto(),
-            swatchCount = request.swatchCount,
-        )
-        return with(colorSchemeMapper) { colorSchemeDto.toDomain() }
+        val kotlinResult = runCatching {
+            api.getColorScheme(
+                hex = seedHex,
+                mode = request.mode.toDto(),
+                swatchCount = request.swatchCount,
+            )
+        }
+            .map { colorSchemeDto ->
+                with(colorSchemeMapper) { colorSchemeDto.toDomain() }
+            }
+        return with(resultMapper) { kotlinResult.toDomainResult() }
     }
 
     private fun Color.toDtoString(): String {
