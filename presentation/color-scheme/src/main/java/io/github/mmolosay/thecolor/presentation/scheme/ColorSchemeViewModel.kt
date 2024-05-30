@@ -145,7 +145,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
     private fun ColorSchemeData(models: ColorSchemeData.Models) =
         ColorSchemeData(
             swatches = models.swatches,
-            onSwatchClick = ::goToSwatchDetails,
+            onSwatchSelect = ::goToSwatchDetails,
             activeMode = models.activeMode,
             selectedMode = models.selectedMode,
             onModeSelect = ::selectMode,

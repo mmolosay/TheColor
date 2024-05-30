@@ -118,7 +118,7 @@ private object TestParameters {
                     isDark = false,
                 ),
             ),
-            onSwatchClick = {},
+            onSwatchSelect = {},
             activeMode = Mode.Monochrome,
             selectedMode = Mode.Analogic,
             onModeSelect = {},

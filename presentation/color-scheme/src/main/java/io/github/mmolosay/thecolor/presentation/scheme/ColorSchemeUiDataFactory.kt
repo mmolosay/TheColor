@@ -104,7 +104,7 @@ internal object ColorSchemeUiDataComponents {
         data: ColorSchemeData,
         swatchIndex: Int,
     ): () -> Unit = {
-        data.onSwatchClick(swatchIndex)
+        data.onSwatchSelect(swatchIndex)
     }
 
     fun OnModeSelect(
