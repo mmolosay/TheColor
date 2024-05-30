@@ -12,7 +12,6 @@ data class HomeUiData(
     val headline: String,
     val proceedButton: ProceedButton,
     val showColorCenter: ShowColorCenter,
-    val navEvent: HomeData.NavEvent?,
 ) {
 
     data class TopBar(

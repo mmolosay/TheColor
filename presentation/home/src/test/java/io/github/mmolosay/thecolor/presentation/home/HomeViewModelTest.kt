@@ -237,6 +237,5 @@ class HomeViewModelTest {
         HomeData.Models(
             canProceed = canProceed,
             colorUsedToProceed = null,
-            navEvent = null,
         )
 }

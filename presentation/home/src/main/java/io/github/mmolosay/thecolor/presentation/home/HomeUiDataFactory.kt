@@ -11,7 +11,6 @@ fun HomeUiData(
         headline = viewData.headline,
         proceedButton = ProceedButton(data, viewData),
         showColorCenter = ShowColorCenter(data.colorUsedToProceed),
-        navEvent = data.navEvent,
     )
 
 private fun TopBar(

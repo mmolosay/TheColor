@@ -55,6 +55,9 @@ class HomeViewModel @Inject constructor(
     private val _dataFlow = MutableStateFlow(HomeData(models = getInitialModels()))
     val dataFlow = _dataFlow.asStateFlow()
 
+    private val _navEventFlow = MutableStateFlow<HomeNavEvent?>(null)
+    val navEventFlow = _navEventFlow.asStateFlow()
+
     val colorInputViewModel: ColorInputViewModel =
         colorInputViewModelFactory.create(
             coroutineScope = viewModelScope,
@@ -120,15 +123,11 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun setGoToSettingsNavEvent() {
-        _dataFlow.update {
-            it.copy(navEvent = NavEventGoToSettings())
-        }
+        _navEventFlow.value = NavEventGoToSettings()
     }
 
     private fun clearNavEvent() {
-        _dataFlow.update {
-            it.copy(navEvent = null)
-        }
+        _navEventFlow.value = null
     }
 
     /** Creates [HomeData] by combining passed [models] with ViewModel methods. */
@@ -137,17 +136,13 @@ class HomeViewModel @Inject constructor(
             canProceed = CanProceed(canProceed = models.canProceed),
             colorUsedToProceed = models.colorUsedToProceed,
             goToSettings = ::setGoToSettingsNavEvent,
-            navEvent = when (models.navEvent) {
-                is HomeData.Models.NavEvent.GoToSettings -> NavEventGoToSettings()
-                null -> null
-            },
         )
 
     private fun CanProceed(canProceed: Boolean): CanProceed =
         if (canProceed) CanProceed.Yes(action = ::proceed) else CanProceed.No
 
     private fun NavEventGoToSettings() =
-        HomeData.NavEvent.GoToSettings(
+        HomeNavEvent.GoToSettings(
             onConsumed = ::clearNavEvent,
         )
 }
@@ -166,7 +161,6 @@ class GetInitialModelsUseCase @AssistedInject constructor(
         return HomeData.Models(
             canProceed = (color != null),
             colorUsedToProceed = null, // 'proceed' action wasn't invoked yet
-            navEvent = null,
         )
     }
 

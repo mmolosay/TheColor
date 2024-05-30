@@ -56,9 +56,11 @@ fun HomeScreen(
     val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
     val viewData = rememberViewData()
     val uiData = HomeUiData(data, viewData)
+    val navEvent = viewModel.navEventFlow.collectAsStateWithLifecycle().value
 
     HomeScreen(
         uiData = uiData,
+        navEvent = navEvent,
         colorInput = {
             ColorInput(
                 viewModel = viewModel.colorInputViewModel,
@@ -82,6 +84,7 @@ fun HomeScreen(
 @Composable
 fun HomeScreen(
     uiData: HomeUiData,
+    navEvent: HomeNavEvent?,
     colorInput: @Composable () -> Unit,
     colorPreview: @Composable () -> Unit,
     colorCenter: @Composable () -> Unit,
@@ -90,6 +93,7 @@ fun HomeScreen(
     Scaffold { contentPadding ->
         Home(
             uiData = uiData,
+            navEvent = navEvent,
             colorInput = colorInput,
             colorPreview = colorPreview,
             colorCenter = colorCenter,
@@ -102,6 +106,7 @@ fun HomeScreen(
 @Composable
 fun Home(
     uiData: HomeUiData,
+    navEvent: HomeNavEvent?,
     colorInput: @Composable () -> Unit,
     colorPreview: @Composable () -> Unit,
     colorCenter: @Composable () -> Unit,
@@ -138,10 +143,10 @@ fun Home(
         )
     }
 
-    LaunchedEffect(uiData.navEvent) {
-        val event = uiData.navEvent ?: return@LaunchedEffect
+    LaunchedEffect(navEvent) {
+        val event = navEvent ?: return@LaunchedEffect
         when (event) {
-            is HomeData.NavEvent.GoToSettings -> navigateToSettings()
+            is HomeNavEvent.GoToSettings -> navigateToSettings()
         }
         event.onConsumed()
     }
@@ -232,6 +237,7 @@ private fun Preview() {
     TheColorTheme {
         HomeScreen(
             uiData = previewUiData(),
+            navEvent = null,
             colorInput = {
                 Text(
                     modifier = Modifier
@@ -282,5 +288,4 @@ private fun previewUiData() =
             backgroundColor = Color(0xFF_123456),
             useLightContentColors = true,
         ),
-        navEvent = null,
     )
