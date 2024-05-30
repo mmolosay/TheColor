@@ -24,6 +24,7 @@ compose-compiler = "1.5.3" # https://developer.android.com/jetpack/androidx/rele
 
 # Dagger & Hilt
 hilt = "2.50"
+hiltNavigationCompose = "1.2.0"
 
 # Remote
 retrofit-library = "2.9.0"
