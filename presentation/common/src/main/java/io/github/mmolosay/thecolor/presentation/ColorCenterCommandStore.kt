@@ -5,12 +5,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Storage that holds a [Flow] of [ColorCenterCommand]s for a color center View to handle.
  */
-@Singleton
 class ColorCenterCommandStore @Inject constructor() : ColorCenterCommandProvider {
 
     private val _commandFlow = MutableSharedFlow<ColorCenterCommand>(replay = 1)

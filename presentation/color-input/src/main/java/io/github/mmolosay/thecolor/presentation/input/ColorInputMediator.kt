@@ -1,5 +1,8 @@
 package io.github.mmolosay.thecolor.presentation.input
 
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.domain.usecase.ColorFactory
@@ -24,14 +27,13 @@ import javax.inject.Singleton
  * This way if user was using one specific View, after switching to other View they will see
  * the UI with the same data (color) they have left on in previous View.
  */
-@Singleton
-class ColorInputMediator @Inject constructor(
+class ColorInputMediator @AssistedInject constructor(
+    @Assisted private val colorInputColorStore: ColorInputColorStore,
     private val getInitialColor: GetInitialColorUseCase,
     private val colorInputToAbstract: ColorInputToAbstractColorUseCase,
     private val colorInputMapper: ColorInputMapper,
     private val colorConverter: ColorConverter,
     private val colorInputFactory: ColorInputFactory,
-    private val colorInputColorStore: ColorInputColorStore,
 ) {
 
     val colorStateFlow = MutableSharedFlow<ColorState?>(
@@ -97,6 +99,13 @@ class ColorInputMediator @Inject constructor(
     sealed interface ColorState {
         data object Invalid : ColorState // unfinished color
         data class Valid(val color: Color.Abstract) : ColorState
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(
+            colorInputColorStore: ColorInputColorStore,
+        ): ColorInputMediator
     }
 
     /** Used to differentiate between color input Views. */

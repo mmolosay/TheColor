@@ -1,8 +1,8 @@
 package io.github.mmolosay.thecolor.presentation.details
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.result.Result
 import io.github.mmolosay.thecolor.domain.result.onFailure
@@ -13,6 +13,7 @@ import io.github.mmolosay.thecolor.presentation.ColorCenterCommandProvider
 import io.github.mmolosay.thecolor.presentation.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.ExactMatch
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -21,13 +22,18 @@ import javax.inject.Named
 import javax.inject.Singleton
 import io.github.mmolosay.thecolor.domain.model.ColorDetails as DomainColorDetails
 
-@HiltViewModel
-class ColorDetailsViewModel @Inject constructor(
-    private val commandProvider: ColorCenterCommandProvider,
+/**
+ * Not a ViewModel-ViewModel in terms of Android development.
+ * It doesn't derive from [androidx.lifecycle.ViewModel], so should only be used in "real" ViewModels
+ * which do derive from Android-aware implementation.
+ */
+class ColorDetailsViewModel @AssistedInject constructor(
+    @Assisted private val coroutineScope: CoroutineScope,
+    @Assisted private val commandProvider: ColorCenterCommandProvider,
     private val getColorDetails: GetColorDetailsUseCase,
     private val createData: CreateColorDetailsDataUseCase,
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
-) : ViewModel() {
+) {
 
     private val _dataStateFlow =
         MutableStateFlow<State>(State.Idle) // TODO: inject initial state as in ColorSchemeViewModel for better testing
@@ -38,7 +44,7 @@ class ColorDetailsViewModel @Inject constructor(
     }
 
     private fun collectColorCenterCommands() =
-        viewModelScope.launch { // TODO: not main dispatcher?
+        coroutineScope.launch { // TODO: not main dispatcher?
             commandProvider.commandFlow.collect { command ->
                 when (command) {
                     is ColorCenterCommand.FetchData -> getColorDetails(color = command.color)
@@ -48,7 +54,7 @@ class ColorDetailsViewModel @Inject constructor(
 
     private fun getColorDetails(color: Color) {
         _dataStateFlow.value = State.Loading
-        viewModelScope.launch(ioDispatcher) {
+        coroutineScope.launch(ioDispatcher) {
             getColorDetails.invoke(color)
                 .onSuccess { details ->
                     val data = createData(details)
@@ -66,6 +72,14 @@ class ColorDetailsViewModel @Inject constructor(
         data object Loading : State
         data class Ready(val data: ColorDetailsData) : State
         data class Error(val failure: Result.Failure) : State
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(
+            coroutineScope: CoroutineScope,
+            colorCenterCommandProvider: ColorCenterCommandProvider,
+        ): ColorDetailsViewModel
     }
 }
 

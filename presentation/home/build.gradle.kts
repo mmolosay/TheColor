@@ -48,6 +48,8 @@ dependencies {
     implementation(project(":presentation:color-input"))
     implementation(project(":presentation:color-preview"))
     implementation(project(":presentation:color-center"))
+    implementation(project(":presentation:color-details"))
+    implementation(project(":presentation:color-scheme"))
     implementation(project(":presentation:settings"))
 
     // Kotlin

@@ -4,12 +4,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Storage that holds a [Flow] of [ColorInputEvent]s from a color input View.
  */
-@Singleton
 class ColorInputEventStore @Inject constructor() : ColorInputEventProvider {
 
     private val _eventFlow = MutableSharedFlow<ColorInputEvent>(replay = 0)

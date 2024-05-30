@@ -1,6 +1,5 @@
 package io.github.mmolosay.thecolor.presentation
 
-import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
@@ -18,15 +17,5 @@ object DiModule {
 
     @Module
     @DisableInstallInCheck
-    interface BindModule {
-
-        @Binds
-        fun bindCurrentColorProvider(impl: ColorInputColorStore): ColorInputColorProvider
-
-        @Binds
-        fun bindColorCenterCommandProvider(impl: ColorCenterCommandStore): ColorCenterCommandProvider
-
-        @Binds
-        fun bindColorInputEventProvider(impl: ColorInputEventStore): ColorInputEventProvider
-    }
+    interface BindModule
 }

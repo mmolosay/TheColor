@@ -1,18 +1,45 @@
 package io.github.mmolosay.thecolor.presentation.center
 
-import androidx.lifecycle.ViewModel
-import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
+import io.github.mmolosay.thecolor.presentation.ColorCenterCommandProvider
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterData.ChangePageEvent
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import javax.inject.Inject
 
-@HiltViewModel
-class ColorCenterViewModel @Inject constructor() : ViewModel() {
+/**
+ * Composed of sub-feature ViewModels of nested Views.
+ *
+ * Not a ViewModel-ViewModel in terms of Android development.
+ * It doesn't derive from [androidx.lifecycle.ViewModel], so should only be used in "real" ViewModels
+ * which do derive from Android-aware implementation.
+ */
+class ColorCenterViewModel @AssistedInject constructor(
+    @Assisted coroutineScope: CoroutineScope,
+    @Assisted colorCenterCommandProvider: ColorCenterCommandProvider,
+    colorDetailsViewModelFactory: ColorDetailsViewModel.Factory,
+    colorSchemeViewModelFactory: ColorSchemeViewModel.Factory,
+) {
 
     private val _dataFlow = MutableStateFlow(initialData())
     val dataFlow = _dataFlow.asStateFlow()
+
+    val colorDetailsViewModel: ColorDetailsViewModel =
+        colorDetailsViewModelFactory.create(
+            coroutineScope = coroutineScope,
+            colorCenterCommandProvider = colorCenterCommandProvider,
+        )
+
+    val colorSchemeViewModel: ColorSchemeViewModel =
+        colorSchemeViewModelFactory.create(
+            coroutineScope = coroutineScope,
+            colorCenterCommandProvider = colorCenterCommandProvider,
+        )
 
     private fun changePage(destPage: Int) {
         _dataFlow.update { data ->
@@ -35,4 +62,12 @@ class ColorCenterViewModel @Inject constructor() : ViewModel() {
             changePage = ::changePage,
             changePageEvent = null,
         )
+
+    @AssistedFactory
+    interface Factory {
+        fun create(
+            coroutineScope: CoroutineScope,
+            colorCenterCommandProvider: ColorCenterCommandProvider,
+        ): ColorCenterViewModel
+    }
 }

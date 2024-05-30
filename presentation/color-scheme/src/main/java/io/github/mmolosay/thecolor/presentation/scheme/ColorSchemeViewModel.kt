@@ -1,8 +1,8 @@
 package io.github.mmolosay.thecolor.presentation.scheme
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.ColorScheme.Mode
 import io.github.mmolosay.thecolor.domain.result.Result
@@ -19,6 +19,7 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.SwatchCou
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.Config
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.State
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -33,14 +34,19 @@ import io.github.mmolosay.thecolor.domain.model.ColorScheme as DomainColorScheme
 internal typealias ModelsState = State<ColorSchemeData.Models>
 internal typealias DataState = State<ColorSchemeData>
 
-@HiltViewModel
-class ColorSchemeViewModel @Inject constructor(
+/**
+ * Not a ViewModel-ViewModel in terms of Android development.
+ * It doesn't derive from [androidx.lifecycle.ViewModel], so should only be used in "real" ViewModels
+ * which do derive from Android-aware implementation.
+ */
+class ColorSchemeViewModel @AssistedInject constructor(
+    @Assisted private val coroutineScope: CoroutineScope,
+    @Assisted private val commandProvider: ColorCenterCommandProvider,
     getInitialModelsState: GetInitialModelsStateUseCase,
-    private val commandProvider: ColorCenterCommandProvider,
     private val getColorScheme: GetColorSchemeUseCase,
     private val createModels: CreateDataModelsUseCase,
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
-) : ViewModel() {
+) {
 
     private val modelsStateFlow = MutableStateFlow(getInitialModelsState())
 
@@ -49,7 +55,7 @@ class ColorSchemeViewModel @Inject constructor(
             state.mapType { models -> ColorSchemeData(models) }
         }
         .stateIn(
-            scope = viewModelScope,
+            scope = coroutineScope,
             started = SharingStarted.Eagerly, // View will start collecting immediately, also simplifies tests
             initialValue = State.Loading,
         )
@@ -61,7 +67,7 @@ class ColorSchemeViewModel @Inject constructor(
     }
 
     private fun collectColorCenterCommands() =
-        viewModelScope.launch { // TODO: not main dispatcher?
+        coroutineScope.launch { // TODO: not main dispatcher?
             commandProvider.commandFlow.collect { command ->
                 when (command) {
                     is ColorCenterCommand.FetchData -> onFetchDataCommand(command)
@@ -79,7 +85,7 @@ class ColorSchemeViewModel @Inject constructor(
         val requestConfig = assembleRequestConfig()
         val request = requestConfig.toDomainRequest(seed)
         modelsStateFlow.value = State.Loading
-        viewModelScope.launch(ioDispatcher) {
+        coroutineScope.launch(ioDispatcher) {
             getColorScheme(request)
                 .onSuccess { scheme ->
                     val models = createModels(scheme = scheme, config = requestConfig)
@@ -182,6 +188,14 @@ class ColorSchemeViewModel @Inject constructor(
         data object Loading : State<Nothing>
         data class Ready<T>(val data: T) : State<T>
         data class Error<T>(val failure: Result.Failure) : State<T>
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(
+            coroutineScope: CoroutineScope,
+            colorCenterCommandProvider: ColorCenterCommandProvider,
+        ): ColorSchemeViewModel
     }
 
     companion object {

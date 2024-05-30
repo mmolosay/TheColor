@@ -5,12 +5,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Storage that holds current valid color from color input View.
  */
-@Singleton
 class ColorInputColorStore @Inject constructor() : ColorInputColorProvider {
 
     private val _colorFlow = MutableStateFlow<Color?>(null)

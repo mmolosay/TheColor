@@ -2,16 +2,23 @@ package io.github.mmolosay.thecolor.presentation.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommand
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommandStore
 import io.github.mmolosay.thecolor.presentation.ColorInputColorProvider
+import io.github.mmolosay.thecolor.presentation.ColorInputColorStore
 import io.github.mmolosay.thecolor.presentation.ColorInputEvent
-import io.github.mmolosay.thecolor.presentation.ColorInputEventProvider
+import io.github.mmolosay.thecolor.presentation.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.ColorToColorIntUseCase
+import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.home.HomeData.CanProceed
+import io.github.mmolosay.thecolor.presentation.input.ColorInputViewModel
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,18 +29,50 @@ import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
 
+/**
+ * An Android-aware [ViewModel] for "Home" View.
+ * Composed of sub-feature ViewModels of nested Views.
+ *
+ * It creates objects that are shared between sub-feature ViewModels via assisted injection and
+ * factories.
+ */
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    getInitialModels: GetInitialModelsUseCase,
-    private val colorInputColorProvider: ColorInputColorProvider,
-    private val colorInputEventProvider: ColorInputEventProvider,
+    colorInputViewModelFactory: ColorInputViewModel.Factory,
+    colorPreviewViewModelFactory: ColorPreviewViewModel.Factory,
+    colorCenterViewModelFactory: ColorCenterViewModel.Factory,
+    getInitialModelsFactory: GetInitialModelsUseCase.Factory,
+    private val colorInputColorStore: ColorInputColorStore,
+    private val colorInputEventStore: ColorInputEventStore,
     private val colorCenterCommandStore: ColorCenterCommandStore,
     private val createColorData: CreateColorDataUseCase,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
-    private val _dataFlow = MutableStateFlow(HomeData(getInitialModels()))
+    private val getInitialModels =
+        getInitialModelsFactory.create(colorInputColorStore)
+
+    private val _dataFlow = MutableStateFlow(HomeData(models = getInitialModels()))
     val dataFlow = _dataFlow.asStateFlow()
+
+    val colorInputViewModel: ColorInputViewModel =
+        colorInputViewModelFactory.create(
+            coroutineScope = viewModelScope,
+            colorInputColorStore = colorInputColorStore,
+            colorInputEventStore = colorInputEventStore,
+        )
+
+    val colorPreviewViewModel: ColorPreviewViewModel =
+        colorPreviewViewModelFactory.create(
+            coroutineScope = viewModelScope,
+            colorInputColorProvider = colorInputColorStore,
+        )
+
+    val colorCenterViewModel: ColorCenterViewModel =
+        colorCenterViewModelFactory.create(
+            coroutineScope = viewModelScope,
+            colorCenterCommandProvider = colorCenterCommandStore,
+        )
 
     init {
         collectColorsFromColorInput()
@@ -42,14 +81,14 @@ class HomeViewModel @Inject constructor(
 
     private fun collectColorsFromColorInput() =
         viewModelScope.launch(defaultDispatcher) {
-            colorInputColorProvider.colorFlow
+            colorInputColorStore.colorFlow
                 .drop(1) // replayed value
                 .collect(::onColorFromColorInput)
         }
 
     private fun collectEventsFromColorInput() =
         viewModelScope.launch(defaultDispatcher) {
-            colorInputEventProvider.eventFlow
+            colorInputEventStore.eventFlow
                 .collect(::onEventFromColorInput)
         }
 
@@ -70,7 +109,7 @@ class HomeViewModel @Inject constructor(
 
     private fun proceed() {
         // TODO: add handling of case with no valid color in color input, so that user is notified
-        val color = colorInputColorProvider.colorFlow.value ?: return
+        val color = colorInputColorStore.colorFlow.value ?: return
         val command = ColorCenterCommand.FetchData(color)
         viewModelScope.launch(defaultDispatcher) {
             colorCenterCommandStore.issue(command)
@@ -118,9 +157,8 @@ class HomeViewModel @Inject constructor(
  * Replaces a long chain of actions that set [HomeViewModel.dataFlow] in "given" part
  * of the test to required value.
  */
-@Singleton
-class GetInitialModelsUseCase @Inject constructor(
-    private val colorInputColorProvider: ColorInputColorProvider,
+class GetInitialModelsUseCase @AssistedInject constructor(
+    @Assisted private val colorInputColorProvider: ColorInputColorProvider,
 ) {
 
     operator fun invoke(): HomeData.Models {
@@ -130,6 +168,13 @@ class GetInitialModelsUseCase @Inject constructor(
             colorUsedToProceed = null, // 'proceed' action wasn't invoked yet
             navEvent = null,
         )
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(
+            colorInputColorProvider: ColorInputColorProvider,
+        ): GetInitialModelsUseCase
     }
 }
 

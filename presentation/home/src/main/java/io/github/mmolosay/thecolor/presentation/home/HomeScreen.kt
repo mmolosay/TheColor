@@ -32,12 +32,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.debounce.debounced
 import io.github.mmolosay.thecolor.presentation.center.ColorCenter
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterShape
-import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.design.ChangeNavigationBarAsSideEffect
 import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
@@ -48,19 +46,13 @@ import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.home.HomeUiData.ProceedButton
 import io.github.mmolosay.thecolor.presentation.home.HomeUiData.ShowColorCenter
 import io.github.mmolosay.thecolor.presentation.input.ColorInput
-import io.github.mmolosay.thecolor.presentation.input.ColorInputViewModel
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreview
-import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
     navigateToSettings: () -> Unit,
 ) {
-    val colorInputViewModel: ColorInputViewModel = hiltViewModel()
-    val colorPreviewViewModel: ColorPreviewViewModel = hiltViewModel()
-    val colorCenterViewModel: ColorCenterViewModel = hiltViewModel()
-
     val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
     val viewData = rememberViewData()
     val uiData = HomeUiData(data, viewData)
@@ -69,17 +61,21 @@ fun HomeScreen(
         uiData = uiData,
         colorInput = {
             ColorInput(
-                vm = colorInputViewModel,
+                vm = viewModel.colorInputViewModel,
+                hexViewModel = viewModel.colorInputViewModel.hexViewModel,
+                rgbViewModel = viewModel.colorInputViewModel.rgbViewModel,
             )
         },
         colorPreview = {
             ColorPreview(
-                vm = colorPreviewViewModel,
+                vm = viewModel.colorPreviewViewModel,
             )
         },
         colorCenter = {
             ColorCenter(
-                vm = colorCenterViewModel,
+                vm = viewModel.colorCenterViewModel,
+                detailsViewModel = viewModel.colorCenterViewModel.colorDetailsViewModel,
+                schemeViewModel = viewModel.colorCenterViewModel.colorSchemeViewModel,
                 modifier = Modifier.padding(top = 24.dp),
             )
         },

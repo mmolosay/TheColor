@@ -1,8 +1,8 @@
 package io.github.mmolosay.thecolor.presentation.input.hex
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.presentation.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
@@ -17,20 +17,25 @@ import io.github.mmolosay.thecolor.presentation.input.model.asDataState
 import io.github.mmolosay.thecolor.presentation.input.model.map
 import io.github.mmolosay.thecolor.utils.onEachNotNull
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 import javax.inject.Named
 
-@HiltViewModel
-class ColorInputHexViewModel @Inject constructor(
-    private val mediator: ColorInputMediator,
-    private val eventStore: ColorInputEventStore,
+/**
+ * Not a ViewModel-ViewModel in terms of Android development.
+ * It doesn't derive from [androidx.lifecycle.ViewModel], so should only be used in "real" ViewModels
+ * which do derive from Android-aware implementation.
+ */
+class ColorInputHexViewModel @AssistedInject constructor(
+    @Assisted private val coroutineScope: CoroutineScope,
+    @Assisted private val mediator: ColorInputMediator,
+    @Assisted private val eventStore: ColorInputEventStore,
     @Named("uiDataUpdateDispatcher") private val uiDataUpdateDispatcher: CoroutineDispatcher,
-) : ViewModel() {
+) {
 
     private val textFieldVm =
         TextFieldViewModel(
@@ -43,7 +48,7 @@ class ColorInputHexViewModel @Inject constructor(
             .onEachNotNull(::onEachUiDataUpdate)
             .map { it?.data.asDataState() }
             .stateIn(
-                scope = viewModelScope,
+                scope = coroutineScope,
                 started = SharingStartedEagerlyAnd(WhileSubscribed(5000)),
                 initialValue = DataState.BeingInitialized,
             )
@@ -53,7 +58,7 @@ class ColorInputHexViewModel @Inject constructor(
     }
 
     private fun collectMediatorUpdates() {
-        viewModelScope.launch(uiDataUpdateDispatcher) {
+        coroutineScope.launch(uiDataUpdateDispatcher) {
             mediator.hexColorInputFlow.collect { input ->
                 textFieldVm updateWith Text(input.string)
             }
@@ -63,7 +68,7 @@ class ColorInputHexViewModel @Inject constructor(
     private fun onEachUiDataUpdate(update: Update<ColorInputHexData>) {
         if (!update.causedByUser) return // don't synchronize this update with other Views
         val input = update.data.assembleColorInput()
-        viewModelScope.launch(uiDataUpdateDispatcher) {
+        coroutineScope.launch(uiDataUpdateDispatcher) {
             mediator.send(input)
         }
     }
@@ -76,7 +81,7 @@ class ColorInputHexViewModel @Inject constructor(
             .let { Text(it) }
 
     private fun sendProceedEvent() {
-        viewModelScope.launch {
+        coroutineScope.launch {
             eventStore.send(ColorInputEvent.Submit)
         }
     }
@@ -86,6 +91,15 @@ class ColorInputHexViewModel @Inject constructor(
             textField = textField,
             submitColor = ::sendProceedEvent,
         )
+
+    @AssistedFactory
+    interface Factory {
+        fun create(
+            coroutineScope: CoroutineScope,
+            mediator: ColorInputMediator,
+            eventStore: ColorInputEventStore,
+        ): ColorInputHexViewModel
+    }
 
     private companion object {
         const val MAX_SYMBOLS_IN_HEX_COLOR = 6
