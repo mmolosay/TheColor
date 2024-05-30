@@ -2,7 +2,7 @@ package io.github.mmolosay.thecolor.presentation.home
 
 import io.github.mmolosay.thecolor.presentation.ColorInt
 import io.github.mmolosay.thecolor.presentation.home.HomeData.Models
-import io.github.mmolosay.thecolor.utils.ConsumableNavEvent
+import io.github.mmolosay.thecolor.presentation.ConsumableNavEvent
 
 /**
  * Platform-agnostic data provided by ViewModel to Home screen View.
