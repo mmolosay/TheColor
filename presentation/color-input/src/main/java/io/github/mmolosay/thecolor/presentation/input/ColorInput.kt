@@ -32,27 +32,23 @@ import io.github.mmolosay.thecolor.presentation.input.field.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.field.TextFieldUiData
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHex
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexUiData
-import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexViewModel
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgb
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbUiData
-import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbViewModel
 
 @Composable
 fun ColorInput(
-    vm: ColorInputViewModel,
-    hexViewModel: ColorInputHexViewModel,
-    rgbViewModel: ColorInputRgbViewModel,
+    viewModel: ColorInputViewModel,
 ) {
     val viewData = rememberViewData()
-    val data = vm.dataFlow.collectAsStateWithLifecycle().value
+    val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
     val uiData = rememberUiData(data, viewData)
     ColorInput(
         uiData = uiData,
         hexInput = {
-            ColorInputHex(vm = hexViewModel)
+            ColorInputHex(viewModel = viewModel.hexViewModel)
         },
         rgbInput = {
-            ColorInputRgb(vm = rgbViewModel)
+            ColorInputRgb(viewModel = viewModel.rgbViewModel)
         },
     )
 }

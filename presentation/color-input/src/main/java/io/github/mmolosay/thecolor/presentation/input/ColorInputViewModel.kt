@@ -36,19 +36,21 @@ class ColorInputViewModel @AssistedInject constructor(
             colorInputColorStore = colorInputColorStore,
         )
 
-    val hexViewModel: ColorInputHexViewModel =
+    val hexViewModel: ColorInputHexViewModel by lazy {
         hexViewModelFactory.create(
             coroutineScope = coroutineScope,
             mediator = mediator,
             eventStore = colorInputEventStore,
         )
+    }
 
-    val rgbViewModel: ColorInputRgbViewModel =
+    val rgbViewModel: ColorInputRgbViewModel by lazy {
         rgbViewModelFactory.create(
             coroutineScope = coroutineScope,
             mediator = mediator,
             eventStore = colorInputEventStore,
         )
+    }
 
     init {
         coroutineScope.launch {

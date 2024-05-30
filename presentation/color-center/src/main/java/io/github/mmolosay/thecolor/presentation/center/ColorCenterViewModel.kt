@@ -29,17 +29,19 @@ class ColorCenterViewModel @AssistedInject constructor(
     private val _dataFlow = MutableStateFlow(initialData())
     val dataFlow = _dataFlow.asStateFlow()
 
-    val colorDetailsViewModel: ColorDetailsViewModel =
+    val colorDetailsViewModel: ColorDetailsViewModel by lazy {
         colorDetailsViewModelFactory.create(
             coroutineScope = coroutineScope,
             colorCenterCommandProvider = colorCenterCommandProvider,
         )
+    }
 
-    val colorSchemeViewModel: ColorSchemeViewModel =
+    val colorSchemeViewModel: ColorSchemeViewModel by lazy {
         colorSchemeViewModelFactory.create(
             coroutineScope = coroutineScope,
             colorCenterCommandProvider = colorCenterCommandProvider,
         )
+    }
 
     private fun changePage(destPage: Int) {
         _dataFlow.update { data ->

@@ -25,26 +25,22 @@ import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurf
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.details.ColorDetails
-import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorScheme
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
 @Composable
 fun ColorCenter(
-    vm: ColorCenterViewModel,
-    detailsViewModel: ColorDetailsViewModel,
-    schemeViewModel: ColorSchemeViewModel,
+    viewModel: ColorCenterViewModel,
     modifier: Modifier = Modifier,
 ) {
     ColorCenter(
-        vm = vm,
+        viewModel = viewModel,
         details = {
-            ColorDetails(vm = detailsViewModel)
+            ColorDetails(viewModel = viewModel.colorDetailsViewModel)
         },
         scheme = {
-            ColorScheme(vm = schemeViewModel)
+            ColorScheme(viewModel = viewModel.colorSchemeViewModel)
         },
         modifier = modifier,
     )
@@ -52,13 +48,13 @@ fun ColorCenter(
 
 @Composable
 fun ColorCenter(
-    vm: ColorCenterViewModel,
+    viewModel: ColorCenterViewModel,
     details: @Composable () -> Unit,
     scheme: @Composable () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val viewData = rememberViewData()
-    val data = vm.dataFlow.collectAsStateWithLifecycle().value
+    val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
     val uiData = ColorCenterUiData(data, viewData)
     ColorCenter(
         uiData = uiData,

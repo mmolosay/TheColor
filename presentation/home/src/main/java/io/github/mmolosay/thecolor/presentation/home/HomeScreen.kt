@@ -61,21 +61,17 @@ fun HomeScreen(
         uiData = uiData,
         colorInput = {
             ColorInput(
-                vm = viewModel.colorInputViewModel,
-                hexViewModel = viewModel.colorInputViewModel.hexViewModel,
-                rgbViewModel = viewModel.colorInputViewModel.rgbViewModel,
+                viewModel = viewModel.colorInputViewModel,
             )
         },
         colorPreview = {
             ColorPreview(
-                vm = viewModel.colorPreviewViewModel,
+                viewModel = viewModel.colorPreviewViewModel,
             )
         },
         colorCenter = {
             ColorCenter(
-                vm = viewModel.colorCenterViewModel,
-                detailsViewModel = viewModel.colorCenterViewModel.colorDetailsViewModel,
-                schemeViewModel = viewModel.colorCenterViewModel.colorSchemeViewModel,
+                viewModel = viewModel.colorCenterViewModel,
                 modifier = Modifier.padding(top = 24.dp),
             )
         },

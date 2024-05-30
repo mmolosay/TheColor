@@ -28,10 +28,10 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 
 @Composable
 fun ColorInputHex(
-    vm: ColorInputHexViewModel,
+    viewModel: ColorInputHexViewModel,
 ) {
     val viewData = rememberViewData()
-    val state = vm.dataStateFlow.collectAsStateWithLifecycle().value
+    val state = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
     when (state) {
         is DataState.BeingInitialized -> Loading()
         is DataState.Ready -> {

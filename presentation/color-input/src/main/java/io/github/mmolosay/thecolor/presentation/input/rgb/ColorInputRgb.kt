@@ -30,10 +30,10 @@ import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbUiData.Vi
 
 @Composable
 fun ColorInputRgb(
-    vm: ColorInputRgbViewModel,
+    viewModel: ColorInputRgbViewModel,
 ) {
     val viewData = rememberViewData()
-    val state = vm.dataStateFlow.collectAsStateWithLifecycle().value
+    val state = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
     when (state) {
         is DataState.BeingInitialized -> Loading()
         is DataState.Ready -> {

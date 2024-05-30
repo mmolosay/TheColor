@@ -79,9 +79,9 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.Stat
 
 @Composable
 fun ColorScheme(
-    vm: ColorSchemeViewModel,
+    viewModel: ColorSchemeViewModel,
 ) {
-    val state = vm.dataStateFlow.collectAsStateWithLifecycle().value
+    val state = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
     val viewData = rememberViewData()
     when (state) {
         is State.Idle ->

@@ -32,9 +32,9 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState.Visi
 
 @Composable
 fun ColorPreview(
-    vm: ColorPreviewViewModel,
+    viewModel: ColorPreviewViewModel,
 ) {
-    val data = vm.stateFlow.collectAsStateWithLifecycle().value
+    val data = viewModel.stateFlow.collectAsStateWithLifecycle().value
     val uiState = ColorPreviewUiState(data)
     ColorPreview(uiState)
 }

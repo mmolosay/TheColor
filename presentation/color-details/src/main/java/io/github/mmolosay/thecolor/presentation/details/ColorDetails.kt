@@ -34,9 +34,9 @@ import androidx.compose.material3.Divider as MaterialDivider
 
 @Composable
 fun ColorDetails(
-    vm: ColorDetailsViewModel,
+    viewModel: ColorDetailsViewModel,
 ) {
-    val state = vm.dataStateFlow.collectAsStateWithLifecycle().value
+    val state = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
     val viewData = rememberViewData()
     when (state) {
         is State.Idle ->
