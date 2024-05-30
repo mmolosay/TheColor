@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -53,6 +54,7 @@ abstract class ColorInputRgbViewModelTest {
 
     fun createSut() =
         ColorInputRgbViewModel(
+            coroutineScope = TestScope(mainDispatcherRule.testDispatcher),
             mediator = mediator,
             eventStore = eventStore,
             uiDataUpdateDispatcher = mainDispatcherRule.testDispatcher,

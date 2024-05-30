@@ -17,12 +17,12 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
-import io.mockk.verify
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -50,7 +50,7 @@ class ColorInputHexViewModelTest {
         }
 
     @Test
-    fun `sut is created with state BeingInitialized if mediator HEX flow has no value yet`() {
+    fun `SUT is created with state BeingInitialized if mediator HEX flow has no value yet`() {
         every { mediator.hexColorInputFlow } returns emptyFlow()
 
         createSut()
@@ -59,7 +59,9 @@ class ColorInputHexViewModelTest {
     }
 
     @Test
-    fun `sut is created with state Ready if mediator HEX flow has value already`() {
+    fun `SUT is created with state Ready if mediator HEX flow has value already`() {
+        every { mediator.hexColorInputFlow } returns flowOf(ColorInput.Hex(""))
+
         createSut()
 
         dataState should beOfType<DataState.Ready<*>>()
@@ -169,6 +171,7 @@ class ColorInputHexViewModelTest {
 
     fun createSut() =
         ColorInputHexViewModel(
+            coroutineScope = TestScope(context = mainDispatcherRule.testDispatcher),
             mediator = mediator,
             eventStore = eventStore,
             uiDataUpdateDispatcher = mainDispatcherRule.testDispatcher,

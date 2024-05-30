@@ -36,7 +36,7 @@ class ColorPreviewViewModel @AssistedInject constructor(
             )
 
     @AssistedFactory
-    interface Factory {
+    fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
             colorInputColorProvider: ColorInputColorProvider,

@@ -102,7 +102,7 @@ class ColorInputMediator @AssistedInject constructor(
     }
 
     @AssistedFactory
-    interface Factory {
+    fun interface Factory {
         fun create(
             colorInputColorStore: ColorInputColorStore,
         ): ColorInputMediator

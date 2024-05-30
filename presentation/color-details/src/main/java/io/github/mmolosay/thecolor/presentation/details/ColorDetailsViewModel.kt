@@ -75,7 +75,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
     }
 
     @AssistedFactory
-    interface Factory {
+    fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
             colorCenterCommandProvider: ColorCenterCommandProvider,

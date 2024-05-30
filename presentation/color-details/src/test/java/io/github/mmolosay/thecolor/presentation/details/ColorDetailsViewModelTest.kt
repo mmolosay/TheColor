@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -97,6 +98,7 @@ class ColorDetailsViewModelTest {
 
     fun createSut() =
         ColorDetailsViewModel(
+            coroutineScope = TestScope(context = mainDispatcherRule.testDispatcher),
             commandProvider = commandProvider,
             getColorDetails = getColorDetails,
             createData = createData,

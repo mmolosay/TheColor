@@ -171,7 +171,7 @@ class GetInitialModelsUseCase @AssistedInject constructor(
     }
 
     @AssistedFactory
-    interface Factory {
+    fun interface Factory {
         fun create(
             colorInputColorProvider: ColorInputColorProvider,
         ): GetInitialModelsUseCase

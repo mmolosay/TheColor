@@ -3,9 +3,9 @@ package io.github.mmolosay.thecolor.presentation.home
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommand
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommandStore
-import io.github.mmolosay.thecolor.presentation.ColorInputColorProvider
+import io.github.mmolosay.thecolor.presentation.ColorInputColorStore
 import io.github.mmolosay.thecolor.presentation.ColorInputEvent
-import io.github.mmolosay.thecolor.presentation.ColorInputEventProvider
+import io.github.mmolosay.thecolor.presentation.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.home.HomeData.CanProceed
 import io.github.mmolosay.thecolor.presentation.home.HomeData.ColorData
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
@@ -31,8 +31,8 @@ class HomeViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     val getInitialModels: GetInitialModelsUseCase = mockk()
-    val colorInputColorProvider: ColorInputColorProvider = mockk()
-    val colorInputEventProvider: ColorInputEventProvider = mockk()
+    val colorInputColorStore: ColorInputColorStore = mockk()
+    val colorInputEventStore: ColorInputEventStore = mockk()
     val colorCenterCommandStore: ColorCenterCommandStore = mockk()
     val createColorFromColorInput: CreateColorDataUseCase = mockk()
 
@@ -43,8 +43,8 @@ class HomeViewModelTest {
         every { getInitialModels() } returns initialModels(
             canProceed = true,
         )
-        every { colorInputColorProvider.colorFlow } returns MutableStateFlow(null)
-        every { colorInputEventProvider.eventFlow } returns emptyFlow()
+        every { colorInputColorStore.colorFlow } returns MutableStateFlow(null)
+        every { colorInputEventStore.eventFlow } returns emptyFlow()
 
         createSut()
 
@@ -56,8 +56,8 @@ class HomeViewModelTest {
         every { getInitialModels() } returns initialModels(
             canProceed = false,
         )
-        every { colorInputColorProvider.colorFlow } returns MutableStateFlow(null)
-        every { colorInputEventProvider.eventFlow } returns emptyFlow()
+        every { colorInputColorStore.colorFlow } returns MutableStateFlow(null)
+        every { colorInputEventStore.eventFlow } returns emptyFlow()
 
         createSut()
 
@@ -71,8 +71,8 @@ class HomeViewModelTest {
             canProceed = true,
         )
         val colorFlow = MutableStateFlow<Color?>(null)
-        every { colorInputColorProvider.colorFlow } returns colorFlow
-        every { colorInputEventProvider.eventFlow } returns emptyFlow()
+        every { colorInputColorStore.colorFlow } returns colorFlow
+        every { colorInputEventStore.eventFlow } returns emptyFlow()
         createSut()
 
         colorFlow.value = mockk()
@@ -88,8 +88,8 @@ class HomeViewModelTest {
             canProceed = false,
         )
         val colorFlow = MutableStateFlow<Color?>(null)
-        every { colorInputColorProvider.colorFlow } returns colorFlow
-        every { colorInputEventProvider.eventFlow } returns emptyFlow()
+        every { colorInputColorStore.colorFlow } returns colorFlow
+        every { colorInputEventStore.eventFlow } returns emptyFlow()
         createSut()
 
         colorFlow.value = null
@@ -102,8 +102,8 @@ class HomeViewModelTest {
         every { getInitialModels() } returns initialModels(
             canProceed = true,
         )
-        every { colorInputColorProvider.colorFlow } returns MutableStateFlow(/*color*/ mockk())
-        every { colorInputEventProvider.eventFlow } returns emptyFlow()
+        every { colorInputColorStore.colorFlow } returns MutableStateFlow(/*color*/ mockk())
+        every { colorInputEventStore.eventFlow } returns emptyFlow()
         every { createColorFromColorInput(color = any()) } returns mockk()
         coEvery { colorCenterCommandStore.issue(command = any()) } just runs
         createSut()
@@ -118,8 +118,8 @@ class HomeViewModelTest {
         every { getInitialModels() } returns initialModels(
             canProceed = true,
         )
-        every { colorInputColorProvider.colorFlow } returns MutableStateFlow(/*color*/ mockk())
-        every { colorInputEventProvider.eventFlow } returns emptyFlow()
+        every { colorInputColorStore.colorFlow } returns MutableStateFlow(/*color*/ mockk())
+        every { colorInputEventStore.eventFlow } returns emptyFlow()
         coEvery { colorCenterCommandStore.issue(command = any()) } just runs
         val colorUsedToProceed: ColorData = mockk()
         every { createColorFromColorInput(color = any()) } returns colorUsedToProceed
@@ -137,9 +137,9 @@ class HomeViewModelTest {
             every { getInitialModels() } returns initialModels(
                 canProceed = true,
             )
-            every { colorInputColorProvider.colorFlow } returns MutableStateFlow(/*color*/ mockk())
+            every { colorInputColorStore.colorFlow } returns MutableStateFlow(/*color*/ mockk())
             val eventsFlow = MutableSharedFlow<ColorInputEvent>()
-            every { colorInputEventProvider.eventFlow } returns eventsFlow
+            every { colorInputEventStore.eventFlow } returns eventsFlow
             every { createColorFromColorInput(color = any()) } returns mockk()
             coEvery { colorCenterCommandStore.issue(any()) } just runs
             createSut()
@@ -156,9 +156,9 @@ class HomeViewModelTest {
             every { getInitialModels() } returns initialModels(
                 canProceed = true,
             )
-            every { colorInputColorProvider.colorFlow } returns MutableStateFlow(/*color*/ mockk())
+            every { colorInputColorStore.colorFlow } returns MutableStateFlow(/*color*/ mockk())
             val eventsFlow = MutableSharedFlow<ColorInputEvent>()
-            every { colorInputEventProvider.eventFlow } returns eventsFlow
+            every { colorInputEventStore.eventFlow } returns eventsFlow
             coEvery { colorCenterCommandStore.issue(command = any()) } just runs
             val colorUsedToProceed: ColorData = mockk()
             every { createColorFromColorInput(color = any()) } returns colorUsedToProceed
@@ -176,8 +176,8 @@ class HomeViewModelTest {
         )
         val initialColor = Color.Hex(0x0)
         val colorFlow = MutableStateFlow<Color?>(initialColor)
-        every { colorInputColorProvider.colorFlow } returns colorFlow
-        every { colorInputEventProvider.eventFlow } returns emptyFlow()
+        every { colorInputColorStore.colorFlow } returns colorFlow
+        every { colorInputEventStore.eventFlow } returns emptyFlow()
         coEvery { colorCenterCommandStore.issue(command = any()) } just runs
         every { createColorFromColorInput(color = any()) } returns mockk()
         createSut()
@@ -195,8 +195,8 @@ class HomeViewModelTest {
         )
         val initialColor = Color.Hex(0x0)
         val colorFlow = MutableStateFlow<Color?>(initialColor)
-        every { colorInputColorProvider.colorFlow } returns colorFlow
-        every { colorInputEventProvider.eventFlow } returns emptyFlow()
+        every { colorInputColorStore.colorFlow } returns colorFlow
+        every { colorInputEventStore.eventFlow } returns emptyFlow()
         coEvery { colorCenterCommandStore.issue(command = any()) } just runs
         every { createColorFromColorInput(color = any()) } returns mockk()
         createSut()
@@ -209,9 +209,12 @@ class HomeViewModelTest {
 
     fun createSut() =
         HomeViewModel(
-            getInitialModels = getInitialModels,
-            colorInputColorProvider = colorInputColorProvider,
-            colorInputEventProvider = colorInputEventProvider,
+            colorInputViewModelFactory = { _, _, _ -> mockk() },
+            colorPreviewViewModelFactory = { _, _ -> mockk() },
+            colorCenterViewModelFactory = { _, _ -> mockk() },
+            getInitialModelsFactory = { getInitialModels },
+            colorInputColorStore = colorInputColorStore,
+            colorInputEventStore = colorInputEventStore,
             colorCenterCommandStore = colorCenterCommandStore,
             createColorData = createColorFromColorInput,
             defaultDispatcher = mainDispatcherRule.testDispatcher,

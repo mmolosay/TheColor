@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -192,6 +193,7 @@ class ColorSchemeViewModelTest {
 
     fun createSut() =
         ColorSchemeViewModel(
+            coroutineScope = TestScope(context = mainDispatcherRule.testDispatcher),
             getInitialModelsState = getInitialModelsState,
             commandProvider = commandProvider,
             getColorScheme = getColorScheme,

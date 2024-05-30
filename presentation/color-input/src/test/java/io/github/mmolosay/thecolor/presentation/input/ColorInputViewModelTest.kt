@@ -10,6 +10,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.test.TestScope
 import org.junit.Rule
 import org.junit.Test
 
@@ -54,7 +55,12 @@ class ColorInputViewModelTest {
 
     fun createSut() =
         ColorInputViewModel(
-            mediator = mediator,
+            coroutineScope = TestScope(context = mainDispatcherRule.testDispatcher),
+            colorInputColorStore = mockk(),
+            colorInputEventStore = mockk(),
+            hexViewModelFactory = { _, _, _ -> mockk() },
+            rgbViewModelFactory = { _, _, _ -> mockk() },
+            mediatorFactory = { mediator },
         ).also {
             sut = it
         }
