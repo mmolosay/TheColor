@@ -4,6 +4,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -17,8 +18,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
@@ -28,6 +32,7 @@ import io.github.mmolosay.thecolor.presentation.details.ColorDetails
 import io.github.mmolosay.thecolor.presentation.scheme.ColorScheme
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
+import kotlin.math.max
 
 @Composable
 fun ColorCenter(
@@ -72,6 +77,7 @@ fun ColorCenter(
     scheme: @Composable () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val density = LocalDensity.current
     val pages: ImmutableList<@Composable () -> Unit> = remember {
         persistentListOf(
             {
@@ -92,11 +98,20 @@ fun ColorCenter(
         pageCount = { pages.size },
     )
     var userScrollEnabled by remember { mutableStateOf(true) }
+    var minHeight by remember { mutableStateOf<Int?>(null) }
+    val minHeightDp = with(density) { minHeight?.toDp() }
     HorizontalPager(
         state = pagerState,
-        modifier = modifier,
+        modifier = modifier
+            .sizeIn(
+                minHeight = minHeightDp ?: Dp.Unspecified,
+            )
+            .onSizeChanged { size ->
+                // once page is changed and removed from composition, we want to prevent pager from
+                // down-sizing (in height) and either stay of the same height, or grow for new, bigger page
+                minHeight = max(size.height, minHeight ?: 0)
+            },
         verticalAlignment = Alignment.Top,
-        beyondBoundsPageCount = pages.size, // keep all pages loaded to keep height of Pager constant, TODO: solve with SubcomposeLayout?
         userScrollEnabled = userScrollEnabled,
         key = { index -> index }, // list of pages doesn't change
     ) { i ->
