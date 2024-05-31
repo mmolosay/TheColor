@@ -21,26 +21,20 @@ import kotlinx.coroutines.launch
  */
 class ColorInputViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted colorInputColorStore: ColorInputColorStore,
-    @Assisted colorInputEventStore: ColorInputEventStore,
+    @Assisted eventStore: ColorInputEventStore,
+    @Assisted mediator: ColorInputMediator,
     hexViewModelFactory: ColorInputHexViewModel.Factory,
     rgbViewModelFactory: ColorInputRgbViewModel.Factory,
-    mediatorFactory: ColorInputMediator.Factory,
 ) {
 
     private val _dataFlow = MutableStateFlow(initialData())
     val dataFlow = _dataFlow.asStateFlow()
 
-    private val mediator: ColorInputMediator =
-        mediatorFactory.create(
-            colorInputColorStore = colorInputColorStore,
-        )
-
     val hexViewModel: ColorInputHexViewModel by lazy {
         hexViewModelFactory.create(
             coroutineScope = coroutineScope,
             mediator = mediator,
-            eventStore = colorInputEventStore,
+            eventStore = eventStore,
         )
     }
 
@@ -48,7 +42,7 @@ class ColorInputViewModel @AssistedInject constructor(
         rgbViewModelFactory.create(
             coroutineScope = coroutineScope,
             mediator = mediator,
-            eventStore = colorInputEventStore,
+            eventStore = eventStore,
         )
     }
 
@@ -74,8 +68,8 @@ class ColorInputViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            colorInputColorStore: ColorInputColorStore,
             colorInputEventStore: ColorInputEventStore,
+            colorInputMediator: ColorInputMediator,
         ): ColorInputViewModel
     }
 }

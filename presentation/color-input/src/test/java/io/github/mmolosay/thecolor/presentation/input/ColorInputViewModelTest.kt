@@ -5,11 +5,9 @@ import io.github.mmolosay.thecolor.testing.MainDispatcherRule
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.test.TestScope
 import org.junit.Rule
 import org.junit.Test
@@ -21,8 +19,6 @@ class ColorInputViewModelTest {
 
     val mediator: ColorInputMediator = mockk {
         coEvery { init() } just runs
-        // TODO: probably will require some changes / refinements when View UI is gone
-        every { colorStateFlow } returns MutableSharedFlow()
     }
 
     lateinit var sut: ColorInputViewModel
@@ -56,11 +52,10 @@ class ColorInputViewModelTest {
     fun createSut() =
         ColorInputViewModel(
             coroutineScope = TestScope(context = mainDispatcherRule.testDispatcher),
-            colorInputColorStore = mockk(),
-            colorInputEventStore = mockk(),
+            eventStore = mockk(),
+            mediator = mediator,
             hexViewModelFactory = { _, _, _ -> mockk() },
             rgbViewModelFactory = { _, _, _ -> mockk() },
-            mediatorFactory = { mediator },
         ).also {
             sut = it
         }

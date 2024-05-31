@@ -34,7 +34,6 @@ class ColorInputHexViewModelTest {
 
     val mediator: ColorInputMediator = mockk {
         every { hexColorInputFlow } returns flowOf(ColorInput.Hex(""))
-        coEvery { send(any()) } just runs
     }
     val eventStore: ColorInputEventStore = mockk()
 
@@ -107,7 +106,7 @@ class ColorInputHexViewModelTest {
                 sut.dataStateFlow.collect() // subscriber to activate the flow
             }
 
-            coVerify(exactly = 0) { mediator.send(any()) }
+            coVerify(exactly = 0) { mediator.send(input = any()) }
             collectionJob.cancel()
         }
 

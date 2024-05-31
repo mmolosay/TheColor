@@ -10,6 +10,8 @@ import io.github.mmolosay.thecolor.domain.result.onSuccess
 import io.github.mmolosay.thecolor.domain.usecase.GetColorDetailsUseCase
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommand
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommandProvider
+import io.github.mmolosay.thecolor.presentation.ColorCenterEvent
+import io.github.mmolosay.thecolor.presentation.ColorCenterEventStore
 import io.github.mmolosay.thecolor.presentation.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.ExactMatch
 import kotlinx.coroutines.CoroutineDispatcher
@@ -30,6 +32,7 @@ import io.github.mmolosay.thecolor.domain.model.ColorDetails as DomainColorDetai
 class ColorDetailsViewModel @AssistedInject constructor(
     @Assisted private val coroutineScope: CoroutineScope,
     @Assisted private val commandProvider: ColorCenterCommandProvider,
+    @Assisted private val eventStore: ColorCenterEventStore,
     private val getColorDetails: GetColorDetailsUseCase,
     private val createData: CreateColorDetailsDataUseCase,
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
@@ -57,12 +60,22 @@ class ColorDetailsViewModel @AssistedInject constructor(
         coroutineScope.launch(ioDispatcher) {
             getColorDetails.invoke(color)
                 .onSuccess { details ->
-                    val data = createData(details)
+                    val data = createData(
+                        details = details,
+                        onExactClick = ::onExactColorClick,
+                    )
                     _dataStateFlow.value = State.Ready(data)
                 }
                 .onFailure { failure ->
                     _dataStateFlow.value = State.Error(failure)
                 }
+        }
+    }
+
+    private fun onExactColorClick(color: Color) {
+        coroutineScope.launch {
+            val event = ColorCenterEvent.ExactColorSelected(color)
+            eventStore.send(event)
         }
     }
 
@@ -79,6 +92,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
         fun create(
             coroutineScope: CoroutineScope,
             colorCenterCommandProvider: ColorCenterCommandProvider,
+            colorCenterEventStore: ColorCenterEventStore,
         ): ColorDetailsViewModel
     }
 }
@@ -89,7 +103,10 @@ class CreateColorDetailsDataUseCase @Inject constructor(
     private val colorToColorInt: ColorToColorIntUseCase,
 ) {
 
-    operator fun invoke(details: DomainColorDetails) =
+    operator fun invoke(
+        details: DomainColorDetails,
+        onExactClick: (color: Color) -> Unit,
+    ) =
         ColorDetailsData(
             colorName = details.colorName,
             hex = ColorDetailsData.Hex(value = details.colorHexString.withNumberSign),
@@ -114,17 +131,20 @@ class CreateColorDetailsDataUseCase @Inject constructor(
                 y = details.colorTranslations.cmyk.standard.y.toString(),
                 k = details.colorTranslations.cmyk.standard.k.toString(),
             ),
-            exactMatch = ExactMatch(details),
+            exactMatch = ExactMatch(details, onExactClick),
         )
 
-    private fun ExactMatch(details: DomainColorDetails): ExactMatch =
+    private fun ExactMatch(
+        details: DomainColorDetails,
+        onExactClick: (color: Color) -> Unit,
+    ): ExactMatch =
         if (details.matchesExact) {
             ExactMatch.Yes
         } else {
             ExactMatch.No(
                 exactValue = details.exact.hexStringWithNumberSign,
                 exactColor = with(colorToColorInt) { details.exact.color.toColorInt() },
-                onExactClick = { /* TODO */ },
+                onExactClick = { onExactClick(details.exact.color) },
                 deviation = details.distanceFromExact.toString(),
             )
         }

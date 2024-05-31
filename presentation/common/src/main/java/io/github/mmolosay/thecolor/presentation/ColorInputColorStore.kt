@@ -8,6 +8,9 @@ import javax.inject.Inject
 
 /**
  * Storage that holds current valid color from color input View.
+ *
+ * Its [updateWith] method is called only to reflect the present color from color input View.
+ * If you want to set new color to color input View, use [ColorInputMediator][io.github.mmolosay.thecolor.presentation.input.ColorInputMediator].
  */
 class ColorInputColorStore @Inject constructor() : ColorInputColorProvider {
 

@@ -4,6 +4,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommandProvider
+import io.github.mmolosay.thecolor.presentation.ColorCenterEventStore
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterData.ChangePageEvent
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
@@ -22,6 +23,7 @@ import kotlinx.coroutines.flow.update
 class ColorCenterViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     @Assisted colorCenterCommandProvider: ColorCenterCommandProvider,
+    @Assisted colorCenterEventStore: ColorCenterEventStore,
     colorDetailsViewModelFactory: ColorDetailsViewModel.Factory,
     colorSchemeViewModelFactory: ColorSchemeViewModel.Factory,
 ) {
@@ -33,6 +35,7 @@ class ColorCenterViewModel @AssistedInject constructor(
         colorDetailsViewModelFactory.create(
             coroutineScope = coroutineScope,
             colorCenterCommandProvider = colorCenterCommandProvider,
+            colorCenterEventStore = colorCenterEventStore,
         )
     }
 
@@ -70,6 +73,7 @@ class ColorCenterViewModel @AssistedInject constructor(
         fun create(
             coroutineScope: CoroutineScope,
             colorCenterCommandProvider: ColorCenterCommandProvider,
+            colorCenterEventStore: ColorCenterEventStore,
         ): ColorCenterViewModel
     }
 }

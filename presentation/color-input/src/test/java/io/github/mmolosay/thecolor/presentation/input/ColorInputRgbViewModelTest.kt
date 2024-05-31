@@ -37,7 +37,7 @@ abstract class ColorInputRgbViewModelTest {
 
     val mediator: ColorInputMediator = mockk {
         every { rgbColorInputFlow } returns flowOf(ColorInput.Rgb("", "", ""))
-        coEvery { send(any()) } just runs
+        coEvery { send(input = any()) } just runs
     }
     val eventStore: ColorInputEventStore = mockk()
 
@@ -141,7 +141,7 @@ class Other : ColorInputRgbViewModelTest() {
                 sut.dataStateFlow.collect() // subscriber to activate the flow
             }
 
-            coVerify(exactly = 0) { mediator.send(any()) }
+            coVerify(exactly = 0) { mediator.send(input = any()) }
             collectionJob.cancel()
         }
 

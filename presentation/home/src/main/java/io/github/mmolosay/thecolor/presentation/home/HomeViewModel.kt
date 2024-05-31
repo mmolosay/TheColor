@@ -10,6 +10,8 @@ import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommand
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommandStore
+import io.github.mmolosay.thecolor.presentation.ColorCenterEvent
+import io.github.mmolosay.thecolor.presentation.ColorCenterEventStore
 import io.github.mmolosay.thecolor.presentation.ColorInputColorProvider
 import io.github.mmolosay.thecolor.presentation.ColorInputColorStore
 import io.github.mmolosay.thecolor.presentation.ColorInputEvent
@@ -17,6 +19,7 @@ import io.github.mmolosay.thecolor.presentation.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.home.HomeData.CanProceed
+import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.ColorInputViewModel
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -38,6 +41,7 @@ import javax.inject.Singleton
  */
 @HiltViewModel
 class HomeViewModel @Inject constructor(
+    colorInputMediatorFactory: ColorInputMediator.Factory,
     colorInputViewModelFactory: ColorInputViewModel.Factory,
     colorPreviewViewModelFactory: ColorPreviewViewModel.Factory,
     colorCenterViewModelFactory: ColorCenterViewModel.Factory,
@@ -45,8 +49,10 @@ class HomeViewModel @Inject constructor(
     private val colorInputColorStore: ColorInputColorStore,
     private val colorInputEventStore: ColorInputEventStore,
     private val colorCenterCommandStore: ColorCenterCommandStore,
+    private val colorCenterEventStore: ColorCenterEventStore,
     private val createColorData: CreateColorDataUseCase,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
+    @Named("uiDataUpdateDispatcher") private val uiDataUpdateDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val getInitialModels =
@@ -58,11 +64,16 @@ class HomeViewModel @Inject constructor(
     private val _navEventFlow = MutableStateFlow<HomeNavEvent?>(null)
     val navEventFlow = _navEventFlow.asStateFlow()
 
+    private val colorInputMediator: ColorInputMediator =
+        colorInputMediatorFactory.create(
+            colorInputColorStore = colorInputColorStore,
+        )
+
     val colorInputViewModel: ColorInputViewModel =
         colorInputViewModelFactory.create(
             coroutineScope = viewModelScope,
-            colorInputColorStore = colorInputColorStore,
             colorInputEventStore = colorInputEventStore,
+            colorInputMediator = colorInputMediator,
         )
 
     val colorPreviewViewModel: ColorPreviewViewModel =
@@ -75,11 +86,13 @@ class HomeViewModel @Inject constructor(
         colorCenterViewModelFactory.create(
             coroutineScope = viewModelScope,
             colorCenterCommandProvider = colorCenterCommandStore,
+            colorCenterEventStore = colorCenterEventStore,
         )
 
     init {
         collectColorsFromColorInput()
         collectEventsFromColorInput()
+        collectEventsFromColorCenter()
     }
 
     private fun collectColorsFromColorInput() =
@@ -93,6 +106,12 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch(defaultDispatcher) {
             colorInputEventStore.eventFlow
                 .collect(::onEventFromColorInput)
+        }
+
+    private fun collectEventsFromColorCenter() =
+        viewModelScope.launch(defaultDispatcher) {
+            colorCenterEventStore.eventFlow
+                .collect(::onEventFromColorCenter)
         }
 
     private fun onColorFromColorInput(color: Color?) {
@@ -110,8 +129,15 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    private fun onEventFromColorCenter(event: ColorCenterEvent) {
+        when (event) {
+            is ColorCenterEvent.ExactColorSelected -> setColorAndProceed(newColor = event.color)
+        }
+    }
+
     private fun proceed() {
-        // TODO: add handling of case with no valid color in color input, so that user is notified
+        // TODO: add handling of case with no valid color in color input when color is
+        //  submitted via IME keyboard action, so that user is notified
         val color = colorInputColorStore.colorFlow.value ?: return
         val command = ColorCenterCommand.FetchData(color)
         viewModelScope.launch(defaultDispatcher) {
@@ -119,6 +145,15 @@ class HomeViewModel @Inject constructor(
             _dataFlow.update {
                 it.copy(colorUsedToProceed = createColorData(color))
             }
+        }
+    }
+
+    private fun setColorAndProceed(newColor: Color) {
+        viewModelScope.launch {
+            viewModelScope.launch(uiDataUpdateDispatcher) {
+                colorInputMediator.send(newColor)
+            }.join() // it's crucial to update color first, so that 'proceed()' obtains new color
+            proceed()
         }
     }
 

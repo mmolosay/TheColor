@@ -21,7 +21,10 @@ class CreateColorDetailsDataUseCaseTest {
         createSut()
 
         val details = ColorDetails()
-        val resultData = sut.invoke(details)
+        val resultData = sut.invoke(
+            details = details,
+            onExactClick = {},
+        )
 
         val comparableData = resultData.copyWithNoopLambdas()
         comparableData shouldBe ColorDetailsData(

@@ -10,6 +10,7 @@ import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -92,6 +93,28 @@ class ColorInputMediatorTest {
             // supsending call will cause the test to timeout and failure
             sut.hexColorInputFlow.first() shouldNotBe null
             sut.rgbColorInputFlow.first() shouldNotBe null
+        }
+
+    @Test
+    fun `SUT updates 'color store' with initial color`() =
+        runTest(testDispatcher) {
+            val initialColor = newAbstractColor()
+            val hexColor = Color.Hex(0x00bfff)
+            val rgbColor = Color.Rgb(0, 191, 255)
+            val hexInput = ColorInput.Hex("00BFFF")
+            val rgbInput = ColorInput.Rgb("0", "191", "255")
+            coEvery { getInitialColor() } returns initialColor
+            every { with(colorConverter) { initialColor.toHex() } } returns hexColor
+            every { with(colorInputMapper) { hexColor.toColorInput() } } returns hexInput
+            every { with(colorConverter) { initialColor.toRgb() } } returns rgbColor
+            every { with(colorInputMapper) { rgbColor.toColorInput() } } returns rgbInput
+            createSut()
+
+            sut.init()
+
+            coVerify {
+                colorInputColorStore.updateWith(color = initialColor)
+            }
         }
 
     @Test
@@ -206,7 +229,7 @@ class ColorInputMediatorTest {
         }
 
     @Test
-    fun `received invalid color input is sent to color input store as null`() =
+    fun `received invalid color input is sent to 'color store' as 'null'`() =
         runTest(testDispatcher) {
             val sentColorInput: ColorInput = mockk()
             every { with(colorInputToAbstract) { sentColorInput.toAbstractOrNull() } } returns null
@@ -219,7 +242,7 @@ class ColorInputMediatorTest {
         }
 
     @Test
-    fun `received valid color input is sent to color input store as color`() =
+    fun `received valid color input is sent to 'color store' as color`() =
         runTest(testDispatcher) {
             val sentColorInput: ColorInput = mockk()
             val abstract = newAbstractColor()

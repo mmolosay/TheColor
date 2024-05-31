@@ -26,6 +26,12 @@ import javax.inject.Singleton
  * Once one View [send]s a [ColorInput], all other Views get the same color data through flows.
  * This way if user was using one specific View, after switching to other View they will see
  * the UI with the same data (color) they have left on in previous View.
+ *
+ * Any update is also sent to [colorInputColorStore], which can be used to obtain current abstract
+ * color.
+ *
+ * Use overload of [send] method that accepts [Color] if you want to set color to color input Views
+ * programmatically, not in response to user input via one of the color input Views.
  */
 class ColorInputMediator @AssistedInject constructor(
     @Assisted private val colorInputColorStore: ColorInputColorStore,
@@ -71,15 +77,33 @@ class ColorInputMediator @AssistedInject constructor(
             }
 
     suspend fun init() {
-        colorStateFlow.emit(getInitialColor().toState())
+        send(
+            inputType = null,
+            color = getInitialColor(),
+        )
     }
 
     suspend fun send(input: ColorInput) {
-        lastUsedInputType = input.type()
-        val color = with(colorInputToAbstract) { input.toAbstractOrNull() }
+        send(
+            inputType = input.type(),
+            color = with(colorInputToAbstract) { input.toAbstractOrNull() },
+        )
+    }
+
+    suspend fun send(color: Color?) {
+        send(
+            inputType = null,
+            color = with(colorConverter) { color?.toAbstract() },
+        )
+    }
+
+    private suspend fun send(
+        inputType: InputType?,
+        color: Color.Abstract?,
+    ) {
+        lastUsedInputType = inputType
         colorInputColorStore.updateWith(color)
-        val state = color.toState()
-        colorStateFlow.emit(state)
+        colorStateFlow.emit(color.toState())
     }
 
     private fun Color.Abstract?.toState(): ColorState =
