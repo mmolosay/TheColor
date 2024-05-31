@@ -42,7 +42,7 @@ class ColorInputMediator @AssistedInject constructor(
     private val colorInputFactory: ColorInputFactory,
 ) {
 
-    val colorStateFlow = MutableSharedFlow<ColorState?>(
+    private val colorStateFlow = MutableSharedFlow<ColorState?>(
         replay = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
     )
