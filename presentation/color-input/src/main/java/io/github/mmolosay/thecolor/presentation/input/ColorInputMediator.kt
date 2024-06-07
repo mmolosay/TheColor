@@ -22,6 +22,7 @@ import javax.inject.Singleton
 /**
  * Acts as mediator between ViewModels of different color input Views.
  * The responsibility of this component is to synchronize data between different color input Views.
+ * It may also used as distributor of data between color input Views.
  *
  * Once one View [send]s a [ColorInput], all other Views get the same color data through flows.
  * This way if user was using one specific View, after switching to other View they will see
