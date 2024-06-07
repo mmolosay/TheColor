@@ -64,6 +64,7 @@ class HomeViewModelTest {
         )
         every { colorInputColorStore.colorFlow } returns MutableStateFlow(null)
         every { colorInputEventStore.eventFlow } returns emptyFlow()
+        every { colorCenterEventStore.eventFlow } returns emptyFlow()
 
         createSut()
 
@@ -97,6 +98,7 @@ class HomeViewModelTest {
         val colorFlow = MutableStateFlow<Color?>(null)
         every { colorInputColorStore.colorFlow } returns colorFlow
         every { colorInputEventStore.eventFlow } returns emptyFlow()
+        every { colorCenterEventStore.eventFlow } returns emptyFlow()
         createSut()
 
         colorFlow.value = null
@@ -129,6 +131,7 @@ class HomeViewModelTest {
         every { colorInputColorStore.colorFlow } returns MutableStateFlow(/*color*/ mockk())
         every { colorInputEventStore.eventFlow } returns emptyFlow()
         coEvery { colorCenterCommandStore.issue(command = any()) } just runs
+        every { colorCenterEventStore.eventFlow } returns emptyFlow()
         val colorUsedToProceed: ColorData = mockk()
         every { createColorFromColorInput(color = any()) } returns colorUsedToProceed
         createSut()
