@@ -10,6 +10,7 @@ fun HomeUiData(
         topBar = TopBar(data, viewData),
         headline = viewData.headline,
         proceedButton = ProceedButton(data, viewData),
+        colorPreviewState = ColorPreviewState(data),
         showColorCenter = ShowColorCenter(data.colorUsedToProceed),
     )
 
@@ -42,6 +43,14 @@ private fun ProceedButton(
         enabled = data.canProceed is HomeData.CanProceed.Yes,
         text = viewData.proceedButtonText,
     )
+
+private fun ColorPreviewState(
+    data: HomeData,
+) =
+    when (data.colorUsedToProceed) {
+        null -> HomeUiData.ColorPreviewState.Default // color was not submitted (proceeded with)
+        else -> HomeUiData.ColorPreviewState.Submitted // not-null, this color was submitted
+    }
 
 private fun HomeData.CanProceed.actionOrNoop(): () -> Unit =
     when (this) {

@@ -11,6 +11,7 @@ data class HomeUiData(
     val topBar: TopBar,
     val headline: String,
     val proceedButton: ProceedButton,
+    val colorPreviewState: ColorPreviewState,
     val showColorCenter: ShowColorCenter,
 ) {
 
@@ -28,6 +29,10 @@ data class HomeUiData(
         val enabled: Boolean,
         val text: String,
     )
+
+    enum class ColorPreviewState {
+        Default, Submitted,
+    }
 
     sealed interface ShowColorCenter {
         data object No : ShowColorCenter

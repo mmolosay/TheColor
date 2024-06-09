@@ -23,14 +23,23 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.debounce.debounced
@@ -47,6 +56,8 @@ import io.github.mmolosay.thecolor.presentation.home.HomeUiData.ProceedButton
 import io.github.mmolosay.thecolor.presentation.home.HomeUiData.ShowColorCenter
 import io.github.mmolosay.thecolor.presentation.input.ColorInput
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreview
+import io.github.mmolosay.thecolor.presentation.toDpOffset
+import io.github.mmolosay.thecolor.presentation.toDpSize
 
 @Composable
 fun HomeScreen(
@@ -113,10 +124,19 @@ fun Home(
     navigateToSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val density = LocalDensity.current
+    var positionInRoot by remember { mutableStateOf<DpOffset?>(null) }
+    var size by remember { mutableStateOf<DpSize?>(null) }
     Column(
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(state = rememberScrollState()),
+            .verticalScroll(state = rememberScrollState())
+            .onGloballyPositioned { coordinates ->
+                positionInRoot = coordinates
+                    .positionInRoot()
+                    .toDpOffset(density)
+                size = coordinates.size.toDpSize(density)
+            },
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         TopBar(uiData = uiData.topBar)
@@ -133,14 +153,19 @@ fun Home(
         ProceedButton(uiData.proceedButton)
 
         Spacer(modifier = Modifier.height(8.dp))
-        colorPreview()
+        AnimatedColorPreview(
+            colorPreview = colorPreview,
+            state = uiData.colorPreviewState,
+            containerSize = size,
+            containerPositionInRoot = positionInRoot,
+        )
 
         Spacer(modifier = Modifier.height(16.dp)) // minimum
         Spacer(modifier = Modifier.weight(1f)) // maximum
-        ColorCenterOnTintedSurface(
-            state = uiData.showColorCenter,
-            colorCenter = colorCenter,
-        )
+//        ColorCenterOnTintedSurface(
+//            state = uiData.showColorCenter,
+//            colorCenter = colorCenter,
+//        )
     }
 
     LaunchedEffect(navEvent) {
@@ -284,6 +309,7 @@ private fun previewUiData() =
             enabled = true,
             text = "Proceed",
         ),
+        colorPreviewState = HomeUiData.ColorPreviewState.Default,
         showColorCenter = ShowColorCenter.Yes(
             backgroundColor = Color(0xFF_123456),
             useLightContentColors = true,
