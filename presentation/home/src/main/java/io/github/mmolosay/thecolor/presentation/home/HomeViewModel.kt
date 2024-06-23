@@ -16,6 +16,7 @@ import io.github.mmolosay.thecolor.presentation.ColorInputColorProvider
 import io.github.mmolosay.thecolor.presentation.ColorInputColorStore
 import io.github.mmolosay.thecolor.presentation.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.ColorInputEventStore
+import io.github.mmolosay.thecolor.presentation.ColorRole
 import io.github.mmolosay.thecolor.presentation.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.home.HomeData.CanProceed
@@ -28,6 +29,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -125,21 +127,28 @@ class HomeViewModel @Inject constructor(
 
     private fun onEventFromColorInput(event: ColorInputEvent) {
         when (event) {
-            is ColorInputEvent.Submit -> proceed()
+            is ColorInputEvent.Submit ->
+                proceed(colorRole = null) // standalone color
         }
     }
 
     private fun onEventFromColorCenter(event: ColorCenterEvent) {
         when (event) {
-            is ColorCenterEvent.ExactColorSelected -> setColorAndProceed(newColor = event.color)
+            is ColorCenterEvent.ColorSelected ->
+                setColorAndProceed(
+                    newColor = event.color,
+                    colorRole = event.colorRole,
+                )
         }
     }
 
-    private fun proceed() {
+    private fun proceed(
+        colorRole: ColorRole?,
+    ) {
         // TODO: add handling of case with no valid color in color input when color is
         //  submitted via IME keyboard action, so that user is notified
         val color = colorInputColorStore.colorFlow.value ?: return
-        val command = ColorCenterCommand.FetchData(color)
+        val command = ColorCenterCommand.FetchData(color, colorRole)
         viewModelScope.launch(defaultDispatcher) {
             colorCenterCommandStore.issue(command)
             _dataFlow.update {
@@ -148,12 +157,15 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun setColorAndProceed(newColor: Color) {
+    private fun setColorAndProceed(
+        newColor: Color,
+        colorRole: ColorRole?,
+    ) {
         viewModelScope.launch {
-            viewModelScope.launch(uiDataUpdateDispatcher) {
+            withContext(uiDataUpdateDispatcher) {
                 colorInputMediator.send(newColor)
-            }.join() // it's crucial to update color first, so that 'proceed()' obtains new color
-            proceed()
+            } // it's crucial to update color first, so that 'proceed()' obtains new color
+            proceed(colorRole)
         }
     }
 
@@ -174,7 +186,16 @@ class HomeViewModel @Inject constructor(
         )
 
     private fun CanProceed(canProceed: Boolean): CanProceed =
-        if (canProceed) CanProceed.Yes(action = ::proceed) else CanProceed.No
+        when (canProceed) {
+            true -> {
+                val action: () -> Unit = {
+                    // clicking "proceed" button takes color from color input, thus it's a standalone color
+                    proceed(colorRole = null)
+                }
+                CanProceed.Yes(action)
+            }
+            false -> CanProceed.No
+        }
 
     private fun NavEventGoToSettings() =
         HomeNavEvent.GoToSettings(

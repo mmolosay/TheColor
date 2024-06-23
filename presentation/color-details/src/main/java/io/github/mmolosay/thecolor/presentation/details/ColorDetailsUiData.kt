@@ -69,7 +69,15 @@ data class ColorDetailsUiData(
         data class ExactMatch(
             val label: String,
             val value: String,
-        ) : ColorSpec
+            val goBackToInitialColorButton: GoBackToInitialColorButton?,
+        ) : ColorSpec {
+
+            data class GoBackToInitialColorButton(
+                val text: String,
+                val initialColor: Color,
+                val onClick: () -> Unit,
+            )
+        }
 
         data class ExactValue(
             val label: String,
@@ -101,6 +109,7 @@ data class ColorDetailsUiData(
         val exactMatchLabel: String,
         val exactMatchYes: String,
         val exactMatchNo: String,
+        val goBackToInitialColorButtonText: String,
         val exactValueLabel: String,
         val deviationLabel: String,
         val viewColorSchemeButtonText: String,
@@ -118,6 +127,7 @@ fun ColorDetailsViewData(context: Context) =
         exactMatchLabel = context.getString(R.string.color_details_exact_match_label),
         exactMatchYes = context.getString(R.string.color_details_exact_match_yes),
         exactMatchNo = context.getString(R.string.color_details_exact_match_no),
+        goBackToInitialColorButtonText = context.getString(R.string.color_details_go_back_to_initial_color_button_text),
         exactValueLabel = context.getString(R.string.color_details_exact_value_label),
         deviationLabel = context.getString(R.string.color_details_deviation_label),
         viewColorSchemeButtonText = context.getString(R.string.color_details_view_color_scheme_button_text),

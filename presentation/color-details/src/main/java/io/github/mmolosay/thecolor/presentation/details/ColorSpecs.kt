@@ -5,15 +5,19 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -21,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -28,9 +33,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import io.github.mmolosay.thecolor.presentation.design.LocalColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
+import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorSpec
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorSpec.ExactMatch.GoBackToInitialColorButton
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 @Composable
@@ -67,12 +74,44 @@ private fun Name(uiData: ColorSpec.Name) {
 
 @Composable
 private fun ExactMatch(uiData: ColorSpec.ExactMatch) {
-    Column {
-        Label(
-            text = uiData.label,
+    Row {
+        Column {
+            Label(
+                text = uiData.label,
+            )
+            Value(
+                text = uiData.value,
+            )
+        }
+        if (uiData.goBackToInitialColorButton != null) {
+            Spacer(modifier = Modifier.weight(1f))
+            GoBackToInitialColorButton(
+                uiData = uiData.goBackToInitialColorButton
+            )
+        }
+    }
+}
+
+@Composable
+private fun GoBackToInitialColorButton(uiData: GoBackToInitialColorButton) {
+    val colors = ButtonDefaults.outlinedButtonColors(
+        contentColor = colorsOnTintedSurface.accent,
+    )
+    val border = ButtonDefaults.outlinedButtonBorder.copy(
+        brush = SolidColor(colorsOnTintedSurface.muted),
+    )
+    OutlinedButton(
+        onClick = uiData.onClick,
+        colors = colors,
+        border = border,
+    ) {
+        Text(
+            text = uiData.text,
         )
-        Value(
-            text = uiData.value,
+        Spacer(modifier = Modifier.width(4.dp))
+        ColorPreview(
+            modifier = Modifier.padding(top = 1.dp),
+            color = uiData.initialColor,
         )
     }
 }
@@ -120,9 +159,12 @@ private fun ExactValue(uiData: ColorSpec.ExactValue) {
 }
 
 @Composable
-private fun ColorPreview(color: Color) =
+private fun ColorPreview(
+    color: Color,
+    modifier: Modifier = Modifier,
+) =
     Box(
-        modifier = Modifier
+        modifier = modifier
             .size(13.dp)
             .clip(CircleShape)
             .background(color)
@@ -167,9 +209,27 @@ private fun Value(
 private fun PreviewLight() {
     TheColorTheme {
         CompositionLocalProvider(
+            LocalColorsOnTintedSurface provides colorsOnDarkSurface(),
+        ) {
+            ColorSpecs(
+                specs = previewColorSpecs(),
+                modifier = Modifier.background(Color(0xFF_126B40)),
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PreviewDark() {
+    TheColorTheme {
+        CompositionLocalProvider(
             LocalColorsOnTintedSurface provides colorsOnLightSurface(),
         ) {
-            ColorSpecs(specs = previewColorSpecs())
+            ColorSpecs(
+                specs = previewColorSpecs(),
+                modifier = Modifier.background(Color(0xFF_F0F8FF)),
+            )
         }
     }
 }
@@ -183,6 +243,11 @@ private fun previewColorSpecs() =
         ColorSpec.ExactMatch(
             label = "EXACT MATCH",
             value = "No",
+            goBackToInitialColorButton = GoBackToInitialColorButton(
+                text = "Go back to",
+                initialColor = Color(0xFF1A803f),
+                onClick = {},
+            ),
         ),
         ColorSpec.ExactValue(
             label = "EXACT VALUE",

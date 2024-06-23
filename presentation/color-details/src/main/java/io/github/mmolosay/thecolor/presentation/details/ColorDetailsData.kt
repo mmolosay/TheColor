@@ -13,6 +13,7 @@ data class ColorDetailsData(
     val hsv: Hsv,
     val cmyk: Cmyk,
     val exactMatch: ExactMatch,
+    val initialColorData: InitialColorData?,
 ) {
 
     data class Hex(
@@ -49,8 +50,18 @@ data class ColorDetailsData(
         data class No(
             val exactValue: String,
             val exactColor: ColorInt,
-            val onExactClick: () -> Unit,
+            val goToExactColor: () -> Unit,
             val deviation: String,
         ) : ExactMatch
     }
+
+    /**
+     * When [ExactMatch.No.goToExactColor] is invoked and "exact" color is shown,
+     * you can use [goToInitialColor] to restore Color Details state to initial color from
+     * where the "exact" color was clicked.
+     */
+    data class InitialColorData(
+        val initialColor: ColorInt,
+        val goToInitialColor: () -> Unit,
+    )
 }

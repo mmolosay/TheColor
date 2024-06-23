@@ -12,8 +12,10 @@ import io.github.mmolosay.thecolor.presentation.ColorCenterCommand
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommandProvider
 import io.github.mmolosay.thecolor.presentation.ColorCenterEvent
 import io.github.mmolosay.thecolor.presentation.ColorCenterEventStore
+import io.github.mmolosay.thecolor.presentation.ColorRole
 import io.github.mmolosay.thecolor.presentation.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.ExactMatch
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.InitialColorData
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,11 +38,13 @@ class ColorDetailsViewModel @AssistedInject constructor(
     private val getColorDetails: GetColorDetailsUseCase,
     private val createData: CreateColorDetailsDataUseCase,
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
+    @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
 ) {
 
-    private val _dataStateFlow =
-        MutableStateFlow<State>(State.Idle) // TODO: inject initial state as in ColorSchemeViewModel for better testing
+    private val _dataStateFlow = MutableStateFlow<DataState>(DataState.Idle)
     val dataStateFlow = _dataStateFlow.asStateFlow()
+
+    private val colorHistory = mutableListOf<HistoryRecord>()
 
     init {
         collectColorCenterCommands()
@@ -50,41 +54,84 @@ class ColorDetailsViewModel @AssistedInject constructor(
         coroutineScope.launch { // TODO: not main dispatcher?
             commandProvider.commandFlow.collect { command ->
                 when (command) {
-                    is ColorCenterCommand.FetchData -> getColorDetails(color = command.color)
+                    is ColorCenterCommand.FetchData ->
+                        fetchColorDetails(
+                            color = command.color,
+                            colorRole = command.colorRole,
+                        )
                 }
             }
         }
 
-    private fun getColorDetails(color: Color) {
-        _dataStateFlow.value = State.Loading
+    private fun fetchColorDetails(
+        color: Color,
+        colorRole: ColorRole?,
+    ) {
+        _dataStateFlow.value = DataState.Loading
         coroutineScope.launch(ioDispatcher) {
             getColorDetails.invoke(color)
-                .onSuccess { details ->
-                    val data = createData(
-                        details = details,
-                        onExactClick = ::onExactColorClick,
-                    )
-                    _dataStateFlow.value = State.Ready(data)
+                .onSuccess { domainDetails ->
+                    val data = createData(domainDetails, colorRole)
+                    _dataStateFlow.value = DataState.Ready(data)
+                    colorHistory += HistoryRecord(domainDetails, colorRole)
                 }
                 .onFailure { failure ->
-                    _dataStateFlow.value = State.Error(failure)
+                    _dataStateFlow.value = DataState.Error(failure)
                 }
         }
     }
 
-    private fun onExactColorClick(color: Color) {
-        coroutineScope.launch {
-            val event = ColorCenterEvent.ExactColorSelected(color)
+    private fun createData(
+        domainDetails: DomainColorDetails,
+        colorRole: ColorRole?,
+    ): ColorDetailsData {
+        val color = domainDetails.color
+        val exactColor = domainDetails.exact.color
+        val initialColor = if (colorRole == ColorRole.Exact) {
+            val details = findDetailsOfInitialColor(exactColor = color)
+            details?.color
+        } else null
+        val goBackToInitialColor =
+            if (colorRole == ColorRole.Exact && initialColor != null) {
+                { sendColorSelectedEvent(initialColor, ColorRole.Initial) }
+            } else null
+        return createData(
+            details = domainDetails,
+            goToExactColor = { sendColorSelectedEvent(exactColor, ColorRole.Exact) },
+            initialColor = initialColor,
+            goToInitialColor = goBackToInitialColor,
+        )
+    }
+
+    /**
+     * Given that [exactColor] is an "exact" color,
+     * returns [DomainColorDetails] of the last color that had [exactColor] as its "exact" color.
+     */
+    private fun findDetailsOfInitialColor(exactColor: Color): DomainColorDetails? =
+        colorHistory
+            .reversed() // search in order from most recent to last
+            .find { (colorDetails, colorRole) ->
+                val hasProperColorRole = colorRole in listOf(ColorRole.Initial, null)
+                val hasMatchingExactColor = (colorDetails.exact.color == exactColor)
+                return@find (hasProperColorRole && hasMatchingExactColor)
+            }
+            ?.colorDetails
+
+    private fun sendColorSelectedEvent(
+        color: Color,
+        colorRole: ColorRole,
+    ) {
+        coroutineScope.launch(defaultDispatcher) {
+            val event = ColorCenterEvent.ColorSelected(color, colorRole)
             eventStore.send(event)
         }
     }
 
-    /** Depicts possible states of color details data. */
-    sealed interface State {
-        data object Idle : State
-        data object Loading : State
-        data class Ready(val data: ColorDetailsData) : State
-        data class Error(val failure: Result.Failure) : State
+    sealed interface DataState {
+        data object Idle : DataState
+        data object Loading : DataState
+        data class Ready(val data: ColorDetailsData) : DataState
+        data class Error(val failure: Result.Failure) : DataState
     }
 
     @AssistedFactory
@@ -95,6 +142,11 @@ class ColorDetailsViewModel @AssistedInject constructor(
             colorCenterEventStore: ColorCenterEventStore,
         ): ColorDetailsViewModel
     }
+
+    private data class HistoryRecord(
+        val colorDetails: DomainColorDetails,
+        val colorRole: ColorRole?,
+    )
 }
 
 @Singleton
@@ -105,7 +157,9 @@ class CreateColorDetailsDataUseCase @Inject constructor(
 
     operator fun invoke(
         details: DomainColorDetails,
-        onExactClick: (color: Color) -> Unit,
+        goToExactColor: () -> Unit,
+        initialColor: Color?,
+        goToInitialColor: (() -> Unit)?,
     ) =
         ColorDetailsData(
             colorName = details.colorName,
@@ -131,12 +185,21 @@ class CreateColorDetailsDataUseCase @Inject constructor(
                 y = details.colorTranslations.cmyk.standard.y.toString(),
                 k = details.colorTranslations.cmyk.standard.k.toString(),
             ),
-            exactMatch = ExactMatch(details, onExactClick),
+            exactMatch = ExactMatch(
+                details = details,
+                goToExactColor = goToExactColor,
+            ),
+            initialColorData = if (details.matchesExact) { // set 'InitialColorData' only for "exact" colors
+                InitialColorData(
+                    initialColor = initialColor,
+                    goToInitialColor = goToInitialColor,
+                )
+            } else null,
         )
 
     private fun ExactMatch(
         details: DomainColorDetails,
-        onExactClick: (color: Color) -> Unit,
+        goToExactColor: () -> Unit,
     ): ExactMatch =
         if (details.matchesExact) {
             ExactMatch.Yes
@@ -144,8 +207,20 @@ class CreateColorDetailsDataUseCase @Inject constructor(
             ExactMatch.No(
                 exactValue = details.exact.hexStringWithNumberSign,
                 exactColor = with(colorToColorInt) { details.exact.color.toColorInt() },
-                onExactClick = { onExactClick(details.exact.color) },
+                goToExactColor = goToExactColor,
                 deviation = details.distanceFromExact.toString(),
             )
         }
+
+    private fun InitialColorData(
+        initialColor: Color?,
+        goToInitialColor: (() -> Unit)?,
+    ): InitialColorData? {
+        initialColor ?: return null
+        goToInitialColor ?: return null
+        return InitialColorData(
+            initialColor = with(colorToColorInt) { initialColor.toColorInt() },
+            goToInitialColor = goToInitialColor,
+        )
+    }
 }

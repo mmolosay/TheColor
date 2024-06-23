@@ -58,7 +58,7 @@ private object TestParameters {
         exactMatch = ColorDetailsData.ExactMatch.No(
             exactValue = "#126B40",
             exactColor = ColorInt(0x126B40),
-            onExactClick = OnExactColorClick,
+            goToExactColor = OnExactColorClick,
             deviation = "1366",
         ),
     )

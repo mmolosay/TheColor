@@ -10,6 +10,7 @@
     <string name="color_details_exact_match_label">EXACT MATCH</string>
     <string name="color_details_exact_match_yes">Yes</string>
     <string name="color_details_exact_match_no">No</string>
+    <string name="color_details_go_back_to_initial_color_button_text">Go back to</string>
     <string name="color_details_exact_value_label">EXACT VALUE</string>
     <string name="color_details_exact_value_icon_content_desc">Open exact color</string>
     <string name="color_details_deviation_label">DEVIATION</string>

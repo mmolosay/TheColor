@@ -120,9 +120,19 @@ private fun ExactMatchSpec(
         is ColorDetailsData.ExactMatch.No -> viewData.exactMatchNo
         is ColorDetailsData.ExactMatch.Yes -> viewData.exactMatchYes
     }
+    val goBackToInitialColorButton = if (data.initialColorData != null) {
+        ColorSpec.ExactMatch.GoBackToInitialColorButton(
+            text = viewData.goBackToInitialColorButtonText,
+            initialColor = data.initialColorData.initialColor.toCompose(),
+            onClick = data.initialColorData.goToInitialColor,
+        )
+    } else {
+        null
+    }
     return ColorSpec.ExactMatch(
         label = viewData.exactMatchLabel,
         value = value,
+        goBackToInitialColorButton = goBackToInitialColorButton,
     )
 }
 
@@ -134,7 +144,7 @@ private fun ExactValueSpec(
         label = viewData.exactValueLabel,
         value = data.exactValue,
         exactColor = data.exactColor.toCompose(),
-        onClick = data.onExactClick,
+        onClick = data.goToExactColor,
     )
 
 private fun DeviationSpec(

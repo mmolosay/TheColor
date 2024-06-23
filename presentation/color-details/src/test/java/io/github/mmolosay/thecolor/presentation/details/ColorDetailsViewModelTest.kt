@@ -8,7 +8,7 @@ import io.github.mmolosay.thecolor.presentation.ColorCenterCommand
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommandProvider
 import io.github.mmolosay.thecolor.presentation.ColorCenterEvent
 import io.github.mmolosay.thecolor.presentation.ColorCenterEventStore
-import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel.State
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel.DataState
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -50,7 +50,7 @@ class ColorDetailsViewModelTest {
 
         createSut()
 
-        sut.dataStateFlow.value shouldBe State.Idle
+        sut.dataStateFlow.value shouldBe DataState.Idle
     }
 
     @Test
@@ -65,7 +65,7 @@ class ColorDetailsViewModelTest {
 
             commandFlow.emit(ColorCenterCommand.FetchData(color))
 
-            sut.dataStateFlow.value should beOfType<State.Ready>()
+            sut.dataStateFlow.value should beOfType<DataState.Ready>()
         }
 
     @Test
@@ -82,7 +82,7 @@ class ColorDetailsViewModelTest {
             launch {
                 sut.dataStateFlow
                     .drop(1) // ignore initial Idle state
-                    .first() should beOfType<State.Loading>()
+                    .first() should beOfType<DataState.Loading>()
             }
 
             // "when"
@@ -102,7 +102,7 @@ class ColorDetailsViewModelTest {
 
             commandFlow.emit(ColorCenterCommand.FetchData(color))
 
-            sut.dataStateFlow.value should beOfType<State.Error>()
+            sut.dataStateFlow.value should beOfType<DataState.Error>()
         }
 
     @Test
@@ -122,7 +122,7 @@ class ColorDetailsViewModelTest {
             createSut()
             commandFlow.emit(ColorCenterCommand.FetchData(color))
 
-            sut.dataStateFlow.value should beOfType<State.Ready>()
+            sut.dataStateFlow.value should beOfType<DataState.Ready>()
             // ideally, we'd like to obtain data of State.Ready and call its ExactMatch.No.onExactClick()
             // but it's such a pain in the ass to do :) this approach is fine as well
             onExactClickSlot.captured.invoke(Color.Hex(0x123456))

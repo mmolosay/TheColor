@@ -29,7 +29,7 @@ import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.Color
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorTranslation
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorTranslations
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ViewData
-import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel.State
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel.DataState
 import io.github.mmolosay.thecolor.presentation.errors.ErrorMessage
 
 @Composable
@@ -39,15 +39,15 @@ fun ColorDetails(
     val state = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
     val viewData = rememberViewData()
     when (state) {
-        is State.Idle ->
+        is DataState.Idle ->
             Unit // Color Details shouldn't be visible at Home at this point
-        is State.Loading ->
+        is DataState.Loading ->
             ColorDetailsLoading()
-        is State.Ready -> {
+        is DataState.Ready -> {
             val uiData = rememberUiData(state.data, viewData)
             ColorDetails(uiData)
         }
-        is State.Error ->
+        is DataState.Error ->
             Error(failure = state.failure)
     }
 }
@@ -157,6 +157,34 @@ private fun PreviewDark() {
     }
 }
 
+@Preview(showBackground = true)
+@Composable
+private fun PreviewExactLight() {
+    TheColorTheme {
+        val colors = remember { colorsOnDarkSurface() }
+        ProvideColorsOnTintedSurface(colors) {
+            ColorDetails(
+                uiData = previewExactUiData(),
+                modifier = Modifier.background(Color(0xFF_126B40)),
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PreviewExactDark() {
+    TheColorTheme {
+        val colors = remember { colorsOnLightSurface() }
+        ProvideColorsOnTintedSurface(colors) {
+            ColorDetails(
+                uiData = previewExactUiData(),
+                modifier = Modifier.background(Color(0xFF_F0F8FF)),
+            )
+        }
+    }
+}
+
 private fun previewUiData() =
     ColorDetailsUiData(
         headline = "Jewel",
@@ -199,6 +227,7 @@ private fun previewUiData() =
             ColorSpec.ExactMatch(
                 label = "EXACT MATCH",
                 value = "No",
+                goBackToInitialColorButton = null,
             ),
             ColorSpec.ExactValue(
                 label = "EXACT VALUE",
@@ -209,6 +238,57 @@ private fun previewUiData() =
             ColorSpec.Deviation(
                 label = "DEVIATION",
                 value = "1366",
+            ),
+        ),
+    )
+
+private fun previewExactUiData() =
+    ColorDetailsUiData(
+        headline = "Jewel",
+        translations = ColorTranslations(
+            hex = ColorTranslation.Hex(
+                label = "HEX",
+                value = "#126B40",
+            ),
+            rgb = ColorTranslation.Rgb(
+                label = "RGB",
+                r = "18",
+                g = "107",
+                b = "64",
+            ),
+            hsl = ColorTranslation.Hsl(
+                label = "HSL",
+                h = "151",
+                s = "71",
+                l = "25",
+            ),
+            hsv = ColorTranslation.Hsv(
+                label = "HSV",
+                h = "151",
+                s = "83",
+                v = "42",
+            ),
+            cmyk = ColorTranslation.Cmyk(
+                label = "CMYK",
+                c = "83",
+                m = "0",
+                y = "40",
+                k = "58",
+            ),
+        ),
+        specs = listOf(
+            ColorSpec.Name(
+                label = "NAME",
+                value = "Jewel",
+            ),
+            ColorSpec.ExactMatch(
+                label = "EXACT MATCH",
+                value = "Yes",
+                goBackToInitialColorButton = ColorSpec.ExactMatch.GoBackToInitialColorButton(
+                    text = "Go back to",
+                    initialColor = Color(0xFF1A803f),
+                    onClick = {},
+                )
             ),
         ),
     )

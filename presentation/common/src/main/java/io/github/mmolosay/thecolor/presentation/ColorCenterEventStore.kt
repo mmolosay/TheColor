@@ -29,6 +29,12 @@ interface ColorCenterEventProvider {
  * Event that originates in color center View (or its sub-View) and is broadcasted to outside.
  */
 sealed interface ColorCenterEvent {
-    /** "Exact" color has been selected in color details View. */
-    data class ExactColorSelected(val color: Color) : ColorCenterEvent
+
+    /**
+     * A [color] has been selected in color details View.
+     */
+    data class ColorSelected(
+        val color: Color,
+        val colorRole: ColorRole,
+    ) : ColorCenterEvent
 }

@@ -54,7 +54,7 @@ class CreateColorDetailsDataUseCaseTest {
             exactMatch = ColorDetailsData.ExactMatch.No(
                 exactValue = "#126B40",
                 exactColor = ColorInt(0x123456),
-                onExactClick = NoopOnClickAction,
+                goToExactColor = NoopOnClickAction,
                 deviation = "1366",
             ),
         )
@@ -74,7 +74,7 @@ class CreateColorDetailsDataUseCaseTest {
             exactMatch = exactMatch.run {
                 when (this) {
                     is ColorDetailsData.ExactMatch.No -> this.copy(
-                        onExactClick = NoopOnClickAction,
+                        goToExactColor = NoopOnClickAction,
                     )
                     is ColorDetailsData.ExactMatch.Yes -> this
                 }

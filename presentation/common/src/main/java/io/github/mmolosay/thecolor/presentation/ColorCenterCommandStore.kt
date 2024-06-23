@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import javax.inject.Inject
 
 /**
- * Storage that holds a [Flow] of [ColorCenterCommand]s for a color center View to handle.
+ * Storage that holds a [Flow] of [ColorCenterCommand]s for a color center ViewModel to handle.
  */
 class ColorCenterCommandStore @Inject constructor() : ColorCenterCommandProvider {
 
@@ -25,5 +25,10 @@ interface ColorCenterCommandProvider {
 }
 
 sealed interface ColorCenterCommand {
-    data class FetchData(val color: Color) : ColorCenterCommand
+
+    /** Update a component (color details, color scheme) with new data. */
+    data class FetchData(
+        val color: Color,
+        val colorRole: ColorRole?,
+    ) : ColorCenterCommand
 }
