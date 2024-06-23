@@ -32,7 +32,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -153,19 +152,23 @@ fun Home(
         ProceedButton(uiData.proceedButton)
 
         Spacer(modifier = Modifier.height(8.dp))
-        AnimatedColorPreview(
-            colorPreview = colorPreview,
-            state = uiData.colorPreviewState,
-            containerSize = size,
-            containerPositionInRoot = positionInRoot,
-        )
+        // TODO: animated color preview is a part of bigger animation, see AnimatedColorCenter.kt
+//        AnimatedColorPreview(
+//            colorPreview = colorPreview,
+//            state = uiData.colorPreviewState,
+//            containerSize = size,
+//            containerPositionInRoot = positionInRoot,
+//        )
+        colorPreview()
 
         Spacer(modifier = Modifier.height(16.dp)) // minimum
         Spacer(modifier = Modifier.weight(1f)) // maximum
-//        ColorCenterOnTintedSurface(
-//            state = uiData.showColorCenter,
-//            colorCenter = colorCenter,
-//        )
+//        AnimatedColorCenter {
+        ColorCenterOnTintedSurface(
+            state = uiData.showColorCenter,
+            colorCenter = colorCenter,
+        )
+//        }
     }
 
     LaunchedEffect(navEvent) {
@@ -212,7 +215,7 @@ private fun ColorCenterOnTintedSurface(
                     clip = true
                     shape = ColorCenterShape
                 }
-                .background(state.backgroundColor)
+                .background(state.backgroundColor),
         ) {
             colorCenter()
         }
