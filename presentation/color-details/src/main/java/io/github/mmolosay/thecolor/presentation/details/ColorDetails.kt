@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,7 +31,6 @@ import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.Color
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ViewData
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel.State
 import io.github.mmolosay.thecolor.presentation.errors.ErrorMessage
-import androidx.compose.material3.Divider as MaterialDivider
 
 @Composable
 fun ColorDetails(
@@ -97,12 +97,11 @@ private fun Headline(
         style = MaterialTheme.typography.displayLarge,
     )
 
-// TODO: fix deprecation
 @Composable
 private fun Divider() =
-    MaterialDivider(
+    HorizontalDivider(
         thickness = 1.dp,
-        color = colorsOnTintedSurface.muted.copy(alpha = 0.30f),
+        color = colorsOnTintedSurface.muted.copy(alpha = 0.30f)
     )
 
 @Composable
