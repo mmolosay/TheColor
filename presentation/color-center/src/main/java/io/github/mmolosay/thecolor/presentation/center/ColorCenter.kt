@@ -2,6 +2,7 @@ package io.github.mmolosay.thecolor.presentation.center
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.sizeIn
@@ -100,15 +101,13 @@ fun ColorCenter(
     var userScrollEnabled by remember { mutableStateOf(true) }
     var minHeight by remember { mutableStateOf<Int?>(null) }
     val minHeightDp = with(density) { minHeight?.toDp() }
+
     HorizontalPager(
         state = pagerState,
         modifier = modifier
-            .sizeIn(
-                minHeight = minHeightDp ?: Dp.Unspecified,
-            )
             .onSizeChanged { size ->
                 // once page is changed and removed from composition, we want to prevent pager from
-                // down-sizing (in height) and either stay of the same height, or grow for new, bigger page
+                // down-sizing (height-wise) and either stay with the same height, or grow for new, bigger page
                 minHeight = max(size.height, minHeight ?: 0)
             },
         verticalAlignment = Alignment.Top,
@@ -116,7 +115,13 @@ fun ColorCenter(
         key = { index -> index }, // list of pages doesn't change
     ) { i ->
         val page = pages[i]
-        page()
+        Box(
+            modifier = Modifier
+                .sizeIn(minHeight = minHeightDp ?: Dp.Unspecified),
+            propagateMinConstraints = true, // propagate min height also to page content
+        ) {
+            page()
+        }
     }
 
     LaunchedEffect(uiData.changePageEvent) {
