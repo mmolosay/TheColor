@@ -1,5 +1,9 @@
 package io.github.mmolosay.thecolor.domain.result
 
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
+
 sealed interface Result<out T> {
 
     data class Success<T>(
@@ -36,14 +40,22 @@ fun <T> Result<T>.getOrNull(): T? =
         is Result.Failure -> null
     }
 
-fun <T> Result<T>.onSuccess(action: (T) -> Unit): Result<T> {
+@OptIn(ExperimentalContracts::class)
+inline fun <T> Result<T>.onSuccess(action: (T) -> Unit): Result<T> {
+    contract {
+        callsInPlace(action, InvocationKind.AT_MOST_ONCE)
+    }
     if (this is Result.Success) {
         action(this.value)
     }
     return this
 }
 
-fun <T> Result<T>.onFailure(action: (Result.Failure) -> Unit): Result<T> {
+@OptIn(ExperimentalContracts::class)
+inline fun <T> Result<T>.onFailure(action: (Result.Failure) -> Unit): Result<T> {
+    contract {
+        callsInPlace(action, InvocationKind.AT_MOST_ONCE)
+    }
     if (this is Result.Failure) {
         action(this)
     }
