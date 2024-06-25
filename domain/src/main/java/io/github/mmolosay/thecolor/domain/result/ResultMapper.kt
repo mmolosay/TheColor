@@ -10,7 +10,7 @@ class ResultMapper @Inject constructor(
     private val failureFactory: FailureFactory,
 ) {
 
-    @Throws(UnknownThrowable::class)
+    @Throws(IllegalStateException::class)
     fun <T> KotlinResult<T>.toDomainResult(): Result<T> =
         this.fold(
             onSuccess = { value ->
@@ -18,11 +18,7 @@ class ResultMapper @Inject constructor(
             },
             onFailure = { throwable ->
                 with(failureFactory) { throwable.asFailureOrNull() }
-                    ?: throw UnknownThrowable(throwable)
+                    ?: error("Cannot map $throwable to Result.Failure")
             },
         )
-
-    /** An exception that's thrown when specified [throwable] cannot be mapped to [Result.Failure]. */
-    class UnknownThrowable(val throwable: Throwable) :
-        IllegalArgumentException("Cannot map $throwable to Result.Failure")
 }
