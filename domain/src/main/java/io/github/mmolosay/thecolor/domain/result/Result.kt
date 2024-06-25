@@ -4,6 +4,10 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
+/**
+ * An application-wide result of some operation.
+ * Either a [Success] with obtained value, or a derivative from [Failure] with a cause.
+ */
 sealed interface Result<out T> {
 
     data class Success<T>(
