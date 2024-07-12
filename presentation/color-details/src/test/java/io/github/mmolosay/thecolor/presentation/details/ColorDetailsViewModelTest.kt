@@ -1,6 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.details
 
 import io.github.mmolosay.thecolor.domain.model.Color
+import io.github.mmolosay.thecolor.domain.model.ColorDetails
 import io.github.mmolosay.thecolor.domain.result.HttpFailure
 import io.github.mmolosay.thecolor.domain.result.Result
 import io.github.mmolosay.thecolor.domain.usecase.GetColorDetailsUseCase
@@ -8,6 +9,7 @@ import io.github.mmolosay.thecolor.presentation.ColorCenterCommand
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommandProvider
 import io.github.mmolosay.thecolor.presentation.ColorCenterEvent
 import io.github.mmolosay.thecolor.presentation.ColorCenterEventStore
+import io.github.mmolosay.thecolor.presentation.ColorRole
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel.DataState
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
 import io.kotest.matchers.should
@@ -59,11 +61,19 @@ class ColorDetailsViewModelTest {
             val color = Color.Hex(0x1A803F)
             val commandFlow = MutableSharedFlow<ColorCenterCommand>()
             every { commandProvider.commandFlow } returns commandFlow
-            coEvery { getColorDetails.invoke(any<Color>()) } returns Result.Success(value = mockk())
-            every { createData(details = any(), onExactClick = any()) } returns mockk()
+            val fetchedDetails: ColorDetails = mockk(relaxed = true)
+            coEvery { getColorDetails.invoke(any<Color>()) } returns Result.Success(fetchedDetails)
+            every {
+                createData(
+                    details = any(),
+                    goToExactColor = any(),
+                    initialColor = any(),
+                    goToInitialColor = any(),
+                )
+            } returns mockk()
             createSut()
 
-            commandFlow.emit(ColorCenterCommand.FetchData(color))
+            commandFlow.emit(ColorCenterCommand.FetchData(color, colorRole = null))
 
             sut.dataStateFlow.value should beOfType<DataState.Ready>()
         }
@@ -75,7 +85,14 @@ class ColorDetailsViewModelTest {
             val commandFlow = MutableSharedFlow<ColorCenterCommand>()
             every { commandProvider.commandFlow } returns commandFlow
             coEvery { getColorDetails.invoke(any<Color>()) } returns Result.Success(value = mockk())
-            every { createData(details = any(), onExactClick = any()) } returns mockk()
+            every {
+                createData(
+                    details = any(),
+                    goToExactColor = any(),
+                    initialColor = any(),
+                    goToInitialColor = any(),
+                )
+            } returns mockk()
             createSut()
 
             // "then"
@@ -86,7 +103,7 @@ class ColorDetailsViewModelTest {
             }
 
             // "when"
-            commandFlow.emit(ColorCenterCommand.FetchData(color))
+            commandFlow.emit(ColorCenterCommand.FetchData(color, colorRole = null))
         }
 
     @Test
@@ -100,7 +117,7 @@ class ColorDetailsViewModelTest {
             )
             createSut()
 
-            commandFlow.emit(ColorCenterCommand.FetchData(color))
+            commandFlow.emit(ColorCenterCommand.FetchData(color, colorRole = null))
 
             sut.dataStateFlow.value should beOfType<DataState.Error>()
         }
@@ -111,24 +128,32 @@ class ColorDetailsViewModelTest {
             val color = Color.Hex(0x1A803F)
             val commandFlow = MutableSharedFlow<ColorCenterCommand>()
             every { commandProvider.commandFlow } returns commandFlow
-            coEvery { getColorDetails.invoke(any<Color>()) } returns Result.Success(value = mockk())
-            val onExactClickSlot = slot<(Color) -> Unit>()
+            val fetchedDetails: ColorDetails = mockk(relaxed = true) {
+                every { exact.color } returns Color.Hex(0x123456)
+            }
+            coEvery { getColorDetails.invoke(any<Color>()) } returns Result.Success(fetchedDetails)
+            val onExactClickSlot = slot<() -> Unit>()
             every {
                 createData(
                     details = any(),
-                    onExactClick = capture(onExactClickSlot),
+                    goToExactColor = capture(onExactClickSlot),
+                    initialColor = any(),
+                    goToInitialColor = any(),
                 )
             } returns mockk()
             createSut()
-            commandFlow.emit(ColorCenterCommand.FetchData(color))
+            commandFlow.emit(ColorCenterCommand.FetchData(color, colorRole = null))
 
             sut.dataStateFlow.value should beOfType<DataState.Ready>()
             // ideally, we'd like to obtain data of State.Ready and call its ExactMatch.No.onExactClick()
             // but it's such a pain in the ass to do :) this approach is fine as well
-            onExactClickSlot.captured.invoke(Color.Hex(0x123456))
+            onExactClickSlot.captured.invoke()
 
             coVerify {
-                val expectedEvent = ColorCenterEvent.ExactColorSelected(color = Color.Hex(0x123456))
+                val expectedEvent = ColorCenterEvent.ColorSelected(
+                    color = Color.Hex(0x123456),
+                    colorRole = ColorRole.Exact,
+                )
                 eventStore.send(expectedEvent)
             }
         }
@@ -141,6 +166,7 @@ class ColorDetailsViewModelTest {
             getColorDetails = getColorDetails,
             createData = createData,
             ioDispatcher = mainDispatcherRule.testDispatcher,
+            defaultDispatcher = mainDispatcherRule.testDispatcher,
         ).also {
             sut = it
         }

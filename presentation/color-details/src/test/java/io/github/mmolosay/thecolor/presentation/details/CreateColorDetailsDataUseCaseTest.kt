@@ -23,7 +23,9 @@ class CreateColorDetailsDataUseCaseTest {
         val details = ColorDetails()
         val resultData = sut.invoke(
             details = details,
-            onExactClick = {},
+            goToExactColor = {},
+            initialColor = null,
+            goToInitialColor = {},
         )
 
         val comparableData = resultData.copyWithNoopLambdas()
@@ -57,6 +59,7 @@ class CreateColorDetailsDataUseCaseTest {
                 goToExactColor = NoopOnClickAction,
                 deviation = "1366",
             ),
+            initialColorData = null,
         )
     }
 

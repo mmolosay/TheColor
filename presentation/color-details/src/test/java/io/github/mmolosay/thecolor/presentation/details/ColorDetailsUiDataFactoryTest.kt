@@ -61,6 +61,7 @@ private object TestParameters {
             goToExactColor = OnExactColorClick,
             deviation = "1366",
         ),
+        initialColorData = null,
     )
 
     fun viewData0() = ColorDetailsUiData.ViewData(
@@ -76,6 +77,7 @@ private object TestParameters {
         exactValueLabel = "EXACT VALUE",
         deviationLabel = "DEVIATION",
         viewColorSchemeButtonText = "View color scheme",
+        goBackToInitialColorButtonText = "Go back",
     )
 
     fun uiData0() =
@@ -120,6 +122,7 @@ private object TestParameters {
                 ColorDetailsUiData.ColorSpec.ExactMatch(
                     label = "EXACT MATCH",
                     value = "No",
+                    goBackToInitialColorButton = null,
                 ),
                 ColorDetailsUiData.ColorSpec.ExactValue(
                     label = "EXACT VALUE",
@@ -146,6 +149,7 @@ private object TestParameters {
         hsv = ColorDetailsData.Hsv("208", "6", "100"),
         cmyk = ColorDetailsData.Cmyk("6", "3", "0", "0"),
         exactMatch = ColorDetailsData.ExactMatch.Yes,
+        initialColorData = null,
     )
 
     fun viewData1() = ColorDetailsUiData.ViewData(
@@ -161,6 +165,7 @@ private object TestParameters {
         exactValueLabel = "literal exact value label",
         deviationLabel = "literal deviation",
         viewColorSchemeButtonText = "literal view color scheme button text",
+        goBackToInitialColorButtonText = "literal go back to initial color button text",
     )
 
     fun uiData1() =
@@ -205,6 +210,7 @@ private object TestParameters {
                 ColorDetailsUiData.ColorSpec.ExactMatch(
                     label = "literal exact match label",
                     value = "literal yes",
+                    goBackToInitialColorButton = null,
                 ),
             ),
         )

@@ -8,6 +8,7 @@ import io.github.mmolosay.thecolor.presentation.ColorCenterEventStore
 import io.github.mmolosay.thecolor.presentation.ColorInputColorStore
 import io.github.mmolosay.thecolor.presentation.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.ColorInputEventStore
+import io.github.mmolosay.thecolor.presentation.ColorRole
 import io.github.mmolosay.thecolor.presentation.home.HomeData.CanProceed
 import io.github.mmolosay.thecolor.presentation.home.HomeData.ColorData
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
@@ -197,7 +198,10 @@ class HomeViewModelTest {
             coEvery { colorCenterCommandStore.issue(any()) } just runs
             createSut()
 
-            val event = ColorCenterEvent.ExactColorSelected(color = Color.Hex(0x123456))
+            val event = ColorCenterEvent.ColorSelected(
+                color = Color.Hex(0x123456),
+                colorRole = ColorRole.Exact,
+            )
             eventsFlow.emit(event)
 
             coVerify { colorInputMediator.send(color = Color.Hex(0x123456)) }
@@ -218,7 +222,10 @@ class HomeViewModelTest {
             coEvery { colorCenterCommandStore.issue(command = any()) } just runs
             createSut()
 
-            val event = ColorCenterEvent.ExactColorSelected(color = Color.Hex(0x123456))
+            val event = ColorCenterEvent.ColorSelected(
+                color = Color.Hex(0x123456),
+                colorRole = ColorRole.Exact,
+            )
             eventsFlow.emit(event)
 
             coVerify { colorCenterCommandStore.issue(command = any<ColorCenterCommand.FetchData>()) }
@@ -240,7 +247,10 @@ class HomeViewModelTest {
             every { createColorFromColorInput(color = any()) } returns colorUsedToProceed
             createSut()
 
-            val event = ColorCenterEvent.ExactColorSelected(color = Color.Hex(0x123456))
+            val event = ColorCenterEvent.ColorSelected(
+                color = Color.Hex(0x123456),
+                colorRole = ColorRole.Exact,
+            )
             eventsFlow.emit(event)
 
             data.colorUsedToProceed shouldBe colorUsedToProceed

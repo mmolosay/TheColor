@@ -79,7 +79,7 @@ class ColorSchemeViewModelTest {
             }
 
             // "when" block
-            val command = ColorCenterCommand.FetchData(color = mockk())
+            val command = ColorCenterCommand.FetchData(color = mockk(), colorRole = null)
             commandFlow.emit(command)
         }
 
@@ -93,7 +93,7 @@ class ColorSchemeViewModelTest {
             every { createModels(scheme = any(), config = any()) } returns someModels()
             createSut()
 
-            val command = ColorCenterCommand.FetchData(color = mockk())
+            val command = ColorCenterCommand.FetchData(color = mockk(), colorRole = null)
             commandFlow.emit(command)
 
             sut.dataStateFlow.value should beOfType<State.Ready<*>>()
@@ -176,7 +176,10 @@ class ColorSchemeViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             every { getInitialModelsState() } returns State.Loading
             val color: Color = mockk()
-            every { commandProvider.commandFlow } returns flowOf(ColorCenterCommand.FetchData(color))
+            val commandFlow = flowOf(
+                ColorCenterCommand.FetchData(color, colorRole = null)
+            )
+            every { commandProvider.commandFlow } returns commandFlow
             coEvery { getColorScheme(request = any<Request>()) } returns Result.Success(value = mockk())
             every { createModels(scheme = any(), config = any()) } returns someModels().copy(
                 activeMode = Mode.Monochrome, // different modes for Changes.Present
