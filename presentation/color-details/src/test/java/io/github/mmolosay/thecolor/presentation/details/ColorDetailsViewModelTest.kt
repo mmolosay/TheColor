@@ -9,12 +9,15 @@ import io.github.mmolosay.thecolor.presentation.ColorCenterCommand
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommandProvider
 import io.github.mmolosay.thecolor.presentation.ColorCenterEvent
 import io.github.mmolosay.thecolor.presentation.ColorCenterEventStore
+import io.github.mmolosay.thecolor.presentation.ColorInt
 import io.github.mmolosay.thecolor.presentation.ColorRole
+import io.github.mmolosay.thecolor.presentation.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel.DataState
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -32,6 +35,16 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 
+/**
+ * In most cases SUT ViewModel will use mocked instance of [CreateColorDetailsDataUseCase].
+ * It is done to simplify tests which don't check contents of returned data: we can just return mock from the use case.
+ *
+ * In some other cases, we want to check contents of returned data.
+ * For that we pass real instance of [CreateColorDetailsDataUseCase] to ViewModel.
+ * This way the code of use case is treated like internal private part of ViewModel.
+ * This approach produces data as if it was in production, meaning that contents are plausible
+ * and appropriate for tests that verify values.
+ */
 class ColorDetailsViewModelTest {
 
     @get:Rule
@@ -42,7 +55,13 @@ class ColorDetailsViewModelTest {
         coEvery { send(event = any()) } just runs
     }
     val getColorDetails: GetColorDetailsUseCase = mockk()
-    val createData: CreateColorDetailsDataUseCase = mockk()
+    val createDataMock: CreateColorDetailsDataUseCase = mockk()
+    val colorToColorInt: ColorToColorIntUseCase = mockk {
+        every { any<Color>().toColorInt() } returns mockk(relaxed = true)
+    }
+    val createDataReal = CreateColorDetailsDataUseCase(
+        colorToColorInt = colorToColorInt,
+    )
 
     lateinit var sut: ColorDetailsViewModel
 
@@ -64,7 +83,7 @@ class ColorDetailsViewModelTest {
             val fetchedDetails: ColorDetails = mockk(relaxed = true)
             coEvery { getColorDetails.invoke(any<Color>()) } returns Result.Success(fetchedDetails)
             every {
-                createData(
+                createDataMock(
                     details = any(),
                     goToExactColor = any(),
                     initialColor = any(),
@@ -86,7 +105,7 @@ class ColorDetailsViewModelTest {
             every { commandProvider.commandFlow } returns commandFlow
             coEvery { getColorDetails.invoke(any<Color>()) } returns Result.Success(value = mockk())
             every {
-                createData(
+                createDataMock(
                     details = any(),
                     goToExactColor = any(),
                     initialColor = any(),
@@ -130,24 +149,17 @@ class ColorDetailsViewModelTest {
             every { commandProvider.commandFlow } returns commandFlow
             val fetchedDetails: ColorDetails = mockk(relaxed = true) {
                 every { exact.color } returns Color.Hex(0x123456)
+                every { matchesExact } returns false
             }
             coEvery { getColorDetails.invoke(any<Color>()) } returns Result.Success(fetchedDetails)
-            val onExactClickSlot = slot<() -> Unit>()
-            every {
-                createData(
-                    details = any(),
-                    goToExactColor = capture(onExactClickSlot),
-                    initialColor = any(),
-                    goToInitialColor = any(),
-                )
-            } returns mockk()
-            createSut()
+            createSut(
+                createData = createDataReal,
+            )
             commandFlow.emit(ColorCenterCommand.FetchData(color, colorRole = null))
 
-            sut.dataStateFlow.value should beOfType<DataState.Ready>()
-            // ideally, we'd like to obtain data of State.Ready and call its ExactMatch.No.onExactClick()
-            // but it's such a pain in the ass to do :) this approach is fine as well
-            onExactClickSlot.captured.invoke()
+            val data = sut.dataStateFlow.value.shouldBeInstanceOf<DataState.Ready>().data
+            val exactMatch = data.exactMatch.shouldBeInstanceOf<ColorDetailsData.ExactMatch.No>()
+            exactMatch.goToExactColor()
 
             coVerify {
                 val expectedEvent = ColorCenterEvent.ColorSelected(
@@ -158,7 +170,9 @@ class ColorDetailsViewModelTest {
             }
         }
 
-    fun createSut() =
+    fun createSut(
+        createData: CreateColorDetailsDataUseCase = createDataMock,
+    ) =
         ColorDetailsViewModel(
             coroutineScope = TestScope(context = mainDispatcherRule.testDispatcher),
             commandProvider = commandProvider,

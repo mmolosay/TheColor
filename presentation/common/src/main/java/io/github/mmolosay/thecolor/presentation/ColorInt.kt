@@ -11,6 +11,10 @@ import androidx.compose.ui.graphics.Color as ComposeColor
  *
  * Example: `0x1A803F`.
  */
+/*
+ * When writing unit tests and creating mock of ColorInt, make sure the mock is relaxed.
+ * Value classes are replaced with values they're wrapping in runtime.
+ */
 @JvmInline
 value class ColorInt(val hex: Int)
 
