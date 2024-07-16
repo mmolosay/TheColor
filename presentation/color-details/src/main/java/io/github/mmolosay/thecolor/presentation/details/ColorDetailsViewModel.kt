@@ -51,7 +51,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
     }
 
     private fun collectColorCenterCommands() =
-        coroutineScope.launch { // TODO: not main dispatcher?
+        coroutineScope.launch(defaultDispatcher) {
             commandProvider.commandFlow.collect { command ->
                 when (command) {
                     is ColorCenterCommand.FetchData ->
