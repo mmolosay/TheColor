@@ -14,8 +14,10 @@ import io.github.mmolosay.thecolor.presentation.ColorRole
 import io.github.mmolosay.thecolor.presentation.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel.DataState
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
@@ -24,7 +26,6 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
-import io.mockk.slot
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.emptyFlow
@@ -142,7 +143,7 @@ class ColorDetailsViewModelTest {
         }
 
     @Test
-    fun `invoking 'on exact click' sends appropriate event to color center event store`() =
+    fun `invoking 'go to exact color' sends appropriate event to color center event store`() =
         runTest(mainDispatcherRule.testDispatcher) {
             val color = Color.Hex(0x1A803F)
             val commandFlow = MutableSharedFlow<ColorCenterCommand>()
@@ -165,6 +166,135 @@ class ColorDetailsViewModelTest {
                 val expectedEvent = ColorCenterEvent.ColorSelected(
                     color = Color.Hex(0x123456),
                     colorRole = ColorRole.Exact,
+                )
+                eventStore.send(expectedEvent)
+            }
+        }
+
+    /**
+     * GIVEN [FetchData][ColorCenterCommand.FetchData] command with `null` color role is emtted
+     *
+     * WHEN [FetchData][ColorCenterCommand.FetchData] command with [ColorRole.Exact] is emitted
+     *
+     * THEN initial color for this exact color is recalled and [ColorDetailsData.initialColorData] is not null
+     */
+    @Test
+    fun `emission of 'fetch data' command with color type 'exact' results in present initial color data`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val initialColor = Color.Hex(0x1A803F)
+            val exactColor = Color.Hex(0x123456)
+            val commandFlow = MutableSharedFlow<ColorCenterCommand>()
+            every { commandProvider.commandFlow } returns commandFlow
+            val fetchedDetailsForColor: ColorDetails = mockk(relaxed = true) {
+                every { this@mockk.color } returns initialColor
+                every { exact.color } returns exactColor
+                every { matchesExact } returns false
+            }
+            val fetchedDetailsForExactColor: ColorDetails = mockk(relaxed = true) {
+                every { this@mockk.color } returns exactColor
+                every { exact.color } returns exactColor
+                every { matchesExact } returns true
+            }
+            coEvery { getColorDetails.invoke(initialColor) } returns
+                Result.Success(fetchedDetailsForColor)
+            coEvery { getColorDetails.invoke(exactColor) } returns
+                Result.Success(fetchedDetailsForExactColor)
+            createSut(
+                createData = createDataReal,
+            )
+            commandFlow.emit(ColorCenterCommand.FetchData(initialColor, colorRole = null))
+
+            commandFlow.emit(ColorCenterCommand.FetchData(exactColor, ColorRole.Exact))
+
+            val data = sut.dataStateFlow.value.shouldBeInstanceOf<DataState.Ready>().data
+            data.initialColorData shouldNotBe null
+        }
+
+    /**
+     * GIVEN [FetchData][ColorCenterCommand.FetchData] command with `null` color role is emtted
+     *
+     * WHEN [FetchData][ColorCenterCommand.FetchData] command with [ColorRole.Exact] is emitted
+     *
+     * THEN initial color for this exact color is recalled, [initialColorData][ColorDetailsData.initialColorData] is not null,
+     * and its [initialColor][ColorDetailsData.InitialColorData.initialColor] is correct.
+     */
+    @Test
+    fun `emission of 'fetch data' command with color type 'exact' results in present initial color data with correct color value`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val initialColor = Color.Hex(0x1A803F)
+            val initialColorInt = ColorInt(0x1A803F)
+            val exactColor = Color.Hex(0x123456)
+            val commandFlow = MutableSharedFlow<ColorCenterCommand>()
+            every { commandProvider.commandFlow } returns commandFlow
+            val fetchedDetailsForColor: ColorDetails = mockk(relaxed = true) {
+                every { this@mockk.color } returns initialColor
+                every { exact.color } returns exactColor
+                every { matchesExact } returns false
+            }
+            val fetchedDetailsForExactColor: ColorDetails = mockk(relaxed = true) {
+                every { this@mockk.color } returns exactColor
+                every { exact.color } returns exactColor
+                every { matchesExact } returns true
+            }
+            coEvery { getColorDetails.invoke(initialColor) } returns
+                Result.Success(fetchedDetailsForColor)
+            coEvery { getColorDetails.invoke(exactColor) } returns
+                Result.Success(fetchedDetailsForExactColor)
+            every { with(colorToColorInt) { initialColor.toColorInt() } } returns initialColorInt
+            createSut(
+                createData = createDataReal,
+            )
+            commandFlow.emit(ColorCenterCommand.FetchData(initialColor, colorRole = null))
+
+            commandFlow.emit(ColorCenterCommand.FetchData(exactColor, ColorRole.Exact))
+
+            val data = sut.dataStateFlow.value.shouldBeInstanceOf<DataState.Ready>().data
+            data.initialColorData.shouldNotBeNull().initialColor shouldBe initialColorInt
+        }
+
+    /**
+     * GIVEN there is a data with [initialColorData][ColorDetailsData.initialColorData]
+     *
+     * WHEN invoking [goToInitialColor][ColorDetailsData.InitialColorData.goToInitialColor]
+     *
+     * THEN event depicting it is sent to [ColorCenterEventStore].
+     */
+    @Test
+    fun `invoking 'go to initial color' sends appropriate event to color center event store`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val initialColor = Color.Hex(0x1A803F)
+            val initialColorInt = ColorInt(0x1A803F)
+            val exactColor = Color.Hex(0x123456)
+            val commandFlow = MutableSharedFlow<ColorCenterCommand>()
+            every { commandProvider.commandFlow } returns commandFlow
+            val fetchedDetailsForColor: ColorDetails = mockk(relaxed = true) {
+                every { this@mockk.color } returns initialColor
+                every { exact.color } returns exactColor
+                every { matchesExact } returns false
+            }
+            val fetchedDetailsForExactColor: ColorDetails = mockk(relaxed = true) {
+                every { this@mockk.color } returns exactColor
+                every { exact.color } returns exactColor
+                every { matchesExact } returns true
+            }
+            coEvery { getColorDetails.invoke(initialColor) } returns
+                Result.Success(fetchedDetailsForColor)
+            coEvery { getColorDetails.invoke(exactColor) } returns
+                Result.Success(fetchedDetailsForExactColor)
+            every { with(colorToColorInt) { initialColor.toColorInt() } } returns initialColorInt
+            createSut(
+                createData = createDataReal,
+            )
+            commandFlow.emit(ColorCenterCommand.FetchData(initialColor, colorRole = null))
+            commandFlow.emit(ColorCenterCommand.FetchData(exactColor, ColorRole.Exact))
+
+            val data = sut.dataStateFlow.value.shouldBeInstanceOf<DataState.Ready>().data
+            data.initialColorData.shouldNotBeNull().goToInitialColor()
+
+            coVerify {
+                val expectedEvent = ColorCenterEvent.ColorSelected(
+                    color = Color.Hex(0x1A803F),
+                    colorRole = ColorRole.Initial,
                 )
                 eventStore.send(expectedEvent)
             }

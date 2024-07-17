@@ -86,10 +86,10 @@ private fun ColorSpecs(
     data: ColorDetailsData,
     viewData: ViewData,
 ) =
-    listOf<ColorSpec>(
-        NameColorSpec(data, viewData),
-    ) +
-        ExactMatchSpecs(data, viewData)
+    buildList {
+        NameColorSpec(data, viewData).also { add(it) }
+        ExactMatchSpecs(data, viewData).also { addAll(it) }
+    }
 
 private fun NameColorSpec(
     data: ColorDetailsData,

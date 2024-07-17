@@ -29,6 +29,7 @@ class ColorDetailsUiDataFactoryTest(
             listOf(
                 /* #0  */ params(data0(), viewData0(), uiData0()),
                 /* #1  */ params(data1(), viewData1(), uiData1()),
+                /* #2  */ params(data2(), viewData2(), uiData2()),
             )
         }
 
@@ -44,7 +45,8 @@ class ColorDetailsUiDataFactoryTest(
 private object TestParameters {
 
     // inline lambdas like '{}' aren't equal, so reusing the same instance
-    val OnExactColorClick: () -> Unit = {}
+    val GoToExactColor: () -> Unit = {}
+    val GoToInitialColor: () -> Unit = {}
 
     // region #0
 
@@ -58,7 +60,7 @@ private object TestParameters {
         exactMatch = ColorDetailsData.ExactMatch.No(
             exactValue = "#126B40",
             exactColor = ColorInt(0x126B40),
-            goToExactColor = OnExactColorClick,
+            goToExactColor = GoToExactColor,
             deviation = "1366",
         ),
         initialColorData = null,
@@ -128,7 +130,7 @@ private object TestParameters {
                     label = "EXACT VALUE",
                     value = "#126B40",
                     exactColor = Color(0xFF126B40),
-                    onClick = OnExactColorClick,
+                    onClick = GoToExactColor,
                 ),
                 ColorDetailsUiData.ColorSpec.Deviation(
                     label = "DEVIATION",
@@ -211,6 +213,91 @@ private object TestParameters {
                     label = "literal exact match label",
                     value = "literal yes",
                     goBackToInitialColorButton = null,
+                ),
+            ),
+        )
+
+    // endregion
+
+    // region #2
+
+    fun data2() = ColorDetailsData(
+        colorName = "Jewel",
+        hex = ColorDetailsData.Hex("#126B40"),
+        rgb = ColorDetailsData.Rgb("18", "107", "64"),
+        hsl = ColorDetailsData.Hsl("151", "71", "25"),
+        hsv = ColorDetailsData.Hsv("151", "83", "42"),
+        cmyk = ColorDetailsData.Cmyk("83", "0", "40", "58"),
+        exactMatch = ColorDetailsData.ExactMatch.Yes,
+        initialColorData = ColorDetailsData.InitialColorData(
+            initialColor = ColorInt(0x1A803F),
+            goToInitialColor = GoToInitialColor,
+        ),
+    )
+
+    fun viewData2() = ColorDetailsUiData.ViewData(
+        hexLabel = "HEX",
+        rgbLabel = "RGB",
+        hslLabel = "HSL",
+        hsvLabel = "HSV",
+        cmykLabel = "CMYK",
+        nameLabel = "NAME",
+        exactMatchLabel = "EXACT MATCH",
+        exactMatchYes = "Yes",
+        exactMatchNo = "No",
+        exactValueLabel = "EXACT VALUE",
+        deviationLabel = "DEVIATION",
+        viewColorSchemeButtonText = "View color scheme",
+        goBackToInitialColorButtonText = "Go back",
+    )
+
+    fun uiData2() =
+        ColorDetailsUiData(
+            headline = "Jewel",
+            translations = ColorDetailsUiData.ColorTranslations(
+                hex = ColorDetailsUiData.ColorTranslation.Hex(
+                    label = "HEX",
+                    value = "#126B40",
+                ),
+                rgb = ColorDetailsUiData.ColorTranslation.Rgb(
+                    label = "RGB",
+                    r = "18",
+                    g = "107",
+                    b = "64",
+                ),
+                hsl = ColorDetailsUiData.ColorTranslation.Hsl(
+                    label = "HSL",
+                    h = "151",
+                    s = "71",
+                    l = "25",
+                ),
+                hsv = ColorDetailsUiData.ColorTranslation.Hsv(
+                    label = "HSV",
+                    h = "151",
+                    s = "83",
+                    v = "42",
+                ),
+                cmyk = ColorDetailsUiData.ColorTranslation.Cmyk(
+                    label = "CMYK",
+                    c = "83",
+                    m = "0",
+                    y = "40",
+                    k = "58",
+                ),
+            ),
+            specs = listOf(
+                ColorDetailsUiData.ColorSpec.Name(
+                    label = "NAME",
+                    value = "Jewel",
+                ),
+                ColorDetailsUiData.ColorSpec.ExactMatch(
+                    label = "EXACT MATCH",
+                    value = "Yes",
+                    goBackToInitialColorButton = ColorDetailsUiData.ColorSpec.ExactMatch.GoBackToInitialColorButton(
+                        text = "Go back",
+                        initialColor = Color(0xFF_1A803F),
+                        onClick = GoToInitialColor,
+                    ),
                 ),
             ),
         )

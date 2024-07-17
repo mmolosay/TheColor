@@ -91,7 +91,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
             val details = findDetailsOfInitialColor(exactColor = color)
             details?.color
         } else null
-        val goBackToInitialColor =
+        val goToInitialColor =
             if (colorRole == ColorRole.Exact && initialColor != null) {
                 { sendColorSelectedEvent(initialColor, ColorRole.Initial) }
             } else null
@@ -99,7 +99,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
             details = domainDetails,
             goToExactColor = { sendColorSelectedEvent(exactColor, ColorRole.Exact) },
             initialColor = initialColor,
-            goToInitialColor = goBackToInitialColor,
+            goToInitialColor = goToInitialColor,
         )
     }
 
