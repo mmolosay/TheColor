@@ -19,7 +19,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import io.github.mmolosay.thecolor.domain.result.Result
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
@@ -31,6 +30,7 @@ import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.Color
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ViewData
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel.DataState
 import io.github.mmolosay.thecolor.presentation.errors.ErrorMessage
+import io.github.mmolosay.thecolor.presentation.errors.ErrorType
 
 @Composable
 fun ColorDetails(
@@ -48,7 +48,7 @@ fun ColorDetails(
             ColorDetails(uiData)
         }
         is DataState.Error ->
-            Error(failure = state.failure)
+            Error(errorType = state.errorType)
     }
 }
 
@@ -106,10 +106,10 @@ private fun Divider() =
 
 @Composable
 private fun Error(
-    failure: Result.Failure,
+    errorType: ErrorType,
 ) {
     ErrorMessage(
-        failure = failure,
+        errorType = errorType,
         modifier = Modifier
             .padding(horizontal = 24.dp)
             .fillMaxWidth(),

@@ -63,7 +63,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import io.github.mmolosay.thecolor.domain.result.Result
 import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
@@ -71,6 +70,7 @@ import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.errors.ErrorMessage
+import io.github.mmolosay.thecolor.presentation.errors.ErrorType
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.ApplyChangesButton
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.ModeSection
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.Swatch
@@ -93,7 +93,7 @@ fun ColorScheme(
             ColorScheme(uiData)
         }
         is State.Error ->
-            Error(failure = state.failure)
+            Error(errorType = state.errorType)
     }
 }
 
@@ -369,10 +369,10 @@ private fun Loading() =
 
 @Composable
 private fun Error(
-    failure: Result.Failure,
+    errorType: ErrorType,
 ) {
     ErrorMessage(
-        failure = failure,
+        errorType = errorType,
         modifier = Modifier
             .padding(horizontal = 24.dp)
             .fillMaxWidth(),

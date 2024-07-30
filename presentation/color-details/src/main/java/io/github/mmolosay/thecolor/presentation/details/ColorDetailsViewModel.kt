@@ -4,7 +4,6 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.model.Color
-import io.github.mmolosay.thecolor.domain.result.Result
 import io.github.mmolosay.thecolor.domain.result.onFailure
 import io.github.mmolosay.thecolor.domain.result.onSuccess
 import io.github.mmolosay.thecolor.domain.usecase.GetColorDetailsUseCase
@@ -16,6 +15,8 @@ import io.github.mmolosay.thecolor.presentation.ColorRole
 import io.github.mmolosay.thecolor.presentation.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.ExactMatch
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.InitialColorData
+import io.github.mmolosay.thecolor.presentation.errors.ErrorType
+import io.github.mmolosay.thecolor.presentation.errors.toErrorType
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -76,7 +77,8 @@ class ColorDetailsViewModel @AssistedInject constructor(
                     colorHistory += HistoryRecord(domainDetails, colorRole)
                 }
                 .onFailure { failure ->
-                    _dataStateFlow.value = DataState.Error(failure)
+                    val errorType = failure.toErrorType()
+                    _dataStateFlow.value = DataState.Error(errorType)
                 }
         }
     }
@@ -131,7 +133,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
         data object Idle : DataState
         data object Loading : DataState
         data class Ready(val data: ColorDetailsData) : DataState
-        data class Error(val failure: Result.Failure) : DataState
+        data class Error(val errorType: ErrorType) : DataState
     }
 
     @AssistedFactory

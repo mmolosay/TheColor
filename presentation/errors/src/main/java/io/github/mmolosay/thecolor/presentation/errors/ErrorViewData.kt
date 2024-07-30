@@ -2,10 +2,11 @@ package io.github.mmolosay.thecolor.presentation.errors
 
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 
 /**
- * Used to provide presentational values to display specific [Error].
+ * Used to provide presentational values to display specific [ErrorData].
  * Framework-oriented.
  *
  * Created by View, since string resources are tied to platform-specific
@@ -27,7 +28,9 @@ fun ErrorViewData(context: Context) =
     )
 
 @Composable
-fun defaultErrorViewData(): ErrorViewData {
+fun rememberDefaultErrorViewData(): ErrorViewData {
     val context = LocalContext.current
-    return ErrorViewData(context)
+    return remember(context) {
+        ErrorViewData(context)
+    }
 }

@@ -1,28 +1,21 @@
 package io.github.mmolosay.thecolor.presentation.errors
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import io.github.mmolosay.thecolor.domain.result.Result
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
+import io.github.mmolosay.thecolor.presentation.errors.ErrorUiComponents.ErrorLayout
+import io.github.mmolosay.thecolor.presentation.errors.ErrorUiComponents.Message
 
 @Composable
 fun ErrorMessage(
-    failure: Result.Failure,
-    viewData: ErrorViewData = defaultErrorViewData(),
+    errorType: ErrorType,
+    viewData: ErrorViewData = rememberDefaultErrorViewData(),
     modifier: Modifier = Modifier,
 ) {
-    val error = remember(failure) { failure.toError() }
-    val text = error.errorMessage(viewData)
+    val message = errorType.message(viewData)
     ErrorMessage(
-        text = text,
+        text = message,
         modifier = modifier,
     )
 }
@@ -32,16 +25,13 @@ fun ErrorMessage(
     text: String,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier
-            .defaultMinSize(minHeight = 200.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(
-            text = text,
-        )
-    }
+    ErrorLayout(
+        modifier = modifier,
+        message = {
+            Message(text = text)
+        },
+        action = null
+    )
 }
 
 @Preview
@@ -53,13 +43,3 @@ private fun ErrorMessagePreview() {
         )
     }
 }
-
-internal fun Error.errorMessage(
-    viewData: ErrorViewData,
-): String =
-    when (this.type) {
-        Error.Type.NoConnection -> viewData.messageNoConnection
-        Error.Type.Timeout -> viewData.messageTimeout
-        Error.Type.ErrorResponse -> viewData.messageErrorResponse
-        null -> viewData.messageUnexpectedError
-    }
