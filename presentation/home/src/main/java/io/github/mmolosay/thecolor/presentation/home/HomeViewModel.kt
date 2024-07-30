@@ -161,7 +161,7 @@ class HomeViewModel @Inject constructor(
         newColor: Color,
         colorRole: ColorRole?,
     ) {
-        viewModelScope.launch {
+        viewModelScope.launch(defaultDispatcher) {
             withContext(uiDataUpdateDispatcher) {
                 colorInputMediator.send(newColor)
             } // it's crucial to update color first, so that 'proceed()' obtains new color
@@ -189,7 +189,8 @@ class HomeViewModel @Inject constructor(
         when (canProceed) {
             true -> {
                 val action: () -> Unit = {
-                    // clicking "proceed" button takes color from color input, thus it's a standalone color
+                    // clicking "proceed" button takes color from color input,
+                    // thus it's a standalone color (without a role)
                     proceed(colorRole = null)
                 }
                 CanProceed.Yes(action)
