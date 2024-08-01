@@ -76,7 +76,7 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.ApplyCh
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.ModeSection
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.Swatch
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.SwatchCountSection
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.State
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.DataState
 
 @Composable
 fun ColorScheme(
@@ -85,15 +85,15 @@ fun ColorScheme(
     val state = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
     val viewData = rememberViewData()
     when (state) {
-        is State.Idle ->
+        is DataState.Idle ->
             Unit // Color Details shouldn't be visible at Home at this point
-        is State.Loading ->
+        is DataState.Loading ->
             Loading()
-        is State.Ready -> {
+        is DataState.Ready -> {
             val uiData = rememberUiData(state.data, viewData)
             ColorScheme(uiData)
         }
-        is State.Error ->
+        is DataState.Error ->
             Error(error = state.error)
     }
 }

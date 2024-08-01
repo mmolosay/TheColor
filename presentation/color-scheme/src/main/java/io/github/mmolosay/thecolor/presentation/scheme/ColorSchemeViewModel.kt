@@ -17,7 +17,8 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Changes
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Swatch
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.SwatchCount
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.Config
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.State
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.DataState
+import io.github.mmolosay.thecolor.presentation.scheme.StatefulData.State
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,14 +26,12 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
 import io.github.mmolosay.thecolor.domain.model.ColorScheme as DomainColorScheme
-
-internal typealias ModelsState = State<ColorSchemeData.Models>
-internal typealias DataState = State<ColorSchemeData>
 
 /**
  * Not a ViewModel-ViewModel in terms of Android development.
@@ -42,22 +41,19 @@ internal typealias DataState = State<ColorSchemeData>
 class ColorSchemeViewModel @AssistedInject constructor(
     @Assisted private val coroutineScope: CoroutineScope,
     @Assisted private val commandProvider: ColorCenterCommandProvider,
-    getInitialModelsState: GetInitialModelsStateUseCase,
     private val getColorScheme: GetColorSchemeUseCase,
-    private val createModels: CreateDataModelsUseCase,
+    private val createData: CreateColorSchemeDataUseCase,
+    @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
 ) {
 
-    private val modelsStateFlow = MutableStateFlow(getInitialModelsState())
-
-    val dataStateFlow: StateFlow<DataState> = modelsStateFlow
-        .map { state ->
-            state.mapType { models -> ColorSchemeData(models) }
-        }
+    private val _statefulDataFlow = MutableStateFlow(initialStatefulData())
+    val dataStateFlow: StateFlow<DataState> = _statefulDataFlow
+        .map { it.toDataState() }
         .stateIn(
             scope = coroutineScope,
             started = SharingStarted.Eagerly, // View will start collecting immediately, also simplifies tests
-            initialValue = State.Loading,
+            initialValue = DataState.Loading,
         )
 
     private var lastUsedSeed: Color? = null
@@ -67,7 +63,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
     }
 
     private fun collectColorCenterCommands() =
-        coroutineScope.launch { // TODO: not main dispatcher?
+        coroutineScope.launch(defaultDispatcher) {
             commandProvider.commandFlow.collect { command ->
                 when (command) {
                     is ColorCenterCommand.FetchData -> onFetchDataCommand(command)
@@ -84,22 +80,38 @@ class ColorSchemeViewModel @AssistedInject constructor(
     private fun fetchColorScheme(seed: Color) {
         val requestConfig = assembleRequestConfig()
         val request = requestConfig.toDomainRequest(seed)
-        modelsStateFlow.value = State.Loading
+        _statefulDataFlow.updateState(State.Loading)
         coroutineScope.launch(ioDispatcher) {
             getColorScheme(request)
                 .onSuccess { scheme ->
-                    val models = createModels(scheme = scheme, config = requestConfig)
-                    modelsStateFlow.value = State.Ready(models)
+                    val data = createData(scheme = scheme, config = requestConfig)
+                    _statefulDataFlow.update {
+                        it.copy(data = data, state = State.Ready)
+                    }
                 }
                 .onFailure { failure ->
                     val error = ColorSchemeError(
                         type = failure.toErrorType(),
                         action = ::onErrorAction,
                     )
-                    modelsStateFlow.value = State.Error(error)
+                    _statefulDataFlow.update {
+                        it.copy(error = error, state = State.Error)
+                    }
                 }
         }
     }
+
+    private fun createData(
+        scheme: DomainColorScheme,
+        config: Config,
+    ) =
+        createData.invoke(
+            scheme = scheme,
+            config = config,
+            onSwatchSelect = ::goToSwatchDetails,
+            onModeSelect = ::selectMode,
+            onSwatchCountSelect = ::selectSwatchCount,
+        )
 
     private fun onErrorAction() {
         val seed = requireNotNull(lastUsedSeed)
@@ -112,26 +124,30 @@ class ColorSchemeViewModel @AssistedInject constructor(
     }
 
     private fun selectMode(mode: Mode) {
-        val models = modelsStateFlow.value.asReadyOrNull()?.data ?: return
-        val newModels = models.copy(selectedMode = mode)
-        modelsStateFlow.value = State.Ready(newModels)
+        _statefulDataFlow.updateNotNullData { currentData ->
+            currentData
+                .copy(selectedMode = mode)
+                .harmonize()
+        }
     }
 
     private fun selectSwatchCount(count: SwatchCount) {
-        val models = modelsStateFlow.value.asReadyOrNull()?.data ?: return
-        val newModels = models.copy(selectedSwatchCount = count)
-        modelsStateFlow.value = State.Ready(newModels)
+        _statefulDataFlow.updateNotNullData { currentData ->
+            currentData
+                .copy(selectedSwatchCount = count)
+                .harmonize()
+        }
     }
 
     private fun applyChanges() {
-        val data = dataStateFlow.value.asReadyOrNull()?.data ?: return
+        val data = _statefulDataFlow.value.data ?: return
         if (data.changes !is Changes.Present) return // ignore clicks during button hiding animation
         val seed = lastUsedSeed ?: return
         fetchColorScheme(seed)
     }
 
     private fun assembleRequestConfig(): Config {
-        val data = dataStateFlow.value.asReadyOrNull()?.data
+        val data = _statefulDataFlow.value.data
         return if (data != null)
             Config(
                 mode = data.selectedMode,
@@ -151,40 +167,29 @@ class ColorSchemeViewModel @AssistedInject constructor(
             swatchCount = this.swatchCount.value,
         )
 
-    private fun ColorSchemeData(models: ColorSchemeData.Models) =
-        ColorSchemeData(
-            swatches = models.swatches,
-            onSwatchSelect = ::goToSwatchDetails,
-            activeMode = models.activeMode,
-            selectedMode = models.selectedMode,
-            onModeSelect = ::selectMode,
-            activeSwatchCount = models.activeSwatchCount,
-            selectedSwatchCount = models.selectedSwatchCount,
-            onSwatchCountSelect = ::selectSwatchCount,
-            changes = Changes(models),
-        )
-
-    private fun Changes(models: ColorSchemeData.Models): Changes {
-        fun hasModeChanged() = with(models) { (selectedMode != activeMode) }
-        fun hasSwatchCountChanged() = with(models) { (selectedSwatchCount != activeSwatchCount) }
-        val hasChanges = (hasModeChanged() || hasSwatchCountChanged())
-        return if (hasChanges) {
-            Changes.Present(applyChanges = ::applyChanges)
-        } else {
-            Changes.None
+    /** Synchronizes values between each other, ensuring data integrity. */
+    private fun ColorSchemeData.harmonize(): ColorSchemeData {
+        val changes = run {
+            fun hasModeChanged() = (selectedMode != activeMode)
+            fun hasSwatchCountChanged() = (selectedSwatchCount != activeSwatchCount)
+            val hasChanges = (hasModeChanged() || hasSwatchCountChanged())
+            if (hasChanges) {
+                Changes.Present(applyChanges = ::applyChanges)
+            } else {
+                Changes.None
+            }
         }
+        return this.copy(
+            changes = changes,
+        )
     }
 
-    private fun <T> State<T>.asReadyOrNull() =
-        this as? State.Ready
-
-    private fun <T, R> State<T>.mapType(transform: (T) -> R): State<R> =
-        when (this) {
-            is State.Idle -> this
-            is State.Loading -> this
-            is State.Error -> State.Error(error = this.error)
-            is State.Ready -> transform(data).let { State.Ready(it) }
-        }
+    private fun initialStatefulData() =
+        StatefulData(
+            data = null,
+            error = null,
+            state = State.Idle,
+        )
 
     /** [GetColorSchemeUseCase.Request] mapped to presentation layer model. */
     data class Config(
@@ -192,11 +197,11 @@ class ColorSchemeViewModel @AssistedInject constructor(
         val swatchCount: SwatchCount,
     )
 
-    sealed interface State<out T> {
-        data object Idle : State<Nothing>
-        data object Loading : State<Nothing>
-        data class Ready<T>(val data: T) : State<T>
-        data class Error<T>(val error: ColorSchemeError) : State<T>
+    sealed interface DataState {
+        data object Idle : DataState
+        data object Loading : DataState
+        data class Ready(val data: ColorSchemeData) : DataState
+        data class Error(val error: ColorSchemeError) : DataState
     }
 
     @AssistedFactory
@@ -214,19 +219,54 @@ class ColorSchemeViewModel @AssistedInject constructor(
 }
 
 /**
- * Exists to make unit testing easier.
- * Replaces a long chain of actions that set [ColorSchemeViewModel.dataStateFlow] in "given" part
- * of the test to required value.
+ * Couples data with a state.
+ * This class is mapped to [DataState] (see [toDataState()][toDataState]).
+ * Such approach solves issue of losing last [data] when [DataState] changes from `Ready` to `Loading`.
  */
-@Singleton
-class GetInitialModelsStateUseCase @Inject constructor() {
-    operator fun invoke(): ModelsState =
-        State.Idle
+private data class StatefulData(
+    val data: ColorSchemeData?,
+    val error: ColorSchemeError?,
+    val state: State,
+) {
+    enum class State {
+        Idle, Loading, Ready, Error,
+    }
 }
 
-/** Maps [DomainColorScheme] to presentation layer [ColorSchemeData.Models]. */
+private fun StatefulData.toDataState(): DataState =
+    when (this.state) {
+        State.Idle -> DataState.Idle
+        State.Loading -> DataState.Loading
+        State.Ready -> DataState.Ready(data = requireNotNull(this.data))
+        State.Error -> DataState.Error(error = requireNotNull(this.error))
+    }
+
+private fun MutableStateFlow<StatefulData>.updateState(
+    newState: State,
+) =
+    update {
+        it.copy(state = newState)
+    }
+
+private fun MutableStateFlow<StatefulData>.updateData(
+    createNewData: (currentData: ColorSchemeData?) -> ColorSchemeData?,
+) =
+    update { statefulData ->
+        val currentData = statefulData.data
+        val newData = createNewData(currentData)
+        statefulData.copy(data = newData)
+    }
+
+private fun MutableStateFlow<StatefulData>.updateNotNullData(
+    createNewData: (currentData: ColorSchemeData) -> ColorSchemeData,
+) =
+    updateData { currentData ->
+        if (currentData == null) return@updateData null
+        createNewData(currentData)
+    }
+
 @Singleton
-class CreateDataModelsUseCase @Inject constructor(
+class CreateColorSchemeDataUseCase @Inject constructor(
     private val colorToColorInt: ColorToColorIntUseCase,
     private val isColorLight: IsColorLightUseCase,
 ) {
@@ -234,15 +274,22 @@ class CreateDataModelsUseCase @Inject constructor(
     operator fun invoke(
         scheme: DomainColorScheme,
         config: Config,
+        onSwatchSelect: (index: Int) -> Unit,
+        onModeSelect: (Mode) -> Unit,
+        onSwatchCountSelect: (SwatchCount) -> Unit,
     ) =
-        ColorSchemeData.Models(
+        ColorSchemeData(
             swatches = scheme.swatchDetails.map { details ->
                 details.color.toSwatch()
             },
+            onSwatchSelect = onSwatchSelect,
             activeMode = config.mode,
             selectedMode = config.mode,
+            onModeSelect = onModeSelect,
             activeSwatchCount = config.swatchCount,
             selectedSwatchCount = config.swatchCount,
+            onSwatchCountSelect = onSwatchCountSelect,
+            changes = Changes.None, // 'active' and 'selected' values are same initially
         )
 
     private fun Color.toSwatch() =
