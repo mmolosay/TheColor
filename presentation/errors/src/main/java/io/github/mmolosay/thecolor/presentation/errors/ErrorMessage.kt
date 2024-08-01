@@ -30,7 +30,7 @@ fun ErrorMessage(
         message = {
             Message(text = text)
         },
-        action = null
+        button = null
     )
 }
 

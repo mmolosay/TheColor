@@ -6,4 +6,6 @@
     <string name="errors_message_any_error_response">Server responded with an error.</string>
     <string name="errors_message_unexpected_error">There was an unknown error.</string>
 
+    <string name="error_action_try_again">Try again</string>
+
 </resources>

@@ -15,7 +15,6 @@ import io.github.mmolosay.thecolor.presentation.ColorRole
 import io.github.mmolosay.thecolor.presentation.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.ExactMatch
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.InitialColorData
-import io.github.mmolosay.thecolor.presentation.errors.ErrorType
 import io.github.mmolosay.thecolor.presentation.errors.toErrorType
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -45,6 +44,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
     private val _dataStateFlow = MutableStateFlow<DataState>(DataState.Idle)
     val dataStateFlow = _dataStateFlow.asStateFlow()
 
+    private var lastFetchDataCommand: ColorCenterCommand.FetchData? = null
     private val colorHistory = mutableListOf<HistoryRecord>()
 
     init {
@@ -55,14 +55,21 @@ class ColorDetailsViewModel @AssistedInject constructor(
         coroutineScope.launch(defaultDispatcher) {
             commandProvider.commandFlow.collect { command ->
                 when (command) {
-                    is ColorCenterCommand.FetchData ->
-                        fetchColorDetails(
-                            color = command.color,
-                            colorRole = command.colorRole,
-                        )
+                    is ColorCenterCommand.FetchData -> {
+                        lastFetchDataCommand = command
+                        fetchColorDetails(command)
+                    }
                 }
             }
         }
+
+    private fun fetchColorDetails(
+        command: ColorCenterCommand.FetchData,
+    ) =
+        fetchColorDetails(
+            color = command.color,
+            colorRole = command.colorRole,
+        )
 
     private fun fetchColorDetails(
         color: Color,
@@ -77,8 +84,11 @@ class ColorDetailsViewModel @AssistedInject constructor(
                     colorHistory += HistoryRecord(domainDetails, colorRole)
                 }
                 .onFailure { failure ->
-                    val errorType = failure.toErrorType()
-                    _dataStateFlow.value = DataState.Error(errorType)
+                    val error = ColorDetailsError(
+                        type = failure.toErrorType(),
+                        action = ::onErrorAction,
+                    )
+                    _dataStateFlow.value = DataState.Error(error)
                 }
         }
     }
@@ -129,11 +139,16 @@ class ColorDetailsViewModel @AssistedInject constructor(
         }
     }
 
+    private fun onErrorAction() {
+        val command = requireNotNull(lastFetchDataCommand)
+        fetchColorDetails(command)
+    }
+
     sealed interface DataState {
         data object Idle : DataState
         data object Loading : DataState
         data class Ready(val data: ColorDetailsData) : DataState
-        data class Error(val errorType: ErrorType) : DataState
+        data class Error(val error: ColorDetailsError) : DataState
     }
 
     @AssistedFactory

@@ -19,7 +19,7 @@ object ErrorUiComponents {
     fun ErrorLayout(
         modifier: Modifier = Modifier,
         message: @Composable () -> Unit,
-        action: (@Composable () -> Unit)?,
+        button: (@Composable () -> Unit)?,
     ) {
         Column(
             modifier = modifier.defaultMinSize(minHeight = 200.dp),
@@ -27,7 +27,7 @@ object ErrorUiComponents {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             message()
-            action?.invoke()
+            button?.invoke()
         }
     }
 

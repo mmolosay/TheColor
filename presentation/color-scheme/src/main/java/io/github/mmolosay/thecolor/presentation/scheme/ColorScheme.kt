@@ -69,8 +69,9 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
-import io.github.mmolosay.thecolor.presentation.errors.ErrorMessage
-import io.github.mmolosay.thecolor.presentation.errors.ErrorType
+import io.github.mmolosay.thecolor.presentation.errors.ErrorMessageWithButton
+import io.github.mmolosay.thecolor.presentation.errors.message
+import io.github.mmolosay.thecolor.presentation.errors.rememberDefaultErrorViewData
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.ApplyChangesButton
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.ModeSection
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.Swatch
@@ -93,7 +94,7 @@ fun ColorScheme(
             ColorScheme(uiData)
         }
         is State.Error ->
-            Error(errorType = state.errorType)
+            Error(error = state.error)
     }
 }
 
@@ -369,13 +370,29 @@ private fun Loading() =
 
 @Composable
 private fun Error(
-    errorType: ErrorType,
+    error: ColorSchemeError,
 ) {
-    ErrorMessage(
-        errorType = errorType,
+    val viewData = rememberDefaultErrorViewData()
+    ErrorMessageWithButton(
         modifier = Modifier
             .padding(horizontal = 24.dp)
             .fillMaxWidth(),
+        message = error.type.message(viewData),
+        button = {
+            val colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = colorsOnTintedSurface.accent,
+            )
+            val border = ButtonDefaults.outlinedButtonBorder.copy(
+                brush = SolidColor(colorsOnTintedSurface.accent),
+            )
+            OutlinedButton(
+                onClick = error.action,
+                colors = colors,
+                border = border,
+            ) {
+                Text(text = viewData.actionTryAgain)
+            }
+        },
     )
 }
 

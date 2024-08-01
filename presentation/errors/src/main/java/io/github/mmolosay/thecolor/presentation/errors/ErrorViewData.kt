@@ -17,6 +17,7 @@ data class ErrorViewData(
     val messageTimeout: String,
     val messageErrorResponse: String,
     val messageUnexpectedError: String,
+    val actionTryAgain: String,
 )
 
 fun ErrorViewData(context: Context) =
@@ -25,6 +26,7 @@ fun ErrorViewData(context: Context) =
         messageTimeout = context.getString(R.string.errors_message_timeout),
         messageErrorResponse = context.getString(R.string.errors_message_any_error_response),
         messageUnexpectedError = context.getString(R.string.errors_message_unexpected_error),
+        actionTryAgain = context.getString(R.string.error_action_try_again)
     )
 
 @Composable

@@ -12,7 +12,6 @@ import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommand
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommandProvider
 import io.github.mmolosay.thecolor.presentation.ColorToColorIntUseCase
-import io.github.mmolosay.thecolor.presentation.errors.ErrorType
 import io.github.mmolosay.thecolor.presentation.errors.toErrorType
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Changes
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Swatch
@@ -79,10 +78,10 @@ class ColorSchemeViewModel @AssistedInject constructor(
     private fun onFetchDataCommand(command: ColorCenterCommand.FetchData) {
         val seed = command.color
         lastUsedSeed = seed
-        getColorScheme(seed)
+        fetchColorScheme(seed)
     }
 
-    private fun getColorScheme(seed: Color) {
+    private fun fetchColorScheme(seed: Color) {
         val requestConfig = assembleRequestConfig()
         val request = requestConfig.toDomainRequest(seed)
         modelsStateFlow.value = State.Loading
@@ -93,10 +92,18 @@ class ColorSchemeViewModel @AssistedInject constructor(
                     modelsStateFlow.value = State.Ready(models)
                 }
                 .onFailure { failure ->
-                    val errorType = failure.toErrorType()
-                    modelsStateFlow.value = State.Error(errorType)
+                    val error = ColorSchemeError(
+                        type = failure.toErrorType(),
+                        action = ::onErrorAction,
+                    )
+                    modelsStateFlow.value = State.Error(error)
                 }
         }
+    }
+
+    private fun onErrorAction() {
+        val seed = requireNotNull(lastUsedSeed)
+        fetchColorScheme(seed = seed)
     }
 
     // TODO: add unit tests
@@ -120,7 +127,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
         val data = dataStateFlow.value.asReadyOrNull()?.data ?: return
         if (data.changes !is Changes.Present) return // ignore clicks during button hiding animation
         val seed = lastUsedSeed ?: return
-        getColorScheme(seed)
+        fetchColorScheme(seed)
     }
 
     private fun assembleRequestConfig(): Config {
@@ -175,7 +182,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
         when (this) {
             is State.Idle -> this
             is State.Loading -> this
-            is State.Error -> State.Error(errorType = this.errorType)
+            is State.Error -> State.Error(error = this.error)
             is State.Ready -> transform(data).let { State.Ready(it) }
         }
 
@@ -189,7 +196,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
         data object Idle : State<Nothing>
         data object Loading : State<Nothing>
         data class Ready<T>(val data: T) : State<T>
-        data class Error<T>(val errorType: ErrorType) : State<T>
+        data class Error<T>(val error: ColorSchemeError) : State<T>
     }
 
     @AssistedFactory
