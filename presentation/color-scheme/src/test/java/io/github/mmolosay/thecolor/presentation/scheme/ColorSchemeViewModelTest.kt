@@ -3,6 +3,7 @@ package io.github.mmolosay.thecolor.presentation.scheme
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.ColorDetails
 import io.github.mmolosay.thecolor.domain.model.ColorScheme.Mode
+import io.github.mmolosay.thecolor.domain.result.HttpFailure
 import io.github.mmolosay.thecolor.domain.result.Result
 import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase
 import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase.Request
@@ -71,7 +72,7 @@ class ColorSchemeViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             val commandFlow = MutableSharedFlow<ColorCenterCommand>()
             every { commandProvider.commandFlow } returns commandFlow
-            coEvery { getColorScheme(request = any<Request>()) } returns mockk()
+            coEvery { getColorScheme(request = any()) } returns mockk()
             every {
                 createDataMock(
                     scheme = any(),
@@ -100,7 +101,7 @@ class ColorSchemeViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             val commandFlow = MutableSharedFlow<ColorCenterCommand>()
             every { commandProvider.commandFlow } returns commandFlow
-            coEvery { getColorScheme(request = any<Request>()) } returns Result.Success(value = mockk())
+            coEvery { getColorScheme(request = any()) } returns Result.Success(value = mockk())
             every {
                 createDataMock(
                     scheme = any(),
@@ -123,7 +124,7 @@ class ColorSchemeViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             val commandFlow = MutableSharedFlow<ColorCenterCommand>()
             every { commandProvider.commandFlow } returns commandFlow
-            coEvery { getColorScheme(request = any<Request>()) } returns
+            coEvery { getColorScheme(request = any()) } returns
                 Result.Success(value = someDomainColorScheme())
             createSut(
                 createData = createDataReal,
@@ -141,7 +142,7 @@ class ColorSchemeViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             val commandFlow = MutableSharedFlow<ColorCenterCommand>()
             every { commandProvider.commandFlow } returns commandFlow
-            coEvery { getColorScheme(request = any<Request>()) } returns
+            coEvery { getColorScheme(request = any()) } returns
                 Result.Success(value = someDomainColorScheme())
             createSut(
                 createData = createDataReal,
@@ -159,7 +160,7 @@ class ColorSchemeViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             val commandFlow = MutableSharedFlow<ColorCenterCommand>()
             every { commandProvider.commandFlow } returns commandFlow
-            coEvery { getColorScheme(request = any<Request>()) } returns
+            coEvery { getColorScheme(request = any()) } returns
                 Result.Success(value = someDomainColorScheme())
             createSut(
                 createData = createDataReal,
@@ -179,7 +180,7 @@ class ColorSchemeViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             val commandFlow = MutableSharedFlow<ColorCenterCommand>()
             every { commandProvider.commandFlow } returns commandFlow
-            coEvery { getColorScheme(request = any<Request>()) } returns
+            coEvery { getColorScheme(request = any()) } returns
                 Result.Success(value = someDomainColorScheme())
             createSut(
                 createData = createDataReal,
@@ -197,7 +198,7 @@ class ColorSchemeViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             val commandFlow = MutableSharedFlow<ColorCenterCommand>()
             every { commandProvider.commandFlow } returns commandFlow
-            coEvery { getColorScheme(request = any<Request>()) } returns
+            coEvery { getColorScheme(request = any()) } returns
                 Result.Success(value = someDomainColorScheme())
             createSut(
                 createData = createDataReal,
@@ -215,7 +216,7 @@ class ColorSchemeViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             val commandFlow = MutableSharedFlow<ColorCenterCommand>()
             every { commandProvider.commandFlow } returns commandFlow
-            coEvery { getColorScheme(request = any<Request>()) } returns
+            coEvery { getColorScheme(request = any()) } returns
                 Result.Success(value = someDomainColorScheme())
             createSut(
                 createData = createDataReal,
@@ -235,7 +236,7 @@ class ColorSchemeViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             val commandFlow = MutableSharedFlow<ColorCenterCommand>()
             every { commandProvider.commandFlow } returns commandFlow
-            coEvery { getColorScheme(request = any<Request>()) } returns
+            coEvery { getColorScheme(request = any()) } returns
                 Result.Success(value = someDomainColorScheme())
             createSut(
                 createData = createDataReal,
@@ -250,6 +251,54 @@ class ColorSchemeViewModelTest {
             val requests = mutableListOf<Request>()
             coVerify { getColorScheme.invoke(request = capture(requests)) }
             requests.last().seed shouldBe seedColor
+        }
+
+    /**
+     * GIVEN
+     *  1. SUT is initialized.
+     *  2. [FetchData][ColorCenterCommand.FetchData] command is emitted and initial data is fetched.
+     *  3. selected mode and swatch count are changed.
+     *  4. changes are applied, but this time data fetching returns failure and data state
+     *  is set to [DataState.Error].
+     *
+     * WHEN
+     *  [ColorSchemeError.action] is invoked
+     *
+     * THEN
+     *  data is fetched successfully and mode / swatch count that were set are used in request.
+     */
+    @Test
+    fun `invoking 'try again' action of 'DataState Error' with changed selected values uses those values for repeated request`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            fun mockGetColorSchemeReturnsSuccess() {
+                coEvery { getColorScheme(request = any<Request>()) } returns
+                    Result.Success(value = someDomainColorScheme())
+            }
+
+            val commandFlow = MutableSharedFlow<ColorCenterCommand>()
+            every { commandProvider.commandFlow } returns commandFlow
+            mockGetColorSchemeReturnsSuccess()
+            createSut(
+                createData = createDataReal,
+            )
+            val seedColor = Color.Hex(0x123456)
+            val command = ColorCenterCommand.FetchData(color = seedColor, colorRole = null)
+            commandFlow.emit(command)
+            sut.data.onModeSelect(Mode.Triad)
+            sut.data.onSwatchCountSelect(SwatchCount.Thirteen)
+            coEvery { getColorScheme(request = any()) } returns
+                HttpFailure.UnknownHost(cause = mockk())
+            sut.data.changes.asPresent().applyChanges()
+            mockGetColorSchemeReturnsSuccess()
+
+            sut.dataStateFlow.value.shouldBeInstanceOf<DataState.Error>().error.action()
+
+            val requests = mutableListOf<Request>()
+            coVerify { getColorScheme.invoke(request = capture(requests)) }
+            requests.last().run {
+                mode shouldBe Mode.Triad
+                swatchCount shouldBe 13
+            }
         }
 
     fun createSut(
