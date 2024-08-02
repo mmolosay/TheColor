@@ -386,7 +386,7 @@ private fun Error(
                 brush = SolidColor(colorsOnTintedSurface.accent),
             )
             OutlinedButton(
-                onClick = error.action,
+                onClick = error.tryAgain,
                 colors = colors,
                 border = border,
             ) {

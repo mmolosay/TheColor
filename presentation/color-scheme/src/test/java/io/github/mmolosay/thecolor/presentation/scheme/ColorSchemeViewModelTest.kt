@@ -262,7 +262,7 @@ class ColorSchemeViewModelTest {
      *  is set to [DataState.Error].
      *
      * WHEN
-     *  [ColorSchemeError.action] is invoked
+     *  [ColorSchemeError.tryAgain] is invoked
      *
      * THEN
      *  data is fetched successfully and mode / swatch count that were set are used in request.
@@ -291,7 +291,7 @@ class ColorSchemeViewModelTest {
             sut.data.changes.asPresent().applyChanges()
             mockGetColorSchemeReturnsSuccess()
 
-            sut.dataStateFlow.value.shouldBeInstanceOf<DataState.Error>().error.action()
+            sut.dataStateFlow.value.shouldBeInstanceOf<DataState.Error>().error.tryAgain()
 
             val requests = mutableListOf<Request>()
             coVerify { getColorScheme.invoke(request = capture(requests)) }

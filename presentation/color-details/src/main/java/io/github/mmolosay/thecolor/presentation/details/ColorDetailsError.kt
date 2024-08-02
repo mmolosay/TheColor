@@ -7,5 +7,5 @@ import io.github.mmolosay.thecolor.presentation.errors.ErrorType
  */
 data class ColorDetailsError(
     val type: ErrorType,
-    val action: () -> Unit,
+    val tryAgain: () -> Unit,
 )

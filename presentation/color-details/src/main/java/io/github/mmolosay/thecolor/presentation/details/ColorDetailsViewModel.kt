@@ -86,7 +86,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
                 .onFailure { failure ->
                     val error = ColorDetailsError(
                         type = failure.toErrorType(),
-                        action = ::onErrorAction,
+                        tryAgain = ::onErrorAction,
                     )
                     _dataStateFlow.value = DataState.Error(error)
                 }

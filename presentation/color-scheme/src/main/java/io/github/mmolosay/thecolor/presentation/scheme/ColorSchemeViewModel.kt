@@ -92,7 +92,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
                 .onFailure { failure ->
                     val error = ColorSchemeError(
                         type = failure.toErrorType(),
-                        action = ::onErrorAction,
+                        tryAgain = ::onErrorAction,
                     )
                     _statefulDataFlow.update {
                         it.copy(error = error, state = State.Error)
