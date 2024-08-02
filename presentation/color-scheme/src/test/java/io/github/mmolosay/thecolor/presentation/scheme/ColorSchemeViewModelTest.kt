@@ -35,10 +35,10 @@ import org.junit.Test
 import io.github.mmolosay.thecolor.domain.model.ColorScheme as DomainColorScheme
 
 /**
- * In most cases SUT ViewModel will use mocked instance of [CreateColorSchemeDataUseCase].
+ * In some cases SUT ViewModel will use mocked instance of [CreateColorSchemeDataUseCase].
  * It is done to simplify tests which don't check contents of returned data: we can just return mock from the use case.
  *
- * In some other cases, we want to check contents of returned data.
+ * In other cases (majority), we want to check contents of returned data.
  * For that we pass real instance of [CreateColorSchemeDataUseCase] to ViewModel.
  * This way the code of use case is treated like internal private part of ViewModel.
  * This approach produces data as if it was in production, meaning that contents are plausible
@@ -271,9 +271,7 @@ class ColorSchemeViewModelTest {
             every { commandProvider.commandFlow } returns commandFlow
             coEvery { getColorScheme(request = any()) } returns
                 HttpFailure.UnknownHost(cause = mockk())
-            createSut(
-                createData = createDataReal,
-            )
+            createSut()
 
             val command = ColorCenterCommand.FetchData(color = mockk(), colorRole = null)
             commandFlow.emit(command)
