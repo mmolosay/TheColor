@@ -1,5 +1,10 @@
 package io.github.mmolosay.thecolor.presentation.center
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -35,20 +40,47 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlin.math.max
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun ColorCenter(
     viewModel: ColorCenterViewModel,
     modifier: Modifier = Modifier,
 ) {
+    val crossfadeSpec = tween<Float>(
+        durationMillis = 500,
+        easing = FastOutSlowInEasing,
+    )
     ColorCenter(
+        modifier = modifier,
         viewModel = viewModel,
         details = {
-            ColorDetails(viewModel = viewModel.colorDetailsViewModel)
+            val viewModel = viewModel.colorDetailsViewModel
+            val state = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
+            val transition = updateTransition(
+                targetState = state,
+                label = "color details cross-fade",
+            )
+            transition.Crossfade(
+                animationSpec = crossfadeSpec,
+                contentKey = { it::class },
+            ) { state ->
+                ColorDetails(state = state)
+            }
         },
         scheme = {
-            ColorScheme(viewModel = viewModel.colorSchemeViewModel)
+            val viewModel = viewModel.colorSchemeViewModel
+            val state = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
+            val transition = updateTransition(
+                targetState = state,
+                label = "color scheme cross-fade",
+            )
+            transition.Crossfade(
+                animationSpec = crossfadeSpec,
+                contentKey = { it::class },
+            ) { state ->
+                ColorScheme(state = state)
+            }
         },
-        modifier = modifier,
     )
 }
 

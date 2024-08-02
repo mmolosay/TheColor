@@ -41,6 +41,15 @@ fun ColorDetails(
     viewModel: ColorDetailsViewModel,
 ) {
     val state = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
+    ColorDetails(
+        state = state,
+    )
+}
+
+@Composable
+fun ColorDetails(
+    state: DataState,
+) {
     val viewData = rememberViewData()
     when (state) {
         is DataState.Idle ->

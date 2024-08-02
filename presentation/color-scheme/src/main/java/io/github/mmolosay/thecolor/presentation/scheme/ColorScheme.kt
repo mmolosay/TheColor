@@ -83,6 +83,15 @@ fun ColorScheme(
     viewModel: ColorSchemeViewModel,
 ) {
     val state = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
+    ColorScheme(
+        state = state,
+    )
+}
+
+@Composable
+fun ColorScheme(
+    state: DataState,
+) {
     val viewData = rememberViewData()
     when (state) {
         is DataState.Idle ->
