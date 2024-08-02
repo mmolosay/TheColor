@@ -255,6 +255,34 @@ class ColorSchemeViewModelTest {
 
     /**
      * GIVEN
+     *  1. fetching color scheme will end with failure.
+     *  2. SUT is initialized.
+     *
+     * WHEN
+     *  [FetchData][ColorCenterCommand.FetchData] command is emitted and data fetching ends with failure
+     *
+     * THEN
+     *  updated data state is [DataState.Error].
+     */
+    @Test
+    fun `emission of 'fetch data' command that triggers failing data fetching results in emission of 'DataState Error'`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val commandFlow = MutableSharedFlow<ColorCenterCommand>()
+            every { commandProvider.commandFlow } returns commandFlow
+            coEvery { getColorScheme(request = any()) } returns
+                HttpFailure.UnknownHost(cause = mockk())
+            createSut(
+                createData = createDataReal,
+            )
+
+            val command = ColorCenterCommand.FetchData(color = mockk(), colorRole = null)
+            commandFlow.emit(command)
+
+            sut.dataStateFlow.value should beOfType<DataState.Error>()
+        }
+
+    /**
+     * GIVEN
      *  1. SUT is initialized.
      *  2. [FetchData][ColorCenterCommand.FetchData] command is emitted and initial data is fetched.
      *  3. selected mode and swatch count are changed.
