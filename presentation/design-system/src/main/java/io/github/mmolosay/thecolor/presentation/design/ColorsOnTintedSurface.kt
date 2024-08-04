@@ -32,12 +32,6 @@ fun ProvideColorsOnTintedSurface(
  *
  * Doesn't depend on current [UiTheme].
  */
-/**
- * Collection of colors to be used on surface of no particular color.
- * They are guaranteed to be contrast against the color of background.
- *
- * Doesn't depend on current [UiTheme].
- */
 data class ColorsOnTintedSurface(
     val accent: Color,
     val muted: Color,
