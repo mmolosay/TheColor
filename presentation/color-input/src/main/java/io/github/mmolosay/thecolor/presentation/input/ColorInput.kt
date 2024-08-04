@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -98,6 +99,11 @@ private fun InputSelector(
         ) {
             ViewType.entries.forEach { type ->
                 val isSelected = (type == uiData.viewType)
+                val contentColor = LocalContentColor.current
+                val colors = FilterChipDefaults.filterChipColors(
+                    labelColor = contentColor.copy(alpha = 0.60f),
+                    // selectedLabelColor as default
+                )
                 val border = FilterChipDefaults.filterChipBorder(
                     enabled = true, // constant
                     selected = isSelected,
@@ -111,6 +117,7 @@ private fun InputSelector(
                         val labelText = type.label(uiData)
                         ChipLabel(text = labelText)
                     },
+                    colors = colors,
                     border = border,
                 )
             }
