@@ -44,7 +44,6 @@ dependencies {
     // Modules
     implementation(project(":domain"))
     implementation(project(":utils"))
-    implementation(project(":presentation:common"))
     implementation(project(":presentation:design-system"))
 
     // Kotlin
