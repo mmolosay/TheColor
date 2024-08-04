@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -96,11 +97,21 @@ private fun InputSelector(
             LocalMinimumInteractiveComponentEnforcement provides false,
         ) {
             ViewType.entries.forEach { type ->
-                val labelText = type.label(uiData)
+                val isSelected = (type == uiData.viewType)
+                val border = FilterChipDefaults.filterChipBorder(
+                    enabled = true, // constant
+                    selected = isSelected,
+                    borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.60f),
+                    // selectedBorderColor doesn't matter because it has 0 width
+                )
                 FilterChip(
-                    selected = (type == uiData.viewType),
+                    selected = isSelected,
                     onClick = { uiData.onInputTypeChange(type) },
-                    label = { ChipLabel(labelText) }
+                    label = {
+                        val labelText = type.label(uiData)
+                        ChipLabel(text = labelText)
+                    },
+                    border = border,
                 )
             }
         }
