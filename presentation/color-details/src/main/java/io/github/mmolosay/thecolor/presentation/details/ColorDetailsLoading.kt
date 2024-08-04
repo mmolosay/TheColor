@@ -35,6 +35,9 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 
+/**
+ * Structurally repeats contents and arrangement of [ColorDetails].
+ */
 @Composable
 internal fun ColorDetailsLoading(
     modifier: Modifier = Modifier,
