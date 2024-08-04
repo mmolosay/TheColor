@@ -142,8 +142,8 @@ internal object UiComponents {
         value: TextFieldValue,
         onValueChange: (TextFieldValue) -> Unit,
     ) =
-        onFocusChanged a@{
-            if (!it.isFocused) return@a
+        onFocusChanged action@{
+            if (!it.isFocused) return@action
             val text = value.text
             val newValue = value.copy(
                 selection = TextRange(start = 0, end = text.length)
