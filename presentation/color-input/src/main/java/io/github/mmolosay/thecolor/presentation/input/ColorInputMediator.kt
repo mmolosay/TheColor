@@ -121,7 +121,7 @@ class ColorInputMediator @AssistedInject constructor(
         }
 
     /** State of the color the user is currently working with in color input View */
-    sealed interface ColorState {
+    private sealed interface ColorState {
         data object Invalid : ColorState // unfinished color
         data class Valid(val color: Color.Abstract) : ColorState
     }
