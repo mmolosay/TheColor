@@ -42,18 +42,9 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     @Named("uiDataUpdateDispatcher") private val uiDataUpdateDispatcher: CoroutineDispatcher,
 ) {
 
-    private val rTextInputVm =
-        TextFieldViewModel(
-            filterUserInput = ::filterUserInput,
-        )
-    private val gTextInputVm =
-        TextFieldViewModel(
-            filterUserInput = ::filterUserInput,
-        )
-    private val bTextInputVm =
-        TextFieldViewModel(
-            filterUserInput = ::filterUserInput,
-        )
+    private val rTextInputVm = TextFieldViewModel(filterUserInput = ::filterUserInput)
+    private val gTextInputVm = TextFieldViewModel(filterUserInput = ::filterUserInput)
+    private val bTextInputVm = TextFieldViewModel(filterUserInput = ::filterUserInput)
 
     val dataStateFlow: StateFlow<DataState<ColorInputRgbData>> = combine(
         rTextInputVm.dataUpdatesFlow,

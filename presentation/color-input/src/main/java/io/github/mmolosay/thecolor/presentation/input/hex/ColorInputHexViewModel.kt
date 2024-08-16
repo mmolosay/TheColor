@@ -41,10 +41,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
     @Named("uiDataUpdateDispatcher") private val uiDataUpdateDispatcher: CoroutineDispatcher,
 ) {
 
-    private val textFieldVm =
-        TextFieldViewModel(
-            filterUserInput = ::filterUserInput,
-        )
+    private val textFieldVm = TextFieldViewModel(filterUserInput = ::filterUserInput)
 
     val dataStateFlow: StateFlow<DataState<ColorInputHexData>> =
         textFieldVm.dataUpdatesFlow
