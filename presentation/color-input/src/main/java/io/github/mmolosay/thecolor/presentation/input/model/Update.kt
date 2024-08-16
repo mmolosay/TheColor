@@ -12,7 +12,7 @@ data class Update<T>(
 )
 
 /** Syntactic sugar for creating [Update]. */
-internal infix fun <UiData> UiData.causedByUser(causedByUser: Boolean) =
+internal infix fun <T> T.causedByUser(causedByUser: Boolean) =
     Update(payload = this, causedByUser = causedByUser)
 
 /**
