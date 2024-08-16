@@ -1,9 +1,12 @@
 package io.github.mmolosay.thecolor.presentation.input
 
+import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.presentation.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.ColorInputEventStore
+import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator.InputType
 import io.github.mmolosay.thecolor.presentation.input.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
+import io.github.mmolosay.thecolor.presentation.input.model.ColorInputState
 import io.github.mmolosay.thecolor.presentation.input.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbData
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbViewModel
@@ -37,11 +40,23 @@ abstract class ColorInputRgbViewModelTest {
 
     val mediator: ColorInputMediator = mockk {
         every { rgbColorInputFlow } returns flowOf(ColorInput.Rgb("", "", ""))
-        coEvery { send(input = any()) } just runs
+        coEvery { send(color = any(), inputType = InputType.Rgb) } just runs
     }
     val eventStore: ColorInputEventStore = mockk()
+    val colorInputValidator: ColorInputValidator = mockk()
 
     lateinit var sut: ColorInputRgbViewModel
+
+    fun createSut() =
+        ColorInputRgbViewModel(
+            coroutineScope = TestScope(mainDispatcherRule.testDispatcher),
+            mediator = mediator,
+            eventStore = eventStore,
+            colorInputValidator = colorInputValidator,
+            uiDataUpdateDispatcher = mainDispatcherRule.testDispatcher,
+        ).also {
+            sut = it
+        }
 
     val dataState: DataState<ColorInputRgbData>
         get() = sut.dataStateFlow.value
@@ -50,16 +65,6 @@ abstract class ColorInputRgbViewModelTest {
         get() {
             dataState should beOfType<DataState.Ready<*>>() // assertion for clear failure message
             return (dataState as DataState.Ready).data
-        }
-
-    fun createSut() =
-        ColorInputRgbViewModel(
-            coroutineScope = TestScope(mainDispatcherRule.testDispatcher),
-            mediator = mediator,
-            eventStore = eventStore,
-            uiDataUpdateDispatcher = mainDispatcherRule.testDispatcher,
-        ).also {
-            sut = it
         }
 }
 
@@ -141,13 +146,23 @@ class Other : ColorInputRgbViewModelTest() {
                 sut.dataStateFlow.collect() // subscriber to activate the flow
             }
 
-            coVerify(exactly = 0) { mediator.send(input = any()) }
+            coVerify(exactly = 0) { mediator.send(color = any(), inputType = InputType.Rgb) }
             collectionJob.cancel()
         }
 
     @Test
     fun `data updated from UI is sent to mediator`() =
         runTest(mainDispatcherRule.testDispatcher) {
+            val parsedColor = mockk<Color>()
+            every {
+                with(colorInputValidator) { ColorInput.Rgb("18", "", "").validate() }
+            } returns mockk<ColorInputState.Invalid>()
+            every {
+                with(colorInputValidator) { ColorInput.Rgb("18", "1", "").validate() }
+            } returns mockk<ColorInputState.Invalid>()
+            every {
+                with(colorInputValidator) { ColorInput.Rgb("18", "1", "20").validate() }
+            } returns ColorInputState.Valid(parsedColor)
             createSut()
             val collectionJob = launch {
                 sut.dataStateFlow.collect() // subscriber to activate the flow
@@ -157,8 +172,9 @@ class Other : ColorInputRgbViewModelTest() {
             data.gTextField.onTextChange(Text("1"))
             data.bTextField.onTextChange(Text("20"))
 
-            val sentColorInput = ColorInput.Rgb(r = "18", g = "1", b = "20")
-            coVerify(exactly = 1) { mediator.send(sentColorInput) }
+            coVerify(exactly = 1) {
+                mediator.send(color = parsedColor, inputType = InputType.Rgb)
+            }
             collectionJob.cancel()
         }
 
@@ -194,7 +210,9 @@ class Other : ColorInputRgbViewModelTest() {
             val sentColorInput = ColorInput.Rgb(r = "18", g = "1", b = "20")
             rgbColorInputFlow.emit(sentColorInput)
 
-            coVerify(exactly = 0) { mediator.send(sentColorInput) }
+            coVerify(exactly = 0) {
+                mediator.send(color = any(), inputType = InputType.Rgb)
+            }
             collectionJob.cancel()
         }
 

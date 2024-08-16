@@ -5,24 +5,20 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
-import io.github.mmolosay.thecolor.domain.usecase.ColorFactory
 import io.github.mmolosay.thecolor.domain.usecase.GetInitialColorUseCase
 import io.github.mmolosay.thecolor.presentation.ColorInputColorStore
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
-import io.github.mmolosay.thecolor.presentation.input.model.isCompleteFromUserPerspective
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Acts as mediator between ViewModels of different color input Views.
  * The responsibility of this component is to synchronize data between different color input Views.
- * It may also used as distributor of data between color input Views.
+ * It may also be used as distributor of color between color input Views.
  *
  * Once one View [send]s a [ColorInput], all other Views get the same color data through flows.
  * This way if user was using one specific View, after switching to other View they will see
@@ -37,7 +33,6 @@ import javax.inject.Singleton
 class ColorInputMediator @AssistedInject constructor(
     @Assisted private val colorInputColorStore: ColorInputColorStore,
     private val getInitialColor: GetInitialColorUseCase,
-    private val colorInputToAbstract: ColorInputToAbstractColorUseCase,
     private val colorInputMapper: ColorInputMapper,
     private val colorConverter: ColorConverter,
     private val colorInputFactory: ColorInputFactory,
@@ -79,45 +74,29 @@ class ColorInputMediator @AssistedInject constructor(
 
     suspend fun init() {
         send(
-            inputType = null,
             color = getInitialColor(),
-        )
-    }
-
-    suspend fun send(input: ColorInput) {
-        send(
-            inputType = input.type(),
-            color = with(colorInputToAbstract) { input.toAbstractOrNull() },
-        )
-    }
-
-    suspend fun send(color: Color?) {
-        send(
             inputType = null,
-            color = with(colorConverter) { color?.toAbstract() },
         )
     }
 
-    private suspend fun send(
+    /**
+     * TODO: add KDoc
+     */
+    suspend fun send(
+        color: Color?,
         inputType: InputType?,
-        color: Color.Abstract?,
     ) {
         lastUsedInputType = inputType
         colorInputColorStore.updateWith(color)
         colorStateFlow.emit(color.toState())
     }
 
-    private fun Color.Abstract?.toState(): ColorState =
+    private fun Color?.toState(): ColorState =
         if (this != null) {
-            ColorState.Valid(color = this)
+            val abstractColor = with(colorConverter) { toAbstract() }
+            ColorState.Valid(color = abstractColor)
         } else {
             ColorState.Invalid
-        }
-
-    private fun ColorInput.type() =
-        when (this) {
-            is ColorInput.Hex -> InputType.Hex
-            is ColorInput.Rgb -> InputType.Rgb
         }
 
     /** State of the color the user is currently working with in color input View */
@@ -126,31 +105,16 @@ class ColorInputMediator @AssistedInject constructor(
         data class Valid(val color: Color.Abstract) : ColorState
     }
 
+    /** Used to differentiate between color input Views. */
+    enum class InputType {
+        Hex, Rgb,
+    }
+
     @AssistedFactory
     fun interface Factory {
         fun create(
             colorInputColorStore: ColorInputColorStore,
         ): ColorInputMediator
     }
-
-    /** Used to differentiate between color input Views. */
-    private enum class InputType {
-        Hex,
-        Rgb,
-    }
 }
 
-@Singleton
-class ColorInputToAbstractColorUseCase @Inject constructor(
-    private val colorInputMapper: ColorInputMapper,
-    private val colorFactory: ColorFactory,
-    private val colorConverter: ColorConverter,
-) {
-
-    fun ColorInput.toAbstractOrNull(): Color.Abstract? {
-        if (!isCompleteFromUserPerspective()) return null
-        val prototype = with(colorInputMapper) { toPrototype() }
-        val color = colorFactory.from(prototype) ?: return null
-        return with(colorConverter) { color.toAbstract() }
-    }
-}

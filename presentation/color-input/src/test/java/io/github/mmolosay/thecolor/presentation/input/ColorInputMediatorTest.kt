@@ -4,6 +4,7 @@ import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.domain.usecase.GetInitialColorUseCase
 import io.github.mmolosay.thecolor.presentation.ColorInputColorStore
+import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator.InputType
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContainExactly
@@ -41,8 +42,6 @@ class ColorInputMediatorTest {
         coEvery { this@mockk.invoke() } returns null
     }
 
-    val colorInputToAbstract: ColorInputToAbstractColorUseCase = mockk()
-
     val colorInputMapper: ColorInputMapper = mockk()
 
     val colorConverter: ColorConverter = mockk()
@@ -75,38 +74,42 @@ class ColorInputMediatorTest {
     @Test
     fun `SUT emits from flows when initialized and initial color is not 'null'`() =
         runTest(testDispatcher) {
-            val initialColor = newAbstractColor()
-            val hexColor = Color.Hex(0x00bfff)
-            val rgbColor = Color.Rgb(0, 191, 255)
-            val hexInput = ColorInput.Hex("00BFFF")
-            val rgbInput = ColorInput.Rgb("0", "191", "255")
+            val initialColor = mockAbstractColor()
+            val abstractInitialColor = mockAbstractColor()
             coEvery { getInitialColor() } returns initialColor
-            every { with(colorConverter) { initialColor.toHex() } } returns hexColor
+            every { with(colorConverter) { initialColor.toAbstract() } } returns abstractInitialColor
+            val hexColor = Color.Hex(0x00bfff)
+            val hexInput = ColorInput.Hex("00BFFF")
+            every { with(colorConverter) { abstractInitialColor.toHex() } } returns hexColor
             every { with(colorInputMapper) { hexColor.toColorInput() } } returns hexInput
-            every { with(colorConverter) { initialColor.toRgb() } } returns rgbColor
+            val rgbColor = Color.Rgb(0, 191, 255)
+            val rgbInput = ColorInput.Rgb("0", "191", "255")
+            every { with(colorConverter) { abstractInitialColor.toRgb() } } returns rgbColor
             every { with(colorInputMapper) { rgbColor.toColorInput() } } returns rgbInput
             createSut()
 
             sut.init()
 
             // value check doesn't matter here: if flow doesn't emmit, never finished
-            // supsending call will cause the test to timeout and failure
+            // supsending call will cause the test to timeout and fail
             sut.hexColorInputFlow.first() shouldNotBe null
             sut.rgbColorInputFlow.first() shouldNotBe null
         }
 
     @Test
-    fun `SUT updates 'color store' with initial color`() =
+    fun `SUT updates 'color store' with initial color on initialization`() =
         runTest(testDispatcher) {
-            val initialColor = newAbstractColor()
-            val hexColor = Color.Hex(0x00bfff)
-            val rgbColor = Color.Rgb(0, 191, 255)
-            val hexInput = ColorInput.Hex("00BFFF")
-            val rgbInput = ColorInput.Rgb("0", "191", "255")
+            val initialColor = mockAbstractColor()
             coEvery { getInitialColor() } returns initialColor
-            every { with(colorConverter) { initialColor.toHex() } } returns hexColor
+            val abstractInitialColor = mockAbstractColor()
+            every { with(colorConverter) { initialColor.toAbstract() } } returns abstractInitialColor
+            val hexColor = Color.Hex(0x00bfff)
+            val hexInput = ColorInput.Hex("00BFFF")
+            every { with(colorConverter) { abstractInitialColor.toHex() } } returns hexColor
             every { with(colorInputMapper) { hexColor.toColorInput() } } returns hexInput
-            every { with(colorConverter) { initialColor.toRgb() } } returns rgbColor
+            val rgbColor = Color.Rgb(0, 191, 255)
+            val rgbInput = ColorInput.Rgb("0", "191", "255")
+            every { with(colorConverter) { abstractInitialColor.toRgb() } } returns rgbColor
             every { with(colorInputMapper) { rgbColor.toColorInput() } } returns rgbInput
             createSut()
 
@@ -118,19 +121,21 @@ class ColorInputMediatorTest {
         }
 
     @Test
-    fun `initial 'not-null' color from use case is emitted from flows`() = runTest(testDispatcher) {
-        val initialColor = newAbstractColor()
-        val hexColor = Color.Hex(0x00bfff)
-        val rgbColor = Color.Rgb(0, 191, 255)
-        val hexInput = ColorInput.Hex("00BFFF")
-        val rgbInput = ColorInput.Rgb("0", "191", "255")
+    fun `initial 'not-null' color is emitted from all flows`() = runTest(testDispatcher) {
+        val initialColor = mockAbstractColor()
         coEvery { getInitialColor() } returns initialColor
-        every { with(colorConverter) { initialColor.toHex() } } returns hexColor
+        val abstractInitialColor = mockAbstractColor()
+        every { with(colorConverter) { initialColor.toAbstract() } } returns abstractInitialColor
+        val hexColor = Color.Hex(0x00bfff)
+        val hexInput = ColorInput.Hex("00BFFF")
+        every { with(colorConverter) { abstractInitialColor.toHex() } } returns hexColor
         every { with(colorInputMapper) { hexColor.toColorInput() } } returns hexInput
-        every { with(colorConverter) { initialColor.toRgb() } } returns rgbColor
+        val rgbColor = Color.Rgb(0, 191, 255)
+        val rgbInput = ColorInput.Rgb("0", "191", "255")
+        every { with(colorConverter) { abstractInitialColor.toRgb() } } returns rgbColor
         every { with(colorInputMapper) { rgbColor.toColorInput() } } returns rgbInput
-
         createSut()
+
         sut.init()
 
         sut.hexColorInputFlow.first() shouldBe hexInput
@@ -138,7 +143,7 @@ class ColorInputMediatorTest {
     }
 
     @Test
-    fun `initial 'null' color from use case is emitted from flows`() = runTest(testDispatcher) {
+    fun `initial 'null' color is emitted from all flows`() = runTest(testDispatcher) {
         coEvery { getInitialColor() } returns null
         every { colorInputFactory.emptyHex() } returns ColorInput.Hex("empty")
         every { colorInputFactory.emptyRgb() } returns ColorInput.Rgb("em", "p", "ty")
@@ -152,52 +157,51 @@ class ColorInputMediatorTest {
 
     @Test
     @OptIn(FlowPreview::class)
-    fun `received valid HEX color input is not emitted from HEX flow`() = runTest(testDispatcher) {
-        val sentColorInput: ColorInput = mockk()
-        every { with(colorInputToAbstract) { sentColorInput.toAbstractOrNull() } } returns newAbstractColor()
-        createSut()
-        sut.init()
+    fun `received color with HEX input type is not emitted from HEX flow`() =
+        runTest(testDispatcher) {
+            val sentColor = mockk<Color>(relaxed = true)
+            every { with(colorConverter) { sentColor.toAbstract() } } returns mockAbstractColor()
+            createSut()
+            sut.init()
 
-        sut.send(sentColorInput)
+            sut.send(color = sentColor, inputType = InputType.Hex)
 
-        runBlocking {
-            shouldThrow<TimeoutCancellationException> {
-                sut.hexColorInputFlow
-                    .timeout(100.milliseconds)
-                    .collect()
+            runBlocking {
+                shouldThrow<TimeoutCancellationException> {
+                    sut.hexColorInputFlow
+                        .timeout(100.milliseconds)
+                        .collect()
+                }
             }
         }
-    }
 
     @Test
-    fun `received valid HEX color input is emitted from flows other than HEX`() =
+    fun `received color with HEX input type is emitted from flows other than HEX`() =
         runTest(testDispatcher) {
-            val sentColorInput: ColorInput = mockk()
-            val abstract = newAbstractColor()
+            val sentColor = mockk<Color>(relaxed = true)
+            val sentAbstractColor = mockAbstractColor()
             val rgb: Color.Rgb = mockk()
             val emittedRgbColorInput: ColorInput.Rgb = mockk()
-            every { with(colorInputToAbstract) { sentColorInput.toAbstractOrNull() } } returns abstract
-            every { with(colorConverter) { abstract.toRgb() } } returns rgb
+            every { with(colorConverter) { sentColor.toAbstract() } } returns sentAbstractColor
+            every { with(colorConverter) { sentAbstractColor.toRgb() } } returns rgb
             every { with(colorInputMapper) { rgb.toColorInput() } } returns emittedRgbColorInput
             createSut()
             sut.init()
 
-            sut.send(sentColorInput)
+            sut.send(color = sentColor, inputType = InputType.Hex)
 
             sut.rgbColorInputFlow.first() shouldBe emittedRgbColorInput
         }
 
     @Test
-    fun `received invalid color input results in emission of empty color input`() =
+    fun `received 'null' color results in emission of empty color input`() =
         runTest(testDispatcher) {
-            val sentColorInput: ColorInput = mockk()
             val emptyRgbColorInput: ColorInput.Rgb = mockk()
-            every { with(colorInputToAbstract) { sentColorInput.toAbstractOrNull() } } returns null
             every { colorInputFactory.emptyRgb() } returns emptyRgbColorInput
             createSut()
             sut.init()
 
-            sut.send(sentColorInput)
+            sut.send(color = null, inputType = null)
 
             sut.rgbColorInputFlow.first() shouldBe emptyRgbColorInput
             // verification should go after the flow gains first collector and starts emitting
@@ -205,10 +209,9 @@ class ColorInputMediatorTest {
         }
 
     @Test
-    fun `receiving two consecutive invalid color inputs results in two emissions of empty color inputs`() =
+    fun `receiving two consecutive 'null' colors results in two emissions of empty color inputs`() =
         runTest(testDispatcher) {
             val emptyRgbColorInput: ColorInput.Rgb = mockk()
-            every { with(colorInputToAbstract) { any<ColorInput>().toAbstractOrNull() } } returns null
             every { colorInputFactory.emptyRgb() } returns emptyRgbColorInput
             createSut()
             sut.init()
@@ -221,44 +224,40 @@ class ColorInputMediatorTest {
                     .toList(collected)
             }
 
-            sut.send(ColorInput.Hex("gibberish-1"))
-            sut.send(ColorInput.Hex("gibberish-2"))
+            sut.send(color = null, inputType = InputType.Hex)
+            sut.send(color = null, inputType = InputType.Hex)
 
             collected shouldContainExactly listOf(emptyRgbColorInput, emptyRgbColorInput)
             verify(atLeast = 2) { colorInputFactory.emptyRgb() }
         }
 
     @Test
-    fun `received invalid color input is sent to 'color store' as 'null'`() =
+    fun `received 'null' color is sent to 'color store' as 'null'`() =
         runTest(testDispatcher) {
-            val sentColorInput: ColorInput = mockk()
-            every { with(colorInputToAbstract) { sentColorInput.toAbstractOrNull() } } returns null
             createSut()
             sut.init()
 
-            sut.send(sentColorInput)
+            sut.send(color = null, inputType = null)
 
-            verify { colorInputColorStore.updateWith(null) }
+            verify { colorInputColorStore.updateWith(color = null) }
         }
 
     @Test
-    fun `received valid color input is sent to 'color store' as color`() =
+    fun `received 'not-null' color is sent to 'color store' as it is`() =
         runTest(testDispatcher) {
-            val sentColorInput: ColorInput = mockk()
-            val abstract = newAbstractColor()
-            every { with(colorInputToAbstract) { sentColorInput.toAbstractOrNull() } } returns abstract
+            val sentColor = mockk<Color>(relaxed = true)
+            every { with(colorConverter) { sentColor.toAbstract() } } returns mockAbstractColor()
             createSut()
             sut.init()
 
-            sut.send(sentColorInput)
+            sut.send(color = sentColor, inputType = null)
 
-            verify { colorInputColorStore.updateWith(abstract) }
+            verify { colorInputColorStore.updateWith(sentColor) }
         }
 
     fun createSut() =
         ColorInputMediator(
             getInitialColor = getInitialColor,
-            colorInputToAbstract = colorInputToAbstract,
             colorInputMapper = colorInputMapper,
             colorConverter = colorConverter,
             colorInputFactory = colorInputFactory,
@@ -267,6 +266,6 @@ class ColorInputMediatorTest {
             sut = it
         }
 
-    fun newAbstractColor(): Color.Abstract =
+    fun mockAbstractColor(): Color.Abstract =
         mockk(relaxed = true)
 }

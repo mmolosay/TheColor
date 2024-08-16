@@ -6,11 +6,14 @@ import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.presentation.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
+import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator.InputType
+import io.github.mmolosay.thecolor.presentation.input.ColorInputValidator
 import io.github.mmolosay.thecolor.presentation.input.SharingStartedEagerlyAnd
 import io.github.mmolosay.thecolor.presentation.input.field.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.field.TextFieldViewModel
 import io.github.mmolosay.thecolor.presentation.input.field.TextFieldViewModel.Companion.updateWith
+import io.github.mmolosay.thecolor.presentation.input.model.ColorInputState
 import io.github.mmolosay.thecolor.presentation.input.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.model.Update
 import io.github.mmolosay.thecolor.presentation.input.model.asDataState
@@ -34,6 +37,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
     @Assisted private val coroutineScope: CoroutineScope,
     @Assisted private val mediator: ColorInputMediator,
     @Assisted private val eventStore: ColorInputEventStore,
+    private val colorInputValidator: ColorInputValidator,
     @Named("uiDataUpdateDispatcher") private val uiDataUpdateDispatcher: CoroutineDispatcher,
 ) {
 
@@ -66,10 +70,12 @@ class ColorInputHexViewModel @AssistedInject constructor(
     }
 
     private fun onEachUiDataUpdate(update: Update<ColorInputHexData>) {
-        if (!update.causedByUser) return // don't synchronize this update with other Views
+        if (!update.causedByUser) return // don't synchronize this update with other Views TODO: refine comment
         val input = update.data.assembleColorInput()
+        val inputState = with(colorInputValidator) { input.validate() }
+        val parsedColor = (inputState as? ColorInputState.Valid)?.color
         coroutineScope.launch(uiDataUpdateDispatcher) {
-            mediator.send(input)
+            mediator.send(color = parsedColor, inputType = InputType.Hex)
         }
     }
 

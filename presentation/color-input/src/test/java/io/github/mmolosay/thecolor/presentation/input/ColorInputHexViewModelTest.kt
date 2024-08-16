@@ -2,10 +2,12 @@ package io.github.mmolosay.thecolor.presentation.input
 
 import io.github.mmolosay.thecolor.presentation.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.ColorInputEventStore
+import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator.InputType
 import io.github.mmolosay.thecolor.presentation.input.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexData
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
+import io.github.mmolosay.thecolor.presentation.input.model.ColorInputState
 import io.github.mmolosay.thecolor.presentation.input.model.DataState
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
 import io.kotest.matchers.should
@@ -36,17 +38,9 @@ class ColorInputHexViewModelTest {
         every { hexColorInputFlow } returns flowOf(ColorInput.Hex(""))
     }
     val eventStore: ColorInputEventStore = mockk()
+    val colorInputValidator: ColorInputValidator = mockk()
 
     lateinit var sut: ColorInputHexViewModel
-
-    val dataState: DataState<ColorInputHexData>
-        get() = sut.dataStateFlow.value
-
-    val data: ColorInputHexData
-        get() {
-            dataState should beOfType<DataState.Ready<*>>() // assertion for clear failure message
-            return (dataState as DataState.Ready).data
-        }
 
     @Test
     fun `SUT is created with state BeingInitialized if mediator HEX flow has no value yet`() {
@@ -106,13 +100,19 @@ class ColorInputHexViewModelTest {
                 sut.dataStateFlow.collect() // subscriber to activate the flow
             }
 
-            coVerify(exactly = 0) { mediator.send(input = any()) }
+            coVerify(exactly = 0) {
+                mediator.send(color = any(), inputType = InputType.Hex)
+            }
             collectionJob.cancel()
         }
 
     @Test
-    fun `data updated from UI is sent to mediator`() =
+    fun `changing input text to invalid color sends 'null' to mediator`() =
         runTest(mainDispatcherRule.testDispatcher) {
+            val colorInput = ColorInput.Hex("1F")
+            every {
+                with(colorInputValidator) { colorInput.validate() }
+            } returns mockk<ColorInputState.Invalid>()
             createSut()
             val collectionJob = launch {
                 sut.dataStateFlow.collect() // subscriber to activate the flow
@@ -120,8 +120,12 @@ class ColorInputHexViewModelTest {
 
             data.textField.onTextChange(Text("1F"))
 
-            val sentColorInput = ColorInput.Hex("1F")
-            coVerify(exactly = 1) { mediator.send(sentColorInput) }
+            coVerify(exactly = 1) {
+                mediator.send(
+                    color = null, // invalid color input
+                    inputType = InputType.Hex,
+                )
+            }
             collectionJob.cancel()
         }
 
@@ -154,7 +158,9 @@ class ColorInputHexViewModelTest {
             val sentColorInput = ColorInput.Hex("1F")
             hexColorInputFlow.emit(sentColorInput)
 
-            coVerify(exactly = 0) { mediator.send(sentColorInput) }
+            coVerify(exactly = 0) {
+                mediator.send(color = any(), inputType = InputType.Hex)
+            }
             collectionJob.cancel()
         }
 
@@ -173,8 +179,18 @@ class ColorInputHexViewModelTest {
             coroutineScope = TestScope(context = mainDispatcherRule.testDispatcher),
             mediator = mediator,
             eventStore = eventStore,
+            colorInputValidator = colorInputValidator,
             uiDataUpdateDispatcher = mainDispatcherRule.testDispatcher,
         ).also {
             sut = it
+        }
+
+    val dataState: DataState<ColorInputHexData>
+        get() = sut.dataStateFlow.value
+
+    val data: ColorInputHexData
+        get() {
+            dataState should beOfType<DataState.Ready<*>>() // assertion for clear failure message
+            return (dataState as DataState.Ready).data
         }
 }
