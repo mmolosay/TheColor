@@ -4,7 +4,7 @@ package io.github.mmolosay.thecolor.presentation.input.model
  * Encapsulates a command to update some data of type [T] with new [payload].
  *
  * @param payload new data to be set.
- * @param causedByUser whether this [Update] is cause by changes in View made by user.
+ * @param causedByUser whether this [Update] is cause by changes in View made by user or not.
  */
 data class Update<T>(
     val payload: T,
