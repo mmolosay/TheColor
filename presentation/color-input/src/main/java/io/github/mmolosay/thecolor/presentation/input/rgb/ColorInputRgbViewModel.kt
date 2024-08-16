@@ -94,7 +94,8 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     }
 
     private fun onEachDataUpdate(update: Update<ColorInputRgbData>) {
-        if (!update.causedByUser) return // don't synchronize this update with other Views TODO: refine comment
+        // don't synchronize this update with other Views to avoid update loop
+        if (!update.causedByUser) return
         val uiData = update.data
         val input = uiData.assembleColorInput()
         val inputState = with(colorInputValidator) { input.validate() }

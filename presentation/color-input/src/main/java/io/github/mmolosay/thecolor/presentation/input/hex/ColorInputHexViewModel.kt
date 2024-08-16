@@ -70,7 +70,8 @@ class ColorInputHexViewModel @AssistedInject constructor(
     }
 
     private fun onEachUiDataUpdate(update: Update<ColorInputHexData>) {
-        if (!update.causedByUser) return // don't synchronize this update with other Views TODO: refine comment
+        // don't synchronize this update with other Views to avoid update loop
+        if (!update.causedByUser) return
         val input = update.data.assembleColorInput()
         val inputState = with(colorInputValidator) { input.validate() }
         val parsedColor = (inputState as? ColorInputState.Valid)?.color
