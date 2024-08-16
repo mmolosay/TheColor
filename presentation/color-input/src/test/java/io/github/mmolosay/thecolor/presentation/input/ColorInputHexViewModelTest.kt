@@ -101,7 +101,7 @@ class ColorInputHexViewModelTest {
             }
 
             coVerify(exactly = 0) {
-                mediator.send(color = any(), inputType = InputType.Hex)
+                mediator.send(color = any(), from = InputType.Hex)
             }
             collectionJob.cancel()
         }
@@ -123,7 +123,7 @@ class ColorInputHexViewModelTest {
             coVerify(exactly = 1) {
                 mediator.send(
                     color = null, // invalid color input
-                    inputType = InputType.Hex,
+                    from = InputType.Hex,
                 )
             }
             collectionJob.cancel()
@@ -159,7 +159,7 @@ class ColorInputHexViewModelTest {
             hexColorInputFlow.emit(sentColorInput)
 
             coVerify(exactly = 0) {
-                mediator.send(color = any(), inputType = InputType.Hex)
+                mediator.send(color = any(), from = InputType.Hex)
             }
             collectionJob.cancel()
         }

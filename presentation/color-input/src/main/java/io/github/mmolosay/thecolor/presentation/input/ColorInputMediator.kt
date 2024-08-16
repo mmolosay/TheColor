@@ -16,19 +16,17 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 
 /**
- * Acts as mediator between ViewModels of different color input Views.
- * The responsibility of this component is to synchronize data between different color input Views.
- * It may also be used as distributor of color between color input Views.
+ * Acts as mediator between ViewModels of different color inputs.
+ * The responsibility of this component is to synchronize data between different color inputs.
+ * This class may also be used to set a specific color to all color inputs.
  *
- * Once one View [send]s a [ColorInput], all other Views get the same color data through flows.
+ * Once one ViewModel [send]s a [Color] (presumably parsed from [ColorInput]),
+ * all other color input ViewModels get the same color data through their specific flows.
  * This way if user was using one specific View, after switching to other View they will see
  * the UI with the same data (color) they have left on in previous View.
  *
  * Any update is also sent to [colorInputColorStore], which can be used to obtain current abstract
  * color.
- *
- * Use overload of [send] method that accepts [Color] if you want to set color to color input Views
- * programmatically, not in response to user input via one of the color input Views.
  */
 class ColorInputMediator @AssistedInject constructor(
     @Assisted private val colorInputColorStore: ColorInputColorStore,
@@ -42,12 +40,12 @@ class ColorInputMediator @AssistedInject constructor(
         replay = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
     )
-    private var lastUsedInputType: InputType? = null
+    private var lastSourceInputType: InputType? = null
 
     val hexColorInputFlow: Flow<ColorInput.Hex> =
         colorStateFlow
             .filterNotNull()
-            .filter { lastUsedInputType != InputType.Hex } // prevent interrupting user
+            .filter { lastSourceInputType != InputType.Hex } // prevent interrupting user
             .map {
                 when (it) {
                     is ColorState.Invalid -> colorInputFactory.emptyHex()
@@ -61,7 +59,7 @@ class ColorInputMediator @AssistedInject constructor(
     val rgbColorInputFlow: Flow<ColorInput.Rgb> =
         colorStateFlow
             .filterNotNull()
-            .filter { lastUsedInputType != InputType.Rgb } // prevent interrupting user
+            .filter { lastSourceInputType != InputType.Rgb } // prevent interrupting user
             .map {
                 when (it) {
                     is ColorState.Invalid -> colorInputFactory.emptyRgb()
@@ -75,18 +73,23 @@ class ColorInputMediator @AssistedInject constructor(
     suspend fun init() {
         send(
             color = getInitialColor(),
-            inputType = null,
+            from = null,
         )
     }
 
     /**
-     * TODO: add KDoc
+     * Propagates specified [color] to color input flows (e.g. [hexColorInputFlow]).
+     * Parameter [from] defines which color input flow will NOT receive an update to avoid
+     * update loop.
+     *
+     * Passing `null` [color] will emit empty [ColorInput]s from flows.
+     * Passing `null` [from] will not ignore any flow and all of them will emit.
      */
     suspend fun send(
         color: Color?,
-        inputType: InputType?,
+        from: InputType?,
     ) {
-        lastUsedInputType = inputType
+        lastSourceInputType = from
         colorInputColorStore.updateWith(color)
         colorStateFlow.emit(color.toState())
     }

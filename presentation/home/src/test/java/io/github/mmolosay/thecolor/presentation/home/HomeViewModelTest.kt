@@ -205,7 +205,7 @@ class HomeViewModelTest {
             eventsFlow.emit(event)
 
             coVerify {
-                colorInputMediator.send(color = Color.Hex(0x123456), inputType = null)
+                colorInputMediator.send(color = Color.Hex(0x123456), from = null)
             }
         }
 

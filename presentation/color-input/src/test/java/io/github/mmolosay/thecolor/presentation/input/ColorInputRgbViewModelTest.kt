@@ -40,7 +40,7 @@ abstract class ColorInputRgbViewModelTest {
 
     val mediator: ColorInputMediator = mockk {
         every { rgbColorInputFlow } returns flowOf(ColorInput.Rgb("", "", ""))
-        coEvery { send(color = any(), inputType = InputType.Rgb) } just runs
+        coEvery { send(color = any(), from = InputType.Rgb) } just runs
     }
     val eventStore: ColorInputEventStore = mockk()
     val colorInputValidator: ColorInputValidator = mockk()
@@ -146,7 +146,7 @@ class Other : ColorInputRgbViewModelTest() {
                 sut.dataStateFlow.collect() // subscriber to activate the flow
             }
 
-            coVerify(exactly = 0) { mediator.send(color = any(), inputType = InputType.Rgb) }
+            coVerify(exactly = 0) { mediator.send(color = any(), from = InputType.Rgb) }
             collectionJob.cancel()
         }
 
@@ -173,7 +173,7 @@ class Other : ColorInputRgbViewModelTest() {
             data.bTextField.onTextChange(Text("20"))
 
             coVerify(exactly = 1) {
-                mediator.send(color = parsedColor, inputType = InputType.Rgb)
+                mediator.send(color = parsedColor, from = InputType.Rgb)
             }
             collectionJob.cancel()
         }
@@ -211,7 +211,7 @@ class Other : ColorInputRgbViewModelTest() {
             rgbColorInputFlow.emit(sentColorInput)
 
             coVerify(exactly = 0) {
-                mediator.send(color = any(), inputType = InputType.Rgb)
+                mediator.send(color = any(), from = InputType.Rgb)
             }
             collectionJob.cancel()
         }

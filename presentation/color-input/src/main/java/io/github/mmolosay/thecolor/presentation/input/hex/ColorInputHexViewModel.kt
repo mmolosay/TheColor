@@ -75,7 +75,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
         val inputState = with(colorInputValidator) { input.validate() }
         val parsedColor = (inputState as? ColorInputState.Valid)?.color
         coroutineScope.launch(uiDataUpdateDispatcher) {
-            mediator.send(color = parsedColor, inputType = InputType.Hex)
+            mediator.send(color = parsedColor, from = InputType.Hex)
         }
     }
 

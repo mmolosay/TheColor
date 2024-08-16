@@ -164,7 +164,7 @@ class ColorInputMediatorTest {
             createSut()
             sut.init()
 
-            sut.send(color = sentColor, inputType = InputType.Hex)
+            sut.send(color = sentColor, from = InputType.Hex)
 
             runBlocking {
                 shouldThrow<TimeoutCancellationException> {
@@ -188,7 +188,7 @@ class ColorInputMediatorTest {
             createSut()
             sut.init()
 
-            sut.send(color = sentColor, inputType = InputType.Hex)
+            sut.send(color = sentColor, from = InputType.Hex)
 
             sut.rgbColorInputFlow.first() shouldBe emittedRgbColorInput
         }
@@ -201,7 +201,7 @@ class ColorInputMediatorTest {
             createSut()
             sut.init()
 
-            sut.send(color = null, inputType = null)
+            sut.send(color = null, from = null)
 
             sut.rgbColorInputFlow.first() shouldBe emptyRgbColorInput
             // verification should go after the flow gains first collector and starts emitting
@@ -224,8 +224,8 @@ class ColorInputMediatorTest {
                     .toList(collected)
             }
 
-            sut.send(color = null, inputType = InputType.Hex)
-            sut.send(color = null, inputType = InputType.Hex)
+            sut.send(color = null, from = InputType.Hex)
+            sut.send(color = null, from = InputType.Hex)
 
             collected shouldContainExactly listOf(emptyRgbColorInput, emptyRgbColorInput)
             verify(atLeast = 2) { colorInputFactory.emptyRgb() }
@@ -237,7 +237,7 @@ class ColorInputMediatorTest {
             createSut()
             sut.init()
 
-            sut.send(color = null, inputType = null)
+            sut.send(color = null, from = null)
 
             verify { colorInputColorStore.updateWith(color = null) }
         }
@@ -250,7 +250,7 @@ class ColorInputMediatorTest {
             createSut()
             sut.init()
 
-            sut.send(color = sentColor, inputType = null)
+            sut.send(color = sentColor, from = null)
 
             verify { colorInputColorStore.updateWith(sentColor) }
         }

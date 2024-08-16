@@ -164,7 +164,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch(defaultDispatcher) {
             // it's crucial to update color first, so that 'proceed()' obtains new color
             withContext(uiDataUpdateDispatcher) {
-                colorInputMediator.send(color = newColor, inputType = null)
+                colorInputMediator.send(color = newColor, from = null)
             }
             proceed(colorRole)
         }
