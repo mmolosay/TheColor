@@ -53,7 +53,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         ::combineTextInputUpdates,
     )
         .onEachNotNull(::onEachDataUpdate)
-        .map { it?.data.asDataState() }
+        .map { it?.payload.asDataState() }
         .stateIn(
             scope = coroutineScope,
             started = SharingStartedEagerlyAnd(WhileSubscribed(5000)),
@@ -80,14 +80,14 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         b: Update<TextFieldData>?,
     ): Update<ColorInputRgbData>? {
         if (r == null || g == null || b == null) return null
-        val data = makeData(r.data, g.data, b.data)
+        val data = makeData(r.payload, g.payload, b.payload)
         return data causedByUser listOf(r, g, b).any { it.causedByUser }
     }
 
     private fun onEachDataUpdate(update: Update<ColorInputRgbData>) {
         // don't synchronize this update with other Views to avoid update loop
         if (!update.causedByUser) return
-        val uiData = update.data
+        val uiData = update.payload
         val input = uiData.assembleColorInput()
         val inputState = with(colorInputValidator) { input.validate() }
         val parsedColor = (inputState as? ColorInputState.Valid)?.color

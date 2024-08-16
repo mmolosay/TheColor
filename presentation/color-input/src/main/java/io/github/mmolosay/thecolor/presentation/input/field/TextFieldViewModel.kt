@@ -22,11 +22,11 @@ class TextFieldViewModel(
 
     private fun updateText(update: Update<Text>) {
         _dataUpdatesFlow.update {
-            val text = update.data
+            val text = update.payload
             val newData = if (it == null) {
                 makeInitialData(text)
             } else {
-                val oldData = it.data
+                val oldData = it.payload
                 oldData.smartCopy(text)
             }
             newData causedByUser update.causedByUser

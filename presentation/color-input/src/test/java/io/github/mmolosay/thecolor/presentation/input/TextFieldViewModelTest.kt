@@ -20,7 +20,7 @@ class TextFieldViewModelTest {
         get() = requireNotNull(sut.dataUpdatesFlow.value)
 
     val data: TextFieldData
-        get() = dataUpdate.data
+        get() = dataUpdate.payload
 
     @Test
     fun `sut is created with null data`() {

@@ -56,7 +56,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
 
     val dataStateFlow: StateFlow<DataState<ColorInputHexData>> =
         fullDataUpdateFlow
-            .map { update -> update?.data?.coreData }
+            .map { update -> update?.payload?.coreData }
             .map { colorInputHexData -> colorInputHexData.asDataState() }
             .stateIn(
                 scope = coroutineScope,
@@ -79,7 +79,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
     private fun onEachFullDataUpdate(update: Update<FullData>) {
         // don't synchronize this update with other Views to avoid update loop
         if (!update.causedByUser) return
-        val parsedColor = (update.data.colorInputState as? ColorInputState.Valid)?.color
+        val parsedColor = (update.payload.colorInputState as? ColorInputState.Valid)?.color
         coroutineScope.launch(uiDataUpdateDispatcher) {
             mediator.send(color = parsedColor, from = InputType.Hex)
         }
