@@ -38,7 +38,9 @@ class ColorInputHexViewModelTest {
         every { hexColorInputFlow } returns flowOf(ColorInput.Hex(""))
     }
     val eventStore: ColorInputEventStore = mockk()
-    val colorInputValidator: ColorInputValidator = mockk()
+    val colorInputValidator: ColorInputValidator = mockk {
+        every { any<ColorInput>().validate() } returns mockk<ColorInputState.Invalid>()
+    }
 
     lateinit var sut: ColorInputHexViewModel
 
@@ -134,6 +136,9 @@ class ColorInputHexViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             val hexColorInputFlow = MutableSharedFlow<ColorInput.Hex>()
             every { mediator.hexColorInputFlow } returns hexColorInputFlow
+            every {
+                with(colorInputValidator) { ColorInput.Hex("1F").validate() }
+            } returns mockk<ColorInputState.Invalid>()
             createSut()
             val collectionJob = launch {
                 sut.dataStateFlow.collect() // subscriber to activate the flow
@@ -150,6 +155,9 @@ class ColorInputHexViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             val hexColorInputFlow = MutableSharedFlow<ColorInput.Hex>()
             every { mediator.hexColorInputFlow } returns hexColorInputFlow
+            every {
+                with(colorInputValidator) { ColorInput.Hex("1F").validate() }
+            } returns mockk<ColorInputState.Invalid>()
             createSut()
             val collectionJob = launch {
                 sut.dataStateFlow.collect() // subscriber to activate the flow
@@ -171,7 +179,9 @@ class ColorInputHexViewModelTest {
 
         data.submitColor()
 
-        coVerify(exactly = 1) { eventStore.send(event = ColorInputEvent.Submit) }
+        coVerify(exactly = 1) {
+            eventStore.send(event = ColorInputEvent.Submit)
+        }
     }
 
     fun createSut() =

@@ -13,6 +13,7 @@ import io.github.mmolosay.thecolor.presentation.input.field.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.field.TextFieldViewModel
 import io.github.mmolosay.thecolor.presentation.input.field.TextFieldViewModel.Companion.updateWith
+import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputState
 import io.github.mmolosay.thecolor.presentation.input.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.model.Update
@@ -43,11 +44,20 @@ class ColorInputHexViewModel @AssistedInject constructor(
 
     private val textFieldVm = TextFieldViewModel(filterUserInput = ::filterUserInput)
 
-    val dataStateFlow: StateFlow<DataState<ColorInputHexData>> =
+    private val fullDataUpdateFlow: StateFlow<Update<FullData>?> =
         textFieldVm.dataUpdatesFlow
-            .map { it?.map(::makeData) }
-            .onEachNotNull(::onEachUiDataUpdate)
-            .map { it?.data.asDataState() }
+            .map { update -> update?.map(::makeFullData) }
+            .onEachNotNull(::onEachFullDataUpdate)
+            .stateIn(
+                scope = coroutineScope,
+                started = SharingStartedEagerlyAnd(WhileSubscribed(5000)),
+                initialValue = null,
+            )
+
+    val dataStateFlow: StateFlow<DataState<ColorInputHexData>> =
+        fullDataUpdateFlow
+            .map { update -> update?.data?.coreData }
+            .map { colorInputHexData -> colorInputHexData.asDataState() }
             .stateIn(
                 scope = coroutineScope,
                 started = SharingStartedEagerlyAnd(WhileSubscribed(5000)),
@@ -66,12 +76,10 @@ class ColorInputHexViewModel @AssistedInject constructor(
         }
     }
 
-    private fun onEachUiDataUpdate(update: Update<ColorInputHexData>) {
+    private fun onEachFullDataUpdate(update: Update<FullData>) {
         // don't synchronize this update with other Views to avoid update loop
         if (!update.causedByUser) return
-        val input = update.data.assembleColorInput()
-        val inputState = with(colorInputValidator) { input.validate() }
-        val parsedColor = (inputState as? ColorInputState.Valid)?.color
+        val parsedColor = (update.data.colorInputState as? ColorInputState.Valid)?.color
         coroutineScope.launch(uiDataUpdateDispatcher) {
             mediator.send(color = parsedColor, from = InputType.Hex)
         }
@@ -90,11 +98,19 @@ class ColorInputHexViewModel @AssistedInject constructor(
         }
     }
 
-    private fun makeData(textField: TextFieldData) =
-        ColorInputHexData(
+    private fun makeFullData(textField: TextFieldData): FullData {
+        val coreData = ColorInputHexData(
             textField = textField,
             submitColor = ::sendProceedEvent,
         )
+        val colorInput = ColorInput.Hex(string = textField.text.string)
+        val inputState = with(colorInputValidator) { colorInput.validate() }
+        return FullData(
+            coreData = coreData,
+            colorInput = colorInput,
+            colorInputState = inputState,
+        )
+    }
 
     @AssistedFactory
     fun interface Factory {
@@ -109,3 +125,15 @@ class ColorInputHexViewModel @AssistedInject constructor(
         const val MAX_SYMBOLS_IN_HEX_COLOR = 6
     }
 }
+
+
+/**
+ * Couples a [coreData] data which is exposed from ViewModel with various values that are
+ * produced from this [coreData] data.
+ * This is a convenience class that keeps close "source" data and cached values obtained from it.
+ */
+private data class FullData(
+    val coreData: ColorInputHexData,
+    val colorInput: ColorInput.Hex,
+    val colorInputState: ColorInputState,
+)

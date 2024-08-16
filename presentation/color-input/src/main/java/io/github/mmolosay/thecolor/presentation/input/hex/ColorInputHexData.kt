@@ -10,6 +10,3 @@ data class ColorInputHexData(
     val textField: TextFieldData,
     val submitColor: () -> Unit,
 )
-
-fun ColorInputHexData.assembleColorInput() =
-    ColorInput.Hex(string = textField.text.string)

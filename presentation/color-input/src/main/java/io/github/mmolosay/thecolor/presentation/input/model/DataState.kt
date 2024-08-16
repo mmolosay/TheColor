@@ -6,5 +6,7 @@ sealed interface DataState<out T> {
 }
 
 internal fun <T> T?.asDataState(): DataState<T> =
-    if (this == null) DataState.BeingInitialized
-    else DataState.Ready(data = this)
+    when {
+        this == null -> DataState.BeingInitialized
+        else -> DataState.Ready(data = this)
+    }
