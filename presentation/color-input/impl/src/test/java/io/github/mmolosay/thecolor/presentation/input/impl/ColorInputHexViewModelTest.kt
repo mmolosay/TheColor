@@ -6,8 +6,8 @@ import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator.In
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexData
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexViewModel
-import io.github.mmolosay.thecolor.presentation.input.impl.model.ColorInput
-import io.github.mmolosay.thecolor.presentation.input.impl.model.ColorInputState
+import io.github.thecolor.presentation.input.api.ColorInput
+import io.github.thecolor.presentation.input.api.ColorInputState
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
 import io.kotest.matchers.should
@@ -137,7 +137,7 @@ class ColorInputHexViewModelTest {
             val hexColorInputFlow = MutableSharedFlow<ColorInput.Hex>()
             every { mediator.hexColorInputFlow } returns hexColorInputFlow
             every {
-                with(colorInputValidator) { io.github.mmolosay.thecolor.presentation.input.impl.model.ColorInput.Hex("1F").validate() }
+                with(colorInputValidator) { ColorInput.Hex("1F").validate() }
             } returns mockk<ColorInputState.Invalid>()
             createSut()
             val collectionJob = launch {
@@ -156,7 +156,7 @@ class ColorInputHexViewModelTest {
             val hexColorInputFlow = MutableSharedFlow<ColorInput.Hex>()
             every { mediator.hexColorInputFlow } returns hexColorInputFlow
             every {
-                with(colorInputValidator) { io.github.mmolosay.thecolor.presentation.input.impl.model.ColorInput.Hex("1F").validate() }
+                with(colorInputValidator) { ColorInput.Hex("1F").validate() }
             } returns mockk<ColorInputState.Invalid>()
             createSut()
             val collectionJob = launch {

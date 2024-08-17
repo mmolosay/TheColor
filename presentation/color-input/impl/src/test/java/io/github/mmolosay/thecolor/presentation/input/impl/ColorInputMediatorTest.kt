@@ -5,7 +5,7 @@ import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.domain.usecase.GetInitialColorUseCase
 import io.github.mmolosay.thecolor.presentation.ColorInputColorStore
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator.InputType
-import io.github.mmolosay.thecolor.presentation.input.impl.model.ColorInput
+import io.github.thecolor.presentation.input.api.ColorInput
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
@@ -47,8 +47,8 @@ class ColorInputMediatorTest {
     val colorConverter: ColorConverter = mockk()
 
     val colorInputFactory: ColorInputFactory = mockk {
-        every { emptyHex() } returns io.github.mmolosay.thecolor.presentation.input.impl.model.ColorInput.Hex("mocked")
-        every { emptyRgb() } returns io.github.mmolosay.thecolor.presentation.input.impl.model.ColorInput.Rgb("mocked", "mocked", "mocked")
+        every { emptyHex() } returns ColorInput.Hex("mocked")
+        every { emptyRgb() } returns ColorInput.Rgb("mocked", "mocked", "mocked")
     }
 
     val colorInputColorStore: ColorInputColorStore = mockk {

@@ -1,5 +1,8 @@
 package io.github.mmolosay.thecolor.presentation.input.impl.model
 
+import io.github.thecolor.presentation.input.api.ColorInput
+import io.github.thecolor.presentation.input.api.ColorInputState
+
 /**
  * Couples a [coreData] data which is exposed from ViewModel with various values that are
  * produced from this [coreData] data.

@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.input.impl
 
-import io.github.mmolosay.thecolor.presentation.input.impl.model.ColorInput
+import io.github.thecolor.presentation.input.api.ColorInput
 import javax.inject.Inject
 
 class ColorInputFactory @Inject constructor() {

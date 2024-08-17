@@ -5,8 +5,8 @@ import io.github.mmolosay.thecolor.presentation.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator.InputType
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
-import io.github.mmolosay.thecolor.presentation.input.impl.model.ColorInput
-import io.github.mmolosay.thecolor.presentation.input.impl.model.ColorInputState
+import io.github.thecolor.presentation.input.api.ColorInput
+import io.github.thecolor.presentation.input.api.ColorInputState
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.impl.rgb.ColorInputRgbData
 import io.github.mmolosay.thecolor.presentation.input.impl.rgb.ColorInputRgbViewModel
@@ -157,13 +157,13 @@ class Other : ColorInputRgbViewModelTest() {
         runTest(mainDispatcherRule.testDispatcher) {
             val parsedColor = mockk<Color>()
             every {
-                with(colorInputValidator) { io.github.mmolosay.thecolor.presentation.input.impl.model.ColorInput.Rgb("18", "", "").validate() }
+                with(colorInputValidator) { ColorInput.Rgb("18", "", "").validate() }
             } returns mockk<ColorInputState.Invalid>()
             every {
-                with(colorInputValidator) { io.github.mmolosay.thecolor.presentation.input.impl.model.ColorInput.Rgb("18", "1", "").validate() }
+                with(colorInputValidator) { ColorInput.Rgb("18", "1", "").validate() }
             } returns mockk<ColorInputState.Invalid>()
             every {
-                with(colorInputValidator) { io.github.mmolosay.thecolor.presentation.input.impl.model.ColorInput.Rgb("18", "1", "20").validate() }
+                with(colorInputValidator) { ColorInput.Rgb("18", "1", "20").validate() }
             } returns ColorInputState.Valid(parsedColor)
             createSut()
             val collectionJob = launch {

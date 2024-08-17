@@ -1,8 +1,8 @@
 package io.github.mmolosay.thecolor.presentation.input.impl
 
 import io.github.mmolosay.thecolor.domain.model.ColorPrototype
-import io.github.mmolosay.thecolor.presentation.input.impl.model.ColorInput
-import io.github.mmolosay.thecolor.presentation.input.impl.model.isInShortForm
+import io.github.thecolor.presentation.input.api.ColorInput
+import io.github.thecolor.presentation.input.api.isInShortForm
 import javax.inject.Inject
 import io.github.mmolosay.thecolor.domain.model.Color as DomainColor
 
