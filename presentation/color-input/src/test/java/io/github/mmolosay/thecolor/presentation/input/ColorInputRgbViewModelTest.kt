@@ -43,7 +43,9 @@ abstract class ColorInputRgbViewModelTest {
         coEvery { send(color = any(), from = InputType.Rgb) } just runs
     }
     val eventStore: ColorInputEventStore = mockk()
-    val colorInputValidator: ColorInputValidator = mockk()
+    val colorInputValidator: ColorInputValidator = mockk {
+        every { any<ColorInput>().validate() } returns mockk<ColorInputState.Invalid>()
+    }
 
     lateinit var sut: ColorInputRgbViewModel
 
@@ -223,6 +225,8 @@ class Other : ColorInputRgbViewModelTest() {
 
         data.submitColor()
 
-        coVerify(exactly = 1) { eventStore.send(event = ColorInputEvent.Submit) }
+        coVerify(exactly = 1) {
+            eventStore.send(event = ColorInputEvent.Submit)
+        }
     }
 }

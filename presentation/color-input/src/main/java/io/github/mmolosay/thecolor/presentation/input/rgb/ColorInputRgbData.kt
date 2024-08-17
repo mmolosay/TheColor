@@ -12,10 +12,3 @@ data class ColorInputRgbData(
     val bTextField: TextFieldData,
     val submitColor: () -> Unit,
 )
-
-fun ColorInputRgbData.assembleColorInput() =
-    ColorInput.Rgb(
-        r = rTextField.text.string,
-        g = gTextField.text.string,
-        b = bTextField.text.string,
-    )

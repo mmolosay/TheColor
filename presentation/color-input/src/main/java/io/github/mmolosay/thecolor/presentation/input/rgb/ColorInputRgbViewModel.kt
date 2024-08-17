@@ -13,8 +13,10 @@ import io.github.mmolosay.thecolor.presentation.input.field.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.field.TextFieldViewModel
 import io.github.mmolosay.thecolor.presentation.input.field.TextFieldViewModel.Companion.updateWith
+import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputState
 import io.github.mmolosay.thecolor.presentation.input.model.DataState
+import io.github.mmolosay.thecolor.presentation.input.model.FullData
 import io.github.mmolosay.thecolor.presentation.input.model.Update
 import io.github.mmolosay.thecolor.presentation.input.model.asDataState
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
@@ -29,6 +31,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Named
 
+internal typealias FullDataRgb = FullData<ColorInputRgbData, ColorInput.Rgb>
+
 /**
  * Not a ViewModel-ViewModel in terms of Android development.
  * It doesn't derive from [androidx.lifecycle.ViewModel], so should only be used in "real" ViewModels
@@ -42,23 +46,33 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     @Named("uiDataUpdateDispatcher") private val uiDataUpdateDispatcher: CoroutineDispatcher,
 ) {
 
-    private val rTextInputVm = TextFieldViewModel(filterUserInput = ::filterUserInput)
-    private val gTextInputVm = TextFieldViewModel(filterUserInput = ::filterUserInput)
-    private val bTextInputVm = TextFieldViewModel(filterUserInput = ::filterUserInput)
+    private val rTextFieldVm = TextFieldViewModel(filterUserInput = ::filterUserInput)
+    private val gTextFieldVm = TextFieldViewModel(filterUserInput = ::filterUserInput)
+    private val bTextFieldVm = TextFieldViewModel(filterUserInput = ::filterUserInput)
 
-    val dataStateFlow: StateFlow<DataState<ColorInputRgbData>> = combine(
-        rTextInputVm.dataUpdatesFlow,
-        gTextInputVm.dataUpdatesFlow,
-        bTextInputVm.dataUpdatesFlow,
-        ::combineTextInputUpdates,
-    )
-        .onEachNotNull(::onEachDataUpdate)
-        .map { it?.payload.asDataState() }
-        .stateIn(
-            scope = coroutineScope,
-            started = SharingStartedEagerlyAnd(WhileSubscribed(5000)),
-            initialValue = DataState.BeingInitialized,
+    private val fullDataUpdateFlow: StateFlow<Update<FullDataRgb>?> =
+        combine(
+            rTextFieldVm.dataUpdatesFlow,
+            gTextFieldVm.dataUpdatesFlow,
+            bTextFieldVm.dataUpdatesFlow,
+            ::combineTextInputUpdates,
         )
+            .onEachNotNull(::onEachFullDataUpdate)
+            .stateIn(
+                scope = coroutineScope,
+                started = SharingStartedEagerlyAnd(WhileSubscribed(5000)),
+                initialValue = null,
+            )
+
+    val dataStateFlow: StateFlow<DataState<ColorInputRgbData>> =
+        fullDataUpdateFlow
+            .map { update -> update?.payload?.coreData }
+            .map { colorInputRgbData -> colorInputRgbData.asDataState() }
+            .stateIn(
+                scope = coroutineScope,
+                started = SharingStartedEagerlyAnd(WhileSubscribed(5000)),
+                initialValue = DataState.BeingInitialized,
+            )
 
     init {
         collectMediatorUpdates()
@@ -67,9 +81,9 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     private fun collectMediatorUpdates() {
         coroutineScope.launch(uiDataUpdateDispatcher) {
             mediator.rgbColorInputFlow.collect { input ->
-                rTextInputVm updateWith Text(input.r)
-                gTextInputVm updateWith Text(input.g)
-                bTextInputVm updateWith Text(input.b)
+                rTextFieldVm updateWith Text(input.r)
+                gTextFieldVm updateWith Text(input.g)
+                bTextFieldVm updateWith Text(input.b)
             }
         }
     }
@@ -98,31 +112,32 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         r: Update<TextFieldData>?,
         g: Update<TextFieldData>?,
         b: Update<TextFieldData>?,
-    ): Update<ColorInputRgbData>? {
+    ): Update<FullDataRgb>? {
         if (r == null || g == null || b == null) return null
-        val data = makeData(r.payload, g.payload, b.payload)
-        return data causedByUser listOf(r, g, b).any { it.causedByUser }
-    }
-
-    private fun makeData(
-        rTextField: TextFieldData,
-        gTextField: TextFieldData,
-        bTextField: TextFieldData,
-    ) =
-        ColorInputRgbData(
-            rTextField = rTextField,
-            gTextField = gTextField,
-            bTextField = bTextField,
+        val coreData = ColorInputRgbData(
+            rTextField = r.payload,
+            gTextField = g.payload,
+            bTextField = b.payload,
             submitColor = ::sendProceedEvent,
         )
+        val colorInput = ColorInput.Rgb(
+            r = r.payload.text.string,
+            g = g.payload.text.string,
+            b = b.payload.text.string,
+        )
+        val inputState = with(colorInputValidator) { colorInput.validate() }
+        val fullData = FullDataRgb(
+            coreData = coreData,
+            colorInput = colorInput,
+            colorInputState = inputState,
+        )
+        return fullData causedByUser listOf(r, g, b).any { it.causedByUser }
+    }
 
-    private fun onEachDataUpdate(update: Update<ColorInputRgbData>) {
+    private fun onEachFullDataUpdate(update: Update<FullDataRgb>) {
         // don't synchronize this update with other Views to avoid update loop
         if (!update.causedByUser) return
-        val uiData = update.payload
-        val input = uiData.assembleColorInput()
-        val inputState = with(colorInputValidator) { input.validate() }
-        val parsedColor = (inputState as? ColorInputState.Valid)?.color
+        val parsedColor = (update.payload.colorInputState as? ColorInputState.Valid)?.color
         coroutineScope.launch(uiDataUpdateDispatcher) {
             mediator.send(color = parsedColor, from = InputType.Rgb)
         }
