@@ -16,6 +16,7 @@ import io.github.mmolosay.thecolor.presentation.input.field.TextFieldViewModel.C
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputState
 import io.github.mmolosay.thecolor.presentation.input.model.DataState
+import io.github.mmolosay.thecolor.presentation.input.model.FullData
 import io.github.mmolosay.thecolor.presentation.input.model.Update
 import io.github.mmolosay.thecolor.presentation.input.model.asDataState
 import io.github.mmolosay.thecolor.presentation.input.model.map
@@ -28,6 +29,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Named
+
+internal typealias FullDataHex = FullData<ColorInputHexData, ColorInput.Hex>
 
 /**
  * Not a ViewModel-ViewModel in terms of Android development.
@@ -44,7 +47,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
 
     private val textFieldVm = TextFieldViewModel(filterUserInput = ::filterUserInput)
 
-    private val fullDataUpdateFlow: StateFlow<Update<FullData>?> =
+    private val fullDataUpdateFlow: StateFlow<Update<FullDataHex>?> =
         textFieldVm.dataUpdatesFlow
             .map { update -> update?.map(::makeFullData) }
             .onEachNotNull(::onEachFullDataUpdate)
@@ -76,7 +79,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
         }
     }
 
-    private fun onEachFullDataUpdate(update: Update<FullData>) {
+    private fun onEachFullDataUpdate(update: Update<FullDataHex>) {
         // don't synchronize this update with other Views to avoid update loop
         if (!update.causedByUser) return
         val parsedColor = (update.payload.colorInputState as? ColorInputState.Valid)?.color
@@ -98,7 +101,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
         }
     }
 
-    private fun makeFullData(textField: TextFieldData): FullData {
+    private fun makeFullData(textField: TextFieldData): FullDataHex {
         val coreData = ColorInputHexData(
             textField = textField,
             submitColor = ::sendProceedEvent,
@@ -125,15 +128,3 @@ class ColorInputHexViewModel @AssistedInject constructor(
         const val MAX_SYMBOLS_IN_HEX_COLOR = 6
     }
 }
-
-
-/**
- * Couples a [coreData] data which is exposed from ViewModel with various values that are
- * produced from this [coreData] data.
- * This is a convenience class that keeps close "source" data and cached values obtained from it.
- */
-private data class FullData(
-    val coreData: ColorInputHexData,
-    val colorInput: ColorInput.Hex,
-    val colorInputState: ColorInputState,
-)
