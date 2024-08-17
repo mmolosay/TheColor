@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "io.github.mmolosay.thecolor.presentation.home"
+    namespace = "io.github.mmolosay.thecolor.presentation.input.impl"
     compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
@@ -19,6 +19,7 @@ android {
         }
     }
     buildFeatures {
+        viewBinding = true
         compose = true
     }
 
@@ -45,12 +46,6 @@ dependencies {
     implementation(project(":utils"))
     implementation(project(":presentation:common"))
     implementation(project(":presentation:design-system"))
-    implementation(project(":presentation:color-input:impl"))
-    implementation(project(":presentation:color-preview"))
-    implementation(project(":presentation:color-center"))
-    implementation(project(":presentation:color-details"))
-    implementation(project(":presentation:color-scheme"))
-    implementation(project(":presentation:settings"))
 
     // Kotlin
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.coroutines.get()}")
@@ -58,13 +53,6 @@ dependencies {
     // Jetpack
     implementation("androidx.core:core-ktx:${libs.versions.androidx.core.coreKtx.get()}")
     implementation("androidx.appcompat:appcompat:${libs.versions.androidx.appcompat.get()}")
-    implementation("androidx.fragment:fragment-ktx:1.6.2")
-
-    implementation("androidx.constraintlayout:constraintlayout:2.1.1")
-    implementation("androidx.recyclerview:recyclerview:1.2.1")
-
-    implementation("androidx.navigation:navigation-fragment-ktx:2.4.1")
-    implementation("androidx.navigation:navigation-ui-ktx:2.4.1")
 
     // Compose
     val composeBom = platform("androidx.compose:compose-bom:${libs.versions.compose.bom.get()}")
@@ -82,16 +70,8 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
 
-    // Material
-    implementation("com.google.android.material:material:1.6.0-alpha02")
-
-    // Animations
-    implementation("androidx.dynamicanimation:dynamicanimation:1.0.0")
-
     // Third Party Libraries
     implementation("com.michael-bull.kotlin-result:kotlin-result:1.1.12")
-    implementation("com.facebook.shimmer:shimmer:0.5.0")
-    implementation("io.github.mmolosay:debounce:${libs.versions.mmolosayDebounce.get()}")
 
     // Hilt
     implementation("com.google.dagger:hilt-android:${libs.versions.hilt.get()}")

@@ -11,7 +11,7 @@ import io.github.mmolosay.thecolor.presentation.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.ColorRole
 import io.github.mmolosay.thecolor.presentation.home.HomeData.CanProceed
 import io.github.mmolosay.thecolor.presentation.home.HomeData.ColorData
-import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
+import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
