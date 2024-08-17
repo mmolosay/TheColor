@@ -1,13 +1,13 @@
 package io.github.mmolosay.thecolor.presentation.input.impl
 
-import io.github.mmolosay.thecolor.presentation.ColorInputEvent
-import io.github.mmolosay.thecolor.presentation.ColorInputEventStore
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator.InputType
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexData
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexViewModel
-import io.github.thecolor.presentation.input.api.ColorInput
-import io.github.thecolor.presentation.input.api.ColorInputState
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
 import io.kotest.matchers.should

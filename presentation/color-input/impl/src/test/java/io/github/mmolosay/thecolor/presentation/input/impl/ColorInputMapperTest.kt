@@ -2,7 +2,7 @@ package io.github.mmolosay.thecolor.presentation.input.impl
 
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.ColorPrototype
-import io.github.thecolor.presentation.input.api.ColorInput
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
 import io.kotest.matchers.shouldBe
 import org.junit.Test
 

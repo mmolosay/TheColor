@@ -5,14 +5,14 @@ import io.github.mmolosay.thecolor.presentation.ColorCenterCommand
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommandStore
 import io.github.mmolosay.thecolor.presentation.ColorCenterEvent
 import io.github.mmolosay.thecolor.presentation.ColorCenterEventStore
-import io.github.mmolosay.thecolor.presentation.ColorInputColorStore
-import io.github.mmolosay.thecolor.presentation.ColorInputEvent
-import io.github.mmolosay.thecolor.presentation.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.ColorRole
 import io.github.mmolosay.thecolor.presentation.home.HomeData.CanProceed
 import io.github.mmolosay.thecolor.presentation.home.HomeData.ColorData
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType

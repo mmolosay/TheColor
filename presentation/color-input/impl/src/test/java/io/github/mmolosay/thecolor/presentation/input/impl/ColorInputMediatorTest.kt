@@ -3,9 +3,9 @@ package io.github.mmolosay.thecolor.presentation.input.impl
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.domain.usecase.GetInitialColorUseCase
-import io.github.mmolosay.thecolor.presentation.ColorInputColorStore
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator.InputType
-import io.github.thecolor.presentation.input.api.ColorInput
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe

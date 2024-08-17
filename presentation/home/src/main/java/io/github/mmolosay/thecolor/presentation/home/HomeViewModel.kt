@@ -12,10 +12,6 @@ import io.github.mmolosay.thecolor.presentation.ColorCenterCommand
 import io.github.mmolosay.thecolor.presentation.ColorCenterCommandStore
 import io.github.mmolosay.thecolor.presentation.ColorCenterEvent
 import io.github.mmolosay.thecolor.presentation.ColorCenterEventStore
-import io.github.mmolosay.thecolor.presentation.ColorInputColorProvider
-import io.github.mmolosay.thecolor.presentation.ColorInputColorStore
-import io.github.mmolosay.thecolor.presentation.ColorInputEvent
-import io.github.mmolosay.thecolor.presentation.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.ColorRole
 import io.github.mmolosay.thecolor.presentation.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
@@ -23,6 +19,10 @@ import io.github.mmolosay.thecolor.presentation.home.HomeData.CanProceed
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputViewModel
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorProvider
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

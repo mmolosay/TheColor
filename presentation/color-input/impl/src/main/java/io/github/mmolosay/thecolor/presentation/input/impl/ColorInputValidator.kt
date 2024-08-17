@@ -1,10 +1,10 @@
 package io.github.mmolosay.thecolor.presentation.input.impl
 
 import io.github.mmolosay.thecolor.domain.usecase.ColorFactory
-import io.github.thecolor.presentation.input.api.ColorInput
-import io.github.thecolor.presentation.input.api.ColorInputState
-import io.github.thecolor.presentation.input.api.isInFullForm
-import io.github.thecolor.presentation.input.api.isInShortForm
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
+import io.github.mmolosay.thecolor.presentation.input.api.isInFullForm
+import io.github.mmolosay.thecolor.presentation.input.api.isInShortForm
 import javax.inject.Inject
 import javax.inject.Singleton
 
