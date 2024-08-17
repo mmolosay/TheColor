@@ -74,28 +74,6 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         }
     }
 
-    private fun combineTextInputUpdates(
-        r: Update<TextFieldData>?,
-        g: Update<TextFieldData>?,
-        b: Update<TextFieldData>?,
-    ): Update<ColorInputRgbData>? {
-        if (r == null || g == null || b == null) return null
-        val data = makeData(r.payload, g.payload, b.payload)
-        return data causedByUser listOf(r, g, b).any { it.causedByUser }
-    }
-
-    private fun onEachDataUpdate(update: Update<ColorInputRgbData>) {
-        // don't synchronize this update with other Views to avoid update loop
-        if (!update.causedByUser) return
-        val uiData = update.payload
-        val input = uiData.assembleColorInput()
-        val inputState = with(colorInputValidator) { input.validate() }
-        val parsedColor = (inputState as? ColorInputState.Valid)?.color
-        coroutineScope.launch(uiDataUpdateDispatcher) {
-            mediator.send(color = parsedColor, from = InputType.Rgb)
-        }
-    }
-
     private fun filterUserInput(input: String): Text =
         input
             .filter { it.isDigit() }
@@ -116,6 +94,16 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         }
     }
 
+    private fun combineTextInputUpdates(
+        r: Update<TextFieldData>?,
+        g: Update<TextFieldData>?,
+        b: Update<TextFieldData>?,
+    ): Update<ColorInputRgbData>? {
+        if (r == null || g == null || b == null) return null
+        val data = makeData(r.payload, g.payload, b.payload)
+        return data causedByUser listOf(r, g, b).any { it.causedByUser }
+    }
+
     private fun makeData(
         rTextField: TextFieldData,
         gTextField: TextFieldData,
@@ -127,6 +115,18 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             bTextField = bTextField,
             submitColor = ::sendProceedEvent,
         )
+
+    private fun onEachDataUpdate(update: Update<ColorInputRgbData>) {
+        // don't synchronize this update with other Views to avoid update loop
+        if (!update.causedByUser) return
+        val uiData = update.payload
+        val input = uiData.assembleColorInput()
+        val inputState = with(colorInputValidator) { input.validate() }
+        val parsedColor = (inputState as? ColorInputState.Valid)?.color
+        coroutineScope.launch(uiDataUpdateDispatcher) {
+            mediator.send(color = parsedColor, from = InputType.Rgb)
+        }
+    }
 
     @AssistedFactory
     fun interface Factory {

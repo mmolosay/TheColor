@@ -79,15 +79,6 @@ class ColorInputHexViewModel @AssistedInject constructor(
         }
     }
 
-    private fun onEachFullDataUpdate(update: Update<FullDataHex>) {
-        // don't synchronize this update with other Views to avoid update loop
-        if (!update.causedByUser) return
-        val parsedColor = (update.payload.colorInputState as? ColorInputState.Valid)?.color
-        coroutineScope.launch(uiDataUpdateDispatcher) {
-            mediator.send(color = parsedColor, from = InputType.Hex)
-        }
-    }
-
     private fun filterUserInput(input: String): Text =
         input
             .uppercase()
@@ -113,6 +104,15 @@ class ColorInputHexViewModel @AssistedInject constructor(
             colorInput = colorInput,
             colorInputState = inputState,
         )
+    }
+
+    private fun onEachFullDataUpdate(update: Update<FullDataHex>) {
+        // don't synchronize this update with other Views to avoid update loop
+        if (!update.causedByUser) return
+        val parsedColor = (update.payload.colorInputState as? ColorInputState.Valid)?.color
+        coroutineScope.launch(uiDataUpdateDispatcher) {
+            mediator.send(color = parsedColor, from = InputType.Hex)
+        }
     }
 
     @AssistedFactory
