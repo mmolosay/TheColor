@@ -52,7 +52,7 @@ class ColorInputMediatorTest {
     }
 
     val colorInputColorStore: ColorInputColorStore = mockk {
-        coEvery { updateWith(any()) } just runs
+        coEvery { set(any()) } just runs
     }
 
     lateinit var sut: ColorInputMediator
@@ -116,7 +116,7 @@ class ColorInputMediatorTest {
             sut.init()
 
             coVerify {
-                colorInputColorStore.updateWith(color = initialColor)
+                colorInputColorStore.set(color = initialColor)
             }
         }
 
@@ -239,7 +239,7 @@ class ColorInputMediatorTest {
 
             sut.send(color = null, from = null)
 
-            verify { colorInputColorStore.updateWith(color = null) }
+            verify { colorInputColorStore.set(color = null) }
         }
 
     @Test
@@ -252,7 +252,7 @@ class ColorInputMediatorTest {
 
             sut.send(color = sentColor, from = null)
 
-            verify { colorInputColorStore.updateWith(sentColor) }
+            verify { colorInputColorStore.set(sentColor) }
         }
 
     fun createSut() =

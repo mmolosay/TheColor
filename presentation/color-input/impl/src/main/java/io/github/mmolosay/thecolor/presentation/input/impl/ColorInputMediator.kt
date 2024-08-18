@@ -90,7 +90,7 @@ class ColorInputMediator @AssistedInject constructor(
         from: InputType?,
     ) {
         lastSourceInputType = from
-        colorInputColorStore.updateWith(color)
+        colorInputColorStore.set(color)
         colorStateFlow.emit(color.toState())
     }
 
