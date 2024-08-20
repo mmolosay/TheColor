@@ -3,8 +3,8 @@ package io.github.mmolosay.thecolor.presentation.center
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.presentation.impl.ColorCenterCommandProvider
-import io.github.mmolosay.thecolor.presentation.impl.ColorCenterEventStore
+import io.github.mmolosay.thecolor.presentation.api.ColorCenterCommandProvider
+import io.github.mmolosay.thecolor.presentation.api.ColorCenterEventStore
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterData.ChangePageEvent
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
@@ -22,8 +22,8 @@ import kotlinx.coroutines.flow.update
  */
 class ColorCenterViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted colorCenterCommandProvider: ColorCenterCommandProvider,
-    @Assisted colorCenterEventStore: ColorCenterEventStore,
+    @Assisted colorCenterCommandProvider: io.github.mmolosay.thecolor.presentation.api.ColorCenterCommandProvider,
+    @Assisted colorCenterEventStore: io.github.mmolosay.thecolor.presentation.api.ColorCenterEventStore,
     colorDetailsViewModelFactory: ColorDetailsViewModel.Factory,
     colorSchemeViewModelFactory: ColorSchemeViewModel.Factory,
 ) {
@@ -72,8 +72,8 @@ class ColorCenterViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            colorCenterCommandProvider: ColorCenterCommandProvider,
-            colorCenterEventStore: ColorCenterEventStore,
+            colorCenterCommandProvider: io.github.mmolosay.thecolor.presentation.api.ColorCenterCommandProvider,
+            colorCenterEventStore: io.github.mmolosay.thecolor.presentation.api.ColorCenterEventStore,
         ): ColorCenterViewModel
     }
 }

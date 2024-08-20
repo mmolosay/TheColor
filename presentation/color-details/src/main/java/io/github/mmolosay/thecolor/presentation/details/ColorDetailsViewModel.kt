@@ -7,10 +7,10 @@ import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.result.onFailure
 import io.github.mmolosay.thecolor.domain.result.onSuccess
 import io.github.mmolosay.thecolor.domain.usecase.GetColorDetailsUseCase
-import io.github.mmolosay.thecolor.presentation.impl.ColorCenterCommand
-import io.github.mmolosay.thecolor.presentation.impl.ColorCenterCommandProvider
-import io.github.mmolosay.thecolor.presentation.impl.ColorCenterEvent
-import io.github.mmolosay.thecolor.presentation.impl.ColorCenterEventStore
+import io.github.mmolosay.thecolor.presentation.api.ColorCenterCommand
+import io.github.mmolosay.thecolor.presentation.api.ColorCenterCommandProvider
+import io.github.mmolosay.thecolor.presentation.api.ColorCenterEvent
+import io.github.mmolosay.thecolor.presentation.api.ColorCenterEventStore
 import io.github.mmolosay.thecolor.presentation.api.ColorRole
 import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.ExactMatch

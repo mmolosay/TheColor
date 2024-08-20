@@ -8,10 +8,10 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
-import io.github.mmolosay.thecolor.presentation.impl.ColorCenterCommand
-import io.github.mmolosay.thecolor.presentation.impl.ColorCenterCommandStore
-import io.github.mmolosay.thecolor.presentation.impl.ColorCenterEvent
-import io.github.mmolosay.thecolor.presentation.impl.ColorCenterEventStore
+import io.github.mmolosay.thecolor.presentation.api.ColorCenterCommand
+import io.github.mmolosay.thecolor.presentation.api.ColorCenterCommandStore
+import io.github.mmolosay.thecolor.presentation.api.ColorCenterEvent
+import io.github.mmolosay.thecolor.presentation.api.ColorCenterEventStore
 import io.github.mmolosay.thecolor.presentation.api.ColorRole
 import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel

@@ -1,7 +1,6 @@
-package io.github.mmolosay.thecolor.presentation.impl
+package io.github.mmolosay.thecolor.presentation.api
 
 import io.github.mmolosay.thecolor.domain.model.Color
-import io.github.mmolosay.thecolor.presentation.api.ColorRole
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -27,7 +26,7 @@ interface ColorCenterCommandProvider {
 
 sealed interface ColorCenterCommand {
 
-    /** Update a component (color details, color scheme) with new data. */
+    /** Update a feature (color details, color scheme) with new data. */
     data class FetchData(
         val color: Color,
         val colorRole: ColorRole?,
