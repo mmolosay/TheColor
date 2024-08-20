@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation
+package io.github.mmolosay.thecolor.presentation.impl
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.Density

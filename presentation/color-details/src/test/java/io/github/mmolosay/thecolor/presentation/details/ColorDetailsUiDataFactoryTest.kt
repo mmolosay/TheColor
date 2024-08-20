@@ -1,7 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.details
 
 import androidx.compose.ui.graphics.Color
-import io.github.mmolosay.thecolor.presentation.ColorInt
+import io.github.mmolosay.thecolor.presentation.impl.ColorInt
 import io.kotest.matchers.shouldBe
 import org.junit.Test
 import org.junit.runner.RunWith

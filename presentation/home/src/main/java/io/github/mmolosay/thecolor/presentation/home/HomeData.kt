@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.home
 
-import io.github.mmolosay.thecolor.presentation.ColorInt
+import io.github.mmolosay.thecolor.presentation.impl.ColorInt
 import io.github.mmolosay.thecolor.presentation.home.HomeData.Models
 
 /**

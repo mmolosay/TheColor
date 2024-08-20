@@ -28,8 +28,8 @@ import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.home.HomeUiData.ColorPreviewState
-import io.github.mmolosay.thecolor.presentation.toDpOffset
-import io.github.mmolosay.thecolor.presentation.toDpSize
+import io.github.mmolosay.thecolor.presentation.impl.toDpOffset
+import io.github.mmolosay.thecolor.presentation.impl.toDpSize
 
 @Composable
 internal fun AnimatedColorPreview(

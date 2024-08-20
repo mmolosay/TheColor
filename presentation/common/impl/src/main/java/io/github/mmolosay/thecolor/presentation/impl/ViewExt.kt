@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation
+package io.github.mmolosay.thecolor.presentation.impl
 
 import android.graphics.Point
 import android.view.View

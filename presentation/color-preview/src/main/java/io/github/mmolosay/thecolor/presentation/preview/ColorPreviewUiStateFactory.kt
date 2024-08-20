@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.preview
 
-import io.github.mmolosay.thecolor.presentation.toCompose
+import io.github.mmolosay.thecolor.presentation.impl.toCompose
 
 fun ColorPreviewUiState(
     data: ColorPreviewData,

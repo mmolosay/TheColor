@@ -24,7 +24,7 @@ include(":data")
 
 include(":main")
 include(":app")
-include(":presentation:common")
+include(":presentation:common:impl")
 include(":presentation:design-system")
 include(":presentation:errors")
 

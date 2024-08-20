@@ -3,7 +3,7 @@ package io.github.mmolosay.thecolor.presentation.preview
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.presentation.ColorToColorIntUseCase
+import io.github.mmolosay.thecolor.presentation.impl.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted

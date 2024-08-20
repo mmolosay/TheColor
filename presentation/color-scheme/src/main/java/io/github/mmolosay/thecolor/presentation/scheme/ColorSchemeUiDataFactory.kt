@@ -8,7 +8,7 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.SwatchC
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiDataComponents.OnModeSelect
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiDataComponents.OnSwatchClick
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiDataComponents.OnSwatchCountSelect
-import io.github.mmolosay.thecolor.presentation.toCompose
+import io.github.mmolosay.thecolor.presentation.impl.toCompose
 import org.jetbrains.annotations.VisibleForTesting
 
 fun ColorSchemeUiData(

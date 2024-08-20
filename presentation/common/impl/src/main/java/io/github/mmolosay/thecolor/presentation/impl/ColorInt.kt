@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation
+package io.github.mmolosay.thecolor.presentation.impl
 
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter

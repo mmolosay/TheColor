@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.home
 
-import io.github.mmolosay.thecolor.presentation.ConsumableNavEvent
+import io.github.mmolosay.thecolor.presentation.impl.ConsumableNavEvent
 
 /**
  * A family of navigation events that may occur in home View.

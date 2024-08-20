@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.home
 
-import io.github.mmolosay.thecolor.presentation.toCompose
+import io.github.mmolosay.thecolor.presentation.impl.toCompose
 
 fun HomeUiData(
     data: HomeData,

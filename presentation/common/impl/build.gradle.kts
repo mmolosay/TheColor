@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "io.github.mmolosay.thecolor.presentation"
+    namespace = "io.github.mmolosay.thecolor.presentation.impl"
     compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {

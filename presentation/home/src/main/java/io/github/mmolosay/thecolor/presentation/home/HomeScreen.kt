@@ -55,8 +55,8 @@ import io.github.mmolosay.thecolor.presentation.home.HomeUiData.ProceedButton
 import io.github.mmolosay.thecolor.presentation.home.HomeUiData.ShowColorCenter
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInput
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreview
-import io.github.mmolosay.thecolor.presentation.toDpOffset
-import io.github.mmolosay.thecolor.presentation.toDpSize
+import io.github.mmolosay.thecolor.presentation.impl.toDpOffset
+import io.github.mmolosay.thecolor.presentation.impl.toDpSize
 
 @Composable
 fun HomeScreen(

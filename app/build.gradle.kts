@@ -52,7 +52,7 @@ dependencies {
     implementation(project(":utils"))
     implementation(project(":main"))
     implementation(project(":presentation:design-system"))
-    implementation(project(":presentation:common"))
+    implementation(project(":presentation:common:impl"))
     implementation(project(":presentation:home"))
     implementation(project(":presentation:settings"))
 

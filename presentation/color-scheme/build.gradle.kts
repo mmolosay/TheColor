@@ -44,7 +44,7 @@ dependencies {
     // Modules
     implementation(project(":domain"))
     implementation(project(":utils"))
-    implementation(project(":presentation:common"))
+    implementation(project(":presentation:common:impl"))
     implementation(project(":presentation:design-system"))
     implementation(project(":presentation:errors"))
 

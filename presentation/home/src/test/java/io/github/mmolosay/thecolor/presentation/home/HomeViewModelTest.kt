@@ -1,11 +1,11 @@
 package io.github.mmolosay.thecolor.presentation.home
 
 import io.github.mmolosay.thecolor.domain.model.Color
-import io.github.mmolosay.thecolor.presentation.ColorCenterCommand
-import io.github.mmolosay.thecolor.presentation.ColorCenterCommandStore
-import io.github.mmolosay.thecolor.presentation.ColorCenterEvent
-import io.github.mmolosay.thecolor.presentation.ColorCenterEventStore
-import io.github.mmolosay.thecolor.presentation.ColorRole
+import io.github.mmolosay.thecolor.presentation.impl.ColorCenterCommand
+import io.github.mmolosay.thecolor.presentation.impl.ColorCenterCommandStore
+import io.github.mmolosay.thecolor.presentation.impl.ColorCenterEvent
+import io.github.mmolosay.thecolor.presentation.impl.ColorCenterEventStore
+import io.github.mmolosay.thecolor.presentation.impl.ColorRole
 import io.github.mmolosay.thecolor.presentation.home.HomeData.CanProceed
 import io.github.mmolosay.thecolor.presentation.home.HomeData.ColorData
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator

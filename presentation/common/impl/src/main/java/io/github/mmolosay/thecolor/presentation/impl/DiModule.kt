@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation
+package io.github.mmolosay.thecolor.presentation.impl
 
 import dagger.Module
 import dagger.hilt.InstallIn
