@@ -9,9 +9,8 @@ import io.github.mmolosay.thecolor.presentation.impl.ColorCenterCommand
 import io.github.mmolosay.thecolor.presentation.impl.ColorCenterCommandProvider
 import io.github.mmolosay.thecolor.presentation.impl.ColorCenterEvent
 import io.github.mmolosay.thecolor.presentation.impl.ColorCenterEventStore
-import io.github.mmolosay.thecolor.presentation.impl.ColorInt
-import io.github.mmolosay.thecolor.presentation.impl.ColorRole
-import io.github.mmolosay.thecolor.presentation.impl.ColorToColorIntUseCase
+import io.github.mmolosay.thecolor.presentation.api.ColorRole
+import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel.DataState
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -222,7 +221,7 @@ class ColorDetailsViewModelTest {
     fun `emission of 'fetch data' command with color type 'exact' results in present initial color data with correct color value`() =
         runTest(mainDispatcherRule.testDispatcher) {
             val initialColor = Color.Hex(0x1A803F)
-            val initialColorInt = ColorInt(0x1A803F)
+            val initialColorInt = io.github.mmolosay.thecolor.presentation.api.ColorInt(0x1A803F)
             val exactColor = Color.Hex(0x123456)
             val commandFlow = MutableSharedFlow<ColorCenterCommand>()
             every { commandProvider.commandFlow } returns commandFlow
@@ -263,7 +262,7 @@ class ColorDetailsViewModelTest {
     fun `invoking 'go to initial color' sends appropriate event to color center event store`() =
         runTest(mainDispatcherRule.testDispatcher) {
             val initialColor = Color.Hex(0x1A803F)
-            val initialColorInt = ColorInt(0x1A803F)
+            val initialColorInt = io.github.mmolosay.thecolor.presentation.api.ColorInt(0x1A803F)
             val exactColor = Color.Hex(0x123456)
             val commandFlow = MutableSharedFlow<ColorCenterCommand>()
             every { commandProvider.commandFlow } returns commandFlow

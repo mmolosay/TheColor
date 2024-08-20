@@ -5,7 +5,7 @@ import io.github.mmolosay.thecolor.presentation.impl.ColorCenterCommand
 import io.github.mmolosay.thecolor.presentation.impl.ColorCenterCommandStore
 import io.github.mmolosay.thecolor.presentation.impl.ColorCenterEvent
 import io.github.mmolosay.thecolor.presentation.impl.ColorCenterEventStore
-import io.github.mmolosay.thecolor.presentation.impl.ColorRole
+import io.github.mmolosay.thecolor.presentation.api.ColorRole
 import io.github.mmolosay.thecolor.presentation.home.HomeData.CanProceed
 import io.github.mmolosay.thecolor.presentation.home.HomeData.ColorData
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator

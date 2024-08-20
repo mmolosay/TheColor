@@ -10,7 +10,7 @@ import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase.Request
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
 import io.github.mmolosay.thecolor.presentation.impl.ColorCenterCommand
 import io.github.mmolosay.thecolor.presentation.impl.ColorCenterCommandProvider
-import io.github.mmolosay.thecolor.presentation.impl.ColorToColorIntUseCase
+import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Changes
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.SwatchCount
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.DataState

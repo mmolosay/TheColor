@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.impl
+package io.github.mmolosay.thecolor.presentation.api
 
 /**
  * Depicts a role of a color in relation to some other color (usually the current one).

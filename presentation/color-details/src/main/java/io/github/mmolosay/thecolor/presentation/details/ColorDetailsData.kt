@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.details
 
-import io.github.mmolosay.thecolor.presentation.impl.ColorInt
+import io.github.mmolosay.thecolor.presentation.api.ColorInt
 
 /**
  * Platform-agnostic data provided by ViewModel to color details View.
@@ -49,7 +49,7 @@ data class ColorDetailsData(
         data object Yes : ExactMatch
         data class No(
             val exactValue: String,
-            val exactColor: ColorInt,
+            val exactColor: io.github.mmolosay.thecolor.presentation.api.ColorInt,
             val goToExactColor: () -> Unit,
             val deviation: String,
         ) : ExactMatch
@@ -61,7 +61,7 @@ data class ColorDetailsData(
      * where the "exact" color was clicked.
      */
     data class InitialColorData(
-        val initialColor: ColorInt,
+        val initialColor: io.github.mmolosay.thecolor.presentation.api.ColorInt,
         val goToInitialColor: () -> Unit,
     )
 }

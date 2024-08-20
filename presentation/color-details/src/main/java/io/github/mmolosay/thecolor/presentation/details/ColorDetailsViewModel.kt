@@ -11,8 +11,8 @@ import io.github.mmolosay.thecolor.presentation.impl.ColorCenterCommand
 import io.github.mmolosay.thecolor.presentation.impl.ColorCenterCommandProvider
 import io.github.mmolosay.thecolor.presentation.impl.ColorCenterEvent
 import io.github.mmolosay.thecolor.presentation.impl.ColorCenterEventStore
-import io.github.mmolosay.thecolor.presentation.impl.ColorRole
-import io.github.mmolosay.thecolor.presentation.impl.ColorToColorIntUseCase
+import io.github.mmolosay.thecolor.presentation.api.ColorRole
+import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.ExactMatch
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.InitialColorData
 import io.github.mmolosay.thecolor.presentation.errors.toErrorType
