@@ -3,8 +3,10 @@ package io.github.mmolosay.thecolor.presentation.input.impl.hex
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator.InputType
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputValidator
@@ -13,8 +15,6 @@ import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewModel
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewModel.Companion.updateWith
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.impl.model.FullData
 import io.github.mmolosay.thecolor.presentation.input.impl.model.Update
@@ -86,16 +86,21 @@ class ColorInputHexViewModel @AssistedInject constructor(
             .take(MAX_SYMBOLS_IN_HEX_COLOR)
             .let { Text(it) }
 
-    private fun sendProceedEvent() {
+    private fun sendSubmitEvent() {
+        val data = requireNotNull(fullDataUpdateFlow.value?.payload)
         coroutineScope.launch {
-            eventStore.send(ColorInputEvent.Submit)
+            val event = ColorInputEvent.Submit(
+                colorInput = data.colorInput,
+                colorInputState = data.colorInputState,
+            )
+            eventStore.send(event)
         }
     }
 
     private fun makeFullData(textField: TextFieldData): FullDataHex {
         val coreData = ColorInputHexData(
             textField = textField,
-            submitColor = ::sendProceedEvent,
+            submitColor = ::sendSubmitEvent,
         )
         val colorInput = ColorInput.Hex(string = textField.text.string)
         val inputState = with(colorInputValidator) { colorInput.validate() }

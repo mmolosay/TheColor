@@ -13,6 +13,7 @@ import io.github.mmolosay.thecolor.testing.MainDispatcherRule
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
@@ -143,7 +144,7 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `when receiving a 'Sumbit' event from Color Input, 'proceed' action is invoked, thus 'FetchData' command is issued to Color Center`() =
+    fun `when receiving a 'Sumbit' event from Color Input with 'Valid' color input state, then 'proceed' action is invoked, thus 'FetchData' command is issued to Color Center`() =
         runTest(mainDispatcherRule.testDispatcher) {
             // initial models don't matter
             every { getInitialModels() } returns initialModels(
@@ -157,13 +158,17 @@ class HomeViewModelTest {
             coEvery { colorCenterCommandStore.issue(command = any()) } just runs
             createSut()
 
-            eventsFlow.emit(ColorInputEvent.Submit)
+            val event = ColorInputEvent.Submit(
+                colorInput = mockk(),
+                colorInputState = ColorInputState.Valid(color = mockk()),
+            )
+            eventsFlow.emit(event)
 
             coVerify { colorCenterCommandStore.issue(command = any<ColorCenterCommand.FetchData>()) }
         }
 
     @Test
-    fun `when receiving a 'Submit' event from Color Input, 'proceed' action is invoked, thus 'colorUsedToProceed' is updated`() =
+    fun `when receiving a 'Submit' event from Color Input with 'Valid' color input state, then 'proceed' action is invoked, thus 'colorUsedToProceed' is updated`() =
         runTest(mainDispatcherRule.testDispatcher) {
             // initial models don't matter
             every { getInitialModels() } returns initialModels(
@@ -178,7 +183,11 @@ class HomeViewModelTest {
             every { createColorFromColorInput(color = any()) } returns colorUsedToProceed
             createSut()
 
-            eventsFlow.emit(ColorInputEvent.Submit)
+            val event = ColorInputEvent.Submit(
+                colorInput = mockk(),
+                colorInputState = ColorInputState.Valid(color = mockk()),
+            )
+            eventsFlow.emit(event)
 
             data.colorUsedToProceed shouldBe colorUsedToProceed
         }

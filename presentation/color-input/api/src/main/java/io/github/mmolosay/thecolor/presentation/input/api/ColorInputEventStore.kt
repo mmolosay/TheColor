@@ -27,6 +27,10 @@ interface ColorInputEventProvider {
  * Event that originates in Color Input feature and is broadcast to outside.
  */
 sealed interface ColorInputEvent {
+
     /** Submit current color for a further processing outside of Color Input scope. */
-    data object Submit : ColorInputEvent
+    data class Submit(
+        val colorInput: ColorInput,
+        val colorInputState: ColorInputState,
+    ) : ColorInputEvent
 }

@@ -226,7 +226,7 @@ class Other : ColorInputRgbViewModelTest() {
         data.submitColor()
 
         coVerify(exactly = 1) {
-            eventStore.send(event = ColorInputEvent.Submit)
+            eventStore.send(event = any<ColorInputEvent.Submit>())
         }
     }
 }

@@ -9,6 +9,7 @@ sealed interface Color {
      * Color in no particular color space.
      * Serves as an adapter between different color spaces.
      */
+    // TODO: abolish?
     data class Abstract internal constructor(internal val int: Int) : Color
 
     /**

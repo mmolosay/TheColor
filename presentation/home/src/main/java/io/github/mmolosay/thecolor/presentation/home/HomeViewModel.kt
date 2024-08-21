@@ -23,6 +23,7 @@ import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorProvide
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -127,8 +128,14 @@ class HomeViewModel @Inject constructor(
 
     private fun onEventFromColorInput(event: ColorInputEvent) {
         when (event) {
-            is ColorInputEvent.Submit ->
-                proceed(colorRole = null) // standalone color
+            is ColorInputEvent.Submit -> {
+                val inputState = event.colorInputState // defining a variable enables smart-cast
+                if (inputState is ColorInputState.Valid) {
+                    proceed(inputState.color, null)
+                } else {
+                // TODO: update exposed data to notify UI
+                }
+            }
         }
     }
 
@@ -145,9 +152,14 @@ class HomeViewModel @Inject constructor(
     private fun proceed(
         colorRole: ColorRole?,
     ) {
-        // TODO: add handling of case with no valid color in color input when color is
-        //  submitted via IME keyboard action, so that user is notified
         val color = colorInputColorStore.colorFlow.value ?: return
+        proceed(color, colorRole)
+    }
+
+    private fun proceed(
+        color: Color,
+        colorRole: ColorRole?,
+    ) {
         val command = ColorCenterCommand.FetchData(color, colorRole)
         viewModelScope.launch(defaultDispatcher) {
             colorCenterCommandStore.issue(command)

@@ -5,4 +5,6 @@
     <string name="home_headline">Find your color</string>
     <string name="home_proceed_btn">Proceed</string>
 
+    <string name="home_invalid_color_message">Please enter a valid color</string>
+
 </resources>
