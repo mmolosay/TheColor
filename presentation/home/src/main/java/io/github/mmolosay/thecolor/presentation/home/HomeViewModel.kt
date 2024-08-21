@@ -2,9 +2,6 @@ package io.github.mmolosay.thecolor.presentation.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
@@ -16,14 +13,13 @@ import io.github.mmolosay.thecolor.presentation.api.ColorRole
 import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.home.HomeData.CanProceed
-import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator
-import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputViewModel
-import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorProvider
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
+import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator
+import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputViewModel
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -48,7 +44,6 @@ class HomeViewModel @Inject constructor(
     colorInputViewModelFactory: ColorInputViewModel.Factory,
     colorPreviewViewModelFactory: ColorPreviewViewModel.Factory,
     colorCenterViewModelFactory: ColorCenterViewModel.Factory,
-    getInitialModelsFactory: GetInitialModelsUseCase.Factory,
     private val colorInputColorStore: ColorInputColorStore,
     private val colorInputEventStore: ColorInputEventStore,
     private val colorCenterCommandStore: ColorCenterCommandStore,
@@ -58,10 +53,7 @@ class HomeViewModel @Inject constructor(
     @Named("uiDataUpdateDispatcher") private val uiDataUpdateDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
-    private val getInitialModels =
-        getInitialModelsFactory.create(colorInputColorStore)
-
-    private val _dataFlow = MutableStateFlow(HomeData(models = getInitialModels()))
+    private val _dataFlow = MutableStateFlow(initialData())
     val dataFlow = _dataFlow.asStateFlow()
 
     private val _navEventFlow = MutableStateFlow<HomeNavEvent?>(null)
@@ -133,7 +125,7 @@ class HomeViewModel @Inject constructor(
                 if (inputState is ColorInputState.Valid) {
                     proceed(inputState.color, null)
                 } else {
-                // TODO: update exposed data to notify UI
+                    // TODO: update exposed data to notify UI
                 }
             }
         }
@@ -190,13 +182,19 @@ class HomeViewModel @Inject constructor(
         _navEventFlow.value = null
     }
 
-    /** Creates [HomeData] by combining passed [models] with ViewModel methods. */
-    private fun HomeData(models: HomeData.Models) =
-        HomeData(
-            canProceed = CanProceed(canProceed = models.canProceed),
-            colorUsedToProceed = models.colorUsedToProceed,
+    private fun initialData(): HomeData {
+        return HomeData(
+            canProceed = CanProceed(),
+            colorUsedToProceed = null, // 'proceed' action wasn't invoked yet
             goToSettings = ::setGoToSettingsNavEvent,
         )
+    }
+
+    private fun CanProceed(): CanProceed {
+        val color = colorInputColorStore.colorFlow.value
+        val hasColorInColorInput = (color != null)
+        return CanProceed(canProceed = hasColorInColorInput)
+    }
 
     private fun CanProceed(canProceed: Boolean): CanProceed =
         when (canProceed) {
@@ -215,31 +213,6 @@ class HomeViewModel @Inject constructor(
         HomeNavEvent.GoToSettings(
             onConsumed = ::clearNavEvent,
         )
-}
-
-/**
- * Exists to make unit testing easier.
- * Replaces a long chain of actions that set [HomeViewModel.dataFlow] in "given" part
- * of the test to required value.
- */
-class GetInitialModelsUseCase @AssistedInject constructor(
-    @Assisted private val colorInputColorProvider: ColorInputColorProvider,
-) {
-
-    operator fun invoke(): HomeData.Models {
-        val color = colorInputColorProvider.colorFlow.value
-        return HomeData.Models(
-            canProceed = (color != null),
-            colorUsedToProceed = null, // 'proceed' action wasn't invoked yet
-        )
-    }
-
-    @AssistedFactory
-    fun interface Factory {
-        fun create(
-            colorInputColorProvider: ColorInputColorProvider,
-        ): GetInitialModelsUseCase
-    }
 }
 
 @Singleton

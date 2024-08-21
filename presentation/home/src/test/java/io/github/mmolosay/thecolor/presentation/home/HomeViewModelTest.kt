@@ -17,6 +17,7 @@ import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -36,7 +37,6 @@ class HomeViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     val colorInputMediator: ColorInputMediator = mockk(relaxed = true)
-    val getInitialModels: GetInitialModelsUseCase = mockk()
     val colorInputColorStore: ColorInputColorStore = mockk()
     val colorInputEventStore: ColorInputEventStore = mockk()
     val colorCenterCommandStore: ColorCenterCommandStore = mockk()
@@ -46,11 +46,8 @@ class HomeViewModelTest {
     lateinit var sut: HomeViewModel
 
     @Test
-    fun `when initial models has 'canProceed == true', then data has CanProceed Yes`() {
-        every { getInitialModels() } returns initialModels(
-            canProceed = true,
-        )
-        every { colorInputColorStore.colorFlow } returns MutableStateFlow(null)
+    fun `given color from Color Input is not 'null', when SUT is created, then data has 'CanProceed Yes'`() {
+        every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
         every { colorInputEventStore.eventFlow } returns emptyFlow()
         every { colorCenterEventStore.eventFlow } returns emptyFlow()
 
@@ -60,10 +57,7 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `when initial models has 'canProceed == false', then data has CanProceed No`() {
-        every { getInitialModels() } returns initialModels(
-            canProceed = false,
-        )
+    fun `given color from color input is 'null', when SUT is created, then data has 'CanProceed No'`() {
         every { colorInputColorStore.colorFlow } returns MutableStateFlow(null)
         every { colorInputEventStore.eventFlow } returns emptyFlow()
         every { colorCenterEventStore.eventFlow } returns emptyFlow()
@@ -74,29 +68,22 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `when receiving a not-null color from Color Input, then data has CanProceed Yes`() {
-        // initial models don't matter
-        every { getInitialModels() } returns initialModels(
-            canProceed = true,
-        )
+    fun `when receiving a not-null color from Color Input, then data has 'CanProceed Yes'`() {
+        // from other tests, we know that this will produce 'CanProceed.No' in data
         val colorFlow = MutableStateFlow<Color?>(null)
         every { colorInputColorStore.colorFlow } returns colorFlow
         every { colorInputEventStore.eventFlow } returns emptyFlow()
         every { colorCenterEventStore.eventFlow } returns emptyFlow()
         createSut()
 
-        colorFlow.value = mockk()
+        colorFlow.value = mockk<Color>()
 
         data.canProceed should beOfType<CanProceed.Yes>()
     }
 
 
     @Test
-    fun `when receiving a 'null' color from Color Input, then data has CanProceed No`() {
-        // initial models don't matter
-        every { getInitialModels() } returns initialModels(
-            canProceed = false,
-        )
+    fun `when receiving a 'null' color from Color Input, then data has 'CanProceed No'`() {
         val colorFlow = MutableStateFlow<Color?>(null)
         every { colorInputColorStore.colorFlow } returns colorFlow
         every { colorInputEventStore.eventFlow } returns emptyFlow()
@@ -110,27 +97,24 @@ class HomeViewModelTest {
 
     @Test
     fun `invoking 'proceed' action issues 'FetchData' command to Color Center`() {
-        every { getInitialModels() } returns initialModels(
-            canProceed = true,
-        )
-        every { colorInputColorStore.colorFlow } returns MutableStateFlow(/*color*/ mockk())
+        every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
         every { colorInputEventStore.eventFlow } returns emptyFlow()
         every { colorCenterEventStore.eventFlow } returns emptyFlow()
         every { createColorFromColorInput(color = any()) } returns mockk()
         coEvery { colorCenterCommandStore.issue(command = any()) } just runs
         createSut()
 
-        data.canProceedYes.action.invoke() // we know from other tests that it would be CanProceed.Yes
+        // we know from other tests that it would be 'CanProceed.Yes'
+        data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().action.invoke()
 
-        coVerify { colorCenterCommandStore.issue(command = any<ColorCenterCommand.FetchData>()) }
+        coVerify {
+            colorCenterCommandStore.issue(command = any<ColorCenterCommand.FetchData>())
+        }
     }
 
     @Test
     fun `invoking 'proceed' action updates 'colorUsedToProceed'`() {
-        every { getInitialModels() } returns initialModels(
-            canProceed = true,
-        )
-        every { colorInputColorStore.colorFlow } returns MutableStateFlow(/*color*/ mockk())
+        every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
         every { colorInputEventStore.eventFlow } returns emptyFlow()
         coEvery { colorCenterCommandStore.issue(command = any()) } just runs
         every { colorCenterEventStore.eventFlow } returns emptyFlow()
@@ -138,7 +122,7 @@ class HomeViewModelTest {
         every { createColorFromColorInput(color = any()) } returns colorUsedToProceed
         createSut()
 
-        data.canProceedYes.action.invoke() // we know from other tests that it would be CanProceed.Yes
+        data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().action.invoke()
 
         data.colorUsedToProceed shouldBe colorUsedToProceed
     }
@@ -146,11 +130,7 @@ class HomeViewModelTest {
     @Test
     fun `when receiving a 'Sumbit' event from Color Input with 'Valid' color input state, then 'proceed' action is invoked, thus 'FetchData' command is issued to Color Center`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            // initial models don't matter
-            every { getInitialModels() } returns initialModels(
-                canProceed = true,
-            )
-            every { colorInputColorStore.colorFlow } returns MutableStateFlow(/*color*/ mockk())
+            every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
             val eventsFlow = MutableSharedFlow<ColorInputEvent>()
             every { colorInputEventStore.eventFlow } returns eventsFlow
             every { colorCenterEventStore.eventFlow } returns emptyFlow()
@@ -164,17 +144,15 @@ class HomeViewModelTest {
             )
             eventsFlow.emit(event)
 
-            coVerify { colorCenterCommandStore.issue(command = any<ColorCenterCommand.FetchData>()) }
+            coVerify {
+                colorCenterCommandStore.issue(command = any<ColorCenterCommand.FetchData>())
+            }
         }
 
     @Test
     fun `when receiving a 'Submit' event from Color Input with 'Valid' color input state, then 'proceed' action is invoked, thus 'colorUsedToProceed' is updated`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            // initial models don't matter
-            every { getInitialModels() } returns initialModels(
-                canProceed = true,
-            )
-            every { colorInputColorStore.colorFlow } returns MutableStateFlow(/*color*/ mockk())
+            every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
             val eventsFlow = MutableSharedFlow<ColorInputEvent>()
             every { colorInputEventStore.eventFlow } returns eventsFlow
             every { colorCenterEventStore.eventFlow } returns emptyFlow()
@@ -195,11 +173,7 @@ class HomeViewModelTest {
     @Test
     fun `when receiving a 'ExactColorSelected' event from Color Center, 'set color and proceed' action is invoked, thus new color is sent to color input mediator`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            // initial models don't matter
-            every { getInitialModels() } returns initialModels(
-                canProceed = true,
-            )
-            every { colorInputColorStore.colorFlow } returns MutableStateFlow(/*color*/ mockk())
+            every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
             every { colorInputEventStore.eventFlow } returns emptyFlow()
             val eventsFlow = MutableSharedFlow<ColorCenterEvent>()
             every { colorCenterEventStore.eventFlow } returns eventsFlow
@@ -221,11 +195,7 @@ class HomeViewModelTest {
     @Test
     fun `when receiving a 'ExactColorSelected' event from Color Center, 'proceed' action is invoked, thus 'FetchData' command is issued to Color Center`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            // initial models don't matter
-            every { getInitialModels() } returns initialModels(
-                canProceed = true,
-            )
-            every { colorInputColorStore.colorFlow } returns MutableStateFlow(/*color*/ mockk())
+            every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
             every { colorInputEventStore.eventFlow } returns emptyFlow()
             val eventsFlow = MutableSharedFlow<ColorCenterEvent>()
             every { colorCenterEventStore.eventFlow } returns eventsFlow
@@ -239,17 +209,15 @@ class HomeViewModelTest {
             )
             eventsFlow.emit(event)
 
-            coVerify { colorCenterCommandStore.issue(command = any<ColorCenterCommand.FetchData>()) }
+            coVerify {
+                colorCenterCommandStore.issue(command = any<ColorCenterCommand.FetchData>())
+            }
         }
 
     @Test
     fun `when receiving a 'ExactColorSelected' event from Color Center, 'proceed' action is invoked, thus 'colorUsedToProceed' is updated`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            // initial models don't matter
-            every { getInitialModels() } returns initialModels(
-                canProceed = true,
-            )
-            every { colorInputColorStore.colorFlow } returns MutableStateFlow(/*color*/ mockk())
+            every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
             every { colorInputEventStore.eventFlow } returns emptyFlow()
             val eventsFlow = MutableSharedFlow<ColorCenterEvent>()
             every { colorCenterEventStore.eventFlow } returns eventsFlow
@@ -269,9 +237,6 @@ class HomeViewModelTest {
 
     @Test
     fun `when receiving 'null' color from Color Input after 'proceed' was invoked, then 'colorUsedToProceed' is cleared`() {
-        every { getInitialModels() } returns initialModels(
-            canProceed = true,
-        )
         val initialColor = Color.Hex(0x0)
         val colorFlow = MutableStateFlow<Color?>(initialColor)
         every { colorInputColorStore.colorFlow } returns colorFlow
@@ -281,7 +246,8 @@ class HomeViewModelTest {
         every { createColorFromColorInput(color = any()) } returns mockk()
         createSut()
 
-        data.canProceedYes.action.invoke() // we know from other tests that it would be CanProceed.Yes
+        // we know from other tests that it would be 'CanProceed.Yes'
+        data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().action.invoke()
         colorFlow.value = null
 
         data.colorUsedToProceed shouldBe null
@@ -289,9 +255,6 @@ class HomeViewModelTest {
 
     @Test
     fun `when receiving not-null color from Color Input after 'proceed' was invoked, then 'colorUsedToProceed' is cleared`() {
-        every { getInitialModels() } returns initialModels(
-            canProceed = true,
-        )
         val initialColor = Color.Hex(0x0)
         val colorFlow = MutableStateFlow<Color?>(initialColor)
         every { colorInputColorStore.colorFlow } returns colorFlow
@@ -301,7 +264,8 @@ class HomeViewModelTest {
         every { createColorFromColorInput(color = any()) } returns mockk()
         createSut()
 
-        data.canProceedYes.action.invoke() // we know from other tests that it would be CanProceed.Yes
+        // we know from other tests that it would be 'CanProceed.Yes'
+        data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().action.invoke()
         colorFlow.value = Color.Hex(0x1)
 
         data.colorUsedToProceed shouldBe null
@@ -313,7 +277,6 @@ class HomeViewModelTest {
             colorInputViewModelFactory = { _, _, _ -> mockk() },
             colorPreviewViewModelFactory = { _, _ -> mockk() },
             colorCenterViewModelFactory = { _, _, _ -> mockk() },
-            getInitialModelsFactory = { getInitialModels },
             colorInputColorStore = colorInputColorStore,
             colorInputEventStore = colorInputEventStore,
             colorCenterCommandStore = colorCenterCommandStore,
@@ -327,18 +290,4 @@ class HomeViewModelTest {
 
     val data: HomeData
         get() = sut.dataFlow.value
-
-    val HomeData.canProceedYes: CanProceed.Yes
-        get() {
-            this.canProceed should beOfType<CanProceed.Yes>() // assertion for clear failure message
-            return (this.canProceed as CanProceed.Yes)
-        }
-
-    fun initialModels(
-        canProceed: Boolean,
-    ) =
-        HomeData.Models(
-            canProceed = canProceed,
-            colorUsedToProceed = null,
-        )
 }
