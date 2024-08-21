@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import javax.inject.Inject
 
 /**
- * Storage that holds a [Flow] of [ColorInputEvent]s from a color input View.
+ * Storage that holds a [Flow] of [ColorInputEvent]s from a Color Input feature.
  */
 class ColorInputEventStore @Inject constructor() : ColorInputEventProvider {
 
@@ -24,9 +24,9 @@ interface ColorInputEventProvider {
 }
 
 /**
- * Event that originates in color input View and is broadcasted to outside.
+ * Event that originates in Color Input feature and is broadcast to outside.
  */
 sealed interface ColorInputEvent {
-    /** Submit current color for a further processing outside of color input scope. */
+    /** Submit current color for a further processing outside of Color Input scope. */
     data object Submit : ColorInputEvent
 }

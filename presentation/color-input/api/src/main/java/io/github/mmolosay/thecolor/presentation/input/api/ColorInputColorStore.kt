@@ -7,10 +7,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 
 /**
- * Storage that holds current valid color from color input View.
+ * Storage that holds current valid color from Color Input feature.
  *
- * Its [set] method is called only to reflect the present color from color input View.
- * If you want to set new color to color input View, use [ColorInputMediator][io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator].
+ * Its [set] method is called only to reflect the present color in Color Input.
+ * If you want to set new color to Color Input, use [ColorInputMediator][io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator].
  */
 class ColorInputColorStore @Inject constructor() : ColorInputColorProvider {
 

@@ -7,8 +7,8 @@ import kotlinx.coroutines.flow.asSharedFlow
 import javax.inject.Inject
 
 /**
- * Storage that holds a [Flow] of [ColorCenterEvent]s from a color center View and its sub-Views:
- * color details View and color scheme View.
+ * Storage that holds a [Flow] of [ColorCenterEvent]s from a Color Center feature
+ * and its sub-features: Color Details and Color Scheme.
  */
 /*
  * One may think that this file belongs to Color Center feature, and thus should be located at
@@ -42,12 +42,12 @@ interface ColorCenterEventProvider {
 }
 
 /**
- * Event that originates in color center View (or its sub-View) and is broadcasted to outside.
+ * Event that originates in Color Center feature (or its sub-features) and is broadcast to outside.
  */
 sealed interface ColorCenterEvent {
 
     /**
-     * A [color] has been selected in color details View.
+     * A [color] has been selected in Color Details feature.
      */
     data class ColorSelected(
         val color: Color,

@@ -7,7 +7,8 @@ import kotlinx.coroutines.flow.asSharedFlow
 import javax.inject.Inject
 
 /**
- * Storage that holds a [Flow] of [ColorCenterCommand]s for a color center ViewModel to handle.
+ * Storage that holds a [Flow] of [ColorCenterCommand]s for a Color Center feature
+ * (or its sub-features) to handle.
  */
 /*
  * One may think that this file belongs to Color Center feature, and thus should be located at
@@ -42,7 +43,7 @@ interface ColorCenterCommandProvider {
 
 sealed interface ColorCenterCommand {
 
-    /** Update a feature (color details, color scheme) with new data. */
+    /** Request a feature (Color Details, Color Scheme) to update itself with new data. */
     data class FetchData(
         val color: Color,
         val colorRole: ColorRole?,
