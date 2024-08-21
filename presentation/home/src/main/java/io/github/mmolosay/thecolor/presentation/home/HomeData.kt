@@ -7,7 +7,7 @@ import io.github.mmolosay.thecolor.presentation.api.ColorInt
  */
 data class HomeData(
     val canProceed: CanProceed,
-    val colorUsedToProceed: ColorData?,
+    val proceedResult: ProceedResult?,
     val goToSettings: () -> Unit,
 ) {
 
@@ -16,8 +16,20 @@ data class HomeData(
         data class Yes(val action: () -> Unit) : CanProceed
     }
 
-    data class ColorData(
-        val color: ColorInt,
-        val isDark: Boolean,
-    )
+    /** Result of executing a 'proceed' action. */
+    sealed interface ProceedResult {
+
+        data object Failure : ProceedResult
+
+        data class Success(
+            val colorData: ColorData,
+        ) : ProceedResult {
+
+            /** A data of color that was used to proceed */
+            data class ColorData(
+                val color: ColorInt,
+                val isDark: Boolean,
+            )
+        }
+    }
 }

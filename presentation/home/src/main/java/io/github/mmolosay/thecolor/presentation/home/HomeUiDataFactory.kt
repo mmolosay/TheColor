@@ -11,7 +11,7 @@ fun HomeUiData(
         headline = viewData.headline,
         proceedButton = ProceedButton(data, viewData),
         colorPreviewState = ColorPreviewState(data),
-        showColorCenter = ShowColorCenter(data.colorUsedToProceed),
+        showColorCenter = ShowColorCenter(data.proceedResult),
     )
 
 private fun TopBar(
@@ -25,13 +25,17 @@ private fun TopBar(
         )
     )
 
-private fun ShowColorCenter(data: HomeData.ColorData?) =
-    when (data != null) {
-        true -> HomeUiData.ShowColorCenter.Yes(
-            backgroundColor = data.color.toCompose(),
-            useLightContentColors = data.isDark,
-        )
-        false -> HomeUiData.ShowColorCenter.No
+private fun ShowColorCenter(result: HomeData.ProceedResult?) =
+    when (result) {
+        is HomeData.ProceedResult.Success ->
+            HomeUiData.ShowColorCenter.Yes(
+                backgroundColor = result.colorData.color.toCompose(),
+                useLightContentColors = result.colorData.isDark,
+            )
+        is HomeData.ProceedResult.Failure ->
+            TODO()
+        null ->
+            HomeUiData.ShowColorCenter.No
     }
 
 private fun ProceedButton(
@@ -47,9 +51,11 @@ private fun ProceedButton(
 private fun ColorPreviewState(
     data: HomeData,
 ) =
-    when (data.colorUsedToProceed) {
-        null -> HomeUiData.ColorPreviewState.Default // color was not submitted (proceeded with)
-        else -> HomeUiData.ColorPreviewState.Submitted // not-null, this color was submitted
+    when (data.proceedResult) {
+        is HomeData.ProceedResult.Success ->
+            HomeUiData.ColorPreviewState.Submitted // 'proceed' action was invoked for some color
+        else ->
+            HomeUiData.ColorPreviewState.Default // color was not submitted (proceeded with)
     }
 
 private fun HomeData.CanProceed.actionOrNoop(): () -> Unit =

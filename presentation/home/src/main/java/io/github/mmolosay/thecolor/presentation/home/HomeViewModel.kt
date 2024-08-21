@@ -113,7 +113,7 @@ class HomeViewModel @Inject constructor(
         _dataFlow.update {
             it.copy(
                 canProceed = CanProceed(canProceed = (color != null)),
-                colorUsedToProceed = null, // 'proceed' action wasn't invoked yet
+                proceedResult = null, // 'proceed' wasn't invoked for new color yet
             )
         }
     }
@@ -157,8 +157,12 @@ class HomeViewModel @Inject constructor(
         val command = ColorCenterCommand.FetchData(color, colorRole)
         viewModelScope.launch(defaultDispatcher) {
             colorCenterCommandStore.issue(command)
+            val colorData = createColorData(color)
+            val proceedResult = HomeData.ProceedResult.Success(
+                colorData = colorData,
+            )
             _dataFlow.update {
-                it.copy(colorUsedToProceed = createColorData(color))
+                it.copy(proceedResult = proceedResult)
             }
         }
     }
@@ -187,7 +191,7 @@ class HomeViewModel @Inject constructor(
     private fun initialData(): HomeData {
         return HomeData(
             canProceed = CanProceed(),
-            colorUsedToProceed = null, // 'proceed' action wasn't invoked yet
+            proceedResult = null, // 'proceed' action wasn't invoked yet
             goToSettings = ::setGoToSettingsNavEvent,
         )
     }
@@ -217,6 +221,7 @@ class HomeViewModel @Inject constructor(
         )
 }
 
+/** Creates instance of [HomeData.ProceedResult.Success.ColorData]. */
 @Singleton
 class CreateColorDataUseCase @Inject constructor(
     private val colorToColorInt: ColorToColorIntUseCase,
@@ -224,7 +229,7 @@ class CreateColorDataUseCase @Inject constructor(
 ) {
 
     operator fun invoke(color: Color) =
-        HomeData.ColorData(
+        HomeData.ProceedResult.Success.ColorData(
             color = with(colorToColorInt) { color.toColorInt() },
             isDark = with(isColorLight) { color.isLight().not() },
         )
