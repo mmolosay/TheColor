@@ -27,7 +27,7 @@ class ColorRepositoryRemoteImpl @Inject constructor(
     private val resultMapper: ResultMapper,
 ) : ColorRepository {
 
-    override suspend fun lastSearchedColor(): Color.Abstract? =
+    override suspend fun lastSearchedColor(): Color? =
         null
 
     override suspend fun getColorDetails(color: Color): Result<ColorDetails> {
@@ -57,7 +57,7 @@ class ColorRepositoryRemoteImpl @Inject constructor(
     }
 
     private fun Color.toDtoString(): String {
-        val hex = with(colorConverter) { toAbstract().toHex() }
+        val hex = with(colorConverter) { toHex() }
         return with(colorMapper) { hex.toHexString() }
     }
 }

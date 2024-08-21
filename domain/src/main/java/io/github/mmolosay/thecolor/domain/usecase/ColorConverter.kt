@@ -8,41 +8,30 @@ import javax.inject.Inject
  */
 class ColorConverter @Inject constructor() {
 
-    fun Color.toAbstract(): Color.Abstract =
-        when (this) {
-            is Color.Abstract -> this
-            is Color.Hex -> this.toAbstract()
-            is Color.Rgb -> this.toAbstract()
-        }
-
     fun Color.toHex(): Color.Hex =
         when (this) {
-            is Color.Abstract -> this.toHex()
             is Color.Hex -> this
-            is Color.Rgb -> this.toAbstract().toHex()
+            is Color.Rgb -> this.toHex()
         }
 
-    fun Color.Hex.toAbstract(): Color.Abstract {
-        val int = this.value
-        return Color.Abstract(int)
-    }
+    fun Color.toRgb(): Color.Rgb =
+        when (this) {
+            is Color.Hex -> this.toRgb()
+            is Color.Rgb -> this
+        }
 
-    fun Color.Rgb.toAbstract(): Color.Abstract {
+    fun Color.Rgb.toHex(): Color.Hex {
         val r = this.r shl 16
         val g = this.g shl 8
         val b = this.b
         val int = r or g or b
-        return Color.Abstract(int)
+        return Color.Hex(int)
     }
 
-    fun Color.Abstract.toHex(): Color.Hex {
-        return Color.Hex(value = this.int)
-    }
-
-    fun Color.Abstract.toRgb(): Color.Rgb {
-        val r = (this.int shr 16) and 0xFF
-        val g = (this.int shr 8) and 0xFF
-        val b = this.int and 0xFF
+    fun Color.Hex.toRgb(): Color.Rgb {
+        val r = (this.value shr 16) and 0xFF
+        val g = (this.value shr 8) and 0xFF
+        val b = this.value and 0xFF
         return Color.Rgb(r, g, b)
     }
 }

@@ -6,8 +6,8 @@ import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.domain.usecase.GetInitialColorUseCase
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -96,8 +96,7 @@ class ColorInputMediator @AssistedInject constructor(
 
     private fun Color?.toState(): ColorState =
         if (this != null) {
-            val abstractColor = with(colorConverter) { toAbstract() }
-            ColorState.Valid(color = abstractColor)
+            ColorState.Valid(color = this)
         } else {
             ColorState.Invalid
         }
@@ -105,7 +104,7 @@ class ColorInputMediator @AssistedInject constructor(
     /** State of the color the user is currently working with in color input View */
     private sealed interface ColorState {
         data object Invalid : ColorState // unfinished color
-        data class Valid(val color: Color.Abstract) : ColorState
+        data class Valid(val color: Color) : ColorState
     }
 
     /** Used to differentiate between color input Views. */

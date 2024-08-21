@@ -6,13 +6,6 @@ package io.github.mmolosay.thecolor.domain.model
 sealed interface Color {
 
     /**
-     * Color in no particular color space.
-     * Serves as an adapter between different color spaces.
-     */
-    // TODO: abolish?
-    data class Abstract internal constructor(internal val int: Int) : Color
-
-    /**
      * Solid color in RRGGBB format without alpha channel.
      * Example: `value = 0x1A803F`.
      */

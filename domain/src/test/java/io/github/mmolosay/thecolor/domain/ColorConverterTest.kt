@@ -19,17 +19,17 @@ abstract class ColorConverterTest {
 }
 
 @RunWith(Parameterized::class)
-class ColorToAbstract(
-    val color: Color,
-    val expectedAbstract: Color.Abstract,
+class RgbToHex(
+    val given: Color.Rgb,
+    val expected: Color.Hex,
 ) : ColorConverterTest() {
 
     @Test
-    fun `color is converted to expected abstract color`() {
-        val abstract = with(sut) { color.toAbstract() }
+    fun `RGB color is converted to expected HEX color`() {
+        val hex = with(sut) { given.toHex() }
 
-        withClue("Color $color should be $expectedAbstract") {
-            abstract shouldBe expectedAbstract
+        withClue("RGB color $given should be HEX color $expected") {
+            hex shouldBe expected
         }
     }
 
@@ -38,34 +38,29 @@ class ColorToAbstract(
         @JvmStatic
         @Parameterized.Parameters
         fun data() = listOf(
-            /* #0  */ Color.Hex(0x0) convertsTo Color.Abstract(0x0),
-            /* #1  */ Color.Hex(0x127) convertsTo Color.Abstract(0x127),
-            /* #2  */ Color.Hex(0x1AC) convertsTo Color.Abstract(0x1AC),
-            /* #3  */ Color.Hex(0xF0F8FF) convertsTo Color.Abstract(0xF0F8FF),
-
-            /* #4  */ Color.Rgb(0, 0, 0) convertsTo Color.Abstract(0x0),
-            /* #5  */ Color.Rgb(8, 16, 32) convertsTo Color.Abstract(0x081020),
-            /* #6  */ Color.Rgb(0, 50, 177) convertsTo Color.Abstract(0x032B1),
-            /* #7  */ Color.Rgb(97, 0, 200) convertsTo Color.Abstract(0x6100C8),
-            /* #8  */ Color.Rgb(105, 11, 0) convertsTo Color.Abstract(0x690B00),
-            /* #9  */ Color.Rgb(240, 248, 255) convertsTo Color.Abstract(0xF0F8FF),
-            /* #10 */ Color.Rgb(255, 255, 255) convertsTo Color.Abstract(0xFFFFFF),
+            /* #0  */ Color.Rgb(0, 0, 0) convertsTo Color.Hex(0x000000),
+            /* #1  */ Color.Rgb(8, 16, 32) convertsTo Color.Hex(0x081020),
+            /* #2  */ Color.Rgb(0, 50, 177) convertsTo Color.Hex(0x032B1),
+            /* #3  */ Color.Rgb(97, 0, 200) convertsTo Color.Hex(0x6100C8),
+            /* #4  */ Color.Rgb(105, 11, 0) convertsTo Color.Hex(0x690B00),
+            /* #5  */ Color.Rgb(240, 248, 255) convertsTo Color.Hex(0xF0F8FF),
+            /* #6  */ Color.Rgb(255, 255, 255) convertsTo Color.Hex(0xFFFFFF),
         )
     }
 }
 
 @RunWith(Parameterized::class)
-class AbstractToHex(
-    val abstract: Color.Abstract,
-    val expectedHex: Color.Hex,
+class HexToRgb(
+    val given: Color.Hex,
+    val expected: Color.Rgb,
 ) : ColorConverterTest() {
 
     @Test
-    fun `abstract color is converted to expected HEX color`() {
-        val hex = with(sut) { abstract.toHex() }
+    fun `HEX color is converted to expected RGB color`() {
+        val hex = with(sut) { given.toRgb() }
 
-        withClue("Abstract color $abstract should be $expectedHex") {
-            hex shouldBe expectedHex
+        withClue("HEX color $given should be RGB color $expected") {
+            hex shouldBe expected
         }
     }
 
@@ -74,41 +69,13 @@ class AbstractToHex(
         @JvmStatic
         @Parameterized.Parameters
         fun data() = listOf(
-            /* #0  */ Color.Abstract(0x0) convertsTo Color.Hex(0x0),
-            /* #1  */ Color.Abstract(0x127) convertsTo Color.Hex(0x127),
-            /* #2  */ Color.Abstract(0x1AC) convertsTo Color.Hex(0x1AC),
-            /* #3  */ Color.Abstract(0xF0F8FF) convertsTo Color.Hex(0xF0F8FF),
-        )
-    }
-}
-
-@RunWith(Parameterized::class)
-class AbstractToRgb(
-    val abstract: Color.Abstract,
-    val expectedRgb: Color.Rgb,
-) : ColorConverterTest() {
-
-    @Test
-    fun `abstract color is converted to expected RGB color`() {
-        val hex = with(sut) { abstract.toRgb() }
-
-        withClue("Abstract color $abstract should be $expectedRgb") {
-            hex shouldBe expectedRgb
-        }
-    }
-
-    companion object {
-
-        @JvmStatic
-        @Parameterized.Parameters
-        fun data() = listOf(
-            /* #0  */ Color.Abstract(0x0) convertsTo Color.Rgb(0, 0, 0),
-            /* #1  */ Color.Abstract(0x081020) convertsTo Color.Rgb(8, 16, 32),
-            /* #2  */ Color.Abstract(0x032B1) convertsTo Color.Rgb(0, 50, 177),
-            /* #3  */ Color.Abstract(0x6100C8) convertsTo Color.Rgb(97, 0, 200),
-            /* #4  */ Color.Abstract(0x690B00) convertsTo Color.Rgb(105, 11, 0),
-            /* #5  */ Color.Abstract(0xF0F8FF) convertsTo Color.Rgb(240, 248, 255),
-            /* #6  */ Color.Abstract(0xFFFFFF) convertsTo Color.Rgb(255, 255, 255),
+            /* #0  */ Color.Hex(0x000000) convertsTo Color.Rgb(0, 0, 0),
+            /* #1  */ Color.Hex(0x081020) convertsTo Color.Rgb(8, 16, 32),
+            /* #2  */ Color.Hex(0x032B1) convertsTo Color.Rgb(0, 50, 177),
+            /* #3  */ Color.Hex(0x6100C8) convertsTo Color.Rgb(97, 0, 200),
+            /* #4  */ Color.Hex(0x690B00) convertsTo Color.Rgb(105, 11, 0),
+            /* #5  */ Color.Hex(0xF0F8FF) convertsTo Color.Rgb(240, 248, 255),
+            /* #6  */ Color.Hex(0xFFFFFF) convertsTo Color.Rgb(255, 255, 255),
         )
     }
 }
