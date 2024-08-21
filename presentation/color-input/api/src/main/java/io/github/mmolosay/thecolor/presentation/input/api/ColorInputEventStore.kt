@@ -28,9 +28,22 @@ interface ColorInputEventProvider {
  */
 sealed interface ColorInputEvent {
 
-    /** Submit current color for a further processing outside of Color Input scope. */
+    /**
+     * Submit current color for a further processing outside of Color Input scope.
+     * Component that intercepts and processes this event should call [onConsumed] afterwards.
+     * */
     data class Submit(
         val colorInput: ColorInput,
         val colorInputState: ColorInputState,
-    ) : ColorInputEvent
+        val onConsumed: OnConsumedAction,
+    ) : ColorInputEvent {
+
+        fun interface OnConsumedAction {
+            /**
+             * @param wasAccepted whether the submitted [ColorInput] was accepted and user will
+             * pause their interaction with Color Input for some time.
+             */
+            operator fun invoke(wasAccepted: Boolean)
+        }
+    }
 }

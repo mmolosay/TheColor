@@ -124,8 +124,10 @@ class HomeViewModel @Inject constructor(
                 val inputState = event.colorInputState // defining a variable enables smart-cast
                 if (inputState is ColorInputState.Valid) {
                     proceed(inputState.color, null)
+                    event.onConsumed(wasAccepted = true)
                 } else {
                     // TODO: update exposed data to notify UI
+                    event.onConsumed(wasAccepted = false)
                 }
             }
         }

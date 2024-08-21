@@ -92,6 +92,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
             val event = ColorInputEvent.Submit(
                 colorInput = data.colorInput,
                 colorInputState = data.colorInputState,
+                onConsumed = { wasAccepted -> /* TODO: implement hiding or keeping keyboard */ },
             )
             eventStore.send(event)
         }
