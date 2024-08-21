@@ -5,8 +5,7 @@ import io.github.mmolosay.thecolor.presentation.api.ConsumableNavEvent
 /**
  * A family of navigation events that may occur in settings View.
  */
-sealed interface SettingsNavEvent :
-    ConsumableNavEvent {
+sealed interface SettingsNavEvent : ConsumableNavEvent {
 
     data class GoToHome(
         override val onConsumed: () -> Unit,
