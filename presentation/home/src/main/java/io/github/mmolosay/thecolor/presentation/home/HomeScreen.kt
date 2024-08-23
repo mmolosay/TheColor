@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.home
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -53,10 +54,10 @@ import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.home.HomeUiData.ProceedButton
 import io.github.mmolosay.thecolor.presentation.home.HomeUiData.ShowColorCenter
-import io.github.mmolosay.thecolor.presentation.input.impl.ColorInput
-import io.github.mmolosay.thecolor.presentation.preview.ColorPreview
 import io.github.mmolosay.thecolor.presentation.impl.toDpOffset
 import io.github.mmolosay.thecolor.presentation.impl.toDpSize
+import io.github.mmolosay.thecolor.presentation.input.impl.ColorInput
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreview
 
 @Composable
 fun HomeScreen(
@@ -124,6 +125,7 @@ fun Home(
     modifier: Modifier = Modifier,
 ) {
     val density = LocalDensity.current
+    val context = LocalContext.current
     var positionInRoot by remember { mutableStateOf<DpOffset?>(null) }
     var size by remember { mutableStateOf<DpSize?>(null) }
     Column(
@@ -177,6 +179,13 @@ fun Home(
             is HomeNavEvent.GoToSettings -> navigateToSettings()
         }
         event.onConsumed()
+    }
+    LaunchedEffect(uiData) {
+        val toastData = uiData.invalidSubmittedColorToast ?: return@LaunchedEffect
+        Toast
+            .makeText(context, toastData.message, Toast.LENGTH_SHORT)
+            .show()
+        toastData.onShown()
     }
 }
 
@@ -317,4 +326,5 @@ private fun previewUiData() =
             backgroundColor = Color(0xFF_123456),
             useLightContentColors = true,
         ),
+        invalidSubmittedColorToast = null,
     )

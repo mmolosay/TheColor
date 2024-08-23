@@ -121,14 +121,8 @@ class HomeViewModel @Inject constructor(
     private fun onEventFromColorInput(event: ColorInputEvent) {
         when (event) {
             is ColorInputEvent.Submit -> {
-                val inputState = event.colorInputState // defining a variable enables smart-cast
-                if (inputState is ColorInputState.Valid) {
-                    proceed(inputState.color, null)
-                    event.onConsumed(wasAccepted = true)
-                } else {
-                    // TODO: update exposed data to notify UI
-                    event.onConsumed(wasAccepted = false)
-                }
+                val wasProceedSuccessful = onColorSubmitted(event.colorInputState)
+                event.onConsumed(wasAccepted = wasProceedSuccessful)
             }
         }
     }
@@ -167,6 +161,23 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    private fun onColorSubmitted(
+        colorInputState: ColorInputState,
+    ): Boolean {
+        if (colorInputState is ColorInputState.Valid) {
+            proceed(colorInputState.color, null)
+            return true
+        } else {
+            _dataFlow.update {
+                val result = HomeData.ProceedResult.InvalidSubmittedColor(
+                    discard = ::clearProceedResult,
+                )
+                it.copy(proceedResult = result)
+            }
+            return false
+        }
+    }
+
     private fun setColorAndProceed(
         newColor: Color,
         colorRole: ColorRole?,
@@ -182,6 +193,12 @@ class HomeViewModel @Inject constructor(
 
     private fun setGoToSettingsNavEvent() {
         _navEventFlow.value = NavEventGoToSettings()
+    }
+
+    private fun clearProceedResult() {
+        _dataFlow.update {
+            it.copy(proceedResult = null)
+        }
     }
 
     private fun clearNavEvent() {

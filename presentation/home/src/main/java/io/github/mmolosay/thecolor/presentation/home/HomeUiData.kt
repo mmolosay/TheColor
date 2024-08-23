@@ -13,6 +13,7 @@ data class HomeUiData(
     val proceedButton: ProceedButton,
     val colorPreviewState: ColorPreviewState,
     val showColorCenter: ShowColorCenter,
+    val invalidSubmittedColorToast: InvalidSubmittedColorToast?,
 ) {
 
     data class TopBar(
@@ -34,6 +35,7 @@ data class HomeUiData(
         Default, Submitted,
     }
 
+    // sealed interface with 2 options vs. nullable data class are two ways of implementing duality in UI model
     sealed interface ShowColorCenter {
         data object No : ShowColorCenter
         data class Yes(
@@ -41,6 +43,12 @@ data class HomeUiData(
             val useLightContentColors: Boolean,
         ) : ShowColorCenter
     }
+
+    // sealed interface with 2 options vs. nullable data class are two ways of implementing duality in UI model
+    data class InvalidSubmittedColorToast(
+        val message: String,
+        val onShown: () -> Unit,
+    )
 
     /**
      * Part of to-be [HomeUiData].
@@ -52,6 +60,7 @@ data class HomeUiData(
         val settingsIconContentDesc: String,
         val headline: String,
         val proceedButtonText: String,
+        val invalidSubmittedColorMessage: String,
     )
 }
 
@@ -60,4 +69,5 @@ fun HomeViewData(context: Context) =
         settingsIconContentDesc = context.getString(R.string.home_settings_icon_content_desc),
         headline = context.getString(R.string.home_headline),
         proceedButtonText = context.getString(R.string.home_proceed_btn),
+        invalidSubmittedColorMessage = context.getString(R.string.home_invalid_color_message)
     )

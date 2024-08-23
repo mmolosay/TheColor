@@ -19,7 +19,9 @@ data class HomeData(
     /** Result of executing a 'proceed' action. */
     sealed interface ProceedResult {
 
-        data object Failure : ProceedResult
+        data class InvalidSubmittedColor(
+            val discard: () -> Unit, // aka onConsumed()
+        ) : ProceedResult
 
         data class Success(
             val colorData: ColorData,

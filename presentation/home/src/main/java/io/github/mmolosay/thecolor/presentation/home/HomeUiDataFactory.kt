@@ -12,6 +12,7 @@ fun HomeUiData(
         proceedButton = ProceedButton(data, viewData),
         colorPreviewState = ColorPreviewState(data),
         showColorCenter = ShowColorCenter(data.proceedResult),
+        invalidSubmittedColorToast = InvalidSubmittedColorToast(data.proceedResult, viewData),
     )
 
 private fun TopBar(
@@ -32,10 +33,27 @@ private fun ShowColorCenter(result: HomeData.ProceedResult?) =
                 backgroundColor = result.colorData.color.toCompose(),
                 useLightContentColors = result.colorData.isDark,
             )
-        is HomeData.ProceedResult.Failure ->
-            TODO()
+        is HomeData.ProceedResult.InvalidSubmittedColor ->
+            HomeUiData.ShowColorCenter.No
         null ->
             HomeUiData.ShowColorCenter.No
+    }
+
+/*
+ * Ideally, we should call 'discard()' when the message is no longer present on UI.
+ * However, there's no built-in mechanism for adding "on end" callback to shown Toast.
+ */
+private fun InvalidSubmittedColorToast(
+    result: HomeData.ProceedResult?,
+    viewData: HomeUiData.ViewData,
+) =
+    when (result) {
+        is HomeData.ProceedResult.InvalidSubmittedColor ->
+            HomeUiData.InvalidSubmittedColorToast(
+                message = viewData.invalidSubmittedColorMessage,
+                onShown = result.discard,
+            )
+        else -> null
     }
 
 private fun ProceedButton(
