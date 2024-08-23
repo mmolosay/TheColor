@@ -121,8 +121,8 @@ class HomeViewModel @Inject constructor(
     private fun onEventFromColorInput(event: ColorInputEvent) {
         when (event) {
             is ColorInputEvent.Submit -> {
-                val wasProceedSuccessful = onColorSubmitted(event.colorInputState)
-                event.onConsumed(wasAccepted = wasProceedSuccessful)
+                val hasProceeded = onColorInputSubmitted(event.colorInputState)
+                event.onConsumed(wasAccepted = hasProceeded)
             }
         }
     }
@@ -161,7 +161,7 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun onColorSubmitted(
+    private fun onColorInputSubmitted(
         colorInputState: ColorInputState,
     ): Boolean {
         if (colorInputState is ColorInputState.Valid) {
