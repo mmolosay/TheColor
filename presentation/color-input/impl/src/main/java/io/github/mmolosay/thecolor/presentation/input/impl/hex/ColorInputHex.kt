@@ -8,6 +8,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -23,9 +24,13 @@ import io.github.mmolosay.thecolor.presentation.input.impl.UiComponents.TextFiel
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiData
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiData.TrailingButton
-import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexUiData.ToggleSoftwareKeyboardCommand.KeyboardState
+import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexUiCommand.ToggleSoftwareKeyboard.KeyboardState
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexUiData.ViewData
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.launch
 
 @Composable
 fun ColorInputHex(
@@ -33,11 +38,38 @@ fun ColorInputHex(
 ) {
     val viewData = rememberViewData()
     val state = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
+    val collectedStates = remember {
+        mutableListOf<DataState<ColorInputHexData>>()
+    }
+    val uiCommandFlow = remember(viewModel.dataStateFlow) {
+        MutableSharedFlow<ColorInputHexUiCommand>()
+    }
     when (state) {
-        is DataState.BeingInitialized -> Loading()
+        is DataState.BeingInitialized ->
+            Loading()
         is DataState.Ready -> {
             val uiData = rememberUiData(data = state.data, viewData = viewData)
-            ColorInputHex(uiData)
+            ColorInputHex(
+                uiData = uiData,
+                uiCommandFlow = uiCommandFlow,
+            )
+        }
+    }
+    LaunchedEffect(state) {
+        val previous = collectedStates.lastOrNull()
+        val current = state
+        val newCommands = ColorInputHexUiCommands(current, previous)
+        newCommands.forEach { command ->
+            uiCommandFlow.emit(command)
+        }
+        collectedStates += current
+        run dropOldStates@{
+            val numberOfMaxRetainedStates = 2
+            if (collectedStates.size > numberOfMaxRetainedStates) {
+                collectedStates
+                    .subList(0, collectedStates.size - numberOfMaxRetainedStates)
+                    .clear()
+            }
         }
     }
 }
@@ -45,9 +77,11 @@ fun ColorInputHex(
 @Composable
 fun ColorInputHex(
     uiData: ColorInputHexUiData,
+    uiCommandFlow: Flow<ColorInputHexUiCommand>,
 ) {
     var value by remember { mutableStateOf(TextFieldValue(text = uiData.textField.text.string)) }
     val keyboardController = LocalSoftwareKeyboardController.current
+    val coroutineScope = rememberCoroutineScope()
 
     TextField(
         modifier = Modifier.fillMaxWidth(0.5f),
@@ -63,13 +97,20 @@ fun ColorInputHex(
         ),
     )
 
-    LaunchedEffect(uiData.toggleSoftwareKeyboardCommand) {
-        val command = uiData.toggleSoftwareKeyboardCommand ?: return@LaunchedEffect
-        when (command.destState) {
-            KeyboardState.Visible -> Unit // assuming user has just been typing before submitting and keyboard is still visible
-            KeyboardState.Hidden -> keyboardController?.hide()
+    LaunchedEffect(Unit) {
+        coroutineScope.launch {
+            uiCommandFlow.collect { command ->
+                when (command) {
+                    is ColorInputHexUiCommand.ToggleSoftwareKeyboard -> {
+                        when (command.destState) {
+                            KeyboardState.Visible -> Unit // assuming user has just been typing before submitting and keyboard is still visible
+                            KeyboardState.Hidden -> keyboardController?.hide()
+                        }
+                    }
+                }
+                command.onExecuted()
+            }
         }
-        command.onExecuted()
     }
 }
 
@@ -92,6 +133,7 @@ private fun Preview() {
     TheColorTheme {
         ColorInputHex(
             uiData = previewUiData(),
+            uiCommandFlow = emptyFlow(),
         )
     }
 }
@@ -108,5 +150,4 @@ private fun previewUiData() =
             trailingButton = TrailingButton.Visible(onClick = {}, iconContentDesc = ""),
         ),
         onImeActionDone = {},
-        toggleSoftwareKeyboardCommand = null,
     )

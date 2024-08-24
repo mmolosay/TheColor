@@ -36,6 +36,7 @@ import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHex
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexUiData
 import io.github.mmolosay.thecolor.presentation.input.impl.rgb.ColorInputRgb
 import io.github.mmolosay.thecolor.presentation.input.impl.rgb.ColorInputRgbUiData
+import kotlinx.coroutines.flow.emptyFlow
 
 @Composable
 fun ColorInput(
@@ -160,7 +161,10 @@ private fun Preview() {
         ColorInput(
             uiData = previewUiData(),
             hexInput = {
-                ColorInputHex(uiData = previewInputHexUiData())
+                ColorInputHex(
+                    uiData = previewInputHexUiData(),
+                    uiCommandFlow = emptyFlow(),
+                )
             },
             rgbInput = {
                 ColorInputRgb(uiData = previewInputRgbUiData())
@@ -192,7 +196,6 @@ private fun previewInputHexUiData() =
             ),
         ),
         onImeActionDone = {},
-        toggleSoftwareKeyboardCommand = null,
     )
 
 private fun previewInputRgbUiData() =

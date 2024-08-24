@@ -10,21 +10,7 @@ import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiData
 data class ColorInputHexUiData(
     val textField: TextFieldUiData,
     val onImeActionDone: () -> Unit,
-    val toggleSoftwareKeyboardCommand: ToggleSoftwareKeyboardCommand?,
 ) {
-
-    /**
-     * A command to be handled by UI to hide/show software keyboard.
-     * Use [onExecuted] to report that command was handled (processed).
-     */
-    data class ToggleSoftwareKeyboardCommand(
-        val destState: KeyboardState,
-        val onExecuted: () -> Unit,
-    ) {
-        enum class KeyboardState {
-            Visible, Hidden
-        }
-    }
 
     /**
      * Part of to-be [ColorInputHexUiData].
