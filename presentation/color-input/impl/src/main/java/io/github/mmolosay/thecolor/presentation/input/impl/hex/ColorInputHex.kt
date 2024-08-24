@@ -48,6 +48,7 @@ fun ColorInputHex(
 ) {
     var value by remember { mutableStateOf(TextFieldValue(text = uiData.textField.text.string)) }
     val keyboardController = LocalSoftwareKeyboardController.current
+
     TextField(
         modifier = Modifier.fillMaxWidth(0.5f),
         uiData = uiData.textField,
