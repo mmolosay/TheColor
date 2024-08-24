@@ -11,7 +11,6 @@ import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator.InputType
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputValidator
 import io.github.mmolosay.thecolor.presentation.input.impl.SharingStartedEagerlyAnd
-import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewModel
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewModel.Companion.updateWith
@@ -19,13 +18,14 @@ import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.impl.model.FullData
 import io.github.mmolosay.thecolor.presentation.input.impl.model.Update
 import io.github.mmolosay.thecolor.presentation.input.impl.model.asDataState
+import io.github.mmolosay.thecolor.presentation.input.impl.model.updatePayload
 import io.github.mmolosay.thecolor.utils.onEachNotNull
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -43,20 +43,18 @@ class ColorInputHexViewModel @AssistedInject constructor(
     @Assisted private val mediator: ColorInputMediator,
     @Assisted private val eventStore: ColorInputEventStore,
     private val colorInputValidator: ColorInputValidator,
+    @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
     @Named("uiDataUpdateDispatcher") private val uiDataUpdateDispatcher: CoroutineDispatcher,
 ) {
 
     private val textFieldVm = TextFieldViewModel(filterUserInput = ::filterUserInput)
 
-    private val colorSubmissionResultFlow =
-        MutableStateFlow<ColorInputHexData.ColorSubmissionResult?>(null)
+    private val dataUpdateFlow = MutableStateFlow<Update<ColorInputHexData>?>(null)
 
     private val fullDataUpdateFlow: StateFlow<Update<FullDataHex>?> =
-        combine(
-            textFieldVm.dataUpdatesFlow,
-            colorSubmissionResultFlow,
-            transform = ::makeFullDataUpdate,
-        )
+        dataUpdateFlow
+            .filterNotNull()
+            .map(::makeFullDataUpdate)
             .onEachNotNull(::onEachFullDataUpdate)
             .stateIn(
                 scope = coroutineScope,
@@ -75,7 +73,29 @@ class ColorInputHexViewModel @AssistedInject constructor(
             )
 
     init {
+        collectTextFieldUpdates()
         collectMediatorUpdates()
+    }
+
+    /**
+     * Transforms emissions of [textFieldVm] into updates [ColorInputHexData].
+     * Collects results in [dataUpdateFlow].
+     * This allows having [MutableStateFlow] that derives from another flow.
+     */
+    private fun collectTextFieldUpdates() {
+        coroutineScope.launch(defaultDispatcher) {
+            textFieldVm.dataUpdatesFlow
+                .filterNotNull()
+                .map { textFieldUpdate ->
+                    val data = ColorInputHexData(
+                        textField = textFieldUpdate.payload,
+                        submitColor = ::sendSubmitEvent,
+                        colorSubmissionResult = null,
+                    )
+                    Update(payload = data, causedByUser = textFieldUpdate.causedByUser)
+                }
+                .collect(dataUpdateFlow)
+        }
     }
 
     private fun collectMediatorUpdates() {
@@ -106,34 +126,17 @@ class ColorInputHexViewModel @AssistedInject constructor(
     }
 
     private fun makeFullDataUpdate(
-        textFieldUpdate: Update<TextFieldData>?,
-        colorSubmissionResult: ColorInputHexData.ColorSubmissionResult?,
-    ): Update<FullDataHex>? {
-        textFieldUpdate ?: return null
-        val textField = textFieldUpdate.payload
-        val coreData = run {
-            val currentCoreData = fullDataUpdateFlow.value?.payload?.coreData
-            if (currentCoreData != null) {
-                currentCoreData.copy(
-                    textField = textField,
-                    colorSubmissionResult = colorSubmissionResult,
-                )
-            } else {
-                ColorInputHexData(
-                    textField = textField,
-                    submitColor = ::sendSubmitEvent,
-                    colorSubmissionResult = colorSubmissionResult,
-                )
-            }
-        }
-        val colorInput = ColorInput.Hex(string = textField.text.string)
+        coreDataUpdate: Update<ColorInputHexData>,
+    ): Update<FullDataHex> {
+        val coreData = coreDataUpdate.payload
+        val colorInput = ColorInput.Hex(string = coreData.textField.text.string)
         val inputState = with(colorInputValidator) { colorInput.validate() }
         val fullData = FullData(
             coreData = coreData,
             colorInput = colorInput,
             colorInputState = inputState,
         )
-        return Update(payload = fullData, causedByUser = textFieldUpdate.causedByUser)
+        return Update(payload = fullData, causedByUser = coreDataUpdate.causedByUser)
     }
 
     private fun onEachFullDataUpdate(update: Update<FullDataHex>) {
@@ -150,11 +153,15 @@ class ColorInputHexViewModel @AssistedInject constructor(
             wasAccepted = wasAccepted,
             discard = ::clearColorSubmissionResult,
         )
-        colorSubmissionResultFlow.value = result
+        dataUpdateFlow.updatePayload { data ->
+            data.copy(colorSubmissionResult = result)
+        }
     }
 
     private fun clearColorSubmissionResult() {
-        colorSubmissionResultFlow.value = null
+        dataUpdateFlow.updatePayload { data ->
+            data.copy(colorSubmissionResult = null)
+        }
     }
 
     @AssistedFactory

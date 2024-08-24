@@ -1,5 +1,8 @@
 package io.github.mmolosay.thecolor.presentation.input.impl.model
 
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
+
 /**
  * Encapsulates a command to update some data of type [T] with new [payload].
  *
@@ -26,11 +29,13 @@ internal inline fun <T, R> Update<T>.map(
         causedByUser = causedByUser,
     )
 
-// auto-generated 'copy()' of 'data class' doesn't allow such thing when class has a generic type
-internal fun <T, R> Update<T>.copy(
-    newPayload: R,
-) =
-    Update(
-        payload = newPayload,
-        causedByUser = this.causedByUser,
-    )
+/**
+ * [update]s receiver [MutableStateFlow] by changing the payload of current [Update].
+ */
+internal fun <T> MutableStateFlow<Update<T>?>.updatePayload(
+    transform: (T) -> T,
+) {
+    this.update { update ->
+        update?.map(transform)
+    }
+}
