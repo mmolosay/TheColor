@@ -192,6 +192,7 @@ private fun previewInputHexUiData() =
             ),
         ),
         onImeActionDone = {},
+        toggleSoftwareKeyboardCommand = null,
     )
 
 private fun previewInputRgbUiData() =

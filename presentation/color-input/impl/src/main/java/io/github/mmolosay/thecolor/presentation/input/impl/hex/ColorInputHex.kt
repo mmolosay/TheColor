@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,6 +23,7 @@ import io.github.mmolosay.thecolor.presentation.input.impl.UiComponents.TextFiel
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiData
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiData.TrailingButton
+import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexUiData.ToggleSoftwareKeyboardCommand.KeyboardState
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexUiData.ViewData
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
 
@@ -56,12 +58,18 @@ fun ColorInputHex(
             capitalization = KeyboardCapitalization.Characters,
         ),
         keyboardActions = KeyboardActions(
-            onDone = {
-                keyboardController?.hide()
-                uiData.onImeActionDone()
-            },
+            onDone = { uiData.onImeActionDone() },
         ),
     )
+
+    LaunchedEffect(uiData.toggleSoftwareKeyboardCommand) {
+        val command = uiData.toggleSoftwareKeyboardCommand ?: return@LaunchedEffect
+        when (command.destState) {
+            KeyboardState.Visible -> Unit // assuming user has just been typing before submitting and keyboard is still visible
+            KeyboardState.Hidden -> keyboardController?.hide()
+        }
+        command.onExecuted()
+    }
 }
 
 @Composable
@@ -99,4 +107,5 @@ private fun previewUiData() =
             trailingButton = TrailingButton.Visible(onClick = {}, iconContentDesc = ""),
         ),
         onImeActionDone = {},
+        toggleSoftwareKeyboardCommand = null,
     )

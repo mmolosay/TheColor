@@ -25,3 +25,12 @@ internal inline fun <T, R> Update<T>.map(
         payload = transform(this.payload),
         causedByUser = causedByUser,
     )
+
+// auto-generated 'copy()' of 'data class' doesn't allow such thing when class has a generic type
+internal fun <T, R> Update<T>.copy(
+    newPayload: R,
+) =
+    Update(
+        payload = newPayload,
+        causedByUser = this.causedByUser,
+    )
