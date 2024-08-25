@@ -11,6 +11,7 @@ import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator.InputType
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputValidator
 import io.github.mmolosay.thecolor.presentation.input.impl.SharingStartedEagerlyAnd
+import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewModel
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewModel.Companion.updateWith
@@ -86,14 +87,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
         coroutineScope.launch(defaultDispatcher) {
             textFieldVm.dataUpdatesFlow
                 .filterNotNull()
-                .map { textFieldUpdate ->
-                    val data = ColorInputHexData(
-                        textField = textFieldUpdate.payload,
-                        submitColor = ::sendSubmitEvent,
-                        colorSubmissionResult = null,
-                    )
-                    Update(payload = data, causedByUser = textFieldUpdate.causedByUser)
-                }
+                .map(::makeDataUpdate)
                 .collect(dataUpdateFlow)
         }
     }
@@ -115,7 +109,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
 
     private fun sendSubmitEvent() {
         val data = requireNotNull(fullDataUpdateFlow.value?.payload)
-        coroutineScope.launch {
+        coroutineScope.launch(defaultDispatcher) {
             val event = ColorInputEvent.Submit(
                 colorInput = data.colorInput,
                 colorInputState = data.colorInputState,
@@ -123,6 +117,24 @@ class ColorInputHexViewModel @AssistedInject constructor(
             )
             eventStore.send(event)
         }
+    }
+
+    private fun makeDataUpdate(
+        textFieldUpdate: Update<TextFieldData>,
+    ): Update<ColorInputHexData> {
+        val currentData = dataUpdateFlow.value?.payload
+        val newData = if (currentData != null) {
+            currentData.copy(
+                textField = textFieldUpdate.payload,
+            )
+        } else {
+            ColorInputHexData(
+                textField = textFieldUpdate.payload,
+                submitColor = ::sendSubmitEvent,
+                colorSubmissionResult = null,
+            )
+        }
+        return Update(payload = newData, causedByUser = textFieldUpdate.causedByUser)
     }
 
     private fun makeFullDataUpdate(

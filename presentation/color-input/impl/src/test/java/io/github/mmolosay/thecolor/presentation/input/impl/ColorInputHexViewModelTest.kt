@@ -1,24 +1,27 @@
 package io.github.mmolosay.thecolor.presentation.input.impl
 
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator.InputType
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexData
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexViewModel
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
+import io.mockk.slot
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emptyFlow
@@ -184,12 +187,31 @@ class ColorInputHexViewModelTest {
         }
     }
 
+    @Test
+    fun `emission of text field data keeps 'color submission result' value the same`() {
+        coEvery { mediator.send(color = any(), from = any()) } just runs
+        createSut()
+        data.textField.onTextChange(Text("1F"))
+        val sentEvent = slot<ColorInputEvent.Submit>()
+        coEvery {
+            eventStore.send(event = capture(sentEvent))
+        } coAnswers {
+            sentEvent.captured.onConsumed(wasAccepted = false)
+        }
+        data.submitColor()
+
+        data.textField.onTextChange(Text("1F0"))
+
+        data.colorSubmissionResult shouldNotBe null
+    }
+
     fun createSut() =
         ColorInputHexViewModel(
             coroutineScope = TestScope(context = mainDispatcherRule.testDispatcher),
             mediator = mediator,
             eventStore = eventStore,
             colorInputValidator = colorInputValidator,
+            defaultDispatcher = mainDispatcherRule.testDispatcher,
             uiDataUpdateDispatcher = mainDispatcherRule.testDispatcher,
         ).also {
             sut = it
@@ -199,8 +221,5 @@ class ColorInputHexViewModelTest {
         get() = sut.dataStateFlow.value
 
     val data: ColorInputHexData
-        get() {
-            dataState should beOfType<DataState.Ready<*>>() // assertion for clear failure message
-            return (dataState as DataState.Ready).data
-        }
+        get() = dataState.shouldBeInstanceOf<DataState.Ready<ColorInputHexData>>().data
 }
