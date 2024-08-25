@@ -24,7 +24,6 @@ import io.github.mmolosay.thecolor.presentation.input.impl.UiComponents.TextFiel
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiData
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiData.TrailingButton
-import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexUiCommand.ToggleSoftwareKeyboard.KeyboardState
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexUiData.ViewData
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
 import kotlinx.coroutines.flow.Flow
@@ -56,8 +55,8 @@ fun ColorInputHex(
         }
     }
     LaunchedEffect(state) {
-        val previous = collectedStates.lastOrNull()
         val current = state
+        val previous = collectedStates.lastOrNull()
         val newCommands = ColorInputHexUiCommands(current, previous)
         newCommands.forEach { command ->
             uiCommandFlow.emit(command)
@@ -101,11 +100,8 @@ fun ColorInputHex(
         coroutineScope.launch {
             uiCommandFlow.collect { command ->
                 when (command) {
-                    is ColorInputHexUiCommand.ToggleSoftwareKeyboard -> {
-                        when (command.destState) {
-                            KeyboardState.Visible -> Unit // assuming user has just been typing before submitting and keyboard is still visible
-                            KeyboardState.Hidden -> keyboardController?.hide()
-                        }
+                    is ColorInputHexUiCommand.HideSoftwareKeyboard -> {
+                        keyboardController?.hide()
                     }
                 }
                 command.onExecuted()

@@ -1,7 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.input.impl.hex
 
-import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexUiCommand.ToggleSoftwareKeyboard
-import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexUiCommand.ToggleSoftwareKeyboard.KeyboardState
+import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexUiCommand.HideSoftwareKeyboard
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
 
 /**
@@ -17,25 +16,23 @@ internal fun ColorInputHexUiCommands(
     previous: DataState<ColorInputHexData>?,
 ): List<ColorInputHexUiCommand> =
     buildList {
-        toggleSoftwareKeyboardCommandOrNull(current, previous)
+        hideSoftwareKeyboardCommandOrNull(current, previous)
             ?.also { add(it) }
     }
 
-private fun toggleSoftwareKeyboardCommandOrNull(
+private fun hideSoftwareKeyboardCommandOrNull(
     current: DataState<ColorInputHexData>,
     previous: DataState<ColorInputHexData>?,
-): ToggleSoftwareKeyboard? {
+): HideSoftwareKeyboard? {
     if (current !is DataState.Ready) return null
     if (previous !is DataState.Ready) return null
     val currentResult = current.data.colorSubmissionResult ?: return null
     val resultHasChanged = (currentResult != previous.data.colorSubmissionResult)
-    if (!resultHasChanged) return null
-    val destState = when (currentResult.wasAccepted) {
-        true -> KeyboardState.Hidden // color input was accepted, thus user probably won't change it and doesn't need keyboard
-        false -> KeyboardState.Visible // color input was rejected, thus user will probably want to correct it and needs keyboard
-    }
-    return ToggleSoftwareKeyboard(
-        destState = destState,
+    if (resultHasChanged.not()) return null
+    // color input was rejected, thus user will probably want to correct it and needs keyboard
+    if (currentResult.wasAccepted.not()) return null
+    // color input was accepted, thus user probably won't change it and doesn't need keyboard
+    return HideSoftwareKeyboard(
         onExecuted = currentResult.discard,
     )
 }

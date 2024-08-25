@@ -6,13 +6,7 @@ package io.github.mmolosay.thecolor.presentation.input.impl.hex
 sealed interface ColorInputHexUiCommand {
     val onExecuted: () -> Unit
 
-    data class ToggleSoftwareKeyboard(
-        val destState: KeyboardState,
+    data class HideSoftwareKeyboard(
         override val onExecuted: () -> Unit,
-    ) : ColorInputHexUiCommand {
-
-        enum class KeyboardState {
-            Visible, Hidden
-        }
-    }
+    ) : ColorInputHexUiCommand
 }
