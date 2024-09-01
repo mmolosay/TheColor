@@ -25,6 +25,7 @@ import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.T
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiData
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiData.TrailingButton
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexUiData.ViewData
+import io.github.mmolosay.thecolor.presentation.input.impl.model.ColorInputUiCommand
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -41,7 +42,7 @@ fun ColorInputHex(
         mutableListOf<DataState<ColorInputHexData>>()
     }
     val uiCommandFlow = remember(viewModel.dataStateFlow) {
-        MutableSharedFlow<ColorInputHexUiCommand>()
+        MutableSharedFlow<ColorInputUiCommand>()
     }
     when (state) {
         is DataState.BeingInitialized ->
@@ -76,7 +77,7 @@ fun ColorInputHex(
 @Composable
 fun ColorInputHex(
     uiData: ColorInputHexUiData,
-    uiCommandFlow: Flow<ColorInputHexUiCommand>,
+    uiCommandFlow: Flow<ColorInputUiCommand>,
 ) {
     var value by remember { mutableStateOf(TextFieldValue(text = uiData.textField.text.string)) }
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -100,7 +101,7 @@ fun ColorInputHex(
         coroutineScope.launch {
             uiCommandFlow.collect { command ->
                 when (command) {
-                    is ColorInputHexUiCommand.HideSoftwareKeyboard -> {
+                    is ColorInputUiCommand.HideSoftwareKeyboard -> {
                         keyboardController?.hide()
                     }
                 }

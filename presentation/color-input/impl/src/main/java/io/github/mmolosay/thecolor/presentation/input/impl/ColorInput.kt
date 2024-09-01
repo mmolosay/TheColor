@@ -237,4 +237,5 @@ private fun previewInputRgbUiData() =
             ),
         ),
         onImeActionDone = {},
+        hideSoftwareKeyboardCommand = null,
     )

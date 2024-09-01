@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,7 +35,8 @@ fun ColorInputRgb(
     val viewData = rememberViewData()
     val state = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
     when (state) {
-        is DataState.BeingInitialized -> Loading()
+        is DataState.BeingInitialized ->
+            Loading()
         is DataState.Ready -> {
             val uiData = rememberUiData(data = state.data, viewData = viewData)
             ColorInputRgb(uiData)
@@ -46,11 +48,11 @@ fun ColorInputRgb(
 fun ColorInputRgb(
     uiData: ColorInputRgbUiData,
 ) {
+    val keyboardController = LocalSoftwareKeyboardController.current
     Row {
         @Composable
         fun SpacerInBetween() = Spacer(modifier = Modifier.width(16.dp))
 
-        val keyboardController = LocalSoftwareKeyboardController.current
         val modifier = Modifier.weight(1f)
 
         TextField(
@@ -72,12 +74,15 @@ fun ColorInputRgb(
             uiData = uiData.bTextField,
             imeAction = ImeAction.Done,
             keyboardActions = KeyboardActions(
-                onDone = {
-                    keyboardController?.hide()
-                    uiData.onImeActionDone()
-                },
+                onDone = { uiData.onImeActionDone() },
             ),
         )
+    }
+
+    LaunchedEffect(uiData.hideSoftwareKeyboardCommand) {
+        val command = uiData.hideSoftwareKeyboardCommand ?: return@LaunchedEffect
+        keyboardController?.hide()
+        command.onExecuted()
     }
 }
 
@@ -164,4 +169,5 @@ private fun previewUiData() =
             ),
         ),
         onImeActionDone = {},
+        hideSoftwareKeyboardCommand = null,
     )

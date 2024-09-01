@@ -1,10 +1,11 @@
 package io.github.mmolosay.thecolor.presentation.input.impl.hex
 
-import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexUiCommand.HideSoftwareKeyboard
+import io.github.mmolosay.thecolor.presentation.input.impl.model.ColorInputUiCommand
+import io.github.mmolosay.thecolor.presentation.input.impl.model.ColorInputUiCommand.HideSoftwareKeyboard
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
 
 /**
- * Creates a list of [ColorInputHexUiCommand]s calculated as difference between two
+ * Creates a list of [ColorInputUiCommand]s calculated as difference between two
  * consecutive [DataState]s.
  *
  * One can think of this as an opposite process of reducing event to state:
@@ -14,7 +15,7 @@ import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
 internal fun ColorInputHexUiCommands(
     current: DataState<ColorInputHexData>,
     previous: DataState<ColorInputHexData>?,
-): List<ColorInputHexUiCommand> =
+): List<ColorInputUiCommand> =
     buildList {
         hideSoftwareKeyboardCommandOrNull(current, previous)
             ?.also { add(it) }

@@ -15,6 +15,7 @@ import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewModel
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewModel.Companion.updateWith
+import io.github.mmolosay.thecolor.presentation.input.impl.model.ColorSubmissionResult
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.impl.model.FullData
 import io.github.mmolosay.thecolor.presentation.input.impl.model.Update
@@ -26,7 +27,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -54,7 +54,6 @@ class ColorInputHexViewModel @AssistedInject constructor(
 
     private val fullDataUpdateFlow: StateFlow<Update<FullDataHex>?> =
         dataUpdateFlow
-            .filterNotNull()
             .map(::makeFullDataUpdate)
             .onEachNotNull(::onEachFullDataUpdate)
             .stateIn(
@@ -79,14 +78,13 @@ class ColorInputHexViewModel @AssistedInject constructor(
     }
 
     /**
-     * Transforms emissions of [textFieldVm] into updates [ColorInputHexData].
+     * Transforms emissions of [textFieldVm] into updates of [ColorInputHexData].
      * Collects results in [dataUpdateFlow].
      * This allows having [MutableStateFlow] that derives from another flow.
      */
     private fun collectTextFieldUpdates() {
         coroutineScope.launch(defaultDispatcher) {
             textFieldVm.dataUpdatesFlow
-                .filterNotNull()
                 .map(::makeDataUpdate)
                 .collect(dataUpdateFlow)
         }
@@ -120,8 +118,9 @@ class ColorInputHexViewModel @AssistedInject constructor(
     }
 
     private fun makeDataUpdate(
-        textFieldUpdate: Update<TextFieldData>,
-    ): Update<ColorInputHexData> {
+        textFieldUpdate: Update<TextFieldData>?,
+    ): Update<ColorInputHexData>? {
+        textFieldUpdate ?: return null
         val currentData = dataUpdateFlow.value?.payload
         val newData = if (currentData != null) {
             currentData.copy(
@@ -138,9 +137,9 @@ class ColorInputHexViewModel @AssistedInject constructor(
     }
 
     private fun makeFullDataUpdate(
-        coreDataUpdate: Update<ColorInputHexData>,
-    ): Update<FullDataHex> {
-        val coreData = coreDataUpdate.payload
+        coreDataUpdate: Update<ColorInputHexData>?,
+    ): Update<FullDataHex>? {
+        val coreData = coreDataUpdate?.payload ?: return null
         val colorInput = ColorInput.Hex(string = coreData.textField.text.string)
         val inputState = with(colorInputValidator) { colorInput.validate() }
         val fullData = FullData(
@@ -161,7 +160,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
     }
 
     private fun onSubmitEventConsumed(wasAccepted: Boolean) {
-        val result = ColorInputHexData.ColorSubmissionResult(
+        val result = ColorSubmissionResult(
             wasAccepted = wasAccepted,
             discard = ::clearColorSubmissionResult,
         )

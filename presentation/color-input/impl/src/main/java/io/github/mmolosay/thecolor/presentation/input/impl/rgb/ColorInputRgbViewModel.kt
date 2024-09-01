@@ -15,14 +15,17 @@ import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewModel
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewModel.Companion.updateWith
+import io.github.mmolosay.thecolor.presentation.input.impl.model.ColorSubmissionResult
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.impl.model.FullData
 import io.github.mmolosay.thecolor.presentation.input.impl.model.Update
 import io.github.mmolosay.thecolor.presentation.input.impl.model.asDataState
 import io.github.mmolosay.thecolor.presentation.input.impl.model.causedByUser
+import io.github.mmolosay.thecolor.presentation.input.impl.model.updatePayload
 import io.github.mmolosay.thecolor.utils.onEachNotNull
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -38,11 +41,14 @@ internal typealias FullDataRgb = FullData<ColorInputRgbData, ColorInput.Rgb>
  * It doesn't derive from [androidx.lifecycle.ViewModel], so should only be used in "real" ViewModels
  * which do derive from Android-aware implementation.
  */
+// TODO: replicates ColorInputHexViewModel:
+//  extract and reuse via composition? base abstract class via inheritance?
 class ColorInputRgbViewModel @AssistedInject constructor(
     @Assisted private val coroutineScope: CoroutineScope,
     @Assisted private val mediator: ColorInputMediator,
     @Assisted private val eventStore: ColorInputEventStore,
     private val colorInputValidator: ColorInputValidator,
+    @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
     @Named("uiDataUpdateDispatcher") private val uiDataUpdateDispatcher: CoroutineDispatcher,
 ) {
 
@@ -50,13 +56,11 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     private val gTextFieldVm = TextFieldViewModel(filterUserInput = ::filterUserInput)
     private val bTextFieldVm = TextFieldViewModel(filterUserInput = ::filterUserInput)
 
+    private val dataUpdateFlow = MutableStateFlow<Update<ColorInputRgbData>?>(null)
+
     private val fullDataUpdateFlow: StateFlow<Update<FullDataRgb>?> =
-        combine(
-            rTextFieldVm.dataUpdatesFlow,
-            gTextFieldVm.dataUpdatesFlow,
-            bTextFieldVm.dataUpdatesFlow,
-            ::combineTextInputUpdates,
-        )
+        dataUpdateFlow
+            .map(::makeFullDataUpdate)
             .onEachNotNull(::onEachFullDataUpdate)
             .stateIn(
                 scope = coroutineScope,
@@ -75,7 +79,25 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             )
 
     init {
+        collectTextFieldUpdates()
         collectMediatorUpdates()
+    }
+
+    /**
+     * Transforms emissions of [TextFieldViewModel]s into updates of [ColorInputRgbData].
+     * Collects results in [dataUpdateFlow].
+     * This allows having [MutableStateFlow] that derives from another flow.
+     */
+    private fun collectTextFieldUpdates() {
+        coroutineScope.launch(defaultDispatcher) {
+            combine(
+                rTextFieldVm.dataUpdatesFlow,
+                gTextFieldVm.dataUpdatesFlow,
+                bTextFieldVm.dataUpdatesFlow,
+                ::makeDataUpdate,
+            )
+                .collect(dataUpdateFlow)
+        }
     }
 
     private fun collectMediatorUpdates() {
@@ -102,42 +124,58 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             .let { Text(it) }
 
     private fun sendSubmitEvent() {
-        // TODO: repeated in ColorInputHexViewModel; reuse? base abstract class?
         val data = requireNotNull(fullDataUpdateFlow.value?.payload)
-        coroutineScope.launch {
+        coroutineScope.launch(defaultDispatcher) {
             val event = ColorInputEvent.Submit(
                 colorInput = data.colorInput,
                 colorInputState = data.colorInputState,
-                onConsumed = { wasAccepted -> /* TODO: implement hiding or keeping keyboard */ },
+                onConsumed = ::onSubmitEventConsumed,
             )
             eventStore.send(event)
         }
     }
 
-    private fun combineTextInputUpdates(
+    private fun makeDataUpdate(
         r: Update<TextFieldData>?,
         g: Update<TextFieldData>?,
         b: Update<TextFieldData>?,
-    ): Update<FullDataRgb>? {
+    ): Update<ColorInputRgbData>? {
         if (r == null || g == null || b == null) return null
-        val coreData = ColorInputRgbData(
-            rTextField = r.payload,
-            gTextField = g.payload,
-            bTextField = b.payload,
-            submitColor = ::sendSubmitEvent,
-        )
+        val currentData = dataUpdateFlow.value?.payload
+        val newData = if (currentData != null) {
+            currentData.copy(
+                rTextField = r.payload,
+                gTextField = g.payload,
+                bTextField = b.payload,
+            )
+        } else {
+            ColorInputRgbData(
+                rTextField = r.payload,
+                gTextField = g.payload,
+                bTextField = b.payload,
+                submitColor = ::sendSubmitEvent,
+                colorSubmissionResult = null,
+            )
+        }
+        return newData causedByUser listOf(r, g, b).any { it.causedByUser }
+    }
+
+    private fun makeFullDataUpdate(
+        coreDataUpdate: Update<ColorInputRgbData>?,
+    ): Update<FullDataRgb>? {
+        val coreData = coreDataUpdate?.payload ?: return null
         val colorInput = ColorInput.Rgb(
-            r = r.payload.text.string,
-            g = g.payload.text.string,
-            b = b.payload.text.string,
+            r = coreData.rTextField.text.string,
+            g = coreData.gTextField.text.string,
+            b = coreData.bTextField.text.string,
         )
         val inputState = with(colorInputValidator) { colorInput.validate() }
-        val fullData = io.github.mmolosay.thecolor.presentation.input.impl.rgb.FullDataRgb(
+        val fullData = FullDataRgb(
             coreData = coreData,
             colorInput = colorInput,
             colorInputState = inputState,
         )
-        return fullData causedByUser listOf(r, g, b).any { it.causedByUser }
+        return Update(payload = fullData, causedByUser = coreDataUpdate.causedByUser)
     }
 
     private fun onEachFullDataUpdate(update: Update<FullDataRgb>) {
@@ -146,6 +184,22 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         val parsedColor = (update.payload.colorInputState as? ColorInputState.Valid)?.color
         coroutineScope.launch(uiDataUpdateDispatcher) {
             mediator.send(color = parsedColor, from = InputType.Rgb)
+        }
+    }
+
+    private fun onSubmitEventConsumed(wasAccepted: Boolean) {
+        val result = ColorSubmissionResult(
+            wasAccepted = wasAccepted,
+            discard = ::clearColorSubmissionResult,
+        )
+        dataUpdateFlow.updatePayload { data ->
+            data.copy(colorSubmissionResult = result)
+        }
+    }
+
+    private fun clearColorSubmissionResult() {
+        dataUpdateFlow.updatePayload { data ->
+            data.copy(colorSubmissionResult = null)
         }
     }
 
