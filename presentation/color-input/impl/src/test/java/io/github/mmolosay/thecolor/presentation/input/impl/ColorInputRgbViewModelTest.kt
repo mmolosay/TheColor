@@ -1,12 +1,12 @@
 package io.github.mmolosay.thecolor.presentation.input.impl
 
 import io.github.mmolosay.thecolor.domain.model.Color
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator.InputType
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.impl.rgb.ColorInputRgbData
 import io.github.mmolosay.thecolor.presentation.input.impl.rgb.ColorInputRgbViewModel
@@ -14,6 +14,7 @@ import io.github.mmolosay.thecolor.testing.MainDispatcherRule
 import io.kotest.assertions.withClue
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -21,6 +22,7 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
+import io.mockk.slot
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emptyFlow
@@ -56,6 +58,7 @@ abstract class ColorInputRgbViewModelTest {
             eventStore = eventStore,
             colorInputValidator = colorInputValidator,
             uiDataUpdateDispatcher = mainDispatcherRule.testDispatcher,
+            defaultDispatcher = mainDispatcherRule.testDispatcher,
         ).also {
             sut = it
         }
@@ -228,5 +231,23 @@ class Other : ColorInputRgbViewModelTest() {
         coVerify(exactly = 1) {
             eventStore.send(event = any<ColorInputEvent.Submit>())
         }
+    }
+
+    @Test
+    fun `emission of text field data keeps 'color submission result' value the same`() {
+        coEvery { mediator.send(color = any(), from = any()) } just runs
+        createSut()
+        data.rTextField.onTextChange(Text("0"))
+        val sentEvent = slot<ColorInputEvent.Submit>()
+        coEvery {
+            eventStore.send(event = capture(sentEvent))
+        } coAnswers {
+            sentEvent.captured.onConsumed(wasAccepted = false)
+        }
+        data.submitColor()
+
+        data.rTextField.onTextChange(Text("1"))
+
+        data.colorSubmissionResult shouldNotBe null
     }
 }
