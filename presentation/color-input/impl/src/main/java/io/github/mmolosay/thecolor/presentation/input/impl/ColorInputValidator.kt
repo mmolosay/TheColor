@@ -11,7 +11,6 @@ import javax.inject.Singleton
 /**
  * Validates given [ColorInput] and returns the result as [ColorInputState].
  */
-// TODO: add unit tests
 @Singleton
 class ColorInputValidator @Inject constructor(
     private val colorInputMapper: ColorInputMapper,
