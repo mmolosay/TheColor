@@ -9,5 +9,4 @@ import io.github.mmolosay.thecolor.presentation.input.impl.model.ColorSubmission
 data class ColorInputHexData(
     val textField: TextFieldData,
     val submitColor: () -> Unit,
-    val colorSubmissionResult: ColorSubmissionResult?,
 )

@@ -12,7 +12,6 @@ import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
@@ -21,7 +20,6 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
-import io.mockk.slot
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emptyFlow
@@ -185,24 +183,6 @@ class ColorInputHexViewModelTest {
         coVerify(exactly = 1) {
             eventStore.send(event = any<ColorInputEvent.Submit>())
         }
-    }
-
-    @Test
-    fun `emission of text field data keeps 'color submission result' value the same`() {
-        coEvery { mediator.send(color = any(), from = any()) } just runs
-        createSut()
-        data.textField.onTextChange(Text("1F"))
-        val sentEvent = slot<ColorInputEvent.Submit>()
-        coEvery {
-            eventStore.send(event = capture(sentEvent))
-        } coAnswers {
-            sentEvent.captured.onConsumed(wasAccepted = false)
-        }
-        data.submitColor()
-
-        data.textField.onTextChange(Text("1F0"))
-
-        data.colorSubmissionResult shouldNotBe null
     }
 
     fun createSut() =

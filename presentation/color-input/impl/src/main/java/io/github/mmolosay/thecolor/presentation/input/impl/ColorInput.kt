@@ -161,10 +161,7 @@ private fun Preview() {
         ColorInput(
             uiData = previewUiData(),
             hexInput = {
-                ColorInputHex(
-                    uiData = previewInputHexUiData(),
-                    uiCommandFlow = emptyFlow(),
-                )
+                ColorInputHex(uiData = previewInputHexUiData())
             },
             rgbInput = {
                 ColorInputRgb(uiData = previewInputRgbUiData())

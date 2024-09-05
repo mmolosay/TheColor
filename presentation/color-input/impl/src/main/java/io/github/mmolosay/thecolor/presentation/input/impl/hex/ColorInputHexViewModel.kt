@@ -20,13 +20,13 @@ import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.impl.model.FullData
 import io.github.mmolosay.thecolor.presentation.input.impl.model.Update
 import io.github.mmolosay.thecolor.presentation.input.impl.model.asDataState
-import io.github.mmolosay.thecolor.presentation.input.impl.model.updatePayload
 import io.github.mmolosay.thecolor.utils.onEachNotNull
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -71,6 +71,9 @@ class ColorInputHexViewModel @AssistedInject constructor(
                 started = SharingStartedEagerlyAnd(WhileSubscribed(5000)),
                 initialValue = DataState.BeingInitialized,
             )
+
+    private val _colorSubmissionResult = MutableStateFlow<ColorSubmissionResult?>(null)
+    val colorSubmissionResult = _colorSubmissionResult.asStateFlow()
 
     init {
         collectTextFieldUpdates()
@@ -130,7 +133,6 @@ class ColorInputHexViewModel @AssistedInject constructor(
             ColorInputHexData(
                 textField = textFieldUpdate.payload,
                 submitColor = ::sendSubmitEvent,
-                colorSubmissionResult = null,
             )
         }
         return Update(payload = newData, causedByUser = textFieldUpdate.causedByUser)
@@ -164,15 +166,11 @@ class ColorInputHexViewModel @AssistedInject constructor(
             wasAccepted = wasAccepted,
             discard = ::clearColorSubmissionResult,
         )
-        dataUpdateFlow.updatePayload { data ->
-            data.copy(colorSubmissionResult = result)
-        }
+        _colorSubmissionResult.value = result
     }
 
     private fun clearColorSubmissionResult() {
-        dataUpdateFlow.updatePayload { data ->
-            data.copy(colorSubmissionResult = null)
-        }
+        _colorSubmissionResult.value = null
     }
 
     @AssistedFactory

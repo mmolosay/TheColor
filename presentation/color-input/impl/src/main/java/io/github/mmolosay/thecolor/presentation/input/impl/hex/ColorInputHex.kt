@@ -8,7 +8,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -25,12 +24,8 @@ import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.T
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiData
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiData.TrailingButton
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexUiData.ViewData
-import io.github.mmolosay.thecolor.presentation.input.impl.model.ColorInputUiCommand
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.launch
+import io.github.mmolosay.thecolor.presentation.input.impl.model.hideSoftwareKeyboardCommandOrNull
 
 @Composable
 fun ColorInputHex(
@@ -38,12 +33,9 @@ fun ColorInputHex(
 ) {
     val viewData = rememberViewData()
     val state = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
-    val collectedStates = remember {
-        mutableListOf<DataState<ColorInputHexData>>()
-    }
-    val uiCommandFlow = remember(viewModel.dataStateFlow) {
-        MutableSharedFlow<ColorInputUiCommand>()
-    }
+    val colorSubmissionResult = viewModel.colorSubmissionResult.collectAsStateWithLifecycle().value
+    val keyboardController = LocalSoftwareKeyboardController.current
+
     when (state) {
         is DataState.BeingInitialized ->
             Loading()
@@ -51,37 +43,23 @@ fun ColorInputHex(
             val uiData = rememberUiData(data = state.data, viewData = viewData)
             ColorInputHex(
                 uiData = uiData,
-                uiCommandFlow = uiCommandFlow,
             )
         }
     }
-    LaunchedEffect(state) {
-        val current = state
-        val previous = collectedStates.lastOrNull()
-        val newCommands = ColorInputHexUiCommands(current, previous)
-        newCommands.forEach { command ->
-            uiCommandFlow.emit(command)
-        }
-        collectedStates += current
-        run dropOldStates@{
-            val numberOfMaxRetainedStates = 2
-            if (collectedStates.size > numberOfMaxRetainedStates) {
-                collectedStates
-                    .subList(0, collectedStates.size - numberOfMaxRetainedStates)
-                    .clear()
-            }
-        }
+
+    val hideSoftwareKeyboardCommand = hideSoftwareKeyboardCommandOrNull(colorSubmissionResult)
+    LaunchedEffect(hideSoftwareKeyboardCommand) {
+        val command = hideSoftwareKeyboardCommand ?: return@LaunchedEffect
+        keyboardController?.hide()
+        command.onExecuted()
     }
 }
 
 @Composable
 fun ColorInputHex(
     uiData: ColorInputHexUiData,
-    uiCommandFlow: Flow<ColorInputUiCommand>,
 ) {
     var value by remember { mutableStateOf(TextFieldValue(text = uiData.textField.text.string)) }
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val coroutineScope = rememberCoroutineScope()
 
     TextField(
         modifier = Modifier.fillMaxWidth(0.5f),
@@ -96,19 +74,6 @@ fun ColorInputHex(
             onDone = { uiData.onImeActionDone() },
         ),
     )
-
-    LaunchedEffect(Unit) {
-        coroutineScope.launch {
-            uiCommandFlow.collect { command ->
-                when (command) {
-                    is ColorInputUiCommand.HideSoftwareKeyboard -> {
-                        keyboardController?.hide()
-                    }
-                }
-                command.onExecuted()
-            }
-        }
-    }
 }
 
 @Composable
@@ -130,7 +95,6 @@ private fun Preview() {
     TheColorTheme {
         ColorInputHex(
             uiData = previewUiData(),
-            uiCommandFlow = emptyFlow(),
         )
     }
 }
