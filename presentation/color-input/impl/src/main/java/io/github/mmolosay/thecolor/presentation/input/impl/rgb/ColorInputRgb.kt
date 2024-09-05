@@ -26,6 +26,7 @@ import io.github.mmolosay.thecolor.presentation.input.impl.UiComponents.TextFiel
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiData
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
+import io.github.mmolosay.thecolor.presentation.input.impl.model.hideSoftwareKeyboardCommandOrNull
 import io.github.mmolosay.thecolor.presentation.input.impl.rgb.ColorInputRgbUiData.ViewData
 
 @Composable
@@ -34,6 +35,10 @@ fun ColorInputRgb(
 ) {
     val viewData = rememberViewData()
     val state = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
+    val colorSubmissionResult =
+        viewModel.colorSubmissionResultFlow.collectAsStateWithLifecycle().value
+    val keyboardController = LocalSoftwareKeyboardController.current
+
     when (state) {
         is DataState.BeingInitialized ->
             Loading()
@@ -42,13 +47,19 @@ fun ColorInputRgb(
             ColorInputRgb(uiData)
         }
     }
+
+    val hideSoftwareKeyboardCommand = hideSoftwareKeyboardCommandOrNull(colorSubmissionResult)
+    LaunchedEffect(hideSoftwareKeyboardCommand) {
+        val command = hideSoftwareKeyboardCommand ?: return@LaunchedEffect
+        keyboardController?.hide()
+        command.onExecuted()
+    }
 }
 
 @Composable
 fun ColorInputRgb(
     uiData: ColorInputRgbUiData,
 ) {
-    val keyboardController = LocalSoftwareKeyboardController.current
     Row {
         @Composable
         fun SpacerInBetween() = Spacer(modifier = Modifier.width(16.dp))
@@ -77,12 +88,6 @@ fun ColorInputRgb(
                 onDone = { uiData.onImeActionDone() },
             ),
         )
-    }
-
-    LaunchedEffect(uiData.hideSoftwareKeyboardCommand) {
-        val command = uiData.hideSoftwareKeyboardCommand ?: return@LaunchedEffect
-        keyboardController?.hide()
-        command.onExecuted()
     }
 }
 
@@ -169,5 +174,4 @@ private fun previewUiData() =
             ),
         ),
         onImeActionDone = {},
-        hideSoftwareKeyboardCommand = null,
     )

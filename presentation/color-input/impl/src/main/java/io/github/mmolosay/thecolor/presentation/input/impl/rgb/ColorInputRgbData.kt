@@ -11,5 +11,4 @@ data class ColorInputRgbData(
     val gTextField: TextFieldData,
     val bTextField: TextFieldData,
     val submitColor: () -> Unit,
-    val colorSubmissionResult: ColorSubmissionResult?,
 )

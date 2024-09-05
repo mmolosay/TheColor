@@ -33,7 +33,7 @@ fun ColorInputHex(
 ) {
     val viewData = rememberViewData()
     val state = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
-    val colorSubmissionResult = viewModel.colorSubmissionResult.collectAsStateWithLifecycle().value
+    val colorSubmissionResult = viewModel.colorSubmissionResultFlow.collectAsStateWithLifecycle().value
     val keyboardController = LocalSoftwareKeyboardController.current
 
     when (state) {

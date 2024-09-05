@@ -72,8 +72,8 @@ class ColorInputHexViewModel @AssistedInject constructor(
                 initialValue = DataState.BeingInitialized,
             )
 
-    private val _colorSubmissionResult = MutableStateFlow<ColorSubmissionResult?>(null)
-    val colorSubmissionResult = _colorSubmissionResult.asStateFlow()
+    private val _colorSubmissionResultFlow = MutableStateFlow<ColorSubmissionResult?>(null)
+    val colorSubmissionResultFlow = _colorSubmissionResultFlow.asStateFlow()
 
     init {
         collectTextFieldUpdates()
@@ -166,11 +166,11 @@ class ColorInputHexViewModel @AssistedInject constructor(
             wasAccepted = wasAccepted,
             discard = ::clearColorSubmissionResult,
         )
-        _colorSubmissionResult.value = result
+        _colorSubmissionResultFlow.value = result
     }
 
     private fun clearColorSubmissionResult() {
-        _colorSubmissionResult.value = null
+        _colorSubmissionResultFlow.value = null
     }
 
     @AssistedFactory

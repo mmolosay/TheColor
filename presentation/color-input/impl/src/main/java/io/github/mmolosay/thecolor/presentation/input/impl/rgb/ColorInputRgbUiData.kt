@@ -3,7 +3,6 @@ package io.github.mmolosay.thecolor.presentation.input.impl.rgb
 import android.content.Context
 import io.github.mmolosay.thecolor.presentation.input.impl.R
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiData
-import io.github.mmolosay.thecolor.presentation.input.impl.model.ColorInputUiCommand
 
 /**
  * Framework-oriented data required for RGB color input View to be presented by Compose.
@@ -13,7 +12,6 @@ data class ColorInputRgbUiData(
     val gTextField: TextFieldUiData,
     val bTextField: TextFieldUiData,
     val onImeActionDone: () -> Unit,
-    val hideSoftwareKeyboardCommand: ColorInputUiCommand.HideSoftwareKeyboard?,
 ) {
 
     /**

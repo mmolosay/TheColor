@@ -21,13 +21,13 @@ import io.github.mmolosay.thecolor.presentation.input.impl.model.FullData
 import io.github.mmolosay.thecolor.presentation.input.impl.model.Update
 import io.github.mmolosay.thecolor.presentation.input.impl.model.asDataState
 import io.github.mmolosay.thecolor.presentation.input.impl.model.causedByUser
-import io.github.mmolosay.thecolor.presentation.input.impl.model.updatePayload
 import io.github.mmolosay.thecolor.utils.onEachNotNull
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -77,6 +77,9 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                 started = SharingStartedEagerlyAnd(WhileSubscribed(5000)),
                 initialValue = DataState.BeingInitialized,
             )
+
+    private val _colorSubmissionResultFlow = MutableStateFlow<ColorSubmissionResult?>(null)
+    val colorSubmissionResultFlow = _colorSubmissionResultFlow.asStateFlow()
 
     init {
         collectTextFieldUpdates()
@@ -154,7 +157,6 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                 gTextField = g.payload,
                 bTextField = b.payload,
                 submitColor = ::sendSubmitEvent,
-                colorSubmissionResult = null,
             )
         }
         return newData causedByUser listOf(r, g, b).any { it.causedByUser }
@@ -192,15 +194,11 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             wasAccepted = wasAccepted,
             discard = ::clearColorSubmissionResult,
         )
-        dataUpdateFlow.updatePayload { data ->
-            data.copy(colorSubmissionResult = result)
-        }
+        _colorSubmissionResultFlow.value = result
     }
 
     private fun clearColorSubmissionResult() {
-        dataUpdateFlow.updatePayload { data ->
-            data.copy(colorSubmissionResult = null)
-        }
+        _colorSubmissionResultFlow.value = null
     }
 
     @AssistedFactory
