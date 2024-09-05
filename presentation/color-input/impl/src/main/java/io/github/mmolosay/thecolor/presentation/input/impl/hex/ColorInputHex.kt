@@ -87,7 +87,7 @@ private fun rememberUiData(
     data: ColorInputHexData,
     viewData: ViewData,
 ): ColorInputHexUiData =
-    remember(data) { data + viewData } // TODO: do in background?
+    remember(data) { data + viewData }
 
 @Preview(showBackground = true)
 @Composable
