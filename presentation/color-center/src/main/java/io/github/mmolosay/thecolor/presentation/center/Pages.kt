@@ -3,9 +3,6 @@ package io.github.mmolosay.thecolor.presentation.center
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.OutlinedButton
@@ -14,11 +11,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.dp
+import io.github.mmolosay.thecolor.presentation.center.ColorCenterUiData.Page.ChangePageButton
 import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
 
 @Composable
@@ -31,8 +28,6 @@ fun DetailsPage(
         changePageButton = {
             ChangePageButton(
                 uiData = uiData.changePageButton,
-                iconPlacement = IconPlacement.Trailing,
-                iconImageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
             )
         },
     )
@@ -47,8 +42,6 @@ fun SchemePage(
         changePageButton = {
             ChangePageButton(
                 uiData = uiData.changePageButton,
-                iconPlacement = IconPlacement.Leading,
-                iconImageVector = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
             )
         },
     )
@@ -68,20 +61,14 @@ internal fun Page(
     }
 }
 
-/*
- * There's a curious separation of data, that's required by this function.
- * Parameter 'uiData' is injectable TODO: finish me
- */
 @Composable
-internal fun ChangePageButton(
-    uiData: ColorCenterUiData.ChangePageButton,
-    iconPlacement: IconPlacement,
-    iconImageVector: ImageVector,
+private fun ChangePageButton(
+    uiData: ChangePageButton,
 ) {
     @Composable
     fun Icon() =
         androidx.compose.material3.Icon(
-            imageVector = iconImageVector,
+            imageVector = uiData.icon,
             contentDescription = null, // described by neighboring text
         )
 
@@ -106,19 +93,15 @@ internal fun ChangePageButton(
         border = border,
     ) {
         // TODO: I don't like this solution with two 'if's for icon placement; redesign
-        if (iconPlacement == IconPlacement.Leading) {
+        if (uiData.iconPlacement == ChangePageButton.IconPlacement.Leading) {
             Icon()
         }
         Text(
             text = uiData.text,
             style = LocalTextStyle.current.merge(addedTextStyle),
         )
-        if (iconPlacement == IconPlacement.Trailing) {
+        if (uiData.iconPlacement == ChangePageButton.IconPlacement.Trailing) {
             Icon()
         }
     }
-}
-
-enum class IconPlacement {
-    Leading, Trailing,
 }

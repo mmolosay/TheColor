@@ -1,6 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.center
 
 import android.content.Context
+import androidx.compose.ui.graphics.vector.ImageVector
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterUiData.ViewData
 
 /**
@@ -16,12 +17,19 @@ data class ColorCenterUiData(
     data class Page(
         // the main content of each page is provided as a @Composable lambda
         val changePageButton: ChangePageButton,
-    )
+    ) {
 
-    data class ChangePageButton(
-        val text: String,
-        val onClick: () -> Unit,
-    )
+        data class ChangePageButton(
+            val text: String,
+            val onClick: () -> Unit,
+            val icon: ImageVector,
+            val iconPlacement: IconPlacement,
+        ) {
+            enum class IconPlacement {
+                Leading, Trailing,
+            }
+        }
+    }
 
     /*
      * Same as ColorCenterData.ChangePageEvent. It's a coincidence and a case of false duplication.

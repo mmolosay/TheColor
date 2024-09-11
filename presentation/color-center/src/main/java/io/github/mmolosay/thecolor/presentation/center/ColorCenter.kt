@@ -14,6 +14,9 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -202,15 +205,19 @@ private fun Preview() {
 private fun previewUiData() =
     ColorCenterUiData(
         detailsPage = ColorCenterUiData.Page(
-            changePageButton = ColorCenterUiData.ChangePageButton(
+            changePageButton = ColorCenterUiData.Page.ChangePageButton(
                 text = "View color scheme",
                 onClick = {},
+                icon = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                iconPlacement = ColorCenterUiData.Page.ChangePageButton.IconPlacement.Trailing,
             ),
         ),
         schemePage = ColorCenterUiData.Page(
-            changePageButton = ColorCenterUiData.ChangePageButton(
+            changePageButton = ColorCenterUiData.Page.ChangePageButton(
                 text = "View color details",
                 onClick = {},
+                icon = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
+                iconPlacement = ColorCenterUiData.Page.ChangePageButton.IconPlacement.Leading,
             ),
         ),
         changePageEvent = null,
