@@ -4,8 +4,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.KeyboardArrowLeft
-import androidx.compose.material.icons.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.OutlinedButton
@@ -32,7 +32,7 @@ fun DetailsPage(
             ChangePageButton(
                 uiData = uiData.changePageButton,
                 iconPlacement = IconPlacement.Trailing,
-                iconImageVector = Icons.Rounded.KeyboardArrowRight,
+                iconImageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
             )
         },
     )
@@ -48,7 +48,7 @@ fun SchemePage(
             ChangePageButton(
                 uiData = uiData.changePageButton,
                 iconPlacement = IconPlacement.Leading,
-                iconImageVector = Icons.Rounded.KeyboardArrowLeft,
+                iconImageVector = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
             )
         },
     )
