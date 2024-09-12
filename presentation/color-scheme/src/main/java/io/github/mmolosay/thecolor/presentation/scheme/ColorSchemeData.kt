@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.scheme
 
+import io.github.mmolosay.thecolor.presentation.api.ColorInt
 import io.github.mmolosay.thecolor.domain.model.ColorScheme.Mode as DomainMode
 
 /**
@@ -8,6 +9,8 @@ import io.github.mmolosay.thecolor.domain.model.ColorScheme.Mode as DomainMode
 data class ColorSchemeData(
     val swatches: List<Swatch>,
     val onSwatchSelect: (index: Int) -> Unit,
+    val onSelectedSwatchDismiss: () -> Unit,
+    val isAnySwatchSelected: Boolean,
     val activeMode: DomainMode,
     val selectedMode: DomainMode,
     val onModeSelect: (DomainMode) -> Unit,
@@ -18,7 +21,7 @@ data class ColorSchemeData(
 ) {
 
     data class Swatch(
-        val color: io.github.mmolosay.thecolor.presentation.api.ColorInt,
+        val color: ColorInt,
         val isDark: Boolean,
     )
 

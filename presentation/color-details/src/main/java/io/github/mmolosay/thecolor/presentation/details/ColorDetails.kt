@@ -39,16 +39,19 @@ import io.github.mmolosay.thecolor.presentation.errors.rememberDefaultErrorViewD
 @Composable
 fun ColorDetails(
     viewModel: ColorDetailsViewModel,
+    modifier: Modifier = Modifier,
 ) {
     val state = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
     ColorDetails(
         state = state,
+        modifier = modifier,
     )
 }
 
 @Composable
 fun ColorDetails(
     state: DataState,
+    modifier: Modifier = Modifier,
 ) {
     val viewData = rememberViewData()
     when (state) {
@@ -58,7 +61,10 @@ fun ColorDetails(
             ColorDetailsLoading()
         is DataState.Ready -> {
             val uiData = rememberUiData(state.data, viewData)
-            ColorDetails(uiData)
+            ColorDetails(
+                uiData = uiData,
+                modifier = modifier,
+            )
         }
         is DataState.Error ->
             Error(error = state.error)

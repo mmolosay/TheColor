@@ -13,6 +13,8 @@ data class ColorSchemeUiData(
     val modeSection: ModeSection,
     val swatchCountSection: SwatchCountSection,
     val applyChangesButton: ApplyChangesButton,
+    val showSelectedSwatchDetailsDialog: Boolean,
+    val onSelectedSwatchDetailsDialogDismissRequest: () -> Unit,
 ) {
 
     data class Swatch(

@@ -7,6 +7,7 @@ import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.result.onFailure
 import io.github.mmolosay.thecolor.domain.result.onSuccess
 import io.github.mmolosay.thecolor.domain.usecase.GetColorDetailsUseCase
+import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
 import io.github.mmolosay.thecolor.presentation.api.ColorCenterCommand
 import io.github.mmolosay.thecolor.presentation.api.ColorCenterCommandProvider
 import io.github.mmolosay.thecolor.presentation.api.ColorCenterEvent
@@ -37,9 +38,13 @@ class ColorDetailsViewModel @AssistedInject constructor(
     @Assisted private val eventStore: ColorCenterEventStore,
     private val getColorDetails: GetColorDetailsUseCase,
     private val createData: CreateColorDetailsDataUseCase,
+    private val createSeedData: CreateSeedDataUseCase,
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
 ) {
+
+    private val _currentSeedDataFlow = MutableStateFlow<ColorDetailsSeedData?>(null)
+    val currentSeedDataFlow = _currentSeedDataFlow.asStateFlow()
 
     private val _dataStateFlow = MutableStateFlow<DataState>(DataState.Idle)
     val dataStateFlow = _dataStateFlow.asStateFlow()
@@ -54,14 +59,24 @@ class ColorDetailsViewModel @AssistedInject constructor(
     private fun collectColorCenterCommands() =
         coroutineScope.launch(defaultDispatcher) {
             commandProvider.commandFlow.collect { command ->
-                when (command) {
-                    is ColorCenterCommand.FetchData -> {
-                        lastFetchDataCommand = command
-                        fetchColorDetails(command)
-                    }
-                }
+                command.process()
             }
         }
+
+    private fun ColorCenterCommand.process() = when (this) {
+        is ColorCenterCommand.FetchData -> {
+            lastFetchDataCommand = this
+            updateCurrentSeedData(color = this.color)
+            fetchColorDetails(command = this)
+        }
+        is ColorCenterCommand.SetColorDetails -> {
+            updateCurrentSeedData(color = this.domainDetails.color)
+            setColorDetails(
+                domainDetails = this.domainDetails,
+                colorRole = null,
+            )
+        }
+    }
 
     private fun fetchColorDetails(
         command: ColorCenterCommand.FetchData,
@@ -79,9 +94,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
         coroutineScope.launch(ioDispatcher) {
             getColorDetails.invoke(color)
                 .onSuccess { domainDetails ->
-                    val data = createData(domainDetails, colorRole)
-                    _dataStateFlow.value = DataState.Ready(data)
-                    colorHistory += HistoryRecord(domainDetails, colorRole)
+                    setColorDetails(domainDetails, colorRole)
                 }
                 .onFailure { failure ->
                     val error = ColorDetailsError(
@@ -91,6 +104,19 @@ class ColorDetailsViewModel @AssistedInject constructor(
                     _dataStateFlow.value = DataState.Error(error)
                 }
         }
+    }
+
+    private fun setColorDetails(
+        domainDetails: DomainColorDetails,
+        colorRole: ColorRole?,
+    ) {
+        val data = createData(domainDetails, colorRole)
+        _dataStateFlow.value = DataState.Ready(data)
+        colorHistory += HistoryRecord(domainDetails, colorRole)
+    }
+
+    private fun updateCurrentSeedData(color: Color) {
+        _currentSeedDataFlow.value = createSeedData(color)
     }
 
     private fun createData(
@@ -240,4 +266,18 @@ class CreateColorDetailsDataUseCase @Inject constructor(
             goToInitialColor = goToInitialColor,
         )
     }
+}
+
+@Singleton
+/* private but Dagger */
+class CreateSeedDataUseCase @Inject constructor(
+    private val colorToColorInt: ColorToColorIntUseCase,
+    private val isColorLight: IsColorLightUseCase,
+) {
+
+    operator fun invoke(color: Color) =
+        ColorDetailsSeedData(
+            color = with(colorToColorInt) { color.toColorInt() },
+            isDark = with(isColorLight) { color.isLight().not() },
+        )
 }

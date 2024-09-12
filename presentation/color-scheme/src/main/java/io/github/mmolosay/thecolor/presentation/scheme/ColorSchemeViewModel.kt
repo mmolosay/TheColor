@@ -11,7 +11,10 @@ import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
 import io.github.mmolosay.thecolor.presentation.api.ColorCenterCommand
 import io.github.mmolosay.thecolor.presentation.api.ColorCenterCommandProvider
+import io.github.mmolosay.thecolor.presentation.api.ColorCenterCommandStore
+import io.github.mmolosay.thecolor.presentation.api.ColorCenterEventStore
 import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.errors.toErrorType
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Changes
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Swatch
@@ -41,11 +44,23 @@ import io.github.mmolosay.thecolor.domain.model.ColorScheme as DomainColorScheme
 class ColorSchemeViewModel @AssistedInject constructor(
     @Assisted private val coroutineScope: CoroutineScope,
     @Assisted private val commandProvider: ColorCenterCommandProvider,
+    colorDetailsViewModelFactory: ColorDetailsViewModel.Factory,
     private val getColorScheme: GetColorSchemeUseCase,
     private val createData: CreateColorSchemeDataUseCase,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
 ) {
+
+    private val selectedSwatchDetailsCommandStore = ColorCenterCommandStore()
+    private val selectedSwatchDetailsEventStore = ColorCenterEventStore()
+
+    val selectedSwatchDetailsViewModel = colorDetailsViewModelFactory.create(
+        coroutineScope = coroutineScope,
+        colorCenterCommandProvider = selectedSwatchDetailsCommandStore,
+        colorCenterEventStore = selectedSwatchDetailsEventStore,
+    )
+
+    private var lastDomainColorScheme: DomainColorScheme? = null
 
     private val _statefulDataFlow = MutableStateFlow(initialStatefulData())
     val dataStateFlow: StateFlow<DataState> = _statefulDataFlow
@@ -67,6 +82,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
             commandProvider.commandFlow.collect { command ->
                 when (command) {
                     is ColorCenterCommand.FetchData -> onFetchDataCommand(command)
+                    is ColorCenterCommand.SetColorDetails -> Unit // unsupported for Color Scheme
                 }
             }
         }
@@ -84,6 +100,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
         coroutineScope.launch(ioDispatcher) {
             getColorScheme(request)
                 .onSuccess { scheme ->
+                    lastDomainColorScheme = scheme
                     val data = createData(scheme = scheme, config = requestConfig)
                     _statefulDataFlow.update {
                         it.copy(data = data, state = State.Ready)
@@ -108,7 +125,8 @@ class ColorSchemeViewModel @AssistedInject constructor(
         createData.invoke(
             scheme = scheme,
             config = config,
-            onSwatchSelect = ::goToSwatchDetails,
+            onSwatchSelect = ::onSwatchSelect,
+            onSelectedSwatchDismiss = ::onSelectedSwatchDismiss,
             onModeSelect = ::selectMode,
             onSwatchCountSelect = ::selectSwatchCount,
         )
@@ -119,8 +137,24 @@ class ColorSchemeViewModel @AssistedInject constructor(
     }
 
     // TODO: add unit tests
-    private fun goToSwatchDetails(index: Int) {
-        // TODO: implement
+    private fun onSwatchSelect(index: Int) {
+        // explicit exception is better for monitoring crashes and finding possible bugs
+        require(dataStateFlow.value is DataState.Ready)
+        val lastDomainColorScheme = requireNotNull(lastDomainColorScheme)
+        val selectedSwatchData = lastDomainColorScheme.swatchDetails[index]
+        coroutineScope.launch(defaultDispatcher) {
+            val command = ColorCenterCommand.SetColorDetails(domainDetails = selectedSwatchData)
+            selectedSwatchDetailsCommandStore.issue(command)
+        }
+        _statefulDataFlow.updateData {
+            it?.copy(isAnySwatchSelected = true)
+        }
+    }
+
+    private fun onSelectedSwatchDismiss() {
+        _statefulDataFlow.updateData {
+            it?.copy(isAnySwatchSelected = false)
+        }
     }
 
     private fun selectMode(mode: Mode) {
@@ -275,6 +309,7 @@ class CreateColorSchemeDataUseCase @Inject constructor(
         scheme: DomainColorScheme,
         config: Config,
         onSwatchSelect: (index: Int) -> Unit,
+        onSelectedSwatchDismiss: () -> Unit,
         onModeSelect: (Mode) -> Unit,
         onSwatchCountSelect: (SwatchCount) -> Unit,
     ) =
@@ -283,6 +318,8 @@ class CreateColorSchemeDataUseCase @Inject constructor(
                 details.color.toSwatch()
             },
             onSwatchSelect = onSwatchSelect,
+            onSelectedSwatchDismiss = onSelectedSwatchDismiss,
+            isAnySwatchSelected = false, // initially there's no selected swatch
             activeMode = config.mode,
             selectedMode = config.mode,
             onModeSelect = onModeSelect,

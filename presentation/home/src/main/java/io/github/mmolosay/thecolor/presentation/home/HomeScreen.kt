@@ -3,7 +3,6 @@ package io.github.mmolosay.thecolor.presentation.home
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -46,14 +45,13 @@ import io.github.mmolosay.debounce.debounced
 import io.github.mmolosay.thecolor.presentation.center.ColorCenter
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterShape
 import io.github.mmolosay.thecolor.presentation.design.ChangeNavigationBarAsSideEffect
-import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
-import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.RestoreNavigationBarAsSideEffect
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.home.HomeUiData.ProceedButton
 import io.github.mmolosay.thecolor.presentation.home.HomeUiData.ShowColorCenter
+import io.github.mmolosay.thecolor.presentation.impl.TintedSurface
 import io.github.mmolosay.thecolor.presentation.impl.toDpOffset
 import io.github.mmolosay.thecolor.presentation.impl.toDpSize
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInput
@@ -216,18 +214,17 @@ private fun ColorCenterOnTintedSurface(
     RestoreNavigationBarAsSideEffect()
     if (state !is ShowColorCenter.Yes) return
 
-    val colors = rememberContentColors(useLight = state.useLightContentColors)
-    ProvideColorsOnTintedSurface(colors) {
-        Box(
-            modifier = Modifier
-                .graphicsLayer {
-                    clip = true
-                    shape = ColorCenterShape
-                }
-                .background(state.backgroundColor),
-        ) {
-            colorCenter()
-        }
+    val colors = if (state.useLightContentColors) colorsOnDarkSurface() else colorsOnLightSurface()
+    TintedSurface(
+        modifier = Modifier
+            .graphicsLayer {
+                clip = true
+                shape = ColorCenterShape
+            },
+        backgroundColor = state.backgroundColor,
+        colors = colors,
+    ) {
+        colorCenter()
     }
     ChangeNavigationBarAsSideEffect(
         navigationBarColor = state.backgroundColor,
@@ -261,12 +258,6 @@ private fun rememberViewData(): HomeUiData.ViewData {
     val context = LocalContext.current
     return remember { HomeViewData(context) }
 }
-
-@Composable
-private fun rememberContentColors(useLight: Boolean): ColorsOnTintedSurface =
-    remember(useLight) {
-        if (useLight) colorsOnDarkSurface() else colorsOnLightSurface()
-    }
 
 @Preview(showBackground = true)
 @Composable

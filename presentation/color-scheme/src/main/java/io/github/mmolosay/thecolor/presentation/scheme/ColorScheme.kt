@@ -28,6 +28,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -35,6 +36,7 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -65,9 +67,13 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
+import io.github.mmolosay.thecolor.presentation.details.ColorDetails
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsOnTintedSurfaceDefaults
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.errors.ErrorMessageWithButton
 import io.github.mmolosay.thecolor.presentation.errors.message
 import io.github.mmolosay.thecolor.presentation.errors.rememberDefaultErrorViewData
+import io.github.mmolosay.thecolor.presentation.impl.TintedSurface
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.ApplyChangesButton
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.ModeSection
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.Swatch
@@ -81,12 +87,32 @@ fun ColorScheme(
     val state = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
     ColorScheme(
         state = state,
+        viewModel = viewModel,
     )
 }
 
 @Composable
 fun ColorScheme(
     state: DataState,
+    viewModel: ColorSchemeViewModel,
+) {
+    ColorScheme(
+        state = state,
+        selectedSwatchDetails = { colorSchemeUiData ->
+            if (colorSchemeUiData.showSelectedSwatchDetailsDialog) {
+                SelectedSwatchDetailsDialog(
+                    viewModel = viewModel.selectedSwatchDetailsViewModel,
+                    colorSchemeUiData = colorSchemeUiData,
+                )
+            }
+        },
+    )
+}
+
+@Composable
+fun ColorScheme(
+    state: DataState,
+    selectedSwatchDetails: @Composable (ColorSchemeUiData) -> Unit,
 ) {
     val viewData = rememberViewData()
     when (state) {
@@ -96,7 +122,10 @@ fun ColorScheme(
             ColorSchemeLoading()
         is DataState.Ready -> {
             val uiData = rememberUiData(state.data, viewData)
-            ColorScheme(uiData)
+            ColorScheme(
+                uiData = uiData,
+                selectedSwatchDetails = selectedSwatchDetails,
+            )
         }
         is DataState.Error ->
             Error(error = state.error)
@@ -106,6 +135,7 @@ fun ColorScheme(
 @Composable
 fun ColorScheme(
     uiData: ColorSchemeUiData,
+    selectedSwatchDetails: @Composable (ColorSchemeUiData) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -127,6 +157,8 @@ fun ColorScheme(
             modifier = Modifier.align(Alignment.End),
         )
     }
+
+    selectedSwatchDetails(uiData)
 }
 
 @Composable
@@ -364,6 +396,39 @@ private fun ApplyChangesButton(
     }
 }
 
+// TODO: introduce UI model for 'ColorDetailsOnTintedSurface'?
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SelectedSwatchDetailsDialog(
+    viewModel: ColorDetailsViewModel,
+    colorSchemeUiData: ColorSchemeUiData,
+) {
+    val seedData = viewModel.currentSeedDataFlow.collectAsStateWithLifecycle().value ?: return
+    val surfaceColor = ColorDetailsOnTintedSurfaceDefaults.surfaceColor(seedData)
+    val colorsOnTintedSurface = ColorDetailsOnTintedSurfaceDefaults.colorsOnTintedSurface(seedData)
+
+    ModalBottomSheet(
+        onDismissRequest = colorSchemeUiData.onSelectedSwatchDetailsDialogDismissRequest,
+        containerColor = surfaceColor,
+        contentColor = colorsOnTintedSurface.accent,
+        dragHandle = {
+            BottomSheetDefaults.DragHandle(
+                color = colorsOnTintedSurface.muted,
+            )
+        },
+    ) {
+        TintedSurface(
+            backgroundColor = surfaceColor,
+            colors = colorsOnTintedSurface,
+        ) {
+            ColorDetails(
+                viewModel = viewModel,
+                modifier = Modifier.padding(bottom = 24.dp),
+            )
+        }
+    }
+}
+
 @Composable
 private fun Error(
     error: ColorSchemeError,
@@ -417,6 +482,7 @@ private fun PreviewLight() {
         ProvideColorsOnTintedSurface(colors) {
             ColorScheme(
                 uiData = previewUiData(),
+                selectedSwatchDetails = {},
                 modifier = Modifier.background(Color(0xFF_123123)),
             )
         }
@@ -431,6 +497,7 @@ private fun PreviewDark() {
         ProvideColorsOnTintedSurface(colors) {
             ColorScheme(
                 uiData = previewUiData(),
+                selectedSwatchDetails = {},
                 modifier = Modifier.background(Color(0xFF_F0F8FF)),
             )
         }
@@ -517,4 +584,6 @@ private fun previewUiData() =
             text = "Apply changes",
             onClick = {},
         ),
+        showSelectedSwatchDetailsDialog = false,
+        onSelectedSwatchDetailsDialogDismissRequest = {},
     )
