@@ -92,7 +92,6 @@ private fun ChangePageButton(
         colors = colors,
         border = border,
     ) {
-        // TODO: I don't like this solution with two 'if's for icon placement; redesign
         if (uiData.iconPlacement == ChangePageButton.IconPlacement.Leading) {
             Icon()
         }
