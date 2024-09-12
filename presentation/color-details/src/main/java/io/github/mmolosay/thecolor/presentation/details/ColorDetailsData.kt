@@ -49,7 +49,7 @@ data class ColorDetailsData(
         data object Yes : ExactMatch
         data class No(
             val exactValue: String,
-            val exactColor: io.github.mmolosay.thecolor.presentation.api.ColorInt,
+            val exactColor: ColorInt,
             val goToExactColor: () -> Unit,
             val deviation: String,
         ) : ExactMatch
@@ -61,7 +61,7 @@ data class ColorDetailsData(
      * where the "exact" color was clicked.
      */
     data class InitialColorData(
-        val initialColor: io.github.mmolosay.thecolor.presentation.api.ColorInt,
+        val initialColor: ColorInt,
         val goToInitialColor: () -> Unit,
     )
 }

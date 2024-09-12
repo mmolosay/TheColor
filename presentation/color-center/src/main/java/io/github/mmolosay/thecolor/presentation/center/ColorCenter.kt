@@ -78,7 +78,10 @@ fun ColorCenter(
                 animationSpec = crossfadeSpec,
                 contentKey = { it::class }, // don't animate when 'DataState' type stays the same
             ) { state ->
-                ColorScheme(state = state)
+                ColorScheme(
+                    state = state,
+                    viewModel = viewModel,
+                )
             }
         },
     )

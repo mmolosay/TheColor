@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import javax.inject.Inject
+import io.github.mmolosay.thecolor.domain.model.ColorDetails as DomainColorDetails
 
 /**
  * Storage that holds a [Flow] of [ColorCenterCommand]s for a Color Center feature
@@ -41,11 +42,16 @@ interface ColorCenterCommandProvider {
     val commandFlow: Flow<ColorCenterCommand>
 }
 
+// TODO: split into 'ColorDetailsCommand' and 'ColorSchemeCommand'
 sealed interface ColorCenterCommand {
 
     /** Request a feature (Color Details, Color Scheme) to update itself with new data. */
     data class FetchData(
         val color: Color,
         val colorRole: ColorRole?,
+    ) : ColorCenterCommand
+
+    data class SetColorDetails(
+        val domainDetails: DomainColorDetails,
     ) : ColorCenterCommand
 }
