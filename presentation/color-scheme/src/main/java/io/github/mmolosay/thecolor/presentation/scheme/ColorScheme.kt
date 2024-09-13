@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -164,18 +163,22 @@ fun ColorScheme(
 @Composable
 private fun Swatches(swatches: List<Swatch>) {
     val scrollState = rememberScrollState()
-    Row(
+    Box(
         modifier = Modifier
             .edgeToEdge(parentTotalHorizontalPadding = 32.dp)
             .fillMaxWidth()
-            .wrapContentWidth()
             .horizontalScroll(
                 state = scrollState,
             ),
-        horizontalArrangement = Arrangement.spacedBy((-32).dp),
+        contentAlignment = Alignment.Center,
     ) {
-        swatches.forEach { swatch ->
-            Swatch(swatch)
+        Row(
+            modifier = Modifier.padding(horizontal = 48.dp), // equivalent of content padding in LazyList
+            horizontalArrangement = Arrangement.spacedBy((-32).dp),
+        ) {
+            swatches.forEach { swatch ->
+                Swatch(swatch)
+            }
         }
     }
 }
