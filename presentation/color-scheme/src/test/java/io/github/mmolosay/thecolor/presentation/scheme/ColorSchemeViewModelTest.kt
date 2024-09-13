@@ -10,7 +10,9 @@ import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase.Request
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
 import io.github.mmolosay.thecolor.presentation.api.ColorCenterCommand
 import io.github.mmolosay.thecolor.presentation.api.ColorCenterCommandProvider
+import io.github.mmolosay.thecolor.presentation.api.ColorCenterCommandStore
 import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Changes
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.SwatchCount
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.DataState
@@ -32,6 +34,7 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
+import javax.inject.Provider
 import io.github.mmolosay.thecolor.domain.model.ColorScheme as DomainColorScheme
 
 /**
@@ -51,6 +54,19 @@ class ColorSchemeViewModelTest {
 
     val commandProvider: ColorCenterCommandProvider = mockk {
         every { commandFlow } returns emptyFlow()
+    }
+    val colorCenterCommandStoreProvider: Provider<ColorCenterCommandStore> = mockk {
+        every { get() } returns mockk(relaxed = true) // instance doesn't matter for the majority of tests
+    }
+    val selectedSwatchDetailsViewModel: ColorDetailsViewModel = mockk()
+    val colorDetailsViewModelFactory: ColorDetailsViewModel.Factory = mockk {
+        every {
+            create(
+                coroutineScope = any(),
+                colorCenterEventStore = any(),
+                colorCenterCommandProvider = any(),
+            )
+        } returns selectedSwatchDetailsViewModel
     }
     val getColorScheme: GetColorSchemeUseCase = mockk()
     val createDataMock: CreateColorSchemeDataUseCase = mockk()
@@ -78,6 +94,7 @@ class ColorSchemeViewModelTest {
                     scheme = any(),
                     config = any(),
                     onSwatchSelect = any(),
+                    onSelectedSwatchDismiss = any(),
                     onModeSelect = any(),
                     onSwatchCountSelect = any(),
                 )
@@ -107,6 +124,7 @@ class ColorSchemeViewModelTest {
                     scheme = any(),
                     config = any(),
                     onSwatchSelect = any(),
+                    onSelectedSwatchDismiss = any(),
                     onModeSelect = any(),
                     onSwatchCountSelect = any(),
                 )
@@ -125,7 +143,7 @@ class ColorSchemeViewModelTest {
             val commandFlow = MutableSharedFlow<ColorCenterCommand>()
             every { commandProvider.commandFlow } returns commandFlow
             coEvery { getColorScheme(request = any()) } returns
-                Result.Success(value = someDomainColorScheme())
+                    Result.Success(value = someDomainColorScheme())
             createSut(
                 createData = createDataReal,
             )
@@ -143,7 +161,7 @@ class ColorSchemeViewModelTest {
             val commandFlow = MutableSharedFlow<ColorCenterCommand>()
             every { commandProvider.commandFlow } returns commandFlow
             coEvery { getColorScheme(request = any()) } returns
-                Result.Success(value = someDomainColorScheme())
+                    Result.Success(value = someDomainColorScheme())
             createSut(
                 createData = createDataReal,
             )
@@ -161,7 +179,7 @@ class ColorSchemeViewModelTest {
             val commandFlow = MutableSharedFlow<ColorCenterCommand>()
             every { commandProvider.commandFlow } returns commandFlow
             coEvery { getColorScheme(request = any()) } returns
-                Result.Success(value = someDomainColorScheme())
+                    Result.Success(value = someDomainColorScheme())
             createSut(
                 createData = createDataReal,
             )
@@ -181,7 +199,7 @@ class ColorSchemeViewModelTest {
             val commandFlow = MutableSharedFlow<ColorCenterCommand>()
             every { commandProvider.commandFlow } returns commandFlow
             coEvery { getColorScheme(request = any()) } returns
-                Result.Success(value = someDomainColorScheme())
+                    Result.Success(value = someDomainColorScheme())
             createSut(
                 createData = createDataReal,
             )
@@ -199,7 +217,7 @@ class ColorSchemeViewModelTest {
             val commandFlow = MutableSharedFlow<ColorCenterCommand>()
             every { commandProvider.commandFlow } returns commandFlow
             coEvery { getColorScheme(request = any()) } returns
-                Result.Success(value = someDomainColorScheme())
+                    Result.Success(value = someDomainColorScheme())
             createSut(
                 createData = createDataReal,
             )
@@ -217,7 +235,7 @@ class ColorSchemeViewModelTest {
             val commandFlow = MutableSharedFlow<ColorCenterCommand>()
             every { commandProvider.commandFlow } returns commandFlow
             coEvery { getColorScheme(request = any()) } returns
-                Result.Success(value = someDomainColorScheme())
+                    Result.Success(value = someDomainColorScheme())
             createSut(
                 createData = createDataReal,
             )
@@ -236,8 +254,7 @@ class ColorSchemeViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             val commandFlow = MutableSharedFlow<ColorCenterCommand>()
             every { commandProvider.commandFlow } returns commandFlow
-            coEvery { getColorScheme(request = any()) } returns
-                Result.Success(value = someDomainColorScheme())
+            coEvery { getColorScheme(request = any()) } returns Result.Success(value = someDomainColorScheme())
             createSut(
                 createData = createDataReal,
             )
@@ -270,7 +287,7 @@ class ColorSchemeViewModelTest {
             val commandFlow = MutableSharedFlow<ColorCenterCommand>()
             every { commandProvider.commandFlow } returns commandFlow
             coEvery { getColorScheme(request = any()) } returns
-                HttpFailure.UnknownHost(cause = mockk())
+                    HttpFailure.UnknownHost(cause = mockk())
             createSut()
 
             val command = ColorCenterCommand.FetchData(color = mockk(), colorRole = null)
@@ -298,7 +315,7 @@ class ColorSchemeViewModelTest {
         runTest(mainDispatcherRule.testDispatcher) {
             fun mockGetColorSchemeReturnsSuccess() {
                 coEvery { getColorScheme(request = any<Request>()) } returns
-                    Result.Success(value = someDomainColorScheme())
+                        Result.Success(value = someDomainColorScheme())
             }
 
             val commandFlow = MutableSharedFlow<ColorCenterCommand>()
@@ -313,7 +330,7 @@ class ColorSchemeViewModelTest {
             sut.data.onModeSelect(Mode.Triad)
             sut.data.onSwatchCountSelect(SwatchCount.Thirteen)
             coEvery { getColorScheme(request = any()) } returns
-                HttpFailure.UnknownHost(cause = mockk())
+                    HttpFailure.UnknownHost(cause = mockk())
             sut.data.changes.asPresent().applyChanges()
             mockGetColorSchemeReturnsSuccess()
 
@@ -327,12 +344,75 @@ class ColorSchemeViewModelTest {
             }
         }
 
+    @Test
+    fun `invoking 'on swatch select' action sends 'set color details' command to command store of selected sheme details ViewModel`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val selectedSwatchDetailsCommandStore: ColorCenterCommandStore = mockk(relaxed = true)
+            every { colorCenterCommandStoreProvider.get() } returns selectedSwatchDetailsCommandStore
+            val sutCommandFlow = MutableSharedFlow<ColorCenterCommand>()
+            every { commandProvider.commandFlow } returns sutCommandFlow
+            coEvery { getColorScheme(request = any()) } returns Result.Success(value = someDomainColorScheme())
+            createSut(
+                createData = createDataReal,
+            )
+            val seedColor = Color.Hex(0x123456)
+            val command = ColorCenterCommand.FetchData(color = seedColor, colorRole = null)
+            sutCommandFlow.emit(command)
+
+            sut.data.onSwatchSelect(0)
+
+            coVerify {
+                selectedSwatchDetailsCommandStore.issue(
+                    command = any<ColorCenterCommand.SetColorDetails>(),
+                )
+            }
+        }
+
+    @Test
+    fun `invoking 'on swatch select' action updates data accordingly`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val commandFlow = MutableSharedFlow<ColorCenterCommand>()
+            every { commandProvider.commandFlow } returns commandFlow
+            coEvery { getColorScheme(request = any()) } returns Result.Success(value = someDomainColorScheme())
+            createSut(
+                createData = createDataReal,
+            )
+            val seedColor = Color.Hex(0x123456)
+            val command = ColorCenterCommand.FetchData(color = seedColor, colorRole = null)
+            commandFlow.emit(command)
+
+            sut.data.onSwatchSelect(0)
+
+            sut.data.isAnySwatchSelected shouldBe true
+        }
+
+    @Test
+    fun `invoking 'on selected swatch dismiss' action updates data accordingly`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val commandFlow = MutableSharedFlow<ColorCenterCommand>()
+            every { commandProvider.commandFlow } returns commandFlow
+            coEvery { getColorScheme(request = any()) } returns Result.Success(value = someDomainColorScheme())
+            createSut(
+                createData = createDataReal,
+            )
+            val seedColor = Color.Hex(0x123456)
+            val command = ColorCenterCommand.FetchData(color = seedColor, colorRole = null)
+            commandFlow.emit(command)
+            sut.data.onSwatchSelect(0)
+
+            sut.data.onSelectedSwatchDismiss()
+
+            sut.data.isAnySwatchSelected shouldBe false
+        }
+
     fun createSut(
         createData: CreateColorSchemeDataUseCase = createDataMock,
     ) =
         ColorSchemeViewModel(
             coroutineScope = TestScope(context = mainDispatcherRule.testDispatcher),
             commandProvider = commandProvider,
+            colorCenterCommandStoreProvider = colorCenterCommandStoreProvider,
+            colorDetailsViewModelFactory = colorDetailsViewModelFactory,
             getColorScheme = getColorScheme,
             createData = createData,
             defaultDispatcher = mainDispatcherRule.testDispatcher,

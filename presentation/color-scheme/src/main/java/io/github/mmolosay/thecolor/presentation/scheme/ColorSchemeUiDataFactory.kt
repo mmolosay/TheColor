@@ -7,6 +7,7 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.ModeSec
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.Swatch
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.SwatchCountSection
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiDataComponents.OnModeSelect
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiDataComponents.OnSelectedSwatchDetailsDialogDismissRequest
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiDataComponents.OnSwatchClick
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiDataComponents.OnSwatchCountSelect
 import org.jetbrains.annotations.VisibleForTesting
@@ -21,7 +22,7 @@ fun ColorSchemeUiData(
         swatchCountSection = SwatchCountSection(data, viewData),
         applyChangesButton = ApplyChangesButton(data, viewData),
         showSelectedSwatchDetailsDialog = data.isAnySwatchSelected,
-        onSelectedSwatchDetailsDialogDismissRequest = data.onSelectedSwatchDismiss,
+        onSelectedSwatchDetailsDialogDismissRequest = OnSelectedSwatchDetailsDialogDismissRequest(data),
     )
 
 private fun Swatches(
@@ -122,4 +123,9 @@ internal object ColorSchemeUiDataComponents {
     ): () -> Unit = {
         data.onSwatchCountSelect(count)
     }
+
+    fun OnSelectedSwatchDetailsDialogDismissRequest(
+        data: ColorSchemeData,
+    ): () -> Unit =
+        data.onSelectedSwatchDismiss
 }

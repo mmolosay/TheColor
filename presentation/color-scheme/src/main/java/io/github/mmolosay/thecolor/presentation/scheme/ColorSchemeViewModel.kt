@@ -33,6 +33,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Named
+import javax.inject.Provider
 import javax.inject.Singleton
 import io.github.mmolosay.thecolor.domain.model.ColorScheme as DomainColorScheme
 
@@ -44,6 +45,7 @@ import io.github.mmolosay.thecolor.domain.model.ColorScheme as DomainColorScheme
 class ColorSchemeViewModel @AssistedInject constructor(
     @Assisted private val coroutineScope: CoroutineScope,
     @Assisted private val commandProvider: ColorCenterCommandProvider,
+    colorCenterCommandStoreProvider: Provider<ColorCenterCommandStore>,
     colorDetailsViewModelFactory: ColorDetailsViewModel.Factory,
     private val getColorScheme: GetColorSchemeUseCase,
     private val createData: CreateColorSchemeDataUseCase,
@@ -51,7 +53,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
 ) {
 
-    private val selectedSwatchDetailsCommandStore = ColorCenterCommandStore()
+    private val selectedSwatchDetailsCommandStore = colorCenterCommandStoreProvider.get()
     private val selectedSwatchDetailsEventStore = ColorCenterEventStore()
 
     val selectedSwatchDetailsViewModel = colorDetailsViewModelFactory.create(
@@ -136,7 +138,6 @@ class ColorSchemeViewModel @AssistedInject constructor(
         fetchColorScheme(seed = seed)
     }
 
-    // TODO: add unit tests
     private fun onSwatchSelect(index: Int) {
         // explicit exception is better for monitoring crashes and finding possible bugs
         require(dataStateFlow.value is DataState.Ready)
