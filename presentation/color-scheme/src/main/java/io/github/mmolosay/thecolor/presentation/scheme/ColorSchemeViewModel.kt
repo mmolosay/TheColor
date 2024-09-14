@@ -62,6 +62,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
         colorCenterEventStore = selectedSwatchDetailsEventStore,
     )
 
+    private var lastUsedSeed: Color? = null
     private var lastDomainColorScheme: DomainColorScheme? = null
 
     private val _statefulDataFlow = MutableStateFlow(initialStatefulData())
@@ -72,8 +73,6 @@ class ColorSchemeViewModel @AssistedInject constructor(
             started = SharingStarted.Eagerly, // View will start collecting immediately, also simplifies tests
             initialValue = DataState.Loading,
         )
-
-    private var lastUsedSeed: Color? = null
 
     init {
         collectColorCenterCommands()
