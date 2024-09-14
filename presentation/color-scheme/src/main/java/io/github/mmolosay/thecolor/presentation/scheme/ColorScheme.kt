@@ -408,21 +408,21 @@ private fun SelectedSwatchDetailsDialog(
 ) {
     val seedData = viewModel.currentSeedDataFlow.collectAsStateWithLifecycle().value ?: return
     val surfaceColor = ColorDetailsOnTintedSurfaceDefaults.surfaceColor(seedData)
-    val colorsOnTintedSurface = ColorDetailsOnTintedSurfaceDefaults.colorsOnTintedSurface(seedData)
+    val contentColors = ColorDetailsOnTintedSurfaceDefaults.colorsOnTintedSurface(seedData)
 
     ModalBottomSheet(
         onDismissRequest = colorSchemeUiData.onSelectedSwatchDetailsDialogDismissRequest,
         containerColor = surfaceColor,
-        contentColor = colorsOnTintedSurface.accent,
+        contentColor = contentColors.accent,
         dragHandle = {
             BottomSheetDefaults.DragHandle(
-                color = colorsOnTintedSurface.muted,
+                color = contentColors.muted,
             )
         },
     ) {
         TintedSurface(
             surfaceColor = surfaceColor,
-            contentColors = colorsOnTintedSurface,
+            contentColors = contentColors,
         ) {
             ColorDetails(
                 viewModel = viewModel,
