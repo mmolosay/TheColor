@@ -221,8 +221,8 @@ private fun ColorCenterOnTintedSurface(
                 clip = true
                 shape = ColorCenterShape
             },
-        backgroundColor = state.backgroundColor,
-        colors = colors,
+        surfaceColor = state.backgroundColor,
+        contentColors = colors,
     ) {
         colorCenter()
     }

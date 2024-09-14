@@ -421,8 +421,8 @@ private fun SelectedSwatchDetailsDialog(
         },
     ) {
         TintedSurface(
-            backgroundColor = surfaceColor,
-            colors = colorsOnTintedSurface,
+            surfaceColor = surfaceColor,
+            contentColors = colorsOnTintedSurface,
         ) {
             ColorDetails(
                 viewModel = viewModel,

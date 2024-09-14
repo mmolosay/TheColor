@@ -9,21 +9,21 @@ import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
 
 /**
- * Displays [content] on surface of [backgroundColor] and provides [colors] to it.
+ * Displays [content] on surface of [surfaceColor] and provides [contentColors] to it.
  *
  * @see ColorsOnTintedSurface
  */
 @Composable
 fun TintedSurface(
-    backgroundColor: Color,
-    colors: ColorsOnTintedSurface,
+    surfaceColor: Color,
+    contentColors: ColorsOnTintedSurface,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
     Box(
-        modifier = modifier.background(backgroundColor),
+        modifier = modifier.background(surfaceColor),
     ) {
-        ProvideColorsOnTintedSurface(colors = colors) {
+        ProvideColorsOnTintedSurface(colors = contentColors) {
             content()
         }
     }
