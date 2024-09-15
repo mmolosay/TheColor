@@ -399,7 +399,7 @@ private fun ApplyChangesButton(
     }
 }
 
-// TODO: introduce UI model for 'ColorDetailsOnTintedSurface'?
+// This piece of UI doesn't have its "UI" model yet. TODO: add one?
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SelectedSwatchDetailsDialog(
