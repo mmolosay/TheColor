@@ -3,6 +3,7 @@ package io.github.mmolosay.thecolor.presentation.input.impl.hex
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import io.github.mmolosay.thecolor.presentation.api.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
@@ -40,13 +41,13 @@ internal typealias FullDataHex = FullData<ColorInputHexData, ColorInput.Hex>
  * which do derive from Android-aware implementation.
  */
 class ColorInputHexViewModel @AssistedInject constructor(
-    @Assisted private val coroutineScope: CoroutineScope,
+    @Assisted coroutineScope: CoroutineScope,
     @Assisted private val mediator: ColorInputMediator,
     @Assisted private val eventStore: ColorInputEventStore,
     private val colorInputValidator: ColorInputValidator,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
     @Named("uiDataUpdateDispatcher") private val uiDataUpdateDispatcher: CoroutineDispatcher,
-) {
+) : SimpleViewModel(coroutineScope) {
 
     private val textFieldVm = TextFieldViewModel(filterUserInput = ::filterUserInput)
 

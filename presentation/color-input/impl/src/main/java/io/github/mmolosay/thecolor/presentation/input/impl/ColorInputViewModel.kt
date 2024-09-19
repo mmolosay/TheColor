@@ -3,6 +3,8 @@ package io.github.mmolosay.thecolor.presentation.input.impl
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import io.github.mmolosay.thecolor.presentation.api.SimpleViewModel
+import io.github.mmolosay.thecolor.presentation.api.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputData.ViewType
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexViewModel
@@ -24,14 +26,14 @@ class ColorInputViewModel @AssistedInject constructor(
     @Assisted mediator: ColorInputMediator,
     hexViewModelFactory: ColorInputHexViewModel.Factory,
     rgbViewModelFactory: ColorInputRgbViewModel.Factory,
-) {
+) : SimpleViewModel(coroutineScope) {
 
     private val _dataFlow = MutableStateFlow(initialData())
     val dataFlow = _dataFlow.asStateFlow()
 
     val hexViewModel: ColorInputHexViewModel by lazy {
         hexViewModelFactory.create(
-            coroutineScope = coroutineScope,
+            coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
             mediator = mediator,
             eventStore = eventStore,
         )
@@ -39,7 +41,7 @@ class ColorInputViewModel @AssistedInject constructor(
 
     val rgbViewModel: ColorInputRgbViewModel by lazy {
         rgbViewModelFactory.create(
-            coroutineScope = coroutineScope,
+            coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
             mediator = mediator,
             eventStore = eventStore,
         )
@@ -62,6 +64,12 @@ class ColorInputViewModel @AssistedInject constructor(
             viewType = ViewType.Hex,
             onInputTypeChange = ::onInputTypeChange,
         )
+
+    override fun dispose() {
+        super.dispose()
+        hexViewModel.dispose()
+        rgbViewModel.dispose()
+    }
 
     @AssistedFactory
     fun interface Factory {

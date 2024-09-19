@@ -4,6 +4,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
+import io.github.mmolosay.thecolor.presentation.api.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,7 +21,7 @@ class ColorPreviewViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     @Assisted colorInputColorProvider: ColorInputColorProvider,
     private val colorToColorInt: ColorToColorIntUseCase,
-) {
+) : SimpleViewModel(coroutineScope) {
 
     val stateFlow: StateFlow<ColorPreviewData> =
         colorInputColorProvider.colorFlow

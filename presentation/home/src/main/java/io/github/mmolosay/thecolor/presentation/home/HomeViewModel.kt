@@ -24,6 +24,7 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommand
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommandStore
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.drop
@@ -71,21 +72,23 @@ class HomeViewModel @Inject constructor(
 
     val colorInputViewModel: ColorInputViewModel =
         colorInputViewModelFactory.create(
-            coroutineScope = viewModelScope,
+            coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
             colorInputEventStore = colorInputEventStore,
             colorInputMediator = colorInputMediator,
         )
 
     val colorPreviewViewModel: ColorPreviewViewModel =
         colorPreviewViewModelFactory.create(
-            coroutineScope = viewModelScope,
+            coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
             colorInputColorProvider = colorInputColorStore,
         )
 
-    var colorDetailsCommandStore = colorDetailsCommandStoreProvider.get()
-    var colorDetailsEventStore = colorDetailsEventStoreProvider.get()
-    var colorSchemeCommandStore = colorSchemeCommandStoreProvider.get()
+    private var colorDetailsCommandStore = colorDetailsCommandStoreProvider.get()
+    private var colorDetailsEventStore = colorDetailsEventStoreProvider.get()
+    private var colorSchemeCommandStore = colorSchemeCommandStoreProvider.get()
     var colorCenterViewModel: ColorCenterViewModel = newColorCenterViewModel()
+
+    var colorDetailsEventCollectionJob: Job? = null
 
     init {
         collectColorsFromColorInput()
@@ -110,6 +113,9 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch(defaultDispatcher) {
             colorDetailsEventStore.eventFlow
                 .collect(::onEventFromColorDetails)
+        }.also {
+            colorDetailsEventCollectionJob?.cancel()
+            colorDetailsEventCollectionJob = it
         }
 
     private fun onColorFromColorInput(color: Color?) {
@@ -229,6 +235,7 @@ class HomeViewModel @Inject constructor(
         colorCenterViewModel.dispose()
         colorDetailsCommandStore = colorDetailsCommandStoreProvider.get()
         colorDetailsEventStore = colorDetailsEventStoreProvider.get()
+        collectEventsFromColorDetails()
         colorSchemeCommandStore = colorSchemeCommandStoreProvider.get()
         colorCenterViewModel = newColorCenterViewModel()
     }
