@@ -12,7 +12,7 @@ import io.github.mmolosay.thecolor.domain.model.ColorDetails as DomainColorDetai
  */
 class ColorDetailsCommandStore @Inject constructor() : ColorDetailsCommandProvider {
 
-    private val _commandFlow = MutableSharedFlow<ColorDetailsCommand>(replay = 1)
+    private val _commandFlow = MutableSharedFlow<ColorDetailsCommand>(replay = Int.MAX_VALUE)
     override val commandFlow: Flow<ColorDetailsCommand> = _commandFlow.asSharedFlow()
 
     suspend infix fun issue(command: ColorDetailsCommand) {

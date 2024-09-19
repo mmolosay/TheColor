@@ -11,7 +11,7 @@ import javax.inject.Inject
  */
 class ColorSchemeCommandStore @Inject constructor() : ColorSchemeCommandProvider {
 
-    private val _commandFlow = MutableSharedFlow<ColorSchemeCommand>(replay = 1)
+    private val _commandFlow = MutableSharedFlow<ColorSchemeCommand>(replay = Int.MAX_VALUE)
     override val commandFlow: Flow<ColorSchemeCommand> = _commandFlow.asSharedFlow()
 
     suspend infix fun issue(command: ColorSchemeCommand) {
