@@ -5,13 +5,13 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
-import io.github.mmolosay.thecolor.presentation.api.ColorCenterCommand
-import io.github.mmolosay.thecolor.presentation.api.ColorCenterCommandStore
-import io.github.mmolosay.thecolor.presentation.api.ColorCenterEvent
-import io.github.mmolosay.thecolor.presentation.api.ColorCenterEventStore
 import io.github.mmolosay.thecolor.presentation.api.ColorRole
 import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCommand
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCommandStore
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsEvent
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsEventStore
 import io.github.mmolosay.thecolor.presentation.home.HomeData.CanProceed
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
@@ -20,6 +20,8 @@ import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputViewModel
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommand
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommandStore
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -46,8 +48,9 @@ class HomeViewModel @Inject constructor(
     colorCenterViewModelFactory: ColorCenterViewModel.Factory,
     private val colorInputColorStore: ColorInputColorStore,
     private val colorInputEventStore: ColorInputEventStore,
-    private val colorCenterCommandStore: ColorCenterCommandStore,
-    private val colorCenterEventStore: ColorCenterEventStore,
+    private val colorDetailsCommandStore: ColorDetailsCommandStore,
+    private val colorDetailsEventStore: ColorDetailsEventStore,
+    private val colorSchemeCommandStore: ColorSchemeCommandStore,
     private val createColorData: CreateColorDataUseCase,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
     @Named("uiDataUpdateDispatcher") private val uiDataUpdateDispatcher: CoroutineDispatcher,
@@ -80,14 +83,15 @@ class HomeViewModel @Inject constructor(
     val colorCenterViewModel: ColorCenterViewModel =
         colorCenterViewModelFactory.create(
             coroutineScope = viewModelScope,
-            colorCenterCommandProvider = colorCenterCommandStore,
-            colorCenterEventStore = colorCenterEventStore,
+            colorDetailsCommandProvider = colorDetailsCommandStore,
+            colorDetailsEventStore = colorDetailsEventStore,
+            colorSchemeCommandProvider = colorSchemeCommandStore,
         )
 
     init {
         collectColorsFromColorInput()
         collectEventsFromColorInput()
-        collectEventsFromColorCenter()
+        collectEventsFromColorDetails()
     }
 
     private fun collectColorsFromColorInput() =
@@ -103,10 +107,10 @@ class HomeViewModel @Inject constructor(
                 .collect(::onEventFromColorInput)
         }
 
-    private fun collectEventsFromColorCenter() =
+    private fun collectEventsFromColorDetails() =
         viewModelScope.launch(defaultDispatcher) {
-            colorCenterEventStore.eventFlow
-                .collect(::onEventFromColorCenter)
+            colorDetailsEventStore.eventFlow
+                .collect(::onEventFromColorDetails)
         }
 
     private fun onColorFromColorInput(color: Color?) {
@@ -127,9 +131,9 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun onEventFromColorCenter(event: ColorCenterEvent) {
+    private fun onEventFromColorDetails(event: ColorDetailsEvent) {
         when (event) {
-            is ColorCenterEvent.ColorSelected ->
+            is ColorDetailsEvent.ColorSelected ->
                 setColorAndProceed(
                     newColor = event.color,
                     colorRole = event.colorRole,
@@ -148,9 +152,17 @@ class HomeViewModel @Inject constructor(
         color: Color,
         colorRole: ColorRole?,
     ) {
-        val command = ColorCenterCommand.FetchData(color, colorRole)
         viewModelScope.launch(defaultDispatcher) {
-            colorCenterCommandStore.issue(command)
+            // sends to both features of Color Center explicitly;
+            // TODO: create ColorCenterCommandStore that will do it under hood? as Facet pattern
+            run {
+                val command = ColorDetailsCommand.FetchData(color, colorRole)
+                colorDetailsCommandStore.issue(command)
+            }
+            run {
+                val command = ColorSchemeCommand.FetchData(color)
+                colorSchemeCommandStore.issue(command)
+            }
             val colorData = createColorData(color)
             val proceedResult = HomeData.ProceedResult.Success(
                 colorData = colorData,

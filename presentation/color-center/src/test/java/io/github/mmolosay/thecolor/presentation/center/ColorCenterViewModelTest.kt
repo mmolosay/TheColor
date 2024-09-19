@@ -48,8 +48,9 @@ class ColorCenterViewModelTest {
     fun createSut() =
         ColorCenterViewModel(
             coroutineScope = TestScope(context = mainDispatcherRule.testDispatcher),
-            colorCenterCommandProvider = mockk(),
-            colorCenterEventStore = mockk(),
+            colorDetailsCommandProvider = mockk(),
+            colorDetailsEventStore = mockk(),
+            colorSchemeCommandProvider = mockk(),
             colorDetailsViewModelFactory = { _, _, _ -> mockk() },
             colorSchemeViewModelFactory = { _, _ -> mockk() },
         ).also {

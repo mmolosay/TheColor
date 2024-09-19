@@ -3,10 +3,11 @@ package io.github.mmolosay.thecolor.presentation.center
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.presentation.api.ColorCenterCommandProvider
-import io.github.mmolosay.thecolor.presentation.api.ColorCenterEventStore
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterData.ChangePageEvent
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCommandProvider
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsEventStore
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommandProvider
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,8 +23,9 @@ import kotlinx.coroutines.flow.update
  */
 class ColorCenterViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted colorCenterCommandProvider: io.github.mmolosay.thecolor.presentation.api.ColorCenterCommandProvider,
-    @Assisted colorCenterEventStore: io.github.mmolosay.thecolor.presentation.api.ColorCenterEventStore,
+    @Assisted colorDetailsCommandProvider: ColorDetailsCommandProvider,
+    @Assisted colorDetailsEventStore: ColorDetailsEventStore,
+    @Assisted colorSchemeCommandProvider: ColorSchemeCommandProvider,
     colorDetailsViewModelFactory: ColorDetailsViewModel.Factory,
     colorSchemeViewModelFactory: ColorSchemeViewModel.Factory,
 ) {
@@ -34,15 +36,15 @@ class ColorCenterViewModel @AssistedInject constructor(
     val colorDetailsViewModel: ColorDetailsViewModel by lazy {
         colorDetailsViewModelFactory.create(
             coroutineScope = coroutineScope,
-            colorCenterCommandProvider = colorCenterCommandProvider,
-            colorCenterEventStore = colorCenterEventStore,
+            colorDetailsCommandProvider = colorDetailsCommandProvider,
+            colorDetailsEventStore = colorDetailsEventStore,
         )
     }
 
     val colorSchemeViewModel: ColorSchemeViewModel by lazy {
         colorSchemeViewModelFactory.create(
             coroutineScope = coroutineScope,
-            colorCenterCommandProvider = colorCenterCommandProvider,
+            colorSchemeCommandProvider = colorSchemeCommandProvider,
         )
     }
 
@@ -72,8 +74,9 @@ class ColorCenterViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            colorCenterCommandProvider: io.github.mmolosay.thecolor.presentation.api.ColorCenterCommandProvider,
-            colorCenterEventStore: io.github.mmolosay.thecolor.presentation.api.ColorCenterEventStore,
+            colorDetailsCommandProvider: ColorDetailsCommandProvider,
+            colorDetailsEventStore: ColorDetailsEventStore,
+            colorSchemeCommandProvider: ColorSchemeCommandProvider,
         ): ColorCenterViewModel
     }
 }

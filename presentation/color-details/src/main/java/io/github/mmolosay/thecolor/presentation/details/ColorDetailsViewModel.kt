@@ -8,10 +8,6 @@ import io.github.mmolosay.thecolor.domain.result.onFailure
 import io.github.mmolosay.thecolor.domain.result.onSuccess
 import io.github.mmolosay.thecolor.domain.usecase.GetColorDetailsUseCase
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
-import io.github.mmolosay.thecolor.presentation.api.ColorCenterCommand
-import io.github.mmolosay.thecolor.presentation.api.ColorCenterCommandProvider
-import io.github.mmolosay.thecolor.presentation.api.ColorCenterEvent
-import io.github.mmolosay.thecolor.presentation.api.ColorCenterEventStore
 import io.github.mmolosay.thecolor.presentation.api.ColorRole
 import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.ExactMatch
@@ -34,8 +30,8 @@ import io.github.mmolosay.thecolor.domain.model.ColorDetails as DomainColorDetai
  */
 class ColorDetailsViewModel @AssistedInject constructor(
     @Assisted private val coroutineScope: CoroutineScope,
-    @Assisted private val commandProvider: ColorCenterCommandProvider,
-    @Assisted private val eventStore: ColorCenterEventStore,
+    @Assisted private val commandProvider: ColorDetailsCommandProvider,
+    @Assisted private val eventStore: ColorDetailsEventStore,
     private val getColorDetails: GetColorDetailsUseCase,
     private val createData: CreateColorDetailsDataUseCase,
     private val createSeedData: CreateSeedDataUseCase,
@@ -49,7 +45,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
     private val _dataStateFlow = MutableStateFlow<DataState>(DataState.Idle)
     val dataStateFlow = _dataStateFlow.asStateFlow()
 
-    private var lastFetchDataCommand: ColorCenterCommand.FetchData? = null
+    private var lastFetchDataCommand: ColorDetailsCommand.FetchData? = null
     private val colorHistory = mutableListOf<HistoryRecord>()
 
     init {
@@ -63,13 +59,13 @@ class ColorDetailsViewModel @AssistedInject constructor(
             }
         }
 
-    private fun ColorCenterCommand.process() = when (this) {
-        is ColorCenterCommand.FetchData -> {
+    private fun ColorDetailsCommand.process() = when (this) {
+        is ColorDetailsCommand.FetchData -> {
             lastFetchDataCommand = this
             updateCurrentSeedData(color = this.color)
             fetchColorDetails(command = this)
         }
-        is ColorCenterCommand.SetColorDetails -> {
+        is ColorDetailsCommand.SetColorDetails -> {
             updateCurrentSeedData(color = this.domainDetails.color)
             setColorDetails(
                 domainDetails = this.domainDetails,
@@ -79,7 +75,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
     }
 
     private fun fetchColorDetails(
-        command: ColorCenterCommand.FetchData,
+        command: ColorDetailsCommand.FetchData,
     ) =
         fetchColorDetails(
             color = command.color,
@@ -160,7 +156,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
         colorRole: ColorRole,
     ) {
         coroutineScope.launch(defaultDispatcher) {
-            val event = ColorCenterEvent.ColorSelected(color, colorRole)
+            val event = ColorDetailsEvent.ColorSelected(color, colorRole)
             eventStore.send(event)
         }
     }
@@ -181,8 +177,8 @@ class ColorDetailsViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            colorCenterCommandProvider: ColorCenterCommandProvider,
-            colorCenterEventStore: ColorCenterEventStore,
+            colorDetailsCommandProvider: ColorDetailsCommandProvider,
+            colorDetailsEventStore: ColorDetailsEventStore,
         ): ColorDetailsViewModel
     }
 

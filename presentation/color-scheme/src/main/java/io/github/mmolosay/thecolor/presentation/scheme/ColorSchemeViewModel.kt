@@ -9,11 +9,10 @@ import io.github.mmolosay.thecolor.domain.result.onFailure
 import io.github.mmolosay.thecolor.domain.result.onSuccess
 import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
-import io.github.mmolosay.thecolor.presentation.api.ColorCenterCommand
-import io.github.mmolosay.thecolor.presentation.api.ColorCenterCommandProvider
-import io.github.mmolosay.thecolor.presentation.api.ColorCenterCommandStore
-import io.github.mmolosay.thecolor.presentation.api.ColorCenterEventStore
 import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCommand
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCommandStore
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsEventStore
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.errors.toErrorType
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Changes
@@ -44,8 +43,8 @@ import io.github.mmolosay.thecolor.domain.model.ColorScheme as DomainColorScheme
  */
 class ColorSchemeViewModel @AssistedInject constructor(
     @Assisted private val coroutineScope: CoroutineScope,
-    @Assisted private val commandProvider: ColorCenterCommandProvider,
-    colorCenterCommandStoreProvider: Provider<ColorCenterCommandStore>,
+    @Assisted private val commandProvider: ColorSchemeCommandProvider,
+    colorDetailsCommandStoreProvider: Provider<ColorDetailsCommandStore>,
     colorDetailsViewModelFactory: ColorDetailsViewModel.Factory,
     private val getColorScheme: GetColorSchemeUseCase,
     private val createData: CreateColorSchemeDataUseCase,
@@ -53,13 +52,13 @@ class ColorSchemeViewModel @AssistedInject constructor(
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
 ) {
 
-    private val selectedSwatchDetailsCommandStore = colorCenterCommandStoreProvider.get()
-    private val selectedSwatchDetailsEventStore = ColorCenterEventStore()
+    private val selectedSwatchDetailsCommandStore = colorDetailsCommandStoreProvider.get()
+    private val selectedSwatchDetailsEventStore = ColorDetailsEventStore()
 
     val selectedSwatchDetailsViewModel = colorDetailsViewModelFactory.create(
         coroutineScope = coroutineScope,
-        colorCenterCommandProvider = selectedSwatchDetailsCommandStore,
-        colorCenterEventStore = selectedSwatchDetailsEventStore,
+        colorDetailsCommandProvider = selectedSwatchDetailsCommandStore,
+        colorDetailsEventStore = selectedSwatchDetailsEventStore,
     )
 
     private var lastUsedSeed: Color? = null
@@ -81,17 +80,16 @@ class ColorSchemeViewModel @AssistedInject constructor(
     private fun collectColorCenterCommands() =
         coroutineScope.launch(defaultDispatcher) {
             commandProvider.commandFlow.collect { command ->
-                when (command) {
-                    is ColorCenterCommand.FetchData -> onFetchDataCommand(command)
-                    is ColorCenterCommand.SetColorDetails -> Unit // unsupported for Color Scheme
-                }
+                command.process()
             }
         }
 
-    private fun onFetchDataCommand(command: ColorCenterCommand.FetchData) {
-        val seed = command.color
-        lastUsedSeed = seed
-        fetchColorScheme(seed)
+    private fun ColorSchemeCommand.process() = when (this) {
+        is ColorSchemeCommand.FetchData -> {
+            val seed = this.color
+            lastUsedSeed = seed
+            fetchColorScheme(seed)
+        }
     }
 
     private fun fetchColorScheme(seed: Color) {
@@ -143,7 +141,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
         val lastDomainColorScheme = requireNotNull(lastDomainColorScheme)
         val selectedSwatchData = lastDomainColorScheme.swatchDetails[index]
         coroutineScope.launch(defaultDispatcher) {
-            val command = ColorCenterCommand.SetColorDetails(domainDetails = selectedSwatchData)
+            val command = ColorDetailsCommand.SetColorDetails(domainDetails = selectedSwatchData)
             selectedSwatchDetailsCommandStore.issue(command)
         }
         _statefulDataFlow.updateData {
@@ -242,7 +240,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            colorCenterCommandProvider: ColorCenterCommandProvider,
+            colorSchemeCommandProvider: ColorSchemeCommandProvider,
         ): ColorSchemeViewModel
     }
 
