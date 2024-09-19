@@ -154,11 +154,11 @@ class HomeViewModel @Inject constructor(
     ) {
         viewModelScope.launch(defaultDispatcher) {
             // sends to both features of Color Center explicitly
-            run {
+            run sendToColorDetails@{
                 val command = ColorDetailsCommand.FetchData(color, colorRole)
                 colorDetailsCommandStore.issue(command)
             }
-            run {
+            run sendToColorScheme@{
                 val command = ColorSchemeCommand.FetchData(color)
                 colorSchemeCommandStore.issue(command)
             }
