@@ -12,6 +12,7 @@ import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
 import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCommand
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCommandStore
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsEvent
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsEventStore
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.errors.toErrorType
@@ -75,12 +76,28 @@ class ColorSchemeViewModel @AssistedInject constructor(
 
     init {
         collectColorCenterCommands()
+        collectSelectedSwatchDetailsEvents()
     }
 
     private fun collectColorCenterCommands() =
         coroutineScope.launch(defaultDispatcher) {
             commandProvider.commandFlow.collect { command ->
                 command.process()
+            }
+        }
+
+    private fun collectSelectedSwatchDetailsEvents() =
+        coroutineScope.launch(defaultDispatcher) {
+            selectedSwatchDetailsEventStore.eventFlow.collect { event ->
+                when (event) {
+                    is ColorDetailsEvent.ColorSelected -> {
+                        val command = ColorDetailsCommand.FetchData(
+                            color = event.color,
+                            colorRole = event.colorRole,
+                        )
+                        selectedSwatchDetailsCommandStore.issue(command)
+                    }
+                }
             }
         }
 
