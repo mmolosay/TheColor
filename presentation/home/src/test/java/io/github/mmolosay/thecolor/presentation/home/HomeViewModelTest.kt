@@ -1,7 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.home
 
 import io.github.mmolosay.thecolor.domain.model.Color
-import io.github.mmolosay.thecolor.presentation.api.ColorRole
+import io.github.mmolosay.thecolor.presentation.details.ColorRole
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCommand
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCommandStore
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsEvent

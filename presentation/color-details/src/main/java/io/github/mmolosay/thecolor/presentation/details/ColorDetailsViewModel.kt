@@ -8,7 +8,6 @@ import io.github.mmolosay.thecolor.domain.result.onFailure
 import io.github.mmolosay.thecolor.domain.result.onSuccess
 import io.github.mmolosay.thecolor.domain.usecase.GetColorDetailsUseCase
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
-import io.github.mmolosay.thecolor.presentation.api.ColorRole
 import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.ExactMatch
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.InitialColorData

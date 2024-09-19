@@ -5,7 +5,6 @@ import io.github.mmolosay.thecolor.domain.model.ColorDetails
 import io.github.mmolosay.thecolor.domain.result.HttpFailure
 import io.github.mmolosay.thecolor.domain.result.Result
 import io.github.mmolosay.thecolor.domain.usecase.GetColorDetailsUseCase
-import io.github.mmolosay.thecolor.presentation.api.ColorRole
 import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel.DataState
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
