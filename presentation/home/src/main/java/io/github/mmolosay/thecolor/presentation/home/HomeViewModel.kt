@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
 import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
+import io.github.mmolosay.thecolor.presentation.api.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCommand
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCommandStore
@@ -31,6 +32,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Named
+import javax.inject.Provider
 import javax.inject.Singleton
 
 /**
@@ -45,12 +47,12 @@ class HomeViewModel @Inject constructor(
     colorInputMediatorFactory: ColorInputMediator.Factory,
     colorInputViewModelFactory: ColorInputViewModel.Factory,
     colorPreviewViewModelFactory: ColorPreviewViewModel.Factory,
-    colorCenterViewModelFactory: ColorCenterViewModel.Factory,
+    private val colorCenterViewModelFactory: ColorCenterViewModel.Factory,
     private val colorInputColorStore: ColorInputColorStore,
     private val colorInputEventStore: ColorInputEventStore,
-    private val colorDetailsCommandStore: ColorDetailsCommandStore,
-    private val colorDetailsEventStore: ColorDetailsEventStore,
-    private val colorSchemeCommandStore: ColorSchemeCommandStore,
+    private val colorDetailsCommandStoreProvider: Provider<ColorDetailsCommandStore>,
+    private val colorDetailsEventStoreProvider: Provider<ColorDetailsEventStore>,
+    private val colorSchemeCommandStoreProvider: Provider<ColorSchemeCommandStore>,
     private val createColorData: CreateColorDataUseCase,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
     @Named("uiDataUpdateDispatcher") private val uiDataUpdateDispatcher: CoroutineDispatcher,
@@ -80,13 +82,10 @@ class HomeViewModel @Inject constructor(
             colorInputColorProvider = colorInputColorStore,
         )
 
-    val colorCenterViewModel: ColorCenterViewModel =
-        colorCenterViewModelFactory.create(
-            coroutineScope = viewModelScope,
-            colorDetailsCommandProvider = colorDetailsCommandStore,
-            colorDetailsEventStore = colorDetailsEventStore,
-            colorSchemeCommandProvider = colorSchemeCommandStore,
-        )
+    var colorDetailsCommandStore = colorDetailsCommandStoreProvider.get()
+    var colorDetailsEventStore = colorDetailsEventStoreProvider.get()
+    var colorSchemeCommandStore = colorSchemeCommandStoreProvider.get()
+    var colorCenterViewModel: ColorCenterViewModel = newColorCenterViewModel()
 
     init {
         collectColorsFromColorInput()
@@ -153,7 +152,9 @@ class HomeViewModel @Inject constructor(
         colorRole: ColorRole?,
     ) {
         viewModelScope.launch(defaultDispatcher) {
-            // sends to both features of Color Center explicitly
+            // recreate Color Center ViewModel (and its sub-feature ViewModels) to reset them
+            recreateColorCenterViewModel()
+            // send to both features of Color Center explicitly
             run sendToColorDetails@{
                 val command = ColorDetailsCommand.FetchData(color, colorRole)
                 colorDetailsCommandStore.issue(command)
@@ -214,6 +215,22 @@ class HomeViewModel @Inject constructor(
 
     private fun clearNavEvent() {
         _navEventFlow.value = null
+    }
+
+    private fun newColorCenterViewModel() =
+        colorCenterViewModelFactory.create(
+            coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
+            colorDetailsCommandProvider = colorDetailsCommandStore,
+            colorDetailsEventStore = colorDetailsEventStore,
+            colorSchemeCommandProvider = colorSchemeCommandStore,
+        )
+
+    private fun recreateColorCenterViewModel() {
+        colorCenterViewModel.dispose()
+        colorDetailsCommandStore = colorDetailsCommandStoreProvider.get()
+        colorDetailsEventStore = colorDetailsEventStoreProvider.get()
+        colorSchemeCommandStore = colorSchemeCommandStoreProvider.get()
+        colorCenterViewModel = newColorCenterViewModel()
     }
 
     private fun initialData(): HomeData {

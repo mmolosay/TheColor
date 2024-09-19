@@ -1,11 +1,12 @@
 package io.github.mmolosay.thecolor.presentation.home
 
 import io.github.mmolosay.thecolor.domain.model.Color
-import io.github.mmolosay.thecolor.presentation.details.ColorRole
+import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCommand
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCommandStore
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsEvent
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsEventStore
+import io.github.mmolosay.thecolor.presentation.details.ColorRole
 import io.github.mmolosay.thecolor.presentation.home.HomeData.CanProceed
 import io.github.mmolosay.thecolor.presentation.home.HomeData.ProceedResult
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
@@ -20,6 +21,7 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -33,6 +35,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
+import javax.inject.Provider
 
 class HomeViewModelTest {
 
@@ -40,14 +43,34 @@ class HomeViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     val colorInputMediator: ColorInputMediator = mockk(relaxed = true)
+    val colorCenterViewModel: ColorCenterViewModel = mockk(relaxed = true)
+    val colorCenterViewModelFactory: ColorCenterViewModel.Factory = mockk {
+        every {
+            create(
+                coroutineScope = any(),
+                colorDetailsCommandProvider = any(),
+                colorDetailsEventStore = any(),
+                colorSchemeCommandProvider = any(),
+            )
+        } returns colorCenterViewModel
+    }
     val colorInputColorStore: ColorInputColorStore = mockk()
     val colorInputEventStore: ColorInputEventStore = mockk()
     val colorDetailsCommandStore: ColorDetailsCommandStore = mockk {
         coEvery { issue(command = any()) } just runs
     }
+    val colorDetailsCommandStoreProvider: Provider<ColorDetailsCommandStore> = mockk {
+        every { get() } returns colorDetailsCommandStore
+    }
     val colorDetailsEventStore: ColorDetailsEventStore = mockk()
+    val colorDetailsEventStoreProvider: Provider<ColorDetailsEventStore> = mockk {
+        every { get() } returns colorDetailsEventStore
+    }
     val colorSchemeCommandStore: ColorSchemeCommandStore = mockk {
         coEvery { issue(command = any()) } just runs
+    }
+    val colorSchemeCommandStoreProvider: Provider<ColorSchemeCommandStore> = mockk {
+        every { get() } returns colorSchemeCommandStore
     }
     val createColorData: CreateColorDataUseCase = mockk()
 
@@ -401,17 +424,57 @@ class HomeViewModelTest {
         data.proceedResult shouldBe null
     }
 
+    @Test
+    fun `when 'proceed' is invoked for second color, then 'ColorCenterViewModel' is recreated to reset its state`() {
+        val firstColor = Color.Hex(0x0)
+        val colorFlow = MutableStateFlow(firstColor)
+        every { colorInputColorStore.colorFlow } returns colorFlow
+        every { colorInputEventStore.eventFlow } returns emptyFlow()
+        every { colorDetailsEventStore.eventFlow } returns emptyFlow()
+        every { createColorData(color = any()) } returns mockk()
+        createSut()
+        // we know from other tests that it would be 'CanProceed.Yes'
+        data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().action() // proceed with first color
+        val secondColor = Color.Hex(0x1)
+        colorFlow.value = secondColor
+        clearMocks(
+            colorDetailsCommandStoreProvider,
+            colorDetailsEventStoreProvider,
+            colorSchemeCommandStoreProvider,
+            colorCenterViewModelFactory,
+            answers = false,
+            recordedCalls = true, // only clear recorded calls
+            childMocks = false,
+            verificationMarks = false,
+            exclusionRules = false,
+        )
+
+        data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().action() // proceed with second color
+
+        coVerify(exactly = 1) {
+            colorDetailsCommandStoreProvider.get()
+            colorDetailsEventStoreProvider.get()
+            colorSchemeCommandStoreProvider.get()
+            colorCenterViewModelFactory.create(
+                coroutineScope = any(),
+                colorDetailsCommandProvider = any(),
+                colorDetailsEventStore = any(),
+                colorSchemeCommandProvider = any(),
+            )
+        }
+    }
+
     fun createSut() =
         HomeViewModel(
             colorInputMediatorFactory = { _ -> colorInputMediator },
-            colorInputViewModelFactory = { _, _, _ -> mockk() },
-            colorPreviewViewModelFactory = { _, _ -> mockk() },
-            colorCenterViewModelFactory = { _, _, _, _ -> mockk() },
+            colorInputViewModelFactory = { _, _, _ -> mockk(relaxed = true) },
+            colorPreviewViewModelFactory = { _, _ -> mockk(relaxed = true) },
+            colorCenterViewModelFactory = colorCenterViewModelFactory,
             colorInputColorStore = colorInputColorStore,
             colorInputEventStore = colorInputEventStore,
-            colorDetailsCommandStore = colorDetailsCommandStore,
-            colorDetailsEventStore = colorDetailsEventStore,
-            colorSchemeCommandStore = colorSchemeCommandStore,
+            colorDetailsCommandStoreProvider = colorDetailsCommandStoreProvider,
+            colorDetailsEventStoreProvider = colorDetailsEventStoreProvider,
+            colorSchemeCommandStoreProvider = colorSchemeCommandStoreProvider,
             createColorData = createColorData,
             defaultDispatcher = mainDispatcherRule.testDispatcher,
             uiDataUpdateDispatcher = mainDispatcherRule.testDispatcher,

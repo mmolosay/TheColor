@@ -9,6 +9,7 @@ import io.github.mmolosay.thecolor.domain.result.onSuccess
 import io.github.mmolosay.thecolor.domain.usecase.GetColorDetailsUseCase
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
 import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
+import io.github.mmolosay.thecolor.presentation.api.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.ExactMatch
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData.InitialColorData
 import io.github.mmolosay.thecolor.presentation.errors.toErrorType
@@ -28,7 +29,7 @@ import io.github.mmolosay.thecolor.domain.model.ColorDetails as DomainColorDetai
  * which do derive from Android-aware implementation.
  */
 class ColorDetailsViewModel @AssistedInject constructor(
-    @Assisted private val coroutineScope: CoroutineScope,
+    @Assisted coroutineScope: CoroutineScope,
     @Assisted private val commandProvider: ColorDetailsCommandProvider,
     @Assisted private val eventStore: ColorDetailsEventStore,
     private val getColorDetails: GetColorDetailsUseCase,
@@ -36,7 +37,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
     private val createSeedData: CreateSeedDataUseCase,
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
-) {
+) : SimpleViewModel(coroutineScope) {
 
     private val _currentSeedDataFlow = MutableStateFlow<ColorDetailsSeedData?>(null)
     val currentSeedDataFlow = _currentSeedDataFlow.asStateFlow()

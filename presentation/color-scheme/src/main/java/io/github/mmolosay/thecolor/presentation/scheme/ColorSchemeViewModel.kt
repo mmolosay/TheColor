@@ -10,6 +10,7 @@ import io.github.mmolosay.thecolor.domain.result.onSuccess
 import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
 import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
+import io.github.mmolosay.thecolor.presentation.api.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCommand
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCommandStore
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsEvent
@@ -43,7 +44,7 @@ import io.github.mmolosay.thecolor.domain.model.ColorScheme as DomainColorScheme
  * which do derive from Android-aware implementation.
  */
 class ColorSchemeViewModel @AssistedInject constructor(
-    @Assisted private val coroutineScope: CoroutineScope,
+    @Assisted coroutineScope: CoroutineScope,
     @Assisted private val commandProvider: ColorSchemeCommandProvider,
     colorDetailsCommandStoreProvider: Provider<ColorDetailsCommandStore>,
     colorDetailsEventStoreProvider: Provider<ColorDetailsEventStore>,
@@ -52,7 +53,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
     private val createData: CreateColorSchemeDataUseCase,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
-) {
+) : SimpleViewModel(coroutineScope) {
 
     private val selectedSwatchDetailsCommandStore = colorDetailsCommandStoreProvider.get()
     private val selectedSwatchDetailsEventStore = colorDetailsEventStoreProvider.get()

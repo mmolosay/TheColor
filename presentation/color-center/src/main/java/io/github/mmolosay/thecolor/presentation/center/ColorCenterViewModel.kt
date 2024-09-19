@@ -3,6 +3,8 @@ package io.github.mmolosay.thecolor.presentation.center
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import io.github.mmolosay.thecolor.presentation.api.SimpleViewModel
+import io.github.mmolosay.thecolor.presentation.api.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterData.ChangePageEvent
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCommandProvider
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsEventStore
@@ -15,7 +17,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 /**
- * Composed of sub-feature ViewModels of nested Views.
+ * Composed of sub-feature ViewModels: Color Details and Color Scheme.
  *
  * Not a ViewModel-ViewModel in terms of Android development.
  * It doesn't derive from [androidx.lifecycle.ViewModel], so should only be used in "real" ViewModels
@@ -28,14 +30,14 @@ class ColorCenterViewModel @AssistedInject constructor(
     @Assisted colorSchemeCommandProvider: ColorSchemeCommandProvider,
     colorDetailsViewModelFactory: ColorDetailsViewModel.Factory,
     colorSchemeViewModelFactory: ColorSchemeViewModel.Factory,
-) {
+) : SimpleViewModel(coroutineScope) {
 
     private val _dataFlow = MutableStateFlow(initialData())
     val dataFlow = _dataFlow.asStateFlow()
 
     val colorDetailsViewModel: ColorDetailsViewModel by lazy {
         colorDetailsViewModelFactory.create(
-            coroutineScope = coroutineScope,
+            coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
             colorDetailsCommandProvider = colorDetailsCommandProvider,
             colorDetailsEventStore = colorDetailsEventStore,
         )
@@ -43,7 +45,7 @@ class ColorCenterViewModel @AssistedInject constructor(
 
     val colorSchemeViewModel: ColorSchemeViewModel by lazy {
         colorSchemeViewModelFactory.create(
-            coroutineScope = coroutineScope,
+            coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
             colorSchemeCommandProvider = colorSchemeCommandProvider,
         )
     }
@@ -69,6 +71,12 @@ class ColorCenterViewModel @AssistedInject constructor(
             changePage = ::changePage,
             changePageEvent = null,
         )
+
+    override fun dispose() {
+        super.dispose()
+        colorDetailsViewModel.dispose()
+        colorSchemeViewModel.dispose()
+    }
 
     @AssistedFactory
     fun interface Factory {
