@@ -35,6 +35,7 @@ import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurf
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.details.ColorDetails
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCrossfade
 import io.github.mmolosay.thecolor.presentation.scheme.ColorScheme
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -55,14 +56,9 @@ fun ColorCenter(
         viewModel = viewModel,
         details = {
             val viewModel = viewModel.colorDetailsViewModel
-            val state = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
-            val transition = updateTransition(
-                targetState = state,
-                label = "color details cross-fade",
-            )
-            transition.Crossfade(
+            ColorDetailsCrossfade(
+                actualDataState = viewModel.dataStateFlow.collectAsStateWithLifecycle().value,
                 animationSpec = crossfadeSpec,
-                contentKey = { it::class }, // don't animate when 'DataState' type stays the same
             ) { state ->
                 ColorDetails(state = state)
             }

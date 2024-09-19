@@ -67,6 +67,7 @@ import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.details.ColorDetails
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCrossfade
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsOnTintedSurfaceDefaults
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.errors.ErrorMessageWithButton
@@ -424,10 +425,14 @@ private fun SelectedSwatchDetailsDialog(
             surfaceColor = surfaceColor,
             contentColors = contentColors,
         ) {
-            ColorDetails(
-                viewModel = viewModel,
-                modifier = Modifier.padding(bottom = 24.dp),
-            )
+            ColorDetailsCrossfade(
+                actualDataState = viewModel.dataStateFlow.collectAsStateWithLifecycle().value,
+            ) { state ->
+                ColorDetails(
+                    state = state,
+                    modifier = Modifier.padding(bottom = 24.dp),
+                )
+            }
         }
     }
 }
