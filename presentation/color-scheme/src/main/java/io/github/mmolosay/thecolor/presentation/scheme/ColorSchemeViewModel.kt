@@ -46,6 +46,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
     @Assisted private val coroutineScope: CoroutineScope,
     @Assisted private val commandProvider: ColorSchemeCommandProvider,
     colorDetailsCommandStoreProvider: Provider<ColorDetailsCommandStore>,
+    colorDetailsEventStoreProvider: Provider<ColorDetailsEventStore>,
     colorDetailsViewModelFactory: ColorDetailsViewModel.Factory,
     private val getColorScheme: GetColorSchemeUseCase,
     private val createData: CreateColorSchemeDataUseCase,
@@ -54,7 +55,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
 ) {
 
     private val selectedSwatchDetailsCommandStore = colorDetailsCommandStoreProvider.get()
-    private val selectedSwatchDetailsEventStore = ColorDetailsEventStore()
+    private val selectedSwatchDetailsEventStore = colorDetailsEventStoreProvider.get()
 
     val selectedSwatchDetailsViewModel = colorDetailsViewModelFactory.create(
         coroutineScope = coroutineScope,
