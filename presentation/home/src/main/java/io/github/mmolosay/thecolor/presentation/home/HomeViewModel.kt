@@ -85,10 +85,9 @@ class HomeViewModel @Inject constructor(
 
     private var colorDetailsCommandStore = colorDetailsCommandStoreProvider.get()
     private var colorDetailsEventStore = colorDetailsEventStoreProvider.get()
+    private var colorDetailsEventCollectionJob: Job? = null
     private var colorSchemeCommandStore = colorSchemeCommandStoreProvider.get()
     var colorCenterViewModel: ColorCenterViewModel = newColorCenterViewModel()
-
-    var colorDetailsEventCollectionJob: Job? = null
 
     init {
         collectColorsFromColorInput()
@@ -138,28 +137,31 @@ class HomeViewModel @Inject constructor(
 
     private fun onEventFromColorDetails(event: ColorDetailsEvent) {
         when (event) {
-            is ColorDetailsEvent.ColorSelected ->
-                setColorAndProceed(
-                    newColor = event.color,
-                    colorRole = event.colorRole,
-                )
+            is ColorDetailsEvent.ColorSelected -> {
+                viewModelScope.launch(defaultDispatcher) {
+                    withContext(uiDataUpdateDispatcher) {
+                        colorInputMediator.send(color = event.color, from = null)
+                    }
+                    proceed(
+                        color = event.color,
+                        colorRole = event.colorRole,
+                        shouldRecreateColorCenter = false,
+                    )
+                }
+            }
         }
-    }
-
-    private fun proceed(
-        colorRole: ColorRole?,
-    ) {
-        val color = colorInputColorStore.colorFlow.value ?: return
-        proceed(color, colorRole)
     }
 
     private fun proceed(
         color: Color,
         colorRole: ColorRole?,
+        shouldRecreateColorCenter: Boolean,
     ) {
         viewModelScope.launch(defaultDispatcher) {
-            // recreate Color Center ViewModel (and its sub-feature ViewModels) to reset them
-            recreateColorCenterViewModel()
+            // recreate Color Center ViewModel (and its sub-feature ViewModels) to reset their states
+            if (shouldRecreateColorCenter) {
+                recreateColorCenter()
+            }
             // send to both features of Color Center explicitly
             run sendToColorDetails@{
                 val command = ColorDetailsCommand.FetchData(color, colorRole)
@@ -183,7 +185,11 @@ class HomeViewModel @Inject constructor(
         colorInputState: ColorInputState,
     ): Boolean {
         if (colorInputState is ColorInputState.Valid) {
-            proceed(colorInputState.color, null)
+            proceed(
+                color = colorInputState.color,
+                colorRole = null,
+                shouldRecreateColorCenter = true,
+            )
             return true
         } else {
             _dataFlow.update {
@@ -193,19 +199,6 @@ class HomeViewModel @Inject constructor(
                 it.copy(proceedResult = result)
             }
             return false
-        }
-    }
-
-    private fun setColorAndProceed(
-        newColor: Color,
-        colorRole: ColorRole?,
-    ) {
-        viewModelScope.launch(defaultDispatcher) {
-            // it's crucial to update color first, so that 'proceed()' obtains new color
-            withContext(uiDataUpdateDispatcher) {
-                colorInputMediator.send(color = newColor, from = null)
-            }
-            proceed(colorRole)
         }
     }
 
@@ -231,7 +224,7 @@ class HomeViewModel @Inject constructor(
             colorSchemeCommandProvider = colorSchemeCommandStore,
         )
 
-    private fun recreateColorCenterViewModel() {
+    private fun recreateColorCenter() {
         colorCenterViewModel.dispose()
         colorDetailsCommandStore = colorDetailsCommandStoreProvider.get()
         colorDetailsEventStore = colorDetailsEventStoreProvider.get()
@@ -240,13 +233,12 @@ class HomeViewModel @Inject constructor(
         colorCenterViewModel = newColorCenterViewModel()
     }
 
-    private fun initialData(): HomeData {
-        return HomeData(
+    private fun initialData(): HomeData =
+        HomeData(
             canProceed = CanProceed(),
             proceedResult = null, // 'proceed' action wasn't invoked yet
             goToSettings = ::setGoToSettingsNavEvent,
         )
-    }
 
     private fun CanProceed(): CanProceed {
         val color = colorInputColorStore.colorFlow.value
@@ -260,7 +252,12 @@ class HomeViewModel @Inject constructor(
                 val action: () -> Unit = {
                     // clicking "proceed" button takes color from color input,
                     // thus it's a standalone color (without a role)
-                    proceed(colorRole = null)
+                    val color = requireNotNull(colorInputColorStore.colorFlow.value)
+                    proceed(
+                        color = color,
+                        colorRole = null,
+                        shouldRecreateColorCenter = true,
+                    )
                 }
                 CanProceed.Yes(action)
             }
