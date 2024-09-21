@@ -80,9 +80,19 @@ internal object UiComponents {
                 keyboardActions = keyboardActions,
                 singleLine = true,
             )
-            // for when text is cleared with trailing button
+            // for when text is cleared with trailing button or set programmatically
             LaunchedEffect(text) {
-                val new = value.copy(text = text.string)
+                val old = value
+                val newText = text.string
+                val hadSelectionAtTheEnd = (old.selection.end == old.text.length)
+                val isNewTextLongerThanOld = (newText.length > old.text.length)
+                // if it was "123|" become "123456|" instead of "123|456"
+                val newSelection = if (hadSelectionAtTheEnd && isNewTextLongerThanOld) {
+                    TextRange(index = newText.length)
+                } else {
+                    old.selection
+                }
+                val new = old.copy(text = newText, selection = newSelection)
                 updateValue(new)
             }
         }
