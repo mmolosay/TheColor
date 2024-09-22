@@ -62,8 +62,8 @@ private fun Application() {
     val defaultNavBarColor = LocalDefaultNavigationBarColor
     val isDefaultNavBarLight = LocalIsDefaultNavigationBarLight.current
     if (backStackEntry != null) {
-        // Restore nav bar when screen changes.
-        // If the particular screen wants to style nav bar in its own way, it may do so.
+        // Immediately restore nav bar when screen changes.
+        // If some screen wants to style nav bar in its own way, it may do so.
         view.changeNavigationBar(
             color = defaultNavBarColor,
             isLight = isDefaultNavBarLight,
