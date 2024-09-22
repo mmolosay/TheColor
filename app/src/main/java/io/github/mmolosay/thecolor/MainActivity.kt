@@ -61,7 +61,8 @@ private fun Application() {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val defaultNavBarColor = LocalDefaultNavigationBarColor
     val isDefaultNavBarLight = LocalIsDefaultNavigationBarLight.current
-    if (backStackEntry != null) {
+    LaunchedEffect(backStackEntry) {
+        backStackEntry ?: return@LaunchedEffect
         // Immediately restore nav bar when screen changes.
         // If some screen wants to style nav bar in its own way, it may do so.
         view.changeNavigationBar(
