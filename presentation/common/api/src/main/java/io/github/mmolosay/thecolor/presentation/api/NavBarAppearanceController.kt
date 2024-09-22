@@ -8,18 +8,18 @@ import kotlinx.coroutines.flow.asStateFlow
  * It supports "layering" appearances, so that if the latest appearance is cancelled,
  * then the one that was before it will be used (as when going back to previous screen).
  */
-class NavBarAppearanceController {
+class NavBarAppearanceController : NavBarAppearanceStack {
 
     private val appearanceStack = mutableListOf<NavBarAppearance>()
 
     private val _appearanceFlow = MutableStateFlow<NavBarAppearance?>(null)
     val appearanceFlow = _appearanceFlow.asStateFlow()
 
-    infix fun push(appearance: NavBarAppearance) {
+    override fun push(appearance: NavBarAppearance) {
         appearance.addToStackAndEmitFromFlow()
     }
 
-    fun peel() {
+    override fun peel() {
         appearanceStack.removeLastOrNull()
         emitLatestAppearance()
     }
@@ -33,6 +33,26 @@ class NavBarAppearanceController {
         val latest = appearanceStack.lastOrNull()
         _appearanceFlow.value = latest
     }
+}
+
+/**
+ * An interface to share with UI with only functionality that UI needs.
+ * Interface Segregation Principle.
+ *
+ * @see NavBarAppearanceController
+ */
+interface NavBarAppearanceStack {
+    fun push(appearance: NavBarAppearance)
+    fun peel()
+}
+
+/**
+ * A "no-operation" implementation of [NavBarAppearanceStack].
+ * Useful in Compose Previews.
+ */
+object NoopNavBarAppearanceStack : NavBarAppearanceStack {
+    override fun push(appearance: NavBarAppearance) {}
+    override fun peel() {}
 }
 
 /**

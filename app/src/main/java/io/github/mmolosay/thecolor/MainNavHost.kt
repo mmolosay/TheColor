@@ -8,6 +8,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import io.github.mmolosay.thecolor.presentation.api.NavBarAppearanceController
+import io.github.mmolosay.thecolor.presentation.api.NavBarAppearanceStack
 import io.github.mmolosay.thecolor.presentation.home.HomeScreen
 import io.github.mmolosay.thecolor.presentation.home.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.settings.Settings
@@ -27,7 +28,7 @@ internal fun MainNavHost(
     ) {
         home(
             mainNavController = navController,
-            navBarAppearanceController = navBarAppearanceController,
+            navBarAppearanceStack = navBarAppearanceController,
         )
         settings(
             mainNavController = navController,
@@ -36,7 +37,7 @@ internal fun MainNavHost(
 
 private fun NavGraphBuilder.home(
     mainNavController: NavController,
-    navBarAppearanceController: NavBarAppearanceController,
+    navBarAppearanceStack: NavBarAppearanceStack,
 ) =
     composable(route = AppNavDest.Home.route) {
         val homeViewModel: HomeViewModel = hiltViewModel()
@@ -45,7 +46,7 @@ private fun NavGraphBuilder.home(
             navigateToSettings = {
                 mainNavController.navigate(route = AppNavDest.Settings.route)
             },
-            navBarAppearanceController = navBarAppearanceController,
+            navBarAppearanceStack = navBarAppearanceStack,
         )
     }
 

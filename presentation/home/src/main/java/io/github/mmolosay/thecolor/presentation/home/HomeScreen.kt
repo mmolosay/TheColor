@@ -45,7 +45,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.debounce.debounced
 import io.github.mmolosay.thecolor.presentation.api.ColorInt
 import io.github.mmolosay.thecolor.presentation.api.NavBarAppearance
-import io.github.mmolosay.thecolor.presentation.api.NavBarAppearanceController
+import io.github.mmolosay.thecolor.presentation.api.NavBarAppearanceStack
+import io.github.mmolosay.thecolor.presentation.api.NoopNavBarAppearanceStack
 import io.github.mmolosay.thecolor.presentation.center.ColorCenter
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterShape
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
@@ -63,7 +64,7 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreview
 fun HomeScreen(
     viewModel: HomeViewModel,
     navigateToSettings: () -> Unit,
-    navBarAppearanceController: NavBarAppearanceController, // TODO: should probably accept a SideEffect instead
+    navBarAppearanceStack: NavBarAppearanceStack,
 ) {
     val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
     val viewData = rememberViewData()
@@ -90,7 +91,7 @@ fun HomeScreen(
             )
         },
         navigateToSettings = navigateToSettings,
-        navBarAppearanceController = navBarAppearanceController,
+        navBarAppearanceStack = navBarAppearanceStack,
     )
 }
 
@@ -102,18 +103,18 @@ fun HomeScreen(
     colorPreview: @Composable () -> Unit,
     colorCenter: @Composable () -> Unit,
     navigateToSettings: () -> Unit,
-    navBarAppearanceController: NavBarAppearanceController,
+    navBarAppearanceStack: NavBarAppearanceStack,
 ) {
     Scaffold { contentPadding ->
         Home(
+            modifier = Modifier.padding(contentPadding),
             uiData = uiData,
             navEvent = navEvent,
             colorInput = colorInput,
             colorPreview = colorPreview,
             colorCenter = colorCenter,
             navigateToSettings = navigateToSettings,
-            navBarAppearanceController = navBarAppearanceController,
-            modifier = Modifier.padding(contentPadding),
+            navBarAppearanceStack = navBarAppearanceStack,
         )
     }
 }
@@ -126,7 +127,7 @@ fun Home(
     colorPreview: @Composable () -> Unit,
     colorCenter: @Composable () -> Unit,
     navigateToSettings: () -> Unit,
-    navBarAppearanceController: NavBarAppearanceController,
+    navBarAppearanceStack: NavBarAppearanceStack,
     modifier: Modifier = Modifier,
 ) {
     val density = LocalDensity.current
@@ -174,7 +175,7 @@ fun Home(
         ColorCenterOnTintedSurface(
             state = uiData.showColorCenter,
             colorCenter = colorCenter,
-            navBarAppearanceController = navBarAppearanceController,
+            navBarAppearanceStack = navBarAppearanceStack,
         )
 //        }
     }
@@ -218,7 +219,7 @@ private fun ProceedButton(
 private fun ColorCenterOnTintedSurface(
     state: ShowColorCenter,
     colorCenter: @Composable () -> Unit,
-    navBarAppearanceController: NavBarAppearanceController,
+    navBarAppearanceStack: NavBarAppearanceStack,
 ) {
     if (state !is ShowColorCenter.Yes) return
     val colors = if (state.useLightContentColors) colorsOnDarkSurface() else colorsOnLightSurface()
@@ -238,9 +239,9 @@ private fun ColorCenterOnTintedSurface(
             color = state.navigationBarColor,
             isLight = state.isNavigationBarLight,
         )
-        navBarAppearanceController.push(appearance)
+        navBarAppearanceStack.push(appearance)
         onDispose {
-            navBarAppearanceController.peel()
+            navBarAppearanceStack.peel()
         }
     }
 }
@@ -307,7 +308,7 @@ private fun Preview() {
                 )
             },
             navigateToSettings = {},
-            navBarAppearanceController = remember { NavBarAppearanceController() }
+            navBarAppearanceStack = NoopNavBarAppearanceStack,
         )
     }
 }
