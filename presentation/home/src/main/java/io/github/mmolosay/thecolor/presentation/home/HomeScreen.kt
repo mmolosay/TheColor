@@ -22,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,10 +43,11 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.debounce.debounced
+import io.github.mmolosay.thecolor.presentation.api.ColorInt
+import io.github.mmolosay.thecolor.presentation.api.NavBarAppearance
+import io.github.mmolosay.thecolor.presentation.api.NavBarAppearanceController
 import io.github.mmolosay.thecolor.presentation.center.ColorCenter
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterShape
-import io.github.mmolosay.thecolor.presentation.design.ChangeNavigationBarAsSideEffect
-import io.github.mmolosay.thecolor.presentation.design.RestoreNavigationBarAsSideEffect
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
@@ -61,6 +63,7 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreview
 fun HomeScreen(
     viewModel: HomeViewModel,
     navigateToSettings: () -> Unit,
+    navBarAppearanceController: NavBarAppearanceController, // TODO: should probably accept a SideEffect instead
 ) {
     val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
     val viewData = rememberViewData()
@@ -87,6 +90,7 @@ fun HomeScreen(
             )
         },
         navigateToSettings = navigateToSettings,
+        navBarAppearanceController = navBarAppearanceController,
     )
 }
 
@@ -98,6 +102,7 @@ fun HomeScreen(
     colorPreview: @Composable () -> Unit,
     colorCenter: @Composable () -> Unit,
     navigateToSettings: () -> Unit,
+    navBarAppearanceController: NavBarAppearanceController,
 ) {
     Scaffold { contentPadding ->
         Home(
@@ -107,6 +112,7 @@ fun HomeScreen(
             colorPreview = colorPreview,
             colorCenter = colorCenter,
             navigateToSettings = navigateToSettings,
+            navBarAppearanceController = navBarAppearanceController,
             modifier = Modifier.padding(contentPadding),
         )
     }
@@ -120,6 +126,7 @@ fun Home(
     colorPreview: @Composable () -> Unit,
     colorCenter: @Composable () -> Unit,
     navigateToSettings: () -> Unit,
+    navBarAppearanceController: NavBarAppearanceController,
     modifier: Modifier = Modifier,
 ) {
     val density = LocalDensity.current
@@ -167,6 +174,7 @@ fun Home(
         ColorCenterOnTintedSurface(
             state = uiData.showColorCenter,
             colorCenter = colorCenter,
+            navBarAppearanceController = navBarAppearanceController,
         )
 //        }
     }
@@ -210,10 +218,9 @@ private fun ProceedButton(
 private fun ColorCenterOnTintedSurface(
     state: ShowColorCenter,
     colorCenter: @Composable () -> Unit,
+    navBarAppearanceController: NavBarAppearanceController,
 ) {
-    RestoreNavigationBarAsSideEffect()
     if (state !is ShowColorCenter.Yes) return
-
     val colors = if (state.useLightContentColors) colorsOnDarkSurface() else colorsOnLightSurface()
     TintedSurface(
         modifier = Modifier
@@ -226,10 +233,16 @@ private fun ColorCenterOnTintedSurface(
     ) {
         colorCenter()
     }
-    ChangeNavigationBarAsSideEffect(
-        navigationBarColor = state.backgroundColor,
-        isAppearanceLightNavigationBars = !state.useLightContentColors,
-    )
+    DisposableEffect(state) {
+        val appearance = NavBarAppearance(
+            color = state.navigationBarColor,
+            isLight = state.isNavigationBarLight,
+        )
+        navBarAppearanceController.push(appearance)
+        onDispose {
+            navBarAppearanceController.peel()
+        }
+    }
 }
 
 @Composable
@@ -294,6 +307,7 @@ private fun Preview() {
                 )
             },
             navigateToSettings = {},
+            navBarAppearanceController = remember { NavBarAppearanceController() }
         )
     }
 }
@@ -316,6 +330,8 @@ private fun previewUiData() =
         showColorCenter = ShowColorCenter.Yes(
             backgroundColor = Color(0xFF_123456),
             useLightContentColors = true,
+            navigationBarColor = ColorInt(0x123456),
+            isNavigationBarLight = true,
         ),
         invalidSubmittedColorToast = null,
     )

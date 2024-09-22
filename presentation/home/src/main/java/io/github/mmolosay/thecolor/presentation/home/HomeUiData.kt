@@ -2,6 +2,7 @@ package io.github.mmolosay.thecolor.presentation.home
 
 import android.content.Context
 import androidx.compose.ui.graphics.Color
+import io.github.mmolosay.thecolor.presentation.api.ColorInt
 
 /**
  * Framework-oriented data required for Home screen to be presented by Compose.
@@ -41,6 +42,8 @@ data class HomeUiData(
         data class Yes(
             val backgroundColor: Color,
             val useLightContentColors: Boolean,
+            val navigationBarColor: ColorInt,
+            val isNavigationBarLight: Boolean,
         ) : ShowColorCenter
     }
 

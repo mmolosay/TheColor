@@ -32,6 +32,8 @@ private fun ShowColorCenter(result: HomeData.ProceedResult?) =
             HomeUiData.ShowColorCenter.Yes(
                 backgroundColor = result.colorData.color.toCompose(),
                 useLightContentColors = result.colorData.isDark,
+                navigationBarColor = result.colorData.color,
+                isNavigationBarLight = !result.colorData.isDark,
             )
         is HomeData.ProceedResult.InvalidSubmittedColor ->
             HomeUiData.ShowColorCenter.No

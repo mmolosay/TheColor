@@ -1,6 +1,5 @@
 package io.github.mmolosay.thecolor.presentation.design
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -11,7 +10,7 @@ fun TheColorTheme(
     content: @Composable () -> Unit,
 ) {
     CompositionLocalProvider(
-        LocalIsNavigationBarLight provides theme.isNavigationBarLight(),
+        LocalIsDefaultNavigationBarLight provides theme.isDefaultNavigationBarLight(),
     ) {
         MaterialTheme(
             colorScheme = theme.colorScheme(),
@@ -20,7 +19,3 @@ fun TheColorTheme(
         )
     }
 }
-
-@Composable
-private fun UiTheme.isNavigationBarLight() =
-    this.isLight(isSystemInDarkTheme())
