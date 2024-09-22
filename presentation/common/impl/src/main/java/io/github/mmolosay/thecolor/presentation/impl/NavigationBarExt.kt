@@ -12,14 +12,14 @@ import androidx.core.view.WindowCompat
  */
 
 fun View.changeNavigationBar(
-    @ColorInt navigationBarColor: Int,
-    isAppearanceLightNavigationBars: Boolean,
+    @ColorInt color: Int,
+    isLight: Boolean,
 ) {
     if (this.isInEditMode) return
     val window = this.context.findActivityContext().window
-    window.navigationBarColor = navigationBarColor
+    window.navigationBarColor = color
     WindowCompat.getInsetsController(window, window.decorView).run {
-        this.isAppearanceLightNavigationBars = isAppearanceLightNavigationBars
+        this.isAppearanceLightNavigationBars = isLight
     }
 }
 
