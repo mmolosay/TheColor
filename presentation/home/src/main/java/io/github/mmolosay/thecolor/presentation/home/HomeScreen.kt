@@ -86,8 +86,9 @@ fun HomeScreen(
         },
         colorCenter = {
             ColorCenter(
-                viewModel = viewModel.colorCenterViewModel,
                 modifier = Modifier.padding(top = 24.dp),
+                viewModel = viewModel.colorCenterViewModel,
+                navBarAppearanceStack = navBarAppearanceStack,
             )
         },
         navigateToSettings = navigateToSettings,

@@ -40,6 +40,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -60,6 +61,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.mmolosay.thecolor.presentation.api.NavBarAppearance
+import io.github.mmolosay.thecolor.presentation.api.NavBarAppearanceStack
 import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
@@ -83,11 +86,13 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.Data
 @Composable
 fun ColorScheme(
     viewModel: ColorSchemeViewModel,
+    navBarAppearanceStack: NavBarAppearanceStack,
 ) {
     val state = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
     ColorScheme(
         state = state,
         viewModel = viewModel,
+        navBarAppearanceStack = navBarAppearanceStack,
     )
 }
 
@@ -95,6 +100,7 @@ fun ColorScheme(
 fun ColorScheme(
     state: DataState,
     viewModel: ColorSchemeViewModel,
+    navBarAppearanceStack: NavBarAppearanceStack,
 ) {
     ColorScheme(
         state = state,
@@ -103,6 +109,7 @@ fun ColorScheme(
                 SelectedSwatchDetailsDialog(
                     viewModel = viewModel.selectedSwatchDetailsViewModel,
                     colorSchemeUiData = colorSchemeUiData,
+                    navBarAppearanceStack = navBarAppearanceStack,
                 )
             }
         },
@@ -406,6 +413,7 @@ private fun ApplyChangesButton(
 private fun SelectedSwatchDetailsDialog(
     viewModel: ColorDetailsViewModel,
     colorSchemeUiData: ColorSchemeUiData,
+    navBarAppearanceStack: NavBarAppearanceStack,
 ) {
     val seedData = viewModel.currentSeedDataFlow.collectAsStateWithLifecycle().value ?: return
     val surfaceColor = ColorDetailsOnTintedSurfaceDefaults.surfaceColor(seedData)
@@ -432,6 +440,16 @@ private fun SelectedSwatchDetailsDialog(
                     state = state,
                     modifier = Modifier.padding(bottom = 24.dp),
                 )
+            }
+            DisposableEffect(seedData) {
+                val appearance = NavBarAppearance(
+                    color = seedData.color,
+                    isLight = !seedData.isDark,
+                )
+                navBarAppearanceStack.push(appearance)
+                onDispose {
+                    navBarAppearanceStack.peel()
+                }
             }
         }
     }
