@@ -130,7 +130,7 @@ class HomeViewModel @Inject constructor(
     private fun onColorFromColorInput(color: Color?) {
         _dataFlow.update {
             it.copy(
-                canProceed = CanProceed(canProceed = (color != null)),
+                canProceed = CanProceed(colorFromColorInput = color),
                 proceedResult = null, // 'proceed' wasn't invoked for new color yet
             )
         }
@@ -235,7 +235,11 @@ class HomeViewModel @Inject constructor(
 
     private fun CanProceed(): CanProceed {
         val color = colorInputColorStore.colorFlow.value
-        val hasColorInColorInput = (color != null)
+        return CanProceed(colorFromColorInput = color)
+    }
+
+    private fun CanProceed(colorFromColorInput: Color?): CanProceed {
+        val hasColorInColorInput = (colorFromColorInput != null)
         return CanProceed(canProceed = hasColorInColorInput)
     }
 
