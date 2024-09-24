@@ -89,7 +89,7 @@ class HomeViewModel @Inject constructor(
     val colorCenterViewModel: ColorCenterViewModel
         get() = colorCenterComponents.colorCenterViewModel
 
-    private var submittedColor: Color? = null
+    private var colorCenterSession: ColorCenterSession? = null
 
     init {
         collectColorsFromColorInput()
@@ -130,13 +130,17 @@ class HomeViewModel @Inject constructor(
         }
 
     private fun onColorFromColorInput(color: Color?) {
-        if (submittedColor == color) return // ignore re-emitted color
+        val session = colorCenterSession
+        if (session != null && color != null && session.color == color) {
+            return // ignore re-emitted color to avoid ending current session
+        }
         _dataFlow.update {
             it.copy(
                 canProceed = CanProceed(colorFromColorInput = color),
                 proceedResult = null,
             )
         }
+        colorCenterSession = null
     }
 
     private fun onEventFromColorInput(event: ColorInputEvent) {
@@ -151,9 +155,9 @@ class HomeViewModel @Inject constructor(
     private fun onEventFromColorDetails(event: ColorDetailsEvent) {
         when (event) {
             is ColorDetailsEvent.ColorSelected -> {
+                colorCenterSession = ColorCenterSession(color = event.color)
                 viewModelScope.launch(defaultDispatcher) {
                     withContext(uiDataUpdateDispatcher) {
-                        submittedColor = event.color
                         colorInputMediator.send(color = event.color, from = null)
                     }
                     proceed(
@@ -171,6 +175,7 @@ class HomeViewModel @Inject constructor(
         colorRole: ColorRole?,
         isNewColorSession: Boolean,
     ) {
+        colorCenterSession = ColorCenterSession(color)
         viewModelScope.launch(defaultDispatcher) {
             // recreate Color Center ViewModel (and its sub-feature ViewModels) to reset their states
             if (isNewColorSession) {
@@ -320,4 +325,14 @@ private data class ColorCenterComponents(
     val colorDetailsCommandStore: ColorDetailsCommandStore,
     val colorDetailsEventStore: ColorDetailsEventStore,
     val colorSchemeCommandStore: ColorSchemeCommandStore,
+)
+
+/**
+ * A data regarding current session of Color Center.
+ * Session is tied to a [color].
+ * Session starts when color is submitted (proceeded with).
+ * Session ends when color is cleared / changed via Color Input.
+ */
+private data class ColorCenterSession(
+    val color: Color,
 )
