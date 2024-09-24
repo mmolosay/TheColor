@@ -89,6 +89,8 @@ class HomeViewModel @Inject constructor(
     val colorCenterViewModel: ColorCenterViewModel
         get() = colorCenterComponents.colorCenterViewModel
 
+    var nextColorFromColorInputWasSetManually: Boolean = false
+
     init {
         collectColorsFromColorInput()
         collectEventsFromColorInput()
@@ -128,12 +130,18 @@ class HomeViewModel @Inject constructor(
         }
 
     private fun onColorFromColorInput(color: Color?) {
+        val shouldClearProceedResult = !nextColorFromColorInputWasSetManually
         _dataFlow.update {
+            // Brand new color (or its absence) from Color Input is an end of the current session.
+            // If the emitted color has a 'ColorRole', then it's related to the current one and
+            // the session continues.
+            val newProceedResult = it.proceedResult.takeUnless { shouldClearProceedResult }
             it.copy(
                 canProceed = CanProceed(colorFromColorInput = color),
-                proceedResult = null, // 'proceed' wasn't invoked for new color yet
+                proceedResult = newProceedResult,
             )
         }
+        nextColorFromColorInputWasSetManually = false
     }
 
     private fun onEventFromColorInput(event: ColorInputEvent) {
@@ -150,6 +158,7 @@ class HomeViewModel @Inject constructor(
             is ColorDetailsEvent.ColorSelected -> {
                 viewModelScope.launch(defaultDispatcher) {
                     withContext(uiDataUpdateDispatcher) {
+                        nextColorFromColorInputWasSetManually = true
                         colorInputMediator.send(color = event.color, from = null)
                     }
                     proceed(
