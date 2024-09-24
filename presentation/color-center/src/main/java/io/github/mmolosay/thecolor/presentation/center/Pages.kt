@@ -20,11 +20,11 @@ import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
 
 @Composable
 fun DetailsPage(
-    content: @Composable () -> Unit,
     uiData: ColorCenterUiData.Page,
+    colorDetails: @Composable () -> Unit,
 ) =
     Page(
-        content = content,
+        content = colorDetails,
         changePageButton = {
             ChangePageButton(
                 uiData = uiData.changePageButton,
@@ -34,11 +34,11 @@ fun DetailsPage(
 
 @Composable
 fun SchemePage(
-    content: @Composable () -> Unit,
     uiData: ColorCenterUiData.Page,
+    colorScheme: @Composable () -> Unit,
 ) =
     Page(
-        content = content,
+        content = colorScheme,
         changePageButton = {
             ChangePageButton(
                 uiData = uiData.changePageButton,

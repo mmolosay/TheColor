@@ -98,8 +98,8 @@ fun ColorCenter(
     val uiData = ColorCenterUiData(data, viewData)
     ColorCenter(
         uiData = uiData,
-        details = details,
-        scheme = scheme,
+        colorDetails = details,
+        colorScheme = scheme,
         modifier = modifier,
     )
 }
@@ -108,8 +108,8 @@ fun ColorCenter(
 @Composable
 fun ColorCenter(
     uiData: ColorCenterUiData,
-    details: @Composable () -> Unit,
-    scheme: @Composable () -> Unit,
+    colorDetails: @Composable () -> Unit,
+    colorScheme: @Composable () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val density = LocalDensity.current
@@ -117,14 +117,14 @@ fun ColorCenter(
         persistentListOf(
             {
                 DetailsPage(
-                    content = details,
                     uiData = uiData.detailsPage,
+                    colorDetails = colorDetails,
                 )
             },
             {
                 SchemePage(
-                    content = scheme,
                     uiData = uiData.schemePage,
+                    colorScheme = colorScheme,
                 )
             },
         )
@@ -193,10 +193,10 @@ private fun Preview() {
             val uiData = ColorCenterUiData(data, viewData)
             ColorCenter(
                 uiData = uiData,
-                details = {
+                colorDetails = {
                     Page("Color details")
                 },
-                scheme = {
+                colorScheme = {
                     Page("Color scheme")
                 },
             )
