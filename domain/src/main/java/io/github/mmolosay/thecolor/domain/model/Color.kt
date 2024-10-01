@@ -3,6 +3,7 @@ package io.github.mmolosay.thecolor.domain.model
 /**
  * Represents a valid, opaque color.
  */
+// TODO: add .toString() methods to derivatives for easier presentation in debugger
 sealed interface Color {
 
     /**

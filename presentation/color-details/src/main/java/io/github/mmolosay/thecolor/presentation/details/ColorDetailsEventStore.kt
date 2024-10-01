@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import javax.inject.Inject
+import io.github.mmolosay.thecolor.domain.model.ColorDetails as DomainColorDetails
 
 /**
  * Storage that holds a [Flow] of [ColorDetailsEvent]s from a Color Details feature.
@@ -26,6 +27,11 @@ interface ColorDetailsEventProvider {
 
 /** An event that originates in Color Details feature and is broadcast to outside. */
 sealed interface ColorDetailsEvent {
+
+    /** Ad successfully fetched [domainDetails] that is about to be used. */
+    data class DataFetched(
+        val domainDetails: DomainColorDetails,
+    ) : ColorDetailsEvent
 
     /** A [color] has been selected in Color Details feature. */
     data class ColorSelected(

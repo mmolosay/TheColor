@@ -23,6 +23,7 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.SwatchCou
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.Config
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.DataState
 import io.github.mmolosay.thecolor.presentation.scheme.StatefulData.State
+import io.github.mmolosay.thecolor.utils.doNothing
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -99,6 +100,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
                         )
                         selectedSwatchDetailsCommandStore.issue(command)
                     }
+                    else -> doNothing()
                 }
             }
         }

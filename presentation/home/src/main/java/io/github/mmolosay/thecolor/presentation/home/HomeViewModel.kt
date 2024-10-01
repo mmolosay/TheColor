@@ -131,16 +131,16 @@ class HomeViewModel @Inject constructor(
 
     private fun onColorFromColorInput(color: Color?) {
         val session = colorCenterSession
-        if (session != null && color != null && session.color == color) {
-            return // ignore re-emitted color to avoid ending current session
+        if (session != null && color != null && with(session) { color.doesBelongToSession() }) {
+            return // ignore re-emitted color or colors that are part of ongoing session
         }
         _dataFlow.update {
             it.copy(
                 canProceed = CanProceed(colorFromColorInput = color),
-                proceedResult = null,
+                proceedResult = null, // 'proceed' wasn't invoked for new color yet
             )
         }
-        colorCenterSession = null
+        onColorCenterSessionEnded()
     }
 
     private fun onEventFromColorInput(event: ColorInputEvent) {
@@ -154,8 +154,17 @@ class HomeViewModel @Inject constructor(
 
     private fun onEventFromColorDetails(event: ColorDetailsEvent) {
         when (event) {
+            is ColorDetailsEvent.DataFetched -> {
+                val session = requireNotNull(colorCenterSession)
+                val details = event.domainDetails
+                if (session.seed != details.color) return
+                if (session.allowedColors != null) return
+                session.allowedColors = setOf(
+                    details.color,
+                    details.exact.color,
+                )
+            }
             is ColorDetailsEvent.ColorSelected -> {
-                colorCenterSession = ColorCenterSession(color = event.color)
                 viewModelScope.launch(defaultDispatcher) {
                     withContext(uiDataUpdateDispatcher) {
                         colorInputMediator.send(color = event.color, from = null)
@@ -163,7 +172,7 @@ class HomeViewModel @Inject constructor(
                     proceed(
                         color = event.color,
                         colorRole = event.colorRole,
-                        isNewColorSession = false,
+                        isNewColorCenterSession = false,
                     )
                 }
             }
@@ -173,12 +182,12 @@ class HomeViewModel @Inject constructor(
     private fun proceed(
         color: Color,
         colorRole: ColorRole?,
-        isNewColorSession: Boolean,
+        isNewColorCenterSession: Boolean,
     ) {
-        colorCenterSession = ColorCenterSession(color)
         viewModelScope.launch(defaultDispatcher) {
             // recreate Color Center ViewModel (and its sub-feature ViewModels) to reset their states
-            if (isNewColorSession) {
+            if (isNewColorCenterSession) {
+                onColorCenterSessionStarted(color)
                 recreateColorCenter()
             }
             // send to both features of Color Center explicitly
@@ -207,7 +216,7 @@ class HomeViewModel @Inject constructor(
             proceed(
                 color = colorInputState.color,
                 colorRole = null,
-                isNewColorSession = true,
+                isNewColorCenterSession = true,
             )
             return true
         } else {
@@ -265,7 +274,7 @@ class HomeViewModel @Inject constructor(
         proceed(
             color = color,
             colorRole = null,
-            isNewColorSession = true, // color from Color Input, thus new session
+            isNewColorCenterSession = true, // color from Color Input, thus new session
         )
     }
 
@@ -298,6 +307,14 @@ class HomeViewModel @Inject constructor(
         colorCenterComponents.colorCenterViewModel.dispose()
         colorCenterComponentsFlow.value = ColorCenterComponents()
     }
+
+    private fun onColorCenterSessionStarted(color: Color) {
+        colorCenterSession = ColorCenterSession(color)
+    }
+
+    private fun onColorCenterSessionEnded() {
+        colorCenterSession = null
+    }
 }
 
 /** Creates instance of [HomeData.ProceedResult.Success.ColorData]. */
@@ -329,10 +346,26 @@ private data class ColorCenterComponents(
 
 /**
  * A data regarding current session of Color Center.
- * Session is tied to a [color].
+ * Session is tied to a [seed].
  * Session starts when color is submitted (proceeded with).
  * Session ends when color is cleared / changed via Color Input.
+ * Any color can be checked whether it [doesBelongToSession].
  */
-private data class ColorCenterSession(
-    val color: Color,
-)
+private class ColorCenterSession(
+    val seed: Color,
+) {
+    var allowedColors: Set<Color>? = null
+
+    fun Color.doesBelongToSession(): Boolean {
+        if (this == seed) return true
+        val allowedColors = allowedColors ?: return false
+        return (this in allowedColors)
+    }
+}
+
+/**
+ * Determines whether the receiver session is already fully initialized.
+ */
+// TODO: kotlin contracts for parameter properties are not supported at the moment
+private val ColorCenterSession.isInitialized: Boolean
+    get() = (this.allowedColors != null)

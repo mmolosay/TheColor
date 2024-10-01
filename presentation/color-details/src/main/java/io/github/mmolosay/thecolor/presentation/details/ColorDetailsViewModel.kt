@@ -109,6 +109,11 @@ class ColorDetailsViewModel @AssistedInject constructor(
         val data = createData(domainDetails, colorRole)
         _dataStateFlow.value = DataState.Ready(data)
         colorHistory += HistoryRecord(domainDetails, colorRole)
+        // TODO: consider moving in other place
+        coroutineScope.launch(defaultDispatcher) {
+            val event = ColorDetailsEvent.DataFetched(domainDetails)
+            eventStore.send(event)
+        }
     }
 
     private fun updateCurrentSeedData(color: Color) {
