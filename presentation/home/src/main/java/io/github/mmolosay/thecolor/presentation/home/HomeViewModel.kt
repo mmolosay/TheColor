@@ -55,6 +55,7 @@ class HomeViewModel @Inject constructor(
     private val colorDetailsEventStoreProvider: Provider<ColorDetailsEventStore>,
     private val colorSchemeCommandStoreProvider: Provider<ColorSchemeCommandStore>,
     private val createColorData: CreateColorDataUseCase,
+    private val colorCenterSessionBuilder: ColorCenterSessionBuilder,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
     @Named("uiDataUpdateDispatcher") private val uiDataUpdateDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
@@ -155,14 +156,13 @@ class HomeViewModel @Inject constructor(
     private fun onEventFromColorDetails(event: ColorDetailsEvent) {
         when (event) {
             is ColorDetailsEvent.DataFetched -> {
-                val session = requireNotNull(colorCenterSession)
+                val session = colorCenterSession
                 val details = event.domainDetails
-                if (session.seed != details.color) return
-                if (session.allowedColors != null) return
-                session.allowedColors = setOf(
-                    details.color,
-                    details.exact.color,
-                )
+                if (session != null) return
+                val relatedColors = setOf(details.exact.color)
+                colorCenterSession = colorCenterSessionBuilder
+                    .allowedColors(relatedColors)
+                    .build()
             }
             is ColorDetailsEvent.ColorSelected -> {
                 viewModelScope.launch(defaultDispatcher) {
@@ -308,12 +308,13 @@ class HomeViewModel @Inject constructor(
         colorCenterComponentsFlow.value = ColorCenterComponents()
     }
 
-    private fun onColorCenterSessionStarted(color: Color) {
-        colorCenterSession = ColorCenterSession(color)
+    private fun onColorCenterSessionStarted(seed: Color) {
+        colorCenterSessionBuilder.seed(seed)
     }
 
     private fun onColorCenterSessionEnded() {
         colorCenterSession = null
+        colorCenterSessionBuilder.clear()
     }
 }
 
@@ -343,29 +344,3 @@ private data class ColorCenterComponents(
     val colorDetailsEventStore: ColorDetailsEventStore,
     val colorSchemeCommandStore: ColorSchemeCommandStore,
 )
-
-/**
- * A data regarding current session of Color Center.
- * Session is tied to a [seed].
- * Session starts when color is submitted (proceeded with).
- * Session ends when color is cleared / changed via Color Input.
- * Any color can be checked whether it [doesBelongToSession].
- */
-private class ColorCenterSession(
-    val seed: Color,
-) {
-    var allowedColors: Set<Color>? = null
-
-    fun Color.doesBelongToSession(): Boolean {
-        if (this == seed) return true
-        val allowedColors = allowedColors ?: return false
-        return (this in allowedColors)
-    }
-}
-
-/**
- * Determines whether the receiver session is already fully initialized.
- */
-// TODO: kotlin contracts for parameter properties are not supported at the moment
-private val ColorCenterSession.isInitialized: Boolean
-    get() = (this.allowedColors != null)
