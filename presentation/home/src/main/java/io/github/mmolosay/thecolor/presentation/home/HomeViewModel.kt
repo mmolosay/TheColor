@@ -184,7 +184,12 @@ class HomeViewModel @Inject constructor(
             if (isNewColorCenterSession) {
                 onColorCenterSessionStarted(color)
                 recreateColorCenter()
-                dataFetchedEventProcessor = ColorCenterSessionBuildingProcessor()
+                val currentProcessor = dataFetchedEventProcessor // always null, was done as an exercise
+                val newProcessor = ExecuteAndUpdateProcessor(
+                    processor = BuildColorCenterSession(),
+                    new = currentProcessor, // set the previous processor back
+                )
+                dataFetchedEventProcessor = newProcessor
             }
             // send to both features of Color Center explicitly
             run sendToColorDetails@{
@@ -313,14 +318,32 @@ class HomeViewModel @Inject constructor(
         colorCenterSessionBuilder.clear()
     }
 
-    private fun ColorCenterSessionBuildingProcessor() =
+    /**
+     * A [DataFetchedEventProcessor] that creates and sets a [ColorCenterSession]
+     * into a [colorCenterSession] field.
+     */
+    private fun BuildColorCenterSession() =
         DataFetchedEventProcessor block@{
             val details = this.domainDetails
             val relatedColors = setOf(details.exact.color)
             colorCenterSession = colorCenterSessionBuilder
                 .allowedColors(relatedColors)
                 .build()
-            dataFetchedEventProcessor = null // TODO: composition
+        }
+
+    /**
+     * A [CompoundDataFetchedEventProcessor] that executes passed [processor]
+     * and then sets [new] processor into [dataFetchedEventProcessor] field.
+     */
+    private fun ExecuteAndUpdateProcessor(
+        processor: DataFetchedEventProcessor,
+        new: DataFetchedEventProcessor?,
+    ): DataFetchedEventProcessor =
+        object : CompoundDataFetchedEventProcessor(wrapped = processor) {
+            override fun ColorDetailsEvent.DataFetched.process() {
+                with(processor) { process() }
+                dataFetchedEventProcessor = new
+            }
         }
 }
 
@@ -352,8 +375,18 @@ private data class ColorCenterComponents(
 )
 
 /**
+ * Specifies the way of processing (handling, reacting to) a [ColorDetailsEvent.DataFetched] event.
  * It is an implementation of a "Strategy" design pattern.
+ * See [HomeViewModel.dataFetchedEventProcessor].
  */
 private fun interface DataFetchedEventProcessor {
     fun ColorDetailsEvent.DataFetched.process()
 }
+
+/**
+ * It is an implementation of a "Composite" design pattern.
+ * See [HomeViewModel.ExecuteAndUpdateProcessor].
+ */
+private abstract class CompoundDataFetchedEventProcessor(
+    val wrapped: DataFetchedEventProcessor,
+) : DataFetchedEventProcessor
