@@ -185,6 +185,7 @@ class HomeViewModel @Inject constructor(
                 onColorCenterSessionStarted(color)
                 recreateColorCenter()
                 val currentProcessor = dataFetchedEventProcessor // always null, was done as an exercise
+                // implementation of a "Composite" design pattern
                 dataFetchedEventProcessor = DataFetchedEventProcessor {
                     with(BuildColorCenterSession()) { process() }
                     dataFetchedEventProcessor = currentProcessor
