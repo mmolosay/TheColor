@@ -28,7 +28,7 @@ interface ColorDetailsEventProvider {
 /** An event that originates in Color Details feature and is broadcast to outside. */
 sealed interface ColorDetailsEvent {
 
-    /** Ad successfully fetched [domainDetails] that is about to be used. */
+    /** A successfully fetched [domainDetails] that is about to be used. */
     data class DataFetched(
         val domainDetails: DomainColorDetails,
     ) : ColorDetailsEvent
