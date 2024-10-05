@@ -91,6 +91,7 @@ class HomeViewModel @Inject constructor(
         get() = colorCenterComponents.colorCenterViewModel
 
     private var colorCenterSession: ColorCenterSession? = null
+    private var dataFetchedEventProcessor: DataFetchedEventProcessor? = null
 
     init {
         collectColorsFromColorInput()
@@ -156,13 +157,7 @@ class HomeViewModel @Inject constructor(
     private fun onEventFromColorDetails(event: ColorDetailsEvent) {
         when (event) {
             is ColorDetailsEvent.DataFetched -> {
-                val session = colorCenterSession
-                val details = event.domainDetails
-                if (session != null) return
-                val relatedColors = setOf(details.exact.color)
-                colorCenterSession = colorCenterSessionBuilder
-                    .allowedColors(relatedColors)
-                    .build()
+                dataFetchedEventProcessor?.run { event.process() }
             }
             is ColorDetailsEvent.ColorSelected -> {
                 viewModelScope.launch(defaultDispatcher) {
@@ -189,6 +184,7 @@ class HomeViewModel @Inject constructor(
             if (isNewColorCenterSession) {
                 onColorCenterSessionStarted(color)
                 recreateColorCenter()
+                dataFetchedEventProcessor = ColorCenterSessionBuildingProcessor()
             }
             // send to both features of Color Center explicitly
             run sendToColorDetails@{
@@ -316,6 +312,16 @@ class HomeViewModel @Inject constructor(
         colorCenterSession = null
         colorCenterSessionBuilder.clear()
     }
+
+    private fun ColorCenterSessionBuildingProcessor() =
+        DataFetchedEventProcessor block@{
+            val details = this.domainDetails
+            val relatedColors = setOf(details.exact.color)
+            colorCenterSession = colorCenterSessionBuilder
+                .allowedColors(relatedColors)
+                .build()
+            dataFetchedEventProcessor = null // TODO: composition
+        }
 }
 
 /** Creates instance of [HomeData.ProceedResult.Success.ColorData]. */
@@ -344,3 +350,10 @@ private data class ColorCenterComponents(
     val colorDetailsEventStore: ColorDetailsEventStore,
     val colorSchemeCommandStore: ColorSchemeCommandStore,
 )
+
+/**
+ * It is an implementation of a "Strategy" design pattern.
+ */
+private fun interface DataFetchedEventProcessor {
+    fun ColorDetailsEvent.DataFetched.process()
+}
