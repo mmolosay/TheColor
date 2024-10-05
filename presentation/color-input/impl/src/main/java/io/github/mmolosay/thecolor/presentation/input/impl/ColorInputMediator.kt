@@ -43,30 +43,37 @@ class ColorInputMediator @AssistedInject constructor(
     private var lastSourceInputType: InputType? = null
 
     val hexColorInputFlow: Flow<ColorInput.Hex> =
-        colorStateFlow
-            .filterNotNull()
-            .filter { lastSourceInputType != InputType.Hex } // prevent interrupting user
-            .map {
-                when (it) {
-                    is ColorState.Invalid -> colorInputFactory.emptyHex()
-                    is ColorState.Valid -> {
-                        val domainColor = with(colorConverter) { it.color.toHex() }
-                        with(colorInputMapper) { domainColor.toColorInput() }
-                    }
-                }
+        ColorInputFlow(
+            inputType = InputType.Hex,
+            emptyColorInput = colorInputFactory::emptyHex,
+            colorToColorInput = {
+                val typedColor = with(colorConverter) { it.toHex() }
+                with(colorInputMapper) { typedColor.toColorInput() }
             }
+        )
 
     val rgbColorInputFlow: Flow<ColorInput.Rgb> =
+        ColorInputFlow(
+            inputType = InputType.Rgb,
+            emptyColorInput = colorInputFactory::emptyRgb,
+            colorToColorInput = {
+                val typedColor = with(colorConverter) { it.toRgb() }
+                with(colorInputMapper) { typedColor.toColorInput() }
+            }
+        )
+
+    private fun <T : ColorInput> ColorInputFlow(
+        inputType: InputType,
+        emptyColorInput: () -> T,
+        colorToColorInput: (Color) -> T,
+    ): Flow<T> =
         colorStateFlow
             .filterNotNull()
-            .filter { lastSourceInputType != InputType.Rgb } // prevent interrupting user
-            .map {
-                when (it) {
-                    is ColorState.Invalid -> colorInputFactory.emptyRgb()
-                    is ColorState.Valid -> {
-                        val domainColor = with(colorConverter) { it.color.toRgb() }
-                        with(colorInputMapper) { domainColor.toColorInput() }
-                    }
+            .filter { lastSourceInputType != inputType } // prevent interrupting user
+            .map { colorState ->
+                when (colorState) {
+                    is ColorState.Invalid -> emptyColorInput()
+                    is ColorState.Valid -> colorToColorInput(colorState.color)
                 }
             }
 
