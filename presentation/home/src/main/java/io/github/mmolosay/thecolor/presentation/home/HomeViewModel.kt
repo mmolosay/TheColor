@@ -117,8 +117,8 @@ class HomeViewModel @Inject constructor(
                 /*
                  * Subscribe to new dependencies once new Color Center is created.
                  * Launch collection coroutines from Color Center coroutine scope,
-                 * so when ColorCenterViewModel is disposed and its coroutine scope is cancelled,
-                 * so is the collection job on old Command/Event stores.
+                 * so when ColorCenterViewModel is disposed of and its coroutine scope is cancelled,
+                 * so is the collection job on old instances of Command/Event stores.
                 */
                 val coroutineScope = components.colorCenterCoroutineScope
                 components.colorDetailsEventStore.collect(coroutineScope)
