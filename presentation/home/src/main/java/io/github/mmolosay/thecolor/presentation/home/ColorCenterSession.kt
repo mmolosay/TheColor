@@ -1,8 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.home
 
 import io.github.mmolosay.thecolor.domain.model.Color
-import io.github.mmolosay.thecolor.presentation.home.ColorCenterSession.AllowedColors
-import io.github.mmolosay.thecolor.presentation.home.ColorCenterSession.Seed
 import javax.inject.Inject
 
 /**
@@ -18,19 +16,13 @@ import javax.inject.Inject
  */
 /* internal but Dagger */
 class ColorCenterSession(
-    val seed: Seed,
-    val allowedColors: AllowedColors,
+    val seed: Color,
+    val allowedColors: Set<Color>,
 ) {
     fun Color.doesBelongToSession(): Boolean {
-        val allAllowedColors = allowedColors.set + seed.color
+        val allAllowedColors = allowedColors + seed
         return (this in allAllowedColors)
     }
-
-    @JvmInline
-    value class Seed(val color: Color)
-
-    @JvmInline
-    value class AllowedColors(val set: Set<Color>)
 }
 
 /**
@@ -57,8 +49,8 @@ class ColorCenterSessionBuilder @Inject constructor() {
         val seed = requireNotNull(seed)
         val allowedColors = requireNotNull(allowedColors)
         return ColorCenterSession(
-            seed = Seed(color = seed),
-            allowedColors = AllowedColors(set = allowedColors),
+            seed = seed,
+            allowedColors = allowedColors,
         ).also {
             clear()
         }
