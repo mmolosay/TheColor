@@ -185,11 +185,10 @@ class HomeViewModel @Inject constructor(
                 onColorCenterSessionStarted(color)
                 recreateColorCenter()
                 val currentProcessor = dataFetchedEventProcessor // always null, was done as an exercise
-                val newProcessor = ExecuteAndUpdateProcessor(
-                    processor = BuildColorCenterSession(),
-                    new = currentProcessor, // set the previous processor back
-                )
-                dataFetchedEventProcessor = newProcessor
+                dataFetchedEventProcessor = DataFetchedEventProcessor {
+                    with(BuildColorCenterSession()) { process() }
+                    dataFetchedEventProcessor = currentProcessor
+                }
             }
             // send to both features of Color Center explicitly
             run sendToColorDetails@{
@@ -330,21 +329,6 @@ class HomeViewModel @Inject constructor(
                 .allowedColors(relatedColors)
                 .build()
         }
-
-    /**
-     * A [CompoundDataFetchedEventProcessor] that executes passed [processor]
-     * and then sets [new] processor into [dataFetchedEventProcessor] field.
-     */
-    private fun ExecuteAndUpdateProcessor(
-        processor: DataFetchedEventProcessor,
-        new: DataFetchedEventProcessor?,
-    ): DataFetchedEventProcessor =
-        object : CompoundDataFetchedEventProcessor(wrapped = processor) {
-            override fun ColorDetailsEvent.DataFetched.process() {
-                with(processor) { process() }
-                dataFetchedEventProcessor = new
-            }
-        }
 }
 
 /** Creates instance of [HomeData.ProceedResult.Success.ColorData]. */
@@ -382,11 +366,3 @@ private data class ColorCenterComponents(
 private fun interface DataFetchedEventProcessor {
     fun ColorDetailsEvent.DataFetched.process()
 }
-
-/**
- * It is an implementation of a "Composite" design pattern.
- * See [HomeViewModel.ExecuteAndUpdateProcessor].
- */
-private abstract class CompoundDataFetchedEventProcessor(
-    val wrapped: DataFetchedEventProcessor,
-) : DataFetchedEventProcessor
