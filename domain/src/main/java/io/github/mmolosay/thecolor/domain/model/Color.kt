@@ -3,7 +3,6 @@ package io.github.mmolosay.thecolor.domain.model
 /**
  * Represents a valid, opaque color.
  */
-// TODO: add .toString() methods to derivatives for easier presentation in debugger
 sealed interface Color {
 
     /**
@@ -12,11 +11,25 @@ sealed interface Color {
      */
     data class Hex(
         val value: Int,
-    ) : Color
+    ) : Color {
+
+        // for a convenient presentation in debugger
+        override fun toString(): String =
+            value
+                .toString(16)
+                .padStart(6, '0')
+                .uppercase()
+                .let { "#$it" }
+    }
 
     data class Rgb(
         val r: Int,
         val g: Int,
         val b: Int,
-    ) : Color
+    ) : Color {
+
+        // for a convenient presentation in debugger
+        override fun toString(): String =
+            "r=$r,g=$g,b=$b"
+    }
 }
