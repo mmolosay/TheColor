@@ -74,12 +74,5 @@ dependencies {
     implementation("com.google.dagger:hilt-android:${libs.versions.hilt.get()}")
     kapt("com.google.dagger:hilt-compiler:${libs.versions.hilt.get()}")
 
-    // Third Party Libraries
-    implementation("com.michael-bull.kotlin-result:kotlin-result:1.1.12")
-    /*
-     * Was used for clipping color data with its custom background, but uses LAYER_TYPE_SOFTWARE,
-     * and constant redrawing of such complex view is dramatic for performance.
-     * implementation("io.github.florent37:shapeofview:1.4.7")
-     */
-    implementation("com.github.ajalt.colormath:colormath:3.4.0")
+    // Other
 }

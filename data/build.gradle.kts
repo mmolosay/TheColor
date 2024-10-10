@@ -33,7 +33,6 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.coroutines.get()}")
     implementation("javax.inject:javax.inject:1")
-    implementation("com.github.ajalt.colormath:colormath:3.4.0")
 
     // Local
     val roomVersion = libs.versions.room.get()
@@ -46,6 +45,9 @@ dependencies {
     // Remote
     implementation("com.squareup.retrofit2:retrofit:${libs.versions.retrofit.library.get()}")
     implementation("com.squareup.retrofit2:converter-moshi:${libs.versions.retrofit.moshi.get()}")
+
+    // Other
+    implementation("com.github.ajalt.colormath:colormath:3.4.0")
 
     // Testing
     testImplementation("junit:junit:${libs.versions.junit.get()}")
