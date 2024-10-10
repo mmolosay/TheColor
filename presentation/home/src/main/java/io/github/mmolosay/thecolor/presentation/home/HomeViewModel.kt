@@ -174,6 +174,16 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    /** Variation that takes current color of Color Input. */
+    private fun proceed() {
+        val color = requireNotNull(colorInputColorStore.colorFlow.value)
+        proceed(
+            color = color,
+            colorRole = null, // standalone color (without a role)
+            isNewColorCenterSession = true, // color from Color Input, thus new session
+        )
+    }
+
     private fun proceed(
         color: Color,
         colorRole: ColorRole?,
@@ -188,7 +198,7 @@ class HomeViewModel @Inject constructor(
                 // implementation of a "Composite" design pattern
                 dataFetchedEventProcessor = DataFetchedEventProcessor {
                     with(BuildColorCenterSession()) { process() }
-                    dataFetchedEventProcessor = currentProcessor
+                    dataFetchedEventProcessor = currentProcessor // restore previous value
                 }
             }
             // send to both features of Color Center explicitly
@@ -264,20 +274,9 @@ class HomeViewModel @Inject constructor(
 
     private fun CanProceed(canProceed: Boolean): CanProceed =
         when (canProceed) {
-            true -> CanProceed.Yes(action = ::proceedAction)
+            true -> CanProceed.Yes(action = this::proceed)
             false -> CanProceed.No
         }
-
-    private fun proceedAction() {
-        // clicking "proceed" button takes color from Color Input,
-        // thus it's a standalone color (without a role)
-        val color = requireNotNull(colorInputColorStore.colorFlow.value)
-        proceed(
-            color = color,
-            colorRole = null,
-            isNewColorCenterSession = true, // color from Color Input, thus new session
-        )
-    }
 
     private fun NavEventGoToSettings() =
         HomeNavEvent.GoToSettings(

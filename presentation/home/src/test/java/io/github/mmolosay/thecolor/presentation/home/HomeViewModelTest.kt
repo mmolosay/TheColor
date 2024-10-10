@@ -19,6 +19,7 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommandStore
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.clearMocks
@@ -32,10 +33,14 @@ import io.mockk.verify
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 import javax.inject.Provider
+import io.github.mmolosay.thecolor.domain.model.ColorDetails as DomainColorDetails
 
 class HomeViewModelTest {
 
@@ -326,7 +331,7 @@ class HomeViewModelTest {
         }
 
     @Test
-    fun `when receiving a 'ExactColorSelected' event from Color Center, 'set color and proceed' action is invoked, thus new color is sent to color input mediator`() =
+    fun `when receiving a 'ExactColorSelected' event from Color Details, 'set color and proceed' action is invoked, thus new color is sent to color input mediator`() =
         runTest(mainDispatcherRule.testDispatcher) {
             every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
             every { colorInputEventStore.eventFlow } returns emptyFlow()
@@ -347,7 +352,7 @@ class HomeViewModelTest {
         }
 
     @Test
-    fun `when receiving a 'ExactColorSelected' event from Color Center, 'proceed' action is invoked, thus 'FetchData' command is issued to Color Details and Color Scheme`() =
+    fun `when receiving a 'ExactColorSelected' event from Color Details, 'proceed' action is invoked, thus 'FetchData' command is issued to Color Details and Color Scheme`() =
         runTest(mainDispatcherRule.testDispatcher) {
             every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
             every { colorInputEventStore.eventFlow } returns emptyFlow()
@@ -369,7 +374,65 @@ class HomeViewModelTest {
         }
 
     @Test
-    fun `when receiving a 'ExactColorSelected' event from Color Center, 'proceed' action is invoked, thus 'proceedResult' is updated`() =
+    fun `when receiving a 'ExactColorSelected' event from Color Details, then 'proceedResult' is not cleared`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val colorFlow = MutableStateFlow(value = mockk<Color>())
+            every { colorInputColorStore.colorFlow } returns colorFlow
+            every { colorInputEventStore.eventFlow } returns emptyFlow()
+            val eventsFlow = MutableSharedFlow<ColorDetailsEvent>()
+            every { colorDetailsEventStore.eventFlow } returns eventsFlow
+            val colorData: ProceedResult.Success.ColorData = mockk()
+            every { createColorData(color = any()) } returns colorData
+            createSut()
+
+            // we know from other tests that it would be 'CanProceed.Yes'
+            data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().action()
+            val exactColor = Color.Hex(0x123456)
+            run emitDataFetchedEvent@{
+                val domainDetails: DomainColorDetails = mockk(relaxed = true) {
+                    every { exact } returns mockk {
+                        every { color } returns exactColor
+                    }
+                }
+                val event = ColorDetailsEvent.DataFetched(domainDetails)
+                eventsFlow.emit(event)
+            }
+
+            val dataEmissions = mutableListOf<HomeData>()
+            val dataEmissionsCollectionJob = launch {
+                sut.dataFlow
+                    .take(2)
+                    .toList(destination = dataEmissions)
+            }
+            // clicking "Go to exact color"
+            run emitColorSelectedEvent@{
+                val event = ColorDetailsEvent.ColorSelected(
+                    color = exactColor,
+                    colorRole = ColorRole.Exact,
+                )
+                eventsFlow.emit(event)
+            }
+            run emitExactColor@{
+                colorFlow.emit(exactColor)
+            }
+            run emitDataFetchedEvent@{
+                val event = ColorDetailsEvent.DataFetched(
+                    domainDetails = mockk(relaxed = true),
+                )
+                eventsFlow.emit(event)
+            }
+
+            // the list is limited by 2 elements:
+            // 1st: should NOT be emitted
+            // 2nd: follows the 1st one and should be emitted
+            dataEmissions.size shouldBe 1 // only the 2nd, expected emission
+            dataEmissions.single() shouldBe data // this 2nd data is the current one
+            data.proceedResult shouldNotBe null // the focus of this test
+            dataEmissionsCollectionJob.cancel()
+        }
+
+    @Test
+    fun `when receiving a 'ExactColorSelected' event from Color Details, 'proceed' action is invoked, thus 'proceedResult' is updated`() =
         runTest(mainDispatcherRule.testDispatcher) {
             every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
             every { colorInputEventStore.eventFlow } returns emptyFlow()
@@ -476,6 +539,7 @@ class HomeViewModelTest {
             colorDetailsEventStoreProvider = colorDetailsEventStoreProvider,
             colorSchemeCommandStoreProvider = colorSchemeCommandStoreProvider,
             createColorData = createColorData,
+            colorCenterSessionBuilder = ColorCenterSessionBuilder(),
             defaultDispatcher = mainDispatcherRule.testDispatcher,
             uiDataUpdateDispatcher = mainDispatcherRule.testDispatcher,
         ).also {
