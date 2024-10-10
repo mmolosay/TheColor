@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="settings_top_bar_title">Settings</string>
+    <string name="settings_top_bar_go_back_icon_desc">Go back</string>
+
+    <string name="settings_item_preferred_color_input_title">Preferred color input</string>
+    <string name="settings_item_preferred_color_input_desc">It will be selected on app startup.</string>
+    <string name="settings_item_preferred_color_input_value_hex">HEX</string>
+    <string name="settings_item_preferred_color_input_value_rgb">RGB</string>
+
+</resources>
