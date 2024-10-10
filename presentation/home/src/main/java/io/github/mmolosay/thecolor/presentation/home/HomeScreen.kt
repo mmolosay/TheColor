@@ -247,6 +247,7 @@ private fun ColorCenterOnTintedSurface(
     }
 }
 
+// TODO: use real TopBar() from Material 3 library and put it in Scaffold
 @Composable
 private fun TopBar(
     uiData: HomeUiData.TopBar,
@@ -263,6 +264,7 @@ private fun TopBar(
             Icon(
                 imageVector = Icons.Rounded.Settings,
                 contentDescription = uiData.settingsAction.iconContentDescription,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
