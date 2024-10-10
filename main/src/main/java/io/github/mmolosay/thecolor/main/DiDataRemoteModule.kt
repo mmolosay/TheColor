@@ -1,14 +1,17 @@
 package io.github.mmolosay.thecolor.main
 
-import io.github.mmolosay.thecolor.data.ColorRepositoryImpl
-import io.github.mmolosay.thecolor.data.ColorsHistoryRepositoryImpl
-import io.github.mmolosay.thecolor.data.remote.api.TheColorApiService
-import io.github.mmolosay.thecolor.domain.repository.ColorRepository
-import io.github.mmolosay.thecolor.domain.repository.ColorsHistoryRepository
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.migration.DisableInstallInCheck
+import io.github.mmolosay.thecolor.data.remote.ColorRepositoryRemoteImpl
+import io.github.mmolosay.thecolor.data.remote.HttpFailureFactoryImpl
+import io.github.mmolosay.thecolor.data.remote.api.TheColorApiService
+import io.github.mmolosay.thecolor.data.remote.model.SchemeModeDtoAdapter
+import io.github.mmolosay.thecolor.domain.repository.ColorRepository
+import io.github.mmolosay.thecolor.domain.result.HttpFailureFactory
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -38,12 +41,15 @@ object DiDataRemoteProvideModule {
     @Provides
     fun provideRetrofit(
         client: OkHttpClient,
-    ): Retrofit =
-        Retrofit.Builder()
+    ): Retrofit {
+        val moshi = makeMoshi()
+        val moshiConverterFactory = MoshiConverterFactory.create(moshi)
+        return Retrofit.Builder()
             .baseUrl(THE_COLOR_API_BASE_URL)
             .client(client)
-            .addConverterFactory(MoshiConverterFactory.create())
+            .addConverterFactory(moshiConverterFactory)
             .build()
+    }
 
     @Provides
     fun provideOkHttpClient(): OkHttpClient =
@@ -51,6 +57,12 @@ object DiDataRemoteProvideModule {
             .connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .readTimeout(READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .addInterceptor(makeHttpLoggingInterceptor())
+            .build()
+
+    private fun makeMoshi(): Moshi =
+        Moshi.Builder()
+            .add(SchemeModeDtoAdapter())
+            .addLast(KotlinJsonAdapterFactory())
             .build()
 
     private fun makeHttpLoggingInterceptor() =
@@ -68,8 +80,8 @@ object DiDataRemoteProvideModule {
 interface DiDataRemoteBindModule {
 
     @Binds
-    fun bindColorRemoteRepository(impl: ColorRepositoryImpl): ColorRepository
+    fun bindHttpFailureFactory(impl: HttpFailureFactoryImpl): HttpFailureFactory
 
     @Binds
-    fun bindColorsHistoryRepository(impl: ColorsHistoryRepositoryImpl): ColorsHistoryRepository
+    fun bindColorRepositoryRemoteImpl(impl: ColorRepositoryRemoteImpl): ColorRepository
 }

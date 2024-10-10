@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="errors_message_no_connection">There is no connection to the internet.</string>
+    <string name="errors_message_timeout">There was a connection timeout.</string>
+    <string name="errors_message_any_error_response">Server responded with an error.</string>
+    <string name="errors_message_unexpected_error">There was an unknown error.</string>
+
+    <string name="error_action_try_again">Try again</string>
+
+</resources>

@@ -10,7 +10,7 @@ buildTools = "34.0.0"
 
 # Kotlin
 kotlin = "1.9.10"
-java = "17"
+java = "18"
 ksp = "1.9.10-1.0.13"
 coroutines = "1.7.2"
 
@@ -18,8 +18,13 @@ coroutines = "1.7.2"
 androidx-core-coreKtx = "1.12.0"
 androidx-appcompat = "1.6.1"
 
+# Compose
+compose-bom = "2024.02.02" # https://developer.android.com/jetpack/compose/bom/bom-mapping
+compose-compiler = "1.5.3" # https://developer.android.com/jetpack/androidx/releases/compose-kotlin
+
 # Dagger & Hilt
-hilt = "2.48.1"
+hilt = "2.50"
+hiltNavigationCompose = "1.2.0"
 
 # Remote
 retrofit-library = "2.9.0"
@@ -29,5 +34,11 @@ okhttp3-loggingInterceptor = "4.8.0"
 # Local
 room = "2.6.1"
 
+# Testing
+junit = "4.13.2"
+mockk = "1.13.3"
+kotestAssertions = "5.5.5"
+
 # Misc (preserve alphabetical order)
-viewbindingpropertydelegate = "1.5.9"
+mmolosayDebounce = "1.2.0"
+valentinilkShimmer = "1.2.0"

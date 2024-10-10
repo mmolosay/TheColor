@@ -1,10 +1,8 @@
 plugins {
     id("com.android.library")
     id("kotlin-android")
-    id("kotlin-parcelize")
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
-    id("androidx.navigation.safeargs.kotlin")
 }
 
 android {
@@ -21,7 +19,7 @@ android {
         }
     }
     buildFeatures {
-        viewBinding = true
+        compose = true
     }
 
     java {
@@ -34,13 +32,27 @@ android {
     kapt {
         correctErrorTypes = true
     }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = libs.versions.compose.compiler.get()
+    }
 }
 
+@Suppress("SpellCheckingInspection")
 dependencies {
     // Modules
     implementation(project(":domain"))
     implementation(project(":utils"))
-    implementation(project(":presentation:common"))
+    implementation(project(":presentation:common:api"))
+    implementation(project(":presentation:common:impl"))
+    implementation(project(":presentation:design-system"))
+    implementation(project(":presentation:color-input:api"))
+    implementation(project(":presentation:color-input:impl"))
+    implementation(project(":presentation:color-preview"))
+    implementation(project(":presentation:color-center"))
+    implementation(project(":presentation:color-details"))
+    implementation(project(":presentation:color-scheme"))
+    implementation(project(":presentation:settings"))
 
     // Kotlin
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.coroutines.get()}")
@@ -56,6 +68,18 @@ dependencies {
     implementation("androidx.navigation:navigation-fragment-ktx:2.4.1")
     implementation("androidx.navigation:navigation-ui-ktx:2.4.1")
 
+    // Compose
+    val composeBom = platform("androidx.compose:compose-bom:${libs.versions.compose.bom.get()}")
+    implementation(composeBom)
+    androidTestImplementation(composeBom)
+
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    debugImplementation("androidx.compose.ui:ui-tooling")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+    implementation("androidx.hilt:hilt-navigation-compose:${libs.versions.hiltNavigationCompose.get()}")
+
     // Lifecycle
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
@@ -67,11 +91,18 @@ dependencies {
     implementation("androidx.dynamicanimation:dynamicanimation:1.0.0")
 
     // Third Party Libraries
-    implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:${libs.versions.viewbindingpropertydelegate.get()}")
     implementation("com.michael-bull.kotlin-result:kotlin-result:1.1.12")
     implementation("com.facebook.shimmer:shimmer:0.5.0")
+    implementation("io.github.mmolosay:debounce:${libs.versions.mmolosayDebounce.get()}")
 
     // Hilt
     implementation("com.google.dagger:hilt-android:${libs.versions.hilt.get()}")
     kapt("com.google.dagger:hilt-compiler:${libs.versions.hilt.get()}")
+
+    // Testing
+    testImplementation(project(":utils:testing"))
+    testImplementation("junit:junit:${libs.versions.junit.get()}")
+    testImplementation("io.mockk:mockk:${libs.versions.mockk.get()}")
+    testImplementation("io.kotest:kotest-assertions-core:${libs.versions.kotestAssertions.get()}")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:${libs.versions.coroutines.get()}")
 }

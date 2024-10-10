@@ -1,8 +1,17 @@
 package io.github.mmolosay.thecolor.domain.model
 
 data class ColorScheme(
-    val modeOrdinal: Int?,
-    val sampleCount: Int?,
-    val colors: List<ColorDetails>?,
-    val seed: ColorDetails?,
-)
+    val swatchDetails: List<ColorDetails>,
+) {
+
+    enum class Mode {
+        Monochrome,
+        MonochromeDark,
+        MonochromeLight,
+        Analogic,
+        Complement,
+        AnalogicComplement,
+        Triad,
+        Quad,
+    }
+}

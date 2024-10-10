@@ -36,13 +36,12 @@ android {
 dependencies {
     implementation(project(":domain"))
     implementation(project(":data"))
-    implementation(project(":data:local"))
-    implementation(project(":data:remote"))
 
     // Data Remote
     implementation("com.squareup.retrofit2:retrofit:${libs.versions.retrofit.library.get()}")
     implementation("com.squareup.retrofit2:converter-moshi:${libs.versions.retrofit.moshi.get()}")
     implementation("com.squareup.okhttp3:logging-interceptor:${libs.versions.okhttp3.loggingInterceptor.get()}")
+    implementation("com.squareup.moshi:moshi-kotlin:1.15.0")
 
     // Data Local
     implementation("androidx.room:room-runtime:${libs.versions.room.get()}")
