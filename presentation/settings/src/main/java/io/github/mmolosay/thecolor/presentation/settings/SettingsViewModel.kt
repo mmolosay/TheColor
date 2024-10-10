@@ -17,6 +17,7 @@ import javax.inject.Inject
 import javax.inject.Named
 import io.github.mmolosay.thecolor.domain.model.UserPreferences as DomainUserPreferences
 
+// TODO: add unit tests
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
