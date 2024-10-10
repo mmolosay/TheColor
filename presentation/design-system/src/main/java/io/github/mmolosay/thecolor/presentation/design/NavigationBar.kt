@@ -3,7 +3,6 @@ package io.github.mmolosay.thecolor.presentation.design
 import android.graphics.Color
 import androidx.compose.runtime.compositionLocalOf
 
-// TODO: abolish?
 val LocalIsDefaultNavigationBarLight =
     compositionLocalOf<Boolean> {
         error("CompositionLocal \"LocalIsDefaultNavigationBarLight\" doesn't have value by default.")
