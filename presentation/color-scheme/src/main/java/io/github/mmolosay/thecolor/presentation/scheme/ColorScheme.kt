@@ -27,7 +27,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -35,12 +34,10 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -61,7 +58,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import io.github.mmolosay.thecolor.presentation.api.NavBarAppearance
 import io.github.mmolosay.thecolor.presentation.api.NavBarAppearanceStack
 import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
@@ -69,14 +65,9 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
-import io.github.mmolosay.thecolor.presentation.details.ColorDetails
-import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCrossfade
-import io.github.mmolosay.thecolor.presentation.details.ColorDetailsOnTintedSurfaceDefaults
-import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.errors.ErrorMessageWithButton
 import io.github.mmolosay.thecolor.presentation.errors.message
 import io.github.mmolosay.thecolor.presentation.errors.rememberDefaultErrorViewData
-import io.github.mmolosay.thecolor.presentation.impl.TintedSurface
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.ApplyChangesButton
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.ModeSection
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.Swatch
@@ -404,54 +395,6 @@ private fun ApplyChangesButton(
     }
     LaunchedEffect(uiData) {
         visibleUiData = uiData as? ApplyChangesButton.Visible ?: return@LaunchedEffect
-    }
-}
-
-// This piece of UI doesn't have its "UI" model yet. TODO: add one?
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun SelectedSwatchDetailsDialog(
-    viewModel: ColorDetailsViewModel,
-    colorSchemeUiData: ColorSchemeUiData,
-    navBarAppearanceStack: NavBarAppearanceStack,
-) {
-    val seedData = viewModel.currentSeedDataFlow.collectAsStateWithLifecycle().value ?: return
-    val surfaceColor = ColorDetailsOnTintedSurfaceDefaults.surfaceColor(seedData)
-    val contentColors = ColorDetailsOnTintedSurfaceDefaults.colorsOnTintedSurface(seedData)
-
-    ModalBottomSheet(
-        onDismissRequest = colorSchemeUiData.onSelectedSwatchDetailsDialogDismissRequest,
-        containerColor = surfaceColor,
-        contentColor = contentColors.accent,
-        dragHandle = {
-            BottomSheetDefaults.DragHandle(
-                color = contentColors.muted,
-            )
-        },
-    ) {
-        TintedSurface(
-            surfaceColor = surfaceColor,
-            contentColors = contentColors,
-        ) {
-            ColorDetailsCrossfade(
-                actualDataState = viewModel.dataStateFlow.collectAsStateWithLifecycle().value,
-            ) { state ->
-                ColorDetails(
-                    state = state,
-                    modifier = Modifier.padding(bottom = 24.dp),
-                )
-            }
-            DisposableEffect(seedData) {
-                val appearance = NavBarAppearance(
-                    color = seedData.color,
-                    isLight = !seedData.isDark,
-                )
-                navBarAppearanceStack.push(appearance)
-                onDispose {
-                    navBarAppearanceStack.peel()
-                }
-            }
-        }
     }
 }
 
