@@ -19,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,14 +37,13 @@ import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHex
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexUiData
 import io.github.mmolosay.thecolor.presentation.input.impl.rgb.ColorInputRgb
 import io.github.mmolosay.thecolor.presentation.input.impl.rgb.ColorInputRgbUiData
-import kotlinx.coroutines.flow.emptyFlow
 
 @Composable
 fun ColorInput(
     viewModel: ColorInputViewModel,
 ) {
     val viewData = rememberViewData()
-    val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
+    val data by viewModel.dataFlow.collectAsStateWithLifecycle()
     val uiData = rememberUiData(data, viewData)
     ColorInput(
         uiData = uiData,
