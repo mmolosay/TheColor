@@ -41,7 +41,7 @@ dependencies {
     implementation("androidx.room:room-ktx:$roomVersion")
     ksp("androidx.room:room-compiler:$roomVersion")
 
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
 
     // Remote
     implementation("com.squareup.retrofit2:retrofit:${libs.versions.retrofit.library.get()}")

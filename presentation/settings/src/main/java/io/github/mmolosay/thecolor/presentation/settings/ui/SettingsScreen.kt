@@ -1,6 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.settings.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -30,16 +31,40 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.settings.SettingsData
 import io.github.mmolosay.thecolor.presentation.settings.SettingsUiStrings
 import io.github.mmolosay.thecolor.presentation.settings.SettingsViewModel
+import io.github.mmolosay.thecolor.presentation.settings.SettingsViewModel.DataState
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.ColorInputType as DomainColorInputType
 
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel,
     navigateBack: () -> Unit,
 ) {
+    val dataState by viewModel.dataStateFlow.collectAsStateWithLifecycle()
     SettingsScreen(
-        data = viewModel.dataFlow.collectAsStateWithLifecycle().value,
+        dataState = dataState,
         navigateBack = navigateBack,
     )
+}
+
+@Composable
+fun SettingsScreen(
+    dataState: DataState,
+    navigateBack: () -> Unit,
+) {
+    when (dataState) {
+        is DataState.Loading -> {
+            // should promptly change to 'Ready', don't show loading indicator to avoid flashing
+            Box(
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
+        is DataState.Ready -> {
+            SettingsScreen(
+                data = dataState.data,
+                navigateBack = navigateBack
+            )
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -109,17 +134,17 @@ fun Settings(
     ) {
         item("preferred color input") {
             var showSelectionDialog by remember { mutableStateOf(false) }
-            val options = SettingsData.ColorInputType.entries.map { colorInputType ->
+            val options = DomainColorInputType.entries.map { colorInputType ->
                 ColorInputOption(
                     name = colorInputType.toUiString(strings),
-                    isSelected = (data.preferredColorInput == colorInputType),
-                    onSelect = { data.changePreferredColorInput(colorInputType) },
+                    isSelected = (data.preferredColorInputType == colorInputType),
+                    onSelect = { data.changePreferredColorInputType(colorInputType) },
                 )
             }
             PreferredColorInput(
                 title = strings.itemPreferredColorInputTitle,
                 description = strings.itemPreferredColorInputDesc,
-                selectedOption = data.preferredColorInput.toUiString(strings),
+                selectedOption = data.preferredColorInputType.toUiString(strings),
                 onClick = { showSelectionDialog = true },
             )
             if (showSelectionDialog) {
@@ -133,12 +158,12 @@ fun Settings(
     }
 }
 
-private fun SettingsData.ColorInputType.toUiString(
+private fun DomainColorInputType.toUiString(
     strings: SettingsUiStrings,
 ): String =
     when (this) {
-        SettingsData.ColorInputType.Hex -> strings.itemPreferredColorInputValueHex
-        SettingsData.ColorInputType.Rgb -> strings.itemPreferredColorInputValueRgb
+        DomainColorInputType.Hex -> strings.itemPreferredColorInputValueHex
+        DomainColorInputType.Rgb -> strings.itemPreferredColorInputValueRgb
     }
 
 @Preview
@@ -154,6 +179,6 @@ private fun Preview() {
 
 private fun previewData() =
     SettingsData(
-        preferredColorInput = SettingsData.ColorInputType.Hex,
-        changePreferredColorInput = {},
+        preferredColorInputType = DomainColorInputType.Hex,
+        changePreferredColorInputType = {},
     )

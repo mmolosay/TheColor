@@ -1,27 +1,59 @@
 package io.github.mmolosay.thecolor.presentation.settings
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
+import javax.inject.Named
+import io.github.mmolosay.thecolor.domain.model.UserPreferences as DomainUserPreferences
 
 @HiltViewModel
-class SettingsViewModel @Inject constructor() : ViewModel() {
+class SettingsViewModel @Inject constructor(
+    private val userPreferencesRepository: UserPreferencesRepository,
+    @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
+) : ViewModel() {
 
-    private val _dataFlow = MutableStateFlow(initialData())
-    val dataFlow = _dataFlow.asStateFlow()
+    val dataStateFlow: StateFlow<DataState> =
+        combine(
+            userPreferencesRepository.flowOfColorInputType(),
+            flowOf("tmp flow with tmp value"),
+            transform = ::createData,
+        )
+            .map { data -> DataState.Ready(data) }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = DataState.Loading,
+            )
 
-    private fun setPreferredColorInput(value: SettingsData.ColorInputType) {
-        _dataFlow.update {
-            it.copy(preferredColorInput = value)
+    private fun updatePreferredColorInputType(value: DomainUserPreferences.ColorInputType) {
+        viewModelScope.launch(defaultDispatcher) {
+            userPreferencesRepository.setColorInputType(value)
         }
     }
 
-    private fun initialData() =
-        SettingsData(
-            preferredColorInput = SettingsData.ColorInputType.Hex,
-            changePreferredColorInput = ::setPreferredColorInput,
+    private fun createData(
+        preferredColorInputType: DomainUserPreferences.ColorInputType,
+        tmp: String,
+    ): SettingsData {
+        return SettingsData(
+            preferredColorInputType = preferredColorInputType,
+            changePreferredColorInputType = ::updatePreferredColorInputType,
         )
+    }
+
+    sealed interface DataState {
+        data object Loading : DataState
+        data class Ready(val data: SettingsData) : DataState
+    }
 }
