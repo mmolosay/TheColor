@@ -3,17 +3,23 @@ package io.github.mmolosay.thecolor.presentation.input.impl
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import io.github.mmolosay.thecolor.domain.model.UserPreferences
+import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.api.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.api.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputData.ViewType
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexViewModel
 import io.github.mmolosay.thecolor.presentation.input.impl.rgb.ColorInputRgbViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Named
+import io.github.mmolosay.thecolor.domain.model.UserPreferences as DomainUserPreferences
 
 /**
  * Not a ViewModel-ViewModel in terms of Android development.
@@ -26,10 +32,12 @@ class ColorInputViewModel @AssistedInject constructor(
     @Assisted mediator: ColorInputMediator,
     hexViewModelFactory: ColorInputHexViewModel.Factory,
     rgbViewModelFactory: ColorInputRgbViewModel.Factory,
+    private val userPreferencesRepository: UserPreferencesRepository,
+    @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
-    private val _dataFlow = MutableStateFlow(initialData())
-    val dataFlow = _dataFlow.asStateFlow()
+    private val _dataStateFlow = MutableStateFlow<DataState>(DataState.Loading)
+    val dataStateFlow = _dataStateFlow.asStateFlow()
 
     val hexViewModel: ColorInputHexViewModel by lazy {
         hexViewModelFactory.create(
@@ -51,24 +59,50 @@ class ColorInputViewModel @AssistedInject constructor(
         coroutineScope.launch {
             mediator.init()
         }
-    }
-
-    private fun onInputTypeChange(type: ViewType) {
-        _dataFlow.update {
-            it.copy(viewType = type)
+        coroutineScope.launch(defaultDispatcher) {
+            _dataStateFlow.value = DataState.Ready(data = initialData())
         }
     }
 
-    private fun initialData() =
-        ColorInputData(
-            viewType = ViewType.Hex,
+    private fun onInputTypeChange(type: ViewType) {
+        _dataStateFlow.update { dataState ->
+            val currentData = (dataState as? DataState.Ready)?.data ?: return@update dataState
+            val newData = currentData.copy(
+                selectedViewType = type,
+            )
+            DataState.Ready(newData)
+        }
+    }
+
+    private suspend fun initialData(): ColorInputData {
+        // TODO: subscribe to changes of preferred Color Input type and update values when it changes
+        val preferredColorInputType = userPreferencesRepository.flowOfColorInputType().first()
+        val preferredViewType = preferredColorInputType.toPresentation()
+        // make list of all 'ViewType's with the preferred one being first
+        val orderedViewTypes = run {
+            val allViewTypes = ViewType.entries
+            val indexOfPreferred = allViewTypes.indexOf(preferredViewType)
+            check(indexOfPreferred != -1)
+            val allViewTypesWithoutPreferredOne = allViewTypes.filter { it != preferredViewType }
+            listOf(preferredViewType) + allViewTypesWithoutPreferredOne
+        }
+        return ColorInputData(
+            selectedViewType = preferredViewType,
+            orderedViewTypes = orderedViewTypes,
             onInputTypeChange = ::onInputTypeChange,
         )
+    }
+
 
     override fun dispose() {
         super.dispose()
         hexViewModel.dispose()
         rgbViewModel.dispose()
+    }
+
+    interface DataState {
+        data object Loading : DataState
+        data class Ready(val data: ColorInputData) : DataState
     }
 
     @AssistedFactory
@@ -80,3 +114,9 @@ class ColorInputViewModel @AssistedInject constructor(
         ): ColorInputViewModel
     }
 }
+
+private fun DomainUserPreferences.ColorInputType.toPresentation(): ViewType =
+    when (this) {
+        UserPreferences.ColorInputType.Hex -> ViewType.Hex
+        UserPreferences.ColorInputType.Rgb -> ViewType.Rgb
+    }

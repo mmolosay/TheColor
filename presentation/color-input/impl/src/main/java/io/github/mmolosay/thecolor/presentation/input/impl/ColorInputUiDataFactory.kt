@@ -10,7 +10,8 @@ private fun ColorInputUiData(
     viewData: ViewData,
 ): ColorInputUiData =
     ColorInputUiData(
-        viewType = data.viewType,
+        selectedViewType = data.selectedViewType,
+        orderedViewTypes = data.orderedViewTypes,
         onInputTypeChange = data.onInputTypeChange,
         hexLabel = viewData.hexLabel,
         rgbLabel = viewData.rgbLabel,

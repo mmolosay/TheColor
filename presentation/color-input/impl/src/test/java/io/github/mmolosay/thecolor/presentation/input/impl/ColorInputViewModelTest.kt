@@ -24,7 +24,7 @@ class ColorInputViewModelTest {
     lateinit var sut: ColorInputViewModel
 
     val uiData: ColorInputData
-        get() = sut.dataFlow.value
+        get() = sut.dataStateFlow.value
 
     @Test
     fun `mediator is initialized when sut is created`() {
@@ -37,7 +37,7 @@ class ColorInputViewModelTest {
     fun `initial data is set on initialization`() {
         createSut()
 
-        uiData.viewType shouldBe ViewType.Hex
+        uiData.selectedViewType shouldBe ViewType.Hex
     }
 
     @Test
@@ -46,7 +46,7 @@ class ColorInputViewModelTest {
 
         uiData.onInputTypeChange(ViewType.Rgb)
 
-        uiData.viewType shouldBe ViewType.Rgb
+        uiData.selectedViewType shouldBe ViewType.Rgb
     }
 
     fun createSut() =

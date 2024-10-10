@@ -19,7 +19,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,23 +36,32 @@ import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHex
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexUiData
 import io.github.mmolosay.thecolor.presentation.input.impl.rgb.ColorInputRgb
 import io.github.mmolosay.thecolor.presentation.input.impl.rgb.ColorInputRgbUiData
+import io.github.mmolosay.thecolor.utils.doNothing
 
 @Composable
 fun ColorInput(
     viewModel: ColorInputViewModel,
 ) {
     val viewData = rememberViewData()
-    val data by viewModel.dataFlow.collectAsStateWithLifecycle()
-    val uiData = rememberUiData(data, viewData)
-    ColorInput(
-        uiData = uiData,
-        hexInput = {
-            ColorInputHex(viewModel = viewModel.hexViewModel)
-        },
-        rgbInput = {
-            ColorInputRgb(viewModel = viewModel.rgbViewModel)
-        },
-    )
+    val dataState = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
+    when (dataState) {
+        is ColorInputViewModel.DataState.Loading -> {
+            // should promptly change to 'Ready', don't show loading indicator to avoid flashing
+            doNothing()
+        }
+        is ColorInputViewModel.DataState.Ready -> {
+            val uiData = rememberUiData(dataState.data, viewData)
+            ColorInput(
+                uiData = uiData,
+                hexInput = {
+                    ColorInputHex(viewModel = viewModel.hexViewModel)
+                },
+                rgbInput = {
+                    ColorInputRgb(viewModel = viewModel.rgbViewModel)
+                },
+            )
+        }
+    }
 }
 
 @Composable
@@ -67,7 +75,7 @@ fun ColorInput(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Crossfade(
-            targetState = uiData.viewType,
+            targetState = uiData.selectedViewType,
             label = "Input type cross-fade",
         ) { type ->
             Box(
@@ -98,8 +106,8 @@ private fun InputSelector(
         CompositionLocalProvider(
             LocalMinimumInteractiveComponentEnforcement provides false,
         ) {
-            ViewType.entries.forEach { type ->
-                val isSelected = (type == uiData.viewType)
+            uiData.orderedViewTypes.forEach { type ->
+                val isSelected = (type == uiData.selectedViewType)
                 val contentColor = LocalContentColor.current
                 val colors = FilterChipDefaults.filterChipColors(
                     labelColor = contentColor.copy(alpha = 0.60f),
@@ -172,7 +180,8 @@ private fun Preview() {
 
 private fun previewUiData() =
     ColorInputUiData(
-        viewType = ViewType.Hex,
+        selectedViewType = ViewType.Hex,
+        orderedViewTypes = ViewType.entries,
         onInputTypeChange = {},
         hexLabel = "HEX",
         rgbLabel = "RGB",
