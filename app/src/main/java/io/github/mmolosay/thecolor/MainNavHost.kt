@@ -11,7 +11,7 @@ import io.github.mmolosay.thecolor.presentation.api.NavBarAppearanceController
 import io.github.mmolosay.thecolor.presentation.api.NavBarAppearanceStack
 import io.github.mmolosay.thecolor.presentation.home.HomeScreen
 import io.github.mmolosay.thecolor.presentation.home.HomeViewModel
-import io.github.mmolosay.thecolor.presentation.settings.SettingsScreen
+import io.github.mmolosay.thecolor.presentation.settings.ui.SettingsScreen
 import io.github.mmolosay.thecolor.presentation.settings.SettingsViewModel
 
 /**

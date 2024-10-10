@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.settings
+package io.github.mmolosay.thecolor.presentation.settings.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,8 +27,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.settings.UiItems.PreferredColorInput
-import io.github.mmolosay.thecolor.presentation.settings.UiItems.PreferredColorInputSelection
+import io.github.mmolosay.thecolor.presentation.settings.SettingsData
+import io.github.mmolosay.thecolor.presentation.settings.SettingsUiStrings
+import io.github.mmolosay.thecolor.presentation.settings.SettingsViewModel
 
 @Composable
 fun SettingsScreen(
@@ -109,7 +110,7 @@ fun Settings(
         item("preferred color input") {
             var showSelectionDialog by remember { mutableStateOf(false) }
             val options = SettingsData.ColorInputType.entries.map { colorInputType ->
-                UiItems.ColorInputOption(
+                ColorInputOption(
                     name = colorInputType.toUiString(strings),
                     isSelected = (data.preferredColorInput == colorInputType),
                     onSelect = { data.changePreferredColorInput(colorInputType) },
@@ -125,7 +126,7 @@ fun Settings(
                 ModalBottomSheet(
                     onDismissRequest = { showSelectionDialog = false },
                 ) {
-                    PreferredColorInputSelection(options = options)
+                    PreferredColorInputOptionSelection(options = options)
                 }
             }
         }

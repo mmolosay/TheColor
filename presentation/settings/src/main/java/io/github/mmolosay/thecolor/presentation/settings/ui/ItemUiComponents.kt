@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.settings
+package io.github.mmolosay.thecolor.presentation.settings.ui
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,7 +11,7 @@ import androidx.compose.ui.text.font.FontWeight
 /**
  * Reusable UI components for individual items on Settings screen.
  */
-internal object UiItemComponents {
+internal object ItemUiComponents {
 
     @Composable
     fun ItemLayout(
