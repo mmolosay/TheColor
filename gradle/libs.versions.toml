@@ -33,6 +33,7 @@ okhttp3-loggingInterceptor = "4.8.0"
 
 # Local
 room = "2.6.1"
+dataStore-preferences = "1.1.1"
 
 # Testing
 junit = "4.13.2"
