@@ -75,8 +75,6 @@ class ColorInputViewModel @AssistedInject constructor(
     }
 
     private suspend fun initialData(): ColorInputData {
-        // TODO: add unit tests
-        // TODO: subscribe to changes of preferred Color Input type and update values when it changes
         val preferredColorInputType = userPreferencesRepository.flowOfColorInputType().first()
         val preferredViewType = preferredColorInputType.toPresentation()
         // make list of all 'ViewType's with the preferred one being first
