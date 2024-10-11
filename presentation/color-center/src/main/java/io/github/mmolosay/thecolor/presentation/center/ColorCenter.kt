@@ -93,9 +93,10 @@ fun ColorCenter(
     scheme: @Composable () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val viewData = rememberViewData()
+    val context = LocalContext.current
+    val strings = remember(context) { ColorCenterUiStrings(context) }
     val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
-    val uiData = ColorCenterUiData(data, viewData)
+    val uiData = ColorCenterUiData(data, strings)
     ColorCenter(
         uiData = uiData,
         colorDetails = details,
@@ -167,12 +168,6 @@ fun ColorCenter(
     }
 }
 
-@Composable
-private fun rememberViewData(): ColorCenterUiData.ViewData {
-    val context = LocalContext.current
-    return remember { ColorCenterViewData(context) }
-}
-
 @Preview(showBackground = true)
 @Composable
 private fun Preview() {
@@ -189,8 +184,8 @@ private fun Preview() {
     TheColorTheme {
         ProvideColorsOnTintedSurface(colors = colorsOnLightSurface()) {
             val data = previewData()
-            val viewData = previewViewData()
-            val uiData = ColorCenterUiData(data, viewData)
+            val strings = previewUiStrings()
+            val uiData = ColorCenterUiData(data, strings)
             ColorCenter(
                 uiData = uiData,
                 colorDetails = {
@@ -210,8 +205,8 @@ private fun previewData() =
         changePageEvent = null,
     )
 
-private fun previewViewData() =
-    ColorCenterUiData.ViewData(
+private fun previewUiStrings() =
+    ColorCenterUiStrings(
         detailsPageChangePageButtonText = "View color scheme",
         schemePageChangePageButtonText = "View color details",
     )

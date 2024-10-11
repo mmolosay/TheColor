@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputData.ViewType
-import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputUiData.ViewData
+import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputViewModel.DataState
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiData
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHex
@@ -42,15 +42,16 @@ import io.github.mmolosay.thecolor.utils.doNothing
 fun ColorInput(
     viewModel: ColorInputViewModel,
 ) {
-    val viewData = rememberViewData()
+    val context = LocalContext.current
+    val strings = remember(context) { ColorInputUiStrings(context) }
     val dataState = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
     when (dataState) {
-        is ColorInputViewModel.DataState.Loading -> {
+        is DataState.Loading -> {
             // should promptly change to 'Ready', don't show loading indicator to avoid flashing
             doNothing()
         }
-        is ColorInputViewModel.DataState.Ready -> {
-            val uiData = rememberUiData(dataState.data, viewData)
+        is DataState.Ready -> {
+            val uiData = ColorInputUiData(dataState.data, strings)
             ColorInput(
                 uiData = uiData,
                 hexInput = {
@@ -148,19 +149,6 @@ private fun ViewType.label(uiData: ColorInputUiData): String =
         ViewType.Hex -> uiData.hexLabel
         ViewType.Rgb -> uiData.rgbLabel
     }
-
-@Composable
-private fun rememberViewData(): ViewData {
-    val context = LocalContext.current
-    return remember { ColorInputViewData(context) }
-}
-
-@Composable
-private fun rememberUiData(
-    data: ColorInputData,
-    viewData: ViewData,
-): ColorInputUiData =
-    remember(data) { data + viewData }
 
 @Preview(showBackground = true)
 @Composable

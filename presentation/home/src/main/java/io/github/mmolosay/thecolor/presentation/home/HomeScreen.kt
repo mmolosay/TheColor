@@ -66,9 +66,10 @@ fun HomeScreen(
     navigateToSettings: () -> Unit,
     navBarAppearanceStack: NavBarAppearanceStack,
 ) {
+    val context = LocalContext.current
+    val strings = remember(context) { HomeUiStrings(context) }
     val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
-    val viewData = rememberViewData()
-    val uiData = HomeUiData(data, viewData)
+    val uiData = HomeUiData(data, strings)
     val navEvent = viewModel.navEventFlow.collectAsStateWithLifecycle().value
 
     HomeScreen(
@@ -268,12 +269,6 @@ private fun TopBar(
             )
         }
     }
-}
-
-@Composable
-private fun rememberViewData(): HomeUiData.ViewData {
-    val context = LocalContext.current
-    return remember { HomeViewData(context) }
 }
 
 @Preview(showBackground = true)

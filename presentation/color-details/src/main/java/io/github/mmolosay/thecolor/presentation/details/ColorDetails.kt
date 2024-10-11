@@ -30,11 +30,11 @@ import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorSpec
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorTranslation
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ColorTranslations
-import io.github.mmolosay.thecolor.presentation.details.ColorDetailsUiData.ViewData
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel.DataState
 import io.github.mmolosay.thecolor.presentation.errors.ErrorMessageWithButton
 import io.github.mmolosay.thecolor.presentation.errors.message
-import io.github.mmolosay.thecolor.presentation.errors.rememberDefaultErrorViewData
+import io.github.mmolosay.thecolor.presentation.errors.rememberDefaultErrorsUiStrings
+import io.github.mmolosay.thecolor.utils.doNothing
 
 @Composable
 fun ColorDetails(
@@ -53,21 +53,25 @@ fun ColorDetails(
     state: DataState,
     modifier: Modifier = Modifier,
 ) {
-    val viewData = rememberViewData()
+    val context = LocalContext.current
+    val strings = remember(context) { ColorDetailsUiStrings(context) }
     when (state) {
-        is DataState.Idle ->
-            Unit // Color Details shouldn't be visible at Home at this point
-        is DataState.Loading ->
+        is DataState.Idle -> {
+            doNothing() // Color Details shouldn't be visible at Home at this point
+        }
+        is DataState.Loading -> {
             ColorDetailsLoading()
+        }
         is DataState.Ready -> {
-            val uiData = rememberUiData(state.data, viewData)
+            val uiData = ColorDetailsUiData(state.data, strings)
             ColorDetails(
                 uiData = uiData,
                 modifier = modifier,
             )
         }
-        is DataState.Error ->
+        is DataState.Error -> {
             Error(error = state.error)
+        }
     }
 }
 
@@ -127,12 +131,12 @@ private fun Divider() =
 private fun Error(
     error: ColorDetailsError,
 ) {
-    val viewData = rememberDefaultErrorViewData()
+    val strings = rememberDefaultErrorsUiStrings()
     ErrorMessageWithButton(
         modifier = Modifier
             .padding(horizontal = 24.dp)
             .fillMaxWidth(),
-        message = error.type.message(viewData),
+        message = error.type.message(strings),
         button = {
             val colors = ButtonDefaults.outlinedButtonColors(
                 contentColor = colorsOnTintedSurface.accent,
@@ -145,24 +149,11 @@ private fun Error(
                 colors = colors,
                 border = border,
             ) {
-                Text(text = viewData.actionTryAgain)
+                Text(text = strings.actionTryAgain)
             }
         },
     )
 }
-
-@Composable
-private fun rememberViewData(): ViewData {
-    val context = LocalContext.current
-    return remember { ColorDetailsViewData(context) }
-}
-
-@Composable
-private fun rememberUiData(
-    data: ColorDetailsData,
-    viewData: ViewData,
-): ColorDetailsUiData =
-    remember(data) { ColorDetailsUiData(data, viewData) }
 
 @Preview(showBackground = true)
 @Composable

@@ -14,13 +14,13 @@ import org.jetbrains.annotations.VisibleForTesting
 
 fun ColorSchemeUiData(
     data: ColorSchemeData,
-    viewData: ColorSchemeUiData.ViewData,
+    strings: ColorSchemeUiStrings,
 ): ColorSchemeUiData =
     ColorSchemeUiData(
         swatches = Swatches(data),
-        modeSection = ModeSection(data, viewData),
-        swatchCountSection = SwatchCountSection(data, viewData),
-        applyChangesButton = ApplyChangesButton(data, viewData),
+        modeSection = ModeSection(data, strings),
+        swatchCountSection = SwatchCountSection(data, strings),
+        applyChangesButton = ApplyChangesButton(data, strings),
         showSelectedSwatchDetailsDialog = data.isAnySwatchSelected,
         onSelectedSwatchDetailsDialogDismissRequest = OnSelectedSwatchDetailsDialogDismissRequest(data),
     )
@@ -38,14 +38,14 @@ private fun Swatches(
 
 private fun ModeSection(
     data: ColorSchemeData,
-    viewData: ColorSchemeUiData.ViewData,
+    strings: ColorSchemeUiStrings,
 ) =
     ModeSection(
-        label = viewData.modeLabel,
-        value = data.activeMode.name(viewData),
+        label = strings.modeLabel,
+        value = data.activeMode.name(strings),
         modes = ColorScheme.Mode.entries.map { mode ->
             ModeSection.Mode(
-                name = mode.name(viewData),
+                name = mode.name(strings),
                 isSelected = (mode == data.selectedMode),
                 onSelect = OnModeSelect(data, mode),
             )
@@ -54,10 +54,10 @@ private fun ModeSection(
 
 private fun SwatchCountSection(
     data: ColorSchemeData,
-    viewData: ColorSchemeUiData.ViewData,
+    strings: ColorSchemeUiStrings,
 ) =
     SwatchCountSection(
-        label = viewData.swatchCountLabel,
+        label = strings.swatchCountLabel,
         value = data.activeSwatchCount.value.toString(),
         swatchCountItems = ColorSchemeData.SwatchCount.entries.map { count ->
             SwatchCountSection.SwatchCount(
@@ -70,30 +70,30 @@ private fun SwatchCountSection(
 
 private fun ApplyChangesButton(
     data: ColorSchemeData,
-    viewData: ColorSchemeUiData.ViewData,
+    strings: ColorSchemeUiStrings,
 ): ApplyChangesButton =
     when (data.changes) {
         is ColorSchemeData.Changes.None ->
             ApplyChangesButton.Hidden
         is ColorSchemeData.Changes.Present ->
             ApplyChangesButton.Visible(
-                text = viewData.applyChangesButtonText,
+                text = strings.applyChangesButtonText,
                 onClick = data.changes.applyChanges,
             )
     }
 
 private fun ColorScheme.Mode.name(
-    viewData: ColorSchemeUiData.ViewData,
+    strings: ColorSchemeUiStrings,
 ): String =
     when (this) {
-        ColorScheme.Mode.Monochrome -> viewData.modeMonochromeName
-        ColorScheme.Mode.MonochromeDark -> viewData.modeMonochromeDarkName
-        ColorScheme.Mode.MonochromeLight -> viewData.modeMonochromeLightName
-        ColorScheme.Mode.Analogic -> viewData.modeAnalogicName
-        ColorScheme.Mode.Complement -> viewData.modeComplementName
-        ColorScheme.Mode.AnalogicComplement -> viewData.modeAnalogicComplementName
-        ColorScheme.Mode.Triad -> viewData.modeTriadName
-        ColorScheme.Mode.Quad -> viewData.modeQuadName
+        ColorScheme.Mode.Monochrome -> strings.modeMonochromeName
+        ColorScheme.Mode.MonochromeDark -> strings.modeMonochromeDarkName
+        ColorScheme.Mode.MonochromeLight -> strings.modeMonochromeLightName
+        ColorScheme.Mode.Analogic -> strings.modeAnalogicName
+        ColorScheme.Mode.Complement -> strings.modeComplementName
+        ColorScheme.Mode.AnalogicComplement -> strings.modeAnalogicComplementName
+        ColorScheme.Mode.Triad -> strings.modeTriadName
+        ColorScheme.Mode.Quad -> strings.modeQuadName
     }
 
 /*

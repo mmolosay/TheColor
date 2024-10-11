@@ -4,25 +4,25 @@ import io.github.mmolosay.thecolor.presentation.impl.toCompose
 
 fun HomeUiData(
     data: HomeData,
-    viewData: HomeUiData.ViewData,
+    strings: HomeUiStrings,
 ) =
     HomeUiData(
-        topBar = TopBar(data, viewData),
-        headline = viewData.headline,
-        proceedButton = ProceedButton(data, viewData),
+        topBar = TopBar(data, strings),
+        headline = strings.headline,
+        proceedButton = ProceedButton(data, strings),
         colorPreviewState = ColorPreviewState(data),
         showColorCenter = ShowColorCenter(data.proceedResult),
-        invalidSubmittedColorToast = InvalidSubmittedColorToast(data.proceedResult, viewData),
+        invalidSubmittedColorToast = InvalidSubmittedColorToast(data.proceedResult, strings),
     )
 
 private fun TopBar(
     data: HomeData,
-    viewData: HomeUiData.ViewData,
+    strings: HomeUiStrings,
 ) =
     HomeUiData.TopBar(
         settingsAction = HomeUiData.TopBar.SettingsAction(
             onClick = data.goToSettings,
-            iconContentDescription = viewData.settingsIconContentDesc,
+            iconContentDescription = strings.settingsIconContentDesc,
         )
     )
 
@@ -47,12 +47,12 @@ private fun ShowColorCenter(result: HomeData.ProceedResult?) =
  */
 private fun InvalidSubmittedColorToast(
     result: HomeData.ProceedResult?,
-    viewData: HomeUiData.ViewData,
+    strings: HomeUiStrings,
 ) =
     when (result) {
         is HomeData.ProceedResult.InvalidSubmittedColor ->
             HomeUiData.InvalidSubmittedColorToast(
-                message = viewData.invalidSubmittedColorMessage,
+                message = strings.invalidSubmittedColorMessage,
                 onShown = result.discard,
             )
         else -> null
@@ -60,12 +60,12 @@ private fun InvalidSubmittedColorToast(
 
 private fun ProceedButton(
     data: HomeData,
-    viewData: HomeUiData.ViewData,
+    strings: HomeUiStrings,
 ) =
     HomeUiData.ProceedButton(
         onClick = data.canProceed.actionOrNoop(),
         enabled = data.canProceed is HomeData.CanProceed.Yes,
-        text = viewData.proceedButtonText,
+        text = strings.proceedButtonText,
     )
 
 private fun ColorPreviewState(

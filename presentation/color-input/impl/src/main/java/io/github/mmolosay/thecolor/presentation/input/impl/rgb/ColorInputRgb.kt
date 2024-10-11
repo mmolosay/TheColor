@@ -27,13 +27,13 @@ import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.T
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiData
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.impl.model.hideSoftwareKeyboardCommandOrNull
-import io.github.mmolosay.thecolor.presentation.input.impl.rgb.ColorInputRgbUiData.ViewData
 
 @Composable
 fun ColorInputRgb(
     viewModel: ColorInputRgbViewModel,
 ) {
-    val viewData = rememberViewData()
+    val context = LocalContext.current
+    val strings = remember(context) { ColorInputRgbUiStrings(context) }
     val state = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
     val colorSubmissionResult =
         viewModel.colorSubmissionResultFlow.collectAsStateWithLifecycle().value
@@ -43,7 +43,7 @@ fun ColorInputRgb(
         is DataState.BeingInitialized ->
             Loading()
         is DataState.Ready -> {
-            val uiData = rememberUiData(data = state.data, viewData = viewData)
+            val uiData = ColorInputRgbUiData(state.data, strings)
             ColorInputRgb(uiData)
         }
     }
@@ -111,19 +111,6 @@ private fun TextField(
         keyboardActions = keyboardActions,
     )
 }
-
-@Composable
-private fun rememberViewData(): ViewData {
-    val context = LocalContext.current
-    return remember { ColorInputRgbViewData(context) }
-}
-
-@Composable
-private fun rememberUiData(
-    data: ColorInputRgbData,
-    viewData: ViewData,
-): ColorInputRgbUiData =
-    remember(data) { data + viewData }
 
 @Preview(showBackground = true)
 @Composable

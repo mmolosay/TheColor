@@ -10,10 +10,10 @@ import io.github.mmolosay.thecolor.presentation.errors.ErrorUiComponents.Message
 @Composable
 fun ErrorMessage(
     errorType: ErrorType,
-    viewData: ErrorViewData = rememberDefaultErrorViewData(),
+    strings: ErrorsUiStrings = rememberDefaultErrorsUiStrings(),
     modifier: Modifier = Modifier,
 ) {
-    val message = errorType.message(viewData)
+    val message = errorType.message(strings)
     ErrorMessage(
         text = message,
         modifier = modifier,

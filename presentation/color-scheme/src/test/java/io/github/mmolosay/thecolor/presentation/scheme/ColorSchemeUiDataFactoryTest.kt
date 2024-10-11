@@ -16,7 +16,7 @@ import org.junit.runners.Parameterized
 @RunWith(Parameterized::class)
 class ColorSchemeUiDataFactoryTest(
     val data: ColorSchemeData,
-    val viewData: ColorSchemeUiData.ViewData,
+    val strings: ColorSchemeUiStrings,
     val expectedUiData: ColorSchemeUiData,
 ) {
 
@@ -54,8 +54,8 @@ class ColorSchemeUiDataFactoryTest(
     }
 
     @Test
-    fun `combining ViewModel data and View data produces expected UI data`() {
-        val uiData = ColorSchemeUiData(data, viewData)
+    fun `combining ViewModel data and UI strings produces expected UI data`() {
+        val uiData = ColorSchemeUiData(data, strings)
 
         uiData shouldBe expectedUiData
     }
@@ -67,7 +67,7 @@ class ColorSchemeUiDataFactoryTest(
         @Parameterized.Parameters
         fun data() = with(TestParameters) {
             listOf(
-                /* #0  */ arrayOf(data0(), viewData0(), uiData0()),
+                /* #0  */ arrayOf(data0(), strings0(), uiData0()),
             )
         }
     }
@@ -136,8 +136,8 @@ private object TestParameters {
             changes = ColorSchemeData.Changes.Present(applyChanges),
         )
 
-    fun viewData0() =
-        ColorSchemeUiData.ViewData(
+    fun strings0() =
+        ColorSchemeUiStrings(
             modeLabel = "Mode",
             modeMonochromeName = "Monochrome",
             modeMonochromeDarkName = "Monochrome Dark",

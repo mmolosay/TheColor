@@ -1,7 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.details
 
 import androidx.compose.ui.graphics.Color
-import io.github.mmolosay.thecolor.presentation.api.ColorInt
 import io.kotest.matchers.shouldBe
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -10,13 +9,13 @@ import org.junit.runners.Parameterized
 @RunWith(Parameterized::class)
 class ColorDetailsUiDataFactoryTest(
     val data: ColorDetailsData,
-    val viewData: ColorDetailsUiData.ViewData,
+    val strings: ColorDetailsUiStrings,
     val expectedUiData: ColorDetailsUiData,
 ) {
 
     @Test
-    fun `combining ViewModel data and View data produces expected UI data`() {
-        val uiData = ColorDetailsUiData(data, viewData)
+    fun `combining ViewModel data and UI strings produces expected UI data`() {
+        val uiData = ColorDetailsUiData(data, strings)
 
         uiData shouldBe expectedUiData
     }
@@ -27,18 +26,18 @@ class ColorDetailsUiDataFactoryTest(
         @Parameterized.Parameters
         fun data() = with(TestParameters) {
             listOf(
-                /* #0  */ params(data0(), viewData0(), uiData0()),
-                /* #1  */ params(data1(), viewData1(), uiData1()),
-                /* #2  */ params(data2(), viewData2(), uiData2()),
+                /* #0  */ params(data0(), strings0(), uiData0()),
+                /* #1  */ params(data1(), strings1(), uiData1()),
+                /* #2  */ params(data2(), strings2(), uiData2()),
             )
         }
 
         fun params(
             data: ColorDetailsData,
-            viewData: ColorDetailsUiData.ViewData,
+            strings: ColorDetailsUiStrings,
             expectedUiData: ColorDetailsUiData,
         ): Array<Any> =
-            arrayOf(data, viewData, expectedUiData)
+            arrayOf(data, strings, expectedUiData)
     }
 }
 
@@ -66,7 +65,7 @@ private object TestParameters {
         initialColorData = null,
     )
 
-    fun viewData0() = ColorDetailsUiData.ViewData(
+    fun strings0() = ColorDetailsUiStrings(
         hexLabel = "HEX",
         rgbLabel = "RGB",
         hslLabel = "HSL",
@@ -154,7 +153,7 @@ private object TestParameters {
         initialColorData = null,
     )
 
-    fun viewData1() = ColorDetailsUiData.ViewData(
+    fun strings1() = ColorDetailsUiStrings(
         hexLabel = "literal hex label",
         rgbLabel = "literal rgb label",
         hslLabel = "literal hsl label",
@@ -235,7 +234,7 @@ private object TestParameters {
         ),
     )
 
-    fun viewData2() = ColorDetailsUiData.ViewData(
+    fun strings2() = ColorDetailsUiStrings(
         hexLabel = "HEX",
         rgbLabel = "RGB",
         hslLabel = "HSL",
