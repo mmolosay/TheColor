@@ -19,10 +19,9 @@ rootProject.name = "TheColor"
 include(":domain")
 include(":utils")
 include(":utils:testing")
-
 include(":data")
-
 include(":main")
+
 include(":app")
 include(":presentation:common:api")
 include(":presentation:common:impl")

@@ -68,8 +68,6 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     implementation("androidx.hilt:hilt-navigation-compose:${libs.versions.hiltNavigationCompose.get()}")
 
-    implementation("com.valentinilk.shimmer:compose-shimmer:${libs.versions.valentinilkShimmer.get()}")
-
     // Lifecycle
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
@@ -77,6 +75,9 @@ dependencies {
     // Hilt
     implementation("com.google.dagger:hilt-android:${libs.versions.hilt.get()}")
     kapt("com.google.dagger:hilt-compiler:${libs.versions.hilt.get()}")
+
+    // Misc (preserve alphabetical order)
+    implementation("com.valentinilk.shimmer:compose-shimmer:${libs.versions.valentinilkShimmer.get()}")
 
     // Testing
     testImplementation(project(":utils:testing"))

@@ -47,9 +47,6 @@ dependencies {
     // Jetpack
     implementation("androidx.core:core-ktx:${libs.versions.androidx.core.coreKtx.get()}")
     implementation("androidx.appcompat:appcompat:${libs.versions.androidx.appcompat.get()}")
-    implementation("androidx.fragment:fragment-ktx:1.6.2")
-
-    implementation("androidx.recyclerview:recyclerview:1.2.1")
 
     // Compose
     val composeBom = platform("androidx.compose:compose-bom:${libs.versions.compose.bom.get()}")
@@ -67,12 +64,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
 
-    // Material
-    implementation("com.google.android.material:material:1.6.0-alpha02")
-
     // Hilt
     implementation("com.google.dagger:hilt-android:${libs.versions.hilt.get()}")
     kapt("com.google.dagger:hilt-compiler:${libs.versions.hilt.get()}")
-
-    // Other
 }
