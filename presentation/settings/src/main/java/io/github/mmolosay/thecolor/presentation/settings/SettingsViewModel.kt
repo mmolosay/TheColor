@@ -8,14 +8,13 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Named
-import io.github.mmolosay.thecolor.domain.model.UserPreferences as DomainUserPreferences
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.ColorInputType as DomainColorInputType
 
 // TODO: add unit tests
 @HiltViewModel
@@ -37,14 +36,14 @@ class SettingsViewModel @Inject constructor(
                 initialValue = DataState.Loading,
             )
 
-    private fun updatePreferredColorInputType(value: DomainUserPreferences.ColorInputType) {
+    private fun updatePreferredColorInputType(value: DomainColorInputType) {
         viewModelScope.launch(defaultDispatcher) {
             userPreferencesRepository.setColorInputType(value)
         }
     }
 
     private fun createData(
-        preferredColorInputType: DomainUserPreferences.ColorInputType,
+        preferredColorInputType: DomainColorInputType,
         tmp: String,
     ): SettingsData {
         return SettingsData(
