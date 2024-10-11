@@ -27,11 +27,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.mmolosay.debounce.debounced
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.settings.SettingsData
 import io.github.mmolosay.thecolor.presentation.settings.SettingsUiStrings
 import io.github.mmolosay.thecolor.presentation.settings.SettingsViewModel
 import io.github.mmolosay.thecolor.presentation.settings.SettingsViewModel.DataState
+import kotlin.time.Duration.Companion.milliseconds
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.ColorInputType as DomainColorInputType
 
 @Composable
@@ -102,13 +104,19 @@ private fun TopBar(
     navigateBack: () -> Unit,
 ) {
     // TODO: add an action to reset settings to default?
+    val debouncedNavigateBack = remember(navigateBack) {
+        debounced(
+            action = navigateBack,
+            timeout = 1000.milliseconds,
+        )
+    }
     LargeTopAppBar(
         title = {
             Text(text = strings.topBarTitle)
         },
         navigationIcon = {
             IconButton(
-                onClick = navigateBack,
+                onClick = debouncedNavigateBack,
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Rounded.ArrowBack,

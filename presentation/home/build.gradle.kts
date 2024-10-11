@@ -88,16 +88,16 @@ dependencies {
     implementation("com.google.android.material:material:1.6.0-alpha02")
 
     // Animations
-    implementation("androidx.dynamicanimation:dynamicanimation:1.0.0")
-
-    // Third Party Libraries
-    implementation("com.michael-bull.kotlin-result:kotlin-result:1.1.12")
-    implementation("com.facebook.shimmer:shimmer:0.5.0")
-    implementation("io.github.mmolosay:debounce:${libs.versions.mmolosayDebounce.get()}")
+    implementation("androidx.dynamicanimation:dynamicanimation:1.0.0") // TODO: remove
 
     // Hilt
     implementation("com.google.dagger:hilt-android:${libs.versions.hilt.get()}")
     kapt("com.google.dagger:hilt-compiler:${libs.versions.hilt.get()}")
+
+    // Misc (preserve alphabetical order)
+    implementation("com.facebook.shimmer:shimmer:0.5.0")
+    implementation("com.michael-bull.kotlin-result:kotlin-result:1.1.12")
+    implementation("io.github.mmolosay:debounce:${libs.versions.mmolosayDebounce.get()}")
 
     // Testing
     testImplementation(project(":utils:testing"))
