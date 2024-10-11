@@ -3,7 +3,7 @@ package io.github.mmolosay.thecolor.presentation.home
 import io.github.mmolosay.thecolor.presentation.api.ColorInt
 
 /**
- * Platform-agnostic data provided by ViewModel to Home screen View.
+ * Platform-agnostic data provided by ViewModel to 'Home' View.
  */
 data class HomeData(
     val canProceed: CanProceed,
