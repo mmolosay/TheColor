@@ -82,8 +82,6 @@ class ColorInputViewModel @AssistedInject constructor(
         // make list of all 'ViewType's with the preferred one being first
         val orderedViewTypes = run {
             val allViewTypes = ViewType.entries
-            val indexOfPreferred = allViewTypes.indexOf(preferredViewType)
-            check(indexOfPreferred != -1)
             val allViewTypesWithoutPreferredOne = allViewTypes.filter { it != preferredViewType }
             listOf(preferredViewType) + allViewTypesWithoutPreferredOne
         }
