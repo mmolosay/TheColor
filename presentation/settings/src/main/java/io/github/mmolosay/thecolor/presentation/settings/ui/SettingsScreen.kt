@@ -140,18 +140,18 @@ fun Settings(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item("preferred color input") {
+        item("preferred color input type") {
             var showSelectionDialog by remember { mutableStateOf(false) }
             val options = DomainColorInputType.entries.map { colorInputType ->
-                ColorInputOption(
+                ColorInputTypeOption(
                     name = colorInputType.toUiString(strings),
                     isSelected = (data.preferredColorInputType == colorInputType),
                     onSelect = { data.changePreferredColorInputType(colorInputType) },
                 )
             }
-            PreferredColorInput(
-                title = strings.itemPreferredColorInputTitle,
-                description = strings.itemPreferredColorInputDesc,
+            PreferredColorInputType(
+                title = strings.itemPreferredColorInputTypeTitle,
+                description = strings.itemPreferredColorInputTypeDesc,
                 selectedOption = data.preferredColorInputType.toUiString(strings),
                 onClick = { showSelectionDialog = true },
             )
@@ -159,7 +159,7 @@ fun Settings(
                 ModalBottomSheet(
                     onDismissRequest = { showSelectionDialog = false },
                 ) {
-                    PreferredColorInputOptionSelection(options = options)
+                    PreferredColorInputTypeSelection(options = options)
                 }
             }
         }
@@ -170,8 +170,8 @@ private fun DomainColorInputType.toUiString(
     strings: SettingsUiStrings,
 ): String =
     when (this) {
-        DomainColorInputType.Hex -> strings.itemPreferredColorInputValueHex
-        DomainColorInputType.Rgb -> strings.itemPreferredColorInputValueRgb
+        DomainColorInputType.Hex -> strings.itemPreferredColorInputTypeValueHex
+        DomainColorInputType.Rgb -> strings.itemPreferredColorInputTypeValueRgb
     }
 
 @Preview

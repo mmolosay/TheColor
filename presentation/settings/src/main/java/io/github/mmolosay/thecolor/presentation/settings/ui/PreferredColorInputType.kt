@@ -24,7 +24,7 @@ import io.github.mmolosay.thecolor.presentation.settings.ui.ItemUiComponents.Tit
 import io.github.mmolosay.thecolor.presentation.settings.ui.UiComponents.DefaultItemContentPadding
 
 @Composable
-fun PreferredColorInput(
+fun PreferredColorInputType(
     title: String,
     description: String,
     selectedOption: String,
@@ -55,8 +55,8 @@ fun PreferredColorInput(
 }
 
 @Composable
-fun PreferredColorInputOptionSelection(
-    options: List<ColorInputOption>,
+fun PreferredColorInputTypeSelection(
+    options: List<ColorInputTypeOption>,
 ) {
     Column(
         modifier = Modifier.selectableGroup(),
@@ -69,7 +69,7 @@ fun PreferredColorInputOptionSelection(
 
 @Composable
 private fun Option(
-    option: ColorInputOption,
+    option: ColorInputTypeOption,
 ) {
     Row(
         modifier = Modifier
@@ -91,7 +91,7 @@ private fun Option(
     }
 }
 
-data class ColorInputOption(
+data class ColorInputTypeOption(
     val name: String,
     val isSelected: Boolean,
     val onSelect: () -> Unit,
@@ -102,9 +102,9 @@ data class ColorInputOption(
     backgroundColor = 0xFFFFFFFF,
 )
 @Composable
-private fun PreferredColorInputPreview() {
+private fun PreferredColorInputTypePreview() {
     TheColorTheme {
-        PreferredColorInput(
+        PreferredColorInputType(
             title = "Preferred color input",
             description = "It will be selected on app startup.",
             selectedOption = "HEX",
@@ -118,21 +118,21 @@ private fun PreferredColorInputPreview() {
     backgroundColor = 0xFFFFFFFF,
 )
 @Composable
-private fun PreferredColorInputSelectionPreview() {
+private fun PreferredColorInputTypeSelectionPreview() {
     TheColorTheme {
         val options = listOf(
-            ColorInputOption(
+            ColorInputTypeOption(
                 name = "HEX",
                 isSelected = true,
                 onSelect = {},
             ),
-            ColorInputOption(
+            ColorInputTypeOption(
                 name = "RGB",
                 isSelected = false,
                 onSelect = {},
             ),
         )
-        PreferredColorInputOptionSelection(
+        PreferredColorInputTypeSelection(
             options = options,
         )
     }
