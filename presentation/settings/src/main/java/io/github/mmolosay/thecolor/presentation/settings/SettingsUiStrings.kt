@@ -3,13 +3,11 @@ package io.github.mmolosay.thecolor.presentation.settings
 import android.content.Context
 
 /**
- * Framework-oriented. //TODO: remove this line across the app
  * Strings that are pre-defined in UI and don't come from ViewModel.
  *
  * This object is created by View, since string resources are tied to platform-specific
  * components (like Context), which should be avoided in ViewModels.
  */
-// TODO: rename into "FeatureUiStrings" across the app
 data class SettingsUiStrings(
     val topBarTitle: String,
     val topBarGoBackIconDesc: String,
