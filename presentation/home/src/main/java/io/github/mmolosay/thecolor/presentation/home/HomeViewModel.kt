@@ -26,8 +26,13 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommandStore
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -84,11 +89,15 @@ class HomeViewModel @Inject constructor(
             colorInputColorProvider = colorInputColorStore,
         )
 
-    private val colorCenterComponentsFlow = MutableStateFlow(ColorCenterComponents())
-    private val colorCenterComponents: ColorCenterComponents
-        get() = colorCenterComponentsFlow.value
-    val colorCenterViewModel: ColorCenterViewModel
-        get() = colorCenterComponents.colorCenterViewModel
+    private val colorCenterComponentsFlow = MutableStateFlow<ColorCenterComponents?>(null)
+    val colorCenterViewModelFlow: StateFlow<ColorCenterViewModel?> =
+        colorCenterComponentsFlow
+            .map { it?.colorCenterViewModel }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = null,
+            )
 
     private var colorCenterSession: ColorCenterSession? = null
     private var dataFetchedEventProcessor: DataFetchedEventProcessor? = initialDataFetchedEventProcessor()
@@ -114,16 +123,18 @@ class HomeViewModel @Inject constructor(
 
     private fun collectColorCenterComponents() =
         viewModelScope.launch(defaultDispatcher) {
-            colorCenterComponentsFlow.collect { components ->
-                /*
-                 * Subscribe to new dependencies once new Color Center is created.
-                 * Launch collection coroutines from Color Center coroutine scope,
-                 * so when ColorCenterViewModel is disposed of and its coroutine scope is cancelled,
-                 * so is the collection job on old instances of Command/Event stores.
-                */
-                val coroutineScope = components.colorCenterCoroutineScope
-                components.colorDetailsEventStore.collect(coroutineScope)
-            }
+            colorCenterComponentsFlow
+                .filterNotNull()
+                .collect { components ->
+                    /*
+                     * Subscribe to new dependencies once new Color Center is created.
+                     * Launch collection coroutines from Color Center coroutine scope,
+                     * so when ColorCenterViewModel is disposed of and its coroutine scope is cancelled,
+                     * so is the collection job on old instances of Command/Event stores.
+                    */
+                    val coroutineScope = components.colorCenterCoroutineScope
+                    components.colorDetailsEventStore.collect(coroutineScope)
+                }
         }
 
     private fun ColorDetailsEventStore.collect(coroutineScope: CoroutineScope) =
@@ -190,17 +201,10 @@ class HomeViewModel @Inject constructor(
         isNewColorCenterSession: Boolean,
     ) {
         viewModelScope.launch(defaultDispatcher) {
-            // recreate Color Center ViewModel (and its sub-feature ViewModels) to reset their states
             if (isNewColorCenterSession) {
                 onColorCenterSessionStarted(color)
-                recreateColorCenter()
-                val currentProcessor = dataFetchedEventProcessor // always null, was done as an exercise
-                // implementation of a "Composite" design pattern
-                dataFetchedEventProcessor = DataFetchedEventProcessor {
-                    with(BuildColorCenterSession()) { process() }
-                    dataFetchedEventProcessor = currentProcessor // restore previous value
-                }
             }
+            val colorCenterComponents = requireNotNull(colorCenterComponentsFlow.value)
             // send to both features of Color Center explicitly
             run sendToColorDetails@{
                 val command = ColorDetailsCommand.FetchData(color, colorRole)
@@ -303,30 +307,39 @@ class HomeViewModel @Inject constructor(
         )
     }
 
-    private fun recreateColorCenter() {
-        colorCenterComponents.colorCenterViewModel.dispose()
-        colorCenterComponentsFlow.value = ColorCenterComponents()
-    }
-
     private fun initialDataFetchedEventProcessor(): DataFetchedEventProcessor? =
         null
 
     private fun onColorCenterSessionStarted(seed: Color) {
         colorCenterSessionBuilder.seed(seed)
+        // recreate Color Center ViewModel (and its sub-feature ViewModels) to reset their states
+        colorCenterComponentsFlow.value = ColorCenterComponents()
+        run setProcessor@{
+            val currentProcessor = dataFetchedEventProcessor // capture in closure
+            // implementation of a "Composite" design pattern
+            dataFetchedEventProcessor = DataFetchedEventProcessor {
+                with(BuildColorCenterSession()) { process() }
+                dataFetchedEventProcessor = currentProcessor // restore previous value
+            }
+        }
     }
 
     private fun onColorCenterSessionEnded() {
         colorCenterSession = null
-        dataFetchedEventProcessor = initialDataFetchedEventProcessor()
         colorCenterSessionBuilder.clear()
+        dataFetchedEventProcessor = initialDataFetchedEventProcessor()
+        run disposeAndSetNull@{
+            colorCenterComponentsFlow.value?.colorCenterViewModel?.dispose()
+            colorCenterComponentsFlow.value = null
+        }
     }
 
     /**
-     * A [DataFetchedEventProcessor] that creates and sets a [ColorCenterSession]
-     * into a [colorCenterSession] field.
+     * A [DataFetchedEventProcessor] that creates a [ColorCenterSession]
+     * and sets it into a [colorCenterSession] field.
      */
     private fun BuildColorCenterSession() =
-        DataFetchedEventProcessor block@{
+        DataFetchedEventProcessor {
             val details = this.domainDetails
             val relatedColors = setOf(details.exact.color)
             colorCenterSession = colorCenterSessionBuilder

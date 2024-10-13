@@ -340,6 +340,8 @@ class HomeViewModelTest {
             every { colorDetailsEventStore.eventFlow } returns eventsFlow
             every { createColorData(color = any()) } returns mockk()
             createSut()
+            // we know from other tests that it would be 'CanProceed.Yes'
+            data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().action.invoke()
 
             val event = ColorDetailsEvent.ColorSelected(
                 color = Color.Hex(0x123456),
@@ -361,6 +363,8 @@ class HomeViewModelTest {
             every { colorDetailsEventStore.eventFlow } returns eventsFlow
             every { createColorData(color = any()) } returns mockk()
             createSut()
+            // we know from other tests that it would be 'CanProceed.Yes'
+            data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().action.invoke()
 
             val event = ColorDetailsEvent.ColorSelected(
                 color = Color.Hex(0x123456),
@@ -442,6 +446,8 @@ class HomeViewModelTest {
             val colorData: ProceedResult.Success.ColorData = mockk()
             every { createColorData(color = any()) } returns colorData
             createSut()
+            // we know from other tests that it would be 'CanProceed.Yes'
+            data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().action.invoke()
 
             val event = ColorDetailsEvent.ColorSelected(
                 color = Color.Hex(0x123456),

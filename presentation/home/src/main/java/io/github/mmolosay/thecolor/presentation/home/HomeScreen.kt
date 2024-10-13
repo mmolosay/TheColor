@@ -85,10 +85,12 @@ fun HomeScreen(
                 viewModel = viewModel.colorPreviewViewModel,
             )
         },
-        colorCenter = {
+        colorCenter = ColorCenter@{
+            val viewModel = viewModel.colorCenterViewModelFlow
+                .collectAsStateWithLifecycle().value ?: return@ColorCenter
             ColorCenter(
                 modifier = Modifier.padding(top = 24.dp),
-                viewModel = viewModel.colorCenterViewModel,
+                viewModel = viewModel,
                 navBarAppearanceStack = navBarAppearanceStack,
             )
         },
