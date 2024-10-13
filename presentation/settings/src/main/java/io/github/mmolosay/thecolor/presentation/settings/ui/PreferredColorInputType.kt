@@ -24,7 +24,7 @@ import io.github.mmolosay.thecolor.presentation.settings.ui.ItemUiComponents.Tit
 import io.github.mmolosay.thecolor.presentation.settings.ui.UiComponents.DefaultItemContentPadding
 
 @Composable
-fun PreferredColorInputType(
+internal fun PreferredColorInputType(
     title: String,
     description: String,
     selectedOption: String,
@@ -55,7 +55,7 @@ fun PreferredColorInputType(
 }
 
 @Composable
-fun PreferredColorInputTypeSelection(
+internal fun PreferredColorInputTypeSelection(
     options: List<ColorInputTypeOption>,
 ) {
     Column(
@@ -91,7 +91,7 @@ private fun Option(
     }
 }
 
-data class ColorInputTypeOption(
+internal data class ColorInputTypeOption(
     val name: String,
     val isSelected: Boolean,
     val onSelect: () -> Unit,
