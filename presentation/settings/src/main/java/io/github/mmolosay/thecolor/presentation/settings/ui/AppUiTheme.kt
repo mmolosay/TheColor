@@ -106,3 +106,33 @@ private fun AppUiThemePreview() {
         )
     }
 }
+
+@Preview(
+    showBackground = true,
+    backgroundColor = 0xFFFFFFFF,
+)
+@Composable
+private fun AppUiThemeSelectionPreview() {
+    TheColorTheme {
+        val options = listOf(
+            AppUiThemeOption(
+                name = "Light",
+                isSelected = true,
+                onSelect = {},
+            ),
+            AppUiThemeOption(
+                name = "Dark",
+                isSelected = false,
+                onSelect = {},
+            ),
+            AppUiThemeOption(
+                name = "Auto (follows system)",
+                isSelected = false,
+                onSelect = {},
+            ),
+        )
+        AppUiThemeSelection(
+            options = options,
+        )
+    }
+}
