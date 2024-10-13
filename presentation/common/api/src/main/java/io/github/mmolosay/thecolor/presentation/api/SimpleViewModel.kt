@@ -9,7 +9,7 @@ import kotlinx.coroutines.cancel
  * This component has nothing to do with Google's Android-aware implementation of `ViewModel`.
  * Consider derivatives of this component as just classes with some presentational logic in them.
  *
- * Every derivative should be created and used by a `ViewModel` that DO derive from Google's
+ * Every derivative should be created and used by a `ViewModel` that DOES derive from Google's
  * Android-aware implementation.
  *
  * @param coroutineScope a scope to be used inside this `ViewModel`. Cancelled in [dispose].
