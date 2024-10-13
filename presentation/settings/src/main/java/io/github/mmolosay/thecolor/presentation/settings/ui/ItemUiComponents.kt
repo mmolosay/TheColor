@@ -1,7 +1,5 @@
 package io.github.mmolosay.thecolor.presentation.settings.ui
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -12,24 +10,6 @@ import androidx.compose.ui.text.font.FontWeight
  * Reusable UI components for individual items on Settings screen.
  */
 internal object ItemUiComponents {
-
-    @Composable
-    fun ItemLayout(
-        title: @Composable () -> Unit,
-        description: (@Composable () -> Unit)?,
-        valueContent: (@Composable () -> Unit)?,
-        modifier: Modifier = Modifier,
-    ) {
-        Row(
-            modifier = modifier,
-        ) {
-            Column {
-                title()
-                description?.invoke()
-            }
-            valueContent?.invoke()
-        }
-    }
 
     @Composable
     fun Title(
