@@ -35,6 +35,7 @@ import io.github.mmolosay.thecolor.presentation.settings.SettingsViewModel
 import io.github.mmolosay.thecolor.presentation.settings.SettingsViewModel.DataState
 import kotlin.time.Duration.Companion.milliseconds
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.ColorInputType as DomainColorInputType
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiTheme as DomainUiTheme
 
 @Composable
 fun SettingsScreen(
@@ -152,7 +153,7 @@ fun Settings(
             PreferredColorInputType(
                 title = strings.itemPreferredColorInputTypeTitle,
                 description = strings.itemPreferredColorInputTypeDesc,
-                selectedOption = data.preferredColorInputType.toUiString(strings),
+                value = data.preferredColorInputType.toUiString(strings),
                 onClick = { showSelectionDialog = true },
             )
             if (showSelectionDialog) {
@@ -160,6 +161,29 @@ fun Settings(
                     onDismissRequest = { showSelectionDialog = false },
                 ) {
                     PreferredColorInputTypeSelection(options = options)
+                }
+            }
+        }
+
+        item("app ui theme") {
+            var showSelectionDialog by remember { mutableStateOf(false) }
+            val options = DomainUiTheme.entries.map { uiTheme ->
+                AppUiThemeOption(
+                    name = uiTheme.toVerboseUiString(strings),
+                    isSelected = (data.appUiTheme == uiTheme),
+                    onSelect = { data.changeAppUiTheme(uiTheme) },
+                )
+            }
+            AppUiTheme(
+                title = strings.itemAppUiThemeTitle,
+                value = data.appUiTheme.toShortUiString(strings),
+                onClick = { showSelectionDialog = true },
+            )
+            if (showSelectionDialog) {
+                ModalBottomSheet(
+                    onDismissRequest = { showSelectionDialog = false },
+                ) {
+                    AppUiThemeSelection(options = options)
                 }
             }
         }
@@ -172,6 +196,24 @@ private fun DomainColorInputType.toUiString(
     when (this) {
         DomainColorInputType.Hex -> strings.itemPreferredColorInputTypeValueHex
         DomainColorInputType.Rgb -> strings.itemPreferredColorInputTypeValueRgb
+    }
+
+private fun DomainUiTheme.toShortUiString(
+    strings: SettingsUiStrings,
+): String =
+    when (this) {
+        DomainUiTheme.Light -> strings.itemAppUiThemeValueLight
+        DomainUiTheme.Dark -> strings.itemAppUiThemeValueDark
+        DomainUiTheme.FollowsSystem -> strings.itemAppUiThemeValueAutoShort
+    }
+
+private fun DomainUiTheme.toVerboseUiString(
+    strings: SettingsUiStrings,
+): String =
+    when (this) {
+        DomainUiTheme.Light -> strings.itemAppUiThemeValueLight
+        DomainUiTheme.Dark -> strings.itemAppUiThemeValueDark
+        DomainUiTheme.FollowsSystem -> strings.itemAppUiThemeValueAutoVerbose
     }
 
 @Preview
@@ -189,4 +231,6 @@ private fun previewData() =
     SettingsData(
         preferredColorInputType = DomainColorInputType.Hex,
         changePreferredColorInputType = {},
+        appUiTheme = DomainUiTheme.FollowsSystem,
+        changeAppUiTheme = {},
     )

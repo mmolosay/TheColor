@@ -10,4 +10,7 @@ object DefaultUserPreferences {
 
     val ColorInputType: UserPreferences.ColorInputType =
         UserPreferences.ColorInputType.Hex
+
+    val AppUiTheme: UserPreferences.UiTheme =
+        UserPreferences.UiTheme.FollowsSystem
 }

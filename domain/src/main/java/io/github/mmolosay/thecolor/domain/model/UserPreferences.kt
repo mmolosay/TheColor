@@ -5,4 +5,8 @@ object UserPreferences {
     enum class ColorInputType {
         Hex, Rgb,
     }
+
+    enum class UiTheme {
+        Light, Dark, FollowsSystem
+    }
 }

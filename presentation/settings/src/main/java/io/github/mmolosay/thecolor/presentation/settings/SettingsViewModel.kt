@@ -8,13 +8,13 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Named
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.ColorInputType as DomainColorInputType
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiTheme as DomainUiTheme
 
 // TODO: add unit tests
 @HiltViewModel
@@ -26,7 +26,7 @@ class SettingsViewModel @Inject constructor(
     val dataStateFlow: StateFlow<DataState> =
         combine(
             userPreferencesRepository.flowOfColorInputType(),
-            flowOf("tmp flow with tmp value"),
+            userPreferencesRepository.flowOfAppUiTheme(),
             transform = ::createData,
         )
             .map { data -> DataState.Ready(data) }
@@ -42,13 +42,21 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    private fun updateAppUiTheme(value: DomainUiTheme) {
+        viewModelScope.launch(defaultDispatcher) {
+            userPreferencesRepository.setAppUiTheme(value)
+        }
+    }
+
     private fun createData(
         preferredColorInputType: DomainColorInputType,
-        tmp: String,
+        appUiTheme: DomainUiTheme,
     ): SettingsData {
         return SettingsData(
             preferredColorInputType = preferredColorInputType,
             changePreferredColorInputType = ::updatePreferredColorInputType,
+            appUiTheme = appUiTheme,
+            changeAppUiTheme = ::updateAppUiTheme,
         )
     }
 

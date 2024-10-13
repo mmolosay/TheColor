@@ -15,6 +15,11 @@ data class SettingsUiStrings(
     val itemPreferredColorInputTypeDesc: String,
     val itemPreferredColorInputTypeValueHex: String,
     val itemPreferredColorInputTypeValueRgb: String,
+    val itemAppUiThemeTitle: String,
+    val itemAppUiThemeValueLight: String,
+    val itemAppUiThemeValueDark: String,
+    val itemAppUiThemeValueAutoShort: String,
+    val itemAppUiThemeValueAutoVerbose: String,
 )
 
 fun SettingsUiStrings(context: Context) =
@@ -25,4 +30,9 @@ fun SettingsUiStrings(context: Context) =
         itemPreferredColorInputTypeDesc = context.getString(R.string.settings_item_preferred_color_input_type_desc),
         itemPreferredColorInputTypeValueHex = context.getString(R.string.settings_item_preferred_color_input_type_value_hex),
         itemPreferredColorInputTypeValueRgb = context.getString(R.string.settings_item_preferred_color_input_value_type_rgb),
+        itemAppUiThemeTitle = context.getString(R.string.settings_item_app_ui_theme_title),
+        itemAppUiThemeValueLight = context.getString(R.string.settings_item_app_ui_theme_value_light),
+        itemAppUiThemeValueDark = context.getString(R.string.settings_item_app_ui_theme_value_dark),
+        itemAppUiThemeValueAutoShort = context.getString(R.string.settings_item_app_ui_theme_value_auto_short),
+        itemAppUiThemeValueAutoVerbose = context.getString(R.string.settings_item_app_ui_theme_value_auto_verbose),
     )
