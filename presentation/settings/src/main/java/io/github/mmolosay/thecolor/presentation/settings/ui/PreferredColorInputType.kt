@@ -27,7 +27,7 @@ import io.github.mmolosay.thecolor.presentation.settings.ui.UiComponents.Default
 internal fun PreferredColorInputType(
     title: String,
     description: String,
-    selectedOption: String,
+    value: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -48,7 +48,7 @@ internal fun PreferredColorInputType(
             Spacer(modifier = Modifier.weight(1f)) // max
             TextValue(
                 modifier = Modifier.align(Alignment.CenterVertically),
-                text = selectedOption,
+                text = value,
             )
         }
     }
@@ -107,7 +107,7 @@ private fun PreferredColorInputTypePreview() {
         PreferredColorInputType(
             title = "Preferred color input",
             description = "It will be selected on app startup.",
-            selectedOption = "HEX",
+            value = "HEX",
             onClick = {},
         )
     }
