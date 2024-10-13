@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.domain.result
 
+import kotlinx.coroutines.CancellationException
 import javax.inject.Inject
 import kotlin.Result as KotlinResult
 
@@ -17,6 +18,7 @@ class ResultMapper @Inject constructor(
                 Result.Success(value)
             },
             onFailure = { throwable ->
+                if (throwable is CancellationException) throw throwable
                 with(failureFactory) { throwable.asFailureOrNull() }
                     ?: error("Cannot map $throwable to Result.Failure")
             },
