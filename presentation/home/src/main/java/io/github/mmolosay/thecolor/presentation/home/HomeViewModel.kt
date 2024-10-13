@@ -91,7 +91,7 @@ class HomeViewModel @Inject constructor(
         get() = colorCenterComponents.colorCenterViewModel
 
     private var colorCenterSession: ColorCenterSession? = null
-    private var dataFetchedEventProcessor: DataFetchedEventProcessor? = null
+    private var dataFetchedEventProcessor: DataFetchedEventProcessor? = initialDataFetchedEventProcessor()
 
     init {
         collectColorsFromColorInput()
@@ -308,12 +308,16 @@ class HomeViewModel @Inject constructor(
         colorCenterComponentsFlow.value = ColorCenterComponents()
     }
 
+    private fun initialDataFetchedEventProcessor(): DataFetchedEventProcessor? =
+        null
+
     private fun onColorCenterSessionStarted(seed: Color) {
         colorCenterSessionBuilder.seed(seed)
     }
 
     private fun onColorCenterSessionEnded() {
         colorCenterSession = null
+        dataFetchedEventProcessor = initialDataFetchedEventProcessor()
         colorCenterSessionBuilder.clear()
     }
 

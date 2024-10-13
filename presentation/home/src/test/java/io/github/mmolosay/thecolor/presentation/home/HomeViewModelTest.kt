@@ -17,6 +17,7 @@ import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommand
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommandStore
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
+import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -526,6 +527,36 @@ class HomeViewModelTest {
             )
         }
     }
+
+    @Test
+    fun `when 'proceed' is invoked and Color Input is cleared before 'DataFetched' event arrives, then no exception is thrown`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val initialColor = Color.Hex(0x0)
+            val colorFlow = MutableStateFlow<Color?>(initialColor)
+            every { colorInputColorStore.colorFlow } returns colorFlow
+            every { colorInputEventStore.eventFlow } returns emptyFlow()
+            val eventsFlow = MutableSharedFlow<ColorDetailsEvent>()
+            every { colorDetailsEventStore.eventFlow } returns eventsFlow
+            every { createColorData(color = any()) } returns mockk()
+            createSut()
+
+            // we know from other tests that it would be 'CanProceed.Yes'
+            data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().action()
+            colorFlow.emit(null)
+            val event = run eventForInitialColor@{
+                val domainDetails: DomainColorDetails = mockk(relaxed = true) {
+                    every { color } returns initialColor
+                    every { exact } returns mockk {
+                        every { color } returns mockk()
+                    }
+                }
+                ColorDetailsEvent.DataFetched(domainDetails)
+            }
+
+            shouldNotThrowAny {
+                eventsFlow.emit(event)
+            }
+        }
 
     fun createSut() =
         HomeViewModel(
