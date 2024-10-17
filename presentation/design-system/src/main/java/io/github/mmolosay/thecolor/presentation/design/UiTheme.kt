@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 /**
  * A UI color theme.
  * Entries of this enumeration are final, computed values that do not require any more data
- * (unlike DayNight theme, see [DayNightUiThemeResolver]).
+ * (e.g. unlike 'DayNight' theme, see [DayNightUiThemeResolver]).
  */
 enum class UiTheme {
     Light,
