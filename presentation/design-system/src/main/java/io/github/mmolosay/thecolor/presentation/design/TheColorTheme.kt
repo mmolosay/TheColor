@@ -6,7 +6,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 
 @Composable
 fun TheColorTheme(
-    theme: UiTheme = UiTheme.DayNight,
+    theme: UiTheme = DayNightUiThemeResolver.resolve(systemBrightness()),
     content: @Composable () -> Unit,
 ) {
     CompositionLocalProvider(

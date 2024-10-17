@@ -10,3 +10,11 @@ val LocalIsDefaultNavigationBarLight =
 
 // named as CompositionLocal for consistency
 val LocalDefaultNavigationBarColor = Color.TRANSPARENT
+
+fun UiTheme.isDefaultNavigationBarLight(): Boolean {
+    val uiThemeTone = this.brightness()
+    return when (uiThemeTone) {
+        UiTheme.Brightness.Light -> true
+        UiTheme.Brightness.Dark -> false
+    }
+}

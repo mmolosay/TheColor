@@ -12,7 +12,7 @@
     <string name="settings_item_app_ui_theme_title">UI theme</string>
     <string name="settings_item_app_ui_theme_value_light">Light</string>
     <string name="settings_item_app_ui_theme_value_dark">Dark</string>
-    <string name="settings_item_app_ui_theme_value_auto_short">Auto</string>
-    <string name="settings_item_app_ui_theme_value_auto_verbose">Auto (follows system theme)</string>
+    <string name="settings_item_app_ui_theme_value_day_night_short">Auto</string>
+    <string name="settings_item_app_ui_theme_value_day_night_verbose">Auto (follows system theme)</string>
 
 </resources>

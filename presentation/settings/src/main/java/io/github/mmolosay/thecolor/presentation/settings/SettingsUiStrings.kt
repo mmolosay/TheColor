@@ -18,8 +18,8 @@ data class SettingsUiStrings(
     val itemAppUiThemeTitle: String,
     val itemAppUiThemeValueLight: String,
     val itemAppUiThemeValueDark: String,
-    val itemAppUiThemeValueAutoShort: String,
-    val itemAppUiThemeValueAutoVerbose: String,
+    val itemAppUiThemeValueDayNightShort: String,
+    val itemAppUiThemeValueDayNightVerbose: String,
 )
 
 fun SettingsUiStrings(context: Context) =
@@ -33,6 +33,6 @@ fun SettingsUiStrings(context: Context) =
         itemAppUiThemeTitle = context.getString(R.string.settings_item_app_ui_theme_title),
         itemAppUiThemeValueLight = context.getString(R.string.settings_item_app_ui_theme_value_light),
         itemAppUiThemeValueDark = context.getString(R.string.settings_item_app_ui_theme_value_dark),
-        itemAppUiThemeValueAutoShort = context.getString(R.string.settings_item_app_ui_theme_value_auto_short),
-        itemAppUiThemeValueAutoVerbose = context.getString(R.string.settings_item_app_ui_theme_value_auto_verbose),
+        itemAppUiThemeValueDayNightShort = context.getString(R.string.settings_item_app_ui_theme_value_day_night_short),
+        itemAppUiThemeValueDayNightVerbose = context.getString(R.string.settings_item_app_ui_theme_value_day_night_verbose),
     )

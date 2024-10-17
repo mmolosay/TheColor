@@ -30,12 +30,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.debounce.debounced
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.settings.SettingsData
+import io.github.mmolosay.thecolor.presentation.settings.SettingsData.LabeledAppUiThemeMode
 import io.github.mmolosay.thecolor.presentation.settings.SettingsUiStrings
 import io.github.mmolosay.thecolor.presentation.settings.SettingsViewModel
 import io.github.mmolosay.thecolor.presentation.settings.SettingsViewModel.DataState
 import kotlin.time.Duration.Companion.milliseconds
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.ColorInputType as DomainColorInputType
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiTheme as DomainUiTheme
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiThemeMode as DomainUiThemeMode
 
 @Composable
 fun SettingsScreen(
@@ -167,16 +169,16 @@ fun Settings(
 
         item("app ui theme") {
             var showSelectionDialog by remember { mutableStateOf(false) }
-            val options = DomainUiTheme.entries.map { uiTheme ->
+            val options = data.supportedAppUiThemeModes.map { mode ->
                 AppUiThemeOption(
-                    name = uiTheme.toVerboseUiString(strings),
-                    isSelected = (data.appUiTheme == uiTheme),
-                    onSelect = { data.changeAppUiTheme(uiTheme) },
+                    name = mode.label.toVerboseUiString(strings),
+                    isSelected = (data.appUiThemeMode == mode),
+                    onSelect = { data.changeAppUiThemeMode(mode) },
                 )
             }
             AppUiTheme(
                 title = strings.itemAppUiThemeTitle,
-                value = data.appUiTheme.toShortUiString(strings),
+                value = data.appUiThemeMode.label.toShortUiString(strings),
                 onClick = { showSelectionDialog = true },
             )
             if (showSelectionDialog) {
@@ -198,22 +200,22 @@ private fun DomainColorInputType.toUiString(
         DomainColorInputType.Rgb -> strings.itemPreferredColorInputTypeValueRgb
     }
 
-private fun DomainUiTheme.toShortUiString(
+private fun LabeledAppUiThemeMode.Label.toShortUiString(
     strings: SettingsUiStrings,
 ): String =
     when (this) {
-        DomainUiTheme.Light -> strings.itemAppUiThemeValueLight
-        DomainUiTheme.Dark -> strings.itemAppUiThemeValueDark
-        DomainUiTheme.FollowsSystem -> strings.itemAppUiThemeValueAutoShort
+        LabeledAppUiThemeMode.Label.SingleLight -> strings.itemAppUiThemeValueLight
+        LabeledAppUiThemeMode.Label.SingleDark -> strings.itemAppUiThemeValueDark
+        LabeledAppUiThemeMode.Label.DualLightDark -> strings.itemAppUiThemeValueDayNightShort
     }
 
-private fun DomainUiTheme.toVerboseUiString(
+private fun LabeledAppUiThemeMode.Label.toVerboseUiString(
     strings: SettingsUiStrings,
 ): String =
     when (this) {
-        DomainUiTheme.Light -> strings.itemAppUiThemeValueLight
-        DomainUiTheme.Dark -> strings.itemAppUiThemeValueDark
-        DomainUiTheme.FollowsSystem -> strings.itemAppUiThemeValueAutoVerbose
+        LabeledAppUiThemeMode.Label.SingleLight -> strings.itemAppUiThemeValueLight
+        LabeledAppUiThemeMode.Label.SingleDark -> strings.itemAppUiThemeValueDark
+        LabeledAppUiThemeMode.Label.DualLightDark -> strings.itemAppUiThemeValueDayNightVerbose
     }
 
 @Preview
@@ -231,6 +233,26 @@ private fun previewData() =
     SettingsData(
         preferredColorInputType = DomainColorInputType.Hex,
         changePreferredColorInputType = {},
-        appUiTheme = DomainUiTheme.FollowsSystem,
-        changeAppUiTheme = {},
+        appUiThemeMode = LabeledAppUiThemeMode(
+            mode = DomainUiThemeMode.Single(theme = DomainUiTheme.Light),
+            label = LabeledAppUiThemeMode.Label.SingleLight,
+        ),
+        supportedAppUiThemeModes = listOf(
+            LabeledAppUiThemeMode(
+                mode = DomainUiThemeMode.Single(theme = DomainUiTheme.Light),
+                label = LabeledAppUiThemeMode.Label.SingleLight,
+            ),
+            LabeledAppUiThemeMode(
+                mode = DomainUiThemeMode.Single(theme = DomainUiTheme.Dark),
+                label = LabeledAppUiThemeMode.Label.SingleDark,
+            ),
+            LabeledAppUiThemeMode(
+                mode = DomainUiThemeMode.Dual(
+                    light = DomainUiTheme.Light,
+                    dark = DomainUiTheme.Dark,
+                ),
+                label = LabeledAppUiThemeMode.Label.DualLightDark,
+            ),
+        ),
+        changeAppUiThemeMode = {},
     )

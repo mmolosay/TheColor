@@ -7,6 +7,6 @@ interface UserPreferencesRepository {
     fun flowOfColorInputType(): Flow<UserPreferences.ColorInputType>
     suspend fun setColorInputType(value: UserPreferences.ColorInputType?)
 
-    fun flowOfAppUiTheme(): Flow<UserPreferences.UiTheme>
-    suspend fun setAppUiTheme(value: UserPreferences.UiTheme?)
+    fun flowOfAppUiThemeMode(): Flow<UserPreferences.UiThemeMode>
+    suspend fun setAppUiThemeMode(value: UserPreferences.UiThemeMode?)
 }

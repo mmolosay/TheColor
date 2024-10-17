@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Named
+import kotlin.reflect.KClass
 
 /**
  * Implementation of [UserPreferencesRepository] powered by DataStore library.
@@ -48,27 +49,66 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         }
     }
 
-    override fun flowOfAppUiTheme(): Flow<UserPreferences.UiTheme> {
+    override fun flowOfAppUiThemeMode(): Flow<UserPreferences.UiThemeMode> {
+        fun defaultValue() = DefaultUserPreferences.AppUiThemeMode
         val preferencesFlow = dataStore.data
         return preferencesFlow.map { preferences ->
-            val dtoValue = preferences[DataStoreKeys.AppUiTheme]
-            val domainModel = if (dtoValue != null) {
-                with(UiThemeMapper) { dtoValue.toUiTheme() }
+            val modeClassDtoValue = preferences[DataStoreKeys.AppUiThemeModeClass]
+            val domainModeClass = if (modeClassDtoValue != null) {
+                with(UiThemeModeClassMapper) { modeClassDtoValue.toUiThemeModeClass() }
             } else {
-                DefaultUserPreferences.AppUiTheme
+                return@map defaultValue()
             }
-            domainModel
+            when (domainModeClass) {
+                UserPreferences.UiThemeMode.Single::class -> {
+                    val themeDtoValue = preferences[DataStoreKeys.AppUiThemeSingle]
+                    if (themeDtoValue != null) {
+                        val domainTheme = with(UiThemeMapper) { themeDtoValue.toUiTheme() }
+                        UserPreferences.UiThemeMode.Single(domainTheme)
+                    } else {
+                        return@map defaultValue()
+                    }
+                }
+                UserPreferences.UiThemeMode.Dual::class -> {
+                    val lightThemeDtoValue = preferences[DataStoreKeys.AppUiThemeDualLight]
+                        ?: return@map defaultValue()
+                    val darkThemeDtoValue = preferences[DataStoreKeys.AppUiThemeDualDark]
+                        ?: return@map defaultValue()
+                    val domainLightTheme = with(UiThemeMapper) { lightThemeDtoValue.toUiTheme() }
+                    val domainDarkTheme = with(UiThemeMapper) { darkThemeDtoValue.toUiTheme() }
+                    UserPreferences.UiThemeMode.Dual(
+                        light = domainLightTheme,
+                        dark = domainDarkTheme,
+                    )
+                }
+                else -> defaultValue()
+            }
         }
     }
 
-    override suspend fun setAppUiTheme(value: UserPreferences.UiTheme?) {
+    override suspend fun setAppUiThemeMode(value: UserPreferences.UiThemeMode?) {
         withContext(ioDispatcher) {
-            val dtoValue = with(UiThemeMapper) { value?.toDtoString() }
             dataStore.edit { preferences ->
-                if (dtoValue != null) {
-                    preferences[DataStoreKeys.AppUiTheme] = dtoValue
-                } else {
-                    preferences.remove(DataStoreKeys.AppUiTheme)
+                // clear all values beforehand to only have currently active mode to be not null
+                preferences.remove(DataStoreKeys.AppUiThemeModeClass)
+                preferences.remove(DataStoreKeys.AppUiThemeSingle)
+                preferences.remove(DataStoreKeys.AppUiThemeDualLight)
+                preferences.remove(DataStoreKeys.AppUiThemeDualDark)
+
+                if (value == null) return@edit
+                val modeClassDtoValue = with(UiThemeModeClassMapper) { value.toDtoString() }
+                preferences[DataStoreKeys.AppUiThemeModeClass] = modeClassDtoValue
+                when (value) {
+                    is UserPreferences.UiThemeMode.Single -> {
+                        val themeDtoValue = with(UiThemeMapper) { value.theme.toDtoString() }
+                        preferences[DataStoreKeys.AppUiThemeSingle] = themeDtoValue
+                    }
+                    is UserPreferences.UiThemeMode.Dual -> {
+                        val lightThemeDtoValue = with(UiThemeMapper) { value.light.toDtoString() }
+                        val darkThemeDtoValue = with(UiThemeMapper) { value.dark.toDtoString() }
+                        preferences[DataStoreKeys.AppUiThemeDualLight] = lightThemeDtoValue
+                        preferences[DataStoreKeys.AppUiThemeDualDark] = darkThemeDtoValue
+                    }
                 }
             }
         }
@@ -76,7 +116,12 @@ class UserPreferencesDataStoreRepository @Inject constructor(
 
     private object DataStoreKeys {
         val ColorInputType = stringPreferencesKey("color_input_type")
-        val AppUiTheme = stringPreferencesKey("app_ui_theme")
+
+        // TODO: consider using Proto DataStore for such complex classes
+        val AppUiThemeModeClass = stringPreferencesKey("app_ui_theme_mode_class")
+        val AppUiThemeSingle = stringPreferencesKey("app_ui_theme_single")
+        val AppUiThemeDualLight = stringPreferencesKey("app_ui_theme_dual_light")
+        val AppUiThemeDualDark = stringPreferencesKey("app_ui_theme_dual_dark")
     }
 }
 
@@ -115,7 +160,6 @@ private object UiThemeMapper {
     private val valueToDtoStringMap = mapOf(
         UserPreferences.UiTheme.Light to "light",
         UserPreferences.UiTheme.Dark to "dark",
-        UserPreferences.UiTheme.FollowsSystem to "follows_system",
     )
 
     init {
@@ -131,4 +175,24 @@ private object UiThemeMapper {
 
     fun UserPreferences.UiTheme.toDtoString(): String =
         valueToDtoStringMap.getValue(this)
+}
+
+/**
+ * Maps class of [UserPreferences.UiThemeMode] of domain layer to its representation in data layer (DTO)
+ * and vice versa.
+ */
+private object UiThemeModeClassMapper {
+
+    private val valueToDtoStringMap = mapOf(
+        UserPreferences.UiThemeMode.Single::class to "single",
+        UserPreferences.UiThemeMode.Dual::class to "dual",
+    )
+
+    fun String.toUiThemeModeClass(): KClass<out UserPreferences.UiThemeMode> =
+        valueToDtoStringMap.entries
+            .first { entry -> entry.value == this }
+            .key
+
+    fun UserPreferences.UiThemeMode.toDtoString(): String =
+        valueToDtoStringMap.getValue(this::class)
 }
