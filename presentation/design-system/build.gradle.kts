@@ -33,6 +33,9 @@ android {
 }
 
 dependencies {
+    // Modules
+    implementation(project(":domain"))
+
     // Kotlin
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.coroutines.get()}")
 

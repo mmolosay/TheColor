@@ -2,6 +2,7 @@ package io.github.mmolosay.thecolor.presentation.design
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiTheme as DomainUiTheme
 
 enum class UiTheme {
     Light,
@@ -32,3 +33,10 @@ fun UiTheme.isDefaultNavigationBarLight(): Boolean {
         UiTheme.Tone.Dark -> false
     }
 }
+
+fun DomainUiTheme.toPresentation(): UiTheme =
+    when (this) {
+        DomainUiTheme.Light -> UiTheme.Light
+        DomainUiTheme.Dark -> UiTheme.Dark
+        DomainUiTheme.FollowsSystem -> UiTheme.DayNight
+    }
