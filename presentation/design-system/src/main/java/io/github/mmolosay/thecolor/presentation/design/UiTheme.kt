@@ -10,27 +10,27 @@ enum class UiTheme {
     DayNight,
     ;
 
-    enum class Tone {
-        Light, Dark
+    enum class Brightness {
+        Light, Dark;
     }
 }
 
-fun UiTheme.tone(isSystemInDarkTheme: Boolean) =
+fun UiTheme.brightness(isSystemInDarkTheme: Boolean) =
     when (this) {
-        UiTheme.Light -> UiTheme.Tone.Light
-        UiTheme.Dark -> UiTheme.Tone.Dark
+        UiTheme.Light -> UiTheme.Brightness.Light
+        UiTheme.Dark -> UiTheme.Brightness.Dark
         UiTheme.DayNight -> when (isSystemInDarkTheme) {
-            true -> UiTheme.Tone.Dark
-            false -> UiTheme.Tone.Light
+            true -> UiTheme.Brightness.Dark
+            false -> UiTheme.Brightness.Light
         }
     }
 
 @Composable
 fun UiTheme.isDefaultNavigationBarLight(): Boolean {
-    val uiThemeTone = this.tone(isSystemInDarkTheme())
+    val uiThemeTone = this.brightness(isSystemInDarkTheme())
     return when (uiThemeTone) {
-        UiTheme.Tone.Light -> true
-        UiTheme.Tone.Dark -> false
+        UiTheme.Brightness.Light -> true
+        UiTheme.Brightness.Dark -> false
     }
 }
 
