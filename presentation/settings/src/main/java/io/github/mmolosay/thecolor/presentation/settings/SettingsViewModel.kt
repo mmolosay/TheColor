@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
-import io.github.mmolosay.thecolor.presentation.settings.SettingsData.LabeledAppUiThemeMode
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -44,9 +43,9 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    private fun updateAppUiThemeMode(value: LabeledAppUiThemeMode) {
+    private fun updateAppUiThemeMode(value: DomainUiThemeMode) {
         viewModelScope.launch(defaultDispatcher) {
-            userPreferencesRepository.setAppUiThemeMode(value.mode)
+            userPreferencesRepository.setAppUiThemeMode(value)
         }
     }
 
@@ -54,54 +53,23 @@ class SettingsViewModel @Inject constructor(
         preferredColorInputType: DomainColorInputType,
         appUiThemeMode: DomainUiThemeMode,
     ): SettingsData {
-        val labeledMode = LabeledAppUiThemeMode(
-            mode = appUiThemeMode,
-            label = appUiThemeMode.label(),
-        )
         return SettingsData(
             preferredColorInputType = preferredColorInputType,
             changePreferredColorInputType = ::updatePreferredColorInputType,
-            appUiThemeMode = labeledMode,
+            appUiThemeMode = appUiThemeMode,
             supportedAppUiThemeModes = supportedAppUiThemeModes(),
             changeAppUiThemeMode = ::updateAppUiThemeMode,
         )
     }
 
-    private fun supportedAppUiThemeModes(): List<LabeledAppUiThemeMode> =
+    private fun supportedAppUiThemeModes(): List<DomainUiThemeMode> =
         buildList {
-            // each theme as single
-            LabeledAppUiThemeMode(
-                mode = DomainUiThemeMode.Single(theme = DomainUiTheme.Light),
-                label = LabeledAppUiThemeMode.Label.SingleLight,
-            ).also { add(it) }
-            LabeledAppUiThemeMode(
-                mode = DomainUiThemeMode.Single(theme = DomainUiTheme.Dark),
-                label = LabeledAppUiThemeMode.Label.SingleDark,
-            ).also { add(it) }
-            // Dual with Light and Dark themes
-            LabeledAppUiThemeMode(
-                mode = DomainUiThemeMode.Dual(
-                    light = DomainUiTheme.Light,
-                    dark = DomainUiTheme.Dark,
-                ),
-                label = LabeledAppUiThemeMode.Label.DualLightDark,
-            ).also { add(it) }
-        }
-
-    private fun DomainUiThemeMode.label(): LabeledAppUiThemeMode.Label =
-        when (this) {
-            is DomainUiThemeMode.Single -> {
-                when (this.theme) {
-                    DomainUiTheme.Light -> LabeledAppUiThemeMode.Label.SingleLight
-                    DomainUiTheme.Dark -> LabeledAppUiThemeMode.Label.SingleDark
-                }
-            }
-            is DomainUiThemeMode.Dual -> {
-                when {
-                    this == DomainUiThemeMode.DayNight -> LabeledAppUiThemeMode.Label.DualLightDark
-                    else -> error("Unsupported app UI theme mode")
-                }
-            }
+            DomainUiThemeMode.Single(theme = DomainUiTheme.Light)
+                .also { add(it) }
+            DomainUiThemeMode.Single(theme = DomainUiTheme.Dark)
+                .also { add(it) }
+            DomainUiThemeMode.DayNight
+                .also { add(it) }
         }
 
     sealed interface DataState {
