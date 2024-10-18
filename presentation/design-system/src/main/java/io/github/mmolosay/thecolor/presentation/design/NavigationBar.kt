@@ -13,8 +13,8 @@ val LocalDefaultNavigationBarColor =
     staticCompositionLocalOf { Color.TRANSPARENT }
 
 fun ColorScheme.isDefaultNavigationBarLight(): Boolean {
-    val uiThemeTone = this.brightness()
-    return when (uiThemeTone) {
+    val colorSchemeBrightness = this.brightness()
+    return when (colorSchemeBrightness) {
         Brightness.Light -> true
         Brightness.Dark -> false
     }

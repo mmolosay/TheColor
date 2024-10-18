@@ -15,11 +15,11 @@ data class SettingsUiStrings(
     val itemPreferredColorInputTypeDesc: String,
     val itemPreferredColorInputTypeValueHex: String,
     val itemPreferredColorInputTypeValueRgb: String,
-    val itemAppUiThemeTitle: String,
-    val itemAppUiThemeValueLight: String,
-    val itemAppUiThemeValueDark: String,
-    val itemAppUiThemeValueDayNightShort: String,
-    val itemAppUiThemeValueDayNightVerbose: String,
+    val itemAppUiColorSchemeTitle: String,
+    val itemAppUiColorSchemeValueLight: String,
+    val itemAppUiColorSchemeValueDark: String,
+    val itemAppUiColorSchemeValueDayNightShort: String,
+    val itemAppUiColorSchemeDayNightVerbose: String,
 )
 
 fun SettingsUiStrings(context: Context) =
@@ -30,9 +30,9 @@ fun SettingsUiStrings(context: Context) =
         itemPreferredColorInputTypeDesc = context.getString(R.string.settings_item_preferred_color_input_type_desc),
         itemPreferredColorInputTypeValueHex = context.getString(R.string.settings_item_preferred_color_input_type_value_hex),
         itemPreferredColorInputTypeValueRgb = context.getString(R.string.settings_item_preferred_color_input_value_type_rgb),
-        itemAppUiThemeTitle = context.getString(R.string.settings_item_app_ui_theme_title),
-        itemAppUiThemeValueLight = context.getString(R.string.settings_item_app_ui_theme_value_light),
-        itemAppUiThemeValueDark = context.getString(R.string.settings_item_app_ui_theme_value_dark),
-        itemAppUiThemeValueDayNightShort = context.getString(R.string.settings_item_app_ui_theme_value_day_night_short),
-        itemAppUiThemeValueDayNightVerbose = context.getString(R.string.settings_item_app_ui_theme_value_day_night_verbose),
+        itemAppUiColorSchemeTitle = context.getString(R.string.settings_item_app_ui_color_scheme_title),
+        itemAppUiColorSchemeValueLight = context.getString(R.string.settings_item_app_ui_color_scheme_value_light),
+        itemAppUiColorSchemeValueDark = context.getString(R.string.settings_item_app_ui_color_scheme_value_dark),
+        itemAppUiColorSchemeValueDayNightShort = context.getString(R.string.settings_item_app_ui_color_scheme_value_day_night_short),
+        itemAppUiColorSchemeDayNightVerbose = context.getString(R.string.settings_item_app_ui_color_scheme_value_day_night_verbose),
     )

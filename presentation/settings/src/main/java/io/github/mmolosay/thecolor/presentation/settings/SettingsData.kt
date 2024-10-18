@@ -9,7 +9,7 @@ import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeMod
 data class SettingsData(
     val preferredColorInputType: DomainColorInputType, // it's OK to use some domain models (like enums) in presentation layer
     val changePreferredColorInputType: (DomainColorInputType) -> Unit,
-    val appUiThemeMode: DomainUiColorSchemeMode,
-    val supportedAppUiThemeModes: List<DomainUiColorSchemeMode>,
-    val changeAppUiThemeMode: (DomainUiColorSchemeMode) -> Unit,
+    val appUiColorSchemeMode: DomainUiColorSchemeMode,
+    val supportedAppUiColorSchemeModes: List<DomainUiColorSchemeMode>,
+    val changeAppUiColorSchemeMode: (DomainUiColorSchemeMode) -> Unit,
 )

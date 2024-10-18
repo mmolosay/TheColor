@@ -23,7 +23,7 @@ import io.github.mmolosay.thecolor.presentation.settings.ui.ItemUiComponents.Tit
 import io.github.mmolosay.thecolor.presentation.settings.ui.UiComponents.DefaultItemContentPadding
 
 @Composable
-internal fun AppUiTheme(
+internal fun AppUiColorScheme(
     title: String,
     value: String,
     onClick: () -> Unit,
@@ -50,8 +50,8 @@ internal fun AppUiTheme(
 }
 
 @Composable
-internal fun AppUiThemeSelection(
-    options: List<AppUiThemeOption>,
+internal fun AppUiColorSchemeSelection(
+    options: List<AppUiColorSchemeOption>,
 ) {
     Column(
         modifier = Modifier.selectableGroup(),
@@ -64,7 +64,7 @@ internal fun AppUiThemeSelection(
 
 @Composable
 private fun Option(
-    option: AppUiThemeOption,
+    option: AppUiColorSchemeOption,
 ) {
     Row(
         modifier = Modifier
@@ -86,7 +86,7 @@ private fun Option(
     }
 }
 
-internal data class AppUiThemeOption(
+internal data class AppUiColorSchemeOption(
     val name: String,
     val isSelected: Boolean,
     val onSelect: () -> Unit,
@@ -97,9 +97,9 @@ internal data class AppUiThemeOption(
     backgroundColor = 0xFFFFFFFF,
 )
 @Composable
-private fun AppUiThemePreview() {
+private fun AppUiColorSchemePreview() {
     TheColorTheme {
-        AppUiTheme(
+        AppUiColorScheme(
             title = "UI theme",
             value = "Auto",
             onClick = {},
@@ -112,26 +112,26 @@ private fun AppUiThemePreview() {
     backgroundColor = 0xFFFFFFFF,
 )
 @Composable
-private fun AppUiThemeSelectionPreview() {
+private fun AppUiColorSchemeSelectionPreview() {
     TheColorTheme {
         val options = listOf(
-            AppUiThemeOption(
+            AppUiColorSchemeOption(
                 name = "Light",
                 isSelected = true,
                 onSelect = {},
             ),
-            AppUiThemeOption(
+            AppUiColorSchemeOption(
                 name = "Dark",
                 isSelected = false,
                 onSelect = {},
             ),
-            AppUiThemeOption(
+            AppUiColorSchemeOption(
                 name = "Auto (follows system)",
                 isSelected = false,
                 onSelect = {},
             ),
         )
-        AppUiThemeSelection(
+        AppUiColorSchemeSelection(
             options = options,
         )
     }

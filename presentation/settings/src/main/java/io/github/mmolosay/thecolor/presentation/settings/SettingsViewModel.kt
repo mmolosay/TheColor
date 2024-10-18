@@ -43,7 +43,7 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    private fun updateAppUiThemeMode(value: DomainUiColorSchemeMode) {
+    private fun updateAppUiColorSchemeMode(value: DomainUiColorSchemeMode) {
         viewModelScope.launch(defaultDispatcher) {
             userPreferencesRepository.setAppUiColorSchemeMode(value)
         }
@@ -51,18 +51,18 @@ class SettingsViewModel @Inject constructor(
 
     private fun createData(
         preferredColorInputType: DomainColorInputType,
-        appUiThemeMode: DomainUiColorSchemeMode,
+        appUiColorSchemeMode: DomainUiColorSchemeMode,
     ): SettingsData {
         return SettingsData(
             preferredColorInputType = preferredColorInputType,
             changePreferredColorInputType = ::updatePreferredColorInputType,
-            appUiThemeMode = appUiThemeMode,
-            supportedAppUiThemeModes = supportedAppUiThemeModes(),
-            changeAppUiThemeMode = ::updateAppUiThemeMode,
+            appUiColorSchemeMode = appUiColorSchemeMode,
+            supportedAppUiColorSchemeModes = supportedAppUiColorSchemeModes(),
+            changeAppUiColorSchemeMode = ::updateAppUiColorSchemeMode,
         )
     }
 
-    private fun supportedAppUiThemeModes(): List<DomainUiColorSchemeMode> =
+    private fun supportedAppUiColorSchemeModes(): List<DomainUiColorSchemeMode> =
         buildList {
             DomainUiColorSchemeMode.Single(theme = DomainUiColorScheme.Light)
                 .also { add(it) }

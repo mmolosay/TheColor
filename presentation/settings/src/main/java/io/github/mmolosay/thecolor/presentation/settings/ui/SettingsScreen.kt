@@ -167,25 +167,25 @@ fun Settings(
             }
         }
 
-        item("app ui theme") {
+        item("app ui color scheme") {
             var showSelectionDialog by remember { mutableStateOf(false) }
-            val options = data.supportedAppUiThemeModes.map { mode ->
-                AppUiThemeOption(
+            val options = data.supportedAppUiColorSchemeModes.map { mode ->
+                AppUiColorSchemeOption(
                     name = mode.toVerboseUiString(strings),
-                    isSelected = (data.appUiThemeMode == mode),
-                    onSelect = { data.changeAppUiThemeMode(mode) },
+                    isSelected = (data.appUiColorSchemeMode == mode),
+                    onSelect = { data.changeAppUiColorSchemeMode(mode) },
                 )
             }
-            AppUiTheme(
-                title = strings.itemAppUiThemeTitle,
-                value = data.appUiThemeMode.toShortUiString(strings),
+            AppUiColorScheme(
+                title = strings.itemAppUiColorSchemeTitle,
+                value = data.appUiColorSchemeMode.toShortUiString(strings),
                 onClick = { showSelectionDialog = true },
             )
             if (showSelectionDialog) {
                 ModalBottomSheet(
                     onDismissRequest = { showSelectionDialog = false },
                 ) {
-                    AppUiThemeSelection(options = options)
+                    AppUiColorSchemeSelection(options = options)
                 }
             }
         }
@@ -206,14 +206,14 @@ private fun DomainUiColorSchemeMode.toShortUiString(
     when (this) {
         is UserPreferences.UiColorSchemeMode.Single -> {
             when (this.theme) {
-                UserPreferences.UiColorScheme.Light -> strings.itemAppUiThemeValueLight
-                UserPreferences.UiColorScheme.Dark -> strings.itemAppUiThemeValueDark
+                UserPreferences.UiColorScheme.Light -> strings.itemAppUiColorSchemeValueLight
+                UserPreferences.UiColorScheme.Dark -> strings.itemAppUiColorSchemeValueDark
             }
         }
         is UserPreferences.UiColorSchemeMode.Dual -> {
             when {
-                this == DomainUiColorSchemeMode.DayNight -> strings.itemAppUiThemeValueDayNightShort
-                else -> error("Unsupported UI theme mode")
+                this == DomainUiColorSchemeMode.DayNight -> strings.itemAppUiColorSchemeValueDayNightShort
+                else -> error("Unsupported UI color scheme mode")
             }
         }
     }
@@ -224,14 +224,14 @@ private fun DomainUiColorSchemeMode.toVerboseUiString(
     when (this) {
         is UserPreferences.UiColorSchemeMode.Single -> {
             when (this.theme) {
-                UserPreferences.UiColorScheme.Light -> strings.itemAppUiThemeValueLight
-                UserPreferences.UiColorScheme.Dark -> strings.itemAppUiThemeValueDark
+                UserPreferences.UiColorScheme.Light -> strings.itemAppUiColorSchemeValueLight
+                UserPreferences.UiColorScheme.Dark -> strings.itemAppUiColorSchemeValueDark
             }
         }
         is UserPreferences.UiColorSchemeMode.Dual -> {
             when {
-                this == DomainUiColorSchemeMode.DayNight -> strings.itemAppUiThemeValueDayNightVerbose
-                else -> error("Unsupported UI theme mode")
+                this == DomainUiColorSchemeMode.DayNight -> strings.itemAppUiColorSchemeDayNightVerbose
+                else -> error("Unsupported UI color scheme mode")
             }
         }
     }
@@ -251,11 +251,11 @@ private fun previewData() =
     SettingsData(
         preferredColorInputType = DomainColorInputType.Hex,
         changePreferredColorInputType = {},
-        appUiThemeMode = DomainUiColorSchemeMode.DayNight,
-        supportedAppUiThemeModes = listOf(
+        appUiColorSchemeMode = DomainUiColorSchemeMode.DayNight,
+        supportedAppUiColorSchemeModes = listOf(
             DomainUiColorSchemeMode.Single(theme = DomainUiColorScheme.Light),
             DomainUiColorSchemeMode.Single(theme = DomainUiColorScheme.Dark),
             DomainUiColorSchemeMode.DayNight,
         ),
-        changeAppUiThemeMode = {},
+        changeAppUiColorSchemeMode = {},
     )
