@@ -12,6 +12,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalView
+import androidx.core.splashscreen.SplashScreen
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -27,12 +28,15 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.systemBrightness
 import io.github.mmolosay.thecolor.presentation.impl.changeNavigationBar
 import io.github.mmolosay.thecolor.presentation.impl.toArgb
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private val splashViewModel: SplashViewModel by viewModels()
+    private var splashScreen: SplashScreen? = null
+
     private val mainViewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,6 +44,7 @@ class MainActivity : AppCompatActivity() {
         setSplashScreen()
         collectSplashState()
         super.onCreate(savedInstanceState)
+        setContent { Content() }
     }
 
     private fun enableEdgeToEdge() =
@@ -56,11 +61,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun setSplashScreen() {
         val splashScreen = installSplashScreen()
-        splashScreen.setKeepOnScreenCondition {
-            val isAllWorkFinished = splashViewModel.isAllWorkFinishedFlow.value
-            val keepOnScreen = !isAllWorkFinished
-            keepOnScreen
-        }
+        this.splashScreen = splashScreen
+        splashScreen.setKeepOnScreenCondition { true }
     }
 
     private fun collectSplashState() {
@@ -68,19 +70,25 @@ class MainActivity : AppCompatActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 splashViewModel.isAllWorkFinishedFlow.collect { isAllWorkFinished ->
                     if (!isAllWorkFinished) return@collect
-                    setContent()
+                    run dismissAndClearSplashScreen@{
+                        val splashScreen = requireNotNull(splashScreen)
+                        splashScreen.setKeepOnScreenCondition { false }
+                        this@MainActivity.splashScreen = null
+                    }
+                    cancel() // once splash phase is passed, cancel collection of splash state
                 }
             }
         }
     }
 
-    private fun setContent() =
-        setContent content@{
-            val colorScheme = mainViewModel.appUiColorSchemeResolverFlow
-                .collectAsStateWithLifecycle(initialValue = null).value
-                ?.resolve(brightness = systemBrightness())
-                ?: return@content
-            TheColorTheme(
+    @Composable
+    private fun Content() {
+        val colorScheme = mainViewModel.appUiColorSchemeResolverFlow
+            .collectAsStateWithLifecycle(initialValue = null).value
+            ?.resolve(brightness = systemBrightness())
+            ?: return
+
+        TheColorTheme(
                 colorScheme = colorScheme,
             ) {
                 Application()
