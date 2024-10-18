@@ -30,7 +30,7 @@ fun ProvideColorsOnTintedSurface(
  * Collection of colors to be used on surface of no particular (known beforehand) color.
  * They are guaranteed to be contrast against the color of background (surface).
  *
- * Doesn't depend on current [UiTheme].
+ * Doesn't depend on current [ColorScheme].
  *
  * @see colorsOnLightSurface
  * @see colorsOnDarkSurface

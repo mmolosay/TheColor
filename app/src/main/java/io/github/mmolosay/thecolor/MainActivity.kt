@@ -34,12 +34,12 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent {
-            val uiTheme = viewModel.appUiThemeModeFlow
+            val colorScheme = viewModel.appUiThemeModeFlow
                 .collectAsStateWithLifecycle(initialValue = null).value
                 ?.resolve(isSystemInDarkMode = isSystemInDarkTheme())
                 ?: return@setContent
             TheColorTheme(
-                theme = uiTheme,
+                colorScheme = colorScheme,
             ) {
                 Application()
             }

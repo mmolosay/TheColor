@@ -6,14 +6,14 @@ import androidx.compose.runtime.CompositionLocalProvider
 
 @Composable
 fun TheColorTheme(
-    theme: UiTheme = DayNightUiThemeResolver.resolve(systemBrightness()),
+    colorScheme: ColorScheme = DayNightColorSchemeResolver.resolve(systemBrightness()),
     content: @Composable () -> Unit,
 ) {
     CompositionLocalProvider(
-        LocalIsDefaultNavigationBarLight provides theme.isDefaultNavigationBarLight(),
+        LocalIsDefaultNavigationBarLight provides colorScheme.isDefaultNavigationBarLight(),
     ) {
         MaterialTheme(
-            colorScheme = theme.colorScheme(),
+            colorScheme = colorScheme.toMaterialColorScheme(),
             typography = typography(),
             content = content,
         )

@@ -1,17 +1,17 @@
 package io.github.mmolosay.thecolor.presentation.design
 
 import io.github.mmolosay.thecolor.domain.model.UserPreferences
-import io.github.mmolosay.thecolor.presentation.design.UiThemeMapper.toPresentation
+import io.github.mmolosay.thecolor.presentation.design.DomainUiThemeMapper.toPresentation
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiThemeMode as DomainUiThemeMode
 
 /**
- * Processes [DomainUiThemeMode] of Domain layer into a corresponding [UiTheme] of Presentation layer.
+ * Processes [DomainUiThemeMode] of Domain layer into a corresponding [ColorScheme] of Presentation layer.
  */
 object DomainUiThemeModeResolver {
 
     fun DomainUiThemeMode.resolve(
         isSystemInDarkMode: Boolean,
-    ): UiTheme =
+    ): ColorScheme =
         when (this) {
             is UserPreferences.UiThemeMode.Single -> {
                 this.theme.toPresentation()

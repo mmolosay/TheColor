@@ -8,10 +8,10 @@ enum class Brightness {
     Light, Dark;
 }
 
-fun UiTheme.brightness() =
+fun ColorScheme.brightness() =
     when (this) {
-        UiTheme.Light -> Brightness.Light
-        UiTheme.Dark -> Brightness.Dark
+        ColorScheme.Light -> Brightness.Light
+        ColorScheme.Dark -> Brightness.Dark
     }
 
 @Composable
