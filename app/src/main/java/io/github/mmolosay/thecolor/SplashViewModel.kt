@@ -19,8 +19,8 @@ class SplashViewModel @Inject constructor(
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
-    private val _isAllWorkFinishedFlow = MutableStateFlow(false)
-    val isAllWorkFinishedFlow: StateFlow<Boolean> = _isAllWorkFinishedFlow.asStateFlow()
+    private val _isWorkCompleteFlow = MutableStateFlow(false)
+    val isWorkCompleteFlow: StateFlow<Boolean> = _isWorkCompleteFlow.asStateFlow()
 
     init {
         doWork()
@@ -35,7 +35,7 @@ class SplashViewModel @Inject constructor(
                 }
             }
             // will wait for the coroutineScope() above to finish
-            _isAllWorkFinishedFlow.value = true
+            _isWorkCompleteFlow.value = true
         }
     }
 }

@@ -68,8 +68,8 @@ class MainActivity : AppCompatActivity() {
     private fun collectSplashState() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                splashViewModel.isAllWorkFinishedFlow.collect { isAllWorkFinished ->
-                    if (!isAllWorkFinished) return@collect
+                splashViewModel.isWorkCompleteFlow.collect { isWorkComplete ->
+                    if (!isWorkComplete) return@collect
                     run dismissAndClearSplashScreen@{
                         val splashScreen = requireNotNull(splashScreen)
                         splashScreen.setKeepOnScreenCondition { false }
