@@ -71,7 +71,7 @@ private fun Application() {
     )
 
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val defaultNavBarColor = LocalDefaultNavigationBarColor
+    val defaultNavBarColor = LocalDefaultNavigationBarColor.current
     val isDefaultNavBarLight = LocalIsDefaultNavigationBarLight.current
 
     // change navigation bar when screen changes
