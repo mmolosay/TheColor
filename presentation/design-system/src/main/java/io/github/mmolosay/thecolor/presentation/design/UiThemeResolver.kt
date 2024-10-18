@@ -5,7 +5,7 @@ package io.github.mmolosay.thecolor.presentation.design
  * Brightness is usually inferred from system UI mode (see [systemBrightness]).
  */
 fun interface UiThemeResolver {
-    fun resolve(brightness: UiTheme.Brightness): UiTheme
+    fun resolve(brightness: Brightness): UiTheme
 }
 
 /**
@@ -13,9 +13,9 @@ fun interface UiThemeResolver {
  */
 object DayNightUiThemeResolver : UiThemeResolver {
 
-    override fun resolve(brightness: UiTheme.Brightness): UiTheme =
+    override fun resolve(brightness: Brightness): UiTheme =
         when (brightness) {
-            UiTheme.Brightness.Light -> UiTheme.Light
-            UiTheme.Brightness.Dark -> UiTheme.Dark
+            Brightness.Light -> UiTheme.Light
+            Brightness.Dark -> UiTheme.Dark
         }
 }
