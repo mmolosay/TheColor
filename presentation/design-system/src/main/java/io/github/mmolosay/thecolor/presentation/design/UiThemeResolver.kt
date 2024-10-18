@@ -1,7 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.design
 
 /**
- * Defines a strategy of obtaining a [UiTheme] for a provided [Brightness][UiTheme.Brightness].
+ * Defines a strategy of obtaining a [UiTheme] according to provided parameters.
  * Brightness is usually inferred from system UI mode (see [systemBrightness]).
  */
 fun interface UiThemeResolver {
