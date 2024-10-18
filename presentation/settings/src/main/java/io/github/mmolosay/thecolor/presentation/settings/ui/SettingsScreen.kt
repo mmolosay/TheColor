@@ -205,7 +205,7 @@ private fun DomainUiColorSchemeMode.toShortUiString(
 ): String =
     when (this) {
         is UserPreferences.UiColorSchemeMode.Single -> {
-            when (this.theme) {
+            when (this.scheme) {
                 UserPreferences.UiColorScheme.Light -> strings.itemAppUiColorSchemeValueLight
                 UserPreferences.UiColorScheme.Dark -> strings.itemAppUiColorSchemeValueDark
             }
@@ -223,7 +223,7 @@ private fun DomainUiColorSchemeMode.toVerboseUiString(
 ): String =
     when (this) {
         is UserPreferences.UiColorSchemeMode.Single -> {
-            when (this.theme) {
+            when (this.scheme) {
                 UserPreferences.UiColorScheme.Light -> strings.itemAppUiColorSchemeValueLight
                 UserPreferences.UiColorScheme.Dark -> strings.itemAppUiColorSchemeValueDark
             }
@@ -253,8 +253,8 @@ private fun previewData() =
         changePreferredColorInputType = {},
         appUiColorSchemeMode = DomainUiColorSchemeMode.DayNight,
         supportedAppUiColorSchemeModes = listOf(
-            DomainUiColorSchemeMode.Single(theme = DomainUiColorScheme.Light),
-            DomainUiColorSchemeMode.Single(theme = DomainUiColorScheme.Dark),
+            DomainUiColorSchemeMode.Single(scheme = DomainUiColorScheme.Light),
+            DomainUiColorSchemeMode.Single(scheme = DomainUiColorScheme.Dark),
             DomainUiColorSchemeMode.DayNight,
         ),
         changeAppUiColorSchemeMode = {},

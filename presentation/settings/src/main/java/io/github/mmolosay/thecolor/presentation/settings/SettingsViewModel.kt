@@ -64,9 +64,9 @@ class SettingsViewModel @Inject constructor(
 
     private fun supportedAppUiColorSchemeModes(): List<DomainUiColorSchemeMode> =
         buildList {
-            DomainUiColorSchemeMode.Single(theme = DomainUiColorScheme.Light)
+            DomainUiColorSchemeMode.Single(scheme = DomainUiColorScheme.Light)
                 .also { add(it) }
-            DomainUiColorSchemeMode.Single(theme = DomainUiColorScheme.Dark)
+            DomainUiColorSchemeMode.Single(scheme = DomainUiColorScheme.Dark)
                 .also { add(it) }
             DomainUiColorSchemeMode.DayNight
                 .also { add(it) }

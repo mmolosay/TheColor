@@ -12,7 +12,7 @@ object UserPreferences {
     }
 
     sealed interface UiColorSchemeMode {
-        data class Single(val theme: UiColorScheme) : UiColorSchemeMode
+        data class Single(val scheme: UiColorScheme) : UiColorSchemeMode
         data class Dual(val light: UiColorScheme, val dark: UiColorScheme) : UiColorSchemeMode
 
         companion object {

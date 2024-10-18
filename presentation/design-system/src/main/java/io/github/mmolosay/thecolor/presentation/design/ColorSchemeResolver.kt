@@ -2,6 +2,7 @@ package io.github.mmolosay.thecolor.presentation.design
 
 /**
  * Defines a strategy of obtaining a [ColorScheme] according to provided parameters.
+ *
  * Brightness is usually inferred from system UI mode (see [systemBrightness]).
  */
 fun interface ColorSchemeResolver {

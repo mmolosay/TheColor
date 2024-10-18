@@ -103,7 +103,7 @@ class UserPreferencesDataStoreRepository @Inject constructor(
                 preferences[DataStoreKeys.AppUiColorSchemeModeClass] = modeClassDtoValue
                 when (value) {
                     is UiColorSchemeMode.Single -> {
-                        val colorSchemeDtoValue = with(UiColorSchemeMapper) { value.theme.toDtoString() }
+                        val colorSchemeDtoValue = with(UiColorSchemeMapper) { value.scheme.toDtoString() }
                         preferences[DataStoreKeys.AppUiColorSchemeSingle] = colorSchemeDtoValue
                     }
                     is UiColorSchemeMode.Dual -> {

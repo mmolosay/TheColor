@@ -7,7 +7,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -21,7 +20,7 @@ import io.github.mmolosay.thecolor.presentation.api.NavBarAppearanceController
 import io.github.mmolosay.thecolor.presentation.design.LocalDefaultNavigationBarColor
 import io.github.mmolosay.thecolor.presentation.design.LocalIsDefaultNavigationBarLight
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.design.toPresentation
+import io.github.mmolosay.thecolor.presentation.design.systemBrightness
 import io.github.mmolosay.thecolor.presentation.impl.changeNavigationBar
 import io.github.mmolosay.thecolor.presentation.impl.toArgb
 
@@ -34,9 +33,9 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent {
-            val colorScheme = viewModel.appUiColorSchemeModeFlow
+            val colorScheme = viewModel.appUiColorSchemeResolverFlow
                 .collectAsStateWithLifecycle(initialValue = null).value
-                ?.toPresentation(isSystemInDarkMode = isSystemInDarkTheme())
+                ?.resolve(brightness = systemBrightness())
                 ?: return@setContent
             TheColorTheme(
                 colorScheme = colorScheme,
