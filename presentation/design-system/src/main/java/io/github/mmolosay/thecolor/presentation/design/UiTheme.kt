@@ -4,7 +4,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 
 /**
- * A UI color theme.
+ * A color scheme to be used in UI.
  * Entries of this enumeration are final, computed values that do not require any more data
  * (e.g. unlike 'DayNight' theme, see [DayNightUiThemeResolver]).
  */
