@@ -18,10 +18,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.mmolosay.thecolor.presentation.api.NavBarAppearanceController
-import io.github.mmolosay.thecolor.presentation.design.DomainUiThemeModeResolver.resolve
 import io.github.mmolosay.thecolor.presentation.design.LocalDefaultNavigationBarColor
 import io.github.mmolosay.thecolor.presentation.design.LocalIsDefaultNavigationBarLight
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
+import io.github.mmolosay.thecolor.presentation.design.toPresentation
 import io.github.mmolosay.thecolor.presentation.impl.changeNavigationBar
 import io.github.mmolosay.thecolor.presentation.impl.toArgb
 
@@ -36,7 +36,7 @@ class MainActivity : AppCompatActivity() {
         setContent {
             val colorScheme = viewModel.appUiThemeModeFlow
                 .collectAsStateWithLifecycle(initialValue = null).value
-                ?.resolve(isSystemInDarkMode = isSystemInDarkTheme())
+                ?.toPresentation(isSystemInDarkMode = isSystemInDarkTheme())
                 ?: return@setContent
             TheColorTheme(
                 colorScheme = colorScheme,
