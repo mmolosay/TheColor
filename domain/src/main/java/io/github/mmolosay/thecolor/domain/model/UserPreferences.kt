@@ -7,16 +7,16 @@ object UserPreferences {
         Hex, Rgb,
     }
 
-    enum class UiTheme {
+    enum class UiColorScheme {
         Light, Dark,
     }
 
-    sealed interface UiThemeMode {
-        data class Single(val theme: UiTheme) : UiThemeMode
-        data class Dual(val light: UiTheme, val dark: UiTheme) : UiThemeMode
+    sealed interface UiColorSchemeMode {
+        data class Single(val theme: UiColorScheme) : UiColorSchemeMode
+        data class Dual(val light: UiColorScheme, val dark: UiColorScheme) : UiColorSchemeMode
 
         companion object {
-            val DayNight = Dual(light = UiTheme.Light, dark = UiTheme.Dark)
+            val DayNight = Dual(light = UiColorScheme.Light, dark = UiColorScheme.Dark)
         }
     }
 }

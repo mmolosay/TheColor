@@ -14,8 +14,8 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Named
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.ColorInputType as DomainColorInputType
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiTheme as DomainUiTheme
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiThemeMode as DomainUiThemeMode
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorScheme as DomainUiColorScheme
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeMode as DomainUiColorSchemeMode
 
 // TODO: add unit tests
 @HiltViewModel
@@ -27,7 +27,7 @@ class SettingsViewModel @Inject constructor(
     val dataStateFlow: StateFlow<DataState> =
         combine(
             userPreferencesRepository.flowOfColorInputType(),
-            userPreferencesRepository.flowOfAppUiThemeMode(),
+            userPreferencesRepository.flowOfAppUiColorSchemeMode(),
             transform = ::createData,
         )
             .map { data -> DataState.Ready(data) }
@@ -43,15 +43,15 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    private fun updateAppUiThemeMode(value: DomainUiThemeMode) {
+    private fun updateAppUiThemeMode(value: DomainUiColorSchemeMode) {
         viewModelScope.launch(defaultDispatcher) {
-            userPreferencesRepository.setAppUiThemeMode(value)
+            userPreferencesRepository.setAppUiColorSchemeMode(value)
         }
     }
 
     private fun createData(
         preferredColorInputType: DomainColorInputType,
-        appUiThemeMode: DomainUiThemeMode,
+        appUiThemeMode: DomainUiColorSchemeMode,
     ): SettingsData {
         return SettingsData(
             preferredColorInputType = preferredColorInputType,
@@ -62,13 +62,13 @@ class SettingsViewModel @Inject constructor(
         )
     }
 
-    private fun supportedAppUiThemeModes(): List<DomainUiThemeMode> =
+    private fun supportedAppUiThemeModes(): List<DomainUiColorSchemeMode> =
         buildList {
-            DomainUiThemeMode.Single(theme = DomainUiTheme.Light)
+            DomainUiColorSchemeMode.Single(theme = DomainUiColorScheme.Light)
                 .also { add(it) }
-            DomainUiThemeMode.Single(theme = DomainUiTheme.Dark)
+            DomainUiColorSchemeMode.Single(theme = DomainUiColorScheme.Dark)
                 .also { add(it) }
-            DomainUiThemeMode.DayNight
+            DomainUiColorSchemeMode.DayNight
                 .also { add(it) }
         }
 

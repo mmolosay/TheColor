@@ -36,8 +36,8 @@ import io.github.mmolosay.thecolor.presentation.settings.SettingsViewModel
 import io.github.mmolosay.thecolor.presentation.settings.SettingsViewModel.DataState
 import kotlin.time.Duration.Companion.milliseconds
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.ColorInputType as DomainColorInputType
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiTheme as DomainUiTheme
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiThemeMode as DomainUiThemeMode
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorScheme as DomainUiColorScheme
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeMode as DomainUiColorSchemeMode
 
 @Composable
 fun SettingsScreen(
@@ -200,37 +200,37 @@ private fun DomainColorInputType.toUiString(
         DomainColorInputType.Rgb -> strings.itemPreferredColorInputTypeValueRgb
     }
 
-private fun DomainUiThemeMode.toShortUiString(
+private fun DomainUiColorSchemeMode.toShortUiString(
     strings: SettingsUiStrings,
 ): String =
     when (this) {
-        is UserPreferences.UiThemeMode.Single -> {
+        is UserPreferences.UiColorSchemeMode.Single -> {
             when (this.theme) {
-                UserPreferences.UiTheme.Light -> strings.itemAppUiThemeValueLight
-                UserPreferences.UiTheme.Dark -> strings.itemAppUiThemeValueDark
+                UserPreferences.UiColorScheme.Light -> strings.itemAppUiThemeValueLight
+                UserPreferences.UiColorScheme.Dark -> strings.itemAppUiThemeValueDark
             }
         }
-        is UserPreferences.UiThemeMode.Dual -> {
+        is UserPreferences.UiColorSchemeMode.Dual -> {
             when {
-                this == DomainUiThemeMode.DayNight -> strings.itemAppUiThemeValueDayNightShort
+                this == DomainUiColorSchemeMode.DayNight -> strings.itemAppUiThemeValueDayNightShort
                 else -> error("Unsupported UI theme mode")
             }
         }
     }
 
-private fun DomainUiThemeMode.toVerboseUiString(
+private fun DomainUiColorSchemeMode.toVerboseUiString(
     strings: SettingsUiStrings,
 ): String =
     when (this) {
-        is UserPreferences.UiThemeMode.Single -> {
+        is UserPreferences.UiColorSchemeMode.Single -> {
             when (this.theme) {
-                UserPreferences.UiTheme.Light -> strings.itemAppUiThemeValueLight
-                UserPreferences.UiTheme.Dark -> strings.itemAppUiThemeValueDark
+                UserPreferences.UiColorScheme.Light -> strings.itemAppUiThemeValueLight
+                UserPreferences.UiColorScheme.Dark -> strings.itemAppUiThemeValueDark
             }
         }
-        is UserPreferences.UiThemeMode.Dual -> {
+        is UserPreferences.UiColorSchemeMode.Dual -> {
             when {
-                this == DomainUiThemeMode.DayNight -> strings.itemAppUiThemeValueDayNightVerbose
+                this == DomainUiColorSchemeMode.DayNight -> strings.itemAppUiThemeValueDayNightVerbose
                 else -> error("Unsupported UI theme mode")
             }
         }
@@ -251,11 +251,11 @@ private fun previewData() =
     SettingsData(
         preferredColorInputType = DomainColorInputType.Hex,
         changePreferredColorInputType = {},
-        appUiThemeMode = DomainUiThemeMode.DayNight,
+        appUiThemeMode = DomainUiColorSchemeMode.DayNight,
         supportedAppUiThemeModes = listOf(
-            DomainUiThemeMode.Single(theme = DomainUiTheme.Light),
-            DomainUiThemeMode.Single(theme = DomainUiTheme.Dark),
-            DomainUiThemeMode.DayNight,
+            DomainUiColorSchemeMode.Single(theme = DomainUiColorScheme.Light),
+            DomainUiColorSchemeMode.Single(theme = DomainUiColorScheme.Dark),
+            DomainUiColorSchemeMode.DayNight,
         ),
         changeAppUiThemeMode = {},
     )

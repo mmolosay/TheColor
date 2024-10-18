@@ -49,36 +49,36 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         }
     }
 
-    override fun flowOfAppUiThemeMode(): Flow<UserPreferences.UiThemeMode> {
-        fun defaultValue() = DefaultUserPreferences.AppUiThemeMode
+    override fun flowOfAppUiColorSchemeMode(): Flow<UserPreferences.UiColorSchemeMode> {
+        fun defaultValue() = DefaultUserPreferences.AppUiColorSchemeMode
         val preferencesFlow = dataStore.data
         return preferencesFlow.map { preferences ->
-            val modeClassDtoValue = preferences[DataStoreKeys.AppUiThemeModeClass]
+            val modeClassDtoValue = preferences[DataStoreKeys.AppUiColorSchemeModeClass]
             val domainModeClass = if (modeClassDtoValue != null) {
-                with(UiThemeModeClassMapper) { modeClassDtoValue.toUiThemeModeClass() }
+                with(UiColorSchemeModeClassMapper) { modeClassDtoValue.toUiColorSchemeModeClass() }
             } else {
                 return@map defaultValue()
             }
             when (domainModeClass) {
-                UserPreferences.UiThemeMode.Single::class -> {
-                    val themeDtoValue = preferences[DataStoreKeys.AppUiThemeSingle]
-                    if (themeDtoValue != null) {
-                        val domainTheme = with(UiThemeMapper) { themeDtoValue.toUiTheme() }
-                        UserPreferences.UiThemeMode.Single(domainTheme)
+                UserPreferences.UiColorSchemeMode.Single::class -> {
+                    val colorSchemeDtoValue = preferences[DataStoreKeys.AppUiColorSchemeSingle]
+                    if (colorSchemeDtoValue != null) {
+                        val domainColorScheme = with(UiColorSchemeMapper) { colorSchemeDtoValue.toUiColorScheme() }
+                        UserPreferences.UiColorSchemeMode.Single(domainColorScheme)
                     } else {
                         return@map defaultValue()
                     }
                 }
-                UserPreferences.UiThemeMode.Dual::class -> {
-                    val lightThemeDtoValue = preferences[DataStoreKeys.AppUiThemeDualLight]
+                UserPreferences.UiColorSchemeMode.Dual::class -> {
+                    val lightColorSchemeDtoValue = preferences[DataStoreKeys.AppUiColorSchemeDualLight]
                         ?: return@map defaultValue()
-                    val darkThemeDtoValue = preferences[DataStoreKeys.AppUiThemeDualDark]
+                    val darkColorSchemeDtoValue = preferences[DataStoreKeys.AppUiColorSchemeDualDark]
                         ?: return@map defaultValue()
-                    val domainLightTheme = with(UiThemeMapper) { lightThemeDtoValue.toUiTheme() }
-                    val domainDarkTheme = with(UiThemeMapper) { darkThemeDtoValue.toUiTheme() }
-                    UserPreferences.UiThemeMode.Dual(
-                        light = domainLightTheme,
-                        dark = domainDarkTheme,
+                    val domainLightColorScheme = with(UiColorSchemeMapper) { lightColorSchemeDtoValue.toUiColorScheme() }
+                    val domainDarkColorScheme = with(UiColorSchemeMapper) { darkColorSchemeDtoValue.toUiColorScheme() }
+                    UserPreferences.UiColorSchemeMode.Dual(
+                        light = domainLightColorScheme,
+                        dark = domainDarkColorScheme,
                     )
                 }
                 else -> defaultValue()
@@ -86,28 +86,28 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         }
     }
 
-    override suspend fun setAppUiThemeMode(value: UserPreferences.UiThemeMode?) {
+    override suspend fun setAppUiColorSchemeMode(value: UserPreferences.UiColorSchemeMode?) {
         withContext(ioDispatcher) {
             dataStore.edit { preferences ->
                 // clear all values beforehand to only have currently active mode to be not null
-                preferences.remove(DataStoreKeys.AppUiThemeModeClass)
-                preferences.remove(DataStoreKeys.AppUiThemeSingle)
-                preferences.remove(DataStoreKeys.AppUiThemeDualLight)
-                preferences.remove(DataStoreKeys.AppUiThemeDualDark)
+                preferences.remove(DataStoreKeys.AppUiColorSchemeModeClass)
+                preferences.remove(DataStoreKeys.AppUiColorSchemeSingle)
+                preferences.remove(DataStoreKeys.AppUiColorSchemeDualLight)
+                preferences.remove(DataStoreKeys.AppUiColorSchemeDualDark)
 
                 if (value == null) return@edit
-                val modeClassDtoValue = with(UiThemeModeClassMapper) { value.toDtoString() }
-                preferences[DataStoreKeys.AppUiThemeModeClass] = modeClassDtoValue
+                val modeClassDtoValue = with(UiColorSchemeModeClassMapper) { value.toDtoString() }
+                preferences[DataStoreKeys.AppUiColorSchemeModeClass] = modeClassDtoValue
                 when (value) {
-                    is UserPreferences.UiThemeMode.Single -> {
-                        val themeDtoValue = with(UiThemeMapper) { value.theme.toDtoString() }
-                        preferences[DataStoreKeys.AppUiThemeSingle] = themeDtoValue
+                    is UserPreferences.UiColorSchemeMode.Single -> {
+                        val colorSchemeDtoValue = with(UiColorSchemeMapper) { value.theme.toDtoString() }
+                        preferences[DataStoreKeys.AppUiColorSchemeSingle] = colorSchemeDtoValue
                     }
-                    is UserPreferences.UiThemeMode.Dual -> {
-                        val lightThemeDtoValue = with(UiThemeMapper) { value.light.toDtoString() }
-                        val darkThemeDtoValue = with(UiThemeMapper) { value.dark.toDtoString() }
-                        preferences[DataStoreKeys.AppUiThemeDualLight] = lightThemeDtoValue
-                        preferences[DataStoreKeys.AppUiThemeDualDark] = darkThemeDtoValue
+                    is UserPreferences.UiColorSchemeMode.Dual -> {
+                        val lightColorSchemeDtoValue = with(UiColorSchemeMapper) { value.light.toDtoString() }
+                        val darkColorSchemeDtoValue = with(UiColorSchemeMapper) { value.dark.toDtoString() }
+                        preferences[DataStoreKeys.AppUiColorSchemeDualLight] = lightColorSchemeDtoValue
+                        preferences[DataStoreKeys.AppUiColorSchemeDualDark] = darkColorSchemeDtoValue
                     }
                 }
             }
@@ -118,10 +118,17 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         val ColorInputType = stringPreferencesKey("color_input_type")
 
         // TODO: consider using Proto DataStore for such complex classes
-        val AppUiThemeModeClass = stringPreferencesKey("app_ui_theme_mode_class")
-        val AppUiThemeSingle = stringPreferencesKey("app_ui_theme_single")
-        val AppUiThemeDualLight = stringPreferencesKey("app_ui_theme_dual_light")
-        val AppUiThemeDualDark = stringPreferencesKey("app_ui_theme_dual_dark")
+        /** Key for a class of a [UserPreferences.UiColorSchemeMode]. */
+        val AppUiColorSchemeModeClass = stringPreferencesKey("app_ui_color_scheme_mode_class")
+
+        /** Key for a [UserPreferences.UiColorScheme] if the mode is [UserPreferences.UiColorSchemeMode.Single]. */
+        val AppUiColorSchemeSingle = stringPreferencesKey("app_ui_color_scheme_mode_single_value")
+
+        /** Key for a light [UserPreferences.UiColorScheme] if the mode is [UserPreferences.UiColorSchemeMode.Dual]. */
+        val AppUiColorSchemeDualLight = stringPreferencesKey("app_ui_color_scheme_mode_dual_light_value")
+
+        /** Key for a dark [UserPreferences.UiColorScheme] if the mode is [UserPreferences.UiColorSchemeMode.Dual]. */
+        val AppUiColorSchemeDualDark = stringPreferencesKey("app_ui_color_scheme_mode_dual_dark_value")
     }
 }
 
@@ -142,7 +149,7 @@ private object ColorInputTypeMapper {
         check(registeredTypes == allTypes) { "You forgot to register new type" }
     }
 
-    fun String.toColorInputType(): UserPreferences.ColorInputType =
+    fun String.toColorInputType(): UserPreferences.ColorInputType = // TODO: use direct import
         valueToDtoStringMap.entries
             .first { entry -> entry.value == this }
             .key
@@ -152,47 +159,47 @@ private object ColorInputTypeMapper {
 }
 
 /**
- * Maps [UserPreferences.UiTheme] of domain layer to its representation in data layer (DTO)
+ * Maps [UserPreferences.UiColorScheme] of domain layer to its representation in data layer (DTO)
  * and vice versa.
  */
-private object UiThemeMapper {
+private object UiColorSchemeMapper {
 
     private val valueToDtoStringMap = mapOf(
-        UserPreferences.UiTheme.Light to "light",
-        UserPreferences.UiTheme.Dark to "dark",
+        UserPreferences.UiColorScheme.Light to "light",
+        UserPreferences.UiColorScheme.Dark to "dark",
     )
 
     init {
         val registeredTypes = valueToDtoStringMap.keys
-        val allTypes = UserPreferences.UiTheme.entries.toSet()
+        val allTypes = UserPreferences.UiColorScheme.entries.toSet()
         check(registeredTypes == allTypes) { "You forgot to register new type" }
     }
 
-    fun String.toUiTheme(): UserPreferences.UiTheme =
+    fun String.toUiColorScheme(): UserPreferences.UiColorScheme =
         valueToDtoStringMap.entries
             .first { entry -> entry.value == this }
             .key
 
-    fun UserPreferences.UiTheme.toDtoString(): String =
+    fun UserPreferences.UiColorScheme.toDtoString(): String =
         valueToDtoStringMap.getValue(this)
 }
 
 /**
- * Maps class of [UserPreferences.UiThemeMode] of domain layer to its representation in data layer (DTO)
+ * Maps __class__ of [UserPreferences.UiColorSchemeMode] of domain layer to its representation in data layer (DTO)
  * and vice versa.
  */
-private object UiThemeModeClassMapper {
+private object UiColorSchemeModeClassMapper {
 
     private val valueToDtoStringMap = mapOf(
-        UserPreferences.UiThemeMode.Single::class to "single",
-        UserPreferences.UiThemeMode.Dual::class to "dual",
+        UserPreferences.UiColorSchemeMode.Single::class to "single",
+        UserPreferences.UiColorSchemeMode.Dual::class to "dual",
     )
 
-    fun String.toUiThemeModeClass(): KClass<out UserPreferences.UiThemeMode> =
+    fun String.toUiColorSchemeModeClass(): KClass<out UserPreferences.UiColorSchemeMode> =
         valueToDtoStringMap.entries
             .first { entry -> entry.value == this }
             .key
 
-    fun UserPreferences.UiThemeMode.toDtoString(): String =
+    fun UserPreferences.UiColorSchemeMode.toDtoString(): String =
         valueToDtoStringMap.getValue(this::class)
 }
