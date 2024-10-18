@@ -59,6 +59,7 @@ dependencies {
 
     // Jetpack
     implementation("androidx.appcompat:appcompat:${libs.versions.androidx.appcompat.get()}")
+    implementation("androidx.core:core-splashscreen:1.0.1")
 
     // Compose
     val composeBom = platform("androidx.compose:compose-bom:${libs.versions.compose.bom.get()}")

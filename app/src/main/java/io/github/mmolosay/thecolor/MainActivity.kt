@@ -12,7 +12,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalView
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
@@ -23,26 +27,19 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.systemBrightness
 import io.github.mmolosay.thecolor.presentation.impl.changeNavigationBar
 import io.github.mmolosay.thecolor.presentation.impl.toArgb
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
-    private val viewModel: MainViewModel by viewModels()
+    private val splashViewModel: SplashViewModel by viewModels()
+    private val mainViewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
+        setSplashScreen()
+        collectSplashState()
         super.onCreate(savedInstanceState)
-        setContent {
-            val colorScheme = viewModel.appUiColorSchemeResolverFlow
-                .collectAsStateWithLifecycle(initialValue = null).value
-                ?.resolve(brightness = systemBrightness())
-                ?: return@setContent
-            TheColorTheme(
-                colorScheme = colorScheme,
-            ) {
-                Application()
-            }
-        }
     }
 
     private fun enableEdgeToEdge() =
@@ -56,6 +53,39 @@ class MainActivity : AppCompatActivity() {
                 darkScrim = Color.TRANSPARENT,
             ),
         )
+
+    private fun setSplashScreen() {
+        val splashScreen = installSplashScreen()
+        splashScreen.setKeepOnScreenCondition {
+            val isAllWorkFinished = splashViewModel.isAllWorkFinishedFlow.value
+            val keepOnScreen = !isAllWorkFinished
+            keepOnScreen
+        }
+    }
+
+    private fun collectSplashState() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                splashViewModel.isAllWorkFinishedFlow.collect { isAllWorkFinished ->
+                    if (!isAllWorkFinished) return@collect
+                    setContent()
+                }
+            }
+        }
+    }
+
+    private fun setContent() =
+        setContent content@{
+            val colorScheme = mainViewModel.appUiColorSchemeResolverFlow
+                .collectAsStateWithLifecycle(initialValue = null).value
+                ?.resolve(brightness = systemBrightness())
+                ?: return@content
+            TheColorTheme(
+                colorScheme = colorScheme,
+            ) {
+                Application()
+            }
+        }
 }
 
 @Composable

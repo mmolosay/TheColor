@@ -12,9 +12,11 @@ import dagger.Provides
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.migration.DisableInstallInCheck
 import io.github.mmolosay.thecolor.data.local.TheColorDatabase
+import io.github.mmolosay.thecolor.data.local.TouchLocalDatabaseUseCaseImpl
 import io.github.mmolosay.thecolor.data.local.UserPreferencesDataStoreRepository
 import io.github.mmolosay.thecolor.data.local.dao.ColorsHistoryDao
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
+import io.github.mmolosay.thecolor.domain.usecase.TouchLocalDatabaseUseCase
 import javax.inject.Named
 import javax.inject.Singleton
 
@@ -69,4 +71,7 @@ interface DiDataLocalBindModule {
 
     @Binds
     fun bindUserPreferencesRepository(impl: UserPreferencesDataStoreRepository): UserPreferencesRepository
+
+    @Binds
+    fun bindTouchLocalDatabaseUseCase(impl: TouchLocalDatabaseUseCaseImpl): TouchLocalDatabaseUseCase
 }

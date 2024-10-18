@@ -9,7 +9,7 @@ import io.github.mmolosay.thecolor.data.GetColorLightnessUseCaseImpl
 import io.github.mmolosay.thecolor.domain.usecase.GetColorLightnessUseCase
 
 /**
- * DI module for components of __data__ architectural layer.
+ * DI module for components of __Data__ architectural layer.
  */
 @Module(
     includes = [
