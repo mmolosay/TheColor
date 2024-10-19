@@ -89,11 +89,11 @@ class MainActivity : AppCompatActivity() {
             ?: return
 
         TheColorTheme(
-                colorScheme = colorScheme,
-            ) {
-                Application()
-            }
+            colorScheme = colorScheme,
+        ) {
+            Application()
         }
+    }
 }
 
 @Composable
