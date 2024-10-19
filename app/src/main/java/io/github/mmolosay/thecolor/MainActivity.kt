@@ -14,10 +14,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalView
 import androidx.core.splashscreen.SplashScreen
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
@@ -44,9 +42,9 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableInitialEdgeToEdge()
         setSplashScreen()
-        collectSplashState()
         super.onCreate(savedInstanceState)
         setContent { Content() }
+        collectSplashState()
     }
 
     /**
@@ -93,16 +91,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun collectSplashState() {
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                splashViewModel.isWorkCompleteFlow.collect { isWorkComplete ->
-                    if (!isWorkComplete) return@collect
-                    run dismissAndClearSplashScreen@{
-                        val splashScreen = requireNotNull(splashScreen)
-                        splashScreen.setKeepOnScreenCondition { false }
-                        this@MainActivity.splashScreen = null
-                    }
-                    cancel() // once splash phase is passed, cancel collection of splash state
-                }
+            splashViewModel.isWorkCompleteFlow.collect { isWorkComplete ->
+                if (!isWorkComplete) return@collect
+
+                val splashScreen = requireNotNull(splashScreen)
+                splashScreen.setKeepOnScreenCondition { false }
+                this@MainActivity.splashScreen = null
+
+                cancel() // once splash phase is passed, cancel collection of splash state
             }
         }
     }
