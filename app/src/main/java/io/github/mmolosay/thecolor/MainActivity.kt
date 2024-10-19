@@ -43,6 +43,7 @@ class MainActivity : AppCompatActivity() {
         enableInitialEdgeToEdge()
         setSplashScreen()
         super.onCreate(savedInstanceState)
+        window.setBackgroundDrawable(null)
         setContent { Content() }
         collectSplashState()
     }
