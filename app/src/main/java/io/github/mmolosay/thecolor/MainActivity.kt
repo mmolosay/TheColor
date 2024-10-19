@@ -98,7 +98,7 @@ class MainActivity : AppCompatActivity() {
                 splashScreen.setKeepOnScreenCondition { false }
                 this@MainActivity.splashScreen = null
 
-                cancel() // once splash phase is passed, cancel collection of splash state
+                cancel() // once splash phase has passed, cancel collection of splash state
             }
         }
     }
