@@ -2,6 +2,15 @@ package io.github.mmolosay.thecolor
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
+import timber.log.Timber
 
 @HiltAndroidApp
-class TheColorApplication : Application()
+class TheColorApplication : Application() {
+
+    override fun onCreate() {
+        super.onCreate()
+        if (BuildConfig.DEBUG) {
+            Timber.plant(Timber.DebugTree())
+        }
+    }
+}

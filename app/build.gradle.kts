@@ -27,6 +27,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     java {
@@ -78,4 +79,7 @@ dependencies {
     // Hilt
     implementation("com.google.dagger:hilt-android:${libs.versions.hilt.get()}")
     kapt("com.google.dagger:hilt-android-compiler:${libs.versions.hilt.get()}")
+
+    // Misc (preserve alphabetical order)
+    implementation("com.jakewharton.timber:timber:${libs.versions.jakewhartonTimber.get()}")
 }

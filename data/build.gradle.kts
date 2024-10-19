@@ -48,6 +48,7 @@ dependencies {
 
     // Misc (preserve alphabetical order)
     implementation("com.github.ajalt.colormath:colormath:3.4.0")
+    implementation("com.jakewharton.timber:timber:${libs.versions.jakewhartonTimber.get()}")
 
     // Testing
     testImplementation("junit:junit:${libs.versions.junit.get()}")
