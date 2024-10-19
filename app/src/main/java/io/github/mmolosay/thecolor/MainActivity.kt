@@ -22,9 +22,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.mmolosay.thecolor.presentation.api.NavBarAppearanceController
+import io.github.mmolosay.thecolor.presentation.design.Brightness
 import io.github.mmolosay.thecolor.presentation.design.LocalDefaultNavigationBarColor
 import io.github.mmolosay.thecolor.presentation.design.LocalIsDefaultNavigationBarLight
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
+import io.github.mmolosay.thecolor.presentation.design.brightness
 import io.github.mmolosay.thecolor.presentation.design.systemBrightness
 import io.github.mmolosay.thecolor.presentation.impl.changeNavigationBar
 import io.github.mmolosay.thecolor.presentation.impl.toArgb
@@ -40,14 +42,20 @@ class MainActivity : AppCompatActivity() {
     private val mainViewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
+        enableInitialEdgeToEdge()
         setSplashScreen()
         collectSplashState()
         super.onCreate(savedInstanceState)
         setContent { Content() }
     }
 
-    private fun enableEdgeToEdge() =
+    /**
+     * An edge-to-edge appearance to be applied on initialization, when user-selected UI color scheme
+     * is not fetched yet.
+     * During app startup the splash screen will be shown,
+     * which adheres to system dark mode, just as [SystemBarStyle.auto] does.
+     */
+    private fun enableInitialEdgeToEdge() =
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.auto(
                 lightScrim = Color.TRANSPARENT,
@@ -58,6 +66,24 @@ class MainActivity : AppCompatActivity() {
                 darkScrim = Color.TRANSPARENT,
             ),
         )
+
+    private fun enableEdgeToEdge(
+        colorSchemeBrightness: Brightness,
+    ) {
+        val systemBarStyle = when (colorSchemeBrightness) {
+            Brightness.Light -> SystemBarStyle.light(
+                scrim = Color.TRANSPARENT,
+                darkScrim = Color.TRANSPARENT,
+            )
+            Brightness.Dark -> SystemBarStyle.dark(
+                scrim = Color.TRANSPARENT,
+            )
+        }
+        enableEdgeToEdge(
+            statusBarStyle = systemBarStyle,
+            navigationBarStyle = systemBarStyle,
+        )
+    }
 
     private fun setSplashScreen() {
         val splashScreen = installSplashScreen()
@@ -92,6 +118,10 @@ class MainActivity : AppCompatActivity() {
             colorScheme = colorScheme,
         ) {
             Application()
+        }
+
+        LaunchedEffect(colorScheme) {
+            enableEdgeToEdge(colorSchemeBrightness = colorScheme.brightness())
         }
     }
 }
