@@ -53,9 +53,9 @@ class UserPreferencesDataStoreRepository @Inject constructor(
     }
 
     override fun flowOfAppUiColorSchemeMode(): Flow<UiColorSchemeMode> {
-        fun defaultValue() = DefaultUserPreferences.AppUiColorSchemeMode
         val preferencesFlow = dataStore.data
         return preferencesFlow.map { preferences ->
+            fun defaultValue() = DefaultUserPreferences.AppUiColorSchemeMode
             val modeClassDtoValue = preferences[DataStoreKeys.AppUiColorSchemeModeClass]
             val domainModeClass = if (modeClassDtoValue != null) {
                 with(UiColorSchemeModeClassMapper) { modeClassDtoValue.toUiColorSchemeModeClass() }
