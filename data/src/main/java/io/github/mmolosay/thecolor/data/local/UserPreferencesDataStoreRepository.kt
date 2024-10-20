@@ -11,31 +11,48 @@ import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeMod
 import io.github.mmolosay.thecolor.domain.repository.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Named
+import javax.inject.Singleton
 import kotlin.reflect.KClass
 
 /**
  * Implementation of [UserPreferencesRepository] powered by DataStore library.
  */
+@Singleton
 class UserPreferencesDataStoreRepository @Inject constructor(
     @Named("UserPreferences") private val dataStore: DataStore<Preferences>,
+    @Named("ApplicationScope") private val appScope: CoroutineScope,
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
 ) : UserPreferencesRepository {
 
-    override fun flowOfColorInputType(): Flow<ColorInputType> {
-        val preferencesFlow = dataStore.data
-        return preferencesFlow.map { preferences ->
-            val dtoValue = preferences[DataStoreKeys.ColorInputType]
-            val domainModel = if (dtoValue != null) {
-                with(ColorInputTypeMapper) { dtoValue.toColorInputType() }
-            } else {
-                DefaultUserPreferences.ColorInputType
-            }
-            domainModel
+    private val stateFlowOfColorInputType: StateFlow<ColorInputType?> =
+        dataStore.data
+            .map { it.getColorInputType() }
+            .stateEagerlyInAppScope()
+
+    private val stateFlowOfAppUiColorSchemeMode: StateFlow<UiColorSchemeMode?> =
+        dataStore.data
+            .map { it.getAppUiColorSchemeMode() }
+            .stateEagerlyInAppScope()
+
+    override fun flowOfColorInputType(): Flow<ColorInputType> =
+        stateFlowOfColorInputType.filterNotNull()
+
+    private fun Preferences.getColorInputType(): ColorInputType {
+        val dtoValue = this[DataStoreKeys.ColorInputType]
+        return if (dtoValue != null) {
+            with(ColorInputTypeMapper) { dtoValue.toColorInputType() }
+        } else {
+            DefaultUserPreferences.ColorInputType
         }
     }
 
@@ -52,40 +69,43 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         }
     }
 
-    override fun flowOfAppUiColorSchemeMode(): Flow<UiColorSchemeMode> {
-        val preferencesFlow = dataStore.data
-        return preferencesFlow.map { preferences ->
-            fun defaultValue() = DefaultUserPreferences.AppUiColorSchemeMode
-            val modeClassDtoValue = preferences[DataStoreKeys.AppUiColorSchemeModeClass]
-            val domainModeClass = if (modeClassDtoValue != null) {
-                with(UiColorSchemeModeClassMapper) { modeClassDtoValue.toUiColorSchemeModeClass() }
-            } else {
-                return@map defaultValue()
-            }
-            when (domainModeClass) {
-                UiColorSchemeMode.Single::class -> {
-                    val colorSchemeDtoValue = preferences[DataStoreKeys.AppUiColorSchemeSingle]
-                    if (colorSchemeDtoValue != null) {
-                        val domainColorScheme = with(UiColorSchemeMapper) { colorSchemeDtoValue.toUiColorScheme() }
-                        UiColorSchemeMode.Single(domainColorScheme)
-                    } else {
-                        return@map defaultValue()
-                    }
+    override fun flowOfAppUiColorSchemeMode(): Flow<UiColorSchemeMode> =
+        stateFlowOfAppUiColorSchemeMode.filterNotNull()
+
+    private fun Preferences.getAppUiColorSchemeMode(): UiColorSchemeMode {
+        fun defaultValue() = DefaultUserPreferences.AppUiColorSchemeMode
+        val modeClassDtoValue = this[DataStoreKeys.AppUiColorSchemeModeClass]
+        val domainModeClass = if (modeClassDtoValue != null) {
+            with(UiColorSchemeModeClassMapper) { modeClassDtoValue.toUiColorSchemeModeClass() }
+        } else {
+            return defaultValue()
+        }
+        return when (domainModeClass) {
+            UiColorSchemeMode.Single::class -> {
+                val colorSchemeDtoValue = this[DataStoreKeys.AppUiColorSchemeSingle]
+                if (colorSchemeDtoValue != null) {
+                    val domainColorScheme =
+                        with(UiColorSchemeMapper) { colorSchemeDtoValue.toUiColorScheme() }
+                    UiColorSchemeMode.Single(domainColorScheme)
+                } else {
+                    return defaultValue()
                 }
-                UiColorSchemeMode.Dual::class -> {
-                    val lightColorSchemeDtoValue = preferences[DataStoreKeys.AppUiColorSchemeDualLight]
-                        ?: return@map defaultValue()
-                    val darkColorSchemeDtoValue = preferences[DataStoreKeys.AppUiColorSchemeDualDark]
-                        ?: return@map defaultValue()
-                    val domainLightColorScheme = with(UiColorSchemeMapper) { lightColorSchemeDtoValue.toUiColorScheme() }
-                    val domainDarkColorScheme = with(UiColorSchemeMapper) { darkColorSchemeDtoValue.toUiColorScheme() }
-                    UiColorSchemeMode.Dual(
-                        light = domainLightColorScheme,
-                        dark = domainDarkColorScheme,
-                    )
-                }
-                else -> defaultValue()
             }
+            UiColorSchemeMode.Dual::class -> {
+                val lightColorSchemeDtoValue = this[DataStoreKeys.AppUiColorSchemeDualLight]
+                    ?: return defaultValue()
+                val darkColorSchemeDtoValue = this[DataStoreKeys.AppUiColorSchemeDualDark]
+                    ?: return defaultValue()
+                val domainLightColorScheme =
+                    with(UiColorSchemeMapper) { lightColorSchemeDtoValue.toUiColorScheme() }
+                val domainDarkColorScheme =
+                    with(UiColorSchemeMapper) { darkColorSchemeDtoValue.toUiColorScheme() }
+                UiColorSchemeMode.Dual(
+                    light = domainLightColorScheme,
+                    dark = domainDarkColorScheme,
+                )
+            }
+            else -> defaultValue()
         }
     }
 
@@ -116,6 +136,13 @@ class UserPreferencesDataStoreRepository @Inject constructor(
             }
         }
     }
+
+    private fun <T> Flow<T>.stateEagerlyInAppScope(): StateFlow<T?> =
+        this.stateIn(
+            scope = appScope,
+            started = SharingStarted.Eagerly, // will access DB immediately when class is created, so that values are ready beforehand
+            initialValue = null
+        )
 
     private object DataStoreKeys {
         val ColorInputType = stringPreferencesKey("color_input_type")
