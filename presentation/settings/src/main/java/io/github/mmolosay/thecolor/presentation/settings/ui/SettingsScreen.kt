@@ -178,6 +178,7 @@ fun Settings(
             }
             AppUiColorScheme(
                 title = strings.itemAppUiColorSchemeTitle,
+                description = strings.itemAppUiColorSchemeDesc,
                 value = data.appUiColorSchemeMode.toShortUiString(strings),
                 onClick = { showSelectionDialog = true },
             )

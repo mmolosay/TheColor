@@ -10,6 +10,7 @@
     <string name="settings_item_preferred_color_input_value_type_rgb">RGB</string>
 
     <string name="settings_item_app_ui_color_scheme_title">UI theme</string>
+    <string name="settings_item_app_ui_color_scheme_desc">A color scheme of the application.</string>
     <string name="settings_item_app_ui_color_scheme_value_light">Light</string>
     <string name="settings_item_app_ui_color_scheme_value_dark">Dark</string>
     <string name="settings_item_app_ui_color_scheme_value_day_night_short">Auto</string>

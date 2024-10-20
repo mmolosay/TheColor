@@ -18,6 +18,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
+import io.github.mmolosay.thecolor.presentation.settings.ui.ItemUiComponents.Description
 import io.github.mmolosay.thecolor.presentation.settings.ui.ItemUiComponents.TextValue
 import io.github.mmolosay.thecolor.presentation.settings.ui.ItemUiComponents.Title
 import io.github.mmolosay.thecolor.presentation.settings.ui.UiComponents.DefaultItemContentPadding
@@ -25,6 +26,7 @@ import io.github.mmolosay.thecolor.presentation.settings.ui.UiComponents.Default
 @Composable
 internal fun AppUiColorScheme(
     title: String,
+    description: String,
     value: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -37,7 +39,10 @@ internal fun AppUiColorScheme(
                 .padding(DefaultItemContentPadding)
                 .fillMaxWidth(),
         ) {
-            Title(text = title)
+            Column {
+                Title(text = title)
+                Description(text = description)
+            }
 
             Spacer(modifier = Modifier.width(32.dp)) // min
             Spacer(modifier = Modifier.weight(1f)) // max
@@ -101,6 +106,7 @@ private fun AppUiColorSchemePreview() {
     TheColorTheme {
         AppUiColorScheme(
             title = "UI theme",
+            description = "A color scheme of the application.",
             value = "Auto",
             onClick = {},
         )
