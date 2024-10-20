@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.settings.ui
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,6 +19,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
+import io.github.mmolosay.thecolor.presentation.settings.ui.ItemUiComponents.AnimatedTextValue
 import io.github.mmolosay.thecolor.presentation.settings.ui.ItemUiComponents.Description
 import io.github.mmolosay.thecolor.presentation.settings.ui.ItemUiComponents.TextValue
 import io.github.mmolosay.thecolor.presentation.settings.ui.ItemUiComponents.Title
@@ -46,10 +48,17 @@ internal fun PreferredColorInputType(
 
             Spacer(modifier = Modifier.width(32.dp)) // min
             Spacer(modifier = Modifier.weight(1f)) // max
-            TextValue(
+            Box(
                 modifier = Modifier.align(Alignment.CenterVertically),
-                text = value,
-            )
+            ) {
+                AnimatedTextValue(
+                    targetValue = value,
+                ) { targetValue ->
+                    TextValue(
+                        text = targetValue,
+                    )
+                }
+            }
         }
     }
 }
