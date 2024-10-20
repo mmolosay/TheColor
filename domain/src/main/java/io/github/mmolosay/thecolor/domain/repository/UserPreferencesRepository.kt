@@ -1,12 +1,13 @@
 package io.github.mmolosay.thecolor.domain.repository
 
-import io.github.mmolosay.thecolor.domain.model.UserPreferences
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.ColorInputType
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeMode
 import kotlinx.coroutines.flow.Flow
 
 interface UserPreferencesRepository {
-    fun flowOfColorInputType(): Flow<UserPreferences.ColorInputType>
-    suspend fun setColorInputType(value: UserPreferences.ColorInputType?)
+    fun flowOfColorInputType(): Flow<ColorInputType>
+    suspend fun setColorInputType(value: ColorInputType?)
 
-    fun flowOfAppUiColorSchemeMode(): Flow<UserPreferences.UiColorSchemeMode>
-    suspend fun setAppUiColorSchemeMode(value: UserPreferences.UiColorSchemeMode?)
+    fun flowOfAppUiColorSchemeMode(): Flow<UiColorSchemeMode>
+    suspend fun setAppUiColorSchemeMode(value: UiColorSchemeMode?)
 }
