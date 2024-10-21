@@ -1,6 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.home
 
 import io.github.mmolosay.thecolor.domain.model.Color
+import io.github.mmolosay.thecolor.domain.usecase.ColorComparator
 import javax.inject.Inject
 
 /**
@@ -12,16 +13,36 @@ import javax.inject.Inject
  * Session starts when color is submitted (proceeded with) in Home feature.
  * Session ends when color is cleared / changed via Color Input.
  *
- * Any color can be checked whether it [doesBelongToSession].
+ * Any color can be checked whether it belongs to a session using [DoesColorBelongToSessionUseCase].
+ *
+ * Not a `data` class. Two instances may contain same colors but in different color spaces.
+ * The auto-generated [equals] method of `data` class will use [Color.equals], which doesn't check
+ * for structural equality. For this, see [ColorComparator].
  */
 /* internal but Dagger */
 class ColorCenterSession(
     val seed: Color,
-    val allowedColors: Set<Color>,
+    val relatedColors: Set<Color>,
+)
+
+/**
+ * Returns all colors that are related to this session.
+ */
+fun ColorCenterSession.allColors(): Set<Color> =
+    relatedColors + seed
+
+class DoesColorBelongToSessionUseCase @Inject constructor(
+    private val colorComparator: ColorComparator,
 ) {
-    fun Color.doesBelongToSession(): Boolean {
-        val allAllowedColors = allowedColors + seed
-        return (this in allAllowedColors)
+    // syntactic sugar
+    infix fun Color.doesBelongTo(session: ColorCenterSession): Boolean =
+        invoke(color = this, session = session)
+
+    operator fun invoke(color: Color, session: ColorCenterSession): Boolean {
+        val allAllowedColors = session.allColors()
+        return allAllowedColors.any { allowedColor ->
+            with(colorComparator) { color isSameAs allowedColor }
+        }
     }
 }
 
@@ -35,22 +56,22 @@ class ColorCenterSession(
 class ColorCenterSessionBuilder @Inject constructor() {
 
     var seed: Color? = null
-    var allowedColors: Set<Color>? = null
+    var relatedColors: Set<Color>? = null
 
     fun seed(color: Color) = apply {
         this.seed = color
     }
 
-    fun allowedColors(colors: Set<Color>) = apply {
-        this.allowedColors = colors
+    fun relatedColors(colors: Set<Color>) = apply {
+        this.relatedColors = colors
     }
 
     fun build(): ColorCenterSession {
         val seed = requireNotNull(seed)
-        val allowedColors = requireNotNull(allowedColors)
+        val allowedColors = requireNotNull(relatedColors)
         return ColorCenterSession(
             seed = seed,
-            allowedColors = allowedColors,
+            relatedColors = allowedColors,
         ).also {
             clear()
         }
@@ -58,6 +79,6 @@ class ColorCenterSessionBuilder @Inject constructor() {
 
     fun clear() {
         this.seed = null
-        this.allowedColors = null
+        this.relatedColors = null
     }
 }

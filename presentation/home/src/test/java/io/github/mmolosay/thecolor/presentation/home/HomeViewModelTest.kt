@@ -1,6 +1,8 @@
 package io.github.mmolosay.thecolor.presentation.home
 
 import io.github.mmolosay.thecolor.domain.model.Color
+import io.github.mmolosay.thecolor.domain.usecase.ColorComparator
+import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCommand
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCommandStore
@@ -80,6 +82,13 @@ class HomeViewModelTest {
     }
     val createColorData: CreateColorDataUseCase = mockk()
 
+    // real implementation, there's no need to have mock for color comparison
+    val doesColorBelongToSession = DoesColorBelongToSessionUseCase(
+        colorComparator = ColorComparator(
+            colorConverter = ColorConverter(),
+        ),
+    )
+
     lateinit var sut: HomeViewModel
 
     @Test
@@ -131,6 +140,58 @@ class HomeViewModelTest {
 
         data.canProceed should beOfType<CanProceed.No>()
     }
+
+    /**
+     * - GIVEN that 'proceed' was already invoked and there's a color in Color Center
+     * - WHEN
+     *  1. [ColorDetailsEvent.ColorSelected] for "exact" color is emitted (e.g. due to user clicking on "go to exact" button)
+     *  2. the event is handled and "exact" color is sent to [ColorInputMediator]
+     *  3. the update of the [ColorInputColorStore] received and processed. SUT checks whether the
+     *  new color (which is "exact" color) belongs to the ongoing color session.
+     * - THEN "exact" color is confirmed to belong to the ongoing color session and it (session)
+     * is not ended, thus [HomeData.proceedResult] is not set to `null`.
+     */
+    @Test
+    fun `when receiving a not-null RGB color from Color Input due to 'ExactColorSelected', then session is not finished`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val initialColor = Color.Hex(0x0)
+            val colorFlow = MutableStateFlow<Color>(initialColor)
+            every { colorInputColorStore.colorFlow } returns colorFlow
+            every { colorInputEventStore.eventFlow } returns emptyFlow()
+            val eventsFlow = MutableSharedFlow<ColorDetailsEvent>()
+            every { colorDetailsEventStore.eventFlow } returns eventsFlow
+            every { createColorData(color = any()) } returns mockk()
+            createSut()
+
+            // we know from other tests that it would be 'CanProceed.Yes'
+            data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().action.invoke()
+            val exactColor = Color.Rgb(1, 2, 3)
+            run emitDataFetchedEvent@{
+                val exactColorButHex = Color.Hex(0x010203)
+                val event = ColorDetailsEvent.DataFetched(
+                    domainDetails = mockk(relaxed = true) {
+                        every { exact } returns mockk {
+                            every { color } returns exactColorButHex
+                        }
+                    },
+                )
+                eventsFlow.emit(event)
+            }
+            // clicking "Go to exact color"
+            run emitColorSelectedEvent@{
+                val event = ColorDetailsEvent.ColorSelected(
+                    color = exactColor,
+                    colorRole = ColorRole.Exact,
+                )
+                eventsFlow.emit(event)
+            }
+            run emitExactColor@{
+                colorFlow.emit(exactColor)
+            }
+
+            // indicator of not finished session
+            data.proceedResult shouldNotBe null
+        }
 
     @Test
     fun `invoking 'proceed' action issues 'FetchData' command to Color Details and Color Scheme`() {
@@ -577,6 +638,7 @@ class HomeViewModelTest {
             colorSchemeCommandStoreProvider = colorSchemeCommandStoreProvider,
             createColorData = createColorData,
             colorCenterSessionBuilder = ColorCenterSessionBuilder(),
+            doesColorBelongToSession = doesColorBelongToSession,
             defaultDispatcher = mainDispatcherRule.testDispatcher,
             uiDataUpdateDispatcher = mainDispatcherRule.testDispatcher,
         ).also {

@@ -61,6 +61,7 @@ class HomeViewModel @Inject constructor(
     private val colorSchemeCommandStoreProvider: Provider<ColorSchemeCommandStore>,
     private val createColorData: CreateColorDataUseCase,
     private val colorCenterSessionBuilder: ColorCenterSessionBuilder,
+    private val doesColorBelongToSession: DoesColorBelongToSessionUseCase,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
     @Named("uiDataUpdateDispatcher") private val uiDataUpdateDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
@@ -144,7 +145,9 @@ class HomeViewModel @Inject constructor(
 
     private fun onColorFromColorInput(color: Color?) {
         val session = colorCenterSession
-        if (session != null && color != null && with(session) { color.doesBelongToSession() }) {
+        if (session != null && color != null &&
+            with(doesColorBelongToSession) { color doesBelongTo session }
+        ) {
             return // ignore re-emitted color or colors that are part of ongoing session
         }
         _dataFlow.update {
@@ -343,7 +346,7 @@ class HomeViewModel @Inject constructor(
             val details = this.domainDetails
             val relatedColors = setOf(details.exact.color)
             colorCenterSession = colorCenterSessionBuilder
-                .allowedColors(relatedColors)
+                .relatedColors(relatedColors)
                 .build()
         }
 }
