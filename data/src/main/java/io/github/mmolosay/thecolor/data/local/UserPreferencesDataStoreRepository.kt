@@ -141,7 +141,7 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         this.stateIn(
             scope = appScope,
             started = SharingStarted.Eagerly, // will access DB immediately when class is created, so that values are ready beforehand
-            initialValue = null
+            initialValue = null,
         )
 
     private object DataStoreKeys {
