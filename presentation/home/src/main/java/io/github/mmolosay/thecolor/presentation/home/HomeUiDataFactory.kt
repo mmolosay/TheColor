@@ -81,7 +81,7 @@ private fun ColorPreviewState(
 
 private fun HomeData.CanProceed.actionOrNoop(): () -> Unit =
     when (this) {
-        is HomeData.CanProceed.Yes -> action
+        is HomeData.CanProceed.Yes -> proceed
         is HomeData.CanProceed.No -> {
             {} // disabled button isn't clickable, thus no-op won't ever be invoked
         }

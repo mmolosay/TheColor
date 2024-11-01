@@ -169,7 +169,7 @@ class HomeViewModelTest {
             createSut()
 
             // we know from other tests that it would be 'CanProceed.Yes'
-            data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().action.invoke()
+            data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
             val exactColor = Color.Rgb(1, 2, 3)
             run emitDataFetchedEvent@{
                 val exactColorButHex = Color.Hex(0x010203)
@@ -207,7 +207,7 @@ class HomeViewModelTest {
         createSut()
 
         // we know from other tests that it would be 'CanProceed.Yes'
-        data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().action.invoke()
+        data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
 
         coVerify {
             colorDetailsCommandStore.issue(command = any<ColorDetailsCommand.FetchData>())
@@ -225,7 +225,7 @@ class HomeViewModelTest {
         createSut()
 
         // we know from other tests that it would be 'CanProceed.Yes'
-        data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().action.invoke()
+        data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
 
         val proceedResultAsSuccess = data.proceedResult.shouldBeInstanceOf<ProceedResult.Success>()
         proceedResultAsSuccess.colorData shouldBe colorData
@@ -407,7 +407,7 @@ class HomeViewModelTest {
             every { createColorData(color = any()) } returns mockk()
             createSut()
             // we know from other tests that it would be 'CanProceed.Yes'
-            data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().action.invoke()
+            data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
 
             val event = ColorDetailsEvent.ColorSelected(
                 color = Color.Hex(0x123456),
@@ -430,7 +430,7 @@ class HomeViewModelTest {
             every { createColorData(color = any()) } returns mockk()
             createSut()
             // we know from other tests that it would be 'CanProceed.Yes'
-            data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().action.invoke()
+            data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
 
             val event = ColorDetailsEvent.ColorSelected(
                 color = Color.Hex(0x123456),
@@ -457,7 +457,7 @@ class HomeViewModelTest {
             createSut()
 
             // we know from other tests that it would be 'CanProceed.Yes'
-            data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().action()
+            data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed()
             val exactColor = Color.Hex(0x123456)
             run emitDataFetchedEvent@{
                 val domainDetails: DomainColorDetails = mockk(relaxed = true) {
@@ -513,7 +513,7 @@ class HomeViewModelTest {
             every { createColorData(color = any()) } returns colorData
             createSut()
             // we know from other tests that it would be 'CanProceed.Yes'
-            data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().action.invoke()
+            data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
 
             val event = ColorDetailsEvent.ColorSelected(
                 color = Color.Hex(0x123456),
@@ -537,7 +537,7 @@ class HomeViewModelTest {
         createSut()
 
         // we know from other tests that it would be 'CanProceed.Yes'
-        data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().action.invoke()
+        data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
         colorFlow.value = null
 
         data.proceedResult shouldBe null
@@ -554,7 +554,7 @@ class HomeViewModelTest {
         createSut()
 
         // we know from other tests that it would be 'CanProceed.Yes'
-        data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().action.invoke()
+        data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
         colorFlow.value = Color.Hex(0x1)
 
         data.proceedResult shouldBe null
@@ -570,7 +570,7 @@ class HomeViewModelTest {
         every { createColorData(color = any()) } returns mockk()
         createSut()
         // we know from other tests that it would be 'CanProceed.Yes'
-        data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().action() // proceed with first color
+        data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed() // proceed with first color
         val secondColor = Color.Hex(0x1)
         colorFlow.value = secondColor
         clearMocks(
@@ -585,7 +585,7 @@ class HomeViewModelTest {
             exclusionRules = false,
         )
 
-        data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().action() // proceed with second color
+        data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed() // proceed with second color
 
         coVerify(exactly = 1) {
             colorDetailsCommandStoreProvider.get()
@@ -613,7 +613,7 @@ class HomeViewModelTest {
             createSut()
 
             // we know from other tests that it would be 'CanProceed.Yes'
-            data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().action()
+            data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed()
             colorFlow.emit(null)
             val event = run eventForInitialColor@{
                 val domainDetails: DomainColorDetails = mockk(relaxed = true) {

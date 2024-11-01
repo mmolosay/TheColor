@@ -13,7 +13,7 @@ data class HomeData(
 
     sealed interface CanProceed {
         data object No : CanProceed
-        data class Yes(val action: () -> Unit) : CanProceed
+        data class Yes(val proceed: () -> Unit) : CanProceed
     }
 
     /** Result of executing a 'proceed' action. */

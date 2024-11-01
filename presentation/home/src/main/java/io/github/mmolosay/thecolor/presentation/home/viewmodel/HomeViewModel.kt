@@ -281,7 +281,7 @@ class HomeViewModel @Inject constructor(
 
     private fun CanProceed(canProceed: Boolean): CanProceed =
         when (canProceed) {
-            true -> CanProceed.Yes(action = this::proceed)
+            true -> CanProceed.Yes(proceed = this::proceed)
             false -> CanProceed.No
         }
 
