@@ -42,7 +42,7 @@ import javax.inject.Provider
 import javax.inject.Singleton
 
 /**
- * An Android-aware [ViewModel] for "Home" View.
+ * A [ViewModel] for 'Home' View.
  * Composed of sub-feature ViewModels of nested Views.
  *
  * It creates objects that are shared between sub-feature ViewModels via assisted injection and

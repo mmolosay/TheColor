@@ -9,9 +9,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 /**
- * Not a ViewModel-ViewModel in terms of Android development.
- * It doesn't derive from [androidx.lifecycle.ViewModel], so should only be used in "real" ViewModels
- * which do derive from Android-aware implementation.
+ * Handles presentation logic of a single text field inside a 'Color Input' feature.
+ *
+ * Unlike typical `ViewModel`s, it doesn't derive from Google's [ViewModel][androidx.lifecycle.ViewModel],
+ * thus cannot be instantiated using [ViewModelProvider][androidx.lifecycle.ViewModelProvider].
+ *
+ * Instead, it can be created within "simple" `ViewModel` or Google's `ViewModel`.
  */
 class TextFieldViewModel(
     private val filterUserInput: (String) -> Text,

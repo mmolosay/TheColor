@@ -17,11 +17,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 /**
- * Composed of sub-feature ViewModels: Color Details and Color Scheme.
+ * Handles presentation logic of the 'Color Center' feature.
  *
- * Not a ViewModel-ViewModel in terms of Android development.
- * It doesn't derive from [androidx.lifecycle.ViewModel], so should only be used in "real" ViewModels
- * which do derive from Android-aware implementation.
+ * Unlike typical `ViewModel`s, it doesn't derive from Google's [ViewModel][androidx.lifecycle.ViewModel],
+ * thus cannot be instantiated using [ViewModelProvider][androidx.lifecycle.ViewModelProvider].
+ *
+ * Instead, it can be created within "simple" `ViewModel` or Google's `ViewModel`.
  */
 class ColorCenterViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
