@@ -16,6 +16,7 @@ import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCrossfade
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsOnTintedSurfaceDefaults
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.impl.TintedSurface
+import io.github.mmolosay.thecolor.presentation.impl.toArgb
 
 // This piece of UI doesn't have its own "UI" model.
 @OptIn(ExperimentalMaterial3Api::class)
@@ -53,7 +54,7 @@ internal fun SelectedSwatchDetailsDialog(
             }
             DisposableEffect(seedData) {
                 val appearance = NavBarAppearance(
-                    color = seedData.color,
+                    color = seedData.color.toArgb(),
                     isLight = !seedData.isDark,
                 )
                 navBarAppearanceStack.push(appearance)

@@ -57,8 +57,10 @@ object NoopNavBarAppearanceStack : NavBarAppearanceStack {
 
 /**
  * Platform-agnostic model of navigation bar's appearance.
+ *
+ * @param color a color integer in `ARGB` format.
  */
 data class NavBarAppearance(
-    val color: ColorInt,
+    val color: Int,
     val isLight: Boolean,
 )

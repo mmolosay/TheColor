@@ -57,6 +57,7 @@ import io.github.mmolosay.thecolor.presentation.home.HomeUiData.ShowColorCenter
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeNavEvent
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.impl.TintedSurface
+import io.github.mmolosay.thecolor.presentation.impl.toArgb
 import io.github.mmolosay.thecolor.presentation.impl.toDpOffset
 import io.github.mmolosay.thecolor.presentation.impl.toDpSize
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInput
@@ -242,7 +243,7 @@ private fun ColorCenterOnTintedSurface(
     }
     DisposableEffect(state) {
         val appearance = NavBarAppearance(
-            color = state.navigationBarColor,
+            color = state.navigationBarColor.toArgb(),
             isLight = state.isNavigationBarLight,
         )
         navBarAppearanceStack.push(appearance)
