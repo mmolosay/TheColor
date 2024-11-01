@@ -9,8 +9,13 @@ import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCommandStore
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsEvent
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsEventStore
 import io.github.mmolosay.thecolor.presentation.details.ColorRole
-import io.github.mmolosay.thecolor.presentation.home.HomeData.CanProceed
-import io.github.mmolosay.thecolor.presentation.home.HomeData.ProceedResult
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.CanProceed
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterSessionBuilder
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.CreateColorDataUseCase
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.DoesColorBelongToSessionUseCase
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
