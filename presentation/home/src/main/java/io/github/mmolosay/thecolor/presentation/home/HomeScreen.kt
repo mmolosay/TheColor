@@ -245,15 +245,28 @@ private fun ColorCenterOnTintedSurface(
 
     val observer = remember {
         buildLifecycleObserver {
-            onStart {
+            var hasBeenPushed = false
+            fun pushAppearance() {
                 val appearance = NavBarAppearance(
                     color = state.navigationBarColor.toArgb(),
                     isLight = state.isNavigationBarLight,
                 )
                 navBarAppearanceStack.push(appearance)
             }
+
+            onStart {
+                if (hasBeenPushed) return@onStart
+                pushAppearance()
+                hasBeenPushed = true
+            }
+            onResume {
+                if (hasBeenPushed) return@onResume
+                pushAppearance()
+                hasBeenPushed = true
+            }
             onPause {
                 navBarAppearanceStack.peel()
+                hasBeenPushed = false
             }
         }
     }

@@ -21,6 +21,7 @@ fun buildLifecycleObserver(
 
 interface LifecycleObserverBuilderScope {
     fun onStart(action: () -> Unit)
+    fun onResume(action: () -> Unit)
     fun onPause(action: () -> Unit)
 }
 
@@ -29,12 +30,15 @@ private class LifecycleObserverBuilderScopeImpl : LifecycleObserverBuilderScope 
     private val mapOfEventsToActions = mutableMapOf<Lifecycle.Event, () -> Unit>()
 
     override fun onStart(action: () -> Unit) =
-        Lifecycle.Event.ON_START.associateWith(action)
+        Lifecycle.Event.ON_START associateWith action
+
+    override fun onResume(action: () -> Unit) =
+        Lifecycle.Event.ON_RESUME associateWith action
 
     override fun onPause(action: () -> Unit) =
-        Lifecycle.Event.ON_PAUSE.associateWith(action)
+        Lifecycle.Event.ON_PAUSE associateWith action
 
-    private fun Lifecycle.Event.associateWith(action: () -> Unit) {
+    private infix fun Lifecycle.Event.associateWith(action: () -> Unit) {
         mapOfEventsToActions[this] = action
     }
 
