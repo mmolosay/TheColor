@@ -50,11 +50,28 @@ class NavBarAppearanceController : NavBarAppearanceStack {
  * @see NavBarAppearanceController
  */
 interface NavBarAppearanceStack {
+
+    /**
+     * Adds an [appearance] to the top of the stack.
+     */
     fun push(appearance: NavBarAppearance.WithTag)
+
+    /**
+     * Removes an appearance from the top of the stack.
+     * Does nothing if there's not a single appearance in the stack.
+     */
     fun peel()
+
+    /**
+     * Removes first appearance with a [tag] searching top to bottom.
+     * Does nothing if there's no such appearance in the stack.
+     */
     fun remove(tag: Any)
 }
 
+/**
+ * Adds an [appearance] with `null` tag to the top of the stack.
+ */
 fun NavBarAppearanceStack.push(appearance: NavBarAppearance) {
     val tagged = NavBarAppearance.WithTag(appearance, tag = null)
     push(tagged)
