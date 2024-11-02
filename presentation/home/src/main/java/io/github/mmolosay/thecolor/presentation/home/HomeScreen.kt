@@ -52,6 +52,7 @@ import io.github.mmolosay.thecolor.presentation.api.NavBarAppearance
 import io.github.mmolosay.thecolor.presentation.api.NavBarAppearanceStack
 import io.github.mmolosay.thecolor.presentation.api.NoopNavBarAppearanceStack
 import io.github.mmolosay.thecolor.presentation.api.push
+import io.github.mmolosay.thecolor.presentation.api.withTag
 import io.github.mmolosay.thecolor.presentation.center.ColorCenter
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterShape
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
@@ -317,7 +318,7 @@ private class ColorCenterLifecycleObserver(
             color = data.navigationBarColor.toArgb(),
             isLight = data.isNavigationBarLight,
         )
-        val tagged = NavBarAppearance.WithTag(appearance, ColorCenterNavBarAppearanceTag)
+        val tagged = appearance withTag ColorCenterNavBarAppearanceTag
         navBarAppearanceStack.push(tagged)
     }
 }

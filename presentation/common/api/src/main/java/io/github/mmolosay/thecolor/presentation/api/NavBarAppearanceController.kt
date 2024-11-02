@@ -73,7 +73,7 @@ interface NavBarAppearanceStack {
  * Adds an [appearance] with `null` tag to the top of the stack.
  */
 fun NavBarAppearanceStack.push(appearance: NavBarAppearance) {
-    val tagged = NavBarAppearance.WithTag(appearance, tag = null)
+    val tagged = appearance withTag null
     push(tagged)
 }
 
@@ -102,3 +102,6 @@ data class NavBarAppearance(
         val tag: Any?,
     )
 }
+
+infix fun NavBarAppearance.withTag(tag: Any?): NavBarAppearance.WithTag =
+    NavBarAppearance.WithTag(appearance = this, tag = tag)
