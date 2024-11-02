@@ -22,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,6 +36,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
@@ -243,6 +245,8 @@ private fun ColorCenterOnTintedSurface(
         colorCenter()
     }
 
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycle = lifecycleOwner.lifecycle
     val observer = remember {
         buildLifecycleObserver {
             var hasBeenPushed = false
@@ -270,7 +274,13 @@ private fun ColorCenterOnTintedSurface(
             }
         }
     }
-    DisposableLifecycleObserver(observer)
+    DisposableEffect(lifecycleOwner) {
+        lifecycle.addObserver(observer)
+        onDispose {
+            lifecycle.removeObserver(observer)
+            navBarAppearanceStack.peel()
+        }
+    }
 }
 
 // TODO: use real TopBar() from Material 3 library and put it in Scaffold
