@@ -24,6 +24,14 @@ class NavBarAppearanceController : NavBarAppearanceStack {
         emitLatestAppearance()
     }
 
+    override fun remove(tag: Any) {
+        val indexOfLatestWithTag = appearanceStack.indexOfLast { it.tag == tag }
+        if (indexOfLatestWithTag != -1) {
+            appearanceStack.removeAt(indexOfLatestWithTag)
+        }
+        emitLatestAppearance()
+    }
+
     private fun NavBarAppearance.WithTag.addToStackAndEmitFromFlow() {
         appearanceStack += this
         emitLatestAppearance()
@@ -44,6 +52,7 @@ class NavBarAppearanceController : NavBarAppearanceStack {
 interface NavBarAppearanceStack {
     fun push(appearance: NavBarAppearance.WithTag)
     fun peel()
+    fun remove(tag: Any)
 }
 
 fun NavBarAppearanceStack.push(appearance: NavBarAppearance) {
@@ -58,6 +67,7 @@ fun NavBarAppearanceStack.push(appearance: NavBarAppearance) {
 object NoopNavBarAppearanceStack : NavBarAppearanceStack {
     override fun push(appearance: NavBarAppearance.WithTag) {}
     override fun peel() {}
+    override fun remove(tag: Any) {}
 }
 
 /**
