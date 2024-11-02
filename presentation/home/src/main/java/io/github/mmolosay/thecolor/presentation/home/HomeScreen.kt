@@ -51,7 +51,6 @@ import io.github.mmolosay.thecolor.presentation.api.ColorInt
 import io.github.mmolosay.thecolor.presentation.api.NavBarAppearance
 import io.github.mmolosay.thecolor.presentation.api.NavBarAppearanceStack
 import io.github.mmolosay.thecolor.presentation.api.NoopNavBarAppearanceStack
-import io.github.mmolosay.thecolor.presentation.api.push
 import io.github.mmolosay.thecolor.presentation.api.withTag
 import io.github.mmolosay.thecolor.presentation.center.ColorCenter
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterShape
@@ -298,7 +297,7 @@ private class ColorCenterLifecycleObserver(
         when (event) {
             Lifecycle.Event.ON_START,
             Lifecycle.Event.ON_RESUME -> {
-                onRevive()
+                onEnteringForeground()
             }
             Lifecycle.Event.ON_PAUSE -> {
                 navBarAppearanceStack.remove(tag = ColorCenterNavBarAppearanceTag)
@@ -307,7 +306,8 @@ private class ColorCenterLifecycleObserver(
             else -> doNothing()
         }
 
-    private fun onRevive() {
+    private fun onEnteringForeground() {
+        // only push an appearance if the event is a first event after "exiting foreground" (like ON_PAUSE)
         if (!isOnPause) return // has already pushed nav bar appearance
         pushAppearance()
         isOnPause = false
