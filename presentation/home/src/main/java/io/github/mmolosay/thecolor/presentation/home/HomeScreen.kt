@@ -42,6 +42,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.debounce.debounced
 import io.github.mmolosay.thecolor.presentation.api.ColorInt
@@ -58,14 +61,13 @@ import io.github.mmolosay.thecolor.presentation.home.HomeUiData.ProceedButton
 import io.github.mmolosay.thecolor.presentation.home.HomeUiData.ShowColorCenter
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeNavEvent
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
-import io.github.mmolosay.thecolor.presentation.impl.DisposableLifecycleObserver
 import io.github.mmolosay.thecolor.presentation.impl.TintedSurface
-import io.github.mmolosay.thecolor.presentation.impl.buildLifecycleObserver
 import io.github.mmolosay.thecolor.presentation.impl.toArgb
 import io.github.mmolosay.thecolor.presentation.impl.toDpOffset
 import io.github.mmolosay.thecolor.presentation.impl.toDpSize
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInput
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreview
+import io.github.mmolosay.thecolor.utils.doNothing
 
 @Composable
 fun HomeScreen(
@@ -248,38 +250,15 @@ private fun ColorCenterOnTintedSurface(
 
     val lifecycleOwner = LocalLifecycleOwner.current
     val lifecycle = lifecycleOwner.lifecycle
-    val observer = remember {
-        buildLifecycleObserver {
-            var hasBeenPushed = false
-            fun pushAppearance() {
-                val appearance = NavBarAppearance(
-                    color = state.navigationBarColor.toArgb(),
-                    isLight = state.isNavigationBarLight,
-                )
-                navBarAppearanceStack.push(appearance)
-            }
-
-            onStart {
-                if (hasBeenPushed) return@onStart
-                pushAppearance()
-                hasBeenPushed = true
-            }
-            onResume {
-                if (hasBeenPushed) return@onResume
-                pushAppearance()
-                hasBeenPushed = true
-            }
-            onPause {
-                navBarAppearanceStack.peel()
-                hasBeenPushed = false
-            }
-        }
-    }
     DisposableEffect(lifecycleOwner) {
+        val observer = ColorCenterLifecycleObserver(
+            navBarAppearanceStack = navBarAppearanceStack,
+            data = state,
+        )
         lifecycle.addObserver(observer)
         onDispose {
             lifecycle.removeObserver(observer)
-            navBarAppearanceStack.peel()
+            navBarAppearanceStack.remove(tag = ColorCenterNavBarAppearanceTag)
         }
     }
 }
@@ -306,6 +285,44 @@ private fun TopBar(
         }
     }
 }
+
+private class ColorCenterLifecycleObserver(
+    private val navBarAppearanceStack: NavBarAppearanceStack,
+    private val data: ShowColorCenter.Yes,
+) : LifecycleEventObserver {
+
+    private var isOnPause = true
+
+    override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) =
+        when (event) {
+            Lifecycle.Event.ON_START,
+            Lifecycle.Event.ON_RESUME -> {
+                onRevive()
+            }
+            Lifecycle.Event.ON_PAUSE -> {
+                navBarAppearanceStack.remove(tag = ColorCenterNavBarAppearanceTag)
+                isOnPause = true
+            }
+            else -> doNothing()
+        }
+
+    private fun onRevive() {
+        if (!isOnPause) return // has already pushed nav bar appearance
+        pushAppearance()
+        isOnPause = false
+    }
+
+    private fun pushAppearance() {
+        val appearance = NavBarAppearance(
+            color = data.navigationBarColor.toArgb(),
+            isLight = data.isNavigationBarLight,
+        )
+        val tagged = NavBarAppearance.WithTag(appearance, ColorCenterNavBarAppearanceTag)
+        navBarAppearanceStack.push(tagged)
+    }
+}
+
+private const val ColorCenterNavBarAppearanceTag = "ColorCenterOnTintedSurface"
 
 @Preview(showBackground = true)
 @Composable
