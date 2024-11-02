@@ -22,7 +22,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,7 +55,9 @@ import io.github.mmolosay.thecolor.presentation.home.HomeUiData.ProceedButton
 import io.github.mmolosay.thecolor.presentation.home.HomeUiData.ShowColorCenter
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeNavEvent
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
+import io.github.mmolosay.thecolor.presentation.impl.DisposableLifecycleObserver
 import io.github.mmolosay.thecolor.presentation.impl.TintedSurface
+import io.github.mmolosay.thecolor.presentation.impl.buildLifecycleObserver
 import io.github.mmolosay.thecolor.presentation.impl.toArgb
 import io.github.mmolosay.thecolor.presentation.impl.toDpOffset
 import io.github.mmolosay.thecolor.presentation.impl.toDpSize
@@ -241,16 +242,22 @@ private fun ColorCenterOnTintedSurface(
     ) {
         colorCenter()
     }
-    DisposableEffect(state) {
-        val appearance = NavBarAppearance(
-            color = state.navigationBarColor.toArgb(),
-            isLight = state.isNavigationBarLight,
-        )
-        navBarAppearanceStack.push(appearance)
-        onDispose {
-            navBarAppearanceStack.peel()
+
+    val observer = remember {
+        buildLifecycleObserver {
+            onStart {
+                val appearance = NavBarAppearance(
+                    color = state.navigationBarColor.toArgb(),
+                    isLight = state.isNavigationBarLight,
+                )
+                navBarAppearanceStack.push(appearance)
+            }
+            onPause {
+                navBarAppearanceStack.peel()
+            }
         }
     }
+    DisposableLifecycleObserver(observer)
 }
 
 // TODO: use real TopBar() from Material 3 library and put it in Scaffold
