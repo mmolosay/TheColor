@@ -250,7 +250,7 @@ private fun ColorCenterOnTintedSurface(
 
     val lifecycleOwner = LocalLifecycleOwner.current
     val lifecycle = lifecycleOwner.lifecycle
-    DisposableEffect(lifecycleOwner) {
+    DisposableEffect(lifecycleOwner, state) {
         val observer = ColorCenterLifecycleObserver(
             navBarAppearanceStack = navBarAppearanceStack,
             data = state,
