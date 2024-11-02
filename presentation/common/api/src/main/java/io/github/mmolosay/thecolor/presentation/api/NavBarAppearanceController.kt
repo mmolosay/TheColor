@@ -10,12 +10,12 @@ import kotlinx.coroutines.flow.asStateFlow
  */
 class NavBarAppearanceController : NavBarAppearanceStack {
 
-    private val appearanceStack = mutableListOf<NavBarAppearance>()
+    private val appearanceStack = mutableListOf<NavBarAppearance.WithTag>()
 
-    private val _appearanceFlow = MutableStateFlow<NavBarAppearance?>(null)
+    private val _appearanceFlow = MutableStateFlow<NavBarAppearance.WithTag?>(null)
     val appearanceFlow = _appearanceFlow.asStateFlow()
 
-    override fun push(appearance: NavBarAppearance) {
+    override fun push(appearance: NavBarAppearance.WithTag) {
         appearance.addToStackAndEmitFromFlow()
     }
 
@@ -24,7 +24,7 @@ class NavBarAppearanceController : NavBarAppearanceStack {
         emitLatestAppearance()
     }
 
-    private fun NavBarAppearance.addToStackAndEmitFromFlow() {
+    private fun NavBarAppearance.WithTag.addToStackAndEmitFromFlow() {
         appearanceStack += this
         emitLatestAppearance()
     }
@@ -42,8 +42,13 @@ class NavBarAppearanceController : NavBarAppearanceStack {
  * @see NavBarAppearanceController
  */
 interface NavBarAppearanceStack {
-    fun push(appearance: NavBarAppearance)
+    fun push(appearance: NavBarAppearance.WithTag)
     fun peel()
+}
+
+fun NavBarAppearanceStack.push(appearance: NavBarAppearance) {
+    val tagged = NavBarAppearance.WithTag(appearance, tag = null)
+    push(tagged)
 }
 
 /**
@@ -51,7 +56,7 @@ interface NavBarAppearanceStack {
  * Useful in Compose Previews.
  */
 object NoopNavBarAppearanceStack : NavBarAppearanceStack {
-    override fun push(appearance: NavBarAppearance) {}
+    override fun push(appearance: NavBarAppearance.WithTag) {}
     override fun peel() {}
 }
 
@@ -63,4 +68,10 @@ object NoopNavBarAppearanceStack : NavBarAppearanceStack {
 data class NavBarAppearance(
     val color: Int,
     val isLight: Boolean,
-)
+) {
+
+    data class WithTag(
+        val appearance: NavBarAppearance,
+        val tag: Any?,
+    )
+}

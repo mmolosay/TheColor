@@ -11,6 +11,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.api.NavBarAppearance
 import io.github.mmolosay.thecolor.presentation.api.NavBarAppearanceStack
+import io.github.mmolosay.thecolor.presentation.api.push
 import io.github.mmolosay.thecolor.presentation.details.ColorDetails
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCrossfade
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsOnTintedSurfaceDefaults

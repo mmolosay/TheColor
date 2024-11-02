@@ -29,7 +29,8 @@ internal fun Application() {
 
     // change navigation bar when new appearance is emitted
     LaunchedEffect(Unit) changeNavigationBarWhenAppearanceChanges@{
-        navBarAppearanceController.appearanceFlow.collect { appearance ->
+        navBarAppearanceController.appearanceFlow.collect { appearanceWithTag ->
+            val appearance = appearanceWithTag?.appearance
             val color = appearance?.color ?: defaultNavBarColor
             val isLight = appearance?.isLight ?: isDefaultNavBarLight
             view.changeNavigationBar(
