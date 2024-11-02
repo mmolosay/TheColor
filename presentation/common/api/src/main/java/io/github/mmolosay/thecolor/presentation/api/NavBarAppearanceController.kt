@@ -16,7 +16,8 @@ class NavBarAppearanceController : NavBarAppearanceStack {
     val appearanceFlow = _appearanceFlow.asStateFlow()
 
     override fun push(appearance: NavBarAppearance.WithTag) {
-        appearance.addToStackAndEmitFromFlow()
+        appearanceStack += appearance
+        emitLatestAppearance()
     }
 
     override fun peel() {
@@ -29,11 +30,6 @@ class NavBarAppearanceController : NavBarAppearanceStack {
         if (indexOfLatestWithTag != -1) {
             appearanceStack.removeAt(indexOfLatestWithTag)
         }
-        emitLatestAppearance()
-    }
-
-    private fun NavBarAppearance.WithTag.addToStackAndEmitFromFlow() {
-        appearanceStack += this
         emitLatestAppearance()
     }
 
