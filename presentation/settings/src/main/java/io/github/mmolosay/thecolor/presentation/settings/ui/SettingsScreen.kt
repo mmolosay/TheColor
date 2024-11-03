@@ -28,7 +28,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.debounce.debounced
-import io.github.mmolosay.thecolor.domain.model.UserPreferences
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.asSingleInSet
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.isSingleton
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.single
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.settings.SettingsData
 import io.github.mmolosay.thecolor.presentation.settings.SettingsUiStrings
@@ -37,7 +39,7 @@ import io.github.mmolosay.thecolor.presentation.settings.SettingsViewModel.DataS
 import kotlin.time.Duration.Companion.milliseconds
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.ColorInputType as DomainColorInputType
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorScheme as DomainUiColorScheme
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeMode as DomainUiColorSchemeMode
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeSet as DomainUiColorSchemeSet
 
 @Composable
 fun SettingsScreen(
@@ -169,17 +171,17 @@ fun Settings(
 
         item("app ui color scheme") {
             var showSelectionDialog by remember { mutableStateOf(false) }
-            val options = data.supportedAppUiColorSchemeModes.map { mode ->
+            val options = data.supportedAppUiColorSchemeSets.map { mode ->
                 AppUiColorSchemeOption(
                     name = mode.toVerboseUiString(strings),
-                    isSelected = (data.appUiColorSchemeMode == mode),
-                    onSelect = { data.changeAppUiColorSchemeMode(mode) },
+                    isSelected = (data.appUiColorSchemeSet == mode),
+                    onSelect = { data.changeAppUiColorSchemeSet(mode) },
                 )
             }
             AppUiColorScheme(
                 title = strings.itemAppUiColorSchemeTitle,
                 description = strings.itemAppUiColorSchemeDesc,
-                value = data.appUiColorSchemeMode.toShortUiString(strings),
+                value = data.appUiColorSchemeSet.toShortUiString(strings),
                 onClick = { showSelectionDialog = true },
             )
             if (showSelectionDialog) {
@@ -201,39 +203,33 @@ private fun DomainColorInputType.toUiString(
         DomainColorInputType.Rgb -> strings.itemPreferredColorInputTypeValueRgb
     }
 
-private fun DomainUiColorSchemeMode.toShortUiString(
+private fun DomainUiColorSchemeSet.toShortUiString(
     strings: SettingsUiStrings,
 ): String =
-    when (this) {
-        is UserPreferences.UiColorSchemeMode.Single -> {
-            when (this.scheme) {
-                UserPreferences.UiColorScheme.Light -> strings.itemAppUiColorSchemeValueLight
-                UserPreferences.UiColorScheme.Dark -> strings.itemAppUiColorSchemeValueDark
-            }
+    if (this.isSingleton()) {
+        when (this.single()) {
+            DomainUiColorScheme.Light -> strings.itemAppUiColorSchemeValueLight
+            DomainUiColorScheme.Dark -> strings.itemAppUiColorSchemeValueDark
         }
-        is UserPreferences.UiColorSchemeMode.Dual -> {
-            when {
-                this == DomainUiColorSchemeMode.DayNight -> strings.itemAppUiColorSchemeValueDayNightShort
-                else -> error("Unsupported UI color scheme mode")
-            }
+    } else {
+        when (this) {
+            DomainUiColorSchemeSet.DayNight -> strings.itemAppUiColorSchemeValueDayNightShort
+            else -> error("Unsupported UI color scheme mode")
         }
     }
 
-private fun DomainUiColorSchemeMode.toVerboseUiString(
+private fun DomainUiColorSchemeSet.toVerboseUiString(
     strings: SettingsUiStrings,
 ): String =
-    when (this) {
-        is UserPreferences.UiColorSchemeMode.Single -> {
-            when (this.scheme) {
-                UserPreferences.UiColorScheme.Light -> strings.itemAppUiColorSchemeValueLight
-                UserPreferences.UiColorScheme.Dark -> strings.itemAppUiColorSchemeValueDark
-            }
+    if (this.isSingleton()) {
+        when (this.single()) {
+            DomainUiColorScheme.Light -> strings.itemAppUiColorSchemeValueLight
+            DomainUiColorScheme.Dark -> strings.itemAppUiColorSchemeValueDark
         }
-        is UserPreferences.UiColorSchemeMode.Dual -> {
-            when {
-                this == DomainUiColorSchemeMode.DayNight -> strings.itemAppUiColorSchemeDayNightVerbose
-                else -> error("Unsupported UI color scheme mode")
-            }
+    } else {
+        when (this) {
+            DomainUiColorSchemeSet.DayNight -> strings.itemAppUiColorSchemeValueDayNightVerbose
+            else -> error("Unsupported UI color scheme mode")
         }
     }
 
@@ -252,11 +248,11 @@ private fun previewData() =
     SettingsData(
         preferredColorInputType = DomainColorInputType.Hex,
         changePreferredColorInputType = {},
-        appUiColorSchemeMode = DomainUiColorSchemeMode.DayNight,
-        supportedAppUiColorSchemeModes = listOf(
-            DomainUiColorSchemeMode.Single(scheme = DomainUiColorScheme.Light),
-            DomainUiColorSchemeMode.Single(scheme = DomainUiColorScheme.Dark),
-            DomainUiColorSchemeMode.DayNight,
+        appUiColorSchemeSet = DomainUiColorSchemeSet.DayNight,
+        supportedAppUiColorSchemeSets = listOf(
+            DomainUiColorScheme.Light.asSingleInSet(),
+            DomainUiColorScheme.Dark.asSingleInSet(),
+            DomainUiColorSchemeSet.DayNight,
         ),
-        changeAppUiColorSchemeMode = {},
+        changeAppUiColorSchemeSet = {},
     )

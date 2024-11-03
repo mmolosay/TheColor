@@ -20,7 +20,7 @@ data class SettingsUiStrings(
     val itemAppUiColorSchemeValueLight: String,
     val itemAppUiColorSchemeValueDark: String,
     val itemAppUiColorSchemeValueDayNightShort: String,
-    val itemAppUiColorSchemeDayNightVerbose: String,
+    val itemAppUiColorSchemeValueDayNightVerbose: String,
 )
 
 fun SettingsUiStrings(context: Context) =
@@ -36,5 +36,5 @@ fun SettingsUiStrings(context: Context) =
         itemAppUiColorSchemeValueLight = context.getString(R.string.settings_item_app_ui_color_scheme_value_light),
         itemAppUiColorSchemeValueDark = context.getString(R.string.settings_item_app_ui_color_scheme_value_dark),
         itemAppUiColorSchemeValueDayNightShort = context.getString(R.string.settings_item_app_ui_color_scheme_value_day_night_short),
-        itemAppUiColorSchemeDayNightVerbose = context.getString(R.string.settings_item_app_ui_color_scheme_value_day_night_verbose),
+        itemAppUiColorSchemeValueDayNightVerbose = context.getString(R.string.settings_item_app_ui_color_scheme_value_day_night_verbose),
     )

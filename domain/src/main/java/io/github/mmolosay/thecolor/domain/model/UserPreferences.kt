@@ -1,6 +1,8 @@
 package io.github.mmolosay.thecolor.domain.model
 
-// TODO: abolish?
+/**
+ * A collection of models that represent user-selected options.
+ */
 object UserPreferences {
 
     enum class ColorInputType {
@@ -11,12 +13,22 @@ object UserPreferences {
         Light, Dark,
     }
 
-    sealed interface UiColorSchemeMode {
-        data class Single(val scheme: UiColorScheme) : UiColorSchemeMode
-        data class Dual(val light: UiColorScheme, val dark: UiColorScheme) : UiColorSchemeMode
-
+    data class UiColorSchemeSet(
+        val light: UiColorScheme,
+        val dark: UiColorScheme,
+    ) {
         companion object {
-            val DayNight = Dual(light = UiColorScheme.Light, dark = UiColorScheme.Dark)
+            val DayNight = UiColorSchemeSet(light = UiColorScheme.Light, dark = UiColorScheme.Dark)
         }
     }
+
+    fun UiColorScheme.asSingleInSet(): UiColorSchemeSet =
+        UiColorSchemeSet(light = this, dark = this)
+
+    // https://en.wikipedia.org/wiki/Singleton_(mathematics)
+    fun UiColorSchemeSet.isSingleton(): Boolean =
+        (this.light == this.dark)
+
+    fun UiColorSchemeSet.single(): UiColorScheme =
+        this.light
 }

@@ -3,6 +3,7 @@ package io.github.mmolosay.thecolor.presentation.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.asSingleInSet
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,7 +16,7 @@ import javax.inject.Inject
 import javax.inject.Named
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.ColorInputType as DomainColorInputType
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorScheme as DomainUiColorScheme
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeMode as DomainUiColorSchemeMode
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeSet as DomainUiColorSchemeSet
 
 // TODO: add unit tests
 @HiltViewModel
@@ -27,7 +28,7 @@ class SettingsViewModel @Inject constructor(
     val dataStateFlow: StateFlow<DataState> =
         combine(
             userPreferencesRepository.flowOfColorInputType(),
-            userPreferencesRepository.flowOfAppUiColorSchemeMode(),
+            userPreferencesRepository.flowOfAppUiColorSchemeSet(),
             transform = ::createData,
         )
             .map { data -> DataState.Ready(data) }
@@ -43,32 +44,32 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    private fun updateAppUiColorSchemeMode(value: DomainUiColorSchemeMode) {
+    private fun updateAppUiColorSchemeSet(value: DomainUiColorSchemeSet) {
         viewModelScope.launch(defaultDispatcher) {
-            userPreferencesRepository.setAppUiColorSchemeMode(value)
+            userPreferencesRepository.setAppUiColorSchemeSet(value)
         }
     }
 
     private fun createData(
         preferredColorInputType: DomainColorInputType,
-        appUiColorSchemeMode: DomainUiColorSchemeMode,
+        appUiColorSchemeSet: DomainUiColorSchemeSet,
     ): SettingsData {
         return SettingsData(
             preferredColorInputType = preferredColorInputType,
             changePreferredColorInputType = ::updatePreferredColorInputType,
-            appUiColorSchemeMode = appUiColorSchemeMode,
-            supportedAppUiColorSchemeModes = supportedAppUiColorSchemeModes(),
-            changeAppUiColorSchemeMode = ::updateAppUiColorSchemeMode,
+            appUiColorSchemeSet = appUiColorSchemeSet,
+            supportedAppUiColorSchemeSets = supportedAppUiColorSchemeSets(),
+            changeAppUiColorSchemeSet = ::updateAppUiColorSchemeSet,
         )
     }
 
-    private fun supportedAppUiColorSchemeModes(): List<DomainUiColorSchemeMode> =
+    private fun supportedAppUiColorSchemeSets(): List<DomainUiColorSchemeSet> =
         buildList {
-            DomainUiColorSchemeMode.Single(scheme = DomainUiColorScheme.Light)
+            DomainUiColorScheme.Light.asSingleInSet()
                 .also { add(it) }
-            DomainUiColorSchemeMode.Single(scheme = DomainUiColorScheme.Dark)
+            DomainUiColorScheme.Dark.asSingleInSet()
                 .also { add(it) }
-            DomainUiColorSchemeMode.DayNight
+            DomainUiColorSchemeSet.DayNight
                 .also { add(it) }
         }
 

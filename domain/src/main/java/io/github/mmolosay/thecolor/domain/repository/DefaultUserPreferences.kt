@@ -11,6 +11,6 @@ object DefaultUserPreferences {
     val ColorInputType: UserPreferences.ColorInputType =
         UserPreferences.ColorInputType.Hex
 
-    val AppUiColorSchemeMode: UserPreferences.UiColorSchemeMode =
-        UserPreferences.UiColorSchemeMode.DayNight
+    val AppUiColorSchemeSet: UserPreferences.UiColorSchemeSet =
+        UserPreferences.UiColorSchemeSet.DayNight
 }

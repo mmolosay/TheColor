@@ -16,6 +16,6 @@ class MainViewModel @Inject constructor(
 
     val appUiColorSchemeResolverFlow: Flow<ColorSchemeResolver> =
         userPreferencesRepository
-            .flowOfAppUiColorSchemeMode()
+            .flowOfAppUiColorSchemeSet()
             .map { it.toPresentation() }
 }

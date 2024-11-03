@@ -1,8 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.design
 
-import io.github.mmolosay.thecolor.domain.model.UserPreferences
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorScheme as DomainUiColorScheme
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeMode as DomainUiColorSchemeMode
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeSet as DomainUiColorSchemeSet
 
 /*
  * Contains functions that transform Domain layer models into their equivalents in Presentation layer.
@@ -18,12 +17,12 @@ fun DomainUiColorScheme.toPresentation(): ColorScheme =
     }
 
 /**
- * Maps [DomainUiColorSchemeMode] of Domain layer to a [ColorSchemeResolver] of Presentation layer.
+ * Maps [DomainUiColorSchemeSet] of Domain layer to a [ColorSchemeResolver] of Presentation layer.
  *
  * ### Reasoning behind having [ColorSchemeResolver] as returned type instead of [ColorScheme]
  * In order for this method to return a ready-to-use presentational [ColorScheme], it needs
  * to accept some `isSystemInDarkMode: Boolean` as a parameter.
- * It will be used to resolve [DomainUiColorSchemeMode.Dual].
+ * It will be used to resolve [DomainUiColorSchemeSet].
  * At the same time, we want to call this function from ViewModel, where Domain models are usually
  * mapped to their Presentation layer counterparts.
  *
@@ -39,18 +38,11 @@ fun DomainUiColorScheme.toPresentation(): ColorScheme =
  * This way, the only thing for UI to do will be to supply 'brightness',
  * which falls well within View's scope of responsibility.
  */
-fun DomainUiColorSchemeMode.toPresentation(): ColorSchemeResolver =
+fun DomainUiColorSchemeSet.toPresentation(): ColorSchemeResolver =
     ColorSchemeResolver { brightness ->
-        val domainColorScheme = when (this) {
-            is DomainUiColorSchemeMode.Single -> {
-                this.scheme
-            }
-            is UserPreferences.UiColorSchemeMode.Dual -> {
-                when (brightness) {
-                    Brightness.Light -> this.light
-                    Brightness.Dark -> this.dark
-                }
-            }
+        val domainColorScheme = when (brightness) {
+            Brightness.Light -> this.light
+            Brightness.Dark -> this.dark
         }
         domainColorScheme.toPresentation()
     }
