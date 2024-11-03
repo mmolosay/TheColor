@@ -16,8 +16,11 @@ import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.mmolosay.thecolor.presentation.design.Brightness
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
+import io.github.mmolosay.thecolor.presentation.design.animateColors
 import io.github.mmolosay.thecolor.presentation.design.brightness
+import io.github.mmolosay.thecolor.presentation.design.isDefaultNavigationBarLight
 import io.github.mmolosay.thecolor.presentation.design.systemBrightness
+import io.github.mmolosay.thecolor.presentation.design.toMaterialColorScheme
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
@@ -100,9 +103,12 @@ class MainActivity : AppCompatActivity() {
             .collectAsStateWithLifecycle(initialValue = null).value
             ?.resolve(brightness = systemBrightness())
             ?: return
+        val materialColorScheme = colorScheme.toMaterialColorScheme()
+        val animatedMaterialColorScheme = materialColorScheme.animateColors()
 
         TheColorTheme(
-            colorScheme = colorScheme,
+            materialColorScheme = animatedMaterialColorScheme,
+            isDefaultNavigationBarLight = colorScheme.isDefaultNavigationBarLight(),
         ) {
             Application()
         }
