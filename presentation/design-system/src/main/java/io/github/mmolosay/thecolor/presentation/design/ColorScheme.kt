@@ -2,6 +2,7 @@ package io.github.mmolosay.thecolor.presentation.design
 
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.ColorScheme as MaterialColorScheme
 
 /**
  * A color scheme to be used in UI.
@@ -14,16 +15,16 @@ enum class ColorScheme {
     ;
 }
 
-internal fun ColorScheme.toMaterialColorScheme() =
+internal fun ColorScheme.toMaterialColorScheme(): MaterialColorScheme =
     when (this) {
         ColorScheme.Light -> lightColorScheme
         ColorScheme.Dark -> darkColorScheme
     }
 
-private val lightColorScheme by lazy {
+private val lightColorScheme: MaterialColorScheme by lazy {
     lightColorScheme()
 }
 
-private val darkColorScheme by lazy {
+private val darkColorScheme: MaterialColorScheme by lazy {
     darkColorScheme()
 }
