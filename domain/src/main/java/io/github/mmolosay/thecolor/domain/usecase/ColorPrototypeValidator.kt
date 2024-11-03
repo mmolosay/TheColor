@@ -6,7 +6,7 @@ import javax.inject.Inject
 /**
  * Checks whether provided [ColorPrototype] is a valid color or not.
  */
-// TODO: kotlin contracts for parameter properties are not supported at the moment
+// kotlin contracts for parameter properties are not supported at the moment
 class ColorPrototypeValidator @Inject constructor() {
 
     fun ColorPrototype.isValid(): Boolean =
