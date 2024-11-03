@@ -14,22 +14,28 @@ fun TextFieldUiData(
         label = strings.label,
         placeholder = strings.placeholder,
         prefix = strings.prefix,
-        trailingButton = TrailingButton(data.trailingButton, strings.trailingIcon),
+        trailingButton = TrailingButton(
+            data = data.trailingButton,
+            iconContentDesc = strings.trailingIconContentDesc,
+        ),
     )
 
 private fun TrailingButton(
     data: TextFieldData.TrailingButton,
-    icon: TextFieldUiStrings.TrailingIcon,
+    iconContentDesc: String?,
 ): UiTrailingButton =
     when (data) {
-        is DataTrailingButton.Hidden -> UiTrailingButton.Hidden
+        is DataTrailingButton.Hidden -> {
+            UiTrailingButton.Hidden
+        }
         is DataTrailingButton.Visible -> {
-            when (icon) {
-                is TextFieldUiStrings.TrailingIcon.None -> UiTrailingButton.Hidden // View didn't supply trailing icon, thus don't show trailing button
-                is TextFieldUiStrings.TrailingIcon.Exists -> UiTrailingButton.Visible(
+            if (iconContentDesc != null) {
+                UiTrailingButton.Visible(
                     onClick = data.onClick,
-                    iconContentDesc = icon.contentDesc
+                    iconContentDesc = iconContentDesc,
                 )
+            } else {
+                UiTrailingButton.Hidden
             }
         }
     }

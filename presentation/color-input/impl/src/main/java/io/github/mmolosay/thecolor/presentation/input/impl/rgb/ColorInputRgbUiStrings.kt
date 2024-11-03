@@ -28,7 +28,7 @@ private fun TextFieldRUiStrings(context: Context) =
         label = context.getString(R.string.color_input_rgb_r_label),
         placeholder = context.getString(R.string.color_input_rgb_r_placeholder),
         prefix = null,
-        trailingIcon = TextFieldUiStrings.TrailingIcon.None,
+        trailingIconContentDesc = null,
     )
 
 private fun TextFieldGUiStrings(context: Context) =
@@ -36,7 +36,7 @@ private fun TextFieldGUiStrings(context: Context) =
         label = context.getString(R.string.color_input_rgb_g_label),
         placeholder = context.getString(R.string.color_input_rgb_g_placeholder),
         prefix = null,
-        trailingIcon = TextFieldUiStrings.TrailingIcon.None,
+        trailingIconContentDesc = null,
     )
 
 private fun TextFieldBUiStrings(context: Context) =
@@ -44,5 +44,5 @@ private fun TextFieldBUiStrings(context: Context) =
         label = context.getString(R.string.color_input_rgb_b_label),
         placeholder = context.getString(R.string.color_input_rgb_b_placeholder),
         prefix = null,
-        trailingIcon = TextFieldUiStrings.TrailingIcon.None,
+        trailingIconContentDesc = null,
     )

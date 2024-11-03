@@ -10,11 +10,5 @@ data class TextFieldUiStrings(
     val label: String,
     val placeholder: String,
     val prefix: String?,
-    val trailingIcon: TrailingIcon, // TODO: replace with String? type
-) {
-
-    sealed interface TrailingIcon {
-        data object None : TrailingIcon
-        data class Exists(val contentDesc: String) : TrailingIcon
-    }
-}
+    val trailingIconContentDesc: String?,
+)

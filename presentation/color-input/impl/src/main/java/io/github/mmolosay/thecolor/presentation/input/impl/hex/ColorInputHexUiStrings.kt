@@ -24,7 +24,5 @@ private fun TextFieldUiStrings(context: Context) =
         label = context.getString(R.string.color_input_hex_label),
         placeholder = context.getString(R.string.color_input_hex_placeholder),
         prefix = "#",
-        trailingIcon = TextFieldUiStrings.TrailingIcon.Exists(
-            contentDesc = context.getString(R.string.color_input_hex_trailing_icon_desc),
-        ),
+        trailingIconContentDesc = context.getString(R.string.color_input_hex_trailing_icon_desc),
     )
