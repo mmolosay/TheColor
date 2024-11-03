@@ -15,7 +15,7 @@ import io.github.mmolosay.thecolor.presentation.input.impl.SharingStartedEagerly
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewModel
-import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewModel.Companion.updateWith
+import io.github.mmolosay.thecolor.presentation.input.impl.field.updateText
 import io.github.mmolosay.thecolor.presentation.input.impl.model.ColorSubmissionResult
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.impl.model.FullData
@@ -100,7 +100,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
     private fun collectMediatorUpdates() {
         coroutineScope.launch(uiDataUpdateDispatcher) {
             mediator.hexColorInputFlow.collect { input ->
-                textFieldVm updateWith Text(input.string)
+                textFieldVm updateText Text(input.string)
             }
         }
     }

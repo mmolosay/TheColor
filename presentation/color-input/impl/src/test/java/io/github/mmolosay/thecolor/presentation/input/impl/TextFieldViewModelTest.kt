@@ -4,7 +4,7 @@ import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.TrailingButton
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewModel
-import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewModel.Companion.updateWith
+import io.github.mmolosay.thecolor.presentation.input.impl.field.updateText
 import io.github.mmolosay.thecolor.presentation.input.impl.model.Update
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -33,7 +33,7 @@ class TextFieldViewModelTest {
     fun `data is initialized when text is changed by companion`() {
         createSut()
 
-        sut updateWith Text("initial")
+        sut updateText Text("initial")
 
         sut.dataUpdatesFlow.value shouldNotBe null
     }
@@ -41,9 +41,9 @@ class TextFieldViewModelTest {
     @Test
     fun `text is updated when test is changed by companion`() {
         createSut()
-        sut updateWith Text("initial")
+        sut updateText Text("initial")
 
-        sut updateWith Text("new")
+        sut updateText Text("new")
 
         data.text shouldBe Text("new")
     }
@@ -52,7 +52,7 @@ class TextFieldViewModelTest {
     fun `data update is not caused by user when text is changed by companion`() {
         createSut()
 
-        sut updateWith Text("initial")
+        sut updateText Text("initial")
 
         dataUpdate.causedByUser shouldBe false
     }
@@ -60,7 +60,7 @@ class TextFieldViewModelTest {
     @Test
     fun `text is updated when text is changed from UI`() {
         createSut()
-        sut updateWith Text("initial")
+        sut updateText Text("initial")
 
         data.onTextChange(Text("new"))
 
@@ -70,7 +70,7 @@ class TextFieldViewModelTest {
     @Test
     fun `data update is caused by user when text is changed from UI`() {
         createSut()
-        sut updateWith Text("initial")
+        sut updateText Text("initial")
 
         data.onTextChange(Text("new"))
 
@@ -81,7 +81,7 @@ class TextFieldViewModelTest {
     fun `trailing button is visible on initialization when text is non-empty`() {
         createSut()
 
-        sut updateWith Text("non-empty text")
+        sut updateText Text("non-empty text")
 
         data.trailingButton should beOfType<TrailingButton.Visible>()
     }
@@ -90,7 +90,7 @@ class TextFieldViewModelTest {
     fun `trailing button is hidden on initialization when text is empty`() {
         createSut()
 
-        sut updateWith Text("")
+        sut updateText Text("")
 
         data.trailingButton should beOfType<TrailingButton.Hidden>()
     }
@@ -98,7 +98,7 @@ class TextFieldViewModelTest {
     @Test
     fun `trailing button is visible when text is changed from UI and text is non-empty`() {
         createSut()
-        sut updateWith Text("initial")
+        sut updateText Text("initial")
 
         data.onTextChange(Text("non-empty text"))
 
@@ -108,7 +108,7 @@ class TextFieldViewModelTest {
     @Test
     fun `trailing button is hidden when text is changed from UI and text is empty`() {
         createSut()
-        sut updateWith Text("initial")
+        sut updateText Text("initial")
 
         data.onTextChange(Text(""))
 
@@ -118,7 +118,7 @@ class TextFieldViewModelTest {
     @Test
     fun `text is cleared on trailing button click`() {
         createSut()
-        sut updateWith Text("initial non-empty text")
+        sut updateText Text("initial non-empty text")
 
         (data.trailingButton as TrailingButton.Visible).onClick()
 
@@ -128,7 +128,7 @@ class TextFieldViewModelTest {
     @Test
     fun `UiData update is caused by user when trailing button is clicked`() {
         createSut()
-        sut updateWith Text("initial non-empty text")
+        sut updateText Text("initial non-empty text")
 
         (data.trailingButton as TrailingButton.Visible).onClick()
 

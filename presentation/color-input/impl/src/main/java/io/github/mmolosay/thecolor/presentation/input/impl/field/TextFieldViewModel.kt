@@ -23,7 +23,7 @@ class TextFieldViewModel(
     private val _dataUpdatesFlow = MutableStateFlow<Update<TextFieldData>?>(null)
     val dataUpdatesFlow = _dataUpdatesFlow.asStateFlow()
 
-    private fun updateText(update: Update<Text>) {
+    fun updateText(update: Update<Text>) {
         _dataUpdatesFlow.update {
             val text = update.payload
             val newData = if (it == null) {
@@ -61,17 +61,12 @@ class TextFieldViewModel(
             filterUserInput = filterUserInput,
             trailingButton = trailingButton(text),
         )
+}
 
-    companion object {
-
-        /*
-         * Curious thing to notice:
-         * Used method of ViewModel is private,
-         * however you still will be able to invoke it indirectly using this companion object.
-         * I find this approach to be a great alternative to exposing ViewModel methods as public.
-         */
-        infix fun TextFieldViewModel.updateWith(text: Text) {
-            updateText(text causedByUser false) // not a data from UI
-        }
-    }
+/**
+ * Update text when it comes not from UI or user input.
+ */
+infix fun TextFieldViewModel.updateText(text: Text) {
+    val update = text causedByUser false
+    this.updateText(update)
 }

@@ -15,7 +15,7 @@ import io.github.mmolosay.thecolor.presentation.input.impl.SharingStartedEagerly
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewModel
-import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewModel.Companion.updateWith
+import io.github.mmolosay.thecolor.presentation.input.impl.field.updateText
 import io.github.mmolosay.thecolor.presentation.input.impl.model.ColorSubmissionResult
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.impl.model.FullData
@@ -110,9 +110,9 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     private fun collectMediatorUpdates() {
         coroutineScope.launch(uiDataUpdateDispatcher) {
             mediator.rgbColorInputFlow.collect { input ->
-                rTextFieldVm updateWith Text(input.r)
-                gTextFieldVm updateWith Text(input.g)
-                bTextFieldVm updateWith Text(input.b)
+                rTextFieldVm updateText Text(input.r)
+                gTextFieldVm updateText Text(input.g)
+                bTextFieldVm updateText Text(input.b)
             }
         }
     }
