@@ -3,7 +3,7 @@ package io.github.mmolosay.thecolor.presentation.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.asSingleInSet
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.asSingletonSet
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
@@ -65,9 +65,9 @@ class SettingsViewModel @Inject constructor(
 
     private fun supportedAppUiColorSchemeSets(): List<DomainUiColorSchemeSet> =
         buildList {
-            DomainUiColorScheme.Light.asSingleInSet()
+            DomainUiColorScheme.Light.asSingletonSet()
                 .also { add(it) }
-            DomainUiColorScheme.Dark.asSingleInSet()
+            DomainUiColorScheme.Dark.asSingletonSet()
                 .also { add(it) }
             DomainUiColorSchemeSet.DayNight
                 .also { add(it) }

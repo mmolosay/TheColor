@@ -22,7 +22,7 @@ object UserPreferences {
         }
     }
 
-    fun UiColorScheme.asSingleInSet(): UiColorSchemeSet =
+    fun UiColorScheme.asSingletonSet(): UiColorSchemeSet =
         UiColorSchemeSet(light = this, dark = this)
 
     // https://en.wikipedia.org/wiki/Singleton_(mathematics)

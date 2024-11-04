@@ -28,7 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.debounce.debounced
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.asSingleInSet
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.asSingletonSet
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.isSingleton
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.single
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
@@ -250,8 +250,8 @@ private fun previewData() =
         changePreferredColorInputType = {},
         appUiColorSchemeSet = DomainUiColorSchemeSet.DayNight,
         supportedAppUiColorSchemeSets = listOf(
-            DomainUiColorScheme.Light.asSingleInSet(),
-            DomainUiColorScheme.Dark.asSingleInSet(),
+            DomainUiColorScheme.Light.asSingletonSet(),
+            DomainUiColorScheme.Dark.asSingletonSet(),
             DomainUiColorSchemeSet.DayNight,
         ),
         changeAppUiColorSchemeSet = {},

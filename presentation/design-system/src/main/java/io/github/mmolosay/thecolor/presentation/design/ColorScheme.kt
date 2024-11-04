@@ -37,7 +37,7 @@ private val darkColorScheme: MaterialColorScheme by lazy {
 @Composable
 fun MaterialColorScheme.animateColors(): MaterialColorScheme {
     val animationSpec = tween<Color>(
-        durationMillis = 400,
+        durationMillis = 800,
         easing = LinearOutSlowInEasing,
     )
 
