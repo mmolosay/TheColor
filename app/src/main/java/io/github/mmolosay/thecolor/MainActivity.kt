@@ -106,15 +106,15 @@ class MainActivity : AppCompatActivity() {
         val materialColorScheme = colorScheme.toMaterialColorScheme()
         val animatedMaterialColorScheme = materialColorScheme.animateColors()
 
+        LaunchedEffect(colorScheme) {
+            enableEdgeToEdge(colorSchemeBrightness = colorScheme.brightness())
+        }
+
         TheColorTheme(
             materialColorScheme = animatedMaterialColorScheme,
             isDefaultNavigationBarLight = colorScheme.isDefaultNavigationBarLight(),
         ) {
             Application()
-        }
-
-        LaunchedEffect(colorScheme) {
-            enableEdgeToEdge(colorSchemeBrightness = colorScheme.brightness())
         }
     }
 }
