@@ -72,7 +72,7 @@ abstract class ColorInputRgbViewModelTest {
 }
 
 @RunWith(Parameterized::class)
-class FilterUserInputTest(
+class FilterRgbUserInputTest(
     val string: String,
     val expectedTextString: String,
 ) : ColorInputRgbViewModelTest() {
@@ -81,6 +81,7 @@ class FilterUserInputTest(
     fun `user input is filtered as expected`() {
         createSut()
 
+        // we check only one component because the logic is same for all 3 of them
         val text = data.rTextField.filterUserInput(string)
 
         withClue("Filtering user input \"$string\" should return $expectedTextString") {
@@ -111,7 +112,7 @@ class FilterUserInputTest(
     }
 }
 
-class Other : ColorInputRgbViewModelTest() {
+class OtherRgb : ColorInputRgbViewModelTest() {
 
     @Test
     fun `sut is created with state BeingInitialized if mediator RGB flow has no value yet`() {

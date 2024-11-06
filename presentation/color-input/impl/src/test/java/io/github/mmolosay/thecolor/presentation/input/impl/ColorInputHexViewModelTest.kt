@@ -10,6 +10,7 @@ import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexData
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexViewModel
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
+import io.kotest.assertions.withClue
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
@@ -29,14 +30,17 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
-class ColorInputHexViewModelTest {
+abstract class ColorInputHexViewModelTest {
 
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
     val mediator: ColorInputMediator = mockk {
         every { hexColorInputFlow } returns flowOf(ColorInput.Hex(""))
+        coEvery { send(color = any(), from = InputType.Hex) } just runs
     }
     val eventStore: ColorInputEventStore = mockk()
     val colorInputValidator: ColorInputValidator = mockk {
@@ -44,6 +48,66 @@ class ColorInputHexViewModelTest {
     }
 
     lateinit var sut: ColorInputHexViewModel
+
+    fun createSut() =
+        ColorInputHexViewModel(
+            coroutineScope = TestScope(context = mainDispatcherRule.testDispatcher),
+            mediator = mediator,
+            eventStore = eventStore,
+            colorInputValidator = colorInputValidator,
+            defaultDispatcher = mainDispatcherRule.testDispatcher,
+            uiDataUpdateDispatcher = mainDispatcherRule.testDispatcher,
+        ).also {
+            sut = it
+        }
+
+    val dataState: DataState<ColorInputHexData>
+        get() = sut.dataStateFlow.value
+
+    val data: ColorInputHexData
+        get() = dataState.shouldBeInstanceOf<DataState.Ready<ColorInputHexData>>().data
+}
+
+@RunWith(Parameterized::class)
+class FilterHexUserInputTest(
+    val string: String,
+    val expectedTextString: String,
+) : ColorInputHexViewModelTest() {
+
+    @Test
+    fun `user input is filtered as expected`() {
+        createSut()
+
+        val text = data.textField.filterUserInput(string)
+
+        withClue("Filtering user input \"$string\" should return $expectedTextString") {
+            text shouldBe Text(expectedTextString)
+        }
+    }
+
+    companion object {
+
+        @JvmStatic
+        @Parameterized.Parameters
+        fun data() = listOf(
+            // can't work with Text() directly because it's a value class and inlined in runtime
+            /* #0  */ "" shouldBeFilteredTo "",
+            /* #1  */ "0" shouldBeFilteredTo "0",
+            /* #2  */ "E" shouldBeFilteredTo "E",
+            /* #3  */ "30" shouldBeFilteredTo "30",
+            /* #4  */ "1A803F" shouldBeFilteredTo "1A803F",
+            /* #5  */ "123abc_!.@ABG" shouldBeFilteredTo "123ABC",
+            /* #6  */ "x!1y_2z^3ABC" shouldBeFilteredTo "123ABC",
+            /* #7  */ "1234567890" shouldBeFilteredTo "123456",
+            /* #8  */ "123456789ABCDEF" shouldBeFilteredTo "123456",
+        )
+
+        infix fun String.shouldBeFilteredTo(expectedText: String): Array<Any> =
+            arrayOf(this, expectedText)
+    }
+}
+
+class OtherHex : ColorInputHexViewModelTest() {
 
     @Test
     fun `SUT is created with state BeingInitialized if mediator HEX flow has no value yet`() {
@@ -74,26 +138,6 @@ class ColorInputHexViewModelTest {
 
             dataState should beOfType<DataState.Ready<*>>()
         }
-
-    // TODO: make tests for filtering parameterized and add more test cases
-
-    @Test
-    fun `filtering keeps only digits and letters A-F`() {
-        createSut()
-
-        val result = data.textField.filterUserInput("123abc_!.@ABG")
-
-        result.string shouldBe "123ABC"
-    }
-
-    @Test
-    fun `filtering keeps only first 6 characters`() {
-        createSut()
-
-        val result = data.textField.filterUserInput("123456789ABCDEF")
-
-        result.string shouldBe "123456"
-    }
 
     @Test
     fun `initial data is not sent to mediator`() =
@@ -184,22 +228,4 @@ class ColorInputHexViewModelTest {
             eventStore.send(event = any<ColorInputEvent.Submit>())
         }
     }
-
-    fun createSut() =
-        ColorInputHexViewModel(
-            coroutineScope = TestScope(context = mainDispatcherRule.testDispatcher),
-            mediator = mediator,
-            eventStore = eventStore,
-            colorInputValidator = colorInputValidator,
-            defaultDispatcher = mainDispatcherRule.testDispatcher,
-            uiDataUpdateDispatcher = mainDispatcherRule.testDispatcher,
-        ).also {
-            sut = it
-        }
-
-    val dataState: DataState<ColorInputHexData>
-        get() = sut.dataStateFlow.value
-
-    val data: ColorInputHexData
-        get() = dataState.shouldBeInstanceOf<DataState.Ready<ColorInputHexData>>().data
 }
