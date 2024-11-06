@@ -2,10 +2,12 @@ package io.github.mmolosay.thecolor.data.local
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import io.github.mmolosay.thecolor.domain.model.UserPreferences
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.ColorInputType
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.ShouldResumeFromLastSearchedColorOnStartup
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorScheme
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeSet
 import io.github.mmolosay.thecolor.domain.repository.DefaultUserPreferences
@@ -41,6 +43,11 @@ class UserPreferencesDataStoreRepository @Inject constructor(
     private val stateFlowOfAppUiColorSchemeSet: StateFlow<UiColorSchemeSet?> =
         dataStore.data
             .map { it.getAppUiColorSchemeSet() }
+            .stateEagerlyInAppScope()
+
+    private val stateFlowOfShouldResumeFromLastSearchedColorOnStartup: StateFlow<ShouldResumeFromLastSearchedColorOnStartup?> =
+        dataStore.data
+            .map { it.getShouldResumeFromLastSearchedColorOnStartup() }
             .stateEagerlyInAppScope()
 
     override fun flowOfColorInputType(): Flow<ColorInputType> =
@@ -112,6 +119,33 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         }
     }
 
+    override fun flowOfShouldResumeFromLastSearchedColorOnStartup(): Flow<ShouldResumeFromLastSearchedColorOnStartup> =
+        stateFlowOfShouldResumeFromLastSearchedColorOnStartup.filterNotNull()
+
+    private fun Preferences.getShouldResumeFromLastSearchedColorOnStartup(): ShouldResumeFromLastSearchedColorOnStartup {
+        val dtoValue = this[DataStoreKeys.ShouldResumeFromLastSearchedColorOnStartup]
+        return if (dtoValue != null) {
+            ShouldResumeFromLastSearchedColorOnStartup(
+                boolean = dtoValue, // boolean stays boolean in both Data and Domain layers
+            )
+        } else {
+            DefaultUserPreferences.ShouldResumeFromLastSearchedColorOnStartup
+        }
+    }
+
+    override suspend fun setShouldResumeFromLastSearchedColorOnStartup(value: ShouldResumeFromLastSearchedColorOnStartup?) {
+        withContext(ioDispatcher) {
+            dataStore.edit { preferences ->
+                if (value != null) {
+                    preferences[DataStoreKeys.ShouldResumeFromLastSearchedColorOnStartup] =
+                        value.boolean
+                } else {
+                    preferences.remove(DataStoreKeys.ShouldResumeFromLastSearchedColorOnStartup)
+                }
+            }
+        }
+    }
+
     private fun <T> Flow<T>.stateEagerlyInAppScope(): StateFlow<T?> =
         this.stateIn(
             scope = appScope,
@@ -129,6 +163,9 @@ class UserPreferencesDataStoreRepository @Inject constructor(
 
         /** Key for a `dark` [UserPreferences.UiColorScheme] from the [UserPreferences.UiColorSchemeSet]. */
         val AppUiColorSchemeDark = stringPreferencesKey("app_ui_color_scheme_set_dark_value")
+
+        val ShouldResumeFromLastSearchedColorOnStartup =
+            booleanPreferencesKey("should_resume_from_last_searched_color_on_startup")
     }
 }
 

@@ -192,6 +192,15 @@ fun Settings(
                 }
             }
         }
+
+        item("resume from last searched color") {
+            ResumeFromLastSearchedColor(
+                title = strings.itemResumeFromLastSearchedColorTitle,
+                description = strings.itemResumeFromLastSearchedColorDesc,
+                checked = data.shouldResumeFromLastSearchedColorOnStartup,
+                onCheckedChange = data.changeShouldResumeFromLastSearchedColorOnStartup,
+            )
+        }
     }
 }
 
@@ -255,4 +264,6 @@ private fun previewData() =
             DomainUiColorSchemeSet.DayNight,
         ),
         changeAppUiColorSchemeSet = {},
+        shouldResumeFromLastSearchedColorOnStartup = true,
+        changeShouldResumeFromLastSearchedColorOnStartup = {},
     )

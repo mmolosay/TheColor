@@ -21,6 +21,8 @@ data class SettingsUiStrings(
     val itemAppUiColorSchemeValueDark: String,
     val itemAppUiColorSchemeValueDayNightShort: String,
     val itemAppUiColorSchemeValueDayNightVerbose: String,
+    val itemResumeFromLastSearchedColorTitle: String,
+    val itemResumeFromLastSearchedColorDesc: String,
 )
 
 fun SettingsUiStrings(context: Context) =
@@ -37,4 +39,6 @@ fun SettingsUiStrings(context: Context) =
         itemAppUiColorSchemeValueDark = context.getString(R.string.settings_item_app_ui_color_scheme_value_dark),
         itemAppUiColorSchemeValueDayNightShort = context.getString(R.string.settings_item_app_ui_color_scheme_value_day_night_short),
         itemAppUiColorSchemeValueDayNightVerbose = context.getString(R.string.settings_item_app_ui_color_scheme_value_day_night_verbose),
+        itemResumeFromLastSearchedColorTitle = context.getString(R.string.settings_item_resume_from_last_searched_color_title),
+        itemResumeFromLastSearchedColorDesc = context.getString(R.string.settings_item_resume_from_last_searched_color_desc),
     )

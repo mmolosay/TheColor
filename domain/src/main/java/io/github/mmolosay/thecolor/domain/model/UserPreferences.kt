@@ -31,4 +31,9 @@ object UserPreferences {
 
     fun UiColorSchemeSet.single(): UiColorScheme =
         this.light
+
+    @JvmInline
+    value class ShouldResumeFromLastSearchedColorOnStartup(
+        val boolean: Boolean,
+    )
 }

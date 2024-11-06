@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Named
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.ColorInputType as DomainColorInputType
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.ShouldResumeFromLastSearchedColorOnStartup as DomainShouldResumeFromLastSearchedColorOnStartup
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorScheme as DomainUiColorScheme
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeSet as DomainUiColorSchemeSet
 
@@ -29,6 +30,7 @@ class SettingsViewModel @Inject constructor(
         combine(
             userPreferencesRepository.flowOfColorInputType(),
             userPreferencesRepository.flowOfAppUiColorSchemeSet(),
+            userPreferencesRepository.flowOfShouldResumeFromLastSearchedColorOnStartup(),
             transform = ::createData,
         )
             .map { data -> DataState.Ready(data) }
@@ -50,9 +52,17 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    private fun updateShouldResumeFromLastSearchedColorOnStartup(value: Boolean) {
+        viewModelScope.launch(defaultDispatcher) {
+            val domainModel = DomainShouldResumeFromLastSearchedColorOnStartup(value)
+            userPreferencesRepository.setShouldResumeFromLastSearchedColorOnStartup(domainModel)
+        }
+    }
+
     private fun createData(
         preferredColorInputType: DomainColorInputType,
         appUiColorSchemeSet: DomainUiColorSchemeSet,
+        shouldResumeFromLastSearchedColorOnStartup: DomainShouldResumeFromLastSearchedColorOnStartup,
     ): SettingsData {
         return SettingsData(
             preferredColorInputType = preferredColorInputType,
@@ -60,6 +70,8 @@ class SettingsViewModel @Inject constructor(
             appUiColorSchemeSet = appUiColorSchemeSet,
             supportedAppUiColorSchemeSets = supportedAppUiColorSchemeSets(),
             changeAppUiColorSchemeSet = ::updateAppUiColorSchemeSet,
+            shouldResumeFromLastSearchedColorOnStartup = shouldResumeFromLastSearchedColorOnStartup.boolean,
+            changeShouldResumeFromLastSearchedColorOnStartup = ::updateShouldResumeFromLastSearchedColorOnStartup,
         )
     }
 
