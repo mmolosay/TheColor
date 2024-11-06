@@ -27,9 +27,6 @@ class ColorRepositoryRemoteImpl @Inject constructor(
     private val resultMapper: ResultMapper,
 ) : ColorRepository {
 
-    override suspend fun lastSearchedColor(): Color? =
-        null
-
     override suspend fun getColorDetails(color: Color): Result<ColorDetails> {
         val colorString = color.toDtoString()
         val kotlinResult = runCatching {

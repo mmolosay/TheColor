@@ -60,7 +60,7 @@ class ColorInputViewModel @AssistedInject constructor(
 
     init {
         coroutineScope.launch {
-            mediator.init()
+            mediator.send(color = null, from = null) // TODO: refactor!
         }
         coroutineScope.launch(defaultDispatcher) {
             _dataStateFlow.value = DataState.Ready(data = initialData())

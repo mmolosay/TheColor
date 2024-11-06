@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.model.Color
+import io.github.mmolosay.thecolor.domain.repository.LastSearchedColorRepository
+import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
 import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.api.ViewModelCoroutineScope
@@ -31,6 +33,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -62,6 +65,8 @@ class HomeViewModel @Inject constructor(
     private val createColorData: CreateColorDataUseCase,
     private val colorCenterSessionBuilder: ColorCenterSessionBuilder,
     private val doesColorBelongToSession: DoesColorBelongToSessionUseCase,
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val lastSearchedColorRepository: LastSearchedColorRepository,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
     @Named("uiDataUpdateDispatcher") private val uiDataUpdateDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
@@ -107,6 +112,7 @@ class HomeViewModel @Inject constructor(
         collectColorsFromColorInput()
         collectEventsFromColorInput()
         collectColorCenterComponents()
+        proceedWithLastSearchedColor()
     }
 
     private fun collectColorsFromColorInput() =
@@ -137,6 +143,24 @@ class HomeViewModel @Inject constructor(
                     components.colorDetailsEventStore.collect(coroutineScope)
                 }
         }
+
+    private fun proceedWithLastSearchedColor() {
+        viewModelScope.launch(defaultDispatcher) {
+            val shouldResumeFromLastSearchedColorOnStartup = userPreferencesRepository
+                .flowOfShouldResumeFromLastSearchedColorOnStartup()
+                .first()
+            val should = shouldResumeFromLastSearchedColorOnStartup.boolean
+            if (!should) return@launch
+            val lastSearchedColor =
+                lastSearchedColorRepository.getLastSearchedColor() ?: return@launch
+            updateColorInColorInput(color = lastSearchedColor)
+            proceed(
+                color = lastSearchedColor,
+                colorRole = null,
+                isNewColorCenterSession = true,
+            )
+        }
+    }
 
     private fun ColorDetailsEventStore.collect(coroutineScope: CoroutineScope) =
         coroutineScope.launch(defaultDispatcher) {
@@ -175,9 +199,7 @@ class HomeViewModel @Inject constructor(
             }
             is ColorDetailsEvent.ColorSelected -> {
                 viewModelScope.launch(defaultDispatcher) {
-                    withContext(uiDataUpdateDispatcher) {
-                        colorInputMediator.send(color = event.color, from = null)
-                    }
+                    updateColorInColorInput(color = event.color)
                     proceed(
                         color = event.color,
                         colorRole = event.colorRole,
@@ -209,13 +231,16 @@ class HomeViewModel @Inject constructor(
             }
             val colorCenterComponents = requireNotNull(colorCenterComponentsFlow.value)
             // send to both features of Color Center explicitly
-            run sendToColorDetails@{
+            kotlin.run sendToColorDetails@{
                 val command = ColorDetailsCommand.FetchData(color, colorRole)
                 colorCenterComponents.colorDetailsCommandStore.issue(command)
             }
-            run sendToColorScheme@{
+            kotlin.run sendToColorScheme@{
                 val command = ColorSchemeCommand.FetchData(color)
                 colorCenterComponents.colorSchemeCommandStore.issue(command)
+            }
+            kotlin.run persistLastSearchedColor@{
+                lastSearchedColorRepository.setLastSearchedColor(color)
             }
             val colorData = createColorData(color)
             val proceedResult = HomeData.ProceedResult.Success(
@@ -334,6 +359,14 @@ class HomeViewModel @Inject constructor(
         run disposeAndSetNull@{
             colorCenterComponentsFlow.value?.colorCenterViewModel?.dispose()
             colorCenterComponentsFlow.value = null
+        }
+    }
+
+    private suspend fun updateColorInColorInput(
+        color: Color,
+    ) {
+        withContext(uiDataUpdateDispatcher) {
+            colorInputMediator.send(color = color, from = null)
         }
     }
 

@@ -5,7 +5,6 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
-import io.github.mmolosay.thecolor.domain.usecase.GetInitialColorUseCase
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
 import kotlinx.coroutines.channels.BufferOverflow
@@ -30,7 +29,6 @@ import kotlinx.coroutines.flow.map
  */
 class ColorInputMediator @AssistedInject constructor(
     @Assisted private val colorInputColorStore: ColorInputColorStore,
-    private val getInitialColor: GetInitialColorUseCase,
     private val colorInputMapper: ColorInputMapper,
     private val colorConverter: ColorConverter,
     private val colorInputFactory: ColorInputFactory,
@@ -76,13 +74,6 @@ class ColorInputMediator @AssistedInject constructor(
                     is ColorState.Valid -> colorToColorInput(colorState.color)
                 }
             }
-
-    suspend fun init() {
-        send(
-            color = getInitialColor(),
-            from = null,
-        )
-    }
 
     /**
      * Propagates specified [color] to color input flows (e.g. [hexColorInputFlow]).

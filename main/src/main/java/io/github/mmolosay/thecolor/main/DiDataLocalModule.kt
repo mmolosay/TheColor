@@ -11,10 +11,12 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.migration.DisableInstallInCheck
+import io.github.mmolosay.thecolor.data.local.LastSearchedColorDataStoreRepository
 import io.github.mmolosay.thecolor.data.local.TheColorDatabase
 import io.github.mmolosay.thecolor.data.local.TouchLocalDatabaseUseCaseImpl
 import io.github.mmolosay.thecolor.data.local.UserPreferencesDataStoreRepository
 import io.github.mmolosay.thecolor.data.local.dao.ColorsHistoryDao
+import io.github.mmolosay.thecolor.domain.repository.LastSearchedColorRepository
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.domain.usecase.TouchLocalDatabaseUseCase
 import javax.inject.Named
@@ -62,6 +64,16 @@ object DiDataLocalProvideModule {
             produceFile = { context.preferencesDataStoreFile("user_preferences") },
         )
 
+    @Provides
+    @Named("MiscValues")
+    @Singleton
+    fun provideMiscValuesDataStore(
+        @ApplicationContext context: Context,
+    ): DataStore<Preferences> =
+        PreferenceDataStoreFactory.create(
+            produceFile = { context.preferencesDataStoreFile("misc_values") },
+        )
+
     private const val DATABASE_NAME = "the_color_db"
 }
 
@@ -71,6 +83,9 @@ interface DiDataLocalBindModule {
 
     @Binds
     fun bindUserPreferencesRepository(impl: UserPreferencesDataStoreRepository): UserPreferencesRepository
+
+    @Binds
+    fun bindLastSearchedColorRepository(impl: LastSearchedColorDataStoreRepository): LastSearchedColorRepository
 
     @Binds
     fun bindTouchLocalDatabaseUseCase(impl: TouchLocalDatabaseUseCaseImpl): TouchLocalDatabaseUseCase

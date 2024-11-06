@@ -2,7 +2,6 @@ package io.github.mmolosay.thecolor.presentation.input.impl
 
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
-import io.github.mmolosay.thecolor.domain.usecase.GetInitialColorUseCase
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator.InputType
