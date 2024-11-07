@@ -642,6 +642,37 @@ class HomeViewModelTest {
             }
         }
 
+    /**
+     * - GIVEN
+     *  1. "should resume from last searched color on app startup" is enabled
+     *  2. last searched color is successfully retrieved
+     * - WHEN SUT is created
+     * - THEN last searched color is proceeded with and [data] is updated with [ProceedResult.Success].
+     */
+    @Test
+    fun `when 'should resume from last searched color on app startup' is enabled, then 'proceed' action is invoked for this color, thus 'proceedResult' is set to 'Success'`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            every {
+                userPreferencesRepository.flowOfShouldResumeFromLastSearchedColorOnStartup()
+            } returns kotlin.run {
+                val enabled = ShouldResumeFromLastSearchedColorOnStartup(boolean = true)
+                flowOf(enabled)
+            }
+            val lastSearchedColor: Color = Color.Hex(0x1A803F)
+            coEvery { lastSearchedColorRepository.getLastSearchedColor() } returns lastSearchedColor
+            every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = null)
+            every { colorInputEventStore.eventFlow } returns emptyFlow()
+            every { colorDetailsEventStore.eventFlow } returns emptyFlow()
+            val colorData: ProceedResult.Success.ColorData = mockk()
+            every { createColorData(color = lastSearchedColor) } returns colorData
+
+            createSut()
+
+            val proceedResultAsSuccess =
+                data.proceedResult.shouldBeInstanceOf<ProceedResult.Success>()
+            proceedResultAsSuccess.colorData shouldBe colorData
+        }
+
     fun createSut() =
         HomeViewModel(
             colorInputMediatorFactory = { _ -> colorInputMediator },
