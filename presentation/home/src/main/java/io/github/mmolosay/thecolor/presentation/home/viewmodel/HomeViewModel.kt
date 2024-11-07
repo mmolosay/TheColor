@@ -144,6 +144,7 @@ class HomeViewModel @Inject constructor(
                 }
         }
 
+    // TODO: add unit tests
     private fun proceedWithLastSearchedColor() {
         viewModelScope.launch(defaultDispatcher) {
             val shouldResumeFromLastSearchedColorOnStartup = userPreferencesRepository
