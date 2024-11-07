@@ -28,7 +28,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputData.ViewType
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputViewModel.DataState
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiData
@@ -37,6 +36,7 @@ import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexUiDa
 import io.github.mmolosay.thecolor.presentation.input.impl.rgb.ColorInputRgb
 import io.github.mmolosay.thecolor.presentation.input.impl.rgb.ColorInputRgbUiData
 import io.github.mmolosay.thecolor.utils.doNothing
+import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
 
 @Composable
 fun ColorInput(
@@ -76,7 +76,7 @@ fun ColorInput(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Crossfade(
-            targetState = uiData.selectedViewType,
+            targetState = uiData.selectedInputType,
             label = "Input type cross-fade",
         ) { type ->
             Box(
@@ -85,8 +85,8 @@ fun ColorInput(
                     .wrapContentWidth(),
             ) {
                 when (type) {
-                    ViewType.Hex -> hexInput()
-                    ViewType.Rgb -> rgbInput()
+                    DomainColorInputType.Hex -> hexInput()
+                    DomainColorInputType.Rgb -> rgbInput()
                 }
             }
         }
@@ -107,8 +107,8 @@ private fun InputSelector(
         CompositionLocalProvider(
             LocalMinimumInteractiveComponentEnforcement provides false,
         ) {
-            uiData.orderedViewTypes.forEach { type ->
-                val isSelected = (type == uiData.selectedViewType)
+            uiData.orderedInputTypes.forEach { type ->
+                val isSelected = (type == uiData.selectedInputType)
                 val contentColor = LocalContentColor.current
                 val colors = FilterChipDefaults.filterChipColors(
                     labelColor = contentColor.copy(alpha = 0.60f),
@@ -144,10 +144,10 @@ private fun ChipLabel(text: String) {
     )
 }
 
-private fun ViewType.label(uiData: ColorInputUiData): String =
+private fun DomainColorInputType.label(uiData: ColorInputUiData): String =
     when (this) {
-        ViewType.Hex -> uiData.hexLabel
-        ViewType.Rgb -> uiData.rgbLabel
+        DomainColorInputType.Hex -> uiData.hexLabel
+        DomainColorInputType.Rgb -> uiData.rgbLabel
     }
 
 @Preview(showBackground = true)
@@ -168,8 +168,8 @@ private fun Preview() {
 
 private fun previewUiData() =
     ColorInputUiData(
-        selectedViewType = ViewType.Hex,
-        orderedViewTypes = ViewType.entries,
+        selectedInputType = DomainColorInputType.Hex,
+        orderedInputTypes = DomainColorInputType.entries,
         onInputTypeChange = {},
         hexLabel = "HEX",
         rgbLabel = "RGB",

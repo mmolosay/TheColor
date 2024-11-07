@@ -5,8 +5,8 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import io.github.mmolosay.thecolor.domain.model.ColorInputType
 import io.github.mmolosay.thecolor.domain.model.UserPreferences
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.ColorInputType
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.ShouldResumeFromLastSearchedColorOnStartup
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorScheme
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeSet
@@ -58,7 +58,7 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         return if (dtoValue != null) {
             with(ColorInputTypeMapper) { dtoValue.toColorInputType() }
         } else {
-            DefaultUserPreferences.ColorInputType
+            DefaultUserPreferences.PreferredColorInputType
         }
     }
 
@@ -170,7 +170,7 @@ class UserPreferencesDataStoreRepository @Inject constructor(
 }
 
 /**
- * Maps [UserPreferences.ColorInputType] of domain layer to its representation in data layer (DTO)
+ * Maps [ColorInputType] of domain layer to its representation in data layer (DTO)
  * and vice versa.
  */
 private object ColorInputTypeMapper {

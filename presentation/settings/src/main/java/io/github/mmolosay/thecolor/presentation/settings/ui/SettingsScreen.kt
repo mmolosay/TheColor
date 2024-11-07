@@ -37,7 +37,7 @@ import io.github.mmolosay.thecolor.presentation.settings.SettingsUiStrings
 import io.github.mmolosay.thecolor.presentation.settings.SettingsViewModel
 import io.github.mmolosay.thecolor.presentation.settings.SettingsViewModel.DataState
 import kotlin.time.Duration.Companion.milliseconds
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.ColorInputType as DomainColorInputType
+import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorScheme as DomainUiColorScheme
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeSet as DomainUiColorSchemeSet
 

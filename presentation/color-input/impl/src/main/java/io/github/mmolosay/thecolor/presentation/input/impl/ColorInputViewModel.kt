@@ -3,12 +3,10 @@ package io.github.mmolosay.thecolor.presentation.input.impl
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.domain.model.UserPreferences
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.api.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.api.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
-import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputData.ViewType
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexViewModel
 import io.github.mmolosay.thecolor.presentation.input.impl.rgb.ColorInputRgbViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -19,7 +17,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Named
-import io.github.mmolosay.thecolor.domain.model.UserPreferences as DomainUserPreferences
+import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
 
 /**
  * Handles presentation logic of the 'Color Input' feature.
@@ -64,28 +62,27 @@ class ColorInputViewModel @AssistedInject constructor(
         }
     }
 
-    private fun onInputTypeChange(type: ViewType) {
+    private fun onInputTypeChange(type: DomainColorInputType) {
         _dataStateFlow.update { dataState ->
             val currentData = (dataState as? DataState.Ready)?.data ?: return@update dataState
             val newData = currentData.copy(
-                selectedViewType = type,
+                selectedInputType = type,
             )
             DataState.Ready(newData)
         }
     }
 
     private suspend fun initialData(): ColorInputData {
-        val preferredColorInputType = userPreferencesRepository.flowOfColorInputType().first()
-        val preferredViewType = preferredColorInputType.toPresentation()
-        // make list of all 'ViewType's with the preferred one being first
+        val preferredInputType = userPreferencesRepository.flowOfColorInputType().first()
+        // make list of all input types with the preferred one being first
         val orderedViewTypes = run {
-            val allViewTypes = ViewType.entries
-            val allViewTypesWithoutPreferredOne = allViewTypes.filter { it != preferredViewType }
-            listOf(preferredViewType) + allViewTypesWithoutPreferredOne
+            val allInputTypes = DomainColorInputType.entries
+            val allInputTypesWithoutPreferredOne = allInputTypes.filter { it != preferredInputType }
+            listOf(preferredInputType) + allInputTypesWithoutPreferredOne
         }
         return ColorInputData(
-            selectedViewType = preferredViewType,
-            orderedViewTypes = orderedViewTypes,
+            selectedInputType = preferredInputType,
+            orderedInputTypes = orderedViewTypes,
             onInputTypeChange = ::onInputTypeChange,
         )
     }
@@ -111,10 +108,3 @@ class ColorInputViewModel @AssistedInject constructor(
         ): ColorInputViewModel
     }
 }
-
-// TODO: there are multiple enums that depict Color Input type. Unify in single domain enum?
-private fun DomainUserPreferences.ColorInputType.toPresentation(): ViewType =
-    when (this) {
-        UserPreferences.ColorInputType.Hex -> ViewType.Hex
-        UserPreferences.ColorInputType.Rgb -> ViewType.Rgb
-    }

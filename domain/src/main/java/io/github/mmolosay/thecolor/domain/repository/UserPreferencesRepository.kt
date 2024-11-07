@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.domain.repository
 
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.ColorInputType
+import io.github.mmolosay.thecolor.domain.model.ColorInputType
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.ShouldResumeFromLastSearchedColorOnStartup
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeSet
 import kotlinx.coroutines.flow.Flow

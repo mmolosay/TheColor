@@ -9,7 +9,6 @@ import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator
-import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator.InputType
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputValidator
 import io.github.mmolosay.thecolor.presentation.input.impl.SharingStartedEagerlyAnd
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData
@@ -34,6 +33,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Named
+import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
 
 internal typealias FullDataRgb = FullData<ColorInputRgbData, ColorInput.Rgb>
 
@@ -189,7 +189,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         if (!update.causedByUser) return
         val parsedColor = (update.payload.colorInputState as? ColorInputState.Valid)?.color
         coroutineScope.launch(uiDataUpdateDispatcher) {
-            mediator.send(color = parsedColor, from = InputType.Rgb)
+            mediator.send(color = parsedColor, from = DomainColorInputType.Rgb)
         }
     }
 

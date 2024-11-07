@@ -4,7 +4,6 @@ import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
-import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator.InputType
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexData
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexViewModel
@@ -32,6 +31,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
+import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
 
 abstract class ColorInputHexViewModelTest {
 
@@ -40,7 +40,7 @@ abstract class ColorInputHexViewModelTest {
 
     val mediator: ColorInputMediator = mockk {
         every { hexColorInputFlow } returns flowOf(ColorInput.Hex(""))
-        coEvery { send(color = any(), from = InputType.Hex) } just runs
+        coEvery { send(color = any(), from = DomainColorInputType.Hex) } just runs
     }
     val eventStore: ColorInputEventStore = mockk()
     val colorInputValidator: ColorInputValidator = mockk {
@@ -148,7 +148,7 @@ class OtherHex : ColorInputHexViewModelTest() {
             }
 
             coVerify(exactly = 0) {
-                mediator.send(color = any(), from = InputType.Hex)
+                mediator.send(color = any(), from = DomainColorInputType.Hex)
             }
             collectionJob.cancel()
         }
@@ -170,7 +170,7 @@ class OtherHex : ColorInputHexViewModelTest() {
             coVerify(exactly = 1) {
                 mediator.send(
                     color = null, // invalid color input
-                    from = InputType.Hex,
+                    from = DomainColorInputType.Hex,
                 )
             }
             collectionJob.cancel()
@@ -212,7 +212,7 @@ class OtherHex : ColorInputHexViewModelTest() {
             hexColorInputFlow.emit(sentColorInput)
 
             coVerify(exactly = 0) {
-                mediator.send(color = any(), from = InputType.Hex)
+                mediator.send(color = any(), from = DomainColorInputType.Hex)
             }
             collectionJob.cancel()
         }

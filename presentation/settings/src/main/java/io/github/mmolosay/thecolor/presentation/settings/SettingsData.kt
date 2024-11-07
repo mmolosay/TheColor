@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.settings
 
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.ColorInputType as DomainColorInputType
+import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeSet as DomainUiColorSchemeSet
 
 /**

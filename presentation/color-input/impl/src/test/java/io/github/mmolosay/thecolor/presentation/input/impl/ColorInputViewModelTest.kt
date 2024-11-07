@@ -1,8 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.input.impl
 
-import io.github.mmolosay.thecolor.domain.model.UserPreferences
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
-import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputData.ViewType
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputViewModel.DataState
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
 import io.kotest.matchers.shouldBe
@@ -13,6 +11,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import org.junit.Rule
 import org.junit.Test
+import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
 
 class ColorInputViewModelTest {
 
@@ -28,45 +27,45 @@ class ColorInputViewModelTest {
     fun `initial data is set on initialization`() {
         every {
             userPreferencesRepository.flowOfColorInputType()
-        } returns flowOf(UserPreferences.ColorInputType.Hex)
+        } returns flowOf(DomainColorInputType.Hex)
 
         createSut()
 
-        data.selectedViewType shouldBe ViewType.Hex
+        data.selectedInputType shouldBe DomainColorInputType.Hex
     }
 
     @Test
     fun `preferred input type is an initially selected one`() {
         every {
             userPreferencesRepository.flowOfColorInputType()
-        } returns flowOf(UserPreferences.ColorInputType.Rgb)
+        } returns flowOf(DomainColorInputType.Rgb)
 
         createSut()
 
-        data.selectedViewType shouldBe ViewType.Rgb
+        data.selectedInputType shouldBe DomainColorInputType.Rgb
     }
 
     @Test
     fun `preferred input type is first in the ordered list of input types`() {
         every {
             userPreferencesRepository.flowOfColorInputType()
-        } returns flowOf(UserPreferences.ColorInputType.Rgb)
+        } returns flowOf(DomainColorInputType.Rgb)
 
         createSut()
 
-        data.orderedViewTypes.first() shouldBe ViewType.Rgb
+        data.orderedInputTypes.first() shouldBe DomainColorInputType.Rgb
     }
 
     @Test
     fun `changing input type to RGB updates data with RGB view type`() {
         every {
             userPreferencesRepository.flowOfColorInputType()
-        } returns flowOf(UserPreferences.ColorInputType.Hex)
+        } returns flowOf(DomainColorInputType.Hex)
         createSut()
 
-        data.onInputTypeChange(ViewType.Rgb)
+        data.onInputTypeChange(DomainColorInputType.Rgb)
 
-        data.selectedViewType shouldBe ViewType.Rgb
+        data.selectedInputType shouldBe DomainColorInputType.Rgb
     }
 
     fun createSut() =

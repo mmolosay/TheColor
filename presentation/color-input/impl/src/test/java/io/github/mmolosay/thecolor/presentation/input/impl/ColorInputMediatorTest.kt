@@ -4,13 +4,10 @@ import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
-import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator.InputType
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -31,6 +28,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import kotlin.time.Duration.Companion.milliseconds
+import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
 
 class ColorInputMediatorTest {
 
@@ -73,7 +71,7 @@ class ColorInputMediatorTest {
             val sentColor = mockk<Color>(relaxed = true)
             createSut()
 
-            sut.send(color = sentColor, from = InputType.Hex)
+            sut.send(color = sentColor, from = DomainColorInputType.Hex)
 
             runBlocking {
                 shouldThrow<TimeoutCancellationException> {
@@ -94,7 +92,7 @@ class ColorInputMediatorTest {
             every { with(colorInputMapper) { rgb.toColorInput() } } returns emittedRgbColorInput
             createSut()
 
-            sut.send(color = sentColor, from = InputType.Hex)
+            sut.send(color = sentColor, from = DomainColorInputType.Hex)
 
             sut.rgbColorInputFlow.first() shouldBe emittedRgbColorInput
         }
@@ -128,8 +126,8 @@ class ColorInputMediatorTest {
                     .toList(collected)
             }
 
-            sut.send(color = null, from = InputType.Hex)
-            sut.send(color = null, from = InputType.Hex)
+            sut.send(color = null, from = DomainColorInputType.Hex)
+            sut.send(color = null, from = DomainColorInputType.Hex)
 
             collected shouldContainExactly listOf(emptyRgbColorInput, emptyRgbColorInput)
             verify(atLeast = 2) { colorInputFactory.emptyRgb() }

@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.domain.repository
 
+import io.github.mmolosay.thecolor.domain.model.ColorInputType
 import io.github.mmolosay.thecolor.domain.model.UserPreferences
 
 /**
@@ -8,8 +9,8 @@ import io.github.mmolosay.thecolor.domain.model.UserPreferences
  */
 object DefaultUserPreferences {
 
-    val ColorInputType: UserPreferences.ColorInputType =
-        UserPreferences.ColorInputType.Hex
+    val PreferredColorInputType: ColorInputType =
+        ColorInputType.Hex
 
     val AppUiColorSchemeSet: UserPreferences.UiColorSchemeSet =
         UserPreferences.UiColorSchemeSet.DayNight
