@@ -1,6 +1,9 @@
 package io.github.mmolosay.thecolor.presentation.home
 
 import io.github.mmolosay.thecolor.domain.model.Color
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.ShouldResumeFromLastSearchedColorOnStartup
+import io.github.mmolosay.thecolor.domain.repository.LastSearchedColorRepository
+import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.domain.usecase.ColorComparator
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
@@ -41,6 +44,7 @@ import io.mockk.verify
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
@@ -93,6 +97,14 @@ class HomeViewModelTest {
             colorConverter = ColorConverter(),
         ),
     )
+
+    val userPreferencesRepository: UserPreferencesRepository = mockk {
+        val disabled = ShouldResumeFromLastSearchedColorOnStartup(boolean = false)
+        every { flowOfShouldResumeFromLastSearchedColorOnStartup() } returns flowOf(disabled)
+    }
+    val lastSearchedColorRepository: LastSearchedColorRepository = mockk {
+        coEvery { setLastSearchedColor(color = any()) } just runs
+    }
 
     lateinit var sut: HomeViewModel
 
@@ -644,6 +656,8 @@ class HomeViewModelTest {
             createColorData = createColorData,
             colorCenterSessionBuilder = ColorCenterSessionBuilder(),
             doesColorBelongToSession = doesColorBelongToSession,
+            userPreferencesRepository = userPreferencesRepository,
+            lastSearchedColorRepository = lastSearchedColorRepository,
             defaultDispatcher = mainDispatcherRule.testDispatcher,
             uiDataUpdateDispatcher = mainDispatcherRule.testDispatcher,
         ).also {

@@ -7,12 +7,8 @@ import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputViewModel.D
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.every
-import io.mockk.just
 import io.mockk.mockk
-import io.mockk.runs
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import org.junit.Rule
@@ -23,23 +19,10 @@ class ColorInputViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    val mediator: ColorInputMediator = mockk {
-        coEvery { init() } just runs
-    }
+    val mediator: ColorInputMediator = mockk()
     val userPreferencesRepository: UserPreferencesRepository = mockk()
 
     lateinit var sut: ColorInputViewModel
-
-    @Test
-    fun `mediator is initialized when sut is created`() {
-        every {
-            userPreferencesRepository.flowOfColorInputType()
-        } returns flowOf(UserPreferences.ColorInputType.Hex)
-
-        createSut()
-
-        coVerify(exactly = 1) { mediator.init() }
-    }
 
     @Test
     fun `initial data is set on initialization`() {
