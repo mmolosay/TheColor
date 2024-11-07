@@ -673,6 +673,54 @@ class HomeViewModelTest {
             proceedResultAsSuccess.colorData shouldBe colorData
         }
 
+    @Test
+    fun `only 'seed' color of a Color Center session is persisted as a last searched color`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val initialColor = Color.Hex(0x0)
+            val colorFlow = MutableStateFlow<Color?>(initialColor)
+            every { colorInputColorStore.colorFlow } returns colorFlow
+            every { colorInputEventStore.eventFlow } returns emptyFlow()
+            val eventsFlow = MutableSharedFlow<ColorDetailsEvent>()
+            every { colorDetailsEventStore.eventFlow } returns eventsFlow
+            every { createColorData(color = any()) } returns mockk()
+            createSut()
+
+            // we know from other tests that it would be 'CanProceed.Yes'
+            data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed()
+            val exactColor = Color.Hex(0x123456)
+            run emitDataFetchedEvent@{
+                val domainDetails: DomainColorDetails = mockk(relaxed = true) {
+                    every { exact } returns mockk {
+                        every { color } returns exactColor
+                    }
+                }
+                val event = ColorDetailsEvent.DataFetched(domainDetails)
+                eventsFlow.emit(event)
+            }
+
+            // clicking "Go to exact color"
+            run emitColorSelectedEvent@{
+                val event = ColorDetailsEvent.ColorSelected(
+                    color = exactColor,
+                    colorRole = ColorRole.Exact,
+                )
+                eventsFlow.emit(event)
+            }
+            run emitExactColor@{
+                colorFlow.emit(exactColor)
+            }
+            run emitDataFetchedEvent@{
+                val event = ColorDetailsEvent.DataFetched(
+                    domainDetails = mockk(relaxed = true),
+                )
+                eventsFlow.emit(event)
+            }
+
+            coVerify(exactly = 1) {
+                lastSearchedColorRepository.setLastSearchedColor(color = initialColor)
+            }
+        }
+
     fun createSut() =
         HomeViewModel(
             colorInputMediatorFactory = { _ -> colorInputMediator },
