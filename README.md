@@ -1,3 +1,6 @@
+![image](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)
+![image](https://img.shields.io/badge/Kotlin-B125EA?style=for-the-badge&logo=kotlin&logoColor=white)
+
 # TheColor
 Cutting edge Android app about each and every known color.
 
