@@ -240,9 +240,6 @@ class HomeViewModel @Inject constructor(
                 val command = ColorSchemeCommand.FetchData(color)
                 colorCenterComponents.colorSchemeCommandStore.issue(command)
             }
-            kotlin.run persistLastSearchedColor@{
-                lastSearchedColorRepository.setLastSearchedColor(color)
-            }
             val colorData = createColorData(color)
             val proceedResult = HomeData.ProceedResult.Success(
                 colorData = colorData,
@@ -343,13 +340,17 @@ class HomeViewModel @Inject constructor(
         colorCenterSessionBuilder.seed(seed)
         // recreate Color Center ViewModel (and its sub-feature ViewModels) to reset their states
         colorCenterComponentsFlow.value = ColorCenterComponents()
-        run setProcessor@{
+        kotlin.run setProcessor@{
             val currentProcessor = dataFetchedEventProcessor // capture in closure
             // implementation of a "Composite" design pattern
             dataFetchedEventProcessor = DataFetchedEventProcessor {
                 with(BuildColorCenterSession()) { process() }
                 dataFetchedEventProcessor = currentProcessor // restore previous value
             }
+        }
+        // only persist a seed of each new session
+        viewModelScope.launch(defaultDispatcher) {
+            lastSearchedColorRepository.setLastSearchedColor(seed)
         }
     }
 
