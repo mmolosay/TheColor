@@ -59,9 +59,6 @@ class ColorInputViewModel @AssistedInject constructor(
     }
 
     init {
-        coroutineScope.launch {
-            mediator.send(color = null, from = null) // TODO: refactor!
-        }
         coroutineScope.launch(defaultDispatcher) {
             _dataStateFlow.value = DataState.Ready(data = initialData())
         }
@@ -115,6 +112,7 @@ class ColorInputViewModel @AssistedInject constructor(
     }
 }
 
+// TODO: there are multiple enums that depict Color Input type. Unify in single domain enum?
 private fun DomainUserPreferences.ColorInputType.toPresentation(): ViewType =
     when (this) {
         UserPreferences.ColorInputType.Hex -> ViewType.Hex

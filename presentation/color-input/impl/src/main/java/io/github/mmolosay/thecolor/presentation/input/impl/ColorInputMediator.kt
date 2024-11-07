@@ -11,7 +11,6 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 
 /**
@@ -34,7 +33,7 @@ class ColorInputMediator @AssistedInject constructor(
     private val colorInputFactory: ColorInputFactory,
 ) {
 
-    private val colorStateFlow = MutableSharedFlow<ColorState?>(
+    private val colorStateFlow = MutableSharedFlow<ColorState>(
         replay = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
     )
@@ -66,14 +65,18 @@ class ColorInputMediator @AssistedInject constructor(
         colorToColorInput: (Color) -> T,
     ): Flow<T> =
         colorStateFlow
-            .filterNotNull()
             .filter { lastSourceInputType != inputType } // prevent interrupting user
             .map { colorState ->
                 when (colorState) {
-                    is ColorState.Invalid -> emptyColorInput()
+                    is ColorState.AbsentOrInvalid -> emptyColorInput()
                     is ColorState.Valid -> colorToColorInput(colorState.color)
                 }
             }
+
+    init {
+        // should be 100% successful with BufferOverflow.DROP_OLDEST
+        colorStateFlow.tryEmit(ColorState.AbsentOrInvalid)
+    }
 
     /**
      * Propagates specified [color] to color input flows (e.g. [hexColorInputFlow]).
@@ -96,12 +99,12 @@ class ColorInputMediator @AssistedInject constructor(
         if (this != null) {
             ColorState.Valid(color = this)
         } else {
-            ColorState.Invalid
+            ColorState.AbsentOrInvalid
         }
 
     /** State of the color the user is currently working with in color input View */
     private sealed interface ColorState {
-        data object Invalid : ColorState // unfinished color
+        data object AbsentOrInvalid : ColorState
         data class Valid(val color: Color) : ColorState
     }
 
