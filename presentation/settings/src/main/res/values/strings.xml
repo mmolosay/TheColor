@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="settings_top_bar_title">Settings</string>
+    <string name="settings_top_bar_go_back_icon_desc">Go back</string>
+
+    <string name="settings_item_preferred_color_input_type_title">Preferred type of color input</string>
+    <string name="settings_item_preferred_color_input_type_desc">It will be selected on app startup.</string>
+    <string name="settings_item_preferred_color_input_type_value_hex">HEX</string>
+    <string name="settings_item_preferred_color_input_value_type_rgb">RGB</string>
+
+    <string name="settings_item_app_ui_color_scheme_title">UI theme</string>
+    <string name="settings_item_app_ui_color_scheme_desc">A color scheme of the application.</string>
+    <string name="settings_item_app_ui_color_scheme_value_light">Light</string>
+    <string name="settings_item_app_ui_color_scheme_value_dark">Dark</string>
+    <string name="settings_item_app_ui_color_scheme_value_day_night_short">Auto</string>
+    <string name="settings_item_app_ui_color_scheme_value_day_night_verbose">Auto (follows system theme)</string>
+
+    <string name="settings_item_resume_from_last_searched_color_title">Resume from last searched color</string>
+    <string name="settings_item_resume_from_last_searched_color_desc">App will show last searched color on startup.</string>
+
+</resources>
