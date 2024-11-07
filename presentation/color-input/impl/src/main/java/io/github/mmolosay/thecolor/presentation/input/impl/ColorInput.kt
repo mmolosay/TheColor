@@ -28,32 +28,41 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputData.ViewType
-import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputUiData.ViewData
+import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputViewModel.DataState
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiData
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHex
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexUiData
 import io.github.mmolosay.thecolor.presentation.input.impl.rgb.ColorInputRgb
 import io.github.mmolosay.thecolor.presentation.input.impl.rgb.ColorInputRgbUiData
-import kotlinx.coroutines.flow.emptyFlow
+import io.github.mmolosay.thecolor.utils.doNothing
+import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
 
 @Composable
 fun ColorInput(
     viewModel: ColorInputViewModel,
 ) {
-    val viewData = rememberViewData()
-    val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
-    val uiData = rememberUiData(data, viewData)
-    ColorInput(
-        uiData = uiData,
-        hexInput = {
-            ColorInputHex(viewModel = viewModel.hexViewModel)
-        },
-        rgbInput = {
-            ColorInputRgb(viewModel = viewModel.rgbViewModel)
-        },
-    )
+    val context = LocalContext.current
+    val strings = remember(context) { ColorInputUiStrings(context) }
+    val dataState = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
+    when (dataState) {
+        is DataState.Loading -> {
+            // should promptly change to 'Ready', don't show loading indicator to avoid flashing
+            doNothing()
+        }
+        is DataState.Ready -> {
+            val uiData = ColorInputUiData(dataState.data, strings)
+            ColorInput(
+                uiData = uiData,
+                hexInput = {
+                    ColorInputHex(viewModel = viewModel.hexViewModel)
+                },
+                rgbInput = {
+                    ColorInputRgb(viewModel = viewModel.rgbViewModel)
+                },
+            )
+        }
+    }
 }
 
 @Composable
@@ -67,7 +76,7 @@ fun ColorInput(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Crossfade(
-            targetState = uiData.viewType,
+            targetState = uiData.selectedInputType,
             label = "Input type cross-fade",
         ) { type ->
             Box(
@@ -76,8 +85,8 @@ fun ColorInput(
                     .wrapContentWidth(),
             ) {
                 when (type) {
-                    ViewType.Hex -> hexInput()
-                    ViewType.Rgb -> rgbInput()
+                    DomainColorInputType.Hex -> hexInput()
+                    DomainColorInputType.Rgb -> rgbInput()
                 }
             }
         }
@@ -98,8 +107,8 @@ private fun InputSelector(
         CompositionLocalProvider(
             LocalMinimumInteractiveComponentEnforcement provides false,
         ) {
-            ViewType.entries.forEach { type ->
-                val isSelected = (type == uiData.viewType)
+            uiData.orderedInputTypes.forEach { type ->
+                val isSelected = (type == uiData.selectedInputType)
                 val contentColor = LocalContentColor.current
                 val colors = FilterChipDefaults.filterChipColors(
                     labelColor = contentColor.copy(alpha = 0.60f),
@@ -135,24 +144,11 @@ private fun ChipLabel(text: String) {
     )
 }
 
-private fun ViewType.label(uiData: ColorInputUiData): String =
+private fun DomainColorInputType.label(uiData: ColorInputUiData): String =
     when (this) {
-        ViewType.Hex -> uiData.hexLabel
-        ViewType.Rgb -> uiData.rgbLabel
+        DomainColorInputType.Hex -> uiData.hexLabel
+        DomainColorInputType.Rgb -> uiData.rgbLabel
     }
-
-@Composable
-private fun rememberViewData(): ViewData {
-    val context = LocalContext.current
-    return remember { ColorInputViewData(context) }
-}
-
-@Composable
-private fun rememberUiData(
-    data: ColorInputData,
-    viewData: ViewData,
-): ColorInputUiData =
-    remember(data) { data + viewData }
 
 @Preview(showBackground = true)
 @Composable
@@ -172,7 +168,8 @@ private fun Preview() {
 
 private fun previewUiData() =
     ColorInputUiData(
-        viewType = ViewType.Hex,
+        selectedInputType = DomainColorInputType.Hex,
+        orderedInputTypes = DomainColorInputType.entries,
         onInputTypeChange = {},
         hexLabel = "HEX",
         rgbLabel = "RGB",

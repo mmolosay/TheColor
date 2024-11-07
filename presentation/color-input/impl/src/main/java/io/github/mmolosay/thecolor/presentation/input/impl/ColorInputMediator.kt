@@ -5,15 +5,14 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
-import io.github.mmolosay.thecolor.domain.usecase.GetInitialColorUseCase
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
+import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
 
 /**
  * Acts as mediator between ViewModels of different color inputs.
@@ -30,21 +29,20 @@ import kotlinx.coroutines.flow.map
  */
 class ColorInputMediator @AssistedInject constructor(
     @Assisted private val colorInputColorStore: ColorInputColorStore,
-    private val getInitialColor: GetInitialColorUseCase,
     private val colorInputMapper: ColorInputMapper,
     private val colorConverter: ColorConverter,
     private val colorInputFactory: ColorInputFactory,
 ) {
 
-    private val colorStateFlow = MutableSharedFlow<ColorState?>(
+    private val colorStateFlow = MutableSharedFlow<ColorState>(
         replay = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
     )
-    private var lastSourceInputType: InputType? = null
+    private var lastSourceInputType: DomainColorInputType? = null
 
     val hexColorInputFlow: Flow<ColorInput.Hex> =
         ColorInputFlow(
-            inputType = InputType.Hex,
+            inputType = DomainColorInputType.Hex,
             emptyColorInput = colorInputFactory::emptyHex,
             colorToColorInput = {
                 val typedColor = with(colorConverter) { it.toHex() }
@@ -54,7 +52,7 @@ class ColorInputMediator @AssistedInject constructor(
 
     val rgbColorInputFlow: Flow<ColorInput.Rgb> =
         ColorInputFlow(
-            inputType = InputType.Rgb,
+            inputType = DomainColorInputType.Rgb,
             emptyColorInput = colorInputFactory::emptyRgb,
             colorToColorInput = {
                 val typedColor = with(colorConverter) { it.toRgb() }
@@ -63,25 +61,22 @@ class ColorInputMediator @AssistedInject constructor(
         )
 
     private fun <T : ColorInput> ColorInputFlow(
-        inputType: InputType,
+        inputType: DomainColorInputType,
         emptyColorInput: () -> T,
         colorToColorInput: (Color) -> T,
     ): Flow<T> =
         colorStateFlow
-            .filterNotNull()
             .filter { lastSourceInputType != inputType } // prevent interrupting user
             .map { colorState ->
                 when (colorState) {
-                    is ColorState.Invalid -> emptyColorInput()
+                    is ColorState.AbsentOrInvalid -> emptyColorInput()
                     is ColorState.Valid -> colorToColorInput(colorState.color)
                 }
             }
 
-    suspend fun init() {
-        send(
-            color = getInitialColor(),
-            from = null,
-        )
+    init {
+        // should be 100% successful with BufferOverflow.DROP_OLDEST
+        colorStateFlow.tryEmit(ColorState.AbsentOrInvalid)
     }
 
     /**
@@ -94,7 +89,7 @@ class ColorInputMediator @AssistedInject constructor(
      */
     suspend fun send(
         color: Color?,
-        from: InputType?,
+        from: DomainColorInputType?,
     ) {
         lastSourceInputType = from
         colorInputColorStore.set(color)
@@ -105,18 +100,13 @@ class ColorInputMediator @AssistedInject constructor(
         if (this != null) {
             ColorState.Valid(color = this)
         } else {
-            ColorState.Invalid
+            ColorState.AbsentOrInvalid
         }
 
     /** State of the color the user is currently working with in color input View */
     private sealed interface ColorState {
-        data object Invalid : ColorState // unfinished color
+        data object AbsentOrInvalid : ColorState
         data class Valid(val color: Color) : ColorState
-    }
-
-    /** Used to differentiate between color input Views. */
-    enum class InputType {
-        Hex, Rgb,
     }
 
     @AssistedFactory

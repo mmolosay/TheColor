@@ -9,9 +9,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 /**
- * Not a ViewModel-ViewModel in terms of Android development.
- * It doesn't derive from [androidx.lifecycle.ViewModel], so should only be used in "real" ViewModels
- * which do derive from Android-aware implementation.
+ * Handles presentation logic of a single text field inside a 'Color Input' feature.
+ *
+ * Unlike typical `ViewModel`s, it doesn't derive from Google's [ViewModel][androidx.lifecycle.ViewModel],
+ * thus cannot be instantiated using [ViewModelProvider][androidx.lifecycle.ViewModelProvider].
+ *
+ * Instead, it can be created within "simple" `ViewModel` or Google's `ViewModel`.
  */
 class TextFieldViewModel(
     private val filterUserInput: (String) -> Text,
@@ -20,7 +23,7 @@ class TextFieldViewModel(
     private val _dataUpdatesFlow = MutableStateFlow<Update<TextFieldData>?>(null)
     val dataUpdatesFlow = _dataUpdatesFlow.asStateFlow()
 
-    private fun updateText(update: Update<Text>) {
+    fun updateText(update: Update<Text>) {
         _dataUpdatesFlow.update {
             val text = update.payload
             val newData = if (it == null) {
@@ -58,17 +61,12 @@ class TextFieldViewModel(
             filterUserInput = filterUserInput,
             trailingButton = trailingButton(text),
         )
+}
 
-    companion object {
-
-        /*
-         * Curious thing to notice:
-         * Used method of ViewModel is private,
-         * however you still will be able to invoke it indirectly using this companion object.
-         * I find this approach to be a great alternative to exposing ViewModel methods as public.
-         */
-        infix fun TextFieldViewModel.updateWith(text: Text) {
-            updateText(text causedByUser false) // not a data from UI
-        }
-    }
+/**
+ * Update text when it comes not from UI or user input.
+ */
+infix fun TextFieldViewModel.updateText(text: Text) {
+    val update = text causedByUser false
+    this.updateText(update)
 }

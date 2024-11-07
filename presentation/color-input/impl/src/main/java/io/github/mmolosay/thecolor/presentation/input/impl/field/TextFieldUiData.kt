@@ -23,22 +23,4 @@ data class TextFieldUiData(
         ) : TrailingButton
     }
 
-    /**
-     * Part of to-be [TextFieldUiData].
-     * Framework-oriented.
-     * Created by View, since string resources are tied to platform-specific
-     * components (like Context), which should be avoided in ViewModels.
-     */
-    data class ViewData(
-        val label: String,
-        val placeholder: String,
-        val prefix: String?,
-        val trailingIcon: TrailingIcon,
-    ) {
-
-        sealed interface TrailingIcon {
-            data object None : TrailingIcon
-            data class Exists(val contentDesc: String) : TrailingIcon
-        }
-    }
 }

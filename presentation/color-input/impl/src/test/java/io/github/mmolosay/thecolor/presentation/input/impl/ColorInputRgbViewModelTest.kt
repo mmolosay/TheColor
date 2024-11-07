@@ -5,7 +5,6 @@ import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
-import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator.InputType
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.impl.rgb.ColorInputRgbData
@@ -32,6 +31,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
+import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
 
 abstract class ColorInputRgbViewModelTest {
 
@@ -40,7 +40,7 @@ abstract class ColorInputRgbViewModelTest {
 
     val mediator: ColorInputMediator = mockk {
         every { rgbColorInputFlow } returns flowOf(ColorInput.Rgb("", "", ""))
-        coEvery { send(color = any(), from = InputType.Rgb) } just runs
+        coEvery { send(color = any(), from = DomainColorInputType.Rgb) } just runs
     }
     val eventStore: ColorInputEventStore = mockk()
     val colorInputValidator: ColorInputValidator = mockk {
@@ -72,7 +72,7 @@ abstract class ColorInputRgbViewModelTest {
 }
 
 @RunWith(Parameterized::class)
-class FilterUserInputTest(
+class FilterRgbUserInputTest(
     val string: String,
     val expectedTextString: String,
 ) : ColorInputRgbViewModelTest() {
@@ -81,6 +81,7 @@ class FilterUserInputTest(
     fun `user input is filtered as expected`() {
         createSut()
 
+        // we check only one component because the logic is same for all 3 of them
         val text = data.rTextField.filterUserInput(string)
 
         withClue("Filtering user input \"$string\" should return $expectedTextString") {
@@ -111,7 +112,7 @@ class FilterUserInputTest(
     }
 }
 
-class Other : ColorInputRgbViewModelTest() {
+class OtherRgb : ColorInputRgbViewModelTest() {
 
     @Test
     fun `sut is created with state BeingInitialized if mediator RGB flow has no value yet`() {
@@ -149,7 +150,7 @@ class Other : ColorInputRgbViewModelTest() {
                 sut.dataStateFlow.collect() // subscriber to activate the flow
             }
 
-            coVerify(exactly = 0) { mediator.send(color = any(), from = InputType.Rgb) }
+            coVerify(exactly = 0) { mediator.send(color = any(), from = DomainColorInputType.Rgb) }
             collectionJob.cancel()
         }
 
@@ -176,7 +177,7 @@ class Other : ColorInputRgbViewModelTest() {
             data.bTextField.onTextChange(Text("20"))
 
             coVerify(exactly = 1) {
-                mediator.send(color = parsedColor, from = InputType.Rgb)
+                mediator.send(color = parsedColor, from = DomainColorInputType.Rgb)
             }
             collectionJob.cancel()
         }
@@ -214,7 +215,7 @@ class Other : ColorInputRgbViewModelTest() {
             rgbColorInputFlow.emit(sentColorInput)
 
             coVerify(exactly = 0) {
-                mediator.send(color = any(), from = InputType.Rgb)
+                mediator.send(color = any(), from = DomainColorInputType.Rgb)
             }
             collectionJob.cancel()
         }

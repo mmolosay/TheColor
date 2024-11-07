@@ -1,7 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.input.impl.field
 
 /**
- * Platform-agnostic data provided by ViewModel to text field View.
+ * Platform-agnostic data provided by ViewModel to 'Text Field' View.
  *
  * @param onTextChange a callback to be invoked when displayed text is changed.
  * It should receive a result of [filterUserInput] or other text that is presentation-ready.

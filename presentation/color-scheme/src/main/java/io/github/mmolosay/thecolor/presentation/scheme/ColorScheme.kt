@@ -67,7 +67,7 @@ import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.errors.ErrorMessageWithButton
 import io.github.mmolosay.thecolor.presentation.errors.message
-import io.github.mmolosay.thecolor.presentation.errors.rememberDefaultErrorViewData
+import io.github.mmolosay.thecolor.presentation.errors.rememberDefaultErrorsUiStrings
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.ApplyChangesButton
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.ModeSection
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.Swatch
@@ -112,14 +112,15 @@ fun ColorScheme(
     state: DataState,
     selectedSwatchDetails: @Composable (ColorSchemeUiData) -> Unit,
 ) {
-    val viewData = rememberViewData()
+    val context = LocalContext.current
+    val strings = remember(context) { ColorSchemeUiStrings(context) }
     when (state) {
         is DataState.Idle ->
             Unit // Color Details shouldn't be visible at Home at this point
         is DataState.Loading ->
             ColorSchemeLoading()
         is DataState.Ready -> {
-            val uiData = rememberUiData(state.data, viewData)
+            val uiData = ColorSchemeUiData(state.data, strings)
             ColorScheme(
                 uiData = uiData,
                 selectedSwatchDetails = selectedSwatchDetails,
@@ -402,12 +403,12 @@ private fun ApplyChangesButton(
 private fun Error(
     error: ColorSchemeError,
 ) {
-    val viewData = rememberDefaultErrorViewData()
+    val strings = rememberDefaultErrorsUiStrings()
     ErrorMessageWithButton(
         modifier = Modifier
             .padding(horizontal = 24.dp)
             .fillMaxWidth(),
-        message = error.type.message(viewData),
+        message = error.type.message(strings),
         button = {
             val colors = ButtonDefaults.outlinedButtonColors(
                 contentColor = colorsOnTintedSurface.accent,
@@ -420,24 +421,11 @@ private fun Error(
                 colors = colors,
                 border = border,
             ) {
-                Text(text = viewData.actionTryAgain)
+                Text(text = strings.actionTryAgain)
             }
         },
     )
 }
-
-@Composable
-private fun rememberViewData(): ColorSchemeUiData.ViewData {
-    val context = LocalContext.current
-    return remember { ColorSchemeViewData(context) }
-}
-
-@Composable
-private fun rememberUiData(
-    data: ColorSchemeData,
-    viewData: ColorSchemeUiData.ViewData,
-): ColorSchemeUiData =
-    remember(data) { ColorSchemeUiData(data, viewData) }
 
 @Composable
 private fun rememberContentColors(useLight: Boolean): ColorsOnTintedSurface =

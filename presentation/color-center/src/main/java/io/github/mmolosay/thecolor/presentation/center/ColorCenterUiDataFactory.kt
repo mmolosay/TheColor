@@ -5,16 +5,15 @@ import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterUiData.Page
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterUiData.Page.ChangePageButton
-import io.github.mmolosay.thecolor.presentation.center.ColorCenterUiData.ViewData
 
 fun ColorCenterUiData(
     data: ColorCenterData,
-    viewData: ViewData,
+    strings: ColorCenterUiStrings,
 ): ColorCenterUiData =
     ColorCenterUiData(
         detailsPage = Page(
             changePageButton = ChangePageButton(
-                text = viewData.detailsPageChangePageButtonText,
+                text = strings.detailsPageChangePageButtonText,
                 onClick = { data.changePage(1) },
                 icon = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
                 iconPlacement = ChangePageButton.IconPlacement.Trailing,
@@ -22,7 +21,7 @@ fun ColorCenterUiData(
         ),
         schemePage = Page(
             changePageButton = ChangePageButton(
-                text = viewData.schemePageChangePageButtonText,
+                text = strings.schemePageChangePageButtonText,
                 onClick = { data.changePage(0) },
                 icon = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
                 iconPlacement = ChangePageButton.IconPlacement.Leading,

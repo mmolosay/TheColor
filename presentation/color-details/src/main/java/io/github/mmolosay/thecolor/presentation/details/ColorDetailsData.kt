@@ -3,7 +3,7 @@ package io.github.mmolosay.thecolor.presentation.details
 import io.github.mmolosay.thecolor.presentation.api.ColorInt
 
 /**
- * Platform-agnostic data provided by ViewModel to color details View.
+ * Platform-agnostic data provided by ViewModel to 'Color Details' View.
  */
 data class ColorDetailsData(
     val colorName: String,

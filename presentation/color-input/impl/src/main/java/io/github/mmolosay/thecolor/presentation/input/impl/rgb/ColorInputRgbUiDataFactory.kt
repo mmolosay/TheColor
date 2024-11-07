@@ -1,18 +1,14 @@
 package io.github.mmolosay.thecolor.presentation.input.impl.rgb
 
-import io.github.mmolosay.thecolor.presentation.input.impl.field.plus
-import io.github.mmolosay.thecolor.presentation.input.impl.rgb.ColorInputRgbUiData.ViewData
+import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiData
 
-operator fun ColorInputRgbData.plus(viewData: ViewData): ColorInputRgbUiData =
-    ColorInputRgbUiData(data = this, viewData = viewData)
-
-private fun ColorInputRgbUiData(
+fun ColorInputRgbUiData(
     data: ColorInputRgbData,
-    viewData: ViewData,
+    strings: ColorInputRgbUiStrings,
 ): ColorInputRgbUiData =
     ColorInputRgbUiData(
-        rTextField = data.rTextField + viewData.rTextField,
-        gTextField = data.gTextField + viewData.gTextField,
-        bTextField = data.bTextField + viewData.bTextField,
+        rTextField = TextFieldUiData(data.rTextField, strings.rTextField),
+        gTextField = TextFieldUiData(data.gTextField, strings.gTextField),
+        bTextField = TextFieldUiData(data.bTextField, strings.bTextField),
         onImeActionDone = data.submitColor,
     )

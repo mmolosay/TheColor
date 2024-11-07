@@ -33,7 +33,6 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.coroutines.get()}")
     implementation("javax.inject:javax.inject:1")
-    implementation("com.github.ajalt.colormath:colormath:3.4.0")
 
     // Local
     val roomVersion = libs.versions.room.get()
@@ -41,11 +40,15 @@ dependencies {
     implementation("androidx.room:room-ktx:$roomVersion")
     ksp("androidx.room:room-compiler:$roomVersion")
 
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation("androidx.datastore:datastore-preferences:${libs.versions.dataStore.preferences.get()}")
 
     // Remote
     implementation("com.squareup.retrofit2:retrofit:${libs.versions.retrofit.library.get()}")
     implementation("com.squareup.retrofit2:converter-moshi:${libs.versions.retrofit.moshi.get()}")
+
+    // Misc (preserve alphabetical order)
+    implementation("com.github.ajalt.colormath:colormath:3.4.0")
+    implementation("com.jakewharton.timber:timber:${libs.versions.jakewhartonTimber.get()}")
 
     // Testing
     testImplementation("junit:junit:${libs.versions.junit.get()}")

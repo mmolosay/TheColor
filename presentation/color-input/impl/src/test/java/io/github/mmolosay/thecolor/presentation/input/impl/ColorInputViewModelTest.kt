@@ -1,52 +1,71 @@
 package io.github.mmolosay.thecolor.presentation.input.impl
 
-import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputData.ViewType
+import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
+import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputViewModel.DataState
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
 import io.kotest.matchers.shouldBe
-import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.just
+import io.kotest.matchers.types.shouldBeInstanceOf
+import io.mockk.every
 import io.mockk.mockk
-import io.mockk.runs
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import org.junit.Rule
 import org.junit.Test
+import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
 
 class ColorInputViewModelTest {
 
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    val mediator: ColorInputMediator = mockk {
-        coEvery { init() } just runs
-    }
+    val mediator: ColorInputMediator = mockk()
+    val userPreferencesRepository: UserPreferencesRepository = mockk()
 
     lateinit var sut: ColorInputViewModel
 
-    val uiData: ColorInputData
-        get() = sut.dataFlow.value
-
-    @Test
-    fun `mediator is initialized when sut is created`() {
-        createSut()
-
-        coVerify(exactly = 1) { mediator.init() }
-    }
-
     @Test
     fun `initial data is set on initialization`() {
+        every {
+            userPreferencesRepository.flowOfColorInputType()
+        } returns flowOf(DomainColorInputType.Hex)
+
         createSut()
 
-        uiData.viewType shouldBe ViewType.Hex
+        data.selectedInputType shouldBe DomainColorInputType.Hex
     }
 
     @Test
-    fun `changing input type to Rgb updates data with Rgb view type`() {
+    fun `preferred input type is an initially selected one`() {
+        every {
+            userPreferencesRepository.flowOfColorInputType()
+        } returns flowOf(DomainColorInputType.Rgb)
+
         createSut()
 
-        uiData.onInputTypeChange(ViewType.Rgb)
+        data.selectedInputType shouldBe DomainColorInputType.Rgb
+    }
 
-        uiData.viewType shouldBe ViewType.Rgb
+    @Test
+    fun `preferred input type is first in the ordered list of input types`() {
+        every {
+            userPreferencesRepository.flowOfColorInputType()
+        } returns flowOf(DomainColorInputType.Rgb)
+
+        createSut()
+
+        data.orderedInputTypes.first() shouldBe DomainColorInputType.Rgb
+    }
+
+    @Test
+    fun `changing input type to RGB updates data with RGB view type`() {
+        every {
+            userPreferencesRepository.flowOfColorInputType()
+        } returns flowOf(DomainColorInputType.Hex)
+        createSut()
+
+        data.onInputTypeChange(DomainColorInputType.Rgb)
+
+        data.selectedInputType shouldBe DomainColorInputType.Rgb
     }
 
     fun createSut() =
@@ -56,7 +75,12 @@ class ColorInputViewModelTest {
             mediator = mediator,
             hexViewModelFactory = { _, _, _ -> mockk() },
             rgbViewModelFactory = { _, _, _ -> mockk() },
+            userPreferencesRepository = userPreferencesRepository,
+            defaultDispatcher = mainDispatcherRule.testDispatcher,
         ).also {
             sut = it
         }
+
+    val data: ColorInputData
+        get() = sut.dataStateFlow.value.shouldBeInstanceOf<DataState.Ready>().data
 }

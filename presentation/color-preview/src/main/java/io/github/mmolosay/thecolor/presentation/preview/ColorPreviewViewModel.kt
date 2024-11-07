@@ -13,9 +13,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 /**
- * Not a ViewModel-ViewModel in terms of Android development.
- * It doesn't derive from [androidx.lifecycle.ViewModel], so should only be used in "real" ViewModels
- * which do derive from Android-aware implementation.
+ * Handles presentation logic of the 'Color Preview' feature.
+ *
+ * Unlike typical `ViewModel`s, it doesn't derive from Google's [ViewModel][androidx.lifecycle.ViewModel],
+ * thus cannot be instantiated using [ViewModelProvider][androidx.lifecycle.ViewModelProvider].
+ *
+ * Instead, it can be created within "simple" `ViewModel` or Google's `ViewModel`.
  */
 class ColorPreviewViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,

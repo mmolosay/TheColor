@@ -4,7 +4,7 @@ import io.github.mmolosay.thecolor.presentation.api.ColorInt
 import io.github.mmolosay.thecolor.domain.model.ColorScheme.Mode as DomainMode
 
 /**
- * Platform-agnostic data provided by ViewModel to color scheme View.
+ * Platform-agnostic data provided by ViewModel to 'Color Scheme' View.
  */
 data class ColorSchemeData(
     val swatches: List<Swatch>,

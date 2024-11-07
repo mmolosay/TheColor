@@ -23,11 +23,11 @@ fun Result.Failure.toErrorType(): ErrorType =
     }
 
 fun ErrorType.message(
-    viewData: ErrorViewData,
+    strings: ErrorsUiStrings,
 ): String =
     when (this) {
-        ErrorType.NoConnection -> viewData.messageNoConnection
-        ErrorType.Timeout -> viewData.messageTimeout
-        ErrorType.ErrorResponse -> viewData.messageErrorResponse
-        ErrorType.Unknown -> viewData.messageUnexpectedError
+        ErrorType.NoConnection -> strings.messageNoConnection
+        ErrorType.Timeout -> strings.messageTimeout
+        ErrorType.ErrorResponse -> strings.messageErrorResponse
+        ErrorType.Unknown -> strings.messageUnexpectedError
     }

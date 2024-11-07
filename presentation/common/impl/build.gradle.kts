@@ -47,9 +47,6 @@ dependencies {
     // Jetpack
     implementation("androidx.core:core-ktx:${libs.versions.androidx.core.coreKtx.get()}")
     implementation("androidx.appcompat:appcompat:${libs.versions.androidx.appcompat.get()}")
-    implementation("androidx.fragment:fragment-ktx:1.6.2")
-
-    implementation("androidx.recyclerview:recyclerview:1.2.1")
 
     // Compose
     val composeBom = platform("androidx.compose:compose-bom:${libs.versions.compose.bom.get()}")
@@ -59,27 +56,15 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.ui:ui-tooling-preview")
     debugImplementation("androidx.compose.ui:ui-tooling")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:${libs.versions.androidx.lifecycle.get()}")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:${libs.versions.androidx.lifecycle.get()}")
     implementation("androidx.hilt:hilt-navigation-compose:${libs.versions.hiltNavigationCompose.get()}")
 
     // Lifecycle
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
-
-    // Material
-    implementation("com.google.android.material:material:1.6.0-alpha02")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:${libs.versions.androidx.lifecycle.get()}")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:${libs.versions.androidx.lifecycle.get()}")
 
     // Hilt
     implementation("com.google.dagger:hilt-android:${libs.versions.hilt.get()}")
     kapt("com.google.dagger:hilt-compiler:${libs.versions.hilt.get()}")
-
-    // Third Party Libraries
-    implementation("com.michael-bull.kotlin-result:kotlin-result:1.1.12")
-    /*
-     * Was used for clipping color data with its custom background, but uses LAYER_TYPE_SOFTWARE,
-     * and constant redrawing of such complex view is dramatic for performance.
-     * implementation("io.github.florent37:shapeofview:1.4.7")
-     */
-    implementation("com.github.ajalt.colormath:colormath:3.4.0")
 }

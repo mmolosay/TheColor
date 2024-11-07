@@ -9,13 +9,12 @@ import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator
-import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator.InputType
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputValidator
 import io.github.mmolosay.thecolor.presentation.input.impl.SharingStartedEagerlyAnd
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewModel
-import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewModel.Companion.updateWith
+import io.github.mmolosay.thecolor.presentation.input.impl.field.updateText
 import io.github.mmolosay.thecolor.presentation.input.impl.model.ColorSubmissionResult
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.impl.model.FullData
@@ -32,13 +31,17 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Named
+import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
 
 internal typealias FullDataHex = FullData<ColorInputHexData, ColorInput.Hex>
 
 /**
- * Not a ViewModel-ViewModel in terms of Android development.
- * It doesn't derive from [androidx.lifecycle.ViewModel], so should only be used in "real" ViewModels
- * which do derive from Android-aware implementation.
+ * Handles presentation logic of the 'HEX Color Input' feature.
+ *
+ * Unlike typical `ViewModel`s, it doesn't derive from Google's [ViewModel][androidx.lifecycle.ViewModel],
+ * thus cannot be instantiated using [ViewModelProvider][androidx.lifecycle.ViewModelProvider].
+ *
+ * Instead, it can be created within "simple" `ViewModel` or Google's `ViewModel`.
  */
 class ColorInputHexViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
@@ -97,7 +100,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
     private fun collectMediatorUpdates() {
         coroutineScope.launch(uiDataUpdateDispatcher) {
             mediator.hexColorInputFlow.collect { input ->
-                textFieldVm updateWith Text(input.string)
+                textFieldVm updateText Text(input.string)
             }
         }
     }
@@ -158,7 +161,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
         if (!update.causedByUser) return
         val parsedColor = (update.payload.colorInputState as? ColorInputState.Valid)?.color
         coroutineScope.launch(uiDataUpdateDispatcher) {
-            mediator.send(color = parsedColor, from = InputType.Hex)
+            mediator.send(color = parsedColor, from = DomainColorInputType.Hex)
         }
     }
 

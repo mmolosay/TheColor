@@ -1,32 +1,14 @@
 package io.github.mmolosay.thecolor.presentation.input.impl
 
-import android.content.Context
-import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputData.ViewType
+import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
 
 /**
  * Framework-oriented data required for color input View to be presented by Compose.
  */
 data class ColorInputUiData(
-    val viewType: ViewType,
-    val onInputTypeChange: (ViewType) -> Unit,
+    val selectedInputType: DomainColorInputType, // it's OK to use some domain models (like enums) in presentation layer
+    val orderedInputTypes: List<DomainColorInputType>,
+    val onInputTypeChange: (DomainColorInputType) -> Unit,
     val hexLabel: String,
     val rgbLabel: String,
-) {
-
-    /**
-     * Part of to-be [ColorInputUiData].
-     * Framework-oriented.
-     * Created by View, since string resources are tied to platform-specific
-     * components (like Context), which should be avoided in ViewModels.
-     */
-    data class ViewData(
-        val hexLabel: String,
-        val rgbLabel: String,
-    )
-}
-
-fun ColorInputViewData(context: Context) =
-    ColorInputUiData.ViewData(
-        hexLabel = context.getString(R.string.color_input_tab_hex),
-        rgbLabel = context.getString(R.string.color_input_tab_rgb),
-    )
+)

@@ -45,6 +45,7 @@ dependencies {
 
     // Data Local
     implementation("androidx.room:room-runtime:${libs.versions.room.get()}")
+    implementation("androidx.datastore:datastore-preferences:${libs.versions.dataStore.preferences.get()}")
 
     // Hilt
     implementation("com.google.dagger:hilt-android:${libs.versions.hilt.get()}")

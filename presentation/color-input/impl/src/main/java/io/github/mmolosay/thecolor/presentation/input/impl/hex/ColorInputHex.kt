@@ -23,7 +23,6 @@ import io.github.mmolosay.thecolor.presentation.input.impl.UiComponents.TextFiel
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiData
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiData.TrailingButton
-import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexUiData.ViewData
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.impl.model.hideSoftwareKeyboardCommandOrNull
 
@@ -31,7 +30,8 @@ import io.github.mmolosay.thecolor.presentation.input.impl.model.hideSoftwareKey
 fun ColorInputHex(
     viewModel: ColorInputHexViewModel,
 ) {
-    val viewData = rememberViewData()
+    val context = LocalContext.current
+    val strings = remember(context) { ColorInputHexUiStrings(context) }
     val state = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
     val colorSubmissionResult = viewModel.colorSubmissionResultFlow.collectAsStateWithLifecycle().value
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -40,7 +40,7 @@ fun ColorInputHex(
         is DataState.BeingInitialized ->
             Loading()
         is DataState.Ready -> {
-            val uiData = rememberUiData(data = state.data, viewData = viewData)
+            val uiData = ColorInputHexUiData(state.data, strings)
             ColorInputHex(
                 uiData = uiData,
             )
@@ -75,19 +75,6 @@ fun ColorInputHex(
         ),
     )
 }
-
-@Composable
-private fun rememberViewData(): ViewData {
-    val context = LocalContext.current
-    return remember { ColorInputHexViewData(context) }
-}
-
-@Composable
-private fun rememberUiData(
-    data: ColorInputHexData,
-    viewData: ViewData,
-): ColorInputHexUiData =
-    remember(data) { data + viewData }
 
 @Preview(showBackground = true)
 @Composable
