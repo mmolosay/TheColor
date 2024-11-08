@@ -2,9 +2,27 @@
 ![image](https://img.shields.io/badge/Kotlin-B125EA?style=for-the-badge&logo=kotlin&logoColor=white)
 
 # TheColor
-Cutting edge Android app about each and every known color.
+Cutting-edge native Android app about each and every known color.
 
-#### Features
+## Table of Contents
+
+* [App features](#app-features)
+
+-----
+
+## What is it
+
+This project showcases my expertise in developing software in general and
+native Android apps in specific.
+Originally, it served as a playground, a safe environment to try new things in Android world.
+Over the course of years, it evolved into a polished, comprehensive app that I'm proud to share.
+
+I would be flattered if other developers find inspiration in this software, its approaches and 
+solutions.
+It has open-source code and full commit history, so anyone can trace the decisions I've made and the
+path the app has gone.
+
+## App Features
 - color input in various color spaces
 - color details: name, representation in other color spaces, distance to exact match and other
 - color schemes: modes, samples count and other
