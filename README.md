@@ -6,6 +6,7 @@ Cutting-edge native Android app about each and every known color.
 
 ## Table of Contents
 
+* [What is it](#what-is-it)
 * [App features](#app-features)
 
 -----
