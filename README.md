@@ -8,6 +8,7 @@ Cutting-edge native Android app about each and every known color.
 
 * [What is it](#what-is-it)
 * [App features](#app-features)
+* [Software approaches](#software-approaches)
 
 -----
 
@@ -23,34 +24,27 @@ solutions.
 It has open-source code and full commit history, so anyone can trace my decisions and the app's development journey.
 
 ## App Features
-- color input in various color spaces
-- color details: name, representation in other color spaces, distance to exact match and other
-- color schemes: modes, samples count and other
 
-#### Theming
-- TODO: full day/night mode support
-- TODO: variety of available themes
+- Color input for HEX and RGB color spaces in text format
+- Color preview that displays currently entered color
+- Color details: name, representation in other color spaces, deviation from exact match and other
+- Color schemes: modes, sample count and other
+- Settings
+- Light & Dark themes
+- and many other small things!
 
-#### Styling
-- Material 3 guidelines and widgets
-- TODO: dynamic color support
+## Development stack
 
-#### Animations
-- beautifully animated user actions responses
-- animated loading, displaying and failing states
+- Kotlin 1.9.x
+- Gradle Kotlin DSL
+- Kotlin Flows and coroutines
+- DI: Dagger & Hilt
+- Local data: Room, Preferences DataStore
+- Remote data: Retrofit 2, Moshi
+- UI: Jetpack Compose, Compose Navigation, single Activity approach, Material 3
+- Unit testing: JUnit 4, MockK, Kotlin Assertions
 
-#### UX
-- well-known and platform-expected gestures
-- friendly feature hints
+## Software approaches
 
-# Architecture & Benefits
-
-## Architecture
-
-### UI
-
-#### Navigation Component [[more]](http://https://developer.android.com/guide/navigation "[more]")
-- single Activity approach
-- navigation graph
-- TODO: deep links
-- TODO: multitasking via _android:documentLaunchMode_
+- Clean architecture
+- Gradle modularization
