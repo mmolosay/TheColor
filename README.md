@@ -20,8 +20,7 @@ Over the course of years, it evolved into a polished, comprehensive app that I'm
 
 I would be flattered if other developers find inspiration in this software, its approaches and 
 solutions.
-It has open-source code and full commit history, so anyone can trace the decisions I've made and the
-path the app has gone.
+It has open-source code and full commit history, so anyone can trace my decisions and the app's development journey.
 
 ## App Features
 - color input in various color spaces
