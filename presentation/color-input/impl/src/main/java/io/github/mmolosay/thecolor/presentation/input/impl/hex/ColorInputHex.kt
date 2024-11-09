@@ -73,7 +73,7 @@ fun ColorInputHex(
         modifier = Modifier.fillMaxWidth(0.5f),
         uiData = uiData.textField,
         value = value,
-        updateValue = { new -> value = new },
+        onValueChange = { new -> value = new },
         keyboardOptions = KeyboardOptions(
             imeAction = ImeAction.Done,
             capitalization = KeyboardCapitalization.Characters,

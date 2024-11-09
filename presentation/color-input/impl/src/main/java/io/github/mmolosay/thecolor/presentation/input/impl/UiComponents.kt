@@ -52,7 +52,7 @@ internal object UiComponents {
         modifier: Modifier = Modifier,
         uiData: TextFieldUiData,
         value: TextFieldValue,
-        updateValue: (TextFieldValue) -> Unit,
+        onValueChange: (TextFieldValue) -> Unit,
         keyboardOptions: KeyboardOptions,
         keyboardActions: KeyboardActions,
     ) =
@@ -61,14 +61,14 @@ internal object UiComponents {
                 modifier = modifier
                     .selectAllTextOnFocus(
                         value = value,
-                        onValueChange = updateValue,
+                        onValueChange = onValueChange,
                     ),
                 value = value,
                 onValueChange = { new ->
                     // can't just pass new.text to ViewModel for filtering: TextFieldValue.selection will be lost
                     val filteredText = filterUserInput(new.text)
                     val filteredValue = new.copy(text = filteredText.string)
-                    updateValue(filteredValue)
+                    onValueChange(filteredValue)
                     onTextChange(filteredText)
                 },
                 textStyle = LocalTextStyle.current.copy(fontFamily = FontFamily.SansSerif),
@@ -93,7 +93,7 @@ internal object UiComponents {
                     old.selection
                 }
                 val new = old.copy(text = newText, selection = newSelection)
-                updateValue(new)
+                onValueChange(new)
             }
         }
 

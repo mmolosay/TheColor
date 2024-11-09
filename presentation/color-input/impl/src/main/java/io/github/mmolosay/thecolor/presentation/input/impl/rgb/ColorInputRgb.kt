@@ -111,7 +111,7 @@ private fun TextField(
         modifier = modifier,
         uiData = uiData,
         value = value,
-        updateValue = { new -> value = new },
+        onValueChange = { new -> value = new },
         keyboardOptions = KeyboardOptions(
             imeAction = imeAction,
             keyboardType = KeyboardType.Number,
