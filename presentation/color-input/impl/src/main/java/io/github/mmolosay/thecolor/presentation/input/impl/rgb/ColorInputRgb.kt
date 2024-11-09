@@ -12,7 +12,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
@@ -22,8 +24,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
+import io.github.mmolosay.thecolor.presentation.input.impl.UiComponents
 import io.github.mmolosay.thecolor.presentation.input.impl.UiComponents.Loading
-import io.github.mmolosay.thecolor.presentation.input.impl.UiComponents.TextField
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiData
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
@@ -67,33 +69,69 @@ fun ColorInputRgb(
 
         val modifier = Modifier.weight(1f)
 
-        TextField(
+        // R
+        ComponentAdvancedTextField(
             modifier = modifier,
             uiData = uiData.rTextField,
             imeAction = ImeAction.Next,
+            hasPreviousComponent = false,
         )
 
+        // G
         SpacerInBetween()
-        TextField(
+        ComponentAdvancedTextField(
             modifier = modifier,
             uiData = uiData.gTextField,
             imeAction = ImeAction.Next,
+            hasPreviousComponent = true,
         )
 
+
+        // B
         SpacerInBetween()
-        TextField(
+        ComponentAdvancedTextField(
             modifier = modifier,
             uiData = uiData.bTextField,
             imeAction = ImeAction.Done,
             keyboardActions = KeyboardActions(
                 onDone = { uiData.onImeActionDone() },
             ),
+            hasPreviousComponent = true,
         )
     }
 }
 
+/**
+ * A wrapper for [ComponentBasicTextField] with additional features.
+ */
 @Composable
-private fun TextField(
+private fun ComponentAdvancedTextField(
+    modifier: Modifier = Modifier,
+    uiData: TextFieldUiData,
+    imeAction: ImeAction,
+    keyboardActions: KeyboardActions = KeyboardActions(),
+    hasPreviousComponent: Boolean,
+) {
+    val focusManager = LocalFocusManager.current
+    ComponentBasicTextField(
+        modifier = modifier,
+        uiData = uiData,
+        imeAction = imeAction,
+        keyboardActions = keyboardActions,
+    )
+    LaunchedEffect(uiData.text) {
+        val text = uiData.text.string
+        if (text.isEmpty() && hasPreviousComponent) {
+            focusManager.moveFocus(FocusDirection.Previous)
+        }
+    }
+}
+
+/**
+ * A wrapper for [UiComponents.TextField] that just manages [TextFieldValue].
+ */
+@Composable
+private fun ComponentBasicTextField(
     modifier: Modifier = Modifier,
     uiData: TextFieldUiData,
     imeAction: ImeAction,
@@ -107,7 +145,7 @@ private fun TextField(
         )
         mutableStateOf(value)
     }
-    TextField(
+    UiComponents.TextField(
         modifier = modifier,
         uiData = uiData,
         value = value,
