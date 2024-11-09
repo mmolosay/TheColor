@@ -1,12 +1,14 @@
 package io.github.mmolosay.thecolor.presentation.input.impl
 
 import io.github.mmolosay.thecolor.domain.model.Color
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.SelectAllTextOnTextFieldFocus
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
+import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewModel
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.impl.rgb.ColorInputRgbData
 import io.github.mmolosay.thecolor.presentation.input.impl.rgb.ColorInputRgbViewModel
@@ -45,12 +47,27 @@ abstract class ColorInputRgbViewModelTest {
         every { rgbColorInputFlow } returns flowOf(ColorInput.Rgb("", "", ""))
         coEvery { send(color = any(), from = DomainColorInputType.Rgb) } just runs
     }
+
     val eventStore: ColorInputEventStore = mockk()
+
+    val userPreferencesRepository: UserPreferencesRepository = mockk {
+        every { flowOfSelectAllTextOnTextFieldFocus() } returns kotlin.run {
+            val value = SelectAllTextOnTextFieldFocus(enabled = false)
+            flowOf(value)
+        }
+        every { flowOfSmartBackspace() } returns kotlin.run {
+            val value = DomainSmartBackspace(enabled = false)
+            flowOf(value)
+        }
+    }
+    val textFieldViewModelFactory: TextFieldViewModel.Factory = TextFieldViewModelTestFactory(
+        userPreferencesRepository = userPreferencesRepository,
+        defaultDispatcher = mainDispatcherRule.testDispatcher,
+        uiDataUpdateDispatcher = mainDispatcherRule.testDispatcher,
+    )
+
     val colorInputValidator: ColorInputValidator = mockk {
         every { any<ColorInput>().validate() } returns mockk<ColorInputState.Invalid>()
-    }
-    val userPreferencesRepository: UserPreferencesRepository = mockk {
-        every { flowOfSmartBackspace() } returns flowOf(value = DomainSmartBackspace(enabled = false))
     }
 
     lateinit var sut: ColorInputRgbViewModel
@@ -60,6 +77,7 @@ abstract class ColorInputRgbViewModelTest {
             coroutineScope = TestScope(mainDispatcherRule.testDispatcher),
             mediator = mediator,
             eventStore = eventStore,
+            textFieldViewModelFactory = textFieldViewModelFactory,
             colorInputValidator = colorInputValidator,
             userPreferencesRepository = userPreferencesRepository,
             uiDataUpdateDispatcher = mainDispatcherRule.testDispatcher,

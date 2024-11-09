@@ -189,6 +189,7 @@ private fun previewUiData() =
                 onClick = {},
                 iconContentDesc = "",
             ),
+            addSelectAllTextOnFocusModifier = true,
         ),
         gTextField = TextFieldUiData(
             text = Text(""),
@@ -201,6 +202,7 @@ private fun previewUiData() =
                 onClick = {},
                 iconContentDesc = "",
             ),
+            addSelectAllTextOnFocusModifier = true,
         ),
         bTextField = TextFieldUiData(
             text = Text("255"),
@@ -213,6 +215,7 @@ private fun previewUiData() =
                 onClick = {},
                 iconContentDesc = "",
             ),
+            addSelectAllTextOnFocusModifier = true,
         ),
         onImeActionDone = {},
         addSmartBackspaceModifier = true,

@@ -13,6 +13,7 @@ data class TextFieldData(
     val onTextChange: (Text) -> Unit,
     val filterUserInput: (String) -> Text,
     val trailingButton: TrailingButton,
+    val shouldSelectAllTextOnFocus: Boolean,
 ) {
     /**
      * Text that was filtered and is ready to be displayed in UI.

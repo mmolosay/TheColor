@@ -188,6 +188,7 @@ private fun previewInputHexUiData() =
                 onClick = {},
                 iconContentDesc = "",
             ),
+            addSelectAllTextOnFocusModifier = true,
         ),
         onImeActionDone = {},
     )
@@ -205,6 +206,7 @@ private fun previewInputRgbUiData() =
                 onClick = {},
                 iconContentDesc = "",
             ),
+            addSelectAllTextOnFocusModifier = true,
         ),
         gTextField = TextFieldUiData(
             text = TextFieldData.Text(""),
@@ -217,6 +219,7 @@ private fun previewInputRgbUiData() =
                 onClick = {},
                 iconContentDesc = "",
             ),
+            addSelectAllTextOnFocusModifier = true,
         ),
         bTextField = TextFieldUiData(
             text = TextFieldData.Text("255"),
@@ -229,6 +232,7 @@ private fun previewInputRgbUiData() =
                 onClick = {},
                 iconContentDesc = "",
             ),
+            addSelectAllTextOnFocusModifier = true,
         ),
         onImeActionDone = {},
         addSmartBackspaceModifier = true,

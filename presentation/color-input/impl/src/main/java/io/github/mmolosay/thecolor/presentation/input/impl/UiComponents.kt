@@ -36,6 +36,7 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.TextFieldValue
+import io.github.mmolosay.thecolor.presentation.impl.thenIf
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiData
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiData.TrailingButton
 
@@ -64,10 +65,12 @@ internal object UiComponents {
         with(uiData) {
             OutlinedTextField(
                 modifier = modifier
-                    .selectAllTextOnFocus(
-                        value = value,
-                        onValueChange = onValueChange,
-                    ),
+                    .thenIf(uiData.addSelectAllTextOnFocusModifier) {
+                        selectAllTextOnFocus(
+                            value = value,
+                            onValueChange = onValueChange,
+                        )
+                    },
                 value = value,
                 onValueChange = { new ->
                     // can't just pass new.text to ViewModel for filtering: TextFieldValue.selection will be lost

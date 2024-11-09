@@ -1,13 +1,10 @@
 package io.github.mmolosay.thecolor.presentation.input.impl.model
 
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.update
-
 /**
  * Encapsulates a command to update some data of type [T] with new [payload].
  *
  * @param payload new data to be set.
- * @param causedByUser whether this [Update] is cause by changes in View made by user or not.
+ * @param causedByUser whether this [Update] is caused by changes in View made by user or not.
  */
 data class Update<T>(
     val payload: T,
@@ -28,14 +25,3 @@ internal inline fun <T, R> Update<T>.map(
         payload = transform(this.payload),
         causedByUser = causedByUser,
     )
-
-/**
- * [update]s receiver [MutableStateFlow] by changing the payload of current [Update].
- */
-internal fun <T> MutableStateFlow<Update<T>?>.updatePayload(
-    transform: (T) -> T,
-) {
-    this.update { update ->
-        update?.map(transform)
-    }
-}

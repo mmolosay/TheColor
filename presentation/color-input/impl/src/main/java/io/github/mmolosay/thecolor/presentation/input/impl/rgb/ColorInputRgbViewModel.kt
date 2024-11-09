@@ -5,6 +5,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.api.SimpleViewModel
+import io.github.mmolosay.thecolor.presentation.api.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
@@ -53,15 +54,16 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     @Assisted private val mediator: ColorInputMediator,
     @Assisted private val eventStore: ColorInputEventStore,
+    private val textFieldViewModelFactory: TextFieldViewModel.Factory,
     private val colorInputValidator: ColorInputValidator,
     private val userPreferencesRepository: UserPreferencesRepository,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
     @Named("uiDataUpdateDispatcher") private val uiDataUpdateDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
-    private val rTextFieldVm = TextFieldViewModel(filterUserInput = ::filterUserInput)
-    private val gTextFieldVm = TextFieldViewModel(filterUserInput = ::filterUserInput)
-    private val bTextFieldVm = TextFieldViewModel(filterUserInput = ::filterUserInput)
+    private val rTextFieldVm = createTextFieldViewModel()
+    private val gTextFieldVm = createTextFieldViewModel()
+    private val bTextFieldVm = createTextFieldViewModel()
 
     private val dataUpdateFlow = MutableStateFlow<Update<ColorInputRgbData>?>(null)
 
@@ -211,6 +213,12 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     private fun clearColorSubmissionResult() {
         _colorSubmissionResultFlow.value = null
     }
+
+    private fun createTextFieldViewModel(): TextFieldViewModel =
+        textFieldViewModelFactory.create(
+            coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
+            filterUserInput = ::filterUserInput,
+        )
 
     @AssistedFactory
     fun interface Factory {

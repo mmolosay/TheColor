@@ -13,6 +13,7 @@ data class TextFieldUiData(
     val placeholder: String,
     val prefix: String?,
     val trailingButton: TrailingButton,
+    val addSelectAllTextOnFocusModifier: Boolean,
 ) {
 
     sealed interface TrailingButton {
