@@ -19,7 +19,7 @@ import io.github.mmolosay.thecolor.presentation.settings.ui.UiComponents.Default
 import io.github.mmolosay.thecolor.presentation.settings.ui.UiComponents.DefaultItemValueSpacing
 
 @Composable
-internal fun ResumeFromLastSearchedColor(
+internal fun SmartBackspace(
     title: String,
     description: String,
     checked: Boolean,
@@ -54,11 +54,11 @@ internal fun ResumeFromLastSearchedColor(
     backgroundColor = 0xFFFFFFFF,
 )
 @Composable
-private fun ResumeFromLastSearchedColorPreview() {
+private fun SmartBackspacePreview() {
     TheColorTheme {
-        ResumeFromLastSearchedColor(
-            title = "Resume from last searched color",
-            description = "App will show last searched color on startup.",
+        SmartBackspace(
+            title = "Smart Backspace",
+            description = "Go to previous text field when clicking backspace in empty text field.",
             checked = true,
             onCheckedChange = {},
         )

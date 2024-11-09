@@ -197,8 +197,26 @@ fun Settings(
             ResumeFromLastSearchedColor(
                 title = strings.itemResumeFromLastSearchedColorTitle,
                 description = strings.itemResumeFromLastSearchedColorDesc,
-                checked = data.shouldResumeFromLastSearchedColorOnStartup,
-                onCheckedChange = data.changeShouldResumeFromLastSearchedColorOnStartup,
+                checked = data.isResumeFromLastSearchedColorOnStartupEnabled,
+                onCheckedChange = data.changeResumeFromLastSearchedColorOnStartupEnablement,
+            )
+        }
+
+        item("smart backspace") {
+            SmartBackspace(
+                title = strings.itemSmartBackspaceTitle,
+                description = strings.itemSmartBackspaceDesc,
+                checked = data.isSmartBackspaceEnabled,
+                onCheckedChange = data.changeSmartBackspaceEnablement,
+            )
+        }
+
+        item("select all text on text field focus") {
+            SelectAllTextOnTextFieldFocus(
+                title = strings.itemSelectAllTextOnTextFieldFocusTitle,
+                description = strings.itemSelectAllTextOnTextFieldFocusDesc,
+                checked = data.isSelectAllTextOnTextFieldFocusEnabled,
+                onCheckedChange = data.changeSelectAllTextOnTextFieldFocusEnablement,
             )
         }
     }
@@ -264,6 +282,10 @@ private fun previewData() =
             DomainUiColorSchemeSet.DayNight,
         ),
         changeAppUiColorSchemeSet = {},
-        shouldResumeFromLastSearchedColorOnStartup = true,
-        changeShouldResumeFromLastSearchedColorOnStartup = {},
+        isResumeFromLastSearchedColorOnStartupEnabled = true,
+        changeResumeFromLastSearchedColorOnStartupEnablement = {},
+        isSmartBackspaceEnabled = true,
+        changeSmartBackspaceEnablement = {},
+        isSelectAllTextOnTextFieldFocusEnabled = true,
+        changeSelectAllTextOnTextFieldFocusEnablement = {},
     )

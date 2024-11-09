@@ -18,6 +18,7 @@ fun TextFieldUiData(
             data = data.trailingButton,
             iconContentDesc = strings.trailingIconContentDesc,
         ),
+        addSelectAllTextOnFocusModifier = data.shouldSelectAllTextOnFocus,
     )
 
 private fun TrailingButton(

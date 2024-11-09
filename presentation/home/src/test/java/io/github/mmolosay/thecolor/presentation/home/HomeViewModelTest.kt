@@ -1,7 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.home
 
 import io.github.mmolosay.thecolor.domain.model.Color
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.ShouldResumeFromLastSearchedColorOnStartup
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.ResumeFromLastSearchedColorOnStartup
 import io.github.mmolosay.thecolor.domain.repository.LastSearchedColorRepository
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.domain.usecase.ColorComparator
@@ -99,8 +99,8 @@ class HomeViewModelTest {
     )
 
     val userPreferencesRepository: UserPreferencesRepository = mockk {
-        val disabled = ShouldResumeFromLastSearchedColorOnStartup(boolean = false)
-        every { flowOfShouldResumeFromLastSearchedColorOnStartup() } returns flowOf(disabled)
+        val disabled = ResumeFromLastSearchedColorOnStartup(enabled = false)
+        every { flowOfResumeFromLastSearchedColorOnStartup() } returns flowOf(disabled)
     }
     val lastSearchedColorRepository: LastSearchedColorRepository = mockk {
         coEvery { setLastSearchedColor(color = any()) } just runs
@@ -650,12 +650,12 @@ class HomeViewModelTest {
      * - THEN last searched color is proceeded with and [data] is updated with [ProceedResult.Success].
      */
     @Test
-    fun `when 'should resume from last searched color on app startup' is enabled, then 'proceed' action is invoked for this color, thus 'proceedResult' is set to 'Success'`() =
+    fun `when 'resume from last searched color on app startup' is enabled, then 'proceed' action is invoked for this color, thus 'proceedResult' is set to 'Success'`() =
         runTest(mainDispatcherRule.testDispatcher) {
             every {
-                userPreferencesRepository.flowOfShouldResumeFromLastSearchedColorOnStartup()
+                userPreferencesRepository.flowOfResumeFromLastSearchedColorOnStartup()
             } returns kotlin.run {
-                val enabled = ShouldResumeFromLastSearchedColorOnStartup(boolean = true)
+                val enabled = ResumeFromLastSearchedColorOnStartup(enabled = true)
                 flowOf(enabled)
             }
             val lastSearchedColor: Color = Color.Hex(0x1A803F)

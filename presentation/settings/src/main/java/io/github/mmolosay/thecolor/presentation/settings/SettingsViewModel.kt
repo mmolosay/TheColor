@@ -15,7 +15,9 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Named
 import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.ShouldResumeFromLastSearchedColorOnStartup as DomainShouldResumeFromLastSearchedColorOnStartup
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.ResumeFromLastSearchedColorOnStartup as DomainShouldResumeFromLastSearchedColorOnStartup
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.SelectAllTextOnTextFieldFocus as DomainSelectAllTextOnTextFieldFocus
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.SmartBackspace as DomainSmartBackspace
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorScheme as DomainUiColorScheme
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeSet as DomainUiColorSchemeSet
 
@@ -30,7 +32,9 @@ class SettingsViewModel @Inject constructor(
         combine(
             userPreferencesRepository.flowOfColorInputType(),
             userPreferencesRepository.flowOfAppUiColorSchemeSet(),
-            userPreferencesRepository.flowOfShouldResumeFromLastSearchedColorOnStartup(),
+            userPreferencesRepository.flowOfResumeFromLastSearchedColorOnStartup(),
+            userPreferencesRepository.flowOfSmartBackspace(),
+            userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus(),
             transform = ::createData,
         )
             .map { data -> DataState.Ready(data) }
@@ -52,10 +56,24 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    private fun updateShouldResumeFromLastSearchedColorOnStartup(value: Boolean) {
+    private fun updateResumeFromLastSearchedColorOnStartupEnablement(value: Boolean) {
         viewModelScope.launch(defaultDispatcher) {
             val domainModel = DomainShouldResumeFromLastSearchedColorOnStartup(value)
-            userPreferencesRepository.setShouldResumeFromLastSearchedColorOnStartup(domainModel)
+            userPreferencesRepository.setResumeFromLastSearchedColorOnStartup(domainModel)
+        }
+    }
+
+    private fun updateSmartBackspaceEnablement(value: Boolean) {
+        viewModelScope.launch(defaultDispatcher) {
+            val domainModel = DomainSmartBackspace(value)
+            userPreferencesRepository.setSmartBackspace(domainModel)
+        }
+    }
+
+    private fun updateSelectAllTextOnTextFieldFocusEnablement(value: Boolean) {
+        viewModelScope.launch(defaultDispatcher) {
+            val domainModel = DomainSelectAllTextOnTextFieldFocus(value)
+            userPreferencesRepository.setSelectAllTextOnTextFieldFocus(domainModel)
         }
     }
 
@@ -63,6 +81,8 @@ class SettingsViewModel @Inject constructor(
         preferredColorInputType: DomainColorInputType,
         appUiColorSchemeSet: DomainUiColorSchemeSet,
         shouldResumeFromLastSearchedColorOnStartup: DomainShouldResumeFromLastSearchedColorOnStartup,
+        smartBackspace: DomainSmartBackspace,
+        selectAllTextOnTextFieldFocus: DomainSelectAllTextOnTextFieldFocus,
     ): SettingsData {
         return SettingsData(
             preferredColorInputType = preferredColorInputType,
@@ -70,8 +90,12 @@ class SettingsViewModel @Inject constructor(
             appUiColorSchemeSet = appUiColorSchemeSet,
             supportedAppUiColorSchemeSets = supportedAppUiColorSchemeSets(),
             changeAppUiColorSchemeSet = ::updateAppUiColorSchemeSet,
-            shouldResumeFromLastSearchedColorOnStartup = shouldResumeFromLastSearchedColorOnStartup.boolean,
-            changeShouldResumeFromLastSearchedColorOnStartup = ::updateShouldResumeFromLastSearchedColorOnStartup,
+            isResumeFromLastSearchedColorOnStartupEnabled = shouldResumeFromLastSearchedColorOnStartup.enabled,
+            changeResumeFromLastSearchedColorOnStartupEnablement = ::updateResumeFromLastSearchedColorOnStartupEnablement,
+            isSmartBackspaceEnabled = smartBackspace.enabled,
+            changeSmartBackspaceEnablement = ::updateSmartBackspaceEnablement,
+            isSelectAllTextOnTextFieldFocusEnabled = selectAllTextOnTextFieldFocus.enabled,
+            changeSelectAllTextOnTextFieldFocusEnablement = ::updateSelectAllTextOnTextFieldFocusEnablement,
         )
     }
 

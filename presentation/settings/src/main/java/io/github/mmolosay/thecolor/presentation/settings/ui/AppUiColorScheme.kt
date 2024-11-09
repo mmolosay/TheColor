@@ -24,6 +24,7 @@ import io.github.mmolosay.thecolor.presentation.settings.ui.ItemUiComponents.Des
 import io.github.mmolosay.thecolor.presentation.settings.ui.ItemUiComponents.TextValue
 import io.github.mmolosay.thecolor.presentation.settings.ui.ItemUiComponents.Title
 import io.github.mmolosay.thecolor.presentation.settings.ui.UiComponents.DefaultItemContentPadding
+import io.github.mmolosay.thecolor.presentation.settings.ui.UiComponents.DefaultItemValueSpacing
 
 @Composable
 internal fun AppUiColorScheme(
@@ -41,13 +42,14 @@ internal fun AppUiColorScheme(
                 .padding(DefaultItemContentPadding)
                 .fillMaxWidth(),
         ) {
-            Column {
+            Column(
+                modifier = Modifier.weight(1f),
+            ) {
                 Title(text = title)
                 Description(text = description)
             }
 
-            Spacer(modifier = Modifier.width(32.dp)) // min
-            Spacer(modifier = Modifier.weight(1f)) // max
+            Spacer(modifier = Modifier.width(DefaultItemValueSpacing))
             Box(
                 modifier = Modifier.align(Alignment.CenterVertically),
             ) {

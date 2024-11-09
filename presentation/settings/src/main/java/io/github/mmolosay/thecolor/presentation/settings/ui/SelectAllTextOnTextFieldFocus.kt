@@ -19,7 +19,7 @@ import io.github.mmolosay.thecolor.presentation.settings.ui.UiComponents.Default
 import io.github.mmolosay.thecolor.presentation.settings.ui.UiComponents.DefaultItemValueSpacing
 
 @Composable
-internal fun ResumeFromLastSearchedColor(
+internal fun SelectAllTextOnTextFieldFocus(
     title: String,
     description: String,
     checked: Boolean,
@@ -54,11 +54,11 @@ internal fun ResumeFromLastSearchedColor(
     backgroundColor = 0xFFFFFFFF,
 )
 @Composable
-private fun ResumeFromLastSearchedColorPreview() {
+private fun SelectAllTextOnTextFieldFocusPreview() {
     TheColorTheme {
-        ResumeFromLastSearchedColor(
-            title = "Resume from last searched color",
-            description = "App will show last searched color on startup.",
+        SelectAllTextOnTextFieldFocus(
+            title = "Select all text on focus",
+            description = "Select all text in a text field when it gets focused.",
             checked = true,
             onCheckedChange = {},
         )

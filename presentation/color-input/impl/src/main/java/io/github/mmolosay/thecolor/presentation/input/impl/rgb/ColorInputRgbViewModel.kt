@@ -3,7 +3,9 @@ package io.github.mmolosay.thecolor.presentation.input.impl.rgb
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.api.SimpleViewModel
+import io.github.mmolosay.thecolor.presentation.api.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
@@ -34,6 +36,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Named
 import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.SmartBackspace as DomainSmartBackspace
 
 internal typealias FullDataRgb = FullData<ColorInputRgbData, ColorInput.Rgb>
 
@@ -51,14 +54,16 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     @Assisted private val mediator: ColorInputMediator,
     @Assisted private val eventStore: ColorInputEventStore,
+    private val textFieldViewModelFactory: TextFieldViewModel.Factory,
     private val colorInputValidator: ColorInputValidator,
+    private val userPreferencesRepository: UserPreferencesRepository,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
     @Named("uiDataUpdateDispatcher") private val uiDataUpdateDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
-    private val rTextFieldVm = TextFieldViewModel(filterUserInput = ::filterUserInput)
-    private val gTextFieldVm = TextFieldViewModel(filterUserInput = ::filterUserInput)
-    private val bTextFieldVm = TextFieldViewModel(filterUserInput = ::filterUserInput)
+    private val rTextFieldVm = createTextFieldViewModel()
+    private val gTextFieldVm = createTextFieldViewModel()
+    private val bTextFieldVm = createTextFieldViewModel()
 
     private val dataUpdateFlow = MutableStateFlow<Update<ColorInputRgbData>?>(null)
 
@@ -101,6 +106,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                 rTextFieldVm.dataUpdatesFlow,
                 gTextFieldVm.dataUpdatesFlow,
                 bTextFieldVm.dataUpdatesFlow,
+                userPreferencesRepository.flowOfSmartBackspace(),
                 ::makeDataUpdate,
             )
                 .collect(dataUpdateFlow)
@@ -146,6 +152,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         r: Update<TextFieldData>?,
         g: Update<TextFieldData>?,
         b: Update<TextFieldData>?,
+        smartBackspace: DomainSmartBackspace,
     ): Update<ColorInputRgbData>? {
         if (r == null || g == null || b == null) return null
         val currentData = dataUpdateFlow.value?.payload
@@ -154,6 +161,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                 rTextField = r.payload,
                 gTextField = g.payload,
                 bTextField = b.payload,
+                isSmartBackspaceEnabled = smartBackspace.enabled,
             )
         } else {
             ColorInputRgbData(
@@ -161,6 +169,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                 gTextField = g.payload,
                 bTextField = b.payload,
                 submitColor = ::sendSubmitEvent,
+                isSmartBackspaceEnabled = smartBackspace.enabled,
             )
         }
         return newData causedByUser listOf(r, g, b).any { it.causedByUser }
@@ -204,6 +213,12 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     private fun clearColorSubmissionResult() {
         _colorSubmissionResultFlow.value = null
     }
+
+    private fun createTextFieldViewModel(): TextFieldViewModel =
+        textFieldViewModelFactory.create(
+            coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
+            filterUserInput = ::filterUserInput,
+        )
 
     @AssistedFactory
     fun interface Factory {

@@ -147,11 +147,11 @@ class HomeViewModel @Inject constructor(
     // TODO: add unit tests
     private fun proceedWithLastSearchedColor() {
         viewModelScope.launch(defaultDispatcher) {
-            val shouldResumeFromLastSearchedColorOnStartup = userPreferencesRepository
-                .flowOfShouldResumeFromLastSearchedColorOnStartup()
+            val resumeFromLastSearchedColorOnStartup = userPreferencesRepository
+                .flowOfResumeFromLastSearchedColorOnStartup()
                 .first()
-            val should = shouldResumeFromLastSearchedColorOnStartup.boolean
-            if (!should) return@launch
+            val enabled = resumeFromLastSearchedColorOnStartup.enabled
+            if (!enabled) return@launch
             val lastSearchedColor =
                 lastSearchedColorRepository.getLastSearchedColor() ?: return@launch
             updateColorInColorInput(color = lastSearchedColor)
