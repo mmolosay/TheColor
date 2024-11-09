@@ -29,12 +29,12 @@ object UserPreferences {
         this.light
 
     @JvmInline
-    value class ShouldResumeFromLastSearchedColorOnStartup(
-        val boolean: Boolean,
+    value class ResumeFromLastSearchedColorOnStartup(
+        val enabled: Boolean,
     )
 
     @JvmInline
     value class SmartBackspace(
-        val boolean: Boolean,
+        val enabled: Boolean,
     )
 }

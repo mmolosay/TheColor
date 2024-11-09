@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Named
 import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.ShouldResumeFromLastSearchedColorOnStartup as DomainShouldResumeFromLastSearchedColorOnStartup
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.ResumeFromLastSearchedColorOnStartup as DomainShouldResumeFromLastSearchedColorOnStartup
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.SmartBackspace as DomainSmartBackspace
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorScheme as DomainUiColorScheme
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeSet as DomainUiColorSchemeSet
@@ -31,7 +31,7 @@ class SettingsViewModel @Inject constructor(
         combine(
             userPreferencesRepository.flowOfColorInputType(),
             userPreferencesRepository.flowOfAppUiColorSchemeSet(),
-            userPreferencesRepository.flowOfShouldResumeFromLastSearchedColorOnStartup(),
+            userPreferencesRepository.flowOfResumeFromLastSearchedColorOnStartup(),
             userPreferencesRepository.flowOfSmartBackspace(),
             transform = ::createData,
         )
@@ -54,10 +54,10 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    private fun updateShouldResumeFromLastSearchedColorOnStartup(value: Boolean) {
+    private fun updateResumeFromLastSearchedColorOnStartupEnablement(value: Boolean) {
         viewModelScope.launch(defaultDispatcher) {
             val domainModel = DomainShouldResumeFromLastSearchedColorOnStartup(value)
-            userPreferencesRepository.setShouldResumeFromLastSearchedColorOnStartup(domainModel)
+            userPreferencesRepository.setResumeFromLastSearchedColorOnStartup(domainModel)
         }
     }
 
@@ -80,9 +80,9 @@ class SettingsViewModel @Inject constructor(
             appUiColorSchemeSet = appUiColorSchemeSet,
             supportedAppUiColorSchemeSets = supportedAppUiColorSchemeSets(),
             changeAppUiColorSchemeSet = ::updateAppUiColorSchemeSet,
-            shouldResumeFromLastSearchedColorOnStartup = shouldResumeFromLastSearchedColorOnStartup.boolean,
-            changeShouldResumeFromLastSearchedColorOnStartup = ::updateShouldResumeFromLastSearchedColorOnStartup,
-            isSmartBackspaceEnabled = smartBackspace.boolean,
+            isResumeFromLastSearchedColorOnStartupEnabled = shouldResumeFromLastSearchedColorOnStartup.enabled,
+            changeResumeFromLastSearchedColorOnStartupEnablement = ::updateResumeFromLastSearchedColorOnStartupEnablement,
+            isSmartBackspaceEnabled = smartBackspace.enabled,
             changeSmartBackspaceEnablement = ::updateSmartBackspaceEnablement,
         )
     }

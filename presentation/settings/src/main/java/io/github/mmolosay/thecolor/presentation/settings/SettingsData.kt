@@ -12,8 +12,8 @@ data class SettingsData(
     val appUiColorSchemeSet: DomainUiColorSchemeSet,
     val supportedAppUiColorSchemeSets: List<DomainUiColorSchemeSet>,
     val changeAppUiColorSchemeSet: (DomainUiColorSchemeSet) -> Unit,
-    val shouldResumeFromLastSearchedColorOnStartup: Boolean,
-    val changeShouldResumeFromLastSearchedColorOnStartup: (Boolean) -> Unit,
+    val isResumeFromLastSearchedColorOnStartupEnabled: Boolean,
+    val changeResumeFromLastSearchedColorOnStartupEnablement: (Boolean) -> Unit,
     val isSmartBackspaceEnabled: Boolean,
     val changeSmartBackspaceEnablement: (Boolean) -> Unit,
 )

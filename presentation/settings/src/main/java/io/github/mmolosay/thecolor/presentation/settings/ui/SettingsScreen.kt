@@ -197,8 +197,8 @@ fun Settings(
             ResumeFromLastSearchedColor(
                 title = strings.itemResumeFromLastSearchedColorTitle,
                 description = strings.itemResumeFromLastSearchedColorDesc,
-                checked = data.shouldResumeFromLastSearchedColorOnStartup,
-                onCheckedChange = data.changeShouldResumeFromLastSearchedColorOnStartup,
+                checked = data.isResumeFromLastSearchedColorOnStartupEnabled,
+                onCheckedChange = data.changeResumeFromLastSearchedColorOnStartupEnablement,
             )
         }
 
@@ -273,8 +273,8 @@ private fun previewData() =
             DomainUiColorSchemeSet.DayNight,
         ),
         changeAppUiColorSchemeSet = {},
-        shouldResumeFromLastSearchedColorOnStartup = true,
-        changeShouldResumeFromLastSearchedColorOnStartup = {},
+        isResumeFromLastSearchedColorOnStartupEnabled = true,
+        changeResumeFromLastSearchedColorOnStartupEnablement = {},
         isSmartBackspaceEnabled = true,
         changeSmartBackspaceEnablement = {},
     )

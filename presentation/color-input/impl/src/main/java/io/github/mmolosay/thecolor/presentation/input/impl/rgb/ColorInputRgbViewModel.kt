@@ -159,7 +159,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                 rTextField = r.payload,
                 gTextField = g.payload,
                 bTextField = b.payload,
-                isSmartBackspaceEnabled = smartBackspace.boolean,
+                isSmartBackspaceEnabled = smartBackspace.enabled,
             )
         } else {
             ColorInputRgbData(
@@ -167,7 +167,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                 gTextField = g.payload,
                 bTextField = b.payload,
                 submitColor = ::sendSubmitEvent,
-                isSmartBackspaceEnabled = smartBackspace.boolean,
+                isSmartBackspaceEnabled = smartBackspace.enabled,
             )
         }
         return newData causedByUser listOf(r, g, b).any { it.causedByUser }

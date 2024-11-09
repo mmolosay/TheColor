@@ -7,7 +7,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import io.github.mmolosay.thecolor.domain.model.ColorInputType
 import io.github.mmolosay.thecolor.domain.model.UserPreferences
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.ShouldResumeFromLastSearchedColorOnStartup
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.ResumeFromLastSearchedColorOnStartup
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.SmartBackspace
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorScheme
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeSet
@@ -46,9 +46,9 @@ class UserPreferencesDataStoreRepository @Inject constructor(
             .map { it.getAppUiColorSchemeSet() }
             .stateEagerlyInAppScope()
 
-    private val stateFlowOfShouldResumeFromLastSearchedColorOnStartup: StateFlow<ShouldResumeFromLastSearchedColorOnStartup?> =
+    private val stateFlowOfResumeFromLastSearchedColorOnStartup: StateFlow<ResumeFromLastSearchedColorOnStartup?> =
         dataStore.data
-            .map { it.getShouldResumeFromLastSearchedColorOnStartup() }
+            .map { it.getResumeFromLastSearchedColorOnStartup() }
             .stateEagerlyInAppScope()
 
     private val stateFlowOfSmartBackspace: StateFlow<SmartBackspace?> =
@@ -125,26 +125,26 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         }
     }
 
-    override fun flowOfShouldResumeFromLastSearchedColorOnStartup(): Flow<ShouldResumeFromLastSearchedColorOnStartup> =
-        stateFlowOfShouldResumeFromLastSearchedColorOnStartup.filterNotNull()
+    override fun flowOfResumeFromLastSearchedColorOnStartup(): Flow<ResumeFromLastSearchedColorOnStartup> =
+        stateFlowOfResumeFromLastSearchedColorOnStartup.filterNotNull()
 
-    private fun Preferences.getShouldResumeFromLastSearchedColorOnStartup(): ShouldResumeFromLastSearchedColorOnStartup {
+    private fun Preferences.getResumeFromLastSearchedColorOnStartup(): ResumeFromLastSearchedColorOnStartup {
         val dtoValue = this[DataStoreKeys.ShouldResumeFromLastSearchedColorOnStartup]
         return if (dtoValue != null) {
-            ShouldResumeFromLastSearchedColorOnStartup(
-                boolean = dtoValue, // boolean stays boolean in both Data and Domain layers
+            ResumeFromLastSearchedColorOnStartup(
+                enabled = dtoValue, // boolean stays boolean in both Data and Domain layers
             )
         } else {
-            DefaultUserPreferences.ShouldResumeFromLastSearchedColorOnStartup
+            DefaultUserPreferences.ResumeFromLastSearchedColorOnStartup
         }
     }
 
-    override suspend fun setShouldResumeFromLastSearchedColorOnStartup(value: ShouldResumeFromLastSearchedColorOnStartup?) {
+    override suspend fun setResumeFromLastSearchedColorOnStartup(value: ResumeFromLastSearchedColorOnStartup?) {
         withContext(ioDispatcher) {
             dataStore.edit { preferences ->
                 if (value != null) {
                     preferences[DataStoreKeys.ShouldResumeFromLastSearchedColorOnStartup] =
-                        value.boolean
+                        value.enabled
                 } else {
                     preferences.remove(DataStoreKeys.ShouldResumeFromLastSearchedColorOnStartup)
                 }
@@ -159,7 +159,7 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         val dtoValue = this[DataStoreKeys.SmartBackspace]
         return if (dtoValue != null) {
             SmartBackspace(
-                boolean = dtoValue, // boolean stays boolean in both Data and Domain layers
+                enabled = dtoValue, // boolean stays boolean in both Data and Domain layers
             )
         } else {
             DefaultUserPreferences.SmartBackspace
@@ -170,7 +170,7 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         withContext(ioDispatcher) {
             dataStore.edit { preferences ->
                 if (value != null) {
-                    preferences[DataStoreKeys.SmartBackspace] = value.boolean
+                    preferences[DataStoreKeys.SmartBackspace] = value.enabled
                 } else {
                     preferences.remove(DataStoreKeys.SmartBackspace)
                 }

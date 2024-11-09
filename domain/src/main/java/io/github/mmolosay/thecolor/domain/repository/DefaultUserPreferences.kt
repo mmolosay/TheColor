@@ -15,9 +15,9 @@ object DefaultUserPreferences {
     val AppUiColorSchemeSet: UserPreferences.UiColorSchemeSet =
         UserPreferences.UiColorSchemeSet.DayNight
 
-    val ShouldResumeFromLastSearchedColorOnStartup =
-        UserPreferences.ShouldResumeFromLastSearchedColorOnStartup(boolean = false)
+    val ResumeFromLastSearchedColorOnStartup =
+        UserPreferences.ResumeFromLastSearchedColorOnStartup(enabled = false)
 
     val SmartBackspace =
-        UserPreferences.SmartBackspace(boolean = false)
+        UserPreferences.SmartBackspace(enabled = false)
 }
