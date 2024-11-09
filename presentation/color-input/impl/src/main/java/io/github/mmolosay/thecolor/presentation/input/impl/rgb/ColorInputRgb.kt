@@ -26,6 +26,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.input.impl.UiComponents
 import io.github.mmolosay.thecolor.presentation.input.impl.UiComponents.Loading
+import io.github.mmolosay.thecolor.presentation.input.impl.UiComponents.onBackspace
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiData
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
@@ -74,7 +75,7 @@ fun ColorInputRgb(
             modifier = modifier,
             uiData = uiData.rTextField,
             imeAction = ImeAction.Next,
-            hasPreviousComponent = false,
+            hasPreviousComponent = false, // for R there's no previous
         )
 
         // G
@@ -83,7 +84,7 @@ fun ColorInputRgb(
             modifier = modifier,
             uiData = uiData.gTextField,
             imeAction = ImeAction.Next,
-            hasPreviousComponent = true,
+            hasPreviousComponent = true, // for G previous is R
         )
 
 
@@ -96,7 +97,7 @@ fun ColorInputRgb(
             keyboardActions = KeyboardActions(
                 onDone = { uiData.onImeActionDone() },
             ),
-            hasPreviousComponent = true,
+            hasPreviousComponent = true, // for B previous is G
         )
     }
 }
@@ -114,17 +115,16 @@ private fun ComponentAdvancedTextField(
 ) {
     val focusManager = LocalFocusManager.current
     ComponentBasicTextField(
-        modifier = modifier,
+        modifier = modifier.onBackspace {
+            val text = uiData.text.string
+            if (text.isEmpty() && hasPreviousComponent) {
+                focusManager.moveFocus(FocusDirection.Previous)
+            }
+        },
         uiData = uiData,
         imeAction = imeAction,
         keyboardActions = keyboardActions,
     )
-    LaunchedEffect(uiData.text) {
-        val text = uiData.text.string
-        if (text.isEmpty() && hasPreviousComponent) {
-            focusManager.moveFocus(FocusDirection.Previous)
-        }
-    }
 }
 
 /**
