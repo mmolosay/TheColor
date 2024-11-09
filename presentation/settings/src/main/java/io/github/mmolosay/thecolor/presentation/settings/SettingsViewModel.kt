@@ -59,6 +59,10 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    private fun updateSmartBackspaceEnablement(value: Boolean) {
+
+    }
+
     private fun createData(
         preferredColorInputType: DomainColorInputType,
         appUiColorSchemeSet: DomainUiColorSchemeSet,
@@ -72,6 +76,8 @@ class SettingsViewModel @Inject constructor(
             changeAppUiColorSchemeSet = ::updateAppUiColorSchemeSet,
             shouldResumeFromLastSearchedColorOnStartup = shouldResumeFromLastSearchedColorOnStartup.boolean,
             changeShouldResumeFromLastSearchedColorOnStartup = ::updateShouldResumeFromLastSearchedColorOnStartup,
+            isSmartBackspaceEnabled = true,
+            changeSmartBackspaceEnablement = ::updateSmartBackspaceEnablement,
         )
     }
 

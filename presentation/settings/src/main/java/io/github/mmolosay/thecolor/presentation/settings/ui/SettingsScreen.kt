@@ -206,8 +206,8 @@ fun Settings(
             SmartBackspace(
                 title = strings.itemSmartBackspaceTitle,
                 description = strings.itemSmartBackspaceDesc,
-                checked = true,
-                onCheckedChange = {},
+                checked = data.isSmartBackspaceEnabled,
+                onCheckedChange = data.changeSmartBackspaceEnablement,
             )
         }
     }
@@ -275,4 +275,6 @@ private fun previewData() =
         changeAppUiColorSchemeSet = {},
         shouldResumeFromLastSearchedColorOnStartup = true,
         changeShouldResumeFromLastSearchedColorOnStartup = {},
+        isSmartBackspaceEnabled = true,
+        changeSmartBackspaceEnablement = {},
     )
