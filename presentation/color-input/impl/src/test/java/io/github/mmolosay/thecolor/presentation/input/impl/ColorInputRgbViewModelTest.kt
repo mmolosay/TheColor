@@ -1,6 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.input.impl
 
 import io.github.mmolosay.thecolor.domain.model.Color
+import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
@@ -21,6 +22,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
@@ -32,6 +34,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.SmartBackspace as DomainSmartBackspace
 
 abstract class ColorInputRgbViewModelTest {
 
@@ -46,6 +49,9 @@ abstract class ColorInputRgbViewModelTest {
     val colorInputValidator: ColorInputValidator = mockk {
         every { any<ColorInput>().validate() } returns mockk<ColorInputState.Invalid>()
     }
+    val userPreferencesRepository: UserPreferencesRepository = mockk {
+        every { flowOfSmartBackspace() } returns flowOf(value = DomainSmartBackspace(enabled = false))
+    }
 
     lateinit var sut: ColorInputRgbViewModel
 
@@ -55,6 +61,7 @@ abstract class ColorInputRgbViewModelTest {
             mediator = mediator,
             eventStore = eventStore,
             colorInputValidator = colorInputValidator,
+            userPreferencesRepository = userPreferencesRepository,
             uiDataUpdateDispatcher = mainDispatcherRule.testDispatcher,
             defaultDispatcher = mainDispatcherRule.testDispatcher,
         ).also {
@@ -115,7 +122,7 @@ class FilterRgbUserInputTest(
 class OtherRgb : ColorInputRgbViewModelTest() {
 
     @Test
-    fun `sut is created with state BeingInitialized if mediator RGB flow has no value yet`() {
+    fun `SUT is created with state 'BeingInitialized' if mediator RGB flow has no value yet`() {
         every { mediator.rgbColorInputFlow } returns emptyFlow()
 
         createSut()
@@ -124,20 +131,35 @@ class OtherRgb : ColorInputRgbViewModelTest() {
     }
 
     @Test
-    fun `sut is created with state Ready if mediator RGB flow has value already`() {
+    fun `SUT is created with state 'Ready' if mediator RGB flow has value already`() {
+        every { mediator.rgbColorInputFlow } returns flowOf(ColorInput.Rgb("", "", ""))
         createSut()
 
         dataState should beOfType<DataState.Ready<*>>()
     }
 
     @Test
-    fun `state becomes Ready when mediator emits first value from RGB flow`() =
+    fun `state becomes 'Ready' when mediator emits first value from RGB flow`() =
         runTest(mainDispatcherRule.testDispatcher) {
             val rgbColorInputFlow = MutableSharedFlow<ColorInput.Rgb>()
             every { mediator.rgbColorInputFlow } returns rgbColorInputFlow
             createSut()
 
             rgbColorInputFlow.emit(ColorInput.Rgb("18", "1", "20"))
+
+            dataState should beOfType<DataState.Ready<*>>()
+        }
+
+    @Test
+    fun `state becomes Ready when 'smart backspace' value is emitted`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val flowOfSmartBackspace = MutableSharedFlow<DomainSmartBackspace>()
+            every { userPreferencesRepository.flowOfSmartBackspace() } returns flowOfSmartBackspace
+            createSut()
+            dataState should beOfType<DataState.BeingInitialized>() // confirm that isn't 'Ready' yet
+
+            val value = DomainSmartBackspace(enabled = true) // value of 'enabled' doesn't matter
+            flowOfSmartBackspace.emit(value)
 
             dataState should beOfType<DataState.Ready<*>>()
         }
@@ -231,4 +253,18 @@ class OtherRgb : ColorInputRgbViewModelTest() {
             eventStore.send(event = any<ColorInputEvent.Submit>())
         }
     }
+
+    @Test
+    fun `emission of 'Smart Backspace' updates data accordingly`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val flowOfSmartBackspace =
+                MutableStateFlow(value = DomainSmartBackspace(enabled = false))
+            every { userPreferencesRepository.flowOfSmartBackspace() } returns flowOfSmartBackspace
+            createSut()
+            data.isSmartBackspaceEnabled shouldBe false
+
+            flowOfSmartBackspace.value = DomainSmartBackspace(enabled = true)
+
+            data.isSmartBackspaceEnabled shouldBe true
+        }
 }
