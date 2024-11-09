@@ -32,13 +32,14 @@ internal fun ResumeFromLastSearchedColor(
                 .padding(DefaultItemContentPadding)
                 .fillMaxWidth(),
         ) {
-            Column {
+            Column(
+                modifier = Modifier.weight(1f),
+            ) {
                 Title(text = title)
                 Description(text = description)
             }
 
-            Spacer(modifier = Modifier.width(32.dp)) // min
-            Spacer(modifier = Modifier.weight(1f)) // max
+            Spacer(modifier = Modifier.width(32.dp))
             Switch(
                 modifier = Modifier.align(Alignment.CenterVertically),
                 checked = checked,
