@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import io.github.mmolosay.thecolor.domain.model.ColorInputType
 import io.github.mmolosay.thecolor.domain.model.UserPreferences
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.ResumeFromLastSearchedColorOnStartup
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.SelectAllTextOnTextFieldFocus
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.SmartBackspace
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorScheme
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeSet
@@ -54,6 +55,11 @@ class UserPreferencesDataStoreRepository @Inject constructor(
     private val stateFlowOfSmartBackspace: StateFlow<SmartBackspace?> =
         dataStore.data
             .map { it.getSmartBackspace() }
+            .stateEagerlyInAppScope()
+
+    private val stateFlowOfSelectAllTextOnTextFieldFocus: StateFlow<SelectAllTextOnTextFieldFocus?> =
+        dataStore.data
+            .map { it.getSelectAllTextOnTextFieldFocus() }
             .stateEagerlyInAppScope()
 
     override fun flowOfColorInputType(): Flow<ColorInputType> =
@@ -178,6 +184,32 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         }
     }
 
+    override fun flowOfSelectAllTextOnTextFieldFocus(): Flow<SelectAllTextOnTextFieldFocus> =
+        stateFlowOfSelectAllTextOnTextFieldFocus.filterNotNull()
+
+    private fun Preferences.getSelectAllTextOnTextFieldFocus(): SelectAllTextOnTextFieldFocus {
+        val dtoValue = this[DataStoreKeys.SelectAllTextOnTextFieldFocus]
+        return if (dtoValue != null) {
+            SelectAllTextOnTextFieldFocus(
+                enabled = dtoValue, // boolean stays boolean in both Data and Domain layers
+            )
+        } else {
+            DefaultUserPreferences.SelectAllTextOnTextFieldFocus
+        }
+    }
+
+    override suspend fun setSelectAllTextOnTextFieldFocus(value: SelectAllTextOnTextFieldFocus?) {
+        withContext(ioDispatcher) {
+            dataStore.edit { preferences ->
+                if (value != null) {
+                    preferences[DataStoreKeys.SelectAllTextOnTextFieldFocus] = value.enabled
+                } else {
+                    preferences.remove(DataStoreKeys.SelectAllTextOnTextFieldFocus)
+                }
+            }
+        }
+    }
+
     private fun <T> Flow<T>.stateEagerlyInAppScope(): StateFlow<T?> =
         this.stateIn(
             scope = appScope,
@@ -200,6 +232,9 @@ class UserPreferencesDataStoreRepository @Inject constructor(
             booleanPreferencesKey("should_resume_from_last_searched_color_on_startup")
 
         val SmartBackspace = booleanPreferencesKey("smart_backspace")
+
+        val SelectAllTextOnTextFieldFocus =
+            booleanPreferencesKey("select_all_text_on_text_field_focus")
     }
 }
 

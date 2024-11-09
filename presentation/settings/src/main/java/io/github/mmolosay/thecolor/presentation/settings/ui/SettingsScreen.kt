@@ -215,8 +215,8 @@ fun Settings(
             SelectAllTextOnTextFieldFocus(
                 title = strings.itemSelectAllTextOnTextFieldFocusTitle,
                 description = strings.itemSelectAllTextOnTextFieldFocusDesc,
-                checked = true,
-                onCheckedChange = {},
+                checked = data.isSelectAllTextOnTextFieldFocusEnabled,
+                onCheckedChange = data.changeSelectAllTextOnTextFieldFocusEnablement,
             )
         }
     }
@@ -286,4 +286,6 @@ private fun previewData() =
         changeResumeFromLastSearchedColorOnStartupEnablement = {},
         isSmartBackspaceEnabled = true,
         changeSmartBackspaceEnablement = {},
+        isSelectAllTextOnTextFieldFocusEnabled = true,
+        changeSelectAllTextOnTextFieldFocusEnablement = {},
     )

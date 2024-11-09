@@ -16,4 +16,6 @@ data class SettingsData(
     val changeResumeFromLastSearchedColorOnStartupEnablement: (Boolean) -> Unit,
     val isSmartBackspaceEnabled: Boolean,
     val changeSmartBackspaceEnablement: (Boolean) -> Unit,
+    val isSelectAllTextOnTextFieldFocusEnabled: Boolean,
+    val changeSelectAllTextOnTextFieldFocusEnablement: (Boolean) -> Unit,
 )

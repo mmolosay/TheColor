@@ -16,6 +16,7 @@ import javax.inject.Inject
 import javax.inject.Named
 import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.ResumeFromLastSearchedColorOnStartup as DomainShouldResumeFromLastSearchedColorOnStartup
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.SelectAllTextOnTextFieldFocus as DomainSelectAllTextOnTextFieldFocus
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.SmartBackspace as DomainSmartBackspace
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorScheme as DomainUiColorScheme
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeSet as DomainUiColorSchemeSet
@@ -33,6 +34,7 @@ class SettingsViewModel @Inject constructor(
             userPreferencesRepository.flowOfAppUiColorSchemeSet(),
             userPreferencesRepository.flowOfResumeFromLastSearchedColorOnStartup(),
             userPreferencesRepository.flowOfSmartBackspace(),
+            userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus(),
             transform = ::createData,
         )
             .map { data -> DataState.Ready(data) }
@@ -68,11 +70,19 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    private fun updateSelectAllTextOnTextFieldFocusEnablement(value: Boolean) {
+        viewModelScope.launch(defaultDispatcher) {
+            val domainModel = DomainSelectAllTextOnTextFieldFocus(value)
+            userPreferencesRepository.setSelectAllTextOnTextFieldFocus(domainModel)
+        }
+    }
+
     private fun createData(
         preferredColorInputType: DomainColorInputType,
         appUiColorSchemeSet: DomainUiColorSchemeSet,
         shouldResumeFromLastSearchedColorOnStartup: DomainShouldResumeFromLastSearchedColorOnStartup,
         smartBackspace: DomainSmartBackspace,
+        selectAllTextOnTextFieldFocus: DomainSelectAllTextOnTextFieldFocus,
     ): SettingsData {
         return SettingsData(
             preferredColorInputType = preferredColorInputType,
@@ -84,6 +94,8 @@ class SettingsViewModel @Inject constructor(
             changeResumeFromLastSearchedColorOnStartupEnablement = ::updateResumeFromLastSearchedColorOnStartupEnablement,
             isSmartBackspaceEnabled = smartBackspace.enabled,
             changeSmartBackspaceEnablement = ::updateSmartBackspaceEnablement,
+            isSelectAllTextOnTextFieldFocusEnabled = selectAllTextOnTextFieldFocus.enabled,
+            changeSelectAllTextOnTextFieldFocusEnablement = ::updateSelectAllTextOnTextFieldFocusEnablement,
         )
     }
 

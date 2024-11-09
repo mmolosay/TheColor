@@ -1,7 +1,9 @@
 package io.github.mmolosay.thecolor.domain.repository
 
 import io.github.mmolosay.thecolor.domain.model.ColorInputType
+import io.github.mmolosay.thecolor.domain.model.UserPreferences
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.ResumeFromLastSearchedColorOnStartup
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.SelectAllTextOnTextFieldFocus
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.SmartBackspace
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeSet
 import kotlinx.coroutines.flow.Flow
@@ -18,4 +20,7 @@ interface UserPreferencesRepository {
 
     fun flowOfSmartBackspace(): Flow<SmartBackspace>
     suspend fun setSmartBackspace(value: SmartBackspace?)
+
+    fun flowOfSelectAllTextOnTextFieldFocus(): Flow<SelectAllTextOnTextFieldFocus>
+    suspend fun setSelectAllTextOnTextFieldFocus(value: SelectAllTextOnTextFieldFocus?)
 }

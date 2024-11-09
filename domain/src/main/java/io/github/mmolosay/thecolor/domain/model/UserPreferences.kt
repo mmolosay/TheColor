@@ -37,4 +37,9 @@ object UserPreferences {
     value class SmartBackspace(
         val enabled: Boolean,
     )
+
+    @JvmInline
+    value class SelectAllTextOnTextFieldFocus(
+        val enabled: Boolean,
+    )
 }
