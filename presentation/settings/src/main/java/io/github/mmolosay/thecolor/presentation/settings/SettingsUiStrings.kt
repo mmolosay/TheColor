@@ -25,6 +25,8 @@ data class SettingsUiStrings(
     val itemResumeFromLastSearchedColorDesc: String,
     val itemSmartBackspaceTitle: String,
     val itemSmartBackspaceDesc: String,
+    val itemSelectAllTextOnTextFieldFocusTitle: String,
+    val itemSelectAllTextOnTextFieldFocusDesc: String,
 )
 
 fun SettingsUiStrings(context: Context) =
@@ -45,4 +47,6 @@ fun SettingsUiStrings(context: Context) =
         itemResumeFromLastSearchedColorDesc = context.getString(R.string.settings_item_resume_from_last_searched_color_desc),
         itemSmartBackspaceTitle = context.getString(R.string.settings_item_smart_backspace_title),
         itemSmartBackspaceDesc = context.getString(R.string.settings_item_smart_backspace_desc),
+        itemSelectAllTextOnTextFieldFocusTitle = context.getString(R.string.settings_item_select_all_text_on_text_field_focus_title),
+        itemSelectAllTextOnTextFieldFocusDesc = context.getString(R.string.settings_item_select_all_text_on_text_field_focus_desc),
     )

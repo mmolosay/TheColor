@@ -210,6 +210,15 @@ fun Settings(
                 onCheckedChange = data.changeSmartBackspaceEnablement,
             )
         }
+
+        item("select all text on text field focus") {
+            SelectAllTextOnTextFieldFocus(
+                title = strings.itemSelectAllTextOnTextFieldFocusTitle,
+                description = strings.itemSelectAllTextOnTextFieldFocusDesc,
+                checked = true,
+                onCheckedChange = {},
+            )
+        }
     }
 }
 

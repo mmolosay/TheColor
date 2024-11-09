@@ -22,4 +22,7 @@
     <string name="settings_item_smart_backspace_title">Smart Backspace</string>
     <string name="settings_item_smart_backspace_desc">Go to previous text field when clicking backspace in empty text field.</string>
 
+    <string name="settings_item_select_all_text_on_text_field_focus_title">Select all text on focus</string>
+    <string name="settings_item_select_all_text_on_text_field_focus_desc">Select all text in a text field when it gets focused.</string>
+
 </resources>
