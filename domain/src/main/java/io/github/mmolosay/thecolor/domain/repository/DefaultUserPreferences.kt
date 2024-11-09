@@ -17,4 +17,7 @@ object DefaultUserPreferences {
 
     val ShouldResumeFromLastSearchedColorOnStartup =
         UserPreferences.ShouldResumeFromLastSearchedColorOnStartup(boolean = false)
+
+    val SmartBackspace =
+        UserPreferences.SmartBackspace(boolean = false)
 }

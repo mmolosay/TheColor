@@ -16,6 +16,7 @@ import javax.inject.Inject
 import javax.inject.Named
 import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.ShouldResumeFromLastSearchedColorOnStartup as DomainShouldResumeFromLastSearchedColorOnStartup
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.SmartBackspace as DomainSmartBackspace
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorScheme as DomainUiColorScheme
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeSet as DomainUiColorSchemeSet
 
@@ -31,6 +32,7 @@ class SettingsViewModel @Inject constructor(
             userPreferencesRepository.flowOfColorInputType(),
             userPreferencesRepository.flowOfAppUiColorSchemeSet(),
             userPreferencesRepository.flowOfShouldResumeFromLastSearchedColorOnStartup(),
+            userPreferencesRepository.flowOfSmartBackspace(),
             transform = ::createData,
         )
             .map { data -> DataState.Ready(data) }
@@ -60,13 +62,17 @@ class SettingsViewModel @Inject constructor(
     }
 
     private fun updateSmartBackspaceEnablement(value: Boolean) {
-
+        viewModelScope.launch(defaultDispatcher) {
+            val domainModel = DomainSmartBackspace(value)
+            userPreferencesRepository.setSmartBackspace(domainModel)
+        }
     }
 
     private fun createData(
         preferredColorInputType: DomainColorInputType,
         appUiColorSchemeSet: DomainUiColorSchemeSet,
         shouldResumeFromLastSearchedColorOnStartup: DomainShouldResumeFromLastSearchedColorOnStartup,
+        smartBackspace: DomainSmartBackspace,
     ): SettingsData {
         return SettingsData(
             preferredColorInputType = preferredColorInputType,
@@ -76,7 +82,7 @@ class SettingsViewModel @Inject constructor(
             changeAppUiColorSchemeSet = ::updateAppUiColorSchemeSet,
             shouldResumeFromLastSearchedColorOnStartup = shouldResumeFromLastSearchedColorOnStartup.boolean,
             changeShouldResumeFromLastSearchedColorOnStartup = ::updateShouldResumeFromLastSearchedColorOnStartup,
-            isSmartBackspaceEnabled = true,
+            isSmartBackspaceEnabled = smartBackspace.boolean,
             changeSmartBackspaceEnablement = ::updateSmartBackspaceEnablement,
         )
     }

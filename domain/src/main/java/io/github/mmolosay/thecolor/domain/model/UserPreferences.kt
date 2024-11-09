@@ -32,4 +32,9 @@ object UserPreferences {
     value class ShouldResumeFromLastSearchedColorOnStartup(
         val boolean: Boolean,
     )
+
+    @JvmInline
+    value class SmartBackspace(
+        val boolean: Boolean,
+    )
 }

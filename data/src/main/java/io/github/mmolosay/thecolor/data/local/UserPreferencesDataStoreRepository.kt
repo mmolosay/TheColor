@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import io.github.mmolosay.thecolor.domain.model.ColorInputType
 import io.github.mmolosay.thecolor.domain.model.UserPreferences
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.ShouldResumeFromLastSearchedColorOnStartup
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.SmartBackspace
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorScheme
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeSet
 import io.github.mmolosay.thecolor.domain.repository.DefaultUserPreferences
@@ -48,6 +49,11 @@ class UserPreferencesDataStoreRepository @Inject constructor(
     private val stateFlowOfShouldResumeFromLastSearchedColorOnStartup: StateFlow<ShouldResumeFromLastSearchedColorOnStartup?> =
         dataStore.data
             .map { it.getShouldResumeFromLastSearchedColorOnStartup() }
+            .stateEagerlyInAppScope()
+
+    private val stateFlowOfSmartBackspace: StateFlow<SmartBackspace?> =
+        dataStore.data
+            .map { it.getSmartBackspace() }
             .stateEagerlyInAppScope()
 
     override fun flowOfColorInputType(): Flow<ColorInputType> =
@@ -146,6 +152,32 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         }
     }
 
+    override fun flowOfSmartBackspace(): Flow<SmartBackspace> =
+        stateFlowOfSmartBackspace.filterNotNull()
+
+    private fun Preferences.getSmartBackspace(): SmartBackspace {
+        val dtoValue = this[DataStoreKeys.SmartBackspace]
+        return if (dtoValue != null) {
+            SmartBackspace(
+                boolean = dtoValue, // boolean stays boolean in both Data and Domain layers
+            )
+        } else {
+            DefaultUserPreferences.SmartBackspace
+        }
+    }
+
+    override suspend fun setSmartBackspace(value: SmartBackspace?) {
+        withContext(ioDispatcher) {
+            dataStore.edit { preferences ->
+                if (value != null) {
+                    preferences[DataStoreKeys.SmartBackspace] = value.boolean
+                } else {
+                    preferences.remove(DataStoreKeys.SmartBackspace)
+                }
+            }
+        }
+    }
+
     private fun <T> Flow<T>.stateEagerlyInAppScope(): StateFlow<T?> =
         this.stateIn(
             scope = appScope,
@@ -166,6 +198,8 @@ class UserPreferencesDataStoreRepository @Inject constructor(
 
         val ShouldResumeFromLastSearchedColorOnStartup =
             booleanPreferencesKey("should_resume_from_last_searched_color_on_startup")
+
+        val SmartBackspace = booleanPreferencesKey("smart_backspace")
     }
 }
 
