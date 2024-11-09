@@ -22,5 +22,4 @@ data class TextFieldUiData(
             val iconContentDesc: String,
         ) : TrailingButton
     }
-
 }

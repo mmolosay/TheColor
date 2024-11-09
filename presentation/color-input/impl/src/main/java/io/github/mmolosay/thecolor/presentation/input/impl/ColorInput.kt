@@ -231,4 +231,5 @@ private fun previewInputRgbUiData() =
             ),
         ),
         onImeActionDone = {},
+        addSmartBackspaceModifier = true,
     )

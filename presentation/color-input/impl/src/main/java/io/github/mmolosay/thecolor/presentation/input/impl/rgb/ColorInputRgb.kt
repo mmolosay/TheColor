@@ -24,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
+import io.github.mmolosay.thecolor.presentation.impl.thenIf
 import io.github.mmolosay.thecolor.presentation.input.impl.UiComponents
 import io.github.mmolosay.thecolor.presentation.input.impl.UiComponents.Loading
 import io.github.mmolosay.thecolor.presentation.input.impl.UiComponents.onBackspace
@@ -76,6 +77,7 @@ fun ColorInputRgb(
             uiData = uiData.rTextField,
             imeAction = ImeAction.Next,
             hasPreviousComponent = false, // for R there's no previous
+            addSmartBackspaceModifier = uiData.addSmartBackspaceModifier,
         )
 
         // G
@@ -85,6 +87,7 @@ fun ColorInputRgb(
             uiData = uiData.gTextField,
             imeAction = ImeAction.Next,
             hasPreviousComponent = true, // for G previous is R
+            addSmartBackspaceModifier = uiData.addSmartBackspaceModifier,
         )
 
 
@@ -98,6 +101,7 @@ fun ColorInputRgb(
                 onDone = { uiData.onImeActionDone() },
             ),
             hasPreviousComponent = true, // for B previous is G
+            addSmartBackspaceModifier = uiData.addSmartBackspaceModifier,
         )
     }
 }
@@ -112,13 +116,17 @@ private fun ComponentAdvancedTextField(
     imeAction: ImeAction,
     keyboardActions: KeyboardActions = KeyboardActions(),
     hasPreviousComponent: Boolean,
+    addSmartBackspaceModifier: Boolean,
 ) {
     val focusManager = LocalFocusManager.current
     ComponentBasicTextField(
-        modifier = modifier.onBackspace {
-            val text = uiData.text.string
-            if (text.isEmpty() && hasPreviousComponent) {
-                focusManager.moveFocus(FocusDirection.Previous)
+        modifier = modifier
+            .thenIf(addSmartBackspaceModifier) {
+                onBackspace {
+                    val text = uiData.text.string
+                    if (text.isEmpty() && hasPreviousComponent) {
+                        focusManager.moveFocus(FocusDirection.Previous)
+                    }
             }
         },
         uiData = uiData,
@@ -207,4 +215,5 @@ private fun previewUiData() =
             ),
         ),
         onImeActionDone = {},
+        addSmartBackspaceModifier = true,
     )

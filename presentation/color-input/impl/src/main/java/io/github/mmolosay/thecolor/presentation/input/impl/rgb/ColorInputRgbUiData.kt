@@ -10,4 +10,5 @@ data class ColorInputRgbUiData(
     val gTextField: TextFieldUiData,
     val bTextField: TextFieldUiData,
     val onImeActionDone: () -> Unit,
+    val addSmartBackspaceModifier: Boolean, // TODO: used in TextField() Composables. Create specific RgbTextFieldUiData with such property?
 )

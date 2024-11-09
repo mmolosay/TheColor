@@ -3,6 +3,7 @@ package io.github.mmolosay.thecolor.presentation.input.impl.rgb
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.api.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
@@ -34,6 +35,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Named
 import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
+import io.github.mmolosay.thecolor.domain.model.UserPreferences.SmartBackspace as DomainSmartBackspace
 
 internal typealias FullDataRgb = FullData<ColorInputRgbData, ColorInput.Rgb>
 
@@ -52,6 +54,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     @Assisted private val mediator: ColorInputMediator,
     @Assisted private val eventStore: ColorInputEventStore,
     private val colorInputValidator: ColorInputValidator,
+    private val userPreferencesRepository: UserPreferencesRepository,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
     @Named("uiDataUpdateDispatcher") private val uiDataUpdateDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
@@ -101,6 +104,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                 rTextFieldVm.dataUpdatesFlow,
                 gTextFieldVm.dataUpdatesFlow,
                 bTextFieldVm.dataUpdatesFlow,
+                userPreferencesRepository.flowOfSmartBackspace(),
                 ::makeDataUpdate,
             )
                 .collect(dataUpdateFlow)
@@ -146,6 +150,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         r: Update<TextFieldData>?,
         g: Update<TextFieldData>?,
         b: Update<TextFieldData>?,
+        smartBackspace: DomainSmartBackspace,
     ): Update<ColorInputRgbData>? {
         if (r == null || g == null || b == null) return null
         val currentData = dataUpdateFlow.value?.payload
@@ -154,6 +159,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                 rTextField = r.payload,
                 gTextField = g.payload,
                 bTextField = b.payload,
+                isSmartBackspaceEnabled = smartBackspace.boolean,
             )
         } else {
             ColorInputRgbData(
@@ -161,6 +167,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                 gTextField = g.payload,
                 bTextField = b.payload,
                 submitColor = ::sendSubmitEvent,
+                isSmartBackspaceEnabled = smartBackspace.boolean,
             )
         }
         return newData causedByUser listOf(r, g, b).any { it.causedByUser }

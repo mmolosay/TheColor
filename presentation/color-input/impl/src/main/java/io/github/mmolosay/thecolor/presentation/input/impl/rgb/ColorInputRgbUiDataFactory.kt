@@ -11,4 +11,5 @@ fun ColorInputRgbUiData(
         gTextField = TextFieldUiData(data.gTextField, strings.gTextField),
         bTextField = TextFieldUiData(data.bTextField, strings.bTextField),
         onImeActionDone = data.submitColor,
+        addSmartBackspaceModifier = data.isSmartBackspaceEnabled,
     )
