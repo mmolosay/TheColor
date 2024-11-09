@@ -19,7 +19,7 @@ import io.github.mmolosay.thecolor.presentation.settings.ui.UiComponents.Default
 import io.github.mmolosay.thecolor.presentation.settings.ui.UiComponents.DefaultItemValueSpacing
 
 @Composable
-fun SmartBackspace(
+internal fun SmartBackspace(
     title: String,
     description: String,
     checked: Boolean,
