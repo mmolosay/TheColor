@@ -12,6 +12,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
@@ -59,7 +60,14 @@ fun ColorInputHex(
 fun ColorInputHex(
     uiData: ColorInputHexUiData,
 ) {
-    var value by remember { mutableStateOf(TextFieldValue(text = uiData.textField.text.string)) }
+    var value by remember {
+        val text = uiData.textField.text.string
+        val value = TextFieldValue(
+            text = text,
+            selection = TextRange(index = text.length), // cursor at the end of the text
+        )
+        mutableStateOf(value)
+    }
 
     TextField(
         modifier = Modifier.fillMaxWidth(0.5f),

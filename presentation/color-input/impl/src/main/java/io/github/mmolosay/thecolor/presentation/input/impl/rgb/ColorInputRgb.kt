@@ -14,6 +14,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
@@ -98,7 +99,14 @@ private fun TextField(
     imeAction: ImeAction,
     keyboardActions: KeyboardActions = KeyboardActions(),
 ) {
-    var value by remember { mutableStateOf(TextFieldValue(text = uiData.text.string)) }
+    var value by remember {
+        val text = uiData.text.string
+        val value = TextFieldValue(
+            text = text,
+            selection = TextRange(index = text.length), // cursor at the end of the text
+        )
+        mutableStateOf(value)
+    }
     TextField(
         modifier = modifier,
         uiData = uiData,
