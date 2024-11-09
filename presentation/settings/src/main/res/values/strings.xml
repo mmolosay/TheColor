@@ -19,4 +19,7 @@
     <string name="settings_item_resume_from_last_searched_color_title">Resume from last searched color</string>
     <string name="settings_item_resume_from_last_searched_color_desc">App will show last searched color on startup.</string>
 
+    <string name="settings_item_smart_backspace_title">Smart Backspace</string>
+    <string name="settings_item_smart_backspace_desc">Go to previous text field when clicking backspace in empty text field.</string>
+
 </resources>

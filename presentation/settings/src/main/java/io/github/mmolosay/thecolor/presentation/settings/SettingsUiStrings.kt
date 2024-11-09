@@ -23,6 +23,8 @@ data class SettingsUiStrings(
     val itemAppUiColorSchemeValueDayNightVerbose: String,
     val itemResumeFromLastSearchedColorTitle: String,
     val itemResumeFromLastSearchedColorDesc: String,
+    val itemSmartBackspaceTitle: String,
+    val itemSmartBackspaceDesc: String,
 )
 
 fun SettingsUiStrings(context: Context) =
@@ -41,4 +43,6 @@ fun SettingsUiStrings(context: Context) =
         itemAppUiColorSchemeValueDayNightVerbose = context.getString(R.string.settings_item_app_ui_color_scheme_value_day_night_verbose),
         itemResumeFromLastSearchedColorTitle = context.getString(R.string.settings_item_resume_from_last_searched_color_title),
         itemResumeFromLastSearchedColorDesc = context.getString(R.string.settings_item_resume_from_last_searched_color_desc),
+        itemSmartBackspaceTitle = context.getString(R.string.settings_item_smart_backspace_title),
+        itemSmartBackspaceDesc = context.getString(R.string.settings_item_smart_backspace_desc),
     )

@@ -201,6 +201,15 @@ fun Settings(
                 onCheckedChange = data.changeShouldResumeFromLastSearchedColorOnStartup,
             )
         }
+
+        item("smart backspace") {
+            SmartBackspace(
+                title = strings.itemSmartBackspaceTitle,
+                description = strings.itemSmartBackspaceDesc,
+                checked = true,
+                onCheckedChange = {},
+            )
+        }
     }
 }
 
