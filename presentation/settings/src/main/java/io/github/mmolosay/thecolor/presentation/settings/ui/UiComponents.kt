@@ -8,4 +8,9 @@ import androidx.compose.ui.unit.dp
  */
 internal object UiComponents {
     val DefaultItemContentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
+
+    /**
+     * Space between a text section and a value inside a settings item.
+     */
+    val DefaultItemValueSpacing = 32.dp
 }

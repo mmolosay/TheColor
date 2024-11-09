@@ -24,6 +24,7 @@ import io.github.mmolosay.thecolor.presentation.settings.ui.ItemUiComponents.Des
 import io.github.mmolosay.thecolor.presentation.settings.ui.ItemUiComponents.TextValue
 import io.github.mmolosay.thecolor.presentation.settings.ui.ItemUiComponents.Title
 import io.github.mmolosay.thecolor.presentation.settings.ui.UiComponents.DefaultItemContentPadding
+import io.github.mmolosay.thecolor.presentation.settings.ui.UiComponents.DefaultItemValueSpacing
 
 @Composable
 internal fun PreferredColorInputType(
@@ -48,7 +49,7 @@ internal fun PreferredColorInputType(
                 Description(text = description)
             }
 
-            Spacer(modifier = Modifier.width(32.dp))
+            Spacer(modifier = Modifier.width(DefaultItemValueSpacing))
             Box(
                 modifier = Modifier.align(Alignment.CenterVertically),
             ) {
