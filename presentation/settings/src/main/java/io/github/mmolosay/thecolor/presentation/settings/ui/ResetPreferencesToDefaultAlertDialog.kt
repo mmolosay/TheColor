@@ -1,8 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.settings.ui
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.outlined.RestartAlt
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -32,7 +31,7 @@ internal fun ResetPreferencesToDefaultAlertDialog(
         onDismissRequest = onDismissRequest,
         icon = {
             Icon(
-                imageVector = Icons.Outlined.Info,
+                imageVector = Icons.Outlined.RestartAlt,
                 contentDescription = null, // purely decorative
             )
         },

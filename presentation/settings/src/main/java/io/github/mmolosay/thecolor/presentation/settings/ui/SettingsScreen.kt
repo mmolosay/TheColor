@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Build
+import androidx.compose.material.icons.rounded.RestartAlt
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -152,7 +152,7 @@ private fun TopBar(
                 onClick = onResetPreferencesToDefaultClick,
             ) {
                 Icon(
-                    imageVector = Icons.Rounded.Build,
+                    imageVector = Icons.Rounded.RestartAlt,
                     contentDescription = strings.topBarResetPreferencesToDefaultIconDesc,
                 )
             }
