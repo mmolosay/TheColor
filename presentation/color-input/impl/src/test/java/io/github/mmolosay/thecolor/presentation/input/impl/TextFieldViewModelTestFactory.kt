@@ -7,7 +7,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 
 /**
- * An implementation of [TextFieldViewModel.Factory] that external parameters passed in
+ * An implementation of [TextFieldViewModel.Factory] that employs external parameters passed in
  * [create] and internal parameters passed to a constructor to create a real [TextFieldViewModel].
  */
 class TextFieldViewModelTestFactory(

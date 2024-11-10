@@ -2,6 +2,7 @@ package io.github.mmolosay.thecolor.presentation.center
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LocalTextStyle
@@ -52,6 +53,7 @@ internal fun Page(
     changePageButton: @Composable () -> Unit,
 ) {
     Column(
+        modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         content()
