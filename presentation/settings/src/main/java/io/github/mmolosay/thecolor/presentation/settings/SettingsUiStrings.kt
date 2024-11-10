@@ -11,6 +11,11 @@ import android.content.Context
 data class SettingsUiStrings(
     val topBarTitle: String,
     val topBarGoBackIconDesc: String,
+    val topBarResetPreferencesToDefaultIconDesc: String,
+    val resetPreferencesToDefaultDialogTitle: String,
+    val resetPreferencesToDefaultDialogText: String,
+    val resetPreferencesToDefaultDialogDismissButtonText: String,
+    val resetPreferencesToDefaultDialogConfirmButtonText: String,
     val itemPreferredColorInputTypeTitle: String,
     val itemPreferredColorInputTypeDesc: String,
     val itemPreferredColorInputTypeValueHex: String,
@@ -33,6 +38,11 @@ fun SettingsUiStrings(context: Context) =
     SettingsUiStrings(
         topBarTitle = context.getString(R.string.settings_top_bar_title),
         topBarGoBackIconDesc = context.getString(R.string.settings_top_bar_go_back_icon_desc),
+        topBarResetPreferencesToDefaultIconDesc = context.getString(R.string.settings_top_bar_reset_preferences_to_default_icon_desc),
+        resetPreferencesToDefaultDialogTitle = context.getString(R.string.settings_reset_preferences_to_default_dialog_title),
+        resetPreferencesToDefaultDialogText = context.getString(R.string.settings_reset_preferences_to_default_dialog_text),
+        resetPreferencesToDefaultDialogDismissButtonText = context.getString(R.string.settings_reset_preferences_to_default_dialog_dismiss_button_text),
+        resetPreferencesToDefaultDialogConfirmButtonText = context.getString(R.string.settings_reset_preferences_to_default_dialog_confirm_button_text),
         itemPreferredColorInputTypeTitle = context.getString(R.string.settings_item_preferred_color_input_type_title),
         itemPreferredColorInputTypeDesc = context.getString(R.string.settings_item_preferred_color_input_type_desc),
         itemPreferredColorInputTypeValueHex = context.getString(R.string.settings_item_preferred_color_input_type_value_hex),

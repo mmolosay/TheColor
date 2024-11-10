@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Build
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -82,12 +83,29 @@ fun SettingsScreen(
 ) {
     val strings = SettingsUiStrings(LocalContext.current)
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    var showResetPreferencesToDefaultDialog by remember { mutableStateOf(false) }
+    val dismissResetPreferencesToDefaultDialog: () -> Unit = {
+        showResetPreferencesToDefaultDialog = false
+    }
+
+    if (showResetPreferencesToDefaultDialog) {
+        ResetPreferencesToDefaultAlertDialog(
+            onDismissRequest = dismissResetPreferencesToDefaultDialog,
+            strings = strings,
+            onConfirmClick = {
+                data.resetPreferencesToDefault()
+                dismissResetPreferencesToDefaultDialog()
+            },
+        )
+    }
+
     Scaffold(
         topBar = {
             TopBar(
                 strings = strings,
                 scrollBehavior = scrollBehavior,
                 navigateBack = navigateBack,
+                onResetPreferencesToDefaultClick = { showResetPreferencesToDefaultDialog = true },
             )
         },
     ) { contentPadding ->
@@ -107,8 +125,8 @@ private fun TopBar(
     strings: SettingsUiStrings,
     scrollBehavior: TopAppBarScrollBehavior,
     navigateBack: () -> Unit,
+    onResetPreferencesToDefaultClick: () -> Unit,
 ) {
-    // TODO: add an action to reset settings to default?
     val debouncedNavigateBack = remember(navigateBack) {
         debounced(
             action = navigateBack,
@@ -126,6 +144,16 @@ private fun TopBar(
                 Icon(
                     imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                     contentDescription = strings.topBarGoBackIconDesc,
+                )
+            }
+        },
+        actions = {
+            IconButton(
+                onClick = onResetPreferencesToDefaultClick,
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Build,
+                    contentDescription = strings.topBarResetPreferencesToDefaultIconDesc,
                 )
             }
         },
@@ -273,8 +301,11 @@ private fun Preview() {
 
 private fun previewData() =
     SettingsData(
+        resetPreferencesToDefault = {},
+
         preferredColorInputType = DomainColorInputType.Hex,
         changePreferredColorInputType = {},
+
         appUiColorSchemeSet = DomainUiColorSchemeSet.DayNight,
         supportedAppUiColorSchemeSets = listOf(
             DomainUiColorScheme.Light.asSingletonSet(),
@@ -282,10 +313,13 @@ private fun previewData() =
             DomainUiColorSchemeSet.DayNight,
         ),
         changeAppUiColorSchemeSet = {},
+
         isResumeFromLastSearchedColorOnStartupEnabled = true,
         changeResumeFromLastSearchedColorOnStartupEnablement = {},
+
         isSmartBackspaceEnabled = true,
         changeSmartBackspaceEnablement = {},
+
         isSelectAllTextOnTextFieldFocusEnabled = true,
         changeSelectAllTextOnTextFieldFocusEnablement = {},
     )

@@ -3,6 +3,12 @@
 
     <string name="settings_top_bar_title">Settings</string>
     <string name="settings_top_bar_go_back_icon_desc">Go back</string>
+    <string name="settings_top_bar_reset_preferences_to_default_icon_desc">Reset preferences to default</string>
+
+    <string name="settings_reset_preferences_to_default_dialog_title">Reset settings?</string>
+    <string name="settings_reset_preferences_to_default_dialog_text">This will reset your app preferences back to their default settings.</string>
+    <string name="settings_reset_preferences_to_default_dialog_dismiss_button_text">Cancel</string>
+    <string name="settings_reset_preferences_to_default_dialog_confirm_button_text">Reset settings</string>
 
     <string name="settings_item_preferred_color_input_type_title">Preferred type of color input</string>
     <string name="settings_item_preferred_color_input_type_desc">It will be selected on app startup.</string>
