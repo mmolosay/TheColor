@@ -48,8 +48,6 @@ internal typealias FullDataRgb = FullData<ColorInputRgbData, ColorInput.Rgb>
  *
  * Instead, it can be created within "simple" `ViewModel` or Google's `ViewModel`.
  */
-// TODO: replicates ColorInputHexViewModel:
-//  extract and reuse via composition? base abstract class via inheritance?
 class ColorInputRgbViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     @Assisted private val mediator: ColorInputMediator,
