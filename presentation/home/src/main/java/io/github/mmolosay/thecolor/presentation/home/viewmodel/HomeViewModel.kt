@@ -165,23 +165,28 @@ class HomeViewModel @Inject constructor(
 
     private fun collectColorCenterComponents() =
         viewModelScope.launch(defaultDispatcher) {
-            colorCenterComponentsFlow
-                .filterNotNull()
-                .collect { components ->
-                    /*
-                     * Subscribe to new dependencies once new Color Center is created.
-                     * Launch collection coroutines from Color Center coroutine scope,
-                     * so when ColorCenterViewModel is disposed of and its coroutine scope is cancelled,
-                     * so is the collection job on old instances of Command/Event stores.
-                    */
+            colorCenterComponentsFlow.collect { components ->
+                /*
+                 * Subscribe to new dependencies once new Color Center is created.
+                 * Launch collection coroutines from Color Center coroutine scope,
+                 * so when ColorCenterViewModel is disposed of and its coroutine scope is cancelled,
+                 * so is the collection job on old instances of Command/Event stores.
+                */
+                if (components != null) {
                     val coroutineScope = components.colorCenterCoroutineScope
                     components.colorDetailsEventStore.collect(coroutineScope)
+                }
 
+                if (components != null) {
                     proceedExecutorFlow.value = proceedExecutorFactory.create(
                         colorDetailsCommandStore = components.colorDetailsCommandStore,
                         colorSchemeCommandStore = components.colorSchemeCommandStore,
                     )
+                } else {
+                    // components == null
+                    proceedExecutorFlow.value = null
                 }
+            }
         }
 
     private fun ColorDetailsEventStore.collect(coroutineScope: CoroutineScope) =
