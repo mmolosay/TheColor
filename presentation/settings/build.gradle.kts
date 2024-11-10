@@ -61,6 +61,7 @@ dependencies {
     androidTestImplementation(composeBom)
 
     implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-extended-android") // seems to use BOM version
     implementation("androidx.compose.ui:ui-tooling-preview")
     debugImplementation("androidx.compose.ui:ui-tooling")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:${libs.versions.androidx.lifecycle.get()}")

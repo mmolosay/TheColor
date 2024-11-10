@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.asSingletonSet
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
+import io.github.mmolosay.thecolor.domain.usecase.ResetUserPreferencesToDefaultUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -25,6 +26,7 @@ import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeSet
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
+    private val resetUserPreferencesToDefault: ResetUserPreferencesToDefaultUseCase,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -43,6 +45,12 @@ class SettingsViewModel @Inject constructor(
                 started = SharingStarted.WhileSubscribed(5000),
                 initialValue = DataState.Loading,
             )
+
+    private fun resetPreferencesToDefault() {
+        viewModelScope.launch(defaultDispatcher) {
+            resetUserPreferencesToDefault()
+        }
+    }
 
     private fun updatePreferredColorInputType(value: DomainColorInputType) {
         viewModelScope.launch(defaultDispatcher) {
@@ -85,15 +93,21 @@ class SettingsViewModel @Inject constructor(
         selectAllTextOnTextFieldFocus: DomainSelectAllTextOnTextFieldFocus,
     ): SettingsData {
         return SettingsData(
+            resetPreferencesToDefault = ::resetPreferencesToDefault,
+
             preferredColorInputType = preferredColorInputType,
             changePreferredColorInputType = ::updatePreferredColorInputType,
+
             appUiColorSchemeSet = appUiColorSchemeSet,
             supportedAppUiColorSchemeSets = supportedAppUiColorSchemeSets(),
             changeAppUiColorSchemeSet = ::updateAppUiColorSchemeSet,
+
             isResumeFromLastSearchedColorOnStartupEnabled = shouldResumeFromLastSearchedColorOnStartup.enabled,
             changeResumeFromLastSearchedColorOnStartupEnablement = ::updateResumeFromLastSearchedColorOnStartupEnablement,
+
             isSmartBackspaceEnabled = smartBackspace.enabled,
             changeSmartBackspaceEnablement = ::updateSmartBackspaceEnablement,
+
             isSelectAllTextOnTextFieldFocusEnabled = selectAllTextOnTextFieldFocus.enabled,
             changeSelectAllTextOnTextFieldFocusEnablement = ::updateSelectAllTextOnTextFieldFocusEnablement,
         )

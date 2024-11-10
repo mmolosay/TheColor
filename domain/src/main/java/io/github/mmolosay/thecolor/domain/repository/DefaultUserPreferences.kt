@@ -17,11 +17,11 @@ object DefaultUserPreferences {
         UserPreferences.UiColorSchemeSet.DayNight
 
     val ResumeFromLastSearchedColorOnStartup =
-        UserPreferences.ResumeFromLastSearchedColorOnStartup(enabled = false)
+        UserPreferences.ResumeFromLastSearchedColorOnStartup(enabled = true)
 
     val SmartBackspace =
-        UserPreferences.SmartBackspace(enabled = false)
+        UserPreferences.SmartBackspace(enabled = true)
 
     val SelectAllTextOnTextFieldFocus =
-        SelectAllTextOnTextFieldFocus(enabled = true)
+        SelectAllTextOnTextFieldFocus(enabled = false)
 }
