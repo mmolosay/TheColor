@@ -624,46 +624,6 @@ class HomeViewModelTest {
         }
     }
 
-//    @Test
-//    fun `when 'proceed' is invoked for second color, then new 'proceed executor' is created`() {
-//        val firstColor = Color.Hex(0x0)
-//        val colorFlow = MutableStateFlow(firstColor)
-//        every { colorInputColorStore.colorFlow } returns colorFlow
-//        every { colorInputEventStore.eventFlow } returns emptyFlow()
-//        every { colorDetailsEventStore.eventFlow } returns emptyFlow()
-//        every { createColorData(color = any()) } returns mockk()
-//        createSut()
-//        // we know from other tests that it would be 'CanProceed.Yes'
-//        data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed() // proceed with first color
-//        val secondColor = Color.Hex(0x1)
-//        colorFlow.value = secondColor
-//        clearMocks(
-//            colorDetailsCommandStoreProvider,
-//            colorDetailsEventStoreProvider,
-//            colorSchemeCommandStoreProvider,
-//            colorCenterViewModelFactory,
-//            answers = false,
-//            recordedCalls = true, // only clear recorded calls
-//            childMocks = false,
-//            verificationMarks = false,
-//            exclusionRules = false,
-//        )
-//
-//        data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed() // proceed with second color
-//
-//        coVerify(exactly = 1) {
-//            colorDetailsCommandStoreProvider.get()
-//            colorDetailsEventStoreProvider.get()
-//            colorSchemeCommandStoreProvider.get()
-//            colorCenterViewModelFactory.create(
-//                coroutineScope = any(),
-//                colorDetailsCommandProvider = any(),
-//                colorDetailsEventStore = any(),
-//                colorSchemeCommandProvider = any(),
-//            )
-//        }
-//    }
-
     @Test
     fun `when 'proceed' is invoked and Color Input is cleared before 'DataFetched' event arrives, then no exception is thrown`() =
         runTest(mainDispatcherRule.testDispatcher) {
