@@ -439,6 +439,7 @@ class ProceedExecutor @AssistedInject constructor(
 }
 
 /** Creates instance of [HomeData.ProceedResult.Success.ColorData]. */
+/* private but Dagger */
 @Singleton
 class CreateColorDataUseCase @Inject constructor(
     private val colorToColorInt: ColorToColorIntUseCase,
