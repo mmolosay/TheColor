@@ -163,6 +163,27 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    private fun onColorInputSubmitted(
+        colorInputState: ColorInputState,
+    ): Boolean {
+        if (colorInputState is ColorInputState.Valid) {
+            proceed(
+                color = colorInputState.color,
+                colorRole = null,
+                isNewColorCenterSession = true,
+            )
+            return true
+        } else {
+            _dataFlow.update {
+                val result = HomeData.ProceedResult.InvalidSubmittedColor(
+                    discard = ::clearProceedResult,
+                )
+                it.copy(proceedResult = result)
+            }
+            return false
+        }
+    }
+
     private fun collectColorCenterComponents() =
         viewModelScope.launch(defaultDispatcher) {
             colorCenterComponentsFlow.collect { components ->
@@ -273,27 +294,6 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun onColorInputSubmitted(
-        colorInputState: ColorInputState,
-    ): Boolean {
-        if (colorInputState is ColorInputState.Valid) {
-            proceed(
-                color = colorInputState.color,
-                colorRole = null,
-                isNewColorCenterSession = true,
-            )
-            return true
-        } else {
-            _dataFlow.update {
-                val result = HomeData.ProceedResult.InvalidSubmittedColor(
-                    discard = ::clearProceedResult,
-                )
-                it.copy(proceedResult = result)
-            }
-            return false
-        }
-    }
-
     private fun setGoToSettingsNavEvent() {
         _navEventFlow.value = NavEventGoToSettings()
     }
@@ -336,26 +336,6 @@ class HomeViewModel @Inject constructor(
             onConsumed = ::clearNavEvent,
         )
 
-    private fun ColorCenterComponents(): ColorCenterComponents {
-        val colorCenterCoroutineScope = ViewModelCoroutineScope(parent = viewModelScope)
-        val colorDetailsCommandStore = colorDetailsCommandStoreProvider.get()
-        val colorDetailsEventStore = colorDetailsEventStoreProvider.get()
-        val colorSchemeCommandStore = colorSchemeCommandStoreProvider.get()
-        val colorCenterViewModel = colorCenterViewModelFactory.create(
-            coroutineScope = colorCenterCoroutineScope,
-            colorDetailsCommandProvider = colorDetailsCommandStore,
-            colorDetailsEventStore = colorDetailsEventStore,
-            colorSchemeCommandProvider = colorSchemeCommandStore,
-        )
-        return ColorCenterComponents(
-            colorCenterViewModel = colorCenterViewModel,
-            colorCenterCoroutineScope = colorCenterCoroutineScope,
-            colorDetailsCommandStore = colorDetailsCommandStore,
-            colorDetailsEventStore = colorDetailsEventStore,
-            colorSchemeCommandStore = colorSchemeCommandStore,
-        )
-    }
-
     private fun initialDataFetchedEventProcessor(): DataFetchedEventProcessor? =
         null
 
@@ -393,6 +373,26 @@ class HomeViewModel @Inject constructor(
         withContext(uiDataUpdateDispatcher) {
             colorInputMediator.send(color = color, from = null)
         }
+    }
+
+    private fun ColorCenterComponents(): ColorCenterComponents {
+        val colorCenterCoroutineScope = ViewModelCoroutineScope(parent = viewModelScope)
+        val colorDetailsCommandStore = colorDetailsCommandStoreProvider.get()
+        val colorDetailsEventStore = colorDetailsEventStoreProvider.get()
+        val colorSchemeCommandStore = colorSchemeCommandStoreProvider.get()
+        val colorCenterViewModel = colorCenterViewModelFactory.create(
+            coroutineScope = colorCenterCoroutineScope,
+            colorDetailsCommandProvider = colorDetailsCommandStore,
+            colorDetailsEventStore = colorDetailsEventStore,
+            colorSchemeCommandProvider = colorSchemeCommandStore,
+        )
+        return ColorCenterComponents(
+            colorCenterViewModel = colorCenterViewModel,
+            colorCenterCoroutineScope = colorCenterCoroutineScope,
+            colorDetailsCommandStore = colorDetailsCommandStore,
+            colorDetailsEventStore = colorDetailsEventStore,
+            colorSchemeCommandStore = colorSchemeCommandStore,
+        )
     }
 
     /**
