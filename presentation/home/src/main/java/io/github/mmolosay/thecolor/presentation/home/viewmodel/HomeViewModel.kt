@@ -295,7 +295,10 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun setGoToSettingsNavEvent() {
-        _navEventFlow.value = NavEventGoToSettings()
+        val event = HomeNavEvent.GoToSettings(
+            onConsumed = ::clearNavEvent,
+        )
+        _navEventFlow.value = event
     }
 
     private fun clearProceedResult() {
@@ -308,33 +311,25 @@ class HomeViewModel @Inject constructor(
         _navEventFlow.value = null
     }
 
-    private fun initialData(): HomeData =
-        HomeData(
-            canProceed = CanProceed(),
+    private fun initialData(): HomeData {
+        val canProceed = kotlin.run {
+            val color = colorInputColorStore.colorFlow.value
+            CanProceed(colorFromColorInput = color)
+        }
+        return HomeData(
+            canProceed = canProceed,
             proceedResult = null, // 'proceed' action wasn't invoked yet
             goToSettings = ::setGoToSettingsNavEvent,
         )
-
-    private fun CanProceed(): CanProceed {
-        val color = colorInputColorStore.colorFlow.value
-        return CanProceed(colorFromColorInput = color)
     }
 
     private fun CanProceed(colorFromColorInput: Color?): CanProceed {
         val hasColorInColorInput = (colorFromColorInput != null)
-        return CanProceed(canProceed = hasColorInColorInput)
-    }
-
-    private fun CanProceed(canProceed: Boolean): CanProceed =
-        when (canProceed) {
+        return when (hasColorInColorInput) {
             true -> CanProceed.Yes(proceed = this::proceed)
             false -> CanProceed.No
         }
-
-    private fun NavEventGoToSettings() =
-        HomeNavEvent.GoToSettings(
-            onConsumed = ::clearNavEvent,
-        )
+    }
 
     private fun initialDataFetchedEventProcessor(): DataFetchedEventProcessor? =
         null
