@@ -654,6 +654,39 @@ class HomeViewModelTest {
             }
         }
 
+    @Test
+    fun `when 'proceed' is invoked for second time before 'DataFetched' event arrives, then no exception is thrown`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val currentColor = Color.Hex(0x0) // name 'color' conflicts with fields of DomainColorDetails
+            val colorFlow = MutableStateFlow<Color?>(currentColor)
+            every { colorInputColorStore.colorFlow } returns colorFlow
+            every { colorInputEventStore.eventFlow } returns emptyFlow()
+            val eventsFlow = MutableSharedFlow<ColorDetailsEvent>()
+            every { colorDetailsEventStore.eventFlow } returns eventsFlow
+            every { createColorData(color = any()) } returns mockk()
+            createSut()
+
+            // we know from other tests that it would be 'CanProceed.Yes'
+            data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed()
+            data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed()
+            val domainDetails: DomainColorDetails = mockk(relaxed = true) {
+                every { color } returns currentColor
+                every { exact } returns mockk {
+                    every { color } returns mockk()
+                }
+            }
+            // emit event for first invokation of 'proceed'
+            kotlin.run {
+                val event = ColorDetailsEvent.DataFetched(domainDetails)
+                eventsFlow.emit(event)
+            }
+            shouldNotThrowAny {
+                // emit event for second invokation of 'proceed'
+                val event = ColorDetailsEvent.DataFetched(domainDetails)
+                eventsFlow.emit(event)
+            }
+        }
+
     /**
      * - GIVEN
      *  1. "should resume from last searched color on app startup" is enabled

@@ -232,6 +232,7 @@ class HomeViewModel @Inject constructor(
 
     /** Variation that takes current color of Color Input. */
     private fun proceed() {
+        onColorCenterSessionEnded() // end current session (if any)
         val color = requireNotNull(colorInputColorStore.colorFlow.value)
         proceed(
             color = color,
