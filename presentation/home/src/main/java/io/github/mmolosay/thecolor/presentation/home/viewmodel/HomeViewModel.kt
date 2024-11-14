@@ -218,7 +218,7 @@ class HomeViewModel @Inject constructor(
     private fun onEventFromColorDetails(event: ColorDetailsEvent) {
         when (event) {
             is ColorDetailsEvent.DataFetched -> {
-                dataFetchedEventProcessor?.run { event.process() }
+                dataFetchedEventProcessor?.process(event)
             }
             is ColorDetailsEvent.ColorSelected -> {
                 viewModelScope.launch(defaultDispatcher) {
@@ -341,8 +341,8 @@ class HomeViewModel @Inject constructor(
         kotlin.run setProcessor@{
             val currentProcessor = dataFetchedEventProcessor // capture in closure
             // implementation of a "Composite" design pattern
-            dataFetchedEventProcessor = DataFetchedEventProcessor {
-                with(BuildColorCenterSession()) { process() }
+            dataFetchedEventProcessor = DataFetchedEventProcessor { event ->
+                BuildColorCenterSession().process(event)
                 dataFetchedEventProcessor = currentProcessor // restore previous value
             }
         }
@@ -395,8 +395,8 @@ class HomeViewModel @Inject constructor(
      * and sets it into a [colorCenterSession] field.
      */
     private fun BuildColorCenterSession() =
-        DataFetchedEventProcessor {
-            val details = this.domainDetails
+        DataFetchedEventProcessor { event ->
+            val details = event.domainDetails
             val relatedColors = setOf(details.exact.color)
             colorCenterSession = colorCenterSessionBuilder
                 .relatedColors(relatedColors)
@@ -467,5 +467,5 @@ private data class ColorCenterComponents(
  * See [HomeViewModel.dataFetchedEventProcessor].
  */
 private fun interface DataFetchedEventProcessor {
-    fun ColorDetailsEvent.DataFetched.process()
+    fun process(event: ColorDetailsEvent.DataFetched)
 }
