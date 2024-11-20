@@ -163,6 +163,27 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    private fun onColorInputSubmitted(
+        colorInputState: ColorInputState,
+    ): Boolean {
+        if (colorInputState is ColorInputState.Valid) {
+            proceed(
+                color = colorInputState.color,
+                colorRole = null,
+                isNewColorCenterSession = true,
+            )
+            return true
+        } else {
+            _dataFlow.update {
+                val result = HomeData.ProceedResult.InvalidSubmittedColor(
+                    discard = ::clearProceedResult,
+                )
+                it.copy(proceedResult = result)
+            }
+            return false
+        }
+    }
+
     private fun collectColorCenterComponents() =
         viewModelScope.launch(defaultDispatcher) {
             colorCenterComponentsFlow.collect { components ->
@@ -197,7 +218,7 @@ class HomeViewModel @Inject constructor(
     private fun onEventFromColorDetails(event: ColorDetailsEvent) {
         when (event) {
             is ColorDetailsEvent.DataFetched -> {
-                dataFetchedEventProcessor?.run { event.process() }
+                dataFetchedEventProcessor?.process(event)
             }
             is ColorDetailsEvent.ColorSelected -> {
                 viewModelScope.launch(defaultDispatcher) {
@@ -232,6 +253,7 @@ class HomeViewModel @Inject constructor(
 
     /** Variation that takes current color of Color Input. */
     private fun proceed() {
+        onColorCenterSessionEnded() // end current session (if any)
         val color = requireNotNull(colorInputColorStore.colorFlow.value)
         proceed(
             color = color,
@@ -272,29 +294,11 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun onColorInputSubmitted(
-        colorInputState: ColorInputState,
-    ): Boolean {
-        if (colorInputState is ColorInputState.Valid) {
-            proceed(
-                color = colorInputState.color,
-                colorRole = null,
-                isNewColorCenterSession = true,
-            )
-            return true
-        } else {
-            _dataFlow.update {
-                val result = HomeData.ProceedResult.InvalidSubmittedColor(
-                    discard = ::clearProceedResult,
-                )
-                it.copy(proceedResult = result)
-            }
-            return false
-        }
-    }
-
     private fun setGoToSettingsNavEvent() {
-        _navEventFlow.value = NavEventGoToSettings()
+        val event = HomeNavEvent.GoToSettings(
+            onConsumed = ::clearNavEvent,
+        )
+        _navEventFlow.value = event
     }
 
     private fun clearProceedResult() {
@@ -307,52 +311,24 @@ class HomeViewModel @Inject constructor(
         _navEventFlow.value = null
     }
 
-    private fun initialData(): HomeData =
-        HomeData(
-            canProceed = CanProceed(),
+    private fun initialData(): HomeData {
+        val canProceed = kotlin.run {
+            val color = colorInputColorStore.colorFlow.value
+            CanProceed(colorFromColorInput = color)
+        }
+        return HomeData(
+            canProceed = canProceed,
             proceedResult = null, // 'proceed' action wasn't invoked yet
             goToSettings = ::setGoToSettingsNavEvent,
         )
-
-    private fun CanProceed(): CanProceed {
-        val color = colorInputColorStore.colorFlow.value
-        return CanProceed(colorFromColorInput = color)
     }
 
     private fun CanProceed(colorFromColorInput: Color?): CanProceed {
         val hasColorInColorInput = (colorFromColorInput != null)
-        return CanProceed(canProceed = hasColorInColorInput)
-    }
-
-    private fun CanProceed(canProceed: Boolean): CanProceed =
-        when (canProceed) {
+        return when (hasColorInColorInput) {
             true -> CanProceed.Yes(proceed = this::proceed)
             false -> CanProceed.No
         }
-
-    private fun NavEventGoToSettings() =
-        HomeNavEvent.GoToSettings(
-            onConsumed = ::clearNavEvent,
-        )
-
-    private fun ColorCenterComponents(): ColorCenterComponents {
-        val colorCenterCoroutineScope = ViewModelCoroutineScope(parent = viewModelScope)
-        val colorDetailsCommandStore = colorDetailsCommandStoreProvider.get()
-        val colorDetailsEventStore = colorDetailsEventStoreProvider.get()
-        val colorSchemeCommandStore = colorSchemeCommandStoreProvider.get()
-        val colorCenterViewModel = colorCenterViewModelFactory.create(
-            coroutineScope = colorCenterCoroutineScope,
-            colorDetailsCommandProvider = colorDetailsCommandStore,
-            colorDetailsEventStore = colorDetailsEventStore,
-            colorSchemeCommandProvider = colorSchemeCommandStore,
-        )
-        return ColorCenterComponents(
-            colorCenterViewModel = colorCenterViewModel,
-            colorCenterCoroutineScope = colorCenterCoroutineScope,
-            colorDetailsCommandStore = colorDetailsCommandStore,
-            colorDetailsEventStore = colorDetailsEventStore,
-            colorSchemeCommandStore = colorSchemeCommandStore,
-        )
     }
 
     private fun initialDataFetchedEventProcessor(): DataFetchedEventProcessor? =
@@ -365,8 +341,8 @@ class HomeViewModel @Inject constructor(
         kotlin.run setProcessor@{
             val currentProcessor = dataFetchedEventProcessor // capture in closure
             // implementation of a "Composite" design pattern
-            dataFetchedEventProcessor = DataFetchedEventProcessor {
-                with(BuildColorCenterSession()) { process() }
+            dataFetchedEventProcessor = DataFetchedEventProcessor { event ->
+                BuildColorCenterSession().process(event)
                 dataFetchedEventProcessor = currentProcessor // restore previous value
             }
         }
@@ -394,13 +370,33 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    private fun ColorCenterComponents(): ColorCenterComponents {
+        val colorCenterCoroutineScope = ViewModelCoroutineScope(parent = viewModelScope)
+        val colorDetailsCommandStore = colorDetailsCommandStoreProvider.get()
+        val colorDetailsEventStore = colorDetailsEventStoreProvider.get()
+        val colorSchemeCommandStore = colorSchemeCommandStoreProvider.get()
+        val colorCenterViewModel = colorCenterViewModelFactory.create(
+            coroutineScope = colorCenterCoroutineScope,
+            colorDetailsCommandProvider = colorDetailsCommandStore,
+            colorDetailsEventStore = colorDetailsEventStore,
+            colorSchemeCommandProvider = colorSchemeCommandStore,
+        )
+        return ColorCenterComponents(
+            colorCenterViewModel = colorCenterViewModel,
+            colorCenterCoroutineScope = colorCenterCoroutineScope,
+            colorDetailsCommandStore = colorDetailsCommandStore,
+            colorDetailsEventStore = colorDetailsEventStore,
+            colorSchemeCommandStore = colorSchemeCommandStore,
+        )
+    }
+
     /**
      * A [DataFetchedEventProcessor] that creates a [ColorCenterSession]
      * and sets it into a [colorCenterSession] field.
      */
     private fun BuildColorCenterSession() =
-        DataFetchedEventProcessor {
-            val details = this.domainDetails
+        DataFetchedEventProcessor { event ->
+            val details = event.domainDetails
             val relatedColors = setOf(details.exact.color)
             colorCenterSession = colorCenterSessionBuilder
                 .relatedColors(relatedColors)
@@ -438,6 +434,7 @@ class ProceedExecutor @AssistedInject constructor(
 }
 
 /** Creates instance of [HomeData.ProceedResult.Success.ColorData]. */
+/* private but Dagger */
 @Singleton
 class CreateColorDataUseCase @Inject constructor(
     private val colorToColorInt: ColorToColorIntUseCase,
@@ -470,5 +467,5 @@ private data class ColorCenterComponents(
  * See [HomeViewModel.dataFetchedEventProcessor].
  */
 private fun interface DataFetchedEventProcessor {
-    fun ColorDetailsEvent.DataFetched.process()
+    fun process(event: ColorDetailsEvent.DataFetched)
 }
