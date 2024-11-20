@@ -2,10 +2,9 @@ package io.github.mmolosay.thecolor.presentation.home
 
 import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -16,11 +15,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -120,7 +121,9 @@ fun HomeScreen(
 ) {
     Scaffold { contentPadding ->
         Home(
-            modifier = Modifier.padding(contentPadding),
+            modifier = Modifier
+                .padding(contentPadding)
+                .consumeWindowInsets(contentPadding), // ensures correct height of 'TopAppBar()'
             uiData = uiData,
             navEvent = navEvent,
             colorInput = colorInput,
@@ -159,7 +162,9 @@ fun Home(
             },
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        TopBar(uiData = uiData.topBar)
+        TopBar(
+            uiData = uiData.topBar,
+        )
 
         Spacer(modifier = Modifier.height(160.dp))
         Text(
@@ -263,7 +268,7 @@ private fun ColorCenterOnTintedSurface(
     }
 }
 
-// TODO: use real TopBar() from Material 3 library and put it in Scaffold
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar(
     uiData: HomeUiData.TopBar,
@@ -272,18 +277,18 @@ private fun TopBar(
     val debouncedOnClick: () -> Unit = remember(onClick) {
         debounced(action = onClick)
     }
-    Row(
-        horizontalArrangement = Arrangement.End,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        IconButton(onClick = debouncedOnClick) {
-            Icon(
-                imageVector = Icons.Rounded.Settings,
-                contentDescription = uiData.settingsAction.iconContentDescription,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
+    TopAppBar(
+        title = {},
+        actions = {
+            IconButton(onClick = debouncedOnClick) {
+                Icon(
+                    imageVector = Icons.Rounded.Settings,
+                    contentDescription = uiData.settingsAction.iconContentDescription,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        },
+    )
 }
 
 private class ColorCenterLifecycleObserver(
