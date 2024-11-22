@@ -17,4 +17,10 @@ package io.github.mmolosay.thecolor
 enum class AppNavDest(val route: String) {
     Home("home"),
     Settings("settings"),
+    ;
+
+    companion object
 }
+
+fun AppNavDest.Companion.findByRoute(route: String): AppNavDest =
+    AppNavDest.entries.first { it.route == route }
