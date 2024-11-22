@@ -75,7 +75,6 @@ fun HomeScreen(
     viewModel: HomeViewModel,
     navigateToSettings: () -> Unit,
     navBarAppearanceStack: NavBarAppearanceStack,
-    navigateAwayFromHomeController: NavigateAwayFromHomeController,
 ) {
     val context = LocalContext.current
     val strings = remember(context) { HomeUiStrings(context) }
@@ -107,7 +106,6 @@ fun HomeScreen(
         },
         navigateToSettings = navigateToSettings,
         navBarAppearanceStack = navBarAppearanceStack,
-        navigateAwayFromHomeController = navigateAwayFromHomeController,
     )
 }
 
@@ -120,7 +118,6 @@ fun HomeScreen(
     colorCenter: @Composable () -> Unit,
     navigateToSettings: () -> Unit,
     navBarAppearanceStack: NavBarAppearanceStack,
-    navigateAwayFromHomeController: NavigateAwayFromHomeController,
 ) {
     Scaffold { contentPadding ->
         Home(
@@ -134,7 +131,6 @@ fun HomeScreen(
             colorCenter = colorCenter,
             navigateToSettings = navigateToSettings,
             navBarAppearanceStack = navBarAppearanceStack,
-            navigateAwayFromHomeController = navigateAwayFromHomeController,
         )
     }
 }
@@ -148,7 +144,6 @@ fun Home(
     colorCenter: @Composable () -> Unit,
     navigateToSettings: () -> Unit,
     navBarAppearanceStack: NavBarAppearanceStack,
-    navigateAwayFromHomeController: NavigateAwayFromHomeController,
     modifier: Modifier = Modifier,
 ) {
     val density = LocalDensity.current
@@ -178,10 +173,7 @@ fun Home(
         )
 
         Spacer(modifier = Modifier.height(16.dp))
-        ColorInput(
-            navigateAwayFromHomeController = navigateAwayFromHomeController,
-            content = colorInput,
-        )
+        colorInput()
 
         ProceedButton(uiData.proceedButton)
 
@@ -219,27 +211,6 @@ fun Home(
             .makeText(context, toastData.message, Toast.LENGTH_SHORT)
             .show()
         toastData.onShown()
-    }
-}
-
-/**
- * A wrapper for Color Input that contains logic that's specific to Home screen.
- */
-@Composable
-private fun ColorInput(
-    navigateAwayFromHomeController: NavigateAwayFromHomeController,
-    content: @Composable () -> Unit,
-) {
-    content()
-    val softwareKeyboardController = LocalSoftwareKeyboardController.current
-    DisposableEffect(Unit) {
-        val listener = OnNavigateAwayFromHomeListener {
-            softwareKeyboardController?.hide()
-        }
-        navigateAwayFromHomeController.add(listener)
-        onDispose {
-            navigateAwayFromHomeController.remove(listener)
-        }
     }
 }
 
@@ -395,7 +366,6 @@ private fun Preview() {
             },
             navigateToSettings = {},
             navBarAppearanceStack = NoopNavBarAppearanceStack,
-            navigateAwayFromHomeController = NoopNavigateAwayFromHomeController,
         )
     }
 }
