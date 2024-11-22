@@ -37,6 +37,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
@@ -148,6 +149,7 @@ fun Home(
 ) {
     val density = LocalDensity.current
     val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
     var positionInRoot by remember { mutableStateOf<DpOffset?>(null) }
     var size by remember { mutableStateOf<DpSize?>(null) }
     Column(
@@ -201,7 +203,10 @@ fun Home(
     LaunchedEffect(navEvent) {
         val event = navEvent ?: return@LaunchedEffect
         when (event) {
-            is HomeNavEvent.GoToSettings -> navigateToSettings()
+            is HomeNavEvent.GoToSettings -> {
+                focusManager.clearFocus()
+                navigateToSettings()
+            }
         }
         event.onConsumed()
     }
