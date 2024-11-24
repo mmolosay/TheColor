@@ -96,7 +96,7 @@ class HomeViewModel @Inject constructor(
     val colorPreviewViewModel: ColorPreviewViewModel =
         colorPreviewViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
-            colorInputColorProvider = colorInputColorStore,
+            colorFlow = colorInputColorStore.colorFlow,
         )
 
     private val colorCenterComponentsFlow = MutableStateFlow<ColorCenterComponents?>(null)
