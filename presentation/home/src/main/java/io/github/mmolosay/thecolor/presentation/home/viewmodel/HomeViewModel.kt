@@ -31,6 +31,7 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommand
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommandStore
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEventStore
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
 import io.github.mmolosay.thecolor.utils.doNothing
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -67,6 +68,7 @@ class HomeViewModel @Inject constructor(
     private val colorInputColorStore: ColorInputColorStore,
     private val colorInputEventStore: ColorInputEventStore,
     private val colorDetailsViewModelFactory: ColorDetailsViewModel.Factory,
+    private val colorSchemeViewModelFactory: ColorSchemeViewModel.Factory,
     private val colorDetailsCommandStoreProvider: Provider<ColorDetailsCommandStore>,
     private val colorDetailsEventStoreProvider: Provider<ColorDetailsEventStore>,
     private val colorSchemeCommandStoreProvider: Provider<ColorSchemeCommandStore>,
@@ -419,28 +421,38 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun ColorCenterComponents(): ColorCenterComponents {
-        val colorCenterCoroutineScope = ViewModelCoroutineScope(parent = viewModelScope)
+        val colorCenterViewModelCoroutineScope = ViewModelCoroutineScope(parent = viewModelScope)
         val colorDetailsCommandStore = colorDetailsCommandStoreProvider.get()
         val colorDetailsEventStore = colorDetailsEventStoreProvider.get()
-        val colorSchemeCommandStore = colorSchemeCommandStoreProvider.get()
-        val colorSchemeEventStore = colorSchemeEventStoreProvider.get()
-        val colorCenterViewModel = colorCenterViewModelFactory.create(
-            coroutineScope = colorCenterCoroutineScope,
+        val colorDetailsViewModel = colorDetailsViewModelFactory.create(
+            coroutineScope = ViewModelCoroutineScope(parent = colorCenterViewModelCoroutineScope),
             colorDetailsCommandProvider = colorDetailsCommandStore,
             colorDetailsEventStore = colorDetailsEventStore,
+        )
+        val colorSchemeViewModelCoroutineScope =
+            ViewModelCoroutineScope(parent = colorCenterViewModelCoroutineScope)
+        val colorSchemeCommandStore = colorSchemeCommandStoreProvider.get()
+        val colorSchemeEventStore = colorSchemeEventStoreProvider.get()
+        val colorSchemeViewModel = colorSchemeViewModelFactory.create(
+            coroutineScope = colorSchemeViewModelCoroutineScope,
             colorSchemeCommandProvider = colorSchemeCommandStore,
             colorSchemeEventStore = colorSchemeEventStore,
+        )
+        val colorCenterViewModel = colorCenterViewModelFactory.create(
+            coroutineScope = colorCenterViewModelCoroutineScope,
+            colorDetailsViewModel = colorDetailsViewModel,
+            colorSchemeViewModel = colorSchemeViewModel,
         )
         val selectedSwatchColorDetailsCommandStore = colorDetailsCommandStoreProvider.get()
         val selectedSwatchColorDetailsEventStore = colorDetailsEventStoreProvider.get()
         val selectedSwatchColorDetailsViewModel = colorDetailsViewModelFactory.create(
-            coroutineScope = ViewModelCoroutineScope(parent = colorCenterCoroutineScope),
+            coroutineScope = ViewModelCoroutineScope(parent = colorSchemeViewModelCoroutineScope),
             colorDetailsCommandProvider = selectedSwatchColorDetailsCommandStore,
             colorDetailsEventStore = selectedSwatchColorDetailsEventStore,
         )
         return ColorCenterComponents(
             colorCenterViewModel = colorCenterViewModel,
-            colorCenterCoroutineScope = colorCenterCoroutineScope,
+            colorCenterCoroutineScope = colorCenterViewModelCoroutineScope,
             colorDetailsCommandStore = colorDetailsCommandStore,
             colorDetailsEventStore = colorDetailsEventStore,
             colorSchemeCommandStore = colorSchemeCommandStore,
