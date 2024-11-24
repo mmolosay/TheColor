@@ -76,19 +76,6 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.Data
 
 @Composable
 fun ColorScheme(
-    viewModel: ColorSchemeViewModel,
-    navBarAppearanceStack: NavBarAppearanceStack,
-) {
-    val state = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
-    ColorScheme(
-        state = state,
-        viewModel = viewModel,
-        navBarAppearanceStack = navBarAppearanceStack,
-    )
-}
-
-@Composable
-fun ColorScheme(
     state: DataState,
     viewModel: ColorSchemeViewModel,
     navBarAppearanceStack: NavBarAppearanceStack,
