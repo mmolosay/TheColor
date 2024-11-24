@@ -10,6 +10,7 @@ import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCommandProvi
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsEventStore
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommandProvider
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEventStore
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,11 +25,13 @@ import kotlinx.coroutines.flow.update
  *
  * Instead, it can be created within "simple" `ViewModel` or Google's `ViewModel`.
  */
+// TODO: create an overload that accepts sub-feature ViewModels: ColorDetailsViewModel and ColorSchemeViewModel
 class ColorCenterViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     @Assisted colorDetailsCommandProvider: ColorDetailsCommandProvider,
     @Assisted colorDetailsEventStore: ColorDetailsEventStore,
     @Assisted colorSchemeCommandProvider: ColorSchemeCommandProvider,
+    @Assisted colorSchemeEventStore: ColorSchemeEventStore,
     colorDetailsViewModelFactory: ColorDetailsViewModel.Factory,
     colorSchemeViewModelFactory: ColorSchemeViewModel.Factory,
 ) : SimpleViewModel(coroutineScope) {
@@ -48,6 +51,7 @@ class ColorCenterViewModel @AssistedInject constructor(
         colorSchemeViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
             colorSchemeCommandProvider = colorSchemeCommandProvider,
+            colorSchemeEventStore = colorSchemeEventStore,
         )
     }
 
@@ -86,6 +90,7 @@ class ColorCenterViewModel @AssistedInject constructor(
             colorDetailsCommandProvider: ColorDetailsCommandProvider,
             colorDetailsEventStore: ColorDetailsEventStore,
             colorSchemeCommandProvider: ColorSchemeCommandProvider,
+            colorSchemeEventStore: ColorSchemeEventStore,
         ): ColorCenterViewModel
     }
 }

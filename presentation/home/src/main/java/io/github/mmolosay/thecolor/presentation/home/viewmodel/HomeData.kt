@@ -27,7 +27,7 @@ data class HomeData(
             val colorData: ColorData,
         ) : ProceedResult {
 
-            /** A data of color that was used to proceed */
+            /** A data of color that was used to proceed. */
             data class ColorData(
                 val color: ColorInt,
                 val isDark: Boolean,

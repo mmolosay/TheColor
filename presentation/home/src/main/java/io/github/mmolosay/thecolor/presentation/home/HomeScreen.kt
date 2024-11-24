@@ -82,6 +82,7 @@ fun HomeScreen(
     val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
     val uiData = HomeUiData(data, strings)
     val navEvent = viewModel.navEventFlow.collectAsStateWithLifecycle().value
+    var showSelectedSwatchDetailsDialog by remember { mutableStateOf(false) }
 
     HomeScreen(
         uiData = uiData,
@@ -102,11 +103,20 @@ fun HomeScreen(
             ColorCenter(
                 modifier = Modifier.padding(top = 24.dp),
                 viewModel = viewModel,
-                navBarAppearanceStack = navBarAppearanceStack,
+                onColorSchemeSwatchClick = { showSelectedSwatchDetailsDialog = true },
             )
         },
         navigateToSettings = navigateToSettings,
         navBarAppearanceStack = navBarAppearanceStack,
+    )
+
+    if (!showSelectedSwatchDetailsDialog) return
+    val viewModel = viewModel.selectedSwatchColorDetailsViewModelFlow
+        .collectAsStateWithLifecycle().value ?: return
+    SelectedSwatchDetailsDialog(
+        viewModel = viewModel,
+        navBarAppearanceStack = navBarAppearanceStack,
+        onDismissRequest = { showSelectedSwatchDetailsDialog = false },
     )
 }
 

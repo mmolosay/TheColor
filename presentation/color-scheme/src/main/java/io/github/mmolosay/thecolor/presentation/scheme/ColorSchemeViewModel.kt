@@ -11,11 +11,6 @@ import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
 import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.api.SimpleViewModel
-import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCommand
-import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCommandStore
-import io.github.mmolosay.thecolor.presentation.details.ColorDetailsEvent
-import io.github.mmolosay.thecolor.presentation.details.ColorDetailsEventStore
-import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.errors.toErrorType
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Changes
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Swatch
@@ -23,7 +18,6 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.SwatchCou
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.Config
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.DataState
 import io.github.mmolosay.thecolor.presentation.scheme.StatefulData.State
-import io.github.mmolosay.thecolor.utils.doNothing
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,7 +29,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Named
-import javax.inject.Provider
 import javax.inject.Singleton
 import io.github.mmolosay.thecolor.domain.model.ColorScheme as DomainColorScheme
 
@@ -50,23 +43,12 @@ import io.github.mmolosay.thecolor.domain.model.ColorScheme as DomainColorScheme
 class ColorSchemeViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     @Assisted private val commandProvider: ColorSchemeCommandProvider,
-    colorDetailsCommandStoreProvider: Provider<ColorDetailsCommandStore>,
-    colorDetailsEventStoreProvider: Provider<ColorDetailsEventStore>,
-    colorDetailsViewModelFactory: ColorDetailsViewModel.Factory,
+    @Assisted private val eventStore: ColorSchemeEventStore,
     private val getColorScheme: GetColorSchemeUseCase,
     private val createData: CreateColorSchemeDataUseCase,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
-
-    private val selectedSwatchDetailsCommandStore = colorDetailsCommandStoreProvider.get()
-    private val selectedSwatchDetailsEventStore = colorDetailsEventStoreProvider.get()
-
-    val selectedSwatchDetailsViewModel = colorDetailsViewModelFactory.create(
-        coroutineScope = coroutineScope,
-        colorDetailsCommandProvider = selectedSwatchDetailsCommandStore,
-        colorDetailsEventStore = selectedSwatchDetailsEventStore,
-    )
 
     private var lastUsedSeed: Color? = null
     private var lastDomainColorScheme: DomainColorScheme? = null
@@ -82,29 +64,12 @@ class ColorSchemeViewModel @AssistedInject constructor(
 
     init {
         collectColorCenterCommands()
-        collectSelectedSwatchDetailsEvents()
     }
 
     private fun collectColorCenterCommands() =
         coroutineScope.launch(defaultDispatcher) {
             commandProvider.commandFlow.collect { command ->
                 command.process()
-            }
-        }
-
-    private fun collectSelectedSwatchDetailsEvents() =
-        coroutineScope.launch(defaultDispatcher) {
-            selectedSwatchDetailsEventStore.eventFlow.collect { event ->
-                when (event) {
-                    is ColorDetailsEvent.ColorSelected -> {
-                        val command = ColorDetailsCommand.FetchData(
-                            color = event.color,
-                            colorRole = event.colorRole,
-                        )
-                        selectedSwatchDetailsCommandStore.issue(command)
-                    }
-                    else -> doNothing()
-                }
             }
         }
 
@@ -148,8 +113,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
         createData.invoke(
             scheme = scheme,
             config = config,
-            onSwatchSelect = ::onSwatchSelect,
-            onSelectedSwatchDismiss = ::onSelectedSwatchDismiss,
+            onSwatchSelect = ::sendSwatchSelectedEvent,
             onModeSelect = ::selectMode,
             onSwatchCountSelect = ::selectSwatchCount,
         )
@@ -159,23 +123,16 @@ class ColorSchemeViewModel @AssistedInject constructor(
         fetchColorScheme(seed = seed)
     }
 
-    private fun onSwatchSelect(index: Int) {
-        // explicit exception is better for monitoring crashes and finding possible bugs
-        require(dataStateFlow.value is DataState.Ready)
+    private fun sendSwatchSelectedEvent(indexOfSelectedSwatch: Int) {
         val lastDomainColorScheme = requireNotNull(lastDomainColorScheme)
-        val selectedSwatchData = lastDomainColorScheme.swatchDetails[index]
+        val swatch = _statefulDataFlow.value.data?.swatches?.getOrNull(indexOfSelectedSwatch)
+            ?: return
+        val swatchColorDetails =
+            lastDomainColorScheme.swatchDetails.getOrNull(indexOfSelectedSwatch)
+                ?: return
+        val event = ColorSchemeEvent.SwatchSelected(swatch, swatchColorDetails)
         coroutineScope.launch(defaultDispatcher) {
-            val command = ColorDetailsCommand.SetColorDetails(domainDetails = selectedSwatchData)
-            selectedSwatchDetailsCommandStore.issue(command)
-        }
-        _statefulDataFlow.updateData {
-            it?.copy(isAnySwatchSelected = true)
-        }
-    }
-
-    private fun onSelectedSwatchDismiss() {
-        _statefulDataFlow.updateData {
-            it?.copy(isAnySwatchSelected = false)
+            eventStore.send(event)
         }
     }
 
@@ -265,6 +222,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
         fun create(
             coroutineScope: CoroutineScope,
             colorSchemeCommandProvider: ColorSchemeCommandProvider,
+            colorSchemeEventStore: ColorSchemeEventStore,
         ): ColorSchemeViewModel
     }
 
@@ -330,8 +288,7 @@ class CreateColorSchemeDataUseCase @Inject constructor(
     operator fun invoke(
         scheme: DomainColorScheme,
         config: Config,
-        onSwatchSelect: (index: Int) -> Unit,
-        onSelectedSwatchDismiss: () -> Unit,
+        onSwatchSelect: (indexOfSwatch: Int) -> Unit,
         onModeSelect: (Mode) -> Unit,
         onSwatchCountSelect: (SwatchCount) -> Unit,
     ) =
@@ -340,8 +297,6 @@ class CreateColorSchemeDataUseCase @Inject constructor(
                 details.color.toSwatch()
             },
             onSwatchSelect = onSwatchSelect,
-            onSelectedSwatchDismiss = onSelectedSwatchDismiss,
-            isAnySwatchSelected = false, // initially there's no selected swatch
             activeMode = config.mode,
             selectedMode = config.mode,
             onModeSelect = onModeSelect,

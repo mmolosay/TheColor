@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.scheme
+package io.github.mmolosay.thecolor.presentation.home
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.BottomSheetDefaults
@@ -24,15 +24,15 @@ import io.github.mmolosay.thecolor.presentation.impl.toArgb
 @Composable
 internal fun SelectedSwatchDetailsDialog(
     viewModel: ColorDetailsViewModel,
-    colorSchemeUiData: ColorSchemeUiData,
     navBarAppearanceStack: NavBarAppearanceStack,
+    onDismissRequest: () -> Unit,
 ) {
     val seedData = viewModel.currentSeedDataFlow.collectAsStateWithLifecycle().value ?: return
     val surfaceColor = ColorDetailsOnTintedSurfaceDefaults.surfaceColor(seedData)
     val contentColors = ColorDetailsOnTintedSurfaceDefaults.colorsOnTintedSurface(seedData)
 
     ModalBottomSheet(
-        onDismissRequest = colorSchemeUiData.onSelectedSwatchDetailsDialogDismissRequest,
+        onDismissRequest = onDismissRequest,
         containerColor = surfaceColor,
         contentColor = contentColors.accent,
         dragHandle = {

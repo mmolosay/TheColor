@@ -7,32 +7,33 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.ModeSec
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.Swatch
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.SwatchCountSection
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiDataComponents.OnModeSelect
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiDataComponents.OnSelectedSwatchDetailsDialogDismissRequest
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiDataComponents.OnSwatchClick
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiDataComponents.OnSwatchCountSelect
 import org.jetbrains.annotations.VisibleForTesting
 
 fun ColorSchemeUiData(
     data: ColorSchemeData,
     strings: ColorSchemeUiStrings,
+    onSwatchClick: () -> Unit,
 ): ColorSchemeUiData =
     ColorSchemeUiData(
-        swatches = Swatches(data),
+        swatches = Swatches(data, onSwatchClick),
         modeSection = ModeSection(data, strings),
         swatchCountSection = SwatchCountSection(data, strings),
         applyChangesButton = ApplyChangesButton(data, strings),
-        showSelectedSwatchDetailsDialog = data.isAnySwatchSelected,
-        onSelectedSwatchDetailsDialogDismissRequest = OnSelectedSwatchDetailsDialogDismissRequest(data),
     )
 
 private fun Swatches(
     data: ColorSchemeData,
+    onSwatchClick: () -> Unit,
 ): List<Swatch> =
     data.swatches.mapIndexed { index, swatch ->
         Swatch(
             color = swatch.color.toCompose(),
             useLightContentColors = swatch.isDark,  // light content on dark and vice versa
-            onClick = OnSwatchClick(data, index),
+            onClick = {
+                data.onSwatchSelect(index)
+                onSwatchClick()
+            },
         )
     }
 
@@ -103,13 +104,6 @@ private fun ColorScheme.Mode.name(
 @VisibleForTesting
 internal object ColorSchemeUiDataComponents {
 
-    fun OnSwatchClick(
-        data: ColorSchemeData,
-        swatchIndex: Int,
-    ): () -> Unit = {
-        data.onSwatchSelect(swatchIndex)
-    }
-
     fun OnModeSelect(
         data: ColorSchemeData,
         mode: ColorScheme.Mode,
@@ -123,9 +117,4 @@ internal object ColorSchemeUiDataComponents {
     ): () -> Unit = {
         data.onSwatchCountSelect(count)
     }
-
-    fun OnSelectedSwatchDetailsDialogDismissRequest(
-        data: ColorSchemeData,
-    ): () -> Unit =
-        data.onSelectedSwatchDismiss
 }
