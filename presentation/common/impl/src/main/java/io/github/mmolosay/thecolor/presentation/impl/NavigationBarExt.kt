@@ -18,7 +18,7 @@ fun View.changeNavigationBar(
     if (this.isInEditMode) return
     val window = this.context.findActivityContext().window
     window.navigationBarColor = color
-    WindowCompat.getInsetsController(window, window.decorView).run {
+    WindowCompat.getInsetsController(window, this).run {
         this.isAppearanceLightNavigationBars = isLight
     }
 }
