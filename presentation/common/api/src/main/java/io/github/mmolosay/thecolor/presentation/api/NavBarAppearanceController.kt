@@ -87,10 +87,11 @@ object NoopNavBarAppearanceStack : NavBarAppearanceStack {
  * Platform-agnostic model of navigation bar's appearance.
  *
  * @param color a color integer in `ARGB` format.
+ * @param useLightTintForControls whether the controls should be light to contrast against dark [color].
  */
 data class NavBarAppearance(
     val color: Int,
-    val isLight: Boolean,
+    val useLightTintForControls: Boolean,
 ) {
 
     data class WithTag(

@@ -5,9 +5,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalView
 import androidx.navigation.compose.rememberNavController
+import io.github.mmolosay.thecolor.presentation.api.NavBarAppearance
 import io.github.mmolosay.thecolor.presentation.api.NavBarAppearanceController
 import io.github.mmolosay.thecolor.presentation.design.LocalDefaultNavigationBarColor
-import io.github.mmolosay.thecolor.presentation.design.LocalIsDefaultNavigationBarLight
+import io.github.mmolosay.thecolor.presentation.design.LocalDefaultShouldUseLightTintForNavBarControls
 import io.github.mmolosay.thecolor.presentation.impl.changeNavigationBar
 
 /**
@@ -24,18 +25,18 @@ internal fun Application() {
         navBarAppearanceController = navBarAppearanceController,
     )
 
-    val defaultNavBarColor = LocalDefaultNavigationBarColor.current
-    val isDefaultNavBarLight = LocalIsDefaultNavigationBarLight.current
+    val defaultNavBarAppearance = NavBarAppearance(
+        color = LocalDefaultNavigationBarColor.current,
+        useLightTintForControls = LocalDefaultShouldUseLightTintForNavBarControls.current,
+    )
 
     // change navigation bar when new appearance is emitted
     LaunchedEffect(Unit) changeNavigationBarWhenAppearanceChanges@{
         navBarAppearanceController.appearanceFlow.collect { appearanceWithTag ->
-            val appearance = appearanceWithTag?.appearance
-            val color = appearance?.color ?: defaultNavBarColor
-            val isLight = appearance?.isLight ?: isDefaultNavBarLight
+            val appearance = appearanceWithTag?.appearance ?: defaultNavBarAppearance
             view.changeNavigationBar(
-                color = color,
-                isLight = isLight,
+                color = appearance.color,
+                useLightTintForControls = appearance.useLightTintForControls,
             )
         }
     }

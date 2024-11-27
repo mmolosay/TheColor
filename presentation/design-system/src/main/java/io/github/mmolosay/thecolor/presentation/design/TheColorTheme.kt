@@ -12,7 +12,7 @@ fun TheColorTheme(
 ) {
     TheColorTheme(
         materialColorScheme = colorScheme.toMaterialColorScheme(),
-        isDefaultNavigationBarLight = colorScheme.isDefaultNavigationBarLight(),
+        useLightTintForNavBarControls = colorScheme.shouldUseLightTintForNavBarControls(),
         content = content,
     )
 }
@@ -20,11 +20,11 @@ fun TheColorTheme(
 @Composable
 fun TheColorTheme(
     materialColorScheme: MaterialColorScheme,
-    isDefaultNavigationBarLight: Boolean,
+    useLightTintForNavBarControls: Boolean,
     content: @Composable () -> Unit,
 ) {
     CompositionLocalProvider(
-        LocalIsDefaultNavigationBarLight provides isDefaultNavigationBarLight,
+        LocalDefaultShouldUseLightTintForNavBarControls provides useLightTintForNavBarControls,
     ) {
         MaterialTheme(
             colorScheme = materialColorScheme,

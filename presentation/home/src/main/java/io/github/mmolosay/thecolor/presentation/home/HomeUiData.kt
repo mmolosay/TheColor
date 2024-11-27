@@ -41,8 +41,9 @@ data class HomeUiData(
         data class Yes(
             val backgroundColor: Color,
             val useLightContentColors: Boolean,
+            // TODO: use NavBarAppearance?
             val navigationBarColor: ColorInt,
-            val isNavigationBarLight: Boolean,
+            val useLightTintForNavBarControls: Boolean,
         ) : ShowColorCenter
     }
 

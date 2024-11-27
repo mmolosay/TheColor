@@ -56,7 +56,7 @@ internal fun SelectedSwatchDetailsDialog(
             DisposableEffect(seedData) {
                 val appearance = NavBarAppearance(
                     color = seedData.color.toArgb(),
-                    isLight = !seedData.isDark,
+                    useLightTintForControls = seedData.isDark,
                 )
                 navBarAppearanceStack.push(appearance)
                 onDispose {

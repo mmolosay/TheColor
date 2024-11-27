@@ -18,7 +18,7 @@ import io.github.mmolosay.thecolor.presentation.design.Brightness
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.animateColors
 import io.github.mmolosay.thecolor.presentation.design.brightness
-import io.github.mmolosay.thecolor.presentation.design.isDefaultNavigationBarLight
+import io.github.mmolosay.thecolor.presentation.design.shouldUseLightTintForNavBarControls
 import io.github.mmolosay.thecolor.presentation.design.systemBrightness
 import io.github.mmolosay.thecolor.presentation.design.toMaterialColorScheme
 import kotlinx.coroutines.cancel
@@ -112,7 +112,7 @@ class MainActivity : AppCompatActivity() {
 
         TheColorTheme(
             materialColorScheme = animatedMaterialColorScheme,
-            isDefaultNavigationBarLight = colorScheme.isDefaultNavigationBarLight(),
+            useLightTintForNavBarControls = colorScheme.shouldUseLightTintForNavBarControls(),
         ) {
             Application()
         }

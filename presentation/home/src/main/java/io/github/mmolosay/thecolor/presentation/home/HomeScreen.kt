@@ -326,7 +326,7 @@ private class ColorCenterLifecycleObserver(
     private fun pushAppearance() {
         val appearance = NavBarAppearance(
             color = data.navigationBarColor.toArgb(),
-            isLight = data.isNavigationBarLight,
+            useLightTintForControls = data.useLightTintForNavBarControls,
         )
         val tagged = appearance withTag ColorCenterNavBarAppearanceTag
         navBarAppearanceStack.push(tagged)
@@ -394,7 +394,7 @@ private fun previewUiData() =
             backgroundColor = Color(0xFF_123456),
             useLightContentColors = true,
             navigationBarColor = ColorInt(0x123456),
-            isNavigationBarLight = true,
+            useLightTintForNavBarControls = true,
         ),
         invalidSubmittedColorToast = null,
     )
