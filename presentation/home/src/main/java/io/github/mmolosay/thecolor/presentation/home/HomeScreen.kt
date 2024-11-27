@@ -49,7 +49,6 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.debounce.debounced
-import io.github.mmolosay.thecolor.presentation.api.ColorInt
 import io.github.mmolosay.thecolor.presentation.api.NavBarAppearance
 import io.github.mmolosay.thecolor.presentation.api.NavBarAppearanceStack
 import io.github.mmolosay.thecolor.presentation.api.NoopNavBarAppearanceStack
@@ -64,7 +63,6 @@ import io.github.mmolosay.thecolor.presentation.home.HomeUiData.ShowColorCenter
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeNavEvent
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.impl.TintedSurface
-import io.github.mmolosay.thecolor.presentation.impl.toArgb
 import io.github.mmolosay.thecolor.presentation.impl.toDpOffset
 import io.github.mmolosay.thecolor.presentation.impl.toDpSize
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInput
@@ -263,7 +261,7 @@ private fun ColorCenterOnTintedSurface(
     DisposableEffect(lifecycleOwner, state) {
         val observer = ColorCenterLifecycleObserver(
             navBarAppearanceStack = navBarAppearanceStack,
-            data = state,
+            appearance = state.navBarAppearance,
         )
         lifecycle.addObserver(observer)
         onDispose {
@@ -298,7 +296,7 @@ private fun TopBar(
 
 private class ColorCenterLifecycleObserver(
     private val navBarAppearanceStack: NavBarAppearanceStack,
-    private val data: ShowColorCenter.Yes,
+    private val appearance: NavBarAppearance,
 ) : LifecycleEventObserver {
 
     private var isOnPause = true
@@ -324,10 +322,6 @@ private class ColorCenterLifecycleObserver(
     }
 
     private fun pushAppearance() {
-        val appearance = NavBarAppearance(
-            color = data.navigationBarColor.toArgb(),
-            useLightTintForControls = data.useLightTintForNavBarControls,
-        )
         val tagged = appearance withTag ColorCenterNavBarAppearanceTag
         navBarAppearanceStack.push(tagged)
     }
@@ -393,8 +387,10 @@ private fun previewUiData() =
         showColorCenter = ShowColorCenter.Yes(
             backgroundColor = Color(0xFF_123456),
             useLightContentColors = true,
-            navigationBarColor = ColorInt(0x123456),
-            useLightTintForNavBarControls = true,
+            navBarAppearance = NavBarAppearance(
+                color = 0x123456,
+                useLightTintForControls = true,
+            ),
         ),
         invalidSubmittedColorToast = null,
     )
