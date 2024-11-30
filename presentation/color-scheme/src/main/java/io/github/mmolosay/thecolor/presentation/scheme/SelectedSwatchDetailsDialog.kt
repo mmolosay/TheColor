@@ -20,8 +20,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.api.ColorInt
-import io.github.mmolosay.thecolor.presentation.api.NavBarAppearance
 import io.github.mmolosay.thecolor.presentation.api.NavBarAppearanceStack
+import io.github.mmolosay.thecolor.presentation.api.navBarAppearance
 import io.github.mmolosay.thecolor.presentation.api.push
 import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
@@ -33,7 +33,6 @@ import io.github.mmolosay.thecolor.presentation.details.ColorDetailsOnTintedSurf
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsSeedData
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.impl.TintedSurface
-import io.github.mmolosay.thecolor.presentation.impl.toArgb
 import java.util.Optional
 
 // This piece of UI doesn't have its own "UI" model.
@@ -88,8 +87,7 @@ internal fun SelectedSwatchDetailsDialog(
     }
 
     DisposableEffect(seedData) {
-        val appearance = NavBarAppearance(
-            color = seedData.color.toArgb().let { Optional.of(it) },
+        val appearance = navBarAppearance(
             useLightTintForControls = seedData.isDark.let { Optional.of(it) },
         )
         navBarAppearanceStack.push(appearance)
