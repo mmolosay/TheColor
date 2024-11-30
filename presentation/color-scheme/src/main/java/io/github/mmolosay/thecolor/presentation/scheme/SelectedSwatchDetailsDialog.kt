@@ -17,13 +17,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.api.ColorInt
 import io.github.mmolosay.thecolor.presentation.api.NavBarAppearanceStack
 import io.github.mmolosay.thecolor.presentation.api.navBarAppearance
-import io.github.mmolosay.thecolor.presentation.api.push
+import io.github.mmolosay.thecolor.presentation.api.withTag
 import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
@@ -33,7 +36,12 @@ import io.github.mmolosay.thecolor.presentation.details.ColorDetailsData
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsOnTintedSurfaceDefaults
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsSeedData
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel
+import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver
+import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent.EnteringForeground
+import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent.LeavingForeground
 import io.github.mmolosay.thecolor.presentation.impl.TintedSurface
+import io.github.mmolosay.thecolor.presentation.impl.toLifecycleEventObserver
+import io.github.mmolosay.thecolor.utils.doNothing
 import java.util.Optional
 
 // This piece of UI doesn't have its own "UI" model.
@@ -88,13 +96,17 @@ internal fun SelectedSwatchDetailsDialog(
         )
     }
 
-    DisposableEffect(seedData) {
-        val appearance = navBarAppearance(
-            useLightTintForControls = seedData.isDark.let { Optional.of(it) },
-        )
-        navBarAppearanceStack.push(appearance)
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycle = lifecycleOwner.lifecycle
+    DisposableEffect(lifecycleOwner, seedData) {
+        val observer = ModalBottomSheetLifecycleObserver(
+            navBarAppearanceStack = navBarAppearanceStack,
+            seedData = seedData,
+        ).toLifecycleEventObserver()
+        lifecycle.addObserver(observer)
         onDispose {
-            navBarAppearanceStack.peel()
+            lifecycle.removeObserver(observer)
+            navBarAppearanceStack.remove(tag = NavBarAppearanceTag)
         }
     }
 }
@@ -130,6 +142,34 @@ private fun Content(
         }
     }
 }
+
+private class ModalBottomSheetLifecycleObserver(
+    private val navBarAppearanceStack: NavBarAppearanceStack,
+    private val seedData: ColorDetailsSeedData,
+) : ExtendedLifecycleEventObserver {
+
+    override fun onStateChanged(
+        source: LifecycleOwner,
+        event: Lifecycle.Event,
+        directionChange: ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent?,
+    ) {
+        when (directionChange) {
+            EnteringForeground -> {
+                val appearance = navBarAppearance(
+                    useLightTintForControls = seedData.isDark.let { Optional.of(it) },
+                )
+                val tagged = appearance withTag NavBarAppearanceTag
+                navBarAppearanceStack.push(tagged)
+            }
+            LeavingForeground -> {
+                navBarAppearanceStack.remove(tag = NavBarAppearanceTag)
+            }
+            null -> doNothing()
+        }
+    }
+}
+
+private const val NavBarAppearanceTag = "SelectedSwatchDetailsDialog"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview
