@@ -45,7 +45,6 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.debounce.debounced
@@ -62,9 +61,12 @@ import io.github.mmolosay.thecolor.presentation.home.HomeUiData.ProceedButton
 import io.github.mmolosay.thecolor.presentation.home.HomeUiData.ShowColorCenter
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeNavEvent
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
+import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver
+import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent
 import io.github.mmolosay.thecolor.presentation.impl.TintedSurface
 import io.github.mmolosay.thecolor.presentation.impl.toDpOffset
 import io.github.mmolosay.thecolor.presentation.impl.toDpSize
+import io.github.mmolosay.thecolor.presentation.impl.toLifecycleEventObserver
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInput
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreview
 import io.github.mmolosay.thecolor.utils.doNothing
@@ -263,7 +265,7 @@ private fun ColorCenterOnTintedSurface(
         val observer = ColorCenterLifecycleObserver(
             navBarAppearanceStack = navBarAppearanceStack,
             appearance = state.navBarAppearance,
-        )
+        ).toLifecycleEventObserver()
         lifecycle.addObserver(observer)
         onDispose {
             lifecycle.removeObserver(observer)
@@ -298,33 +300,23 @@ private fun TopBar(
 private class ColorCenterLifecycleObserver(
     private val navBarAppearanceStack: NavBarAppearanceStack,
     private val appearance: NavBarAppearance,
-) : LifecycleEventObserver {
+) : ExtendedLifecycleEventObserver {
 
-    private var isOnPause = true
-
-    override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) =
-        when (event) {
-            Lifecycle.Event.ON_START,
-            Lifecycle.Event.ON_RESUME -> {
-                onEnteringForeground()
+    override fun onStateChanged(
+        source: LifecycleOwner,
+        event: Lifecycle.Event,
+        directionChange: LifecycleDirectionChangeEvent?,
+    ) {
+        when (directionChange) {
+            LifecycleDirectionChangeEvent.EnteringForeground -> {
+                val tagged = appearance withTag ColorCenterNavBarAppearanceTag
+                navBarAppearanceStack.push(tagged)
             }
-            Lifecycle.Event.ON_PAUSE -> {
+            LifecycleDirectionChangeEvent.LeavingForeground -> {
                 navBarAppearanceStack.remove(tag = ColorCenterNavBarAppearanceTag)
-                isOnPause = true
             }
-            else -> doNothing()
+            null -> doNothing()
         }
-
-    private fun onEnteringForeground() {
-        // only push an appearance if the event is a first event after "exiting foreground" (like ON_PAUSE)
-        if (!isOnPause) return // has already pushed nav bar appearance
-        pushAppearance()
-        isOnPause = false
-    }
-
-    private fun pushAppearance() {
-        val tagged = appearance withTag ColorCenterNavBarAppearanceTag
-        navBarAppearanceStack.push(tagged)
     }
 }
 
