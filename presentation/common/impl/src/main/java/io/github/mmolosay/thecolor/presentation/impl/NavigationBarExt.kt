@@ -12,16 +12,21 @@ import androidx.core.view.WindowCompat
  */
 
 fun View.changeNavigationBar(
-    @ColorInt color: Int,
-    useLightTintForControls: Boolean,
+    @ColorInt color: Int?,
+    useLightTintForControls: Boolean?,
 ) {
     if (this.isInEditMode) return
     val window = this.context.findActivityContext().window
-    window.navigationBarColor = color
-    WindowCompat.getInsetsController(window, this).run {
-        // for some reason, documentation of 'isAppearanceLightNavigationBars' doesn't match
-        // it's behaviour, thus applying negation to the value
-        this.isAppearanceLightNavigationBars = !useLightTintForControls
+
+    if (color != null) {
+        window.navigationBarColor = color
+    }
+    if (useLightTintForControls != null) {
+        WindowCompat.getInsetsController(window, this).run {
+            // for some reason, documentation of 'isAppearanceLightNavigationBars' doesn't match
+            // it's behaviour, thus applying negation to the value
+            this.isAppearanceLightNavigationBars = !useLightTintForControls
+        }
     }
 }
 

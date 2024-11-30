@@ -68,6 +68,7 @@ import io.github.mmolosay.thecolor.presentation.impl.toDpSize
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInput
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreview
 import io.github.mmolosay.thecolor.utils.doNothing
+import java.util.Optional
 
 @Composable
 fun HomeScreen(
@@ -388,8 +389,8 @@ private fun previewUiData() =
             backgroundColor = Color(0xFF_123456),
             useLightContentColors = true,
             navBarAppearance = NavBarAppearance(
-                color = 0x123456,
-                useLightTintForControls = true,
+                color = Optional.of(0x123456),
+                useLightTintForControls = Optional.of(true),
             ),
         ),
         invalidSubmittedColorToast = null,

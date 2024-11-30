@@ -2,6 +2,7 @@ package io.github.mmolosay.thecolor.presentation.api
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.util.Optional
 
 /**
  * Controller of navigation bar's appearance.
@@ -90,8 +91,8 @@ object NoopNavBarAppearanceStack : NavBarAppearanceStack {
  * @param useLightTintForControls whether the controls should be light to contrast against dark [color].
  */
 data class NavBarAppearance(
-    val color: Int,
-    val useLightTintForControls: Boolean,
+    val color: Optional<Int>,
+    val useLightTintForControls: Optional<Boolean>,
 ) {
 
     data class WithTag(
@@ -99,6 +100,18 @@ data class NavBarAppearance(
         val tag: Any?,
     )
 }
+
+/**
+ * A builder function for [NavBarAppearance] with values by default.
+ */
+fun navBarAppearance(
+    color: Optional<Int> = Optional.empty(),
+    useLightTintForControls: Optional<Boolean> = Optional.empty(),
+) =
+    NavBarAppearance(
+        color = color,
+        useLightTintForControls = useLightTintForControls,
+    )
 
 infix fun NavBarAppearance.withTag(tag: Any?): NavBarAppearance.WithTag =
     NavBarAppearance.WithTag(appearance = this, tag = tag)

@@ -10,6 +10,8 @@ import io.github.mmolosay.thecolor.presentation.api.NavBarAppearanceController
 import io.github.mmolosay.thecolor.presentation.design.LocalDefaultNavigationBarColor
 import io.github.mmolosay.thecolor.presentation.design.LocalDefaultShouldUseLightTintForNavBarControls
 import io.github.mmolosay.thecolor.presentation.impl.changeNavigationBar
+import java.util.Optional
+import kotlin.jvm.optionals.getOrNull
 
 /**
  * A root of the entire application's UI.
@@ -26,8 +28,10 @@ internal fun Application() {
     )
 
     val defaultNavBarAppearance = NavBarAppearance(
-        color = LocalDefaultNavigationBarColor.current,
-        useLightTintForControls = LocalDefaultShouldUseLightTintForNavBarControls.current,
+        color = LocalDefaultNavigationBarColor.current
+            .let { Optional.of(it) },
+        useLightTintForControls = LocalDefaultShouldUseLightTintForNavBarControls.current
+            .let { Optional.of(it) },
     )
 
     // change navigation bar when new appearance is emitted
@@ -35,8 +39,8 @@ internal fun Application() {
         navBarAppearanceController.appearanceFlow.collect { appearanceWithTag ->
             val appearance = appearanceWithTag?.appearance ?: defaultNavBarAppearance
             view.changeNavigationBar(
-                color = appearance.color,
-                useLightTintForControls = appearance.useLightTintForControls,
+                color = appearance.color.getOrNull(),
+                useLightTintForControls = appearance.useLightTintForControls.getOrNull(),
             )
         }
     }
