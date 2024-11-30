@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
@@ -69,6 +70,7 @@ internal fun SelectedSwatchDetailsDialog(
 
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = surfaceColor,
         contentColor = colorsOnTintedSurface.accent,
         dragHandle = {
