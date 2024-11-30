@@ -20,6 +20,7 @@ import io.github.mmolosay.thecolor.presentation.impl.TintedSurface
 import io.github.mmolosay.thecolor.presentation.impl.toArgb
 
 // This piece of UI doesn't have its own "UI" model.
+// TODO: add @Preview
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SelectedSwatchDetailsDialog(
