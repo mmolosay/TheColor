@@ -106,7 +106,7 @@ internal fun SelectedSwatchDetailsDialog(
         lifecycle.addObserver(observer)
         onDispose {
             lifecycle.removeObserver(observer)
-            navBarAppearanceStack.remove(tag = NavBarAppearanceTag)
+            navBarAppearanceStack.clear()
         }
     }
 }

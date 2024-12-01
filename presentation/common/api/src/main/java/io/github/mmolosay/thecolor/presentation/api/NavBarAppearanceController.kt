@@ -1,7 +1,13 @@
 package io.github.mmolosay.thecolor.presentation.api
 
+import io.github.mmolosay.thecolor.utils.CoroutineScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.launch
 import java.util.Optional
 
 /**
@@ -9,9 +15,13 @@ import java.util.Optional
  * It supports "layering" appearances, so that if the latest appearance is cancelled,
  * then the one that was before it will be used (as when going back to previous screen).
  */
-class NavBarAppearanceController : NavBarAppearanceStack {
+class NavBarAppearanceController(
+    private val coroutineScope: CoroutineScope,
+) : NavBarAppearanceStack {
 
     private val appearanceStack = mutableListOf<NavBarAppearance.WithTag>()
+    private val subControllers = mutableListOf<NavBarAppearanceController>()
+    private var subControllersCollectionJob: Job? = null
 
     private val _appearanceFlow = MutableStateFlow<NavBarAppearance.WithTag?>(null)
     val appearanceFlow = _appearanceFlow.asStateFlow()
@@ -34,9 +44,45 @@ class NavBarAppearanceController : NavBarAppearanceStack {
         emitLatestAppearance()
     }
 
+    override fun clear() {
+        appearanceStack.clear()
+        emitLatestAppearance()
+    }
+
+    // TODO: add unit tests
+    override fun subStack(): NavBarAppearanceStack {
+        val newSubController = NavBarAppearanceController(
+            coroutineScope = CoroutineScope(parent = coroutineScope),
+        )
+        subControllers += newSubController
+        val mergedFlowsOfSubControllers: Flow<NavBarAppearance.WithTag?> =
+            subControllers.map { it.appearanceFlow }
+                .toTypedArray()
+                .let { merge(*it) }
+        subControllersCollectionJob?.cancel()
+        subControllersCollectionJob = coroutineScope.launch {
+            collectMergedFlowsOfSubControllers(mergedFlowsOfSubControllers)
+        }
+        return newSubController
+    }
+
     private fun emitLatestAppearance() {
         val latest = appearanceStack.lastOrNull()
         _appearanceFlow.value = latest
+    }
+
+    private suspend fun collectMergedFlowsOfSubControllers(
+        mergedFlows: Flow<NavBarAppearance.WithTag?>,
+    ) {
+        mergedFlows.collect { subControllerAppearance ->
+            val ownAppearance = appearanceFlow.value
+            val newAppearance = if (ownAppearance != null && subControllerAppearance == null) {
+                ownAppearance
+            } else {
+                subControllerAppearance
+            }
+            _appearanceFlow.value = newAppearance
+        }
     }
 }
 
@@ -64,6 +110,19 @@ interface NavBarAppearanceStack {
      * Does nothing if there's no such appearance in the stack.
      */
     fun remove(tag: Any)
+
+    /**
+     * Removes all appearances from the stack.
+     */
+    fun clear()
+
+    /**
+     * Creates a [NavBarAppearanceStack] that can be used by a component to [push] and [peel]
+     * appearances safely.
+     * For example, once component is removed, and it wants to remove all appearances it has [push]ed,
+     * it may do so using [clear].
+     */
+    fun subStack(): NavBarAppearanceStack
 }
 
 /**
@@ -82,6 +141,8 @@ object NoopNavBarAppearanceStack : NavBarAppearanceStack {
     override fun push(appearance: NavBarAppearance.WithTag) {}
     override fun peel() {}
     override fun remove(tag: Any) {}
+    override fun clear() {}
+    override fun subStack(): NavBarAppearanceStack = NoopNavBarAppearanceStack
 }
 
 /**

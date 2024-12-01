@@ -3,6 +3,7 @@ package io.github.mmolosay.thecolor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalView
 import androidx.navigation.compose.rememberNavController
 import io.github.mmolosay.thecolor.presentation.api.NavBarAppearance
@@ -19,7 +20,7 @@ import kotlin.jvm.optionals.getOrNull
 @Composable
 internal fun Application() {
     val navController = rememberNavController()
-    val navBarAppearanceController = remember { NavBarAppearanceController() }
+    val navBarAppearanceController = rememberNavBarAppearanceController()
     val view = LocalView.current
 
     MainNavHost(
@@ -43,5 +44,15 @@ internal fun Application() {
                 useLightTintForControls = appearance.useLightTintForControls.getOrNull(),
             )
         }
+    }
+}
+
+@Composable
+private fun rememberNavBarAppearanceController(): NavBarAppearanceController {
+    val coroutineScope = rememberCoroutineScope()
+    return remember {
+        NavBarAppearanceController(
+            coroutineScope = coroutineScope,
+        )
     }
 }

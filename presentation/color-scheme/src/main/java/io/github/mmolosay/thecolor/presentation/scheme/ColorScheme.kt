@@ -96,11 +96,12 @@ fun ColorScheme(
     ColorScheme(
         state = state,
         selectedSwatchDetails = { colorSchemeUiData ->
+            val subStack = remember(navBarAppearanceStack) { navBarAppearanceStack.subStack() }
             if (colorSchemeUiData.showSelectedSwatchDetailsDialog) {
                 SelectedSwatchDetailsDialog(
                     viewModel = viewModel.selectedSwatchDetailsViewModel,
                     colorSchemeUiData = colorSchemeUiData,
-                    navBarAppearanceStack = navBarAppearanceStack,
+                    navBarAppearanceStack = subStack,
                 )
             }
         },
