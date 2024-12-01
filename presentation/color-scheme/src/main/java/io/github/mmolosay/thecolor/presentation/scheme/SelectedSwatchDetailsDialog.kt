@@ -25,7 +25,9 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.api.ColorInt
 import io.github.mmolosay.thecolor.presentation.api.NavBarAppearanceStack
+import io.github.mmolosay.thecolor.presentation.api.NavBarAppearanceSubStack
 import io.github.mmolosay.thecolor.presentation.api.navBarAppearance
+import io.github.mmolosay.thecolor.presentation.api.push
 import io.github.mmolosay.thecolor.presentation.api.withTag
 import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
@@ -50,7 +52,7 @@ import java.util.Optional
 internal fun SelectedSwatchDetailsDialog(
     viewModel: ColorDetailsViewModel,
     colorSchemeUiData: ColorSchemeUiData,
-    navBarAppearanceStack: NavBarAppearanceStack,
+    navBarAppearanceStack: NavBarAppearanceSubStack,
 ) {
     SelectedSwatchDetailsDialog(
         onDismissRequest = colorSchemeUiData.onSelectedSwatchDetailsDialogDismissRequest,
@@ -66,7 +68,7 @@ internal fun SelectedSwatchDetailsDialog(
     onDismissRequest: () -> Unit,
     seedData: ColorDetailsSeedData,
     colorDetailsDataState: ColorDetailsViewModel.DataState,
-    navBarAppearanceStack: NavBarAppearanceStack,
+    navBarAppearanceStack: NavBarAppearanceSubStack,
 ) {
     val surfaceColor = ColorDetailsOnTintedSurfaceDefaults.surfaceColor(seedData)
     val colorsOnTintedSurface = ColorDetailsOnTintedSurfaceDefaults.colorsOnTintedSurface(seedData)
@@ -96,19 +98,28 @@ internal fun SelectedSwatchDetailsDialog(
         )
     }
 
-    val lifecycleOwner = LocalLifecycleOwner.current
-    val lifecycle = lifecycleOwner.lifecycle
-    DisposableEffect(lifecycleOwner, seedData) {
-        val observer = ModalBottomSheetLifecycleObserver(
-            navBarAppearanceStack = navBarAppearanceStack,
-            seedData = seedData,
-        ).toLifecycleEventObserver()
-        lifecycle.addObserver(observer)
+    DisposableEffect(seedData) {
+        val appearance = navBarAppearance(
+            useLightTintForControls = seedData.isDark.let { Optional.of(it) },
+        )
+        navBarAppearanceStack.push(appearance)
         onDispose {
-            lifecycle.removeObserver(observer)
             navBarAppearanceStack.clear()
         }
     }
+//    val lifecycleOwner = LocalLifecycleOwner.current
+//    val lifecycle = lifecycleOwner.lifecycle
+//    DisposableEffect(lifecycleOwner, seedData) {
+//        val observer = ModalBottomSheetLifecycleObserver(
+//            navBarAppearanceStack = navBarAppearanceStack,
+//            seedData = seedData,
+//        ).toLifecycleEventObserver()
+//        lifecycle.addObserver(observer)
+//        onDispose {
+//            lifecycle.removeObserver(observer)
+//            navBarAppearanceStack.clear()
+//        }
+//    }
 }
 
 @Composable

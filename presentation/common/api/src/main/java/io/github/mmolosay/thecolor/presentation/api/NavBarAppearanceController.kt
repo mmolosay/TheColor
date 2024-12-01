@@ -15,12 +15,15 @@ import java.util.Optional
  * It supports "layering" appearances, so that if the latest appearance is cancelled,
  * then the one that was before it will be used (as when going back to previous screen).
  */
+// TODO: refactor: NavBarAppearanceController should NOT derive from NavBarAppearanceSubStack
 class NavBarAppearanceController(
     private val coroutineScope: CoroutineScope,
-) : NavBarAppearanceStack {
+) : NavBarAppearanceSubStack {
 
     private val appearanceStack = mutableListOf<NavBarAppearance.WithTag>()
-    private val subControllers = mutableListOf<NavBarAppearanceController>()
+
+    @Suppress("RemoveRedundantQualifierName")
+    private val subControllers = mutableListOf<NavBarAppearanceController.WithTag>()
     private var subControllersCollectionJob: Job? = null
 
     private val _appearanceFlow = MutableStateFlow<NavBarAppearance.WithTag?>(null)
@@ -50,13 +53,13 @@ class NavBarAppearanceController(
     }
 
     // TODO: add unit tests
-    override fun subStack(): NavBarAppearanceStack {
+    override fun subStack(tag: Any): NavBarAppearanceSubStack {
         val newSubController = NavBarAppearanceController(
             coroutineScope = CoroutineScope(parent = coroutineScope),
         )
-        subControllers += newSubController
+        subControllers += WithTag(controller = newSubController, tag = tag)
         val mergedFlowsOfSubControllers: Flow<NavBarAppearance.WithTag?> =
-            subControllers.map { it.appearanceFlow }
+            subControllers.map { it.controller.appearanceFlow }
                 .toTypedArray()
                 .let { merge(*it) }
         subControllersCollectionJob?.cancel()
@@ -84,6 +87,11 @@ class NavBarAppearanceController(
             _appearanceFlow.value = newAppearance
         }
     }
+
+    private data class WithTag(
+        val controller: NavBarAppearanceController,
+        val tag: Any,
+    )
 }
 
 /**
@@ -112,17 +120,26 @@ interface NavBarAppearanceStack {
     fun remove(tag: Any)
 
     /**
-     * Removes all appearances from the stack.
-     */
-    fun clear()
-
-    /**
      * Creates a [NavBarAppearanceStack] that can be used by a component to [push] and [peel]
      * appearances safely.
      * For example, once component is removed, and it wants to remove all appearances it has [push]ed,
-     * it may do so using [clear].
+     * it may do so using [NavBarAppearanceSubStack.clear].
      */
-    fun subStack(): NavBarAppearanceStack
+    fun subStack(tag: Any): NavBarAppearanceSubStack
+}
+
+/**
+ * A derivative from [NavBarAppearanceStack].
+ * Serves as a separate allocated stack to be used by only one client (component).
+ *
+ * Contains mass-control methods that would've been too dangerous to have in regular [NavBarAppearanceStack].
+ */
+interface NavBarAppearanceSubStack : NavBarAppearanceStack {
+
+    /**
+     * Removes all appearances from this sub-stack.
+     */
+    fun clear()
 }
 
 /**
@@ -141,8 +158,17 @@ object NoopNavBarAppearanceStack : NavBarAppearanceStack {
     override fun push(appearance: NavBarAppearance.WithTag) {}
     override fun peel() {}
     override fun remove(tag: Any) {}
+    override fun subStack(tag: Any) = NoopNavBarAppearanceSubStack
+}
+
+/**
+ * A "no-operation" implementation of [NavBarAppearanceSubStack].
+ * Useful in Compose Previews.
+ */
+object NoopNavBarAppearanceSubStack :
+    NavBarAppearanceSubStack,
+    NavBarAppearanceStack by NoopNavBarAppearanceStack {
     override fun clear() {}
-    override fun subStack(): NavBarAppearanceStack = NoopNavBarAppearanceStack
 }
 
 /**
