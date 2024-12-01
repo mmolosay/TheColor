@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.home
 
-import io.github.mmolosay.thecolor.presentation.api.NavBarAppearance
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearance
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
 import io.github.mmolosay.thecolor.presentation.impl.toArgb
 import io.github.mmolosay.thecolor.presentation.impl.toCompose

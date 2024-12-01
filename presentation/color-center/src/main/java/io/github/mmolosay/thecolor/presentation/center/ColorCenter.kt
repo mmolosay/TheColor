@@ -31,7 +31,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import io.github.mmolosay.thecolor.presentation.api.NavBarAppearanceStack
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearanceController
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
@@ -47,7 +47,7 @@ import kotlin.math.max
 fun ColorCenter(
     viewModel: ColorCenterViewModel,
     modifier: Modifier = Modifier,
-    navBarAppearanceStack: NavBarAppearanceStack,
+    navBarAppearanceController: NavBarAppearanceController,
 ) {
     val crossfadeSpec = tween<Float>(
         durationMillis = 500,
@@ -79,7 +79,7 @@ fun ColorCenter(
                 ColorScheme(
                     state = state,
                     viewModel = viewModel,
-                    navBarAppearanceStack = navBarAppearanceStack,
+                    navBarAppearanceController = navBarAppearanceController,
                 )
             }
         },

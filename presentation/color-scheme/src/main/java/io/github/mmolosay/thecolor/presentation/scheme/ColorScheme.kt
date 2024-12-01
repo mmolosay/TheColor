@@ -58,7 +58,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import io.github.mmolosay.thecolor.presentation.api.NavBarAppearanceStack
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearanceController
 import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
@@ -77,13 +77,13 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.Data
 @Composable
 fun ColorScheme(
     viewModel: ColorSchemeViewModel,
-    navBarAppearanceStack: NavBarAppearanceStack,
+    navBarAppearanceController: NavBarAppearanceController,
 ) {
     val state = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
     ColorScheme(
         state = state,
         viewModel = viewModel,
-        navBarAppearanceStack = navBarAppearanceStack,
+        navBarAppearanceController = navBarAppearanceController,
     )
 }
 
@@ -91,20 +91,20 @@ fun ColorScheme(
 fun ColorScheme(
     state: DataState,
     viewModel: ColorSchemeViewModel,
-    navBarAppearanceStack: NavBarAppearanceStack,
+    navBarAppearanceController: NavBarAppearanceController,
 ) {
     ColorScheme(
         state = state,
         selectedSwatchDetails = { colorSchemeUiData ->
-            val subStack = remember(navBarAppearanceStack) {
+            val childController = remember(navBarAppearanceController) {
                 val tag = "SelectedSwatchDetailsDialog"
-                navBarAppearanceStack.subStack(tag)
+                navBarAppearanceController.branch(tag)
             }
             if (colorSchemeUiData.showSelectedSwatchDetailsDialog) {
                 SelectedSwatchDetailsDialog(
                     viewModel = viewModel.selectedSwatchDetailsViewModel,
                     colorSchemeUiData = colorSchemeUiData,
-                    navBarAppearanceStack = subStack,
+                    navBarAppearanceController = childController,
                 )
             }
         },

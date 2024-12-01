@@ -1,8 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.home
 
 import androidx.compose.ui.graphics.Color
-import io.github.mmolosay.thecolor.presentation.api.ColorInt
-import io.github.mmolosay.thecolor.presentation.api.NavBarAppearance
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearance
 
 /**
  * Framework-oriented data required for Home screen to be presented by Compose.

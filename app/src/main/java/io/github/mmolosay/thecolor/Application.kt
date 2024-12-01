@@ -6,8 +6,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalView
 import androidx.navigation.compose.rememberNavController
-import io.github.mmolosay.thecolor.presentation.api.NavBarAppearance
-import io.github.mmolosay.thecolor.presentation.api.NavBarAppearanceController
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.MainNavBarAppearanceController
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearance
 import io.github.mmolosay.thecolor.presentation.design.LocalDefaultNavigationBarColor
 import io.github.mmolosay.thecolor.presentation.design.LocalDefaultShouldUseLightTintForNavBarControls
 import io.github.mmolosay.thecolor.presentation.impl.changeNavigationBar
@@ -20,12 +20,12 @@ import kotlin.jvm.optionals.getOrNull
 @Composable
 internal fun Application() {
     val navController = rememberNavController()
-    val navBarAppearanceController = rememberNavBarAppearanceController()
+    val mainNavBarAppearanceController = rememberMainNavBarAppearanceController()
     val view = LocalView.current
 
     MainNavHost(
         navController = navController,
-        navBarAppearanceController = navBarAppearanceController,
+        mainNavBarAppearanceController = mainNavBarAppearanceController,
     )
 
     val defaultNavBarAppearance = NavBarAppearance(
@@ -37,7 +37,7 @@ internal fun Application() {
 
     // change navigation bar when new appearance is emitted
     LaunchedEffect(Unit) changeNavigationBarWhenAppearanceChanges@{
-        navBarAppearanceController.appearanceFlow.collect { appearanceWithTag ->
+        mainNavBarAppearanceController.appearanceFlow.collect { appearanceWithTag ->
             val appearance = appearanceWithTag?.appearance ?: defaultNavBarAppearance
             view.changeNavigationBar(
                 color = appearance.color.getOrNull(),
@@ -48,10 +48,10 @@ internal fun Application() {
 }
 
 @Composable
-private fun rememberNavBarAppearanceController(): NavBarAppearanceController {
+private fun rememberMainNavBarAppearanceController(): MainNavBarAppearanceController {
     val coroutineScope = rememberCoroutineScope()
     return remember {
-        NavBarAppearanceController(
+        MainNavBarAppearanceController(
             coroutineScope = coroutineScope,
         )
     }

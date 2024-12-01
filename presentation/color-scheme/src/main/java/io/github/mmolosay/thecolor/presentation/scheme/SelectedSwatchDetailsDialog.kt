@@ -17,18 +17,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.api.ColorInt
-import io.github.mmolosay.thecolor.presentation.api.NavBarAppearanceStack
-import io.github.mmolosay.thecolor.presentation.api.NavBarAppearanceSubStack
-import io.github.mmolosay.thecolor.presentation.api.navBarAppearance
-import io.github.mmolosay.thecolor.presentation.api.push
-import io.github.mmolosay.thecolor.presentation.api.withTag
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearanceController
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearanceStack
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.navBarAppearance
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.push
 import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
@@ -42,7 +40,6 @@ import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObser
 import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent.EnteringForeground
 import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent.LeavingForeground
 import io.github.mmolosay.thecolor.presentation.impl.TintedSurface
-import io.github.mmolosay.thecolor.presentation.impl.toLifecycleEventObserver
 import io.github.mmolosay.thecolor.utils.doNothing
 import java.util.Optional
 
@@ -52,13 +49,13 @@ import java.util.Optional
 internal fun SelectedSwatchDetailsDialog(
     viewModel: ColorDetailsViewModel,
     colorSchemeUiData: ColorSchemeUiData,
-    navBarAppearanceStack: NavBarAppearanceSubStack,
+    navBarAppearanceController: NavBarAppearanceController,
 ) {
     SelectedSwatchDetailsDialog(
         onDismissRequest = colorSchemeUiData.onSelectedSwatchDetailsDialogDismissRequest,
         seedData = viewModel.currentSeedDataFlow.collectAsStateWithLifecycle().value ?: return,
         colorDetailsDataState = viewModel.dataStateFlow.collectAsStateWithLifecycle().value,
-        navBarAppearanceStack = navBarAppearanceStack,
+        navBarAppearanceController = navBarAppearanceController,
     )
 }
 
@@ -68,7 +65,7 @@ internal fun SelectedSwatchDetailsDialog(
     onDismissRequest: () -> Unit,
     seedData: ColorDetailsSeedData,
     colorDetailsDataState: ColorDetailsViewModel.DataState,
-    navBarAppearanceStack: NavBarAppearanceSubStack,
+    navBarAppearanceController: NavBarAppearanceController,
 ) {
     val surfaceColor = ColorDetailsOnTintedSurfaceDefaults.surfaceColor(seedData)
     val colorsOnTintedSurface = ColorDetailsOnTintedSurfaceDefaults.colorsOnTintedSurface(seedData)
@@ -102,9 +99,9 @@ internal fun SelectedSwatchDetailsDialog(
         val appearance = navBarAppearance(
             useLightTintForControls = seedData.isDark.let { Optional.of(it) },
         )
-        navBarAppearanceStack.push(appearance)
+        navBarAppearanceController.stack.push(appearance)
         onDispose {
-            navBarAppearanceStack.clear()
+            navBarAppearanceController.stack.clear()
         }
     }
 //    val lifecycleOwner = LocalLifecycleOwner.current
@@ -169,18 +166,15 @@ private class ModalBottomSheetLifecycleObserver(
                 val appearance = navBarAppearance(
                     useLightTintForControls = seedData.isDark.let { Optional.of(it) },
                 )
-                val tagged = appearance withTag NavBarAppearanceTag
-                navBarAppearanceStack.push(tagged)
+                navBarAppearanceStack.push(appearance)
             }
             LeavingForeground -> {
-                navBarAppearanceStack.remove(tag = NavBarAppearanceTag)
+                navBarAppearanceStack.clear()
             }
             null -> doNothing()
         }
     }
 }
-
-private const val NavBarAppearanceTag = "SelectedSwatchDetailsDialog"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview

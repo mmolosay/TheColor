@@ -1,5 +1,8 @@
 package io.github.mmolosay.thecolor.presentation.api
 
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearance
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearanceControllerImpl
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.withTag
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
@@ -10,22 +13,28 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
-class NavBarAppearanceControllerTest {
+class NavBarAppearanceControllerImplTest {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val testCoroutineContext = UnconfinedTestDispatcher()
 
-    val sut = NavBarAppearanceController()
+    val testCoroutineScope = TestScope(testCoroutineContext)
+
+    val sut = NavBarAppearanceControllerImpl(
+        tag = "test",
+        coroutineScope = testCoroutineScope,
+    )
 
     @Test
     fun `pushing an appearance emits it from the flow`() {
         val appearance: NavBarAppearance.WithTag = mockk()
 
-        sut.push(appearance)
+        sut.stack.push(appearance)
 
         sut.appearanceFlow.value shouldBe appearance
     }
@@ -39,8 +48,8 @@ class NavBarAppearanceControllerTest {
             }
 
             val appearance: NavBarAppearance.WithTag = mockk()
-            sut.push(appearance)
-            sut.push(appearance)
+            sut.stack.push(appearance)
+            sut.stack.push(appearance)
 
             val expectedEmissions =
                 listOf(null, appearance) // replayed initial 'null' and pushed appearance
@@ -53,9 +62,9 @@ class NavBarAppearanceControllerTest {
         val appearance1: NavBarAppearance.WithTag = mockk()
         val appearance2: NavBarAppearance.WithTag = mockk()
 
-        sut.push(appearance1)
-        sut.push(appearance2)
-        sut.peel()
+        sut.stack.push(appearance1)
+        sut.stack.push(appearance2)
+        sut.stack.peel()
 
         sut.appearanceFlow.value shouldBe appearance1
     }
@@ -64,8 +73,8 @@ class NavBarAppearanceControllerTest {
     fun `peeling single existing appearance emits 'null'`() {
         val appearance: NavBarAppearance.WithTag = mockk()
 
-        sut.push(appearance)
-        sut.peel()
+        sut.stack.push(appearance)
+        sut.stack.peel()
 
         sut.appearanceFlow.value shouldBe null
     }
@@ -74,11 +83,11 @@ class NavBarAppearanceControllerTest {
     fun `peeling non-existant appearance does nothing`() {
         val appearance: NavBarAppearance.WithTag = mockk()
 
-        sut.push(appearance)
-        sut.peel()
+        sut.stack.push(appearance)
+        sut.stack.peel()
 
         shouldNotThrowAny {
-            sut.peel()
+            sut.stack.peel()
         }
     }
 
@@ -87,9 +96,9 @@ class NavBarAppearanceControllerTest {
         val appearance1 = mockk<NavBarAppearance>() withTag "first"
         val appearance2 = mockk<NavBarAppearance>() withTag "second"
 
-        sut.push(appearance1)
-        sut.push(appearance2)
-        sut.remove(tag = "second")
+        sut.stack.push(appearance1)
+        sut.stack.push(appearance2)
+        sut.stack.remove(tag = "second")
 
         sut.appearanceFlow.value shouldBe appearance1
     }
@@ -107,11 +116,11 @@ class NavBarAppearanceControllerTest {
             val appearance1 = mockk<NavBarAppearance>() withTag "first"
             val appearance2 = mockk<NavBarAppearance>() withTag "second"
             val appearance3 = mockk<NavBarAppearance>() withTag null
-            sut.push(appearance1)
-            sut.push(appearance2)
-            sut.push(appearance3)
+            sut.stack.push(appearance1)
+            sut.stack.push(appearance2)
+            sut.stack.push(appearance3)
             collectionJob.start()
-            sut.remove(tag = "second")
+            sut.stack.remove(tag = "second")
 
             emissions shouldHaveSize 0
             collectionJob.cancel()
@@ -125,25 +134,25 @@ class NavBarAppearanceControllerTest {
             val appearance3 = mockk<NavBarAppearance>() withTag "Y"
             val appearance4 = mockk<NavBarAppearance>() withTag "Z"
 
-            sut.push(appearance1)
-            sut.push(appearance2)
-            sut.push(appearance3)
-            sut.push(appearance4)
-            sut.remove(tag = "Y")
+            sut.stack.push(appearance1)
+            sut.stack.push(appearance2)
+            sut.stack.push(appearance3)
+            sut.stack.push(appearance4)
+            sut.stack.remove(tag = "Y")
 
             // "dig out" the appearance with the same tag
             sut.appearanceFlow.value shouldBe appearance4
-            sut.peel()
+            sut.stack.peel()
             sut.appearanceFlow.value shouldBe appearance2
         }
 
     @Test
     fun `removing an appearance by tag when there is no appearance with such tag does nothing`() {
         val appearance = mockk<NavBarAppearance>() withTag "X"
-        sut.push(appearance)
+        sut.stack.push(appearance)
 
         shouldNotThrowAny {
-            sut.remove(tag = "Y")
+            sut.stack.remove(tag = "Y")
         }
     }
 }
