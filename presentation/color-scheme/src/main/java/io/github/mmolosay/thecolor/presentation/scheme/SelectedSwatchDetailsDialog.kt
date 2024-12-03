@@ -24,7 +24,6 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.api.ColorInt
 import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearanceController
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearanceStack
 import io.github.mmolosay.thecolor.presentation.api.nav.bar.navBarAppearance
 import io.github.mmolosay.thecolor.presentation.api.nav.bar.push
 import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
@@ -99,9 +98,9 @@ internal fun SelectedSwatchDetailsDialog(
         val appearance = navBarAppearance(
             useLightTintForControls = seedData.isDark.let { Optional.of(it) },
         )
-        navBarAppearanceController.stack.push(appearance)
+        navBarAppearanceController.push(appearance)
         onDispose {
-            navBarAppearanceController.stack.clear()
+            navBarAppearanceController.clear()
         }
     }
 //    val lifecycleOwner = LocalLifecycleOwner.current
@@ -152,7 +151,7 @@ private fun Content(
 }
 
 private class ModalBottomSheetLifecycleObserver(
-    private val navBarAppearanceStack: NavBarAppearanceStack,
+    private val navBarAppearanceController: NavBarAppearanceController,
     private val seedData: ColorDetailsSeedData,
 ) : ExtendedLifecycleEventObserver {
 
@@ -166,10 +165,10 @@ private class ModalBottomSheetLifecycleObserver(
                 val appearance = navBarAppearance(
                     useLightTintForControls = seedData.isDark.let { Optional.of(it) },
                 )
-                navBarAppearanceStack.push(appearance)
+                navBarAppearanceController.push(appearance)
             }
             LeavingForeground -> {
-                navBarAppearanceStack.clear()
+                navBarAppearanceController.clear()
             }
             null -> doNothing()
         }

@@ -48,10 +48,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.debounce.debounced
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearance
 import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearanceController
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearanceStack
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.NoopNavBarAppearanceController
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.RootNavBarAppearanceController
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearance
 import io.github.mmolosay.thecolor.presentation.api.nav.bar.push
 import io.github.mmolosay.thecolor.presentation.center.ColorCenter
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterShape
@@ -101,10 +100,13 @@ fun HomeScreen(
         colorCenter = ColorCenter@{
             val viewModel = viewModel.colorCenterViewModelFlow
                 .collectAsStateWithLifecycle().value ?: return@ColorCenter
+            val childController = remember(navBarAppearanceController) {
+                navBarAppearanceController.branch("Color Center")
+            }
             ColorCenter(
                 modifier = Modifier.padding(top = 24.dp),
                 viewModel = viewModel,
-                navBarAppearanceController = navBarAppearanceController,
+                navBarAppearanceController = childController,
             )
         },
         navigateToSettings = navigateToSettings,
@@ -263,15 +265,14 @@ private fun ColorCenterOnTintedSurface(
     val lifecycleOwner = LocalLifecycleOwner.current
     val lifecycle = lifecycleOwner.lifecycle
     DisposableEffect(lifecycleOwner, state) {
-        val stack = navBarAppearanceController.stack
         val observer = ColorCenterLifecycleObserver(
-            navBarAppearanceStack = stack,
+            navBarAppearanceController = navBarAppearanceController,
             appearance = state.navBarAppearance,
         ).toLifecycleEventObserver()
         lifecycle.addObserver(observer)
         onDispose {
             lifecycle.removeObserver(observer)
-            stack.clear()
+            navBarAppearanceController.clear()
         }
     }
 }
@@ -300,7 +301,7 @@ private fun TopBar(
 }
 
 private class ColorCenterLifecycleObserver(
-    private val navBarAppearanceStack: NavBarAppearanceStack,
+    private val navBarAppearanceController: NavBarAppearanceController,
     private val appearance: NavBarAppearance,
 ) : ExtendedLifecycleEventObserver {
 
@@ -311,10 +312,10 @@ private class ColorCenterLifecycleObserver(
     ) {
         when (directionChange) {
             LifecycleDirectionChangeEvent.EnteringForeground -> {
-                navBarAppearanceStack.push(appearance)
+                navBarAppearanceController.push(appearance)
             }
             LifecycleDirectionChangeEvent.LeavingForeground -> {
-                navBarAppearanceStack.clear()
+                navBarAppearanceController.clear()
             }
             null -> doNothing()
         }
@@ -356,7 +357,7 @@ private fun Preview() {
                 )
             },
             navigateToSettings = {},
-            navBarAppearanceController = NoopNavBarAppearanceController,
+            navBarAppearanceController = remember { RootNavBarAppearanceController() },
         )
     }
 }

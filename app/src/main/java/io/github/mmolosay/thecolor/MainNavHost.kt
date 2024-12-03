@@ -8,7 +8,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.MainNavBarAppearanceController
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearanceController
 import io.github.mmolosay.thecolor.presentation.home.HomeScreen
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.settings.SettingsViewModel
@@ -20,7 +20,7 @@ import io.github.mmolosay.thecolor.presentation.settings.ui.SettingsScreen
 @Composable
 internal fun MainNavHost(
     navController: NavHostController,
-    mainNavBarAppearanceController: MainNavBarAppearanceController,
+    rootNavBarAppearanceController: NavBarAppearanceController,
 ) =
     NavHost(
         navController = navController,
@@ -28,7 +28,7 @@ internal fun MainNavHost(
     ) {
         home(
             mainNavController = navController,
-            mainNavBarAppearanceController = mainNavBarAppearanceController,
+            rootNavBarAppearanceController = rootNavBarAppearanceController,
         )
         settings(
             mainNavController = navController,
@@ -37,13 +37,13 @@ internal fun MainNavHost(
 
 private fun NavGraphBuilder.home(
     mainNavController: NavController,
-    mainNavBarAppearanceController: MainNavBarAppearanceController,
+    rootNavBarAppearanceController: NavBarAppearanceController,
 ) =
     composable(route = AppNavDest.Home.route) {
         val homeViewModel: HomeViewModel = hiltViewModel()
-        val childController = remember(mainNavBarAppearanceController) {
+        val childController = remember(rootNavBarAppearanceController) {
             val tag = it.destination.route.orEmpty()
-            mainNavBarAppearanceController.branch(tag)
+            rootNavBarAppearanceController.branch(tag)
         }
         HomeScreen(
             viewModel = homeViewModel,
