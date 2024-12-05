@@ -2,6 +2,7 @@ package io.github.mmolosay.thecolor.presentation.api.nav.bar
 
 /**
  * Platform-agnostic model of navigation bar's appearance.
+ * May not contain all the data due to having nullable fields.
  */
 data class NavBarAppearance(
     val color: Element.Color?,
@@ -29,7 +30,8 @@ fun NavBarAppearance(
 /**
  * Combines two [NavBarAppearance]s.
  * Fields that are missing from the receiver appearance will be taken from [other] appearance.
- * If specific element is missing from both appearances, it will stay `null`.
+ * If the receiver has a value in the field, it will be used in returned appearance.
+ * If a field is missing from both appearances, it will stay `null`.
  */
 infix fun NavBarAppearance.addFrom(other: NavBarAppearance): NavBarAppearance {
     if (this.isComplete) return this
