@@ -2,12 +2,15 @@ package io.github.mmolosay.thecolor.presentation.settings.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.RestartAlt
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,6 +36,8 @@ import io.github.mmolosay.thecolor.domain.model.UserPreferences.asSingletonSet
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.isSingleton
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.single
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
+import io.github.mmolosay.thecolor.presentation.impl.onlyBottom
+import io.github.mmolosay.thecolor.presentation.impl.withoutBottom
 import io.github.mmolosay.thecolor.presentation.settings.SettingsData
 import io.github.mmolosay.thecolor.presentation.settings.SettingsUiStrings
 import io.github.mmolosay.thecolor.presentation.settings.SettingsViewModel
@@ -189,10 +194,18 @@ fun Settings(
                 onClick = { showSelectionDialog = true },
             )
             if (showSelectionDialog) {
+                val windowInsets = BottomSheetDefaults.windowInsets
                 ModalBottomSheet(
                     onDismissRequest = { showSelectionDialog = false },
+                    windowInsets = windowInsets.withoutBottom(),
                 ) {
-                    PreferredColorInputTypeSelection(options = options)
+                    val bottomWindowInsets = windowInsets.onlyBottom()
+                    PreferredColorInputTypeSelection(
+                        modifier = Modifier
+                            .padding(bottomWindowInsets.asPaddingValues())
+                            .consumeWindowInsets(bottomWindowInsets),
+                        options = options,
+                    )
                 }
             }
         }
@@ -213,10 +226,18 @@ fun Settings(
                 onClick = { showSelectionDialog = true },
             )
             if (showSelectionDialog) {
+                val windowInsets = BottomSheetDefaults.windowInsets
+                val bottomWindowInsets = windowInsets.onlyBottom()
                 ModalBottomSheet(
                     onDismissRequest = { showSelectionDialog = false },
+                    windowInsets = windowInsets.withoutBottom(),
                 ) {
-                    AppUiColorSchemeSelection(options = options)
+                    AppUiColorSchemeSelection(
+                        modifier = Modifier
+                            .padding(bottomWindowInsets.asPaddingValues())
+                            .consumeWindowInsets(bottomWindowInsets),
+                        options = options,
+                    )
                 }
             }
         }

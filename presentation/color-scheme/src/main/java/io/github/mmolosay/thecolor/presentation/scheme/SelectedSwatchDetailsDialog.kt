@@ -1,14 +1,9 @@
 package io.github.mmolosay.thecolor.presentation.scheme
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
@@ -38,6 +33,8 @@ import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObser
 import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent.EnteringForeground
 import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent.LeavingForeground
 import io.github.mmolosay.thecolor.presentation.impl.TintedSurface
+import io.github.mmolosay.thecolor.presentation.impl.onlyBottom
+import io.github.mmolosay.thecolor.presentation.impl.withoutBottom
 import io.github.mmolosay.thecolor.utils.doNothing
 
 // This piece of UI doesn't have its own "UI" model.
@@ -67,10 +64,6 @@ internal fun SelectedSwatchDetailsDialog(
     val surfaceColor = ColorDetailsOnTintedSurfaceDefaults.surfaceColor(seedData)
     val colorsOnTintedSurface = ColorDetailsOnTintedSurfaceDefaults.colorsOnTintedSurface(seedData)
     val windowInsets = BottomSheetDefaults.windowInsets
-    val bottomSheetWindowInsets = run {
-        val sides = WindowInsetsSides.Horizontal + WindowInsetsSides.Top
-        windowInsets.only(sides)
-    }
 
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
@@ -82,13 +75,13 @@ internal fun SelectedSwatchDetailsDialog(
                 color = colorsOnTintedSurface.muted,
             )
         },
-        windowInsets = bottomSheetWindowInsets,
+        windowInsets = windowInsets.withoutBottom(),
     ) {
         Content(
             surfaceColor = Color.Unspecified, // already has a background due to ModalBottomSheet's 'containerColor'
             colorsOnTintedSurface = colorsOnTintedSurface,
             colorDetailsDataState = colorDetailsDataState,
-            windowInsets = windowInsets,
+            windowInsets = windowInsets.onlyBottom(),
         )
     }
 
@@ -127,22 +120,15 @@ private fun Content(
         surfaceColor = surfaceColor,
         contentColors = colorsOnTintedSurface,
     ) {
-        Column {
-            ColorDetailsCrossfade(
-                actualDataState = colorDetailsDataState,
-            ) { state ->
-                ColorDetails(
-                    state = state,
-                    modifier = Modifier.padding(bottom = 24.dp),
-                )
-            }
-
-            val bottomWindowInsets = windowInsets.only(WindowInsetsSides.Bottom)
-            Box(
+        ColorDetailsCrossfade(
+            actualDataState = colorDetailsDataState,
+        ) { state ->
+            ColorDetails(
+                state = state,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .windowInsetsBottomHeight(bottomWindowInsets)
-                    .consumeWindowInsets(bottomWindowInsets)
+                    .padding(bottom = 24.dp) // just looks better this way
+                    .padding(windowInsets.asPaddingValues())
+                    .consumeWindowInsets(windowInsets),
             )
         }
     }

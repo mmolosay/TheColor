@@ -68,9 +68,10 @@ internal fun AppUiColorScheme(
 @Composable
 internal fun AppUiColorSchemeSelection(
     options: List<AppUiColorSchemeOption>,
+    modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = Modifier.selectableGroup(),
+        modifier = modifier.selectableGroup(),
     ) {
         options.forEach { option ->
             Option(option)
