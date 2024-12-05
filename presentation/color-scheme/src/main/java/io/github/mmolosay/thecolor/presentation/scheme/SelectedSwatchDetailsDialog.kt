@@ -23,9 +23,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.api.ColorInt
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearance
 import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearanceController
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.navBarAppearance
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.push
 import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
@@ -40,7 +39,6 @@ import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObser
 import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent.LeavingForeground
 import io.github.mmolosay.thecolor.presentation.impl.TintedSurface
 import io.github.mmolosay.thecolor.utils.doNothing
-import java.util.Optional
 
 // This piece of UI doesn't have its own "UI" model.
 @OptIn(ExperimentalMaterial3Api::class)
@@ -95,8 +93,8 @@ internal fun SelectedSwatchDetailsDialog(
     }
 
     DisposableEffect(seedData) {
-        val appearance = navBarAppearance(
-            useLightTintForControls = seedData.isDark.let { Optional.of(it) },
+        val appearance = NavBarAppearance(
+            useLightTintForControls = seedData.isDark,
         )
         navBarAppearanceController.push(appearance)
         onDispose {
@@ -162,8 +160,8 @@ private class ModalBottomSheetLifecycleObserver(
     ) {
         when (directionChange) {
             EnteringForeground -> {
-                val appearance = navBarAppearance(
-                    useLightTintForControls = seedData.isDark.let { Optional.of(it) },
+                val appearance = NavBarAppearance(
+                    useLightTintForControls = seedData.isDark,
                 )
                 navBarAppearanceController.push(appearance)
             }

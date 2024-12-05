@@ -2,7 +2,6 @@ package io.github.mmolosay.thecolor.presentation.api.nav.bar
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearance as Appearance
 
 fun RootNavBarAppearanceController(): NavBarAppearanceController {
     val idFactory = IdFactory()
@@ -29,24 +28,23 @@ class NavBarAppearanceController internal constructor(
     private val idFactory: IdFactory,
     private val listener: StackChangeListener,
 ) {
-    private val ownStack = mutableListOf<Appearance.WithTag>()
+    private val ownStack = mutableListOf<NavBarAppearance>()
 
     private val children = mutableListOf<NavBarAppearanceController>()
     private val mergedStacks =
         mutableListOf<AppearanceWithSource>() // own stack and stacks of descendants
 
-    private val _appearanceFlow = MutableStateFlow<Appearance.WithTag?>(null)
+    private val _appearanceFlow = MutableStateFlow<NavBarAppearance?>(null)
 
     /**
-     * Holds the appearance that was push latest to this controller or any of its descendants.
-     * Updated when the latest pushed appearance changes (e.g. a new one is pushed or the top one is removed).
+     * Holds the resulting appearance of this controller and all of its descendants.
      */
     val appearanceFlow = _appearanceFlow.asStateFlow()
 
     /**
-     * Adds an [appearance] to the top of the controller's stack.
+     * Adds [appearance] to the top of the controller's stack.
      */
-    fun push(appearance: Appearance.WithTag) {
+    fun push(appearance: NavBarAppearance) {
         ownStack += appearance
         modifyMergedStacks {
             mergedStacks += MergedStacksEntry(appearance)
@@ -110,23 +108,28 @@ class NavBarAppearanceController internal constructor(
 
     private inline fun modifyMergedStacks(block: () -> Unit) {
         block()
-        val top = mergedStacks.lastOrNull()
-        _appearanceFlow.value = top?.appearance
+        _appearanceFlow.value = topAccumulatedAppearance()
     }
 
-    private fun MergedStacksEntry(appearance: Appearance.WithTag) =
+    private fun topAccumulatedAppearance(): NavBarAppearance =
+        // iterating in the order of which elements were added: latest elements will override old ones
+        mergedStacks.fold(initial = NavBarAppearance()) { accumulated, element ->
+            element.appearance addFrom accumulated
+        }
+
+    private fun MergedStacksEntry(appearance: NavBarAppearance) =
         AppearanceWithSource(appearance = appearance, sourceId = this.id)
 
     private inner class StackChangeListenerImpl : StackChangeListener {
 
-        override fun onPushed(appearance: Appearance.WithTag, sourceId: Id) {
+        override fun onPushed(appearance: NavBarAppearance, sourceId: Id) {
             modifyMergedStacks {
                 mergedStacks += AppearanceWithSource(appearance, sourceId)
             }
             listener.onPushed(appearance, sourceId)
         }
 
-        override fun onRemoved(appearance: Appearance.WithTag, sourceId: Id) {
+        override fun onRemoved(appearance: NavBarAppearance, sourceId: Id) {
             modifyMergedStacks {
                 val entry = AppearanceWithSource(appearance, sourceId)
                 val index =
@@ -146,16 +149,8 @@ class NavBarAppearanceController internal constructor(
 }
 
 /**
- * Adds an [appearance] with `null` tag to the top of the stack.
- */
-fun NavBarAppearanceController.push(appearance: Appearance) {
-    val tagged = appearance withTag null
-    this.push(tagged)
-}
-
-/**
  * A unique identifier for a [NavBarAppearanceController].
- * Used to link an [Appearance] to the controller it originates from.
+ * Used to link a [NavBarAppearance] to the controller they originate from.
  */
 @JvmInline
 internal value class Id(val int: Int)
@@ -166,18 +161,18 @@ internal class IdFactory {
 }
 
 private data class AppearanceWithSource(
-    val appearance: Appearance.WithTag,
+    val appearance: NavBarAppearance,
     val sourceId: Id,
 )
 
 internal interface StackChangeListener {
-    fun onPushed(appearance: Appearance.WithTag, sourceId: Id)
-    fun onRemoved(appearance: Appearance.WithTag, sourceId: Id)
+    fun onPushed(appearance: NavBarAppearance, sourceId: Id)
+    fun onRemoved(appearance: NavBarAppearance, sourceId: Id)
     fun onCleared(sourceId: Id)
 }
 
 private object NoopStackChangeListener : StackChangeListener {
-    override fun onPushed(appearance: Appearance.WithTag, sourceId: Id) {}
-    override fun onRemoved(appearance: Appearance.WithTag, sourceId: Id) {}
+    override fun onPushed(appearance: NavBarAppearance, sourceId: Id) {}
+    override fun onRemoved(appearance: NavBarAppearance, sourceId: Id) {}
     override fun onCleared(sourceId: Id) {}
 }

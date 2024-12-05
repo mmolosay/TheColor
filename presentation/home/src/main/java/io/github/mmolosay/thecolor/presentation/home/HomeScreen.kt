@@ -48,10 +48,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.debounce.debounced
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearance
 import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearanceController
 import io.github.mmolosay.thecolor.presentation.api.nav.bar.RootNavBarAppearanceController
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearance
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.push
 import io.github.mmolosay.thecolor.presentation.center.ColorCenter
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterShape
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
@@ -70,7 +69,6 @@ import io.github.mmolosay.thecolor.presentation.impl.toLifecycleEventObserver
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInput
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreview
 import io.github.mmolosay.thecolor.utils.doNothing
-import java.util.Optional
 
 @Composable
 fun HomeScreen(
@@ -381,8 +379,8 @@ private fun previewUiData() =
             backgroundColor = Color(0xFF_123456),
             useLightContentColors = true,
             navBarAppearance = NavBarAppearance(
-                color = Optional.of(0x123456),
-                useLightTintForControls = Optional.of(true),
+                argbColor = 0x123456,
+                useLightTintForControls = true,
             ),
         ),
         invalidSubmittedColorToast = null,

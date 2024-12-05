@@ -5,13 +5,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalView
 import androidx.navigation.compose.rememberNavController
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.RootNavBarAppearanceController
 import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearance
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.RootNavBarAppearanceController
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.addFrom
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.isComplete
 import io.github.mmolosay.thecolor.presentation.design.LocalDefaultNavigationBarColor
 import io.github.mmolosay.thecolor.presentation.design.LocalDefaultShouldUseLightTintForNavBarControls
 import io.github.mmolosay.thecolor.presentation.impl.changeNavigationBar
-import java.util.Optional
-import kotlin.jvm.optionals.getOrNull
 
 /**
  * A root of the entire application's UI.
@@ -29,18 +29,23 @@ internal fun Application() {
 
     val defaultNavBarAppearance = NavBarAppearance(
         color = LocalDefaultNavigationBarColor.current
-            .let { Optional.of(it) },
-        useLightTintForControls = LocalDefaultShouldUseLightTintForNavBarControls.current
-            .let { Optional.of(it) },
+            .let { NavBarAppearance.Element.Color(it) },
+        controlsTint = LocalDefaultShouldUseLightTintForNavBarControls.current
+            .let { NavBarAppearance.Element.ControlsTint(it) },
     )
 
     // change navigation bar when new appearance is emitted
     LaunchedEffect(Unit) changeNavigationBarWhenAppearanceChanges@{
-        rootNavBarAppearanceController.appearanceFlow.collect { appearanceWithTag ->
-            val appearance = appearanceWithTag?.appearance ?: defaultNavBarAppearance
+        rootNavBarAppearanceController.appearanceFlow.collect { appearance ->
+            val resultAppearance = if (appearance != null) {
+                appearance addFrom defaultNavBarAppearance
+            } else {
+                defaultNavBarAppearance
+            }
+            require(resultAppearance.isComplete)
             view.changeNavigationBar(
-                color = appearance.color.getOrNull(),
-                useLightTintForControls = appearance.useLightTintForControls.getOrNull(),
+                color = resultAppearance.color?.argb,
+                useLightTintForControls = resultAppearance.controlsTint?.useLightTintForControls,
             )
         }
     }

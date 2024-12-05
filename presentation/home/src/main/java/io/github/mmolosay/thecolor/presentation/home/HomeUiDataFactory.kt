@@ -4,7 +4,6 @@ import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearance
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
 import io.github.mmolosay.thecolor.presentation.impl.toArgb
 import io.github.mmolosay.thecolor.presentation.impl.toCompose
-import java.util.Optional
 
 fun HomeUiData(
     data: HomeData,
@@ -37,8 +36,8 @@ private fun ShowColorCenter(result: HomeData.ProceedResult?) =
                 backgroundColor = result.colorData.color.toCompose(),
                 useLightContentColors = result.colorData.isDark,
                 navBarAppearance = NavBarAppearance(
-                    color = result.colorData.color.toArgb().let { Optional.of(it) },
-                    useLightTintForControls = result.colorData.isDark.let { Optional.of(it) },
+                    argbColor = result.colorData.color.toArgb(),
+                    useLightTintForControls = result.colorData.isDark,
                 ),
             )
         is HomeData.ProceedResult.InvalidSubmittedColor ->
