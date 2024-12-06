@@ -2,13 +2,17 @@ package io.github.mmolosay.thecolor.presentation.home
 
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -20,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -49,9 +54,9 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.debounce.debounced
 import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearance
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.navBarAppearance
 import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearanceController
 import io.github.mmolosay.thecolor.presentation.api.nav.bar.RootNavBarAppearanceController
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.navBarAppearance
 import io.github.mmolosay.thecolor.presentation.center.ColorCenter
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterShape
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
@@ -64,9 +69,11 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver
 import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent
 import io.github.mmolosay.thecolor.presentation.impl.TintedSurface
+import io.github.mmolosay.thecolor.presentation.impl.onlyBottom
 import io.github.mmolosay.thecolor.presentation.impl.toDpOffset
 import io.github.mmolosay.thecolor.presentation.impl.toDpSize
 import io.github.mmolosay.thecolor.presentation.impl.toLifecycleEventObserver
+import io.github.mmolosay.thecolor.presentation.impl.withoutBottom
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInput
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreview
 import io.github.mmolosay.thecolor.utils.doNothing
@@ -123,7 +130,9 @@ fun HomeScreen(
     navigateToSettings: () -> Unit,
     navBarAppearanceController: NavBarAppearanceController,
 ) {
-    Scaffold { contentPadding ->
+    Scaffold(
+        contentWindowInsets = ScaffoldDefaults.contentWindowInsets.withoutBottom(),
+    ) { contentPadding ->
         Home(
             modifier = Modifier
                 .padding(contentPadding)
@@ -249,6 +258,7 @@ private fun ColorCenterOnTintedSurface(
 ) {
     if (state !is ShowColorCenter.Yes) return
     val colors = if (state.useLightContentColors) colorsOnDarkSurface() else colorsOnLightSurface()
+    val windowInsets = WindowInsets.systemBars.onlyBottom()
     TintedSurface(
         modifier = Modifier
             .graphicsLayer {
@@ -258,7 +268,13 @@ private fun ColorCenterOnTintedSurface(
         surfaceColor = state.backgroundColor,
         contentColors = colors,
     ) {
-        colorCenter()
+        Box(
+            modifier = Modifier
+                .padding(windowInsets.asPaddingValues())
+                .consumeWindowInsets(windowInsets),
+        ) {
+            colorCenter()
+        }
     }
 
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -380,7 +396,6 @@ private fun previewUiData() =
             backgroundColor = Color(0xFF_123456),
             useLightContentColors = true,
             navBarAppearance = navBarAppearance(
-                argbColor = 0x123456,
                 useLightTintForControls = true,
             ),
         ),
