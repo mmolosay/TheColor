@@ -18,7 +18,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.api.ColorInt
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearance
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.navBarAppearance
 import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearanceController
 import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
@@ -86,7 +86,7 @@ internal fun SelectedSwatchDetailsDialog(
     }
 
     DisposableEffect(seedData) {
-        val appearance = NavBarAppearance(
+        val appearance = navBarAppearance(
             useLightTintForControls = seedData.isDark,
         )
         navBarAppearanceController.push(appearance)
@@ -146,7 +146,7 @@ private class ModalBottomSheetLifecycleObserver(
     ) {
         when (directionChange) {
             EnteringForeground -> {
-                val appearance = NavBarAppearance(
+                val appearance = navBarAppearance(
                     useLightTintForControls = seedData.isDark,
                 )
                 navBarAppearanceController.push(appearance)

@@ -114,7 +114,7 @@ class NavBarAppearanceController internal constructor(
     private fun topAccumulatedAppearance(): NavBarAppearance? {
         if (mergedStacks.isEmpty()) return null
         // iterating in the order of which elements were added: latest elements will override old ones
-        return mergedStacks.fold(initial = NavBarAppearance()) { accumulated, element ->
+        return mergedStacks.fold(initial = navBarAppearance()) { accumulated, element ->
             element.appearance addFrom accumulated
         }
     }
@@ -152,7 +152,7 @@ class NavBarAppearanceController internal constructor(
 
 /**
  * A unique identifier for a [NavBarAppearanceController].
- * Used to link a [NavBarAppearance] to the controller they originate from.
+ * Used to link a [navBarAppearance] to the controller they originate from.
  */
 @JvmInline
 internal value class Id(val int: Int)

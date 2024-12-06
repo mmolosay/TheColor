@@ -1,10 +1,9 @@
 package io.github.mmolosay.thecolor.presentation.api
 
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearance
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.navBarAppearance
 import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearanceController
 import io.github.mmolosay.thecolor.presentation.api.nav.bar.RootNavBarAppearanceController
 import io.kotest.matchers.shouldBe
-import io.mockk.mockk
 import org.junit.Test
 import kotlin.time.measureTime
 
@@ -19,7 +18,7 @@ class NavBarAppearanceControllerTest {
 
     @Test
     fun `pushing appearance to root controller emits it from the flow`() {
-        val appearance = NavBarAppearance(
+        val appearance = navBarAppearance(
             argbColor = 1,
             useLightTintForControls = true,
         )
@@ -30,7 +29,7 @@ class NavBarAppearanceControllerTest {
 
     @Test
     fun `peeling single present appearance emits 'null' from the flow`() {
-        val appearance = NavBarAppearance(
+        val appearance = navBarAppearance(
             argbColor = 1,
             useLightTintForControls = true,
         )
@@ -50,11 +49,11 @@ class NavBarAppearanceControllerTest {
 
     @Test
     fun `peeling appearance emits underlying appearance from the flow`() {
-        val appearance1 = NavBarAppearance(
+        val appearance1 = navBarAppearance(
             argbColor = 1,
             useLightTintForControls = true,
         )
-        val appearance2 = NavBarAppearance(
+        val appearance2 = navBarAppearance(
             argbColor = 2,
             useLightTintForControls = false,
         )
@@ -68,11 +67,11 @@ class NavBarAppearanceControllerTest {
 
     @Test
     fun `clearing controller emits 'null' appearance from the flow`() {
-        val appearance1 = NavBarAppearance(
+        val appearance1 = navBarAppearance(
             argbColor = 1,
             useLightTintForControls = true,
         )
-        val appearance2 = NavBarAppearance(
+        val appearance2 = navBarAppearance(
             argbColor = 2,
             useLightTintForControls = false,
         )
@@ -86,7 +85,7 @@ class NavBarAppearanceControllerTest {
 
     @Test
     fun `child controller hoists pushed appearance to the parent`() {
-        val appearance = NavBarAppearance(
+        val appearance = navBarAppearance(
             argbColor = 1,
             useLightTintForControls = true,
         )
@@ -100,19 +99,19 @@ class NavBarAppearanceControllerTest {
 
     @Test
     fun `#1 when appearance is peeled from the child controller, then parent emits the appearance that was pushed to the controller tree last`() {
-        val appearance1 = NavBarAppearance(
+        val appearance1 = navBarAppearance(
             argbColor = 1,
             useLightTintForControls = true,
         )
-        val appearance2 = NavBarAppearance(
+        val appearance2 = navBarAppearance(
             argbColor = 2,
             useLightTintForControls = false,
         )
-        val appearance3 = NavBarAppearance(
+        val appearance3 = navBarAppearance(
             argbColor = 3,
             useLightTintForControls = true,
         )
-        val appearance4 = NavBarAppearance(
+        val appearance4 = navBarAppearance(
             argbColor = 4,
             useLightTintForControls = false,
         )
@@ -131,15 +130,15 @@ class NavBarAppearanceControllerTest {
 
     @Test
     fun `#2 when appearance is peeled from the child controller, then parent emits the appearance that was pushed to the controller tree last`() {
-        val appearance1 = NavBarAppearance(
+        val appearance1 = navBarAppearance(
             argbColor = 1,
             useLightTintForControls = true,
         )
-        val appearance2 = NavBarAppearance(
+        val appearance2 = navBarAppearance(
             argbColor = 2,
             useLightTintForControls = false,
         )
-        val appearance3 = NavBarAppearance(
+        val appearance3 = navBarAppearance(
             argbColor = 3,
             useLightTintForControls = true,
         )
@@ -156,15 +155,15 @@ class NavBarAppearanceControllerTest {
 
     @Test
     fun `#3 when appearance is peeled from the child controller, then parent emits the appearance that was pushed to the controller tree last`() {
-        val appearance1 = NavBarAppearance(
+        val appearance1 = navBarAppearance(
             argbColor = 1,
             useLightTintForControls = true,
         )
-        val appearance2 = NavBarAppearance(
+        val appearance2 = navBarAppearance(
             argbColor = 2,
             useLightTintForControls = false,
         )
-        val appearance3 = NavBarAppearance(
+        val appearance3 = navBarAppearance(
             argbColor = 3,
             useLightTintForControls = true,
         )
@@ -181,11 +180,11 @@ class NavBarAppearanceControllerTest {
 
     @Test
     fun `#4 when appearance is peeled from the child controller, then parent emits the appearance that was pushed to the controller tree last`() {
-        val appearance1 = NavBarAppearance(
+        val appearance1 = navBarAppearance(
             argbColor = 1,
             useLightTintForControls = true,
         )
-        val appearance2 = NavBarAppearance(
+        val appearance2 = navBarAppearance(
             argbColor = 2,
             useLightTintForControls = false,
         )
@@ -201,15 +200,15 @@ class NavBarAppearanceControllerTest {
 
     @Test
     fun `#1 clearing appearances of the controller also clears the whole controller tree`() {
-        val appearance1 = NavBarAppearance(
+        val appearance1 = navBarAppearance(
             argbColor = 1,
             useLightTintForControls = true,
         )
-        val appearance2 = NavBarAppearance(
+        val appearance2 = navBarAppearance(
             argbColor = 2,
             useLightTintForControls = false,
         )
-        val appearance3 = NavBarAppearance(
+        val appearance3 = navBarAppearance(
             argbColor = 3,
             useLightTintForControls = true,
         )
@@ -228,15 +227,15 @@ class NavBarAppearanceControllerTest {
 
     @Test
     fun `#2 clearing appearances of the controller also clears the whole controller tree`() {
-        val appearance1 = NavBarAppearance(
+        val appearance1 = navBarAppearance(
             argbColor = 1,
             useLightTintForControls = true,
         )
-        val appearance2 = NavBarAppearance(
+        val appearance2 = navBarAppearance(
             argbColor = 2,
             useLightTintForControls = false,
         )
-        val appearance3 = NavBarAppearance(
+        val appearance3 = navBarAppearance(
             argbColor = 3,
             useLightTintForControls = true,
         )
@@ -256,11 +255,11 @@ class NavBarAppearanceControllerTest {
     // not a test but rather a benchmark
     @Test
     fun `log the time to clear a nested controller in a controller tree`() {
-        val appearance1 = NavBarAppearance(
+        val appearance1 = navBarAppearance(
             argbColor = 1,
             useLightTintForControls = true,
         )
-        val appearance2 = NavBarAppearance(
+        val appearance2 = navBarAppearance(
             argbColor = 2,
             useLightTintForControls = false,
         )
@@ -280,17 +279,17 @@ class NavBarAppearanceControllerTest {
 
     @Test
     fun `when the stack updates then controller emits appearance merged top-to-bottom from the flow`() {
-        val appearance1 = NavBarAppearance(
+        val appearance1 = navBarAppearance(
             argbColor = 1,
         )
-        val appearance2 = NavBarAppearance(
+        val appearance2 = navBarAppearance(
             argbColor = 2,
             useLightTintForControls = false,
         )
-        val appearance3 = NavBarAppearance(
+        val appearance3 = navBarAppearance(
             useLightTintForControls = true,
         )
-        val appearance4 = NavBarAppearance(
+        val appearance4 = navBarAppearance(
             argbColor = 4,
         )
         val child = sut.branch("1")
@@ -299,12 +298,12 @@ class NavBarAppearanceControllerTest {
         sut.push(appearance2)
         child.push(appearance3)
         child.push(appearance4)
-        sut.appearanceFlow.value shouldBe NavBarAppearance(
+        sut.appearanceFlow.value shouldBe navBarAppearance(
             argbColor = 4,
             useLightTintForControls = true,
         )
         child.peel()
-        sut.appearanceFlow.value shouldBe NavBarAppearance(
+        sut.appearanceFlow.value shouldBe navBarAppearance(
             argbColor = 2,
             useLightTintForControls = true,
         )

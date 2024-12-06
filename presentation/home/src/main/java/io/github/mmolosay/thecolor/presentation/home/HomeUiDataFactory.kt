@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.home
 
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearance
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.navBarAppearance
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
 import io.github.mmolosay.thecolor.presentation.impl.toArgb
 import io.github.mmolosay.thecolor.presentation.impl.toCompose
@@ -35,7 +35,7 @@ private fun ShowColorCenter(result: HomeData.ProceedResult?) =
             HomeUiData.ShowColorCenter.Yes(
                 backgroundColor = result.colorData.color.toCompose(),
                 useLightContentColors = result.colorData.isDark,
-                navBarAppearance = NavBarAppearance(
+                navBarAppearance = navBarAppearance(
                     argbColor = result.colorData.color.toArgb(),
                     useLightTintForControls = result.colorData.isDark,
                 ),

@@ -49,6 +49,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.debounce.debounced
 import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearance
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.navBarAppearance
 import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearanceController
 import io.github.mmolosay.thecolor.presentation.api.nav.bar.RootNavBarAppearanceController
 import io.github.mmolosay.thecolor.presentation.center.ColorCenter
@@ -378,7 +379,7 @@ private fun previewUiData() =
         showColorCenter = ShowColorCenter.Yes(
             backgroundColor = Color(0xFF_123456),
             useLightContentColors = true,
-            navBarAppearance = NavBarAppearance(
+            navBarAppearance = navBarAppearance(
                 argbColor = 0x123456,
                 useLightTintForControls = true,
             ),

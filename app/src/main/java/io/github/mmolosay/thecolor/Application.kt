@@ -5,10 +5,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalView
 import androidx.navigation.compose.rememberNavController
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearance
 import io.github.mmolosay.thecolor.presentation.api.nav.bar.RootNavBarAppearanceController
 import io.github.mmolosay.thecolor.presentation.api.nav.bar.addFrom
 import io.github.mmolosay.thecolor.presentation.api.nav.bar.isComplete
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.navBarAppearance
 import io.github.mmolosay.thecolor.presentation.design.LocalDefaultNavigationBarColor
 import io.github.mmolosay.thecolor.presentation.design.LocalDefaultShouldUseLightTintForNavBarControls
 import io.github.mmolosay.thecolor.presentation.impl.changeNavigationBar
@@ -27,11 +27,9 @@ internal fun Application() {
         rootNavBarAppearanceController = rootNavBarAppearanceController,
     )
 
-    val defaultNavBarAppearance = NavBarAppearance(
-        color = LocalDefaultNavigationBarColor.current
-            .let { NavBarAppearance.Element.Color(it) },
-        controlsTint = LocalDefaultShouldUseLightTintForNavBarControls.current
-            .let { NavBarAppearance.Element.ControlsTint(it) },
+    val defaultNavBarAppearance = navBarAppearance(
+        argbColor = LocalDefaultNavigationBarColor.current,
+        useLightTintForControls = LocalDefaultShouldUseLightTintForNavBarControls.current,
     )
 
     // change navigation bar when new appearance is emitted
@@ -42,10 +40,10 @@ internal fun Application() {
             } else {
                 defaultNavBarAppearance
             }
-            require(resultAppearance.isComplete)
+            check(resultAppearance.isComplete)
             view.changeNavigationBar(
-                color = resultAppearance.color?.argb,
-                useLightTintForControls = resultAppearance.controlsTint?.useLightTintForControls,
+                color = resultAppearance.argbColor,
+                useLightTintForControls = resultAppearance.useLightTintForControls,
             )
         }
     }
