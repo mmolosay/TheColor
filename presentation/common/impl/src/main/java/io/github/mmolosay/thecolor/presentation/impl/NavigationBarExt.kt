@@ -11,6 +11,7 @@ import androidx.core.view.WindowCompat
  * Utils and extensions for navigation bar.
  */
 
+// https://developer.android.com/about/versions/15/behavior-changes-15#window-insets
 fun View.changeNavigationBar(
     @ColorInt color: Int?,
     useLightTintForControls: Boolean?,
