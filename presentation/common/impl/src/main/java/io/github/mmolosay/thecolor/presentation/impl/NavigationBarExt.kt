@@ -24,6 +24,10 @@ fun View.changeNavigationBar(
     }
     if (useLightTintForControls != null) {
         WindowCompat.getInsetsController(window, this).run {
+            /*
+             * Won't take effect on APIs 35+.
+             * The tint of controls depends on system Dark mode on/off and type of nav bar controls.
+             */
             // for some reason, documentation of 'isAppearanceLightNavigationBars' doesn't match
             // it's behaviour, thus applying negation to the value
             this.isAppearanceLightNavigationBars = !useLightTintForControls
