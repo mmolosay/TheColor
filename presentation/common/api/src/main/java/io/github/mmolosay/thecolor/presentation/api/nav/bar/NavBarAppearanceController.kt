@@ -111,11 +111,13 @@ class NavBarAppearanceController internal constructor(
         _appearanceFlow.value = topAccumulatedAppearance()
     }
 
-    private fun topAccumulatedAppearance(): NavBarAppearance =
+    private fun topAccumulatedAppearance(): NavBarAppearance? {
+        if (mergedStacks.isEmpty()) return null
         // iterating in the order of which elements were added: latest elements will override old ones
-        mergedStacks.fold(initial = NavBarAppearance()) { accumulated, element ->
+        return mergedStacks.fold(initial = NavBarAppearance()) { accumulated, element ->
             element.appearance addFrom accumulated
         }
+    }
 
     private fun MergedStacksEntry(appearance: NavBarAppearance) =
         AppearanceWithSource(appearance = appearance, sourceId = this.id)

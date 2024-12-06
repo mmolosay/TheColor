@@ -19,7 +19,10 @@ class NavBarAppearanceControllerTest {
 
     @Test
     fun `pushing appearance to root controller emits it from the flow`() {
-        val appearance: NavBarAppearance.WithTag = mockk()
+        val appearance = NavBarAppearance(
+            argbColor = 1,
+            useLightTintForControls = true,
+        )
         sut.push(appearance)
 
         sut.appearanceFlow.value shouldBe appearance
@@ -27,7 +30,10 @@ class NavBarAppearanceControllerTest {
 
     @Test
     fun `peeling single present appearance emits 'null' from the flow`() {
-        val appearance: NavBarAppearance.WithTag = mockk()
+        val appearance = NavBarAppearance(
+            argbColor = 1,
+            useLightTintForControls = true,
+        )
         sut.push(appearance)
 
         sut.peel()
@@ -44,8 +50,14 @@ class NavBarAppearanceControllerTest {
 
     @Test
     fun `peeling appearance emits underlying appearance from the flow`() {
-        val appearance1: NavBarAppearance.WithTag = mockk()
-        val appearance2: NavBarAppearance.WithTag = mockk()
+        val appearance1 = NavBarAppearance(
+            argbColor = 1,
+            useLightTintForControls = true,
+        )
+        val appearance2 = NavBarAppearance(
+            argbColor = 2,
+            useLightTintForControls = false,
+        )
         sut.push(appearance1)
         sut.push(appearance2)
 
@@ -56,8 +68,14 @@ class NavBarAppearanceControllerTest {
 
     @Test
     fun `clearing controller emits 'null' appearance from the flow`() {
-        val appearance1: NavBarAppearance.WithTag = mockk()
-        val appearance2: NavBarAppearance.WithTag = mockk()
+        val appearance1 = NavBarAppearance(
+            argbColor = 1,
+            useLightTintForControls = true,
+        )
+        val appearance2 = NavBarAppearance(
+            argbColor = 2,
+            useLightTintForControls = false,
+        )
         sut.push(appearance1)
         sut.push(appearance2)
 
@@ -68,20 +86,36 @@ class NavBarAppearanceControllerTest {
 
     @Test
     fun `child controller hoists pushed appearance to the parent`() {
-        val appearance: NavBarAppearance.WithTag = mockk()
-        val child = sut.branch("1")
+        val appearance = NavBarAppearance(
+            argbColor = 1,
+            useLightTintForControls = true,
+        )
+        val parent = sut
+        val child = parent.branch("1")
 
         child.push(appearance)
 
-        sut.appearanceFlow.value shouldBe appearance
+        parent.appearanceFlow.value shouldBe appearance
     }
 
     @Test
     fun `#1 when appearance is peeled from the child controller, then parent emits the appearance that was pushed to the controller tree last`() {
-        val appearance1: NavBarAppearance.WithTag = mockk()
-        val appearance2: NavBarAppearance.WithTag = mockk()
-        val appearance3: NavBarAppearance.WithTag = mockk()
-        val appearance4: NavBarAppearance.WithTag = mockk()
+        val appearance1 = NavBarAppearance(
+            argbColor = 1,
+            useLightTintForControls = true,
+        )
+        val appearance2 = NavBarAppearance(
+            argbColor = 2,
+            useLightTintForControls = false,
+        )
+        val appearance3 = NavBarAppearance(
+            argbColor = 3,
+            useLightTintForControls = true,
+        )
+        val appearance4 = NavBarAppearance(
+            argbColor = 4,
+            useLightTintForControls = false,
+        )
         val child1 = sut.branch("1")
         val child2 = sut.branch("2")
         val child3 = sut.branch("3")
@@ -97,9 +131,18 @@ class NavBarAppearanceControllerTest {
 
     @Test
     fun `#2 when appearance is peeled from the child controller, then parent emits the appearance that was pushed to the controller tree last`() {
-        val appearance1: NavBarAppearance.WithTag = mockk()
-        val appearance2: NavBarAppearance.WithTag = mockk()
-        val appearance3: NavBarAppearance.WithTag = mockk()
+        val appearance1 = NavBarAppearance(
+            argbColor = 1,
+            useLightTintForControls = true,
+        )
+        val appearance2 = NavBarAppearance(
+            argbColor = 2,
+            useLightTintForControls = false,
+        )
+        val appearance3 = NavBarAppearance(
+            argbColor = 3,
+            useLightTintForControls = true,
+        )
         val child1 = sut.branch("1")
         val child1_1 = child1.branch("1_1")
         sut.push(appearance1)
@@ -113,9 +156,18 @@ class NavBarAppearanceControllerTest {
 
     @Test
     fun `#3 when appearance is peeled from the child controller, then parent emits the appearance that was pushed to the controller tree last`() {
-        val appearance1: NavBarAppearance.WithTag = mockk()
-        val appearance2: NavBarAppearance.WithTag = mockk()
-        val appearance3: NavBarAppearance.WithTag = mockk()
+        val appearance1 = NavBarAppearance(
+            argbColor = 1,
+            useLightTintForControls = true,
+        )
+        val appearance2 = NavBarAppearance(
+            argbColor = 2,
+            useLightTintForControls = false,
+        )
+        val appearance3 = NavBarAppearance(
+            argbColor = 3,
+            useLightTintForControls = true,
+        )
         val child1 = sut.branch("1")
         val child1_1 = child1.branch("1_1")
         sut.push(appearance1)
@@ -129,8 +181,14 @@ class NavBarAppearanceControllerTest {
 
     @Test
     fun `#4 when appearance is peeled from the child controller, then parent emits the appearance that was pushed to the controller tree last`() {
-        val appearance1: NavBarAppearance.WithTag = mockk()
-        val appearance2: NavBarAppearance.WithTag = mockk()
+        val appearance1 = NavBarAppearance(
+            argbColor = 1,
+            useLightTintForControls = true,
+        )
+        val appearance2 = NavBarAppearance(
+            argbColor = 2,
+            useLightTintForControls = false,
+        )
         val child1 = sut.branch("1")
         val child1_1 = child1.branch("1_1")
 
@@ -143,9 +201,18 @@ class NavBarAppearanceControllerTest {
 
     @Test
     fun `#1 clearing appearances of the controller also clears the whole controller tree`() {
-        val appearance1: NavBarAppearance.WithTag = mockk()
-        val appearance2: NavBarAppearance.WithTag = mockk()
-        val appearance3: NavBarAppearance.WithTag = mockk()
+        val appearance1 = NavBarAppearance(
+            argbColor = 1,
+            useLightTintForControls = true,
+        )
+        val appearance2 = NavBarAppearance(
+            argbColor = 2,
+            useLightTintForControls = false,
+        )
+        val appearance3 = NavBarAppearance(
+            argbColor = 3,
+            useLightTintForControls = true,
+        )
         val child1 = sut.branch("1")
         val child2 = sut.branch("2")
         sut.push(appearance1)
@@ -161,9 +228,18 @@ class NavBarAppearanceControllerTest {
 
     @Test
     fun `#2 clearing appearances of the controller also clears the whole controller tree`() {
-        val appearance1: NavBarAppearance.WithTag = mockk()
-        val appearance2: NavBarAppearance.WithTag = mockk()
-        val appearance3: NavBarAppearance.WithTag = mockk()
+        val appearance1 = NavBarAppearance(
+            argbColor = 1,
+            useLightTintForControls = true,
+        )
+        val appearance2 = NavBarAppearance(
+            argbColor = 2,
+            useLightTintForControls = false,
+        )
+        val appearance3 = NavBarAppearance(
+            argbColor = 3,
+            useLightTintForControls = true,
+        )
         val child1 = sut.branch("1")
         val child1_1 = child1.branch("1_1")
         sut.push(appearance1)
@@ -180,8 +256,14 @@ class NavBarAppearanceControllerTest {
     // not a test but rather a benchmark
     @Test
     fun `log the time to clear a nested controller in a controller tree`() {
-        val appearance1: NavBarAppearance.WithTag = mockk()
-        val appearance2: NavBarAppearance.WithTag = mockk()
+        val appearance1 = NavBarAppearance(
+            argbColor = 1,
+            useLightTintForControls = true,
+        )
+        val appearance2 = NavBarAppearance(
+            argbColor = 2,
+            useLightTintForControls = false,
+        )
         val child1 = sut.branch("home")
         val child2 = sut.branch("settings")
         val child1_1 = child1.branch("color center")
@@ -194,5 +276,37 @@ class NavBarAppearanceControllerTest {
         }
 
         println("Time to clear a nested controller in a controller tree: $duration")
+    }
+
+    @Test
+    fun `when the stack updates then controller emits appearance merged top-to-bottom from the flow`() {
+        val appearance1 = NavBarAppearance(
+            argbColor = 1,
+        )
+        val appearance2 = NavBarAppearance(
+            argbColor = 2,
+            useLightTintForControls = false,
+        )
+        val appearance3 = NavBarAppearance(
+            useLightTintForControls = true,
+        )
+        val appearance4 = NavBarAppearance(
+            argbColor = 4,
+        )
+        val child = sut.branch("1")
+
+        sut.push(appearance1)
+        sut.push(appearance2)
+        child.push(appearance3)
+        child.push(appearance4)
+        sut.appearanceFlow.value shouldBe NavBarAppearance(
+            argbColor = 4,
+            useLightTintForControls = true,
+        )
+        child.peel()
+        sut.appearanceFlow.value shouldBe NavBarAppearance(
+            argbColor = 2,
+            useLightTintForControls = true,
+        )
     }
 }
