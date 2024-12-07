@@ -113,7 +113,7 @@ class NavBarAppearanceController internal constructor(
 
     private fun topAccumulatedAppearance(): NavBarAppearance? {
         if (mergedStacks.isEmpty()) return null
-        // iterating in the order of which elements were added: latest elements will override old ones
+        // iterating in the order of which elements were added: latest values will override old ones
         return mergedStacks.fold(initial = navBarAppearance()) { accumulated, element ->
             element.appearance addFrom accumulated
         }
