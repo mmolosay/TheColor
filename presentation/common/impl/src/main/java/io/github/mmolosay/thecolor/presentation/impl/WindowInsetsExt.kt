@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.only
  * Returns a [WindowInsets] without only [WindowInsetsSides.Bottom] side.
  */
 fun WindowInsets.withoutBottom(): WindowInsets {
-    // TODO: replace with this.exclude(this.only(Bottom)) ?
     val allSidesWithoutBottom = WindowInsetsSides.Horizontal + WindowInsetsSides.Top
     return this.only(allSidesWithoutBottom)
 }
