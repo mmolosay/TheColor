@@ -2,13 +2,17 @@ package io.github.mmolosay.thecolor.presentation.home
 
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -20,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -45,15 +50,13 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.debounce.debounced
-import io.github.mmolosay.thecolor.presentation.api.ColorInt
-import io.github.mmolosay.thecolor.presentation.api.NavBarAppearance
-import io.github.mmolosay.thecolor.presentation.api.NavBarAppearanceStack
-import io.github.mmolosay.thecolor.presentation.api.NoopNavBarAppearanceStack
-import io.github.mmolosay.thecolor.presentation.api.withTag
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearance
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearanceController
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.RootNavBarAppearanceController
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.navBarAppearance
 import io.github.mmolosay.thecolor.presentation.center.ColorCenter
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterShape
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
@@ -63,10 +66,14 @@ import io.github.mmolosay.thecolor.presentation.home.HomeUiData.ProceedButton
 import io.github.mmolosay.thecolor.presentation.home.HomeUiData.ShowColorCenter
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeNavEvent
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
+import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver
+import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent
 import io.github.mmolosay.thecolor.presentation.impl.TintedSurface
-import io.github.mmolosay.thecolor.presentation.impl.toArgb
+import io.github.mmolosay.thecolor.presentation.impl.onlyBottom
 import io.github.mmolosay.thecolor.presentation.impl.toDpOffset
 import io.github.mmolosay.thecolor.presentation.impl.toDpSize
+import io.github.mmolosay.thecolor.presentation.impl.toLifecycleEventObserver
+import io.github.mmolosay.thecolor.presentation.impl.withoutBottom
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInput
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreview
 import io.github.mmolosay.thecolor.utils.doNothing
@@ -75,7 +82,7 @@ import io.github.mmolosay.thecolor.utils.doNothing
 fun HomeScreen(
     viewModel: HomeViewModel,
     navigateToSettings: () -> Unit,
-    navBarAppearanceStack: NavBarAppearanceStack,
+    navBarAppearanceController: NavBarAppearanceController,
 ) {
     val context = LocalContext.current
     val strings = remember(context) { HomeUiStrings(context) }
@@ -99,14 +106,17 @@ fun HomeScreen(
         colorCenter = ColorCenter@{
             val viewModel = viewModel.colorCenterViewModelFlow
                 .collectAsStateWithLifecycle().value ?: return@ColorCenter
+            val childController = remember(navBarAppearanceController) {
+                navBarAppearanceController.branch("Color Center")
+            }
             ColorCenter(
                 modifier = Modifier.padding(top = 24.dp),
                 viewModel = viewModel,
-                navBarAppearanceStack = navBarAppearanceStack,
+                navBarAppearanceController = childController,
             )
         },
         navigateToSettings = navigateToSettings,
-        navBarAppearanceStack = navBarAppearanceStack,
+        navBarAppearanceController = navBarAppearanceController,
     )
 }
 
@@ -118,9 +128,11 @@ fun HomeScreen(
     colorPreview: @Composable () -> Unit,
     colorCenter: @Composable () -> Unit,
     navigateToSettings: () -> Unit,
-    navBarAppearanceStack: NavBarAppearanceStack,
+    navBarAppearanceController: NavBarAppearanceController,
 ) {
-    Scaffold { contentPadding ->
+    Scaffold(
+        contentWindowInsets = ScaffoldDefaults.contentWindowInsets.withoutBottom(),
+    ) { contentPadding ->
         Home(
             modifier = Modifier
                 .padding(contentPadding)
@@ -131,7 +143,7 @@ fun HomeScreen(
             colorPreview = colorPreview,
             colorCenter = colorCenter,
             navigateToSettings = navigateToSettings,
-            navBarAppearanceStack = navBarAppearanceStack,
+            navBarAppearanceController = navBarAppearanceController,
         )
     }
 }
@@ -144,7 +156,7 @@ fun Home(
     colorPreview: @Composable () -> Unit,
     colorCenter: @Composable () -> Unit,
     navigateToSettings: () -> Unit,
-    navBarAppearanceStack: NavBarAppearanceStack,
+    navBarAppearanceController: NavBarAppearanceController,
     modifier: Modifier = Modifier,
 ) {
     val density = LocalDensity.current
@@ -195,7 +207,7 @@ fun Home(
         ColorCenterOnTintedSurface(
             state = uiData.showColorCenter,
             colorCenter = colorCenter,
-            navBarAppearanceStack = navBarAppearanceStack,
+            navBarAppearanceController = navBarAppearanceController,
         )
 //        }
     }
@@ -242,10 +254,11 @@ private fun ProceedButton(
 private fun ColorCenterOnTintedSurface(
     state: ShowColorCenter,
     colorCenter: @Composable () -> Unit,
-    navBarAppearanceStack: NavBarAppearanceStack,
+    navBarAppearanceController: NavBarAppearanceController,
 ) {
     if (state !is ShowColorCenter.Yes) return
     val colors = if (state.useLightContentColors) colorsOnDarkSurface() else colorsOnLightSurface()
+    val windowInsets = WindowInsets.systemBars.onlyBottom()
     TintedSurface(
         modifier = Modifier
             .graphicsLayer {
@@ -255,20 +268,26 @@ private fun ColorCenterOnTintedSurface(
         surfaceColor = state.backgroundColor,
         contentColors = colors,
     ) {
-        colorCenter()
+        Box(
+            modifier = Modifier
+                .padding(windowInsets.asPaddingValues())
+                .consumeWindowInsets(windowInsets),
+        ) {
+            colorCenter()
+        }
     }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     val lifecycle = lifecycleOwner.lifecycle
     DisposableEffect(lifecycleOwner, state) {
         val observer = ColorCenterLifecycleObserver(
-            navBarAppearanceStack = navBarAppearanceStack,
-            data = state,
-        )
+            navBarAppearanceController = navBarAppearanceController,
+            appearance = state.navBarAppearance,
+        ).toLifecycleEventObserver()
         lifecycle.addObserver(observer)
         onDispose {
             lifecycle.removeObserver(observer)
-            navBarAppearanceStack.remove(tag = ColorCenterNavBarAppearanceTag)
+            navBarAppearanceController.clear()
         }
     }
 }
@@ -297,43 +316,26 @@ private fun TopBar(
 }
 
 private class ColorCenterLifecycleObserver(
-    private val navBarAppearanceStack: NavBarAppearanceStack,
-    private val data: ShowColorCenter.Yes,
-) : LifecycleEventObserver {
+    private val navBarAppearanceController: NavBarAppearanceController,
+    private val appearance: NavBarAppearance,
+) : ExtendedLifecycleEventObserver {
 
-    private var isOnPause = true
-
-    override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) =
-        when (event) {
-            Lifecycle.Event.ON_START,
-            Lifecycle.Event.ON_RESUME -> {
-                onEnteringForeground()
+    override fun onStateChanged(
+        source: LifecycleOwner,
+        event: Lifecycle.Event,
+        directionChange: LifecycleDirectionChangeEvent?,
+    ) {
+        when (directionChange) {
+            LifecycleDirectionChangeEvent.EnteringForeground -> {
+                navBarAppearanceController.push(appearance)
             }
-            Lifecycle.Event.ON_PAUSE -> {
-                navBarAppearanceStack.remove(tag = ColorCenterNavBarAppearanceTag)
-                isOnPause = true
+            LifecycleDirectionChangeEvent.LeavingForeground -> {
+                navBarAppearanceController.clear()
             }
-            else -> doNothing()
+            null -> doNothing()
         }
-
-    private fun onEnteringForeground() {
-        // only push an appearance if the event is a first event after "exiting foreground" (like ON_PAUSE)
-        if (!isOnPause) return // has already pushed nav bar appearance
-        pushAppearance()
-        isOnPause = false
-    }
-
-    private fun pushAppearance() {
-        val appearance = NavBarAppearance(
-            color = data.navigationBarColor.toArgb(),
-            isLight = data.isNavigationBarLight,
-        )
-        val tagged = appearance withTag ColorCenterNavBarAppearanceTag
-        navBarAppearanceStack.push(tagged)
     }
 }
-
-private const val ColorCenterNavBarAppearanceTag = "ColorCenterOnTintedSurface"
 
 @Preview(showBackground = true)
 @Composable
@@ -370,7 +372,7 @@ private fun Preview() {
                 )
             },
             navigateToSettings = {},
-            navBarAppearanceStack = NoopNavBarAppearanceStack,
+            navBarAppearanceController = remember { RootNavBarAppearanceController() },
         )
     }
 }
@@ -393,8 +395,9 @@ private fun previewUiData() =
         showColorCenter = ShowColorCenter.Yes(
             backgroundColor = Color(0xFF_123456),
             useLightContentColors = true,
-            navigationBarColor = ColorInt(0x123456),
-            isNavigationBarLight = true,
+            navBarAppearance = navBarAppearance(
+                useLightTintForControls = true,
+            ),
         ),
         invalidSubmittedColorToast = null,
     )

@@ -8,17 +8,20 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.core.splashscreen.SplashScreen
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.mmolosay.thecolor.presentation.design.Brightness
+import io.github.mmolosay.thecolor.presentation.design.LocalDefaultShouldUseLightTintForNavBarControls
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.animateColors
 import io.github.mmolosay.thecolor.presentation.design.brightness
-import io.github.mmolosay.thecolor.presentation.design.isDefaultNavigationBarLight
+import io.github.mmolosay.thecolor.presentation.design.shouldUseLightTintForNavBarControls
 import io.github.mmolosay.thecolor.presentation.design.systemBrightness
 import io.github.mmolosay.thecolor.presentation.design.toMaterialColorScheme
 import kotlinx.coroutines.cancel
@@ -103,6 +106,9 @@ class MainActivity : AppCompatActivity() {
             .collectAsStateWithLifecycle(initialValue = null).value
             ?.resolve(brightness = systemBrightness())
             ?: return
+        val useLightTintForNavBarControls = remember(colorScheme) {
+            colorScheme.shouldUseLightTintForNavBarControls()
+        }
         val materialColorScheme = colorScheme.toMaterialColorScheme()
         val animatedMaterialColorScheme = materialColorScheme.animateColors()
 
@@ -112,9 +118,12 @@ class MainActivity : AppCompatActivity() {
 
         TheColorTheme(
             materialColorScheme = animatedMaterialColorScheme,
-            isDefaultNavigationBarLight = colorScheme.isDefaultNavigationBarLight(),
         ) {
-            Application()
+            CompositionLocalProvider(
+                LocalDefaultShouldUseLightTintForNavBarControls provides useLightTintForNavBarControls,
+            ) {
+                Application()
+            }
         }
     }
 }

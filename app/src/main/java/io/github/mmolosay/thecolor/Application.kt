@@ -5,9 +5,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalView
 import androidx.navigation.compose.rememberNavController
-import io.github.mmolosay.thecolor.presentation.api.NavBarAppearanceController
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.RootNavBarAppearanceController
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.addFrom
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.isComplete
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.navBarAppearance
 import io.github.mmolosay.thecolor.presentation.design.LocalDefaultNavigationBarColor
-import io.github.mmolosay.thecolor.presentation.design.LocalIsDefaultNavigationBarLight
+import io.github.mmolosay.thecolor.presentation.design.LocalDefaultShouldUseLightTintForNavBarControls
 import io.github.mmolosay.thecolor.presentation.impl.changeNavigationBar
 
 /**
@@ -16,26 +19,31 @@ import io.github.mmolosay.thecolor.presentation.impl.changeNavigationBar
 @Composable
 internal fun Application() {
     val navController = rememberNavController()
-    val navBarAppearanceController = remember { NavBarAppearanceController() }
+    val rootNavBarAppearanceController = remember { RootNavBarAppearanceController() }
     val view = LocalView.current
 
     MainNavHost(
         navController = navController,
-        navBarAppearanceController = navBarAppearanceController,
+        rootNavBarAppearanceController = rootNavBarAppearanceController,
     )
 
-    val defaultNavBarColor = LocalDefaultNavigationBarColor.current
-    val isDefaultNavBarLight = LocalIsDefaultNavigationBarLight.current
+    val defaultNavBarAppearance = navBarAppearance(
+        argbColor = LocalDefaultNavigationBarColor.current,
+        useLightTintForControls = LocalDefaultShouldUseLightTintForNavBarControls.current,
+    )
 
     // change navigation bar when new appearance is emitted
     LaunchedEffect(Unit) changeNavigationBarWhenAppearanceChanges@{
-        navBarAppearanceController.appearanceFlow.collect { appearanceWithTag ->
-            val appearance = appearanceWithTag?.appearance
-            val color = appearance?.color ?: defaultNavBarColor
-            val isLight = appearance?.isLight ?: isDefaultNavBarLight
+        rootNavBarAppearanceController.appearanceFlow.collect { appearance ->
+            val resultAppearance = if (appearance != null) {
+                appearance addFrom defaultNavBarAppearance
+            } else {
+                defaultNavBarAppearance
+            }
+            check(resultAppearance.isComplete)
             view.changeNavigationBar(
-                color = color,
-                isLight = isLight,
+                color = resultAppearance.argbColor,
+                useLightTintForControls = resultAppearance.useLightTintForControls,
             )
         }
     }

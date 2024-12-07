@@ -4,18 +4,25 @@ import android.graphics.Color
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.staticCompositionLocalOf
 
-val LocalIsDefaultNavigationBarLight =
+/**
+ * Whether the default appearance of navigation bar should have light tinted controls
+ * to contrast against dark [LocalDefaultNavigationBarColor].
+ */
+val LocalDefaultShouldUseLightTintForNavBarControls =
     compositionLocalOf<Boolean> {
-        error("CompositionLocal \"LocalIsDefaultNavigationBarLight\" doesn't have value by default.")
+        error("CompositionLocal \"LocalDefaultShouldUseLightTintForNavBarControls\" doesn't have value by default.")
     }
 
+/**
+ * (Background) color of the default navigation bar's appearance.
+ */
 val LocalDefaultNavigationBarColor =
     staticCompositionLocalOf { Color.TRANSPARENT }
 
-fun ColorScheme.isDefaultNavigationBarLight(): Boolean {
+fun ColorScheme.shouldUseLightTintForNavBarControls(): Boolean {
     val colorSchemeBrightness = this.brightness()
     return when (colorSchemeBrightness) {
-        Brightness.Light -> true
-        Brightness.Dark -> false
+        Brightness.Light -> false
+        Brightness.Dark -> true
     }
 }
