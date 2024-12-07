@@ -48,10 +48,9 @@ private class ExtendedLifecycleEventObserverAdapter(
         source: LifecycleOwner,
         event: Lifecycle.Event,
     ) {
-        val previousEventDirection = previousEvent?.direction()
-        val currentEventDirection = event.direction()
-        val directionChange =
-            lifecycleDirectionChange(previousEventDirection, currentEventDirection)
+        val previousEventType = previousEvent?.type()
+        val currentEventType = event.type()
+        val directionChange = lifecycleDirectionChange(previousEventType, currentEventType)
         extendedObserver.onStateChanged(
             source = source,
             event = event,
@@ -61,40 +60,39 @@ private class ExtendedLifecycleEventObserverAdapter(
     }
 
     private fun lifecycleDirectionChange(
-        previous: LifecycleEventDirection?,
-        current: LifecycleEventDirection,
+        previous: LifecycleEventType?,
+        current: LifecycleEventType,
     ): LifecycleDirectionChangeEvent? =
         when (previous) {
-            LifecycleEventDirection.Foreground -> when (current) {
-                LifecycleEventDirection.Foreground -> null
-                LifecycleEventDirection.Background -> LifecycleDirectionChangeEvent.LeavingForeground
+            LifecycleEventType.Foreground -> when (current) {
+                LifecycleEventType.Foreground -> null
+                LifecycleEventType.Background -> LifecycleDirectionChangeEvent.LeavingForeground
             }
-            LifecycleEventDirection.Background -> when (current) {
-                LifecycleEventDirection.Foreground -> LifecycleDirectionChangeEvent.EnteringForeground
-                LifecycleEventDirection.Background -> null
+            LifecycleEventType.Background -> when (current) {
+                LifecycleEventType.Foreground -> LifecycleDirectionChangeEvent.EnteringForeground
+                LifecycleEventType.Background -> null
             }
             null -> when (current) {
-                LifecycleEventDirection.Foreground -> LifecycleDirectionChangeEvent.EnteringForeground
-                LifecycleEventDirection.Background -> LifecycleDirectionChangeEvent.LeavingForeground
+                LifecycleEventType.Foreground -> LifecycleDirectionChangeEvent.EnteringForeground
+                LifecycleEventType.Background -> LifecycleDirectionChangeEvent.LeavingForeground
             }
         }
 
-    private fun Lifecycle.Event.direction(): LifecycleEventDirection =
+    private fun Lifecycle.Event.type(): LifecycleEventType =
         when (this) {
             Lifecycle.Event.ON_CREATE,
             Lifecycle.Event.ON_START,
             Lifecycle.Event.ON_RESUME,
-                -> LifecycleEventDirection.Foreground
+                -> LifecycleEventType.Foreground
             Lifecycle.Event.ON_PAUSE,
             Lifecycle.Event.ON_STOP,
             Lifecycle.Event.ON_DESTROY,
-                -> LifecycleEventDirection.Background
+                -> LifecycleEventType.Background
             Lifecycle.Event.ON_ANY ->
                 error("unreachable")
         }
 
-    /** Describes a direction towards which a particular [Lifecycle.Event] is moving. */
-    private enum class LifecycleEventDirection {
+    private enum class LifecycleEventType {
         Foreground,
         Background;
     }
