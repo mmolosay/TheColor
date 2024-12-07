@@ -42,7 +42,7 @@ private fun NavGraphBuilder.home(
     composable(route = AppNavDest.Home.route) {
         val homeViewModel: HomeViewModel = hiltViewModel()
         val childController = remember(rootNavBarAppearanceController) {
-            val tag = it.destination.route.orEmpty()
+            val tag = AppNavDest.Home
             rootNavBarAppearanceController.branch(tag)
         }
         HomeScreen(
