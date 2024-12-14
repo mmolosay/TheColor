@@ -126,11 +126,10 @@ class ColorSchemeViewModel @AssistedInject constructor(
 
     private fun sendSwatchSelectedEvent(indexOfSelectedSwatch: Int) {
         val lastDomainColorScheme = requireNotNull(lastDomainColorScheme)
-        val swatch = _statefulDataFlow.value.data?.swatches?.getOrNull(indexOfSelectedSwatch)
-            ?: return
+        val swatch =
+            _statefulDataFlow.value.data?.swatches?.getOrNull(indexOfSelectedSwatch) ?: return
         val swatchColorDetails =
-            lastDomainColorScheme.swatchDetails.getOrNull(indexOfSelectedSwatch)
-                ?: return
+            lastDomainColorScheme.swatchDetails.getOrNull(indexOfSelectedSwatch) ?: return
         val event = ColorSchemeEvent.SwatchSelected(swatch, swatchColorDetails)
         coroutineScope.launch(defaultDispatcher) {
             eventStore.send(event)
