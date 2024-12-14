@@ -41,11 +41,6 @@ class ColorSchemeUiDataFactoryTest(
                 count = any(),
             )
         } returns TestParameters.onSwatchCountSelect
-        every {
-            ColorSchemeUiDataComponents.OnSelectedSwatchDetailsDialogDismissRequest(
-                data = any(),
-            )
-        } returns TestParameters.onSelectedSwatchDetailsDialogDismissRequest
     }
 
     @After
@@ -80,7 +75,6 @@ private object TestParameters {
     val onModeSelect: () -> Unit = {}
     val onSwatchCountSelect: () -> Unit = {}
     val applyChanges: () -> Unit = {}
-    val onSelectedSwatchDetailsDialogDismissRequest: () -> Unit = {}
 
     // region #0
 
@@ -125,8 +119,6 @@ private object TestParameters {
                 ),
             ),
             onSwatchSelect = {},
-            onSelectedSwatchDismiss = {},
-            isAnySwatchSelected = false,
             activeMode = Mode.Monochrome,
             selectedMode = Mode.Analogic,
             onModeSelect = {},
@@ -286,8 +278,6 @@ private object TestParameters {
                 text = "Apply changes",
                 onClick = applyChanges,
             ),
-            showSelectedSwatchDetailsDialog = false,
-            onSelectedSwatchDetailsDialogDismissRequest = onSelectedSwatchDetailsDialogDismissRequest,
         )
 
     // endregion
