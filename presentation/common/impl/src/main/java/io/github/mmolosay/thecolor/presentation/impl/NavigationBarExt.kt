@@ -11,15 +11,27 @@ import androidx.core.view.WindowCompat
  * Utils and extensions for navigation bar.
  */
 
+// https://developer.android.com/about/versions/15/behavior-changes-15#window-insets
 fun View.changeNavigationBar(
-    @ColorInt color: Int,
-    isLight: Boolean,
+    @ColorInt color: Int?,
+    useLightTintForControls: Boolean?,
 ) {
     if (this.isInEditMode) return
     val window = this.context.findActivityContext().window
-    window.navigationBarColor = color
-    WindowCompat.getInsetsController(window, window.decorView).run {
-        this.isAppearanceLightNavigationBars = isLight
+
+    if (color != null) {
+        window.navigationBarColor = color
+    }
+    if (useLightTintForControls != null) {
+        WindowCompat.getInsetsController(window, this).run {
+            /*
+             * Won't take effect on APIs 35+.
+             * The tint of controls depends on system Dark mode on/off and type of nav bar controls.
+             */
+            // for some reason, documentation of 'isAppearanceLightNavigationBars' doesn't match
+            // it's behaviour, thus applying negation to the value
+            this.isAppearanceLightNavigationBars = !useLightTintForControls
+        }
     }
 }
 

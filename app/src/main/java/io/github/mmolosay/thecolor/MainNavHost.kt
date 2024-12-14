@@ -1,18 +1,18 @@
 package io.github.mmolosay.thecolor
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import io.github.mmolosay.thecolor.presentation.api.NavBarAppearanceController
-import io.github.mmolosay.thecolor.presentation.api.NavBarAppearanceStack
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearanceController
 import io.github.mmolosay.thecolor.presentation.home.HomeScreen
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
-import io.github.mmolosay.thecolor.presentation.settings.ui.SettingsScreen
 import io.github.mmolosay.thecolor.presentation.settings.SettingsViewModel
+import io.github.mmolosay.thecolor.presentation.settings.ui.SettingsScreen
 
 /**
  * A top-level [NavHost] of the entire application.
@@ -20,7 +20,7 @@ import io.github.mmolosay.thecolor.presentation.settings.SettingsViewModel
 @Composable
 internal fun MainNavHost(
     navController: NavHostController,
-    navBarAppearanceController: NavBarAppearanceController,
+    rootNavBarAppearanceController: NavBarAppearanceController,
 ) =
     NavHost(
         navController = navController,
@@ -28,7 +28,7 @@ internal fun MainNavHost(
     ) {
         home(
             mainNavController = navController,
-            navBarAppearanceStack = navBarAppearanceController,
+            rootNavBarAppearanceController = rootNavBarAppearanceController,
         )
         settings(
             mainNavController = navController,
@@ -37,16 +37,20 @@ internal fun MainNavHost(
 
 private fun NavGraphBuilder.home(
     mainNavController: NavController,
-    navBarAppearanceStack: NavBarAppearanceStack,
+    rootNavBarAppearanceController: NavBarAppearanceController,
 ) =
     composable(route = AppNavDest.Home.route) {
         val homeViewModel: HomeViewModel = hiltViewModel()
+        val childController = remember(rootNavBarAppearanceController) {
+            val tag = AppNavDest.Home
+            rootNavBarAppearanceController.branch(tag)
+        }
         HomeScreen(
             viewModel = homeViewModel,
             navigateToSettings = {
                 mainNavController.navigate(route = AppNavDest.Settings.route)
             },
-            navBarAppearanceStack = navBarAppearanceStack,
+            navBarAppearanceController = childController,
         )
     }
 

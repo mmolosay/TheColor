@@ -67,4 +67,11 @@ dependencies {
     // Hilt
     implementation("com.google.dagger:hilt-android:${libs.versions.hilt.get()}")
     kapt("com.google.dagger:hilt-compiler:${libs.versions.hilt.get()}")
+
+    // Testing
+    testImplementation(project(":utils:testing"))
+    testImplementation("junit:junit:${libs.versions.junit.get()}")
+    testImplementation("io.mockk:mockk:${libs.versions.mockk.get()}")
+    testImplementation("io.kotest:kotest-assertions-core:${libs.versions.kotestAssertions.get()}")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:${libs.versions.coroutines.get()}")
 }

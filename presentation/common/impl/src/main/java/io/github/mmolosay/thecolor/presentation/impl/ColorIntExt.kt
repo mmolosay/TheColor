@@ -1,6 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.impl
 
 import io.github.mmolosay.thecolor.presentation.api.ColorInt
+import android.graphics.Color as AndroidColor
 import androidx.annotation.ColorInt as AndroidColorInt
 import androidx.compose.ui.graphics.Color as ComposeColor
 
@@ -15,4 +16,4 @@ fun ColorInt.toCompose(): ComposeColor =
  */
 @AndroidColorInt
 fun ColorInt.toArgb(): Int =
-    0xFF000000.toInt() or hex
+    AndroidColor.BLACK or hex // 0xFF_000000 literal is treated as Long by Kotlin compiler

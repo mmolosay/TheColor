@@ -68,9 +68,10 @@ internal fun PreferredColorInputType(
 @Composable
 internal fun PreferredColorInputTypeSelection(
     options: List<ColorInputTypeOption>,
+    modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = Modifier.selectableGroup(),
+        modifier = modifier.selectableGroup(),
     ) {
         options.forEach { option ->
             Option(option)
