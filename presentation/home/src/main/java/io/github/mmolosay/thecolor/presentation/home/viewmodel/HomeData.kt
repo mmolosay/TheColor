@@ -2,7 +2,6 @@ package io.github.mmolosay.thecolor.presentation.home.viewmodel
 
 import io.github.mmolosay.thecolor.presentation.api.ColorInt
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
 
 /**
  * Platform-agnostic data provided by ViewModel to 'Home' View.
@@ -38,7 +37,7 @@ data class HomeData(
         }
     }
 
-    /** [ColorSchemeEvent.SwatchSelected] re-mapped for Home screen. */
+    /** Data for currently selected swatch on 'Color Scheme'. */
     data class ColorSchemeSelectedSwatchData(
         val colorDetailsViewModel: ColorDetailsViewModel,
         val discard: () -> Unit, // aka onConsumed()
