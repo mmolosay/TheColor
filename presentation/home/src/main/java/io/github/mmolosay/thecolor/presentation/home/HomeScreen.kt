@@ -107,9 +107,6 @@ fun HomeScreen(
         colorCenter = ColorCenter@{
             val viewModel = viewModel.colorCenterViewModelFlow
                 .collectAsStateWithLifecycle().value ?: return@ColorCenter
-            val childController = remember(navBarAppearanceController) {
-                navBarAppearanceController.branch("Color Center")
-            }
             ColorCenter(
                 modifier = Modifier.padding(top = 24.dp),
                 viewModel = viewModel,
@@ -120,14 +117,18 @@ fun HomeScreen(
         navBarAppearanceController = navBarAppearanceController,
     )
 
-    if (!showSelectedSwatchDetailsDialog) return
-    val viewModel = viewModel.selectedSwatchColorDetailsViewModelFlow
+    val selectedSwatchColorDetailsViewModel = viewModel.selectedSwatchColorDetailsViewModelFlow
         .collectAsStateWithLifecycle().value ?: return
-    SelectedSwatchDetailsDialog(
-        viewModel = viewModel,
-        navBarAppearanceStack = navBarAppearanceStack,
-        onDismissRequest = { showSelectedSwatchDetailsDialog = false },
-    )
+    val selectedSwatchDetailsDialogController = remember(navBarAppearanceController) {
+        navBarAppearanceController.branch("Selected Swatch Details Dialog")
+    }
+    if (showSelectedSwatchDetailsDialog) {
+        SelectedSwatchDetailsDialog(
+            viewModel = selectedSwatchColorDetailsViewModel,
+            navBarAppearanceController = selectedSwatchDetailsDialogController,
+            onDismissRequest = { showSelectedSwatchDetailsDialog = false },
+        )
+    }
 }
 
 @Composable
