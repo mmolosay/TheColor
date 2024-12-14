@@ -75,7 +75,6 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.Data
 @Composable
 fun ColorScheme(
     state: DataState,
-    onSwatchClick: () -> Unit,
 ) {
     val context = LocalContext.current
     val strings = remember(context) { ColorSchemeUiStrings(context) }
@@ -88,7 +87,6 @@ fun ColorScheme(
             val uiData = ColorSchemeUiData(
                 data = state.data,
                 strings = strings,
-                onSwatchClick = onSwatchClick,
             )
             ColorScheme(
                 uiData = uiData,

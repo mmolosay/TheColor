@@ -13,10 +13,9 @@ import org.jetbrains.annotations.VisibleForTesting
 fun ColorSchemeUiData(
     data: ColorSchemeData,
     strings: ColorSchemeUiStrings,
-    onSwatchClick: () -> Unit,
 ): ColorSchemeUiData =
     ColorSchemeUiData(
-        swatches = Swatches(data, onSwatchClick),
+        swatches = Swatches(data),
         modeSection = ModeSection(data, strings),
         swatchCountSection = SwatchCountSection(data, strings),
         applyChangesButton = ApplyChangesButton(data, strings),
@@ -24,16 +23,12 @@ fun ColorSchemeUiData(
 
 private fun Swatches(
     data: ColorSchemeData,
-    onSwatchClick: () -> Unit,
 ): List<Swatch> =
     data.swatches.mapIndexed { index, swatch ->
         Swatch(
             color = swatch.color.toCompose(),
             useLightContentColors = swatch.isDark,  // light content on dark and vice versa
-            onClick = {
-                data.onSwatchSelect(index)
-                onSwatchClick()
-            },
+            onClick = { data.onSwatchSelect(index) },
         )
     }
 

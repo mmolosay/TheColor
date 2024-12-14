@@ -45,7 +45,6 @@ import kotlin.math.max
 @Composable
 fun ColorCenter(
     viewModel: ColorCenterViewModel,
-    onColorSchemeSwatchClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val crossfadeSpec = tween<Float>(
@@ -77,7 +76,6 @@ fun ColorCenter(
             ) { state ->
                 ColorScheme(
                     state = state,
-                    onSwatchClick = onColorSchemeSwatchClick,
                 )
             }
         },

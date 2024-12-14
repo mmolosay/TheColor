@@ -105,28 +105,37 @@ fun HomeScreen(
             )
         },
         colorCenter = ColorCenter@{
+            @Suppress("NAME_SHADOWING")
             val viewModel = viewModel.colorCenterViewModelFlow
                 .collectAsStateWithLifecycle().value ?: return@ColorCenter
             ColorCenter(
                 modifier = Modifier.padding(top = 24.dp),
                 viewModel = viewModel,
-                onColorSchemeSwatchClick = { showSelectedSwatchDetailsDialog = true },
             )
         },
         navigateToSettings = navigateToSettings,
         navBarAppearanceController = navBarAppearanceController,
     )
 
-    val selectedSwatchColorDetailsViewModel = viewModel.selectedSwatchColorDetailsViewModelFlow
-        .collectAsStateWithLifecycle().value ?: return
+    LaunchedEffect(data.colorSchemeSelectedSwatchData) {
+        @Suppress("NAME_SHADOWING", "UNUSED_VARIABLE")
+        val data = data.colorSchemeSelectedSwatchData ?: return@LaunchedEffect
+        showSelectedSwatchDetailsDialog = true
+    }
+
     val selectedSwatchDetailsDialogController = remember(navBarAppearanceController) {
         navBarAppearanceController.branch("Selected Swatch Details Dialog")
     }
     if (showSelectedSwatchDetailsDialog) {
+        @Suppress("NAME_SHADOWING")
+        val data = requireNotNull(data.colorSchemeSelectedSwatchData)
         SelectedSwatchDetailsDialog(
-            viewModel = selectedSwatchColorDetailsViewModel,
+            viewModel = data.colorDetailsViewModel,
             navBarAppearanceController = selectedSwatchDetailsDialogController,
-            onDismissRequest = { showSelectedSwatchDetailsDialog = false },
+            onDismissRequest = {
+                showSelectedSwatchDetailsDialog = false
+                data.discard()
+            },
         )
     }
 }

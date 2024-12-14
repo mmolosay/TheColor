@@ -20,6 +20,7 @@ import io.github.mmolosay.thecolor.presentation.details.ColorDetailsEventStore
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.details.ColorRole
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.CanProceed
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ColorSchemeSelectedSwatchData
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
@@ -111,14 +112,6 @@ class HomeViewModel @Inject constructor(
     val colorCenterViewModelFlow: StateFlow<ColorCenterViewModel?> =
         colorCenterComponentsFlow
             .map { it?.colorCenterViewModel }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000),
-                initialValue = null,
-            )
-    val selectedSwatchColorDetailsViewModelFlow: StateFlow<ColorDetailsViewModel?> =
-        colorCenterComponentsFlow
-            .map { it?.selectedSwatchColorDetailsViewModel }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000),
@@ -263,6 +256,17 @@ class HomeViewModel @Inject constructor(
                     ?.selectedSwatchColorDetailsCommandStore
                     ?: return
                 commandStore.issue(command)
+
+                val selectedSwatchColorDetailsViewModel = colorCenterComponentsFlow.value
+                    ?.selectedSwatchColorDetailsViewModel
+                    ?: return
+                _dataFlow.update {
+                    val data = ColorSchemeSelectedSwatchData(
+                        colorDetailsViewModel = selectedSwatchColorDetailsViewModel,
+                        discard = ::clearColorSchemeSwatchSelectedData,
+                    )
+                    it.copy(colorSchemeSelectedSwatchData = data)
+                }
             }
         }
     }
@@ -357,6 +361,12 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    private fun clearColorSchemeSwatchSelectedData() {
+        _dataFlow.update {
+            it.copy(colorSchemeSelectedSwatchData = null)
+        }
+    }
+
     private fun clearNavEvent() {
         _navEventFlow.value = null
     }
@@ -369,6 +379,7 @@ class HomeViewModel @Inject constructor(
         return HomeData(
             canProceed = canProceed,
             proceedResult = null, // 'proceed' action wasn't invoked yet
+            colorSchemeSelectedSwatchData = null, // no selected swatch initially
             goToSettings = ::setGoToSettingsNavEvent,
         )
     }
