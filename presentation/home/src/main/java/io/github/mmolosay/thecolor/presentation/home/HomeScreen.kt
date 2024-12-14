@@ -120,7 +120,7 @@ fun HomeScreen(
         navBarAppearanceController = navBarAppearanceController,
     )
 
-    SelectedSwatchDetailsDialog(
+    SelectedSwatchDetailsDialogContainer(
         data = data.colorSchemeSelectedSwatchData,
         navBarAppearanceController = selectedSwatchDetailsDialogController,
     )
@@ -321,8 +321,12 @@ private fun TopBar(
     )
 }
 
+/**
+ * Contains "container" in name to convey that this Composable may or
+ * may not display [SelectedSwatchDetailsDialog], which is its primary content.
+ */
 @Composable
-private fun SelectedSwatchDetailsDialog(
+private fun SelectedSwatchDetailsDialogContainer(
     data: HomeData.ColorSchemeSelectedSwatchData?,
     navBarAppearanceController: NavBarAppearanceController,
 ) {
