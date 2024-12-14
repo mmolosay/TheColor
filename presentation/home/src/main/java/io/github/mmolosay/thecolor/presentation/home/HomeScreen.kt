@@ -64,6 +64,7 @@ import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.home.HomeUiData.ProceedButton
 import io.github.mmolosay.thecolor.presentation.home.HomeUiData.ShowColorCenter
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeNavEvent
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver
@@ -89,7 +90,9 @@ fun HomeScreen(
     val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
     val uiData = HomeUiData(data, strings)
     val navEvent = viewModel.navEventFlow.collectAsStateWithLifecycle().value
-    var showSelectedSwatchDetailsDialog by remember { mutableStateOf(false) }
+    val selectedSwatchDetailsDialogController = remember(navBarAppearanceController) {
+        navBarAppearanceController.branch("Selected Swatch Details Dialog")
+    }
 
     HomeScreen(
         uiData = uiData,
@@ -117,27 +120,10 @@ fun HomeScreen(
         navBarAppearanceController = navBarAppearanceController,
     )
 
-    LaunchedEffect(data.colorSchemeSelectedSwatchData) {
-        @Suppress("NAME_SHADOWING", "UNUSED_VARIABLE")
-        val data = data.colorSchemeSelectedSwatchData ?: return@LaunchedEffect
-        showSelectedSwatchDetailsDialog = true
-    }
-
-    val selectedSwatchDetailsDialogController = remember(navBarAppearanceController) {
-        navBarAppearanceController.branch("Selected Swatch Details Dialog")
-    }
-    if (showSelectedSwatchDetailsDialog) {
-        @Suppress("NAME_SHADOWING")
-        val data = requireNotNull(data.colorSchemeSelectedSwatchData)
-        SelectedSwatchDetailsDialog(
-            viewModel = data.colorDetailsViewModel,
-            navBarAppearanceController = selectedSwatchDetailsDialogController,
-            onDismissRequest = {
-                showSelectedSwatchDetailsDialog = false
-                data.discard()
-            },
-        )
-    }
+    SelectedSwatchDetailsDialog(
+        data = data.colorSchemeSelectedSwatchData,
+        navBarAppearanceController = selectedSwatchDetailsDialogController,
+    )
 }
 
 @Composable
@@ -333,6 +319,32 @@ private fun TopBar(
             }
         },
     )
+}
+
+@Composable
+private fun SelectedSwatchDetailsDialog(
+    data: HomeData.ColorSchemeSelectedSwatchData?,
+    navBarAppearanceController: NavBarAppearanceController,
+) {
+    var showSelectedSwatchDetailsDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(data) {
+        if (data != null) {
+            showSelectedSwatchDetailsDialog = true
+        }
+    }
+    if (showSelectedSwatchDetailsDialog) {
+        @Suppress("NAME_SHADOWING")
+        val data = requireNotNull(data)
+        SelectedSwatchDetailsDialog(
+            viewModel = data.colorDetailsViewModel,
+            navBarAppearanceController = navBarAppearanceController,
+            onDismissRequest = {
+                showSelectedSwatchDetailsDialog = false
+                data.discard()
+            },
+        )
+    }
 }
 
 private class ColorCenterLifecycleObserver(
