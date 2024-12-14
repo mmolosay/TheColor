@@ -7,6 +7,7 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.ModeSec
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.Swatch
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiData.SwatchCountSection
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiDataComponents.OnModeSelect
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiDataComponents.OnSwatchClick
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeUiDataComponents.OnSwatchCountSelect
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -28,7 +29,7 @@ private fun Swatches(
         Swatch(
             color = swatch.color.toCompose(),
             useLightContentColors = swatch.isDark,  // light content on dark and vice versa
-            onClick = { data.onSwatchSelect(index) },
+            onClick = OnSwatchClick(data, index),
         )
     }
 
@@ -98,6 +99,13 @@ private fun ColorScheme.Mode.name(
  */
 @VisibleForTesting
 internal object ColorSchemeUiDataComponents {
+
+    fun OnSwatchClick(
+        data: ColorSchemeData,
+        swatchIndex: Int,
+    ): () -> Unit = {
+        data.onSwatchSelect(swatchIndex)
+    }
 
     fun OnModeSelect(
         data: ColorSchemeData,
