@@ -8,6 +8,7 @@ import io.github.mmolosay.thecolor.domain.result.Result
 import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase
 import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase.Request
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
+import io.github.mmolosay.thecolor.presentation.api.ColorInt
 import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Changes
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.SwatchCount
@@ -20,7 +21,9 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.runs
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.emptyFlow
@@ -50,7 +53,10 @@ class ColorSchemeViewModelTest {
     val commandProvider: ColorSchemeCommandProvider = mockk {
         every { commandFlow } returns emptyFlow()
     }
-    val eventStore: ColorSchemeEventStore = mockk(relaxed = true)
+    val eventStore: ColorSchemeEventStore = mockk {
+        every { eventFlow } returns emptyFlow()
+        coEvery { send(event = any()) } just runs
+    }
     val getColorScheme: GetColorSchemeUseCase = mockk()
     val createDataMock: CreateColorSchemeDataUseCase = mockk()
     val colorToColorInt: ColorToColorIntUseCase = mockk {
@@ -322,6 +328,35 @@ class ColorSchemeViewModelTest {
             requests.last().run {
                 mode shouldBe Mode.Triad
                 swatchCount shouldBe 13
+            }
+        }
+
+    @Test
+    fun `invoking 'on swatch select' action sends corresponding event to event store`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val commandFlow = MutableSharedFlow<ColorSchemeCommand>()
+            every { commandProvider.commandFlow } returns commandFlow
+            coEvery { getColorScheme(request = any()) } returns Result.Success(value = someDomainColorScheme())
+            createSut(
+                createData = createDataReal,
+            )
+            val indexOfSelectedSwatch = 1
+            val selectedSwatchColor = ColorInt(0x1A803F)
+            every {
+                with(colorToColorInt) { Color.Hex(0x1A803F).toColorInt() }
+            } returns selectedSwatchColor
+            val seedColor = Color.Hex(0x123456)
+            val command = ColorSchemeCommand.FetchData(color = seedColor)
+            commandFlow.emit(command)
+
+            sut.data.onSwatchSelect(indexOfSelectedSwatch)
+
+            coVerify(exactly = 1) {
+                val expectedSentEvent: ColorSchemeEvent.SwatchSelected =
+                    match { actual ->
+                        actual.swatch.color == selectedSwatchColor
+                    }
+                eventStore.send(expectedSentEvent)
             }
         }
 
