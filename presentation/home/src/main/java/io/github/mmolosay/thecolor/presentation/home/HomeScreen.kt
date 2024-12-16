@@ -64,6 +64,7 @@ import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.home.HomeUiData.ProceedButton
 import io.github.mmolosay.thecolor.presentation.home.HomeUiData.ShowColorCenter
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeNavEvent
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver
@@ -89,6 +90,9 @@ fun HomeScreen(
     val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
     val uiData = HomeUiData(data, strings)
     val navEvent = viewModel.navEventFlow.collectAsStateWithLifecycle().value
+    val selectedSwatchDetailsDialogController = remember(navBarAppearanceController) {
+        navBarAppearanceController.branch("Selected Swatch Details Dialog")
+    }
 
     HomeScreen(
         uiData = uiData,
@@ -104,19 +108,21 @@ fun HomeScreen(
             )
         },
         colorCenter = ColorCenter@{
+            @Suppress("NAME_SHADOWING")
             val viewModel = viewModel.colorCenterViewModelFlow
                 .collectAsStateWithLifecycle().value ?: return@ColorCenter
-            val childController = remember(navBarAppearanceController) {
-                navBarAppearanceController.branch("Color Center")
-            }
             ColorCenter(
                 modifier = Modifier.padding(top = 24.dp),
                 viewModel = viewModel,
-                navBarAppearanceController = childController,
             )
         },
         navigateToSettings = navigateToSettings,
         navBarAppearanceController = navBarAppearanceController,
+    )
+
+    SelectedSwatchDetailsDialogContainer(
+        data = data.colorSchemeSelectedSwatchData,
+        navBarAppearanceController = selectedSwatchDetailsDialogController,
     )
 }
 
@@ -313,6 +319,36 @@ private fun TopBar(
             }
         },
     )
+}
+
+/**
+ * Contains "container" in name to convey that this Composable may or
+ * may not display [SelectedSwatchDetailsDialog], which is its primary content.
+ */
+@Composable
+private fun SelectedSwatchDetailsDialogContainer(
+    data: HomeData.ColorSchemeSelectedSwatchData?,
+    navBarAppearanceController: NavBarAppearanceController,
+) {
+    var showSelectedSwatchDetailsDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(data) {
+        if (data != null) {
+            showSelectedSwatchDetailsDialog = true
+        }
+    }
+    if (showSelectedSwatchDetailsDialog) {
+        @Suppress("NAME_SHADOWING")
+        val data = requireNotNull(data)
+        SelectedSwatchDetailsDialog(
+            viewModel = data.colorDetailsViewModel,
+            navBarAppearanceController = navBarAppearanceController,
+            onDismissRequest = {
+                showSelectedSwatchDetailsDialog = false
+                data.discard()
+            },
+        )
+    }
 }
 
 private class ColorCenterLifecycleObserver(

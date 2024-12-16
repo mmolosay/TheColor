@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.scheme
+package io.github.mmolosay.thecolor.presentation.home
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -18,8 +18,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.api.ColorInt
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.navBarAppearance
 import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearanceController
+import io.github.mmolosay.thecolor.presentation.api.nav.bar.navBarAppearance
 import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
@@ -42,24 +42,24 @@ import io.github.mmolosay.thecolor.utils.doNothing
 @Composable
 internal fun SelectedSwatchDetailsDialog(
     viewModel: ColorDetailsViewModel,
-    colorSchemeUiData: ColorSchemeUiData,
     navBarAppearanceController: NavBarAppearanceController,
+    onDismissRequest: () -> Unit,
 ) {
     SelectedSwatchDetailsDialog(
-        onDismissRequest = colorSchemeUiData.onSelectedSwatchDetailsDialogDismissRequest,
         seedData = viewModel.currentSeedDataFlow.collectAsStateWithLifecycle().value ?: return,
         colorDetailsDataState = viewModel.dataStateFlow.collectAsStateWithLifecycle().value,
         navBarAppearanceController = navBarAppearanceController,
+        onDismissRequest = onDismissRequest,
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SelectedSwatchDetailsDialog(
-    onDismissRequest: () -> Unit,
     seedData: ColorDetailsSeedData,
     colorDetailsDataState: ColorDetailsViewModel.DataState,
     navBarAppearanceController: NavBarAppearanceController,
+    onDismissRequest: () -> Unit,
 ) {
     val surfaceColor = ColorDetailsOnTintedSurfaceDefaults.surfaceColor(seedData)
     val colorsOnTintedSurface = ColorDetailsOnTintedSurfaceDefaults.colorsOnTintedSurface(seedData)

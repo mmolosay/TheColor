@@ -47,7 +47,6 @@ dependencies {
     implementation(project(":presentation:common:impl"))
     implementation(project(":presentation:design-system"))
     implementation(project(":presentation:errors"))
-    implementation(project(":presentation:color-details"))
 
     // Kotlin
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.coroutines.get()}")

@@ -8,9 +8,7 @@ import io.github.mmolosay.thecolor.domain.model.ColorScheme.Mode as DomainMode
  */
 data class ColorSchemeData(
     val swatches: List<Swatch>,
-    val onSwatchSelect: (index: Int) -> Unit,
-    val onSelectedSwatchDismiss: () -> Unit,
-    val isAnySwatchSelected: Boolean,
+    val onSwatchSelect: (indexOfSwatch: Int) -> Unit,
     val activeMode: DomainMode,
     val selectedMode: DomainMode,
     val onModeSelect: (DomainMode) -> Unit,

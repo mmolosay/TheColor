@@ -57,8 +57,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearanceController
 import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
@@ -76,45 +74,7 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.Data
 
 @Composable
 fun ColorScheme(
-    viewModel: ColorSchemeViewModel,
-    navBarAppearanceController: NavBarAppearanceController,
-) {
-    val state = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
-    ColorScheme(
-        state = state,
-        viewModel = viewModel,
-        navBarAppearanceController = navBarAppearanceController,
-    )
-}
-
-@Composable
-fun ColorScheme(
     state: DataState,
-    viewModel: ColorSchemeViewModel,
-    navBarAppearanceController: NavBarAppearanceController,
-) {
-    ColorScheme(
-        state = state,
-        selectedSwatchDetails = { colorSchemeUiData ->
-            val childController = remember(navBarAppearanceController) {
-                val tag = "SelectedSwatchDetailsDialog"
-                navBarAppearanceController.branch(tag)
-            }
-            if (colorSchemeUiData.showSelectedSwatchDetailsDialog) {
-                SelectedSwatchDetailsDialog(
-                    viewModel = viewModel.selectedSwatchDetailsViewModel,
-                    colorSchemeUiData = colorSchemeUiData,
-                    navBarAppearanceController = childController,
-                )
-            }
-        },
-    )
-}
-
-@Composable
-fun ColorScheme(
-    state: DataState,
-    selectedSwatchDetails: @Composable (ColorSchemeUiData) -> Unit,
 ) {
     val context = LocalContext.current
     val strings = remember(context) { ColorSchemeUiStrings(context) }
@@ -124,10 +84,12 @@ fun ColorScheme(
         is DataState.Loading ->
             ColorSchemeLoading()
         is DataState.Ready -> {
-            val uiData = ColorSchemeUiData(state.data, strings)
+            val uiData = ColorSchemeUiData(
+                data = state.data,
+                strings = strings,
+            )
             ColorScheme(
                 uiData = uiData,
-                selectedSwatchDetails = selectedSwatchDetails,
             )
         }
         is DataState.Error ->
@@ -138,7 +100,6 @@ fun ColorScheme(
 @Composable
 fun ColorScheme(
     uiData: ColorSchemeUiData,
-    selectedSwatchDetails: @Composable (ColorSchemeUiData) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -160,8 +121,6 @@ fun ColorScheme(
             modifier = Modifier.align(Alignment.End),
         )
     }
-
-    selectedSwatchDetails(uiData)
 }
 
 @Composable
@@ -443,7 +402,6 @@ private fun PreviewLight() {
         ProvideColorsOnTintedSurface(colors) {
             ColorScheme(
                 uiData = previewUiData(),
-                selectedSwatchDetails = {},
                 modifier = Modifier.background(Color(0xFF_123123)),
             )
         }
@@ -458,7 +416,6 @@ private fun PreviewDark() {
         ProvideColorsOnTintedSurface(colors) {
             ColorScheme(
                 uiData = previewUiData(),
-                selectedSwatchDetails = {},
                 modifier = Modifier.background(Color(0xFF_F0F8FF)),
             )
         }
@@ -545,6 +502,4 @@ private fun previewUiData() =
             text = "Apply changes",
             onClick = {},
         ),
-        showSelectedSwatchDetailsDialog = false,
-        onSelectedSwatchDetailsDialogDismissRequest = {},
     )
