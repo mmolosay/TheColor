@@ -255,7 +255,7 @@ class HomeViewModel @Inject constructor(
                 val commandStore = colorCenterComponentsFlow.value
                     ?.selectedSwatchColorDetailsCommandStore
                     ?: return
-                commandStore.issue(command)
+                commandStore.issue(command) // TODO: this piece of code is hard to test; refactor HomeViewModel?
 
                 val selectedSwatchColorDetailsViewModel = colorCenterComponentsFlow.value
                     ?.selectedSwatchColorDetailsViewModel

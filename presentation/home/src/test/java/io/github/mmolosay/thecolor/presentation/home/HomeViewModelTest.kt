@@ -26,6 +26,7 @@ import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommandStore
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEventStore
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
@@ -566,6 +567,26 @@ class HomeViewModelTest {
             val proceedResultAsSuccess =
                 data.proceedResult.shouldBeInstanceOf<ProceedResult.Success>()
             proceedResultAsSuccess.colorData shouldBe colorData
+        }
+
+    @Test
+    fun `when receiving a 'SwatchSelected' event from Color Scheme, then 'color scheme selected swatch data' is set`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
+            every { colorInputEventStore.eventFlow } returns emptyFlow()
+            every { colorDetailsEventStore.eventFlow } returns emptyFlow()
+            val eventsFlow = MutableSharedFlow<ColorSchemeEvent>()
+            every { colorSchemeEventStore.eventFlow } returns eventsFlow
+            val colorData: ProceedResult.Success.ColorData = mockk()
+            every { createColorData(color = any()) } returns colorData
+            createSut()
+            // we know from other tests that it would be 'CanProceed.Yes'
+            data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
+
+            val event: ColorSchemeEvent.SwatchSelected = mockk(relaxed = true)
+            eventsFlow.emit(event)
+
+            data.colorSchemeSelectedSwatchData shouldNotBe null // assuming initially value is 'null'
         }
 
     @Test
