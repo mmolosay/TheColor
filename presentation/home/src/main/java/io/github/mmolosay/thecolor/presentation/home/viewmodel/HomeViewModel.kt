@@ -16,8 +16,6 @@ import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCommand
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCommandStore
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsEvent
-import io.github.mmolosay.thecolor.presentation.details.ColorDetailsEventStore
-import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.details.ColorRole
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.CanProceed
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ColorSchemeSelectedSwatchData
@@ -31,11 +29,8 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommand
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommandStore
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEventStore
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
 import io.github.mmolosay.thecolor.utils.doNothing
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -50,7 +45,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Named
-import javax.inject.Provider
 import javax.inject.Singleton
 
 /**
@@ -64,16 +58,10 @@ import javax.inject.Singleton
 class HomeViewModel @Inject constructor(
     colorInputMediatorFactory: ColorInputMediator.Factory,
     colorInputViewModelFactory: ColorInputViewModel.Factory,
-    colorPreviewViewModelFactory: ColorPreviewViewModel.Factory,
-    private val colorCenterViewModelFactory: ColorCenterViewModel.Factory,
     private val colorInputColorStore: ColorInputColorStore,
     private val colorInputEventStore: ColorInputEventStore,
-    private val colorDetailsViewModelFactory: ColorDetailsViewModel.Factory,
-    private val colorDetailsCommandStoreProvider: Provider<ColorDetailsCommandStore>,
-    private val colorDetailsEventStoreProvider: Provider<ColorDetailsEventStore>,
-    private val colorSchemeViewModelFactory: ColorSchemeViewModel.Factory,
-    private val colorSchemeCommandStoreProvider: Provider<ColorSchemeCommandStore>,
-    private val colorSchemeEventStoreProvider: Provider<ColorSchemeEventStore>,
+    colorPreviewViewModelFactory: ColorPreviewViewModel.Factory,
+    colorCenterComponentsStoreFactory: ColorCenterComponentsStore.Factory,
     private val proceedExecutorFactory: ProceedExecutor.Factory,
     private val createColorData: CreateColorDataUseCase,
     private val colorCenterSessionBuilder: ColorCenterSessionBuilder,
@@ -108,9 +96,13 @@ class HomeViewModel @Inject constructor(
             colorFlow = colorInputColorStore.colorFlow,
         )
 
-    private val colorCenterComponentsFlow = MutableStateFlow<ColorCenterComponents?>(null)
+    private val colorCenterComponentsStore: ColorCenterComponentsStore =
+        colorCenterComponentsStoreFactory.create(
+            viewModelScope = viewModelScope,
+        )
+
     val colorCenterViewModelFlow: StateFlow<ColorCenterViewModel?> =
-        colorCenterComponentsFlow
+        colorCenterComponentsStore.componentsFlow
             .map { it?.colorCenterViewModel }
             .stateIn(
                 scope = viewModelScope,
@@ -195,7 +187,7 @@ class HomeViewModel @Inject constructor(
 
     private fun collectColorCenterComponents() =
         viewModelScope.launch(defaultDispatcher) {
-            colorCenterComponentsFlow.collect { components ->
+            colorCenterComponentsStore.componentsFlow.collect { components ->
                 /*
                  * Subscribe to new dependencies once new Color Center is created.
                  * Launch collection coroutines from Color Center coroutine scope,
@@ -252,12 +244,12 @@ class HomeViewModel @Inject constructor(
                 val command = ColorDetailsCommand.SetColorDetails(
                     domainDetails = event.swatchColorDetails,
                 )
-                val commandStore = colorCenterComponentsFlow.value
+                val commandStore = colorCenterComponentsStore.components
                     ?.selectedSwatchColorDetailsCommandStore
                     ?: return
                 commandStore.issue(command) // TODO: this piece of code is hard to test; refactor HomeViewModel?
 
-                val selectedSwatchColorDetailsViewModel = colorCenterComponentsFlow.value
+                val selectedSwatchColorDetailsViewModel = colorCenterComponentsStore.components
                     ?.selectedSwatchColorDetailsViewModel
                     ?: return
                 _dataFlow.update {
@@ -274,7 +266,7 @@ class HomeViewModel @Inject constructor(
     private suspend fun onEventFromColorDetailsOfSelectedSwatch(event: ColorDetailsEvent) {
         when (event) {
             is ColorDetailsEvent.ColorSelected -> {
-                val commandStore = colorCenterComponentsFlow.value
+                val commandStore = colorCenterComponentsStore.components
                     ?.selectedSwatchColorDetailsCommandStore
                     ?: return
                 val command = ColorDetailsCommand.FetchData(
@@ -398,7 +390,8 @@ class HomeViewModel @Inject constructor(
     private fun onColorCenterSessionStarted(seed: Color) {
         colorCenterSessionBuilder.seed(seed)
         // recreate Color Center ViewModel (and its sub-feature ViewModels) to reset their states
-        colorCenterComponentsFlow.value = ColorCenterComponents()
+        println("PRIVET, creating components due to color session start") // TODO: remove
+        colorCenterComponentsStore.createNewComponents()
         kotlin.run setProcessor@{
             val currentProcessor = dataFetchedEventProcessor // capture in closure
             // implementation of a "Composite" design pattern
@@ -417,10 +410,8 @@ class HomeViewModel @Inject constructor(
         colorCenterSession = null
         colorCenterSessionBuilder.clear()
         dataFetchedEventProcessor = initialDataFetchedEventProcessor()
-        run disposeAndSetNull@{
-            colorCenterComponentsFlow.value?.colorCenterViewModel?.dispose()
-            colorCenterComponentsFlow.value = null
-        }
+        println("PRIVET, disposing components due to color session end") // TODO: remove
+        colorCenterComponentsStore.disposeComponents()
     }
 
     private suspend fun updateColorInColorInput(
@@ -429,49 +420,6 @@ class HomeViewModel @Inject constructor(
         withContext(uiDataUpdateDispatcher) {
             colorInputMediator.send(color = color, from = null)
         }
-    }
-
-    private fun ColorCenterComponents(): ColorCenterComponents {
-        val colorCenterViewModelCoroutineScope = ViewModelCoroutineScope(parent = viewModelScope)
-        val colorDetailsCommandStore = colorDetailsCommandStoreProvider.get()
-        val colorDetailsEventStore = colorDetailsEventStoreProvider.get()
-        val colorDetailsViewModel = colorDetailsViewModelFactory.create(
-            coroutineScope = ViewModelCoroutineScope(parent = colorCenterViewModelCoroutineScope),
-            colorDetailsCommandProvider = colorDetailsCommandStore,
-            colorDetailsEventStore = colorDetailsEventStore,
-        )
-        val colorSchemeViewModelCoroutineScope =
-            ViewModelCoroutineScope(parent = colorCenterViewModelCoroutineScope)
-        val colorSchemeCommandStore = colorSchemeCommandStoreProvider.get()
-        val colorSchemeEventStore = colorSchemeEventStoreProvider.get()
-        val colorSchemeViewModel = colorSchemeViewModelFactory.create(
-            coroutineScope = colorSchemeViewModelCoroutineScope,
-            colorSchemeCommandProvider = colorSchemeCommandStore,
-            colorSchemeEventStore = colorSchemeEventStore,
-        )
-        val colorCenterViewModel = colorCenterViewModelFactory.create(
-            coroutineScope = colorCenterViewModelCoroutineScope,
-            colorDetailsViewModel = colorDetailsViewModel,
-            colorSchemeViewModel = colorSchemeViewModel,
-        )
-        val selectedSwatchColorDetailsCommandStore = colorDetailsCommandStoreProvider.get()
-        val selectedSwatchColorDetailsEventStore = colorDetailsEventStoreProvider.get()
-        val selectedSwatchColorDetailsViewModel = colorDetailsViewModelFactory.create(
-            coroutineScope = ViewModelCoroutineScope(parent = colorSchemeViewModelCoroutineScope),
-            colorDetailsCommandProvider = selectedSwatchColorDetailsCommandStore,
-            colorDetailsEventStore = selectedSwatchColorDetailsEventStore,
-        )
-        return ColorCenterComponents(
-            colorCenterViewModel = colorCenterViewModel,
-            colorCenterCoroutineScope = colorCenterViewModelCoroutineScope,
-            colorDetailsCommandStore = colorDetailsCommandStore,
-            colorDetailsEventStore = colorDetailsEventStore,
-            colorSchemeCommandStore = colorSchemeCommandStore,
-            colorSchemeEventStore = colorSchemeEventStore,
-            selectedSwatchColorDetailsViewModel = selectedSwatchColorDetailsViewModel,
-            selectedSwatchColorDetailsCommandStore = selectedSwatchColorDetailsCommandStore,
-            selectedSwatchColorDetailsEventStore = selectedSwatchColorDetailsEventStore,
-        )
     }
 
     /**
@@ -531,23 +479,6 @@ class CreateColorDataUseCase @Inject constructor(
             isDark = with(isColorLight) { color.isLight().not() },
         )
 }
-
-/**
- * A [ColorCenterViewModel] with the dependencies that it needs to be created via factory.
- * Once old [ColorCenterViewModel] is no longer needed, it will be disposed.
- * New components (and thus new ViewModel) will be created and used.
- */
-private data class ColorCenterComponents(
-    val colorCenterViewModel: ColorCenterViewModel,
-    val colorCenterCoroutineScope: CoroutineScope,
-    val colorDetailsCommandStore: ColorDetailsCommandStore,
-    val colorDetailsEventStore: ColorDetailsEventStore,
-    val colorSchemeCommandStore: ColorSchemeCommandStore,
-    val colorSchemeEventStore: ColorSchemeEventStore,
-    val selectedSwatchColorDetailsViewModel: ColorDetailsViewModel,
-    val selectedSwatchColorDetailsCommandStore: ColorDetailsCommandStore,
-    val selectedSwatchColorDetailsEventStore: ColorDetailsEventStore,
-)
 
 /**
  * Specifies the way of processing (handling, reacting to) a [ColorDetailsEvent.DataFetched] event.
