@@ -30,6 +30,7 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommand
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommandStore
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
 import io.github.mmolosay.thecolor.utils.doNothing
+import io.github.mmolosay.thecolor.utils.firstWithTimeout
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -46,6 +47,7 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * A [ViewModel] for 'Home' View.
@@ -322,7 +324,9 @@ class HomeViewModel @Inject constructor(
                 onColorCenterSessionStarted(color)
             }
             kotlin.run invokeProceedExecutor@{
-                val proceed = proceedExecutorFlow.filterNotNull().first()
+                val proceed = proceedExecutorFlow
+                    .filterNotNull()
+                    .firstWithTimeout(50.milliseconds) // throw explicit exception if 'ProceedExecutor' is not present
                 proceed(
                     color = color,
                     colorRole = colorRole,
