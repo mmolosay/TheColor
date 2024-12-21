@@ -51,7 +51,6 @@ class ColorSchemeViewModel @AssistedInject constructor(
 ) : SimpleViewModel(coroutineScope) {
 
     private var lastUsedSeed: Color? = null
-    // TODO: refactor, ugly solution
     private var lastDomainColorScheme: DomainColorScheme? = null
 
     private val _statefulDataFlow = MutableStateFlow(initialStatefulData())
