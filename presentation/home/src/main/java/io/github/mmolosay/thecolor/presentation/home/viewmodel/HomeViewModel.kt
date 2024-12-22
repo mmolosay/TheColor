@@ -30,7 +30,7 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommand
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommandStore
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
 import io.github.mmolosay.thecolor.utils.doNothing
-import io.github.mmolosay.thecolor.utils.firstWithTimeout
+import io.github.mmolosay.thecolor.utils.firstPronto
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -43,11 +43,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
-import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * A [ViewModel] for 'Home' View.
@@ -119,6 +120,7 @@ class HomeViewModel @Inject constructor(
      */
     private var proceedExecutorFlow = MutableStateFlow<ProceedExecutor?>(null)
     private var colorCenterSession: ColorCenterSession? = null
+    private var orchestrator = Orchestrator()
     private var dataFetchedEventProcessor: DataFetchedEventProcessor? = initialDataFetchedEventProcessor()
 
     init {
@@ -135,20 +137,24 @@ class HomeViewModel @Inject constructor(
                 .collect(::onColorFromColorInput)
         }
 
-    private fun onColorFromColorInput(color: Color?) {
-        val session = colorCenterSession
-        if (session != null && color != null &&
-            with(doesColorBelongToSession) { color doesBelongTo session }
-        ) {
-            return // ignore re-emitted color or colors that are part of ongoing session
+    private suspend fun onColorFromColorInput(color: Color?) {
+        orchestrator.colorInputMutex.withLock {
+            val session = colorCenterSession
+            if (session != null && color != null &&
+                with(doesColorBelongToSession) { color doesBelongTo session }
+            ) {
+                return // ignore re-emitted color or colors that are part of ongoing session
+            }
+
+            _dataFlow.update {
+                it.copy(
+                    canProceed = CanProceed(colorFromColorInput = color),
+                    proceedResult = null, // 'proceed' wasn't invoked for new color yet
+                )
+            }
+            onColorCenterSessionEnded()
+            orchestrator.onColorProcessedFromColorInput(color)
         }
-        _dataFlow.update {
-            it.copy(
-                canProceed = CanProceed(colorFromColorInput = color),
-                proceedResult = null, // 'proceed' wasn't invoked for new color yet
-            )
-        }
-        onColorCenterSessionEnded()
     }
 
     private fun collectEventsFromColorInput() =
@@ -170,11 +176,13 @@ class HomeViewModel @Inject constructor(
         colorInputState: ColorInputState,
     ): Boolean {
         if (colorInputState is ColorInputState.Valid) {
-            proceed(
-                color = colorInputState.color,
-                colorRole = null,
-                isNewColorCenterSession = true,
-            )
+            viewModelScope.launch(defaultDispatcher) {
+                proceed(
+                    color = colorInputState.color,
+                    colorRole = null,
+                    isNewColorCenterSession = true,
+                )
+            }
             return true
         } else {
             _dataFlow.update {
@@ -230,7 +238,7 @@ class HomeViewModel @Inject constructor(
                 dataFetchedEventProcessor?.process(event)
             }
             is ColorDetailsEvent.ColorSelected -> {
-                updateColorInColorInput(color = event.color)
+                sendColorToColorInput(color = event.color)
                 proceed(
                     color = event.color,
                     colorRole = event.colorRole,
@@ -290,7 +298,7 @@ class HomeViewModel @Inject constructor(
             if (!enabled) return@launch
             val lastSearchedColor =
                 lastSearchedColorRepository.getLastSearchedColor() ?: return@launch
-            updateColorInColorInput(color = lastSearchedColor)
+            sendColorToColorInput(color = lastSearchedColor)
             proceed(
                 color = lastSearchedColor,
                 colorRole = null,
@@ -301,47 +309,50 @@ class HomeViewModel @Inject constructor(
 
     /** Variation that takes current color of Color Input. */
     private fun proceed() {
-        onColorCenterSessionEnded() // end current session (if any)
-        val color = requireNotNull(colorInputColorStore.colorFlow.value)
-        proceed(
-            color = color,
-            colorRole = null, // standalone color (without a role)
-            isNewColorCenterSession = true, // color from Color Input, thus new session
-        )
+        viewModelScope.launch(defaultDispatcher) {
+            onColorCenterSessionEnded() // end current session (if any)
+            val color = requireNotNull(colorInputColorStore.colorFlow.value)
+            proceed(
+                color = color,
+                colorRole = null, // standalone color (without a role)
+                isNewColorCenterSession = true, // color from Color Input, thus new session
+            )
+        }
     }
 
     /**
      * Wraps execution of [ProceedExecutor] in accompanying, ViewModel-specific logic, like managing
      * color center session and updating exposed data.
      */
-    private fun proceed(
+    private suspend fun proceed(
         color: Color,
         colorRole: ColorRole?,
         isNewColorCenterSession: Boolean,
     ) {
-        viewModelScope.launch(defaultDispatcher) {
-            if (isNewColorCenterSession) {
-                onColorCenterSessionStarted(color)
-            }
-            kotlin.run invokeProceedExecutor@{
-                val proceed = proceedExecutorFlow
-                    .filterNotNull()
-                    .firstWithTimeout(50.milliseconds) // throw explicit exception if 'ProceedExecutor' is not present
-                proceed(
-                    color = color,
-                    colorRole = colorRole,
-                )
-            }
-            kotlin.run updateData@{
-                val colorData = createColorData(color)
-                val proceedResult = HomeData.ProceedResult.Success(
-                    colorData = colorData,
-                )
-                _dataFlow.update {
-                    it.copy(proceedResult = proceedResult)
-                }
+        orchestrator.suspendUntilProceedIsAllowed()
+        if (isNewColorCenterSession) {
+            onColorCenterSessionStarted(color)
+        }
+        kotlin.run invokeProceedExecutor@{
+            val proceed = proceedExecutorFlow
+                .filterNotNull()
+                .firstWithTimeout(50.milliseconds) // throw explicit exception if 'ProceedExecutor' is not present
+            proceed(
+                color = color,
+                colorRole = colorRole,
+            )
+        }
+        kotlin.run updateData@{
+            val colorData = createColorData(color)
+            val proceedResult = HomeData.ProceedResult.Success(
+                colorData = colorData,
+            )
+            _dataFlow.update {
+                it.copy(proceedResult = proceedResult)
             }
         }
+
+        println("PRIVET, ${_dataFlow.value}")
     }
 
     private fun setGoToSettingsNavEvent() {
@@ -391,10 +402,10 @@ class HomeViewModel @Inject constructor(
     private fun initialDataFetchedEventProcessor(): DataFetchedEventProcessor? =
         null
 
+    @Synchronized
     private fun onColorCenterSessionStarted(seed: Color) {
         colorCenterSessionBuilder.seed(seed)
         // recreate Color Center ViewModel (and its sub-feature ViewModels) to reset their states
-        println("PRIVET, creating components due to color session start") // TODO: remove
         colorCenterComponentsStore.createNewComponents()
         kotlin.run setProcessor@{
             val currentProcessor = dataFetchedEventProcessor // capture in closure
@@ -410,19 +421,22 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    @Synchronized
     private fun onColorCenterSessionEnded() {
         colorCenterSession = null
         colorCenterSessionBuilder.clear()
         dataFetchedEventProcessor = initialDataFetchedEventProcessor()
-        println("PRIVET, disposing components due to color session end") // TODO: remove
         colorCenterComponentsStore.disposeComponents()
     }
 
-    private suspend fun updateColorInColorInput(
+    private suspend fun sendColorToColorInput(
         color: Color,
     ) {
         withContext(uiDataUpdateDispatcher) {
-            colorInputMediator.send(color = color, from = null)
+            orchestrator.colorInputMutex.withLock {
+                colorInputMediator.send(color = color, from = null)
+                orchestrator.onColorSentToColorInput(color)
+            }
         }
     }
 
@@ -438,6 +452,59 @@ class HomeViewModel @Inject constructor(
                 .relatedColors(relatedColors)
                 .build()
         }
+}
+
+/**
+ * Coordinates different parts of [HomeViewModel] so that they are executed in controlled
+ * manner. Components will wait for the ones they depend on to be executed first.
+ */
+private class Orchestrator {
+
+    private val lastSentColorFlow = MutableStateFlow<SentColor?>(null)
+
+    /*
+     * 1. color is sent to ColorInputMediator
+     * 2. it is reported via 'onColorSentToColorInput()'
+     * 3. color from Color Input is received in 'HomeViewModel.onColorFromColorInput()'
+     * Sometimes step 3 may perform quicker than step 2, thus 'onColorProcessedFromColorInput()'
+     * is called before 'onColorSentToColorInput()'. Mutex helps to mitigate that.
+     */
+    val colorInputMutex = Mutex()
+
+    @Synchronized
+    fun onColorSentToColorInput(color: Color) {
+        lastSentColorFlow.value = SentColor(
+            color = color,
+            wasProcessed = false,
+        )
+    }
+
+    @Synchronized
+    fun onColorProcessedFromColorInput(color: Color?) {
+        val lastSentColor = lastSentColorFlow.value?.color
+        if (lastSentColor == color) {
+            lastSentColorFlow.update {
+                it?.copy(wasProcessed = true)
+            }
+        }
+    }
+
+    suspend fun suspendUntilProceedIsAllowed() {
+        val wasLastColorProcessedAlready = lastSentColorFlow.value?.wasProcessed
+        if (wasLastColorProcessedAlready == true) return // no need to suspend, already allowed
+        lastSentColorFlow
+            .filterNotNull()
+            .first { it.wasProcessed }
+    }
+
+    /**
+     * A [color] that was sent to Color Input mediator.
+     * @param wasProcessed whether this [color] was already processed in [HomeViewModel.onColorFromColorInput].
+     */
+    private data class SentColor(
+        val color: Color,
+        val wasProcessed: Boolean,
+    )
 }
 
 /* private but Dagger */

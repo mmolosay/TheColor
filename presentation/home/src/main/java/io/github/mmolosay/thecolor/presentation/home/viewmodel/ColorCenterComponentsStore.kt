@@ -46,11 +46,6 @@ class ColorCenterComponentsStore @AssistedInject constructor(
         _componentsFlow.value = components
     }
 
-    // TODO: in most cases, dispose will be called first from HomeViewModel. Then create will be called.
-    //  however, in 1 in ~30 cases the order will be reversed. First, components will be created due to
-    //  color session start; then, they will be incorrectly disposed of due to color session end.
-    //  Implement a mechanism that prioritises dispose over create and executes it (dispose) first ALWAYS.
-    //  Enable "resume from last searched color" feature in app settings.
     @Synchronized
     fun disposeComponents() {
         val components = components ?: return
