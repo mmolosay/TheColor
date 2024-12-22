@@ -336,7 +336,7 @@ class HomeViewModel @Inject constructor(
         kotlin.run invokeProceedExecutor@{
             val proceed = proceedExecutorFlow
                 .filterNotNull()
-                .firstWithTimeout(50.milliseconds) // throw explicit exception if 'ProceedExecutor' is not present
+                .firstPronto()
             proceed(
                 color = color,
                 colorRole = colorRole,
