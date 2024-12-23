@@ -23,18 +23,14 @@ class TouchLocalDatabaseUseCaseImpl @Inject constructor(
             val elapsed = measureTime {
                 userPreferences.data.first()
             }
-            Timber
-                .tag(this::class.simpleName.orEmpty())
-                .i("Touching \'User Preferences\' DB took $elapsed.")
+            Timber.i("Touching \'User Preferences\' DB took $elapsed.")
         }
         // second and subsequent accesses to DataStore don't seem to be as effective as the first one
         kotlin.run {
             val elapsed = measureTime {
                 miscValues.data.first()
             }
-            Timber
-                .tag(this::class.simpleName.orEmpty())
-                .i("Touching \'Misc Values\' DB took $elapsed.")
+            Timber.i("Touching \'Misc Values\' DB took $elapsed.")
         }
     }
 }
