@@ -3,9 +3,7 @@ package io.github.mmolosay.thecolor.data.local
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import io.github.mmolosay.thecolor.domain.usecase.TouchLocalDatabaseUseCase
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Named
