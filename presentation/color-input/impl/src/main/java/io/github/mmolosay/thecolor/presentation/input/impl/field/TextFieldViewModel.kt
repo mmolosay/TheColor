@@ -12,12 +12,13 @@ import io.github.mmolosay.thecolor.presentation.input.impl.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.impl.model.map
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import javax.inject.Named
 
@@ -37,6 +38,7 @@ class TextFieldViewModel @AssistedInject constructor(
     @Named("uiDataUpdateDispatcher") private val uiDataUpdateDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
+    private val dataUpdateMutex = Mutex()
     private val _dataUpdatesFlow = MutableStateFlow<Update<TextFieldData>?>(null)
     val dataUpdatesFlow = _dataUpdatesFlow.asStateFlow()
 
@@ -58,18 +60,31 @@ class TextFieldViewModel @AssistedInject constructor(
     }
 
     fun updateText(update: Update<Text>) {
-        coroutineScope.launch(uiDataUpdateDispatcher) {
-            _dataUpdatesFlow.update {
-                val text = update.payload
-                val newData = if (it == null) {
-                    withContext(defaultDispatcher) {
-                        makeInitialData(text)
+        coroutineScope.launch(defaultDispatcher) {
+            /*
+             * MutableStateFlow.update() is NOT fair. If we:
+             * 1. call update() that will return X
+             * 2. call update() that will return Y
+             * So may happen that second update() finishes first, and flow will emit [Y, X]
+             * instead of [X, Y], which is expected according to the order of calling update()s.
+             * We need a mutex (which is fair) to prevent other coroutines from entering update()
+             * and thus potentially messing up the order of emissions.
+             */
+            dataUpdateMutex.withLock {
+                withContext(uiDataUpdateDispatcher) {
+                    _dataUpdatesFlow.update {
+                        val text = update.payload
+                        val newData = if (it == null) {
+                            withContext(defaultDispatcher) {
+                                makeInitialData(text)
+                            }
+                        } else {
+                            val oldData = it.payload
+                            oldData.smartCopy(text)
+                        }
+                        newData causedByUser update.causedByUser
                     }
-                } else {
-                    val oldData = it.payload
-                    oldData.smartCopy(text)
                 }
-                newData causedByUser update.causedByUser
             }
         }
     }

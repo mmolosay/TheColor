@@ -298,10 +298,6 @@ class HomeViewModel @Inject constructor(
             if (!enabled) return@launch
             val lastSearchedColor =
                 lastSearchedColorRepository.getLastSearchedColor() ?: return@launch
-            /*
-             * TODO: there's a rare bug on app startup with "resume from last searched color" feature
-             *  enabled. Color Input doesn't get populated with last searched color.
-             */
             sendColorToColorInput(color = lastSearchedColor)
             proceed(
                 color = lastSearchedColor,

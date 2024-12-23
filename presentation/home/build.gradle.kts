@@ -82,6 +82,7 @@ dependencies {
     kapt("com.google.dagger:hilt-compiler:${libs.versions.hilt.get()}")
 
     // Misc (preserve alphabetical order)
+    implementation("com.jakewharton.timber:timber:${libs.versions.jakewhartonTimber.get()}")
     implementation("io.github.mmolosay:debounce:${libs.versions.mmolosayDebounce.get()}")
 
     // Testing
