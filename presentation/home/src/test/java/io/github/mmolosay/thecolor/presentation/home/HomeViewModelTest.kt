@@ -7,6 +7,7 @@ import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.domain.usecase.ColorComparator
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCommand
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCommandStore
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsEvent
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsEventStore
@@ -21,6 +22,7 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.CanProce
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ProceedExecutor
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.components
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
@@ -32,12 +34,12 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEventStore
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
 import io.kotest.assertions.throwables.shouldNotThrowAny
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
 import io.kotest.matchers.types.shouldBeInstanceOf
-import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -606,6 +608,31 @@ class HomeViewModelTest {
             eventsFlow.emit(event)
 
             data.colorSchemeSelectedSwatchData shouldNotBe null // assuming initially value is 'null'
+        }
+
+    @Test
+    fun `when receiving a 'SwatchSelected' event from Color Scheme, then command is sent to 'selected swatch color details'`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
+            every { colorInputEventStore.eventFlow } returns emptyFlow()
+            every { colorDetailsEventStore.eventFlow } returns emptyFlow()
+            val eventsFlow = MutableSharedFlow<ColorSchemeEvent>()
+            every { colorSchemeEventStore.eventFlow } returns eventsFlow
+            val colorData: ProceedResult.Success.ColorData = mockk()
+            every { createColorData(color = any()) } returns colorData
+            createSut()
+            // we know from other tests that it would be 'CanProceed.Yes'
+            data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
+
+            val event: ColorSchemeEvent.SwatchSelected = mockk(relaxed = true)
+            eventsFlow.emit(event)
+
+            coEvery {
+                val commandStore = colorCenterComponentsStore.components
+                    ?.selectedSwatchColorDetailsCommandStore
+                    .shouldNotBeNull()
+                commandStore.issue(command = any<ColorDetailsCommand.SetColorDetails>())
+            }
         }
 
     @Test
