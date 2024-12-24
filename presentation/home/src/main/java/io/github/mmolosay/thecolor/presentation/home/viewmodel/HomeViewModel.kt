@@ -492,10 +492,14 @@ private class Orchestrator {
     }
 
     suspend fun suspendUntilProceedIsAllowed() {
-        val hasNotSentAnyColorYet = (lastSentColorFlow.value == null)
-        if (hasNotSentAnyColorYet) return // no need to suspend, no sent color to be proceeded
-        val wasLastColorProcessedAlready = lastSentColorFlow.value?.wasProcessed
-        if (wasLastColorProcessedAlready == true) return // no need to suspend, already allowed
+        suspendUntilAllSentColorsAreProcessed()
+    }
+
+    private suspend fun suspendUntilAllSentColorsAreProcessed() {
+        val hasNotSentAnyColorsYet = (lastSentColorFlow.value == null)
+        if (hasNotSentAnyColorsYet) return
+        val hasProcessedAllSentColorsAlready = (lastSentColorFlow.value?.wasProcessed == true)
+        if (hasProcessedAllSentColorsAlready) return
         lastSentColorFlow
             .filterNotNull()
             .first { it.wasProcessed }
