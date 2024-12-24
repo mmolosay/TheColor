@@ -73,11 +73,16 @@ internal object UiComponents {
                     },
                 value = value,
                 onValueChange = { new ->
-                    // can't just pass new.text to ViewModel for filtering: TextFieldValue.selection will be lost
-                    val filteredText = filterUserInput(new.text)
-                    val filteredValue = new.copy(text = filteredText.string)
-                    onValueChange(filteredValue)
-                    onTextChange(filteredText)
+                    val current = value
+                    if (current.text != new.text) {
+                        // can't just pass new.text to ViewModel for filtering: TextFieldValue.selection will be lost
+                        val filteredText = filterUserInput(new.text)
+                        val filteredValue = new.copy(text = filteredText.string)
+                        onValueChange(filteredValue)
+                        onTextChange(filteredText)
+                    } else {
+                        onValueChange(new)
+                    }
                 },
                 textStyle = LocalTextStyle.current.copy(fontFamily = FontFamily.SansSerif),
                 label = { Label(label) },

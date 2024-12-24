@@ -7,11 +7,13 @@ import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.domain.usecase.ColorComparator
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCommand
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCommandStore
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsEvent
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsEventStore
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.details.ColorRole
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterComponentsStore
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterSessionBuilder
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.CreateColorDataUseCase
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.DoesColorBelongToSessionUseCase
@@ -20,6 +22,7 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.CanProce
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ProceedExecutor
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.components
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
@@ -31,12 +34,12 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEventStore
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
 import io.github.mmolosay.thecolor.testing.MainDispatcherRule
 import io.kotest.assertions.throwables.shouldNotThrowAny
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
 import io.kotest.matchers.types.shouldBeInstanceOf
-import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -51,6 +54,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -64,17 +68,9 @@ class HomeViewModelTest {
 
     val colorInputMediator: ColorInputMediator = mockk(relaxed = true)
     val colorCenterViewModel: ColorCenterViewModel = mockk(relaxed = true)
-    val colorCenterViewModelFactory: ColorCenterViewModel.Factory = mockk {
-        every {
-            create(
-                coroutineScope = any(),
-                colorDetailsViewModel = any(),
-                colorSchemeViewModel = any(),
-            )
-        } returns colorCenterViewModel
-    }
     val colorInputColorStore: ColorInputColorStore = mockk()
     val colorInputEventStore: ColorInputEventStore = mockk()
+
     val colorDetailsViewModel: ColorDetailsViewModel = mockk(relaxed = true)
     val colorDetailsCommandStore: ColorDetailsCommandStore = mockk {
         coEvery { issue(command = any()) } just runs
@@ -97,6 +93,16 @@ class HomeViewModelTest {
     val colorSchemeEventStoreProvider: Provider<ColorSchemeEventStore> = mockk {
         every { get() } returns colorSchemeEventStore
     }
+    val colorCenterComponentsStore = ColorCenterComponentsStore(
+        viewModelScope = TestScope(mainDispatcherRule.testDispatcher),
+        colorDetailsCommandStoreProvider = colorDetailsCommandStoreProvider,
+        colorDetailsEventStoreProvider = colorDetailsEventStoreProvider,
+        colorDetailsViewModelFactory = { _, _, _ -> colorDetailsViewModel },
+        colorSchemeCommandStoreProvider = colorSchemeCommandStoreProvider,
+        colorSchemeEventStoreProvider = colorSchemeEventStoreProvider,
+        colorSchemeViewModelFactory = { _, _, _ -> colorSchemeViewModel },
+        colorCenterViewModelFactory = { _, _, _ -> colorCenterViewModel },
+    )
     val proceedExecutor: ProceedExecutor = mockk {
         coEvery { this@mockk.invoke(color = any(), colorRole = any()) } just runs
     }
@@ -463,7 +469,13 @@ class HomeViewModelTest {
     @Test
     fun `when receiving a 'ExactColorSelected' event from Color Details, 'proceed executor' is invoked`() =
         runTest(mainDispatcherRule.testDispatcher) {
-            every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
+            val colorInputColorFlow = MutableStateFlow(value = mockk<Color>())
+            coEvery {
+                colorInputMediator.send(color = any(), from = any())
+            } coAnswers  {
+                colorInputColorFlow.emit(value = firstArg())
+            }
+            every { colorInputColorStore.colorFlow } returns colorInputColorFlow
             every { colorInputEventStore.eventFlow } returns emptyFlow()
             val eventsFlow = MutableSharedFlow<ColorDetailsEvent>()
             every { colorDetailsEventStore.eventFlow } returns eventsFlow
@@ -472,8 +484,17 @@ class HomeViewModelTest {
             createSut()
             // we know from other tests that it would be 'CanProceed.Yes'
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
-
             val exactColor = Color.Hex(0x123456)
+            run emitDataFetchedEvent@{
+                val domainDetails: DomainColorDetails = mockk(relaxed = true) {
+                    every { exact } returns mockk {
+                        every { color } returns exactColor
+                    }
+                }
+                val event = ColorDetailsEvent.DataFetched(domainDetails)
+                eventsFlow.emit(event)
+            }
+
             val event = ColorDetailsEvent.ColorSelected(
                 color = exactColor,
                 colorRole = ColorRole.Exact,
@@ -590,6 +611,31 @@ class HomeViewModelTest {
         }
 
     @Test
+    fun `when receiving a 'SwatchSelected' event from Color Scheme, then command is sent to 'selected swatch color details'`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
+            every { colorInputEventStore.eventFlow } returns emptyFlow()
+            every { colorDetailsEventStore.eventFlow } returns emptyFlow()
+            val eventsFlow = MutableSharedFlow<ColorSchemeEvent>()
+            every { colorSchemeEventStore.eventFlow } returns eventsFlow
+            val colorData: ProceedResult.Success.ColorData = mockk()
+            every { createColorData(color = any()) } returns colorData
+            createSut()
+            // we know from other tests that it would be 'CanProceed.Yes'
+            data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
+
+            val event: ColorSchemeEvent.SwatchSelected = mockk(relaxed = true)
+            eventsFlow.emit(event)
+
+            coEvery {
+                val commandStore = colorCenterComponentsStore.components
+                    ?.selectedSwatchColorDetailsCommandStore
+                    .shouldNotBeNull()
+                commandStore.issue(command = any<ColorDetailsCommand.SetColorDetails>())
+            }
+        }
+
+    @Test
     fun `when receiving 'null' color from Color Input after 'proceed' was invoked, then 'proceedResult' is cleared`() {
         val initialColor = Color.Hex(0x0)
         val colorFlow = MutableStateFlow<Color?>(initialColor)
@@ -623,57 +669,6 @@ class HomeViewModelTest {
         colorFlow.value = Color.Hex(0x1)
 
         data.proceedResult shouldBe null
-    }
-
-    @Test
-    fun `when 'proceed' is invoked for second color, then 'ColorCenterViewModel' is recreated to reset its state`() {
-        val firstColor = Color.Hex(0x0)
-        val colorFlow = MutableStateFlow(firstColor)
-        every { colorInputColorStore.colorFlow } returns colorFlow
-        every { colorInputEventStore.eventFlow } returns emptyFlow()
-        every { colorDetailsEventStore.eventFlow } returns emptyFlow()
-        every { colorSchemeEventStore.eventFlow } returns emptyFlow()
-        every { createColorData(color = any()) } returns mockk()
-        createSut()
-        // we know from other tests that it would be 'CanProceed.Yes'
-        data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed() // proceed with first color
-        val secondColor = Color.Hex(0x1)
-        colorFlow.value = secondColor
-        clearMocks(
-            colorDetailsCommandStoreProvider,
-            colorDetailsEventStoreProvider,
-            colorSchemeCommandStoreProvider,
-            colorSchemeEventStoreProvider,
-            colorCenterViewModelFactory,
-            proceedExecutorFactory,
-            answers = false,
-            recordedCalls = true, // only clear recorded calls
-            childMocks = false,
-            verificationMarks = false,
-            exclusionRules = false,
-        )
-
-        data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed() // proceed with second color
-
-        // 1st time for 'Color Details' of 'Color Center'
-        // 2nd time for 'Color Details' of "selected swatch color details"
-        coVerify(exactly = 2) {
-            colorDetailsCommandStoreProvider.get()
-            colorDetailsEventStoreProvider.get()
-        }
-        coVerify(exactly = 1) {
-            colorSchemeCommandStoreProvider.get()
-            colorSchemeEventStoreProvider.get()
-            colorCenterViewModelFactory.create(
-                coroutineScope = any(),
-                colorDetailsViewModel = any(),
-                colorSchemeViewModel = any(),
-            )
-            proceedExecutorFactory.create(
-                colorDetailsCommandStore = any(),
-                colorSchemeCommandStore = any(),
-            )
-        }
     }
 
     @Test
@@ -759,7 +754,13 @@ class HomeViewModelTest {
             }
             val lastSearchedColor: Color = Color.Hex(0x1A803F)
             coEvery { lastSearchedColorRepository.getLastSearchedColor() } returns lastSearchedColor
-            every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = null)
+            val colorInputColorFlow = MutableStateFlow<Color?>(null)
+            coEvery {
+                colorInputMediator.send(color = any(), from = any())
+            } coAnswers  {
+                colorInputColorFlow.emit(value = firstArg())
+            }
+            every { colorInputColorStore.colorFlow } returns colorInputColorFlow
             every { colorInputEventStore.eventFlow } returns emptyFlow()
             every { colorDetailsEventStore.eventFlow } returns emptyFlow()
             every { colorSchemeEventStore.eventFlow } returns emptyFlow()
@@ -826,16 +827,10 @@ class HomeViewModelTest {
         HomeViewModel(
             colorInputMediatorFactory = { _ -> colorInputMediator },
             colorInputViewModelFactory = { _, _, _ -> mockk(relaxed = true) },
-            colorPreviewViewModelFactory = { _, _ -> mockk(relaxed = true) },
-            colorCenterViewModelFactory = colorCenterViewModelFactory,
             colorInputColorStore = colorInputColorStore,
             colorInputEventStore = colorInputEventStore,
-            colorDetailsViewModelFactory = { _, _, _ -> colorDetailsViewModel },
-            colorDetailsCommandStoreProvider = colorDetailsCommandStoreProvider,
-            colorDetailsEventStoreProvider = colorDetailsEventStoreProvider,
-            colorSchemeViewModelFactory = { _, _, _ -> colorSchemeViewModel },
-            colorSchemeCommandStoreProvider = colorSchemeCommandStoreProvider,
-            colorSchemeEventStoreProvider = colorSchemeEventStoreProvider,
+            colorPreviewViewModelFactory = { _, _ -> mockk(relaxed = true) },
+            colorCenterComponentsStoreFactory = { _ -> colorCenterComponentsStore },
             proceedExecutorFactory = proceedExecutorFactory,
             createColorData = createColorData,
             colorCenterSessionBuilder = ColorCenterSessionBuilder(),
