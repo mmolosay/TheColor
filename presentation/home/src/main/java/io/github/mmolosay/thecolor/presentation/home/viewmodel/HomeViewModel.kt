@@ -139,22 +139,26 @@ class HomeViewModel @Inject constructor(
 
     private suspend fun onColorFromColorInput(color: Color?) {
         orchestrator.colorInputMutex.withLock {
-            val session = colorCenterSession
-            if (session != null && color != null &&
-                with(doesColorBelongToSession) { color doesBelongTo session }
-            ) {
-                return // ignore re-emitted color or colors that are part of ongoing session
-            }
+            try {
+                val session = colorCenterSession
+                if (session != null && color != null &&
+                    with(doesColorBelongToSession) { color doesBelongTo session }
+                ) {
+                    return // ignore re-emitted color or colors that are part of ongoing session
+                }
 
-            _dataFlow.update {
-                it.copy(
-                    canProceed = CanProceed(colorFromColorInput = color),
-                    proceedResult = null, // 'proceed' wasn't invoked for new color yet
-                )
+                _dataFlow.update {
+                    it.copy(
+                        canProceed = CanProceed(colorFromColorInput = color),
+                        proceedResult = null, // 'proceed' wasn't invoked for new color yet
+                    )
+                }
+                onColorCenterSessionEnded()
+            } finally {
+                orchestrator.onColorProcessedFromColorInput(color)
             }
-            onColorCenterSessionEnded()
-            orchestrator.onColorProcessedFromColorInput(color)
         }
+
     }
 
     private fun collectEventsFromColorInput() =
@@ -351,8 +355,6 @@ class HomeViewModel @Inject constructor(
                 it.copy(proceedResult = proceedResult)
             }
         }
-
-        println("PRIVET, ${_dataFlow.value}")
     }
 
     private fun setGoToSettingsNavEvent() {
