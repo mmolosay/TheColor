@@ -432,11 +432,11 @@ class HomeViewModel @Inject constructor(
     private suspend fun sendColorToColorInput(
         color: Color,
     ) {
-        withContext(uiDataUpdateDispatcher) {
-            orchestrator.colorInputMutex.withLock {
+        orchestrator.colorInputMutex.withLock {
+            withContext(uiDataUpdateDispatcher) {
                 colorInputMediator.send(color = color, from = null)
-                orchestrator.onColorSentToColorInput(color)
             }
+            orchestrator.onColorSentToColorInput(color)
         }
     }
 
