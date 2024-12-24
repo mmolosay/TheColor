@@ -462,7 +462,11 @@ class HomeViewModel @Inject constructor(
  */
 private class Orchestrator {
 
-    private val lastSentColorFlow = MutableStateFlow<SentColor?>(null)
+    /**
+     * List of colors that were sent to [ColorInputMediator] from [HomeViewModel],
+     * but not yet collected and processed in [HomeViewModel.onColorFromColorInput].
+     */
+    private val flowOfSentButNotYetProcessedColors = MutableStateFlow(emptyList<Color>())
 
     /*
      * 1. color is sent to ColorInputMediator
@@ -475,18 +479,16 @@ private class Orchestrator {
 
     @Synchronized
     fun onColorSentToColorInput(color: Color) {
-        lastSentColorFlow.value = SentColor(
-            color = color,
-            wasProcessed = false,
-        )
+        flowOfSentButNotYetProcessedColors.update { list ->
+            list + color
+        }
     }
 
     @Synchronized
     fun onColorProcessedFromColorInput(color: Color?) {
-        val lastSentColor = lastSentColorFlow.value?.color
-        if (lastSentColor == color) {
-            lastSentColorFlow.update {
-                it?.copy(wasProcessed = true)
+        flowOfSentButNotYetProcessedColors.update { list ->
+            list.toMutableList().also {
+                it.asReversed().remove(color) // remove latest entry
             }
         }
     }
@@ -496,24 +498,12 @@ private class Orchestrator {
     }
 
     private suspend fun suspendUntilAllSentColorsAreProcessed() {
-        val hasNotSentAnyColorsYet = (lastSentColorFlow.value == null)
-        if (hasNotSentAnyColorsYet) return
-        val hasProcessedAllSentColorsAlready = (lastSentColorFlow.value?.wasProcessed == true)
-        if (hasProcessedAllSentColorsAlready) return
-        lastSentColorFlow
-            .filterNotNull()
-            .first { it.wasProcessed }
+        val list = flowOfSentButNotYetProcessedColors.value
+        val thereAreNoUnprocessedColors = (list.isEmpty())
+        if (thereAreNoUnprocessedColors) return
+        flowOfSentButNotYetProcessedColors.first { it.isEmpty() }
         return // explicit return to have a place for breakpoint after the suspension
     }
-
-    /**
-     * A [color] that was sent to Color Input mediator.
-     * @param wasProcessed whether this [color] was already processed in [HomeViewModel.onColorFromColorInput].
-     */
-    private data class SentColor(
-        val color: Color,
-        val wasProcessed: Boolean,
-    )
 }
 
 /* private but Dagger */
