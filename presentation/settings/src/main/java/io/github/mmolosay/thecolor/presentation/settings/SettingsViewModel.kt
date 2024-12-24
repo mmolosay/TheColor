@@ -22,7 +22,6 @@ import io.github.mmolosay.thecolor.domain.model.UserPreferences.SmartBackspace a
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorScheme as DomainUiColorScheme
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeSet as DomainUiColorSchemeSet
 
-// TODO: add unit tests
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
