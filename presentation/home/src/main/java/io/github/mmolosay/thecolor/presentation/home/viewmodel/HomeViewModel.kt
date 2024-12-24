@@ -490,11 +490,14 @@ private class Orchestrator {
     }
 
     suspend fun suspendUntilProceedIsAllowed() {
+        val hasNotSentAnyColorYet = (lastSentColorFlow.value == null)
+        if (hasNotSentAnyColorYet) return // no need to suspend, no sent color to be proceeded
         val wasLastColorProcessedAlready = lastSentColorFlow.value?.wasProcessed
         if (wasLastColorProcessedAlready == true) return // no need to suspend, already allowed
         lastSentColorFlow
             .filterNotNull()
             .first { it.wasProcessed }
+        return // explicit return to have a place for breakpoint after the suspension
     }
 
     /**
