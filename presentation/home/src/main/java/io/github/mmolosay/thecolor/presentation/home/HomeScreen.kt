@@ -132,7 +132,6 @@ fun HomeScreen(
             val viewModel = viewModel.colorCenterViewModelFlow
                 .collectAsStateWithLifecycle().value ?: return@ColorCenter
             ColorCenter(
-                modifier = Modifier.padding(top = 24.dp),
                 viewModel = viewModel,
             )
         },
@@ -395,7 +394,8 @@ private fun ColorCenterOnTintedSurface(
         Box(
             modifier = Modifier
                 .padding(windowInsets.asPaddingValues())
-                .consumeWindowInsets(windowInsets),
+                .consumeWindowInsets(windowInsets)
+                .padding(top = 24.dp) /* to accommodate to convex 'ColorCenterShape' */,
         ) {
             colorCenter()
         }
