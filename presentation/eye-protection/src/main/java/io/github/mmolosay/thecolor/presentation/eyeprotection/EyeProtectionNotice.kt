@@ -1,12 +1,9 @@
 package io.github.mmolosay.thecolor.presentation.eyeprotection
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Icon
@@ -25,34 +22,21 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 fun EyeProtectionNotice(
     modifier: Modifier = Modifier,
 ) {
-    Surface(
+    Row(
         modifier = modifier,
-        shape = RoundedCornerShape(size = 8.dp),
-        color = MaterialTheme.colorScheme.surface, // TODO: use provided color
-        border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.outlineVariant), // TODO: use provided color
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            modifier = Modifier.padding(all = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Visibility,
-                contentDescription = null, // purely decorative,
-            )
+        Icon(
+            modifier = Modifier.size(16.dp),
+            imageVector = Icons.Filled.Visibility,
+            contentDescription = null, // purely decorative,
+        )
 
-            Spacer(Modifier.width(16.dp))
-            Column {
-                Text(
-                    text = "Eye protection is active",
-                    style = MaterialTheme.typography.labelMedium,
-                )
-                // TODO: show original color as little circle preview?
-                Text(
-                    text = "Color #ABCDEF has been dimmed.",
-                    style = MaterialTheme.typography.labelSmall,
-                )
-            }
-        }
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text = "Eye protection is active.", // TODO: use real string
+            style = MaterialTheme.typography.labelMedium,
+        )
     }
 }
 

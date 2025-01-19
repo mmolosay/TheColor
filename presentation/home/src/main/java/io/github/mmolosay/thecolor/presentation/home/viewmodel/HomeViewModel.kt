@@ -10,6 +10,7 @@ import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.repository.LastSearchedColorRepository
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.domain.usecase.ColorFactory
+import io.github.mmolosay.thecolor.domain.usecase.DimColorUseCase
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
 import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.api.ViewModelCoroutineScope
@@ -20,6 +21,7 @@ import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEv
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorRole
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.CanProceed
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ColorSchemeSelectedSwatchData
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult.Success.ColorData
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
@@ -565,13 +567,27 @@ class ProceedExecutor @AssistedInject constructor(
 class CreateColorDataUseCase @Inject constructor(
     private val colorToColorInt: ColorToColorIntUseCase,
     private val isColorLight: IsColorLightUseCase,
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val dimColor: DimColorUseCase,
 ) {
 
-    operator fun invoke(color: Color) =
-        HomeData.ProceedResult.Success.ColorData(
+    operator fun invoke(color: Color): ColorData {
+        val isColorLight = with(this.isColorLight) { color.isLight() }
+        val isEyeProtectionEnabled = true // TODO: use 'userPreferencesRepository'
+        val shouldApplyEyeProtection = (isEyeProtectionEnabled && isColorLight)
+        val eyeProtection = if (shouldApplyEyeProtection) {
+            val dimmedColor = with(dimColor) { color.dim() }
+            ColorData.EyeProtection.Active(
+                dimmedColor = with(colorToColorInt) { dimmedColor.toColorInt() },
+                isDimmedColorDark = with(this.isColorLight) { dimmedColor.isLight() }.not(),
+            )
+        } else ColorData.EyeProtection.Inactive
+        return ColorData(
             color = with(colorToColorInt) { color.toColorInt() },
-            isDark = with(isColorLight) { color.isLight().not() },
+            isDark = !isColorLight,
+            eyeProtection = eyeProtection,
         )
+    }
 }
 
 /**

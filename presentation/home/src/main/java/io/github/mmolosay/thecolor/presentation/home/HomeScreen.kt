@@ -6,7 +6,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -79,7 +78,11 @@ import io.github.mmolosay.thecolor.presentation.center.ColorCenterShape
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
+import io.github.mmolosay.thecolor.presentation.eyeprotection.EyeProtectionNotice
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.CanProceed
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult.Success.ColorData.EyeProtection
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeNavEvent
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver
@@ -231,8 +234,8 @@ fun Home(
         ButtonSection(
             proceedButton = {
                 ProceedButton(
-                    onClick = (data.canProceed as? HomeData.CanProceed.Yes)?.proceed ?: ::doNothing,
-                    enabled = (data.canProceed is HomeData.CanProceed.Yes),
+                    onClick = (data.canProceed as? CanProceed.Yes)?.proceed ?: ::doNothing,
+                    enabled = (data.canProceed is CanProceed.Yes),
                     text = strings.proceedButtonText,
                 )
             },
@@ -267,7 +270,7 @@ fun Home(
 
     val proceedResult = data.proceedResult
     LaunchedEffect(proceedResult) {
-        if (proceedResult !is HomeData.ProceedResult.InvalidSubmittedColor) return@LaunchedEffect
+        if (proceedResult !is ProceedResult.InvalidSubmittedColor) return@LaunchedEffect
         Toast
             .makeText(context, strings.invalidSubmittedColorMessage, Toast.LENGTH_SHORT)
             .show()
@@ -360,15 +363,29 @@ private fun RandomizeColorButton(
 
 @Composable
 private fun ColorCenterOnTintedSurface(
-    proceedResult: HomeData.ProceedResult?,
+    proceedResult: ProceedResult?,
     colorCenter: @Composable () -> Unit,
     navBarAppearanceController: NavBarAppearanceController,
 ) {
-    if (proceedResult !is HomeData.ProceedResult.Success) return // not Success or null
+    if (proceedResult !is ProceedResult.Success) return // not Success or null
+    val colorData = proceedResult.colorData
+    val surfaceColor: Color
+    val isSurfaceColorDark: Boolean
+    when (colorData.eyeProtection) {
+        is EyeProtection.Active -> {
+            surfaceColor = colorData.eyeProtection.dimmedColor.toCompose()
+            isSurfaceColorDark = colorData.eyeProtection.isDimmedColorDark
+        }
+        is EyeProtection.Inactive -> {
+            surfaceColor = colorData.color.toCompose()
+            isSurfaceColorDark = colorData.isDark
+        }
+    }
     ColorCenterOnTintedSurface(
-        surfaceColor = proceedResult.colorData.color.toCompose(),
+        surfaceColor = surfaceColor,
         isSurfaceColorDark = proceedResult.colorData.isDark,
         colorCenter = colorCenter,
+        showEyeProtectionNotice = (colorData.eyeProtection is EyeProtection.Active),
         navBarAppearanceController = navBarAppearanceController,
     )
 }
@@ -378,6 +395,7 @@ private fun ColorCenterOnTintedSurface(
     surfaceColor: Color,
     isSurfaceColorDark: Boolean,
     colorCenter: @Composable () -> Unit,
+    showEyeProtectionNotice: Boolean,
     navBarAppearanceController: NavBarAppearanceController,
 ) {
     val colors = if (isSurfaceColorDark) colorsOnDarkSurface() else colorsOnLightSurface()
@@ -391,13 +409,19 @@ private fun ColorCenterOnTintedSurface(
         surfaceColor = surfaceColor,
         contentColors = colors,
     ) {
-        Box(
+        Column(
             modifier = Modifier
                 .padding(windowInsets.asPaddingValues())
                 .consumeWindowInsets(windowInsets)
                 .padding(top = 24.dp) /* to accommodate to convex 'ColorCenterShape' */,
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             colorCenter()
+
+            if (showEyeProtectionNotice) {
+                Spacer(Modifier.height(12.dp))
+                EyeProtectionNotice()
+            }
         }
     }
 
@@ -577,11 +601,15 @@ private fun Preview() {
 
 private fun previewData() =
     HomeData(
-        canProceed = HomeData.CanProceed.No,
-        proceedResult = HomeData.ProceedResult.Success(
-            colorData = HomeData.ProceedResult.Success.ColorData(
+        canProceed = CanProceed.No,
+        proceedResult = ProceedResult.Success(
+            colorData = ProceedResult.Success.ColorData(
                 color = ColorInt(0x1A803F),
                 isDark = true,
+                eyeProtection = EyeProtection.Active(
+                    dimmedColor = ColorInt(0x000000), // TODO: put plausible color
+                    isDimmedColorDark = true,
+                ),
             ),
         ),
         randomizeColor = {},

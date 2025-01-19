@@ -53,6 +53,7 @@ dependencies {
     implementation(project(":presentation:color-center"))
     implementation(project(":presentation:color-details"))
     implementation(project(":presentation:color-scheme"))
+    implementation(project(":presentation:eye-protection"))
     implementation(project(":presentation:settings"))
 
     // Kotlin

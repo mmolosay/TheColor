@@ -34,7 +34,16 @@ data class HomeData(
             data class ColorData(
                 val color: ColorInt,
                 val isDark: Boolean,
-            )
+                val eyeProtection: EyeProtection,
+            ) {
+                sealed interface EyeProtection {
+                    data object Inactive : EyeProtection
+                    data class Active(
+                        val dimmedColor: ColorInt,
+                        val isDimmedColorDark: Boolean,
+                    ) : EyeProtection
+                }
+            }
         }
     }
 
