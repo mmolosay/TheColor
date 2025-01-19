@@ -7,5 +7,5 @@ import io.github.mmolosay.thecolor.domain.model.Color
  * thus is implemented in Data architectural layer.
  */
 interface DimColorUseCase {
-    fun Color.dim(desiredLightness: Float = 0.6f): Color
+    fun Color.dim(desiredLightness: Float = 0.40f): Color
 }
