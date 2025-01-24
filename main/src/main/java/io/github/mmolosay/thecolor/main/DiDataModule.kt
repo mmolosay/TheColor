@@ -5,8 +5,10 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dagger.hilt.migration.DisableInstallInCheck
+import io.github.mmolosay.thecolor.data.ColorMathImpl
 import io.github.mmolosay.thecolor.data.DimColorUseCaseImpl
 import io.github.mmolosay.thecolor.data.GetColorLightnessUseCaseImpl
+import io.github.mmolosay.thecolor.domain.usecase.ColorMath
 import io.github.mmolosay.thecolor.domain.usecase.DimColorUseCase
 import io.github.mmolosay.thecolor.domain.usecase.GetColorLightnessUseCase
 
@@ -31,6 +33,9 @@ object DiDataModule {
     @Module
     @DisableInstallInCheck
     interface BindModule {
+
+        @Binds
+        fun bindColorMath(impl: ColorMathImpl): ColorMath
 
         @Binds
         fun bindGetColorLightnessUseCase(impl: GetColorLightnessUseCaseImpl): GetColorLightnessUseCase
