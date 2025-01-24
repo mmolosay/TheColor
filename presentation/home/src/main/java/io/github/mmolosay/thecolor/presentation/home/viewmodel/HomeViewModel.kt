@@ -12,6 +12,7 @@ import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.domain.usecase.ColorFactory
 import io.github.mmolosay.thecolor.domain.usecase.DimColorUseCase
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
+import io.github.mmolosay.thecolor.domain.usecase.IsColorPerceptuallyIntenseUseCase
 import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.api.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
@@ -567,14 +568,17 @@ class ProceedExecutor @AssistedInject constructor(
 class CreateColorDataUseCase @Inject constructor(
     private val colorToColorInt: ColorToColorIntUseCase,
     private val isColorLight: IsColorLightUseCase,
+    private val isColorPerceptuallyIntense: IsColorPerceptuallyIntenseUseCase,
     private val userPreferencesRepository: UserPreferencesRepository,
     private val dimColor: DimColorUseCase,
 ) {
 
     operator fun invoke(color: Color): ColorData {
-        val isColorLight = with(this.isColorLight) { color.isLight() }
         val isEyeProtectionEnabled = true // TODO: use 'userPreferencesRepository'
-        val shouldApplyEyeProtection = (isEyeProtectionEnabled && isColorLight)
+        val isColorPerceptuallyIntense = with(this.isColorPerceptuallyIntense) {
+            color.isPerceptuallyIntense()
+        }
+        val shouldApplyEyeProtection = (isEyeProtectionEnabled && isColorPerceptuallyIntense)
         val eyeProtection = if (shouldApplyEyeProtection) {
             val dimmedColor = with(dimColor) { color.dim() }
             ColorData.EyeProtection.Active(
@@ -584,7 +588,7 @@ class CreateColorDataUseCase @Inject constructor(
         } else ColorData.EyeProtection.Inactive
         return ColorData(
             color = with(colorToColorInt) { color.toColorInt() },
-            isDark = !isColorLight,
+            isDark = with(this.isColorLight) { color.isLight().not() },
             eyeProtection = eyeProtection,
         )
     }
