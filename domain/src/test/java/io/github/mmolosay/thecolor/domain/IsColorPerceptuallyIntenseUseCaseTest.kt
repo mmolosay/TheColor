@@ -1,6 +1,7 @@
 package io.github.mmolosay.thecolor.domain
 
 import io.github.mmolosay.thecolor.domain.model.Color
+import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.domain.usecase.ColorMath
 import io.github.mmolosay.thecolor.domain.usecase.IsColorPerceptuallyIntenseUseCase
 import io.kotest.assertions.withClue
@@ -15,10 +16,12 @@ class IsColorPerceptuallyIntenseUseCaseTest {
     val colorMath: ColorMath = mockk {
         every { Color.Hex(0x000000).toLab() } returns ColorMath.Lab(0f, 0f, 0f)
         every { Color.Hex(0xF9031B).toLab() } returns ColorMath.Lab(52.16f, 78.69f, 57.91f)
+        every { Color.Hex(0x4A34FF).toLab() } returns ColorMath.Lab(39.8f, 66.93f, -95.29f)
         every { Color.Hex(0xFFFFFF).toLab() } returns ColorMath.Lab(100f, 0f, 0f)
     }
     val sut = IsColorPerceptuallyIntenseUseCase(
         colorMath = colorMath,
+        colorConverter = ColorConverter(),
     )
 
     @ParameterizedTest
@@ -42,8 +45,9 @@ class IsColorPerceptuallyIntenseUseCaseTest {
         @JvmStatic
         fun testCases() = listOf(
             /* #0  */ Color.Hex(0x000000) isPerceptuallyIntense false,
-            /* #0  */ Color.Hex(0xF9031B) isPerceptuallyIntense true,
-            /* #0  */ Color.Hex(0xFFFFFF) isPerceptuallyIntense true,
+            /* #1  */ Color.Hex(0xF9031B) isPerceptuallyIntense true,
+            /* #2  */ Color.Hex(0x4A34FF) isPerceptuallyIntense true,
+            /* #3  */ Color.Hex(0xFFFFFF) isPerceptuallyIntense true,
         )
 
         infix fun Color.isPerceptuallyIntense(expected: Boolean): Array<Any> =
