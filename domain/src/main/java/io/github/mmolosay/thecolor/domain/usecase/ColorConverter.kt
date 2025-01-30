@@ -6,6 +6,7 @@ import javax.inject.Inject
 /**
  * Converts between different instances of [Color].
  */
+// TODO: move in ColorMath
 class ColorConverter @Inject constructor() {
 
     fun Color.toHex(): Color.Hex =
