@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
@@ -53,6 +54,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onPlaced
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -60,6 +63,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.LayoutDirection
@@ -199,12 +203,13 @@ fun Home(
 ) {
     val density = LocalDensity.current
     val context = LocalContext.current
+    val scrollState = rememberScrollState()
     var positionInRoot by remember { mutableStateOf<DpOffset?>(null) }
     var size by remember { mutableStateOf<DpSize?>(null) }
     Column(
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(state = rememberScrollState())
+            .verticalScroll(state = scrollState)
             .onGloballyPositioned { coordinates ->
                 positionInRoot = coordinates
                     .positionInRoot()
@@ -255,12 +260,22 @@ fun Home(
         colorPreview()
 
         Spacer(modifier = Modifier.height(16.dp))
-        Spacer(modifier = Modifier.weight(1f)) // push 'Color Center' to the bottom of the scrollable Column
 //        AnimatedColorCenter {
+
+        // calculate min height of Color Center so that its bottom matches bottom of the parent Column
+        var colorCenterMinHeight by remember { mutableStateOf<Dp>(Dp.Unspecified) }
         ColorCenterOnTintedSurface(
+            modifier = Modifier
+                .onPlaced { coordinates ->
+                    val colorCenterYPosPx = coordinates.positionInParent().y
+                    val parentHeightPx = scrollState.viewportSize.toFloat()
+                    val colorCenterMinHeightPx = parentHeightPx - colorCenterYPosPx
+                    colorCenterMinHeight = with(density) { colorCenterMinHeightPx.toDp() }
+                },
             proceedResult = data.proceedResult,
             colorCenter = colorCenter,
             navBarAppearanceController = navBarAppearanceController,
+            minHeight = colorCenterMinHeight,
         )
 //        }
     }
@@ -363,13 +378,17 @@ private fun ColorCenterOnTintedSurface(
     proceedResult: HomeData.ProceedResult?,
     colorCenter: @Composable () -> Unit,
     navBarAppearanceController: NavBarAppearanceController,
+    modifier: Modifier = Modifier,
+    minHeight: Dp = Dp.Unspecified,
 ) {
     if (proceedResult !is HomeData.ProceedResult.Success) return // not Success or null
     ColorCenterOnTintedSurface(
+        modifier = modifier,
         surfaceColor = proceedResult.colorData.color.toCompose(),
         isSurfaceColorDark = proceedResult.colorData.isDark,
         colorCenter = colorCenter,
         navBarAppearanceController = navBarAppearanceController,
+        minHeight = minHeight,
     )
 }
 
@@ -379,10 +398,12 @@ private fun ColorCenterOnTintedSurface(
     isSurfaceColorDark: Boolean,
     colorCenter: @Composable () -> Unit,
     navBarAppearanceController: NavBarAppearanceController,
+    modifier: Modifier = Modifier,
+    minHeight: Dp = Dp.Unspecified,
 ) {
     val colors = if (isSurfaceColorDark) colorsOnDarkSurface() else colorsOnLightSurface()
     TintedSurface(
-        modifier = Modifier
+        modifier = modifier
             .graphicsLayer {
                 clip = true
                 shape = ColorCenterShape
@@ -393,9 +414,12 @@ private fun ColorCenterOnTintedSurface(
         val windowInsets = WindowInsets.systemBars.onlyBottom()
         Box(
             modifier = Modifier
+                .sizeIn(minHeight = minHeight) // it's important to set size before paddings
                 .padding(windowInsets.asPaddingValues())
                 .consumeWindowInsets(windowInsets)
-                .padding(top = 24.dp) /* to accommodate to convex 'ColorCenterShape' */,
+                .padding(top = 24.dp),
+            /* to accommodate to convex 'ColorCenterShape' */
+            propagateMinConstraints = true,
         ) {
             colorCenter()
         }
