@@ -381,7 +381,6 @@ private fun ColorCenterOnTintedSurface(
     navBarAppearanceController: NavBarAppearanceController,
 ) {
     val colors = if (isSurfaceColorDark) colorsOnDarkSurface() else colorsOnLightSurface()
-    val windowInsets = WindowInsets.systemBars.onlyBottom()
     TintedSurface(
         modifier = Modifier
             .graphicsLayer {
@@ -391,6 +390,7 @@ private fun ColorCenterOnTintedSurface(
         surfaceColor = surfaceColor,
         contentColors = colors,
     ) {
+        val windowInsets = WindowInsets.systemBars.onlyBottom()
         Box(
             modifier = Modifier
                 .padding(windowInsets.asPaddingValues())
