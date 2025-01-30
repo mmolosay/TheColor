@@ -6,6 +6,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -48,6 +49,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
@@ -75,6 +77,7 @@ import io.github.mmolosay.thecolor.presentation.api.nav.bar.RootNavBarAppearance
 import io.github.mmolosay.thecolor.presentation.api.nav.bar.navBarAppearance
 import io.github.mmolosay.thecolor.presentation.center.ColorCenter
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterShape
+import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
@@ -369,74 +372,91 @@ private fun ColorCenterOnTintedSurface(
 ) {
     if (proceedResult !is ProceedResult.Success) return // not Success or null
     val colorData = proceedResult.colorData
-    val surfaceColor: Color
-    val isSurfaceColorDark: Boolean
-    when (colorData.eyeProtection) {
-        is EyeProtection.Active -> {
-            surfaceColor = colorData.eyeProtection.dimmedColor.toCompose()
-            isSurfaceColorDark = colorData.eyeProtection.isDimmedColorDark
-        }
-        is EyeProtection.Inactive -> {
-            surfaceColor = colorData.color.toCompose()
-            isSurfaceColorDark = colorData.isDark
-        }
-    }
-    ColorCenterOnTintedSurface(
-        surfaceColor = surfaceColor,
-        isSurfaceColorDark = proceedResult.colorData.isDark,
-        colorCenter = colorCenter,
-        showEyeProtectionNotice = (colorData.eyeProtection is EyeProtection.Active),
-        navBarAppearanceController = navBarAppearanceController,
-    )
-}
-
-@Composable
-private fun ColorCenterOnTintedSurface(
-    surfaceColor: Color,
-    isSurfaceColorDark: Boolean,
-    colorCenter: @Composable () -> Unit,
-    showEyeProtectionNotice: Boolean,
-    navBarAppearanceController: NavBarAppearanceController,
-) {
-    val colors = if (isSurfaceColorDark) colorsOnDarkSurface() else colorsOnLightSurface()
-    val windowInsets = WindowInsets.systemBars.onlyBottom()
-    TintedSurface(
-        modifier = Modifier
-            .graphicsLayer {
-                clip = true
-                shape = ColorCenterShape
-            },
-        surfaceColor = surfaceColor,
-        contentColors = colors,
+    Box(
+        modifier = Modifier.graphicsLayer {
+            clip = true
+            shape = ColorCenterShape
+        },
     ) {
-        Column(
-            modifier = Modifier
-                .padding(windowInsets.asPaddingValues())
-                .consumeWindowInsets(windowInsets)
-                .padding(top = 24.dp) /* to accommodate to convex 'ColorCenterShape' */,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            colorCenter()
+        val primaryBackgroundColor: Color
+        val isPrimaryBackgroundColorDark: Boolean
+        when (colorData.eyeProtection) {
+            is EyeProtection.Inactive -> {
+                val surfaceColor = colorData.color.toCompose()
+                val isSurfaceColorDark = colorData.isDark
+                primaryBackgroundColor = surfaceColor
+                isPrimaryBackgroundColorDark = isSurfaceColorDark
+                val colors = if (isSurfaceColorDark) colorsOnDarkSurface() else colorsOnLightSurface()
+                TintedSurface(
+                    surfaceColor = surfaceColor,
+                    contentColors = colors,
+                ) {
+                    DecoratedColorCenter(
+                        colorCenter = colorCenter,
+                        bottomContent = { doNothing() },
+                    )
+                }
+            }
+            is EyeProtection.Active -> {
+                val dimmedColor = colorData.eyeProtection.dimmedColor.toCompose()
+                val isDimmedColorDark = colorData.eyeProtection.isDimmedColorDark
+                primaryBackgroundColor = dimmedColor
+                isPrimaryBackgroundColorDark = isDimmedColorDark
+                Box(
+                    modifier = Modifier.background(
+                        brush = Brush.verticalGradient(
+                            0.0f to colorData.color.toCompose(),
+                            0.2f to dimmedColor,
+                        ),
+                    ),
+                ) {
+                    val colors = if (isDimmedColorDark) colorsOnDarkSurface() else colorsOnLightSurface()
+                    ProvideColorsOnTintedSurface(
+                        colors = colors,
+                    ) {
+                        DecoratedColorCenter(
+                            colorCenter = colorCenter,
+                            bottomContent = {
+                                Spacer(Modifier.height(12.dp))
+                                EyeProtectionNotice()
+                            },
+                        )
+                    }
+                }
+            }
+        }
 
-            if (showEyeProtectionNotice) {
-                Spacer(Modifier.height(12.dp))
-                EyeProtectionNotice()
+        val lifecycleOwner = LocalLifecycleOwner.current
+        val lifecycle = lifecycleOwner.lifecycle
+        DisposableEffect(lifecycleOwner, primaryBackgroundColor) {
+            val observer = ColorCenterLifecycleObserver(
+                navBarAppearanceController = navBarAppearanceController,
+                appearance = navBarAppearance(useLightTintForControls = isPrimaryBackgroundColorDark),
+            ).toLifecycleEventObserver()
+            lifecycle.addObserver(observer)
+            onDispose {
+                lifecycle.removeObserver(observer)
+                navBarAppearanceController.clear()
             }
         }
     }
+}
 
-    val lifecycleOwner = LocalLifecycleOwner.current
-    val lifecycle = lifecycleOwner.lifecycle
-    DisposableEffect(lifecycleOwner, surfaceColor, isSurfaceColorDark) {
-        val observer = ColorCenterLifecycleObserver(
-            navBarAppearanceController = navBarAppearanceController,
-            appearance = navBarAppearance(useLightTintForControls = isSurfaceColorDark),
-        ).toLifecycleEventObserver()
-        lifecycle.addObserver(observer)
-        onDispose {
-            lifecycle.removeObserver(observer)
-            navBarAppearanceController.clear()
-        }
+@Composable
+private fun DecoratedColorCenter(
+    colorCenter: @Composable () -> Unit,
+    bottomContent: @Composable () -> Unit,
+) {
+    val windowInsets = WindowInsets.systemBars.onlyBottom()
+    Column(
+        modifier = Modifier
+            .padding(windowInsets.asPaddingValues())
+            .consumeWindowInsets(windowInsets)
+            .padding(top = 24.dp), /* to accommodate to convex 'ColorCenterShape' */
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        colorCenter()
+        bottomContent()
     }
 }
 
