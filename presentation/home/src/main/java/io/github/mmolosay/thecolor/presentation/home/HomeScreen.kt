@@ -132,7 +132,6 @@ fun HomeScreen(
             val viewModel = viewModel.colorCenterViewModelFlow
                 .collectAsStateWithLifecycle().value ?: return@ColorCenter
             ColorCenter(
-                modifier = Modifier.padding(top = 24.dp),
                 viewModel = viewModel,
             )
         },
@@ -255,8 +254,8 @@ fun Home(
 //        )
         colorPreview()
 
-        Spacer(modifier = Modifier.height(16.dp)) // minimum
-        Spacer(modifier = Modifier.weight(1f)) // maximum
+        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.weight(1f)) // push 'Color Center' to the bottom of the scrollable Column
 //        AnimatedColorCenter {
         ColorCenterOnTintedSurface(
             proceedResult = data.proceedResult,
@@ -382,7 +381,6 @@ private fun ColorCenterOnTintedSurface(
     navBarAppearanceController: NavBarAppearanceController,
 ) {
     val colors = if (isSurfaceColorDark) colorsOnDarkSurface() else colorsOnLightSurface()
-    val windowInsets = WindowInsets.systemBars.onlyBottom()
     TintedSurface(
         modifier = Modifier
             .graphicsLayer {
@@ -392,10 +390,12 @@ private fun ColorCenterOnTintedSurface(
         surfaceColor = surfaceColor,
         contentColors = colors,
     ) {
+        val windowInsets = WindowInsets.systemBars.onlyBottom()
         Box(
             modifier = Modifier
                 .padding(windowInsets.asPaddingValues())
-                .consumeWindowInsets(windowInsets),
+                .consumeWindowInsets(windowInsets)
+                .padding(top = 24.dp) /* to accommodate to convex 'ColorCenterShape' */,
         ) {
             colorCenter()
         }
