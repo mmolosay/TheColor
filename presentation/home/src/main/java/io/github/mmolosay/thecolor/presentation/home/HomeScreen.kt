@@ -261,22 +261,24 @@ fun Home(
 
         Spacer(modifier = Modifier.height(16.dp))
 //        AnimatedColorCenter {
-
-        // calculate min height of Color Center so that its bottom matches bottom of the parent Column
-        var colorCenterMinHeight by remember { mutableStateOf<Dp>(Dp.Unspecified) }
-        ColorCenterOnTintedSurface(
+        val proceedResult = data.proceedResult
+        if (proceedResult is HomeData.ProceedResult.Success) {
+            // calculate min height of Color Center so that its bottom matches bottom of the parent Column
+            var colorCenterMinHeight by remember { mutableStateOf<Dp>(Dp.Unspecified) }
+            ColorCenterOnTintedSurface(
             modifier = Modifier
                 .onPlaced { coordinates ->
                     val colorCenterYPosPx = coordinates.positionInParent().y
                     val parentHeightPx = scrollState.viewportSize.toFloat()
                     val colorCenterMinHeightPx = parentHeightPx - colorCenterYPosPx
                     colorCenterMinHeight = with(density) { colorCenterMinHeightPx.toDp() }
-                },
-            proceedResult = data.proceedResult,
+                    },
+                surfaceColor = proceedResult.colorData.color.toCompose(),
+                isSurfaceColorDark = proceedResult.colorData.isDark,
             colorCenter = colorCenter,
             navBarAppearanceController = navBarAppearanceController,
             minHeight = colorCenterMinHeight,
-        )
+        )}
 //        }
     }
 
@@ -371,25 +373,6 @@ private fun RandomizeColorButton(
             contentDescription = iconContentDesc,
         )
     }
-}
-
-@Composable
-private fun ColorCenterOnTintedSurface(
-    proceedResult: HomeData.ProceedResult?,
-    colorCenter: @Composable () -> Unit,
-    navBarAppearanceController: NavBarAppearanceController,
-    modifier: Modifier = Modifier,
-    minHeight: Dp = Dp.Unspecified,
-) {
-    if (proceedResult !is HomeData.ProceedResult.Success) return // not Success or null
-    ColorCenterOnTintedSurface(
-        modifier = modifier,
-        surfaceColor = proceedResult.colorData.color.toCompose(),
-        isSurfaceColorDark = proceedResult.colorData.isDark,
-        colorCenter = colorCenter,
-        navBarAppearanceController = navBarAppearanceController,
-        minHeight = minHeight,
-    )
 }
 
 @Composable
