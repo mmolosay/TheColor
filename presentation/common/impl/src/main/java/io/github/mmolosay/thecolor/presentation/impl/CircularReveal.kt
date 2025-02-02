@@ -86,6 +86,12 @@ class CircularRevealAnimator(
         )
     }
 
+    suspend fun snapToCollapsed() {
+        progressAnimatable.snapTo(
+            targetValue = FullyCollapsedValue,
+        )
+    }
+
     companion object {
         const val FullyCollapsedValue = 0f
         const val FullyExpandedValue = 1f

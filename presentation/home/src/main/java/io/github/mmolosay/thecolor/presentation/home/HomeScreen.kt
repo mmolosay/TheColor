@@ -50,6 +50,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
@@ -87,10 +88,13 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeNavEvent
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
+import io.github.mmolosay.thecolor.presentation.impl.CircularRevealAnimator
 import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver
 import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent
+import io.github.mmolosay.thecolor.presentation.impl.RadiusProvider
 import io.github.mmolosay.thecolor.presentation.impl.TintedSurface
 import io.github.mmolosay.thecolor.presentation.impl.framesDuration
+import io.github.mmolosay.thecolor.presentation.impl.clipCircle
 import io.github.mmolosay.thecolor.presentation.impl.onlyBottom
 import io.github.mmolosay.thecolor.presentation.impl.retained
 import io.github.mmolosay.thecolor.presentation.impl.toCompose
@@ -405,12 +409,19 @@ private fun ColorCenterOnTintedSurface(
     minHeight: Dp = Dp.Unspecified,
 ) {
     val colors = if (isSurfaceColorDark) colorsOnDarkSurface() else colorsOnLightSurface()
+    val circularRevealAnimator = remember { CircularRevealAnimator() }
     TintedSurface(
         modifier = modifier
             .graphicsLayer {
                 clip = true
                 shape = ColorCenterShape
-            },
+            }
+            .clipCircle(
+                center = { size -> size.center },
+                radius = RadiusProvider { size, minCoverRadius ->
+                    minCoverRadius * circularRevealAnimator.progressAnimatable.value
+                },
+            ),
         surfaceColor = surfaceColor,
         contentColors = colors,
     ) {
@@ -420,12 +431,16 @@ private fun ColorCenterOnTintedSurface(
                 .sizeIn(minHeight = minHeight) // it's important to set size before paddings
                 .padding(windowInsets.asPaddingValues())
                 .consumeWindowInsets(windowInsets)
-                .padding(top = 24.dp),
-            /* to accommodate to convex 'ColorCenterShape' */
+                .padding(top = 24.dp), // to accommodate to convex 'ColorCenterShape'
             propagateMinConstraints = true,
         ) {
             colorCenter()
         }
+    }
+
+    LaunchedEffect(surfaceColor) {
+        circularRevealAnimator.snapToCollapsed()
+        circularRevealAnimator.expand()
     }
 
     val lifecycleOwner = LocalLifecycleOwner.current
