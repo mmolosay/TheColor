@@ -4,6 +4,7 @@ import android.widget.Toast
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -50,6 +51,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -93,6 +95,7 @@ import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObser
 import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent
 import io.github.mmolosay.thecolor.presentation.impl.RadiusProvider
 import io.github.mmolosay.thecolor.presentation.impl.TintedSurface
+import io.github.mmolosay.thecolor.presentation.impl.calcVisibleHeightInScrollableParent
 import io.github.mmolosay.thecolor.presentation.impl.framesDuration
 import io.github.mmolosay.thecolor.presentation.impl.clipCircle
 import io.github.mmolosay.thecolor.presentation.impl.onlyBottom
@@ -288,6 +291,8 @@ fun Home(
         if (proceedResult is ProceedResult.Success) {
             // calculate min height of Color Center so that its bottom matches bottom of the parent Column
             var colorCenterMinHeight by remember { mutableStateOf<Dp>(Dp.Unspecified) }
+            var colorCenterVisibleHeight by remember { mutableStateOf<Float?>(null) }
+
             ColorCenterOnTintedSurface(
                 modifier = Modifier
                     .onPlaced { coordinates ->
@@ -295,12 +300,20 @@ fun Home(
                         val parentHeightPx = scrollState.viewportSize.toFloat()
                         val colorCenterMinHeightPx = parentHeightPx - colorCenterYPosPx
                         colorCenterMinHeight = with(density) { colorCenterMinHeightPx.toDp() }
+                    }
+                    .onGloballyPositioned block@{ coordinates ->
+                        val ownPosInParent = coordinates.positionInParent()
+                        colorCenterVisibleHeight = calcVisibleHeightInScrollableParent(
+                            parentScrollState = scrollState,
+                            ownPosInParent = ownPosInParent.y,
+                        )
                     },
                 surfaceColor = proceedResult.colorData.color.toCompose(),
                 isSurfaceColorDark = proceedResult.colorData.isDark,
                 colorCenter = colorCenter,
                 navBarAppearanceController = navBarAppearanceController,
                 minHeight = colorCenterMinHeight,
+                visibleHeightInParent = colorCenterVisibleHeight,
             )
         }
 //        }
@@ -407,9 +420,14 @@ private fun ColorCenterOnTintedSurface(
     navBarAppearanceController: NavBarAppearanceController,
     modifier: Modifier = Modifier,
     minHeight: Dp = Dp.Unspecified,
+    visibleHeightInParent: Float?,
 ) {
     val colors = if (isSurfaceColorDark) colorsOnDarkSurface() else colorsOnLightSurface()
-    val circularRevealAnimator = remember { CircularRevealAnimator() }
+    val circularRevealAnimator = remember {
+        CircularRevealAnimator(
+            defaultAnimationSpec = { spring(stiffness = 150f) },
+        )
+    }
     TintedSurface(
         modifier = modifier
             .graphicsLayer {
@@ -417,7 +435,11 @@ private fun ColorCenterOnTintedSurface(
                 shape = ColorCenterShape
             }
             .clipCircle(
-                center = { size -> size.center },
+                center = { size ->
+                    if (visibleHeightInParent != null && visibleHeightInParent != 0f) {
+                        Offset(x = size.width / 2, y = visibleHeightInParent)
+                    } else size.center
+                },
                 radius = RadiusProvider { size, minCoverRadius ->
                     minCoverRadius * circularRevealAnimator.progressAnimatable.value
                 },
