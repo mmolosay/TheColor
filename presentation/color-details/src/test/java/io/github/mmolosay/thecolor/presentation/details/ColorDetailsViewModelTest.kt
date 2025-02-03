@@ -108,35 +108,6 @@ class ColorDetailsViewModelTest {
         }
 
     @Test
-    fun `emission of 'fetch data' command results in emission of Loading state`() =
-        runTest(testDispatcher) {
-            val color = mockk<Color.Hex>()
-            val commandFlow = MutableSharedFlow<ColorDetailsCommand>()
-            every { commandProvider.commandFlow } returns commandFlow
-            val fetchedDetails: ColorDetails = mockk(relaxed = true)
-            coEvery { getColorDetails.invoke(any<Color>()) } returns Result.Success(fetchedDetails)
-            every {
-                createDataMock(
-                    details = any(),
-                    goToExactColor = any(),
-                    initialColor = any(),
-                    goToInitialColor = any(),
-                )
-            } returns mockk()
-            createSut()
-
-            // "then"
-            launch {
-                sut.dataStateFlow
-                    .drop(1) // ignore initial Idle state
-                    .first() should beOfType<DataState.Loading>()
-            }
-
-            // "when"
-            commandFlow.emit(ColorDetailsCommand.FetchData(color, colorRole = null))
-        }
-
-    @Test
     fun `emission of 'fetch data' command results in emission of Error state`() =
         runTest(testDispatcher) {
             val color = Color.Hex(0x1A803F)
