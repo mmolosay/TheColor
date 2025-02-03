@@ -65,10 +65,10 @@ class ColorSchemeViewModel @AssistedInject constructor(
         )
 
     init {
-        collectColorCenterCommands()
+        collectColorSchemeCommands()
     }
 
-    private fun collectColorCenterCommands() =
+    private fun collectColorSchemeCommands() =
         coroutineScope.launch(defaultDispatcher) {
             commandProvider.commandFlow.collect { command ->
                 command.process()

@@ -449,7 +449,7 @@ class HomeViewModelTest {
         }
 
     @Test
-    fun `when receiving a 'ExactColorSelected' event from Color Details, 'set color and proceed' action is invoked, thus new color is sent to color input mediator`() =
+    fun `when receiving a 'ColorSelected' event from Color Details, 'set color and proceed' action is invoked, thus new color is sent to color input mediator`() =
         runTest(testDispatcher) {
             every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
             every { colorInputEventStore.eventFlow } returns emptyFlow()
@@ -473,7 +473,7 @@ class HomeViewModelTest {
         }
 
     @Test
-    fun `when receiving a 'ExactColorSelected' event from Color Details, 'proceed executor' is invoked`() =
+    fun `when receiving a 'ColorSelected' event from Color Details, 'proceed executor' is invoked`() =
         runTest(testDispatcher) {
             val colorInputColorFlow = MutableStateFlow(value = mockk<Color>())
             coEvery {
@@ -513,7 +513,7 @@ class HomeViewModelTest {
         }
 
     @Test
-    fun `when receiving a 'ExactColorSelected' event from Color Details, then 'proceedResult' is not cleared`() =
+    fun `when receiving a 'ColorSelected' event from Color Details, then 'proceedResult' is not cleared`() =
         runTest(testDispatcher) {
             val colorFlow = MutableStateFlow(value = mockk<Color>())
             every { colorInputColorStore.colorFlow } returns colorFlow
@@ -572,7 +572,7 @@ class HomeViewModelTest {
         }
 
     @Test
-    fun `when receiving a 'ExactColorSelected' event from Color Details, 'proceed' action is invoked, thus 'proceedResult' is updated`() =
+    fun `when receiving a 'ColorSelected' event from Color Details, 'proceed' action is invoked, thus 'proceedResult' is updated`() =
         runTest(testDispatcher) {
             every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
             every { colorInputEventStore.eventFlow } returns emptyFlow()

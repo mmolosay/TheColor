@@ -19,6 +19,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -49,15 +50,15 @@ class ColorDetailsViewModel @AssistedInject constructor(
     private val _dataStateFlow = MutableStateFlow<DataState>(DataState.Idle)
     val dataStateFlow = _dataStateFlow.asStateFlow()
 
-    private var fetchDataJob: Job? = null
+    private var fetchOrFindColorDetailsJob: Job? = null
     private var lastFetchDataCommand: ColorDetailsCommand.FetchData? = null
-    private val colorHistory = mutableListOf<HistoryRecord>()
+    private val cachedDetails = mutableSetOf<DomainColorDetails>()
 
     init {
-        collectColorCenterCommands()
+        collectColorDetailsCommands()
     }
 
-    private fun collectColorCenterCommands() =
+    private fun collectColorDetailsCommands() =
         coroutineScope.launch(defaultDispatcher) {
             commandProvider.commandFlow.collect { command ->
                 command.process()
@@ -68,7 +69,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
         is ColorDetailsCommand.FetchData -> {
             lastFetchDataCommand = this
             updateCurrentSeedData(color = this.color)
-            fetchColorDetails(command = this)
+            fetchOrFindColorDetails(command = this)
         }
         is ColorDetailsCommand.SetColorDetails -> {
             updateCurrentSeedData(color = this.domainDetails.color)
@@ -79,24 +80,37 @@ class ColorDetailsViewModel @AssistedInject constructor(
         }
     }
 
-    private fun fetchColorDetails(
+    private fun fetchOrFindColorDetails(
         command: ColorDetailsCommand.FetchData,
     ) =
-        fetchColorDetails(
+        fetchOrFindColorDetails(
             color = command.color,
             colorRole = command.colorRole,
         )
 
-    private fun fetchColorDetails(
+    private fun fetchOrFindColorDetails(
         color: Color,
         colorRole: ColorRole?,
     ) {
-        _dataStateFlow.value = DataState.Loading
-        fetchDataJob?.cancel()
-        fetchDataJob = coroutineScope.launch(ioDispatcher) {
-            getColorDetails.invoke(color)
-                .onSuccess { domainDetails ->
-                    setColorDetails(domainDetails, colorRole)
+        fetchOrFindColorDetailsJob?.cancel()
+        fetchOrFindColorDetailsJob = coroutineScope.launch(defaultDispatcher) {
+            fun proceed(details: DomainColorDetails) {
+                setColorDetails(details, colorRole)
+            }
+
+            val cachedDetails = findCachedDetails(color)
+            if (cachedDetails != null) {
+                proceed(cachedDetails)
+                return@launch
+            }
+
+            _dataStateFlow.value = DataState.Loading
+            withContext(ioDispatcher) {
+                getColorDetails.invoke(color)
+            }
+                .onSuccess { fetchedDomainDetails ->
+                    proceed(fetchedDomainDetails)
+                    return@launch
                 }
                 .onFailure { failure ->
                     val error = ColorDetailsError(
@@ -114,7 +128,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
     ) {
         val data = createData(domainDetails, colorRole)
         _dataStateFlow.value = DataState.Ready(data)
-        colorHistory += HistoryRecord(domainDetails, colorRole)
+        cachedDetails += domainDetails
         coroutineScope.launch(defaultDispatcher) {
             val event = ColorDetailsEvent.DataFetched(domainDetails)
             eventStore.send(event)
@@ -132,7 +146,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
         val color = domainDetails.color
         val exactColor = domainDetails.exact.color
         val initialColor = if (colorRole == ColorRole.Exact) {
-            val details = findDetailsOfInitialColor(exactColor = color)
+            val details = findCachedDetailsWithExactColor(exactColor = color)
             details?.color
         } else null
         val goToInitialColor =
@@ -147,19 +161,15 @@ class ColorDetailsViewModel @AssistedInject constructor(
         )
     }
 
-    /**
-     * Given that [exactColor] is an "exact" color,
-     * returns [DomainColorDetails] of the last color that had [exactColor] as its "exact" color.
-     */
-    private fun findDetailsOfInitialColor(exactColor: Color): DomainColorDetails? =
-        colorHistory
-            .reversed() // search in order from most recent to last
-            .find { (colorDetails, colorRole) ->
-                val hasProperColorRole = colorRole in listOf(ColorRole.Initial, null)
-                val hasMatchingExactColor = (colorDetails.exact.color == exactColor)
-                return@find (hasProperColorRole && hasMatchingExactColor)
-            }
-            ?.colorDetails
+    private fun findCachedDetailsWithExactColor(exactColor: Color): DomainColorDetails? =
+        cachedDetails.find { colorDetails ->
+            colorDetails.exact.color == exactColor
+        }
+
+    private fun findCachedDetails(color: Color): DomainColorDetails? =
+        cachedDetails.find { colorDetails ->
+            colorDetails.color == color
+        }
 
     private fun sendColorSelectedEvent(
         color: Color,
@@ -173,7 +183,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
 
     private fun onErrorAction() {
         val command = requireNotNull(lastFetchDataCommand)
-        fetchColorDetails(command)
+        fetchOrFindColorDetails(command)
     }
 
     sealed interface DataState {
@@ -191,11 +201,6 @@ class ColorDetailsViewModel @AssistedInject constructor(
             colorDetailsEventStore: ColorDetailsEventStore,
         ): ColorDetailsViewModel
     }
-
-    private data class HistoryRecord(
-        val colorDetails: DomainColorDetails,
-        val colorRole: ColorRole?,
-    )
 }
 
 @Singleton

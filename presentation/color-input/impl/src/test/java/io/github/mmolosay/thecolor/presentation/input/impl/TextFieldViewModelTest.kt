@@ -155,7 +155,7 @@ class TextFieldViewModelTest {
     }
 
     @Test
-    fun `UiData update is caused by user when trailing button is clicked`() {
+    fun `data update is caused by user when trailing button is clicked`() {
         createSut()
         sut updateText Text("initial non-empty text")
 
