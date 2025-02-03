@@ -52,7 +52,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
 
     private var fetchOrFindColorDetailsJob: Job? = null
     private var lastFetchDataCommand: ColorDetailsCommand.FetchData? = null
-    private val colorHistory = mutableListOf<HistoryRecord>()
+    private val cachedDetails = mutableSetOf<DomainColorDetails>()
 
     init {
         collectColorDetailsCommands()
@@ -128,7 +128,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
     ) {
         val data = createData(domainDetails, colorRole)
         _dataStateFlow.value = DataState.Ready(data)
-        colorHistory += HistoryRecord(domainDetails, colorRole)
+        cachedDetails += domainDetails
         coroutineScope.launch(defaultDispatcher) {
             val event = ColorDetailsEvent.DataFetched(domainDetails)
             eventStore.send(event)
@@ -146,7 +146,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
         val color = domainDetails.color
         val exactColor = domainDetails.exact.color
         val initialColor = if (colorRole == ColorRole.Exact) {
-            val details = findDetailsOfInitialColor(exactColor = color)
+            val details = findCachedDetailsWithExactColor(exactColor = color)
             details?.color
         } else null
         val goToInitialColor =
@@ -161,27 +161,15 @@ class ColorDetailsViewModel @AssistedInject constructor(
         )
     }
 
-    /**
-     * Given that [exactColor] is an "exact" color,
-     * returns [DomainColorDetails] of the last color that had [exactColor] as its "exact" color.
-     */
-    private fun findDetailsOfInitialColor(exactColor: Color): DomainColorDetails? =
-        colorHistory
-            .reversed() // search in order from most recent to last
-            .find { (colorDetails, colorRole) ->
-                val hasProperColorRole = colorRole in listOf(ColorRole.Initial, null)
-                val hasMatchingExactColor = (colorDetails.exact.color == exactColor)
-                return@find (hasProperColorRole && hasMatchingExactColor)
-            }
-            ?.colorDetails
+    private fun findCachedDetailsWithExactColor(exactColor: Color): DomainColorDetails? =
+        cachedDetails.find { colorDetails ->
+            colorDetails.exact.color == exactColor
+        }
 
     private fun findCachedDetails(color: Color): DomainColorDetails? =
-        colorHistory
-            .reversed() // search in order from most recent to last
-            .find { (colorDetails, colorRole) ->
-                colorDetails.color == color
-            }
-            ?.colorDetails
+        cachedDetails.find { colorDetails ->
+            colorDetails.color == color
+        }
 
     private fun sendColorSelectedEvent(
         color: Color,
@@ -213,11 +201,6 @@ class ColorDetailsViewModel @AssistedInject constructor(
             colorDetailsEventStore: ColorDetailsEventStore,
         ): ColorDetailsViewModel
     }
-
-    private data class HistoryRecord(
-        val colorDetails: DomainColorDetails,
-        val colorRole: ColorRole?,
-    )
 }
 
 @Singleton
