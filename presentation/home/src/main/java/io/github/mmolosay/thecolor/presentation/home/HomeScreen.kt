@@ -84,12 +84,15 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeNavEvent
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver
 import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent
 import io.github.mmolosay.thecolor.presentation.impl.TintedSurface
+import io.github.mmolosay.thecolor.presentation.impl.framesDuration
 import io.github.mmolosay.thecolor.presentation.impl.onlyBottom
+import io.github.mmolosay.thecolor.presentation.impl.retained
 import io.github.mmolosay.thecolor.presentation.impl.toCompose
 import io.github.mmolosay.thecolor.presentation.impl.toDpOffset
 import io.github.mmolosay.thecolor.presentation.impl.toDpSize
@@ -98,6 +101,7 @@ import io.github.mmolosay.thecolor.presentation.impl.withoutBottom
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInput
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreview
 import io.github.mmolosay.thecolor.utils.doNothing
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
@@ -133,10 +137,16 @@ fun HomeScreen(
         },
         colorCenter = ColorCenter@{
             @Suppress("NAME_SHADOWING")
-            val viewModel = viewModel.colorCenterViewModelFlow
-                .collectAsStateWithLifecycle().value ?: return@ColorCenter
+            val actualViewModel = viewModel.colorCenterViewModelFlow
+                .collectAsStateWithLifecycle().value
+            val retainedViewModel = retained(actualViewModel) { actual, memoized ->
+                if (actual == null && memoized != null) {
+                    delay(2.framesDuration)
+                }
+                value = actual
+            }
             ColorCenter(
-                viewModel = viewModel,
+                viewModel = retainedViewModel ?: return@ColorCenter,
             )
         },
         navigateToSettings = navigateToSettings,
@@ -261,30 +271,40 @@ fun Home(
 
         Spacer(modifier = Modifier.height(16.dp))
 //        AnimatedColorCenter {
-        val proceedResult = data.proceedResult
-        if (proceedResult is HomeData.ProceedResult.Success) {
+        val actualProceedResult = data.proceedResult
+        val retainedProceedResult = retained(actualProceedResult) { actual, memoized ->
+            val memoizedIsSuccess = (memoized is ProceedResult.Success)
+            val actualIsNotSuccess = (actual !is ProceedResult.Success)
+            if (memoizedIsSuccess && actualIsNotSuccess) {
+                delay(2.framesDuration)
+            }
+            value = actual
+        }
+        val proceedResult = retainedProceedResult
+        if (proceedResult is ProceedResult.Success) {
             // calculate min height of Color Center so that its bottom matches bottom of the parent Column
             var colorCenterMinHeight by remember { mutableStateOf<Dp>(Dp.Unspecified) }
             ColorCenterOnTintedSurface(
-            modifier = Modifier
-                .onPlaced { coordinates ->
-                    val colorCenterYPosPx = coordinates.positionInParent().y
-                    val parentHeightPx = scrollState.viewportSize.toFloat()
-                    val colorCenterMinHeightPx = parentHeightPx - colorCenterYPosPx
-                    colorCenterMinHeight = with(density) { colorCenterMinHeightPx.toDp() }
+                modifier = Modifier
+                    .onPlaced { coordinates ->
+                        val colorCenterYPosPx = coordinates.positionInParent().y
+                        val parentHeightPx = scrollState.viewportSize.toFloat()
+                        val colorCenterMinHeightPx = parentHeightPx - colorCenterYPosPx
+                        colorCenterMinHeight = with(density) { colorCenterMinHeightPx.toDp() }
                     },
                 surfaceColor = proceedResult.colorData.color.toCompose(),
                 isSurfaceColorDark = proceedResult.colorData.isDark,
-            colorCenter = colorCenter,
-            navBarAppearanceController = navBarAppearanceController,
-            minHeight = colorCenterMinHeight,
-        )}
+                colorCenter = colorCenter,
+                navBarAppearanceController = navBarAppearanceController,
+                minHeight = colorCenterMinHeight,
+            )
+        }
 //        }
     }
 
     val proceedResult = data.proceedResult
     LaunchedEffect(proceedResult) {
-        if (proceedResult !is HomeData.ProceedResult.InvalidSubmittedColor) return@LaunchedEffect
+        if (proceedResult !is ProceedResult.InvalidSubmittedColor) return@LaunchedEffect
         Toast
             .makeText(context, strings.invalidSubmittedColorMessage, Toast.LENGTH_SHORT)
             .show()
@@ -585,8 +605,8 @@ private fun Preview() {
 private fun previewData() =
     HomeData(
         canProceed = HomeData.CanProceed.No,
-        proceedResult = HomeData.ProceedResult.Success(
-            colorData = HomeData.ProceedResult.Success.ColorData(
+        proceedResult = ProceedResult.Success(
+            colorData = ProceedResult.Success.ColorData(
                 color = ColorInt(0x1A803F),
                 isDark = true,
             ),
