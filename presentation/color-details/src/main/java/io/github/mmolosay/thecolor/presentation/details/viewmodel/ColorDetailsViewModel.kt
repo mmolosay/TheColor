@@ -54,10 +54,10 @@ class ColorDetailsViewModel @AssistedInject constructor(
     private val colorHistory = mutableListOf<HistoryRecord>()
 
     init {
-        collectColorCenterCommands()
+        collectColorDetailsCommands()
     }
 
-    private fun collectColorCenterCommands() =
+    private fun collectColorDetailsCommands() =
         coroutineScope.launch(defaultDispatcher) {
             commandProvider.commandFlow.collect { command ->
                 command.process()
