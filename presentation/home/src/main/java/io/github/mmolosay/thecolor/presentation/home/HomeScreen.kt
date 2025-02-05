@@ -417,7 +417,7 @@ private fun ColorCenter(
     colorCenter: @Composable () -> Unit,
     navBarAppearanceController: NavBarAppearanceController,
     modifier: Modifier = Modifier,
-    minHeight: Dp = Dp.Unspecified,
+    minHeight: Dp,
     visibleHeightInParent: Float?,
 ) {
     val colors = if (isSurfaceColorDark) colorsOnDarkSurface() else colorsOnLightSurface()
