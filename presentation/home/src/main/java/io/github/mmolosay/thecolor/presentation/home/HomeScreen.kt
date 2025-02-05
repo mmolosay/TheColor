@@ -559,7 +559,7 @@ private fun SelectedSwatchDetailsDialogContainer(
 }
 
 private val RetainedDelayForColorCenter = 2.framesDuration
-private val ProceedResultCacheTag = "ProceedResultCacheTag"
+private val ProceedResultCacheTag = CacheStore.Tag("ProceedResultCacheTag")
 
 /**
  * An [Arrangement] for [ButtonSection].
