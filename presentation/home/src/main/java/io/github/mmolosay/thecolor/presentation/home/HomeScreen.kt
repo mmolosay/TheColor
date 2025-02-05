@@ -424,9 +424,7 @@ private fun ColorCenter(
 ) {
     val colors = if (isSurfaceColorDark) colorsOnDarkSurface() else colorsOnLightSurface()
     val circularRevealAnimator = remember {
-        CircularRevealAnimator(
-            defaultAnimationSpec = { spring(stiffness = 150f) },
-        )
+        CircularRevealAnimator(animationSpec = spring(stiffness = 150f))
     }
     TintedSurface(
         modifier = modifier

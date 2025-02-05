@@ -34,6 +34,13 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import kotlinx.coroutines.launch
 import kotlin.math.hypot
 
+/**
+ * Clips the content to a circle shape.
+ *
+ * @param center position of the center of the clipping circle using size of the element
+ * this modifier is applied to.
+ * @param radius length of the clipping circle's radius.
+ */
 fun Modifier.clipCircle(
     center: (Size) -> Offset,
     radius: RadiusProvider,
@@ -65,24 +72,27 @@ fun interface RadiusProvider {
     operator fun invoke(elementSize: Size, minCoverRadius: Float): Float
 }
 
+/**
+ * Facade API for controlling circular reveal animation.
+ */
 class CircularRevealAnimator(
     val progressAnimatable: Animatable<Float, AnimationVector1D> =
         Animatable(initialValue = FullyCollapsedValue),
-    private val defaultAnimationSpec: () -> AnimationSpec<Float> =
-        { spring(stiffness = Spring.StiffnessLow) },
+    private val animationSpec: AnimationSpec<Float> =
+        spring(stiffness = Spring.StiffnessLow),
 ) {
 
     suspend fun expand() {
         progressAnimatable.animateTo(
             targetValue = FullyExpandedValue,
-            animationSpec = defaultAnimationSpec(),
+            animationSpec = animationSpec,
         )
     }
 
     suspend fun collapse() {
         progressAnimatable.animateTo(
             targetValue = FullyCollapsedValue,
-            animationSpec = defaultAnimationSpec(),
+            animationSpec = animationSpec,
         )
     }
 
@@ -126,7 +136,7 @@ private fun Preview() {
     TheColorTheme {
         val animator = remember {
             CircularRevealAnimator(
-                defaultAnimationSpec = { tween(durationMillis = 3000) },
+                animationSpec = tween(durationMillis = 3000),
             )
         }
         val coroutineScope = rememberCoroutineScope()
