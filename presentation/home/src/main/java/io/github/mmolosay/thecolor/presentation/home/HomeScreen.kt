@@ -4,7 +4,6 @@ import android.widget.Toast
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -96,8 +95,8 @@ import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObser
 import io.github.mmolosay.thecolor.presentation.impl.RadiusProvider
 import io.github.mmolosay.thecolor.presentation.impl.TintedSurface
 import io.github.mmolosay.thecolor.presentation.impl.calcVisibleHeightInScrollableParent
-import io.github.mmolosay.thecolor.presentation.impl.framesDuration
 import io.github.mmolosay.thecolor.presentation.impl.clipCircle
+import io.github.mmolosay.thecolor.presentation.impl.framesDuration
 import io.github.mmolosay.thecolor.presentation.impl.onlyBottom
 import io.github.mmolosay.thecolor.presentation.impl.retained
 import io.github.mmolosay.thecolor.presentation.impl.toCompose
@@ -293,7 +292,7 @@ fun Home(
             var colorCenterMinHeight by remember { mutableStateOf<Dp>(Dp.Unspecified) }
             var colorCenterVisibleHeight by remember { mutableStateOf<Float?>(null) }
 
-            ColorCenterOnTintedSurface(
+            ColorCenter(
                 modifier = Modifier
                     .onPlaced { coordinates ->
                         val colorCenterYPosPx = coordinates.positionInParent().y
@@ -412,8 +411,9 @@ private fun RandomizeColorButton(
     }
 }
 
+/** Decorates bare [colorCenter] in a way that's specific for this screen. */
 @Composable
-private fun ColorCenterOnTintedSurface(
+private fun ColorCenter(
     surfaceColor: Color,
     isSurfaceColorDark: Boolean,
     colorCenter: @Composable () -> Unit,
