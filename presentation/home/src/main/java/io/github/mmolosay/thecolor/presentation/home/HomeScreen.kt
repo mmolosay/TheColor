@@ -277,8 +277,7 @@ fun Home(
 
         Spacer(modifier = Modifier.height(16.dp))
 //        AnimatedColorCenter {
-        val actualProceedResult = data.proceedResult
-        val retainedProceedResult = retained(actualProceedResult) { actual, memoized ->
+        val retainedProceedResult = retained(data.proceedResult) { actual, memoized ->
             val memoizedIsSuccess = (memoized is ProceedResult.Success)
             val actualIsNotSuccess = (actual !is ProceedResult.Success)
             if (memoizedIsSuccess && actualIsNotSuccess) {
@@ -286,8 +285,7 @@ fun Home(
             }
             value = actual
         }
-        val proceedResult = retainedProceedResult
-        if (proceedResult is ProceedResult.Success) {
+        if (retainedProceedResult is ProceedResult.Success) {
             // calculate min height of Color Center so that its bottom matches bottom of the parent Column
             var colorCenterMinHeight by remember { mutableStateOf<Dp>(Dp.Unspecified) }
             var colorCenterVisibleHeight by remember { mutableStateOf<Float?>(null) }
@@ -307,8 +305,8 @@ fun Home(
                             ownPosInParent = ownPosInParent.y,
                         )
                     },
-                surfaceColor = proceedResult.colorData.color.toCompose(),
-                isSurfaceColorDark = proceedResult.colorData.isDark,
+                surfaceColor = retainedProceedResult.colorData.color.toCompose(),
+                isSurfaceColorDark = retainedProceedResult.colorData.isDark,
                 colorCenter = colorCenter,
                 navBarAppearanceController = navBarAppearanceController,
                 minHeight = colorCenterMinHeight,
