@@ -285,6 +285,14 @@ fun Home(
             }
             value = actual
         }
+        val circularRevealAnimator = remember {
+            CircularRevealAnimator(animationSpec = spring(stiffness = 100f))
+        }
+        LaunchedEffect(retainedProceedResult) {
+            if (retainedProceedResult !is ProceedResult.Success) return@LaunchedEffect
+            circularRevealAnimator.snapToCollapsed()
+            circularRevealAnimator.expand()
+        }
         if (retainedProceedResult is ProceedResult.Success) {
             // calculate min height of Color Center so that its bottom matches bottom of the parent Column
             var colorCenterMinHeight by remember { mutableStateOf<Dp>(Dp.Unspecified) }
@@ -309,6 +317,7 @@ fun Home(
                 isSurfaceColorDark = retainedProceedResult.colorData.isDark,
                 colorCenter = colorCenter,
                 navBarAppearanceController = navBarAppearanceController,
+                circularRevealAnimator = circularRevealAnimator,
                 minHeight = colorCenterMinHeight,
                 visibleHeightInParent = colorCenterVisibleHeight,
             )
@@ -416,14 +425,12 @@ private fun ColorCenter(
     isSurfaceColorDark: Boolean,
     colorCenter: @Composable () -> Unit,
     navBarAppearanceController: NavBarAppearanceController,
+    circularRevealAnimator: CircularRevealAnimator,
     modifier: Modifier = Modifier,
     minHeight: Dp,
     visibleHeightInParent: Float?,
 ) {
     val colors = if (isSurfaceColorDark) colorsOnDarkSurface() else colorsOnLightSurface()
-    val circularRevealAnimator = remember {
-        CircularRevealAnimator(animationSpec = spring(stiffness = 100f))
-    }
     TintedSurface(
         modifier = modifier
             .graphicsLayer {
@@ -454,11 +461,6 @@ private fun ColorCenter(
         ) {
             colorCenter()
         }
-    }
-
-    LaunchedEffect(surfaceColor) {
-        circularRevealAnimator.snapToCollapsed()
-        circularRevealAnimator.expand()
     }
 
     val lifecycleOwner = LocalLifecycleOwner.current
