@@ -1,6 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.home
 
 import android.widget.Toast
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -44,7 +45,6 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -86,6 +86,7 @@ import io.github.mmolosay.thecolor.presentation.center.ColorCenterShape
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.CacheStore
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeNavEvent
@@ -132,6 +133,7 @@ fun HomeScreen(
         data = data,
         strings = strings,
         navEventFlow = navEventFlow,
+        cacheStore = viewModel.cacheStore,
         colorInput = {
             ColorInput(
                 viewModel = viewModel.colorInputViewModel,
@@ -171,6 +173,7 @@ fun HomeScreen(
     data: HomeData,
     strings: HomeUiStrings,
     navEventFlow: Flow<HomeNavEvent>,
+    cacheStore: CacheStore,
     colorInput: @Composable () -> Unit,
     colorPreview: @Composable () -> Unit,
     colorCenter: @Composable () -> Unit,
@@ -188,6 +191,7 @@ fun HomeScreen(
                 .consumeWindowInsets(contentPadding), // ensures correct height of 'TopAppBar()'
             data = data,
             strings = strings,
+            cacheStore = cacheStore,
             colorInput = colorInput,
             colorPreview = colorPreview,
             colorCenter = colorCenter,
@@ -212,6 +216,7 @@ fun HomeScreen(
 fun Home(
     data: HomeData,
     strings: HomeUiStrings,
+    cacheStore: CacheStore,
     colorInput: @Composable () -> Unit,
     colorPreview: @Composable () -> Unit,
     colorCenter: @Composable () -> Unit,
@@ -278,6 +283,13 @@ fun Home(
 
         Spacer(modifier = Modifier.height(16.dp))
 //        AnimatedColorCenter {
+        val proceedResultCache = cacheStore.getOrNew<ProceedResult?>(ProceedResultCacheTag)
+        fun hasProceedResultBecomeSuccess(): Boolean {
+            val values = proceedResultCache.toList().asReversed()
+            val current = values.firstOrNull()
+            val previous = values.getOrNull(1)
+            return (current is ProceedResult.Success && previous !is ProceedResult.Success)
+        }
         val retainedProceedResult = retained(data.proceedResult) { actual, memoized ->
             val memoizedIsSuccess = (memoized is ProceedResult.Success)
             val actualIsNotSuccess = (actual !is ProceedResult.Success)
@@ -286,12 +298,19 @@ fun Home(
             }
             value = actual
         }
-        val listOfProceedResults = remember { mutableStateListOf<ProceedResult?>() }
         LaunchedEffect(retainedProceedResult) {
-            listOfProceedResults += retainedProceedResult
+            proceedResultCache += retainedProceedResult
         }
         val circularRevealAnimator = remember {
-            CircularRevealAnimator(animationSpec = spring(stiffness = 100f))
+            val progressValue = if (hasProceedResultBecomeSuccess()) {
+                CircularRevealAnimator.FullyExpandedValue
+            } else {
+                CircularRevealAnimator.FullyCollapsedValue
+            }
+            CircularRevealAnimator(
+                progressAnimatable = Animatable(initialValue = progressValue),
+                animationSpec = spring(stiffness = 100f),
+            )
         }
         suspend fun expandColorCenter() {
             circularRevealAnimator.snapToCollapsed()
@@ -299,12 +318,7 @@ fun Home(
         }
         // assuming when 'retainedProceedResult' changes so does 'listOfProceedResults
         LaunchedEffect(retainedProceedResult) {
-            val values = listOfProceedResults.asReversed()
-            val current = values.first() // requires 'retainedProceedResult' to be already added
-            val previous = values.getOrNull(1)
-            if (current is ProceedResult.Success && previous !is ProceedResult.Success) {
-                expandColorCenter()
-            }
+            if (hasProceedResultBecomeSuccess()) expandColorCenter()
         }
         if (retainedProceedResult is ProceedResult.Success) {
             // calculate min height of Color Center so that its bottom matches bottom of the parent Column
@@ -545,6 +559,7 @@ private fun SelectedSwatchDetailsDialogContainer(
 }
 
 private val RetainedDelayForColorCenter = 2.framesDuration
+private val ProceedResultCacheTag = "ProceedResultCacheTag"
 
 /**
  * An [Arrangement] for [ButtonSection].
@@ -619,6 +634,7 @@ private fun Preview() {
             data = previewData(),
             strings = previewUiStrings(),
             navEventFlow = emptyFlow(),
+            cacheStore = remember { CacheStore() },
             colorInput = {
                 Text(
                     modifier = Modifier

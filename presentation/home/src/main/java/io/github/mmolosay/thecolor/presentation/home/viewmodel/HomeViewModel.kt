@@ -79,6 +79,8 @@ class HomeViewModel @Inject constructor(
     private val _dataFlow = MutableStateFlow(initialData())
     val dataFlow = _dataFlow.asStateFlow()
 
+    val cacheStore = CacheStore()
+
     private val _navEventFlow = MutableStateFlow<HomeNavEvent?>(null)
     val navEventFlow = _navEventFlow.asStateFlow()
 
