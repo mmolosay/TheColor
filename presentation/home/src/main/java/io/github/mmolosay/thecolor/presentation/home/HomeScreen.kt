@@ -44,6 +44,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -285,13 +286,25 @@ fun Home(
             }
             value = actual
         }
+        val listOfProceedResults = remember { mutableStateListOf<ProceedResult?>() }
+        LaunchedEffect(retainedProceedResult) {
+            listOfProceedResults += retainedProceedResult
+        }
         val circularRevealAnimator = remember {
             CircularRevealAnimator(animationSpec = spring(stiffness = 100f))
         }
-        LaunchedEffect(retainedProceedResult) {
-            if (retainedProceedResult !is ProceedResult.Success) return@LaunchedEffect
+        suspend fun expandColorCenter() {
             circularRevealAnimator.snapToCollapsed()
             circularRevealAnimator.expand()
+        }
+        // assuming when 'retainedProceedResult' changes so does 'listOfProceedResults
+        LaunchedEffect(retainedProceedResult) {
+            val values = listOfProceedResults.asReversed()
+            val current = values.first() // requires 'retainedProceedResult' to be already added
+            val previous = values.getOrNull(1)
+            if (current is ProceedResult.Success && previous !is ProceedResult.Success) {
+                expandColorCenter()
+            }
         }
         if (retainedProceedResult is ProceedResult.Success) {
             // calculate min height of Color Center so that its bottom matches bottom of the parent Column
