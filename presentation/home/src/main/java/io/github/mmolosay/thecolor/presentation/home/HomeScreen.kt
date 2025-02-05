@@ -147,7 +147,7 @@ fun HomeScreen(
                 .collectAsStateWithLifecycle().value
             val retainedViewModel = retained(actualViewModel) { actual, memoized ->
                 if (actual == null && memoized != null) {
-                    delay(2.framesDuration)
+                    delay(RetainedDelayForColorCenter)
                 }
                 value = actual
             }
@@ -282,7 +282,7 @@ fun Home(
             val memoizedIsSuccess = (memoized is ProceedResult.Success)
             val actualIsNotSuccess = (actual !is ProceedResult.Success)
             if (memoizedIsSuccess && actualIsNotSuccess) {
-                delay(2.framesDuration)
+                delay(RetainedDelayForColorCenter)
             }
             value = actual
         }
@@ -530,6 +530,8 @@ private fun SelectedSwatchDetailsDialogContainer(
         )
     }
 }
+
+private val RetainedDelayForColorCenter = 2.framesDuration
 
 /**
  * An [Arrangement] for [ButtonSection].
