@@ -47,6 +47,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -109,10 +110,12 @@ import io.github.mmolosay.thecolor.presentation.impl.withoutBottom
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInput
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreview
 import io.github.mmolosay.thecolor.utils.doNothing
+import io.github.mmolosay.thecolor.utils.retainLast
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 @Composable
@@ -225,6 +228,7 @@ fun Home(
 ) {
     val density = LocalDensity.current
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
     var positionInRoot by remember { mutableStateOf<DpOffset?>(null) }
     var size by remember { mutableStateOf<DpSize?>(null) }
@@ -297,12 +301,17 @@ fun Home(
                 delay(RetainedDelayForColorCenter)
             }
             value = actual
-        }
-        LaunchedEffect(retainedProceedResult) {
-            proceedResultCache += retainedProceedResult
+            // TODO: move this logic to Cache itself?
+            if (proceedResultCache.lastOrNull() != actual) {
+                proceedResultCache += actual
+            }
+            if (proceedResultCache.size > 10) {
+                // TODO: migrate from list to other data structure with fast & cheap clearing
+                proceedResultCache.retainLast(2)
+            }
         }
         val circularRevealAnimator = remember {
-            val progressValue = if (hasProceedResultBecomeSuccess()) {
+            val progressValue = if (retainedProceedResult is ProceedResult.Success) {
                 CircularRevealAnimator.FullyExpandedValue
             } else {
                 CircularRevealAnimator.FullyCollapsedValue
@@ -316,9 +325,13 @@ fun Home(
             circularRevealAnimator.snapToCollapsed()
             circularRevealAnimator.expand()
         }
-        // assuming when 'retainedProceedResult' changes so does 'listOfProceedResults
+        // assuming when 'retainedProceedResult' changes so does 'proceedResultCache'
         LaunchedEffect(retainedProceedResult) {
-            if (hasProceedResultBecomeSuccess()) expandColorCenter()
+            coroutineScope.launch {
+                if (hasProceedResultBecomeSuccess()) {
+                    expandColorCenter()
+                }
+            }
         }
         if (retainedProceedResult is ProceedResult.Success) {
             // calculate min height of Color Center so that its bottom matches bottom of the parent Column
