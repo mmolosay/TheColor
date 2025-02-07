@@ -87,11 +87,13 @@ import io.github.mmolosay.thecolor.presentation.center.ColorCenterShape
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.Cache
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.CacheStore
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeNavEvent
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.SizeThresholdPruneMutationListener
 import io.github.mmolosay.thecolor.presentation.impl.CircularRevealAnimator
 import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver
 import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent
@@ -110,7 +112,6 @@ import io.github.mmolosay.thecolor.presentation.impl.withoutBottom
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInput
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreview
 import io.github.mmolosay.thecolor.utils.doNothing
-import io.github.mmolosay.thecolor.utils.retainLast
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -287,7 +288,14 @@ fun Home(
 
         Spacer(modifier = Modifier.height(16.dp))
 //        AnimatedColorCenter {
-        val proceedResultCache = cacheStore.getOrNew<ProceedResult?>(ProceedResultCacheTag)
+        val proceedResultCache = cacheStore.getOrNew<ProceedResult?>(ProceedResultCacheTag) {
+            Cache(
+                mutationListener = SizeThresholdPruneMutationListener(
+                    elementsCountThreshold = 10,
+                    numberOfLatestElementsToKeep = 2,
+                ),
+            )
+        }
         fun hasProceedResultBecomeSuccess(): Boolean {
             val values = proceedResultCache.toList().asReversed()
             val current = values.firstOrNull()
@@ -304,10 +312,6 @@ fun Home(
             // TODO: move this logic to Cache itself?
             if (proceedResultCache.lastOrNull() != actual) {
                 proceedResultCache += actual
-            }
-            if (proceedResultCache.size > 10) {
-                // TODO: migrate from list to other data structure with fast & cheap clearing
-                proceedResultCache.retainLast(2)
             }
         }
         val circularRevealAnimator = remember {
