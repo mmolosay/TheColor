@@ -325,7 +325,6 @@ fun Home(
             circularRevealAnimator.snapToCollapsed()
             circularRevealAnimator.expand()
         }
-        // assuming when 'retainedProceedResult' changes so does 'proceedResultCache'
         LaunchedEffect(retainedProceedResult) {
             coroutineScope.launch {
                 if (hasProceedResultBecomeSuccess()) {
