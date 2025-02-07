@@ -115,7 +115,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 @Composable
@@ -327,13 +326,17 @@ fun Home(
         }
         // assuming when 'retainedProceedResult' changes so does 'proceedResultCache'
         LaunchedEffect(retainedProceedResult) {
-            coroutineScope.launch {
-                if (hasProceedResultBecomeSuccess()) {
-                    expandColorCenter()
-                }
+            if (hasProceedResultBecomeSuccess()) {
+                expandColorCenter()
             }
         }
-        if (retainedProceedResult is ProceedResult.Success) {
+        val showColorCenter = (retainedProceedResult is ProceedResult.Success)
+        LaunchedEffect(showColorCenter) {
+            if (!showColorCenter) {
+                circularRevealAnimator.snapToCollapsed()
+            }
+        }
+        if (showColorCenter) {
             // calculate min height of Color Center so that its bottom matches bottom of the parent Column
             var colorCenterMinHeight by remember { mutableStateOf<Dp>(Dp.Unspecified) }
             var colorCenterVisibleHeight by remember { mutableStateOf<Float?>(null) }
