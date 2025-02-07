@@ -115,6 +115,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 @Composable
@@ -326,8 +327,10 @@ fun Home(
         }
         // assuming when 'retainedProceedResult' changes so does 'proceedResultCache'
         LaunchedEffect(retainedProceedResult) {
-            if (hasProceedResultBecomeSuccess()) {
-                expandColorCenter()
+            coroutineScope.launch {
+                if (hasProceedResultBecomeSuccess()) {
+                    expandColorCenter()
+                }
             }
         }
         val showColorCenter = (retainedProceedResult is ProceedResult.Success)
