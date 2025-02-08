@@ -305,8 +305,7 @@ fun Home(
         val retainedProceedResult = retained(data.proceedResult) { actual, memoized ->
             val memoizedIsSuccess = (memoized is ProceedResult.Success)
             val actualIsNotSuccess = (actual !is ProceedResult.Success)
-            val valueIsAlreadyActual = (value == actual) // TODO: move this feature to 'retained()'
-            if (memoizedIsSuccess && actualIsNotSuccess && !valueIsAlreadyActual) {
+            if (memoizedIsSuccess && actualIsNotSuccess) {
                 delay(RetainedDelayForColorCenter)
             }
             value = actual
