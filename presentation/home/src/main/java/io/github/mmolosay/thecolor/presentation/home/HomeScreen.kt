@@ -87,13 +87,13 @@ import io.github.mmolosay.thecolor.presentation.center.ColorCenterShape
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.CacheStore
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.DequeCache
+import io.github.mmolosay.thecolor.utils.cache.CacheStore
+import io.github.mmolosay.thecolor.utils.cache.DequeCache
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeNavEvent
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.SizeThresholdPruneMutationListener
+import io.github.mmolosay.thecolor.utils.cache.PruneOnSizeThreshold
 import io.github.mmolosay.thecolor.presentation.impl.CircularRevealAnimator
 import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver
 import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent
@@ -290,8 +290,8 @@ fun Home(
 //        AnimatedColorCenter {
         val proceedResultCache = cacheStore.getOrNew<ProceedResult??>(ProceedResultCacheTag) {
             DequeCache(
-                mutationListener = SizeThresholdPruneMutationListener(
-                    elementsCountThreshold = 10,
+                mutationListener = PruneOnSizeThreshold(
+                    cacheSizeThreshold = 10,
                     numberOfLatestElementsToKeep = 2,
                 ),
             )
