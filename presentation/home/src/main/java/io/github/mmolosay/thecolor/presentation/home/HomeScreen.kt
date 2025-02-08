@@ -87,8 +87,8 @@ import io.github.mmolosay.thecolor.presentation.center.ColorCenterShape
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.Cache
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.CacheStore
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.DequeCache
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeNavEvent
@@ -289,7 +289,7 @@ fun Home(
         Spacer(modifier = Modifier.height(16.dp))
 //        AnimatedColorCenter {
         val proceedResultCache = cacheStore.getOrNew<ProceedResult??>(ProceedResultCacheTag) {
-            Cache(
+            DequeCache(
                 mutationListener = SizeThresholdPruneMutationListener(
                     elementsCountThreshold = 10,
                     numberOfLatestElementsToKeep = 2,
