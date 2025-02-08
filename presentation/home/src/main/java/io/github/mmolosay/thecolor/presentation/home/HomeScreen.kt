@@ -310,7 +310,9 @@ fun Home(
                 delay(RetainedDelayForColorCenter)
             }
             value = actual
-            proceedResultCache += actual
+        }
+        LaunchedEffect(retainedProceedResult) {
+            proceedResultCache += retainedProceedResult
         }
         val circularRevealAnimator = remember {
             val progressValue = if (retainedProceedResult is ProceedResult.Success) {
