@@ -288,7 +288,7 @@ fun Home(
 
         Spacer(modifier = Modifier.height(16.dp))
 //        AnimatedColorCenter {
-        val proceedResultCache = cacheStore.getOrNew<ProceedResult?>(ProceedResultCacheTag) {
+        val proceedResultCache = cacheStore.getOrNew<ProceedResult??>(ProceedResultCacheTag) {
             Cache(
                 mutationListener = SizeThresholdPruneMutationListener(
                     elementsCountThreshold = 10,
@@ -297,7 +297,7 @@ fun Home(
             )
         }
         fun hasProceedResultBecomeSuccess(): Boolean {
-            val values = proceedResultCache.toList().asReversed()
+            val values = proceedResultCache.asReversed()
             val current = values.firstOrNull()
             val previous = values.getOrNull(1)
             return (current is ProceedResult.Success && previous !is ProceedResult.Success)
@@ -305,14 +305,12 @@ fun Home(
         val retainedProceedResult = retained(data.proceedResult) { actual, memoized ->
             val memoizedIsSuccess = (memoized is ProceedResult.Success)
             val actualIsNotSuccess = (actual !is ProceedResult.Success)
-            if (memoizedIsSuccess && actualIsNotSuccess) {
+            val valueIsAlreadyActual = (value == actual) // TODO: move this feature to 'retained()'
+            if (memoizedIsSuccess && actualIsNotSuccess && !valueIsAlreadyActual) {
                 delay(RetainedDelayForColorCenter)
             }
             value = actual
-            // TODO: move this logic to Cache itself?
-            if (proceedResultCache.lastOrNull() != actual) {
-                proceedResultCache += actual
-            }
+            proceedResultCache += actual
         }
         val circularRevealAnimator = remember {
             val progressValue = if (retainedProceedResult is ProceedResult.Success) {
