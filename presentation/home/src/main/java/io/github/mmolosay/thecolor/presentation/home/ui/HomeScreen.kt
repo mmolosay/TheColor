@@ -305,13 +305,21 @@ fun Home(
 //        }
     }
 
+    val softwareKeyboardController = LocalSoftwareKeyboardController.current
     val proceedResult = data.proceedResult
     LaunchedEffect(proceedResult) {
-        if (proceedResult !is ProceedResult.InvalidSubmittedColor) return@LaunchedEffect
-        Toast
-            .makeText(context, strings.invalidSubmittedColorMessage, Toast.LENGTH_SHORT)
-            .show()
-        proceedResult.discard()
+        when (proceedResult) {
+            is ProceedResult.Success -> {
+                softwareKeyboardController?.hide()
+            }
+            is ProceedResult.InvalidSubmittedColor -> {
+                Toast
+                    .makeText(context, strings.invalidSubmittedColorMessage, Toast.LENGTH_SHORT)
+                    .show()
+                proceedResult.discard()
+            }
+            null -> doNothing()
+        }
     }
 }
 
