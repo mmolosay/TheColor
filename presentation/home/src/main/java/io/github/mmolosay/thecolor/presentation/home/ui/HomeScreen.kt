@@ -5,6 +5,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -288,88 +289,13 @@ fun Home(
 
         Spacer(modifier = Modifier.height(16.dp))
 //        AnimatedColorCenter {
-        val proceedResultCache = cacheStore.getOrNew<ProceedResult??>(ProceedResultCacheTag) {
-            DequeCache(
-                mutationListener = PruneOnSizeThreshold(
-                    cacheSizeThreshold = 10,
-                    numberOfLatestElementsToKeep = 2,
-                ),
-            )
-        }
-        fun hasProceedResultBecomeSuccess(): Boolean {
-            val values = proceedResultCache.asReversed()
-            val current = values.getOrNull(0)
-            val previous = values.getOrNull(1)
-            return (current is ProceedResult.Success && previous !is ProceedResult.Success)
-        }
-        val retainedProceedResult = retained(data.proceedResult) { actual, memoized ->
-            val memoizedIsSuccess = (memoized is ProceedResult.Success)
-            val actualIsNotSuccess = (actual !is ProceedResult.Success)
-            if (memoizedIsSuccess && actualIsNotSuccess) {
-                delay(RetainedDelayForColorCenter)
-            }
-            value = actual
-        }
-        LaunchedEffect(retainedProceedResult) {
-            proceedResultCache += retainedProceedResult
-        }
-        val circularRevealAnimator = remember {
-            val progressValue = if (retainedProceedResult is ProceedResult.Success) {
-                CircularRevealAnimator.FullyExpandedValue
-            } else {
-                CircularRevealAnimator.FullyCollapsedValue
-            }
-            CircularRevealAnimator(
-                progressAnimatable = Animatable(initialValue = progressValue),
-                animationSpec = spring(stiffness = 100f),
-            )
-        }
-        suspend fun expandColorCenter() {
-            circularRevealAnimator.snapToCollapsed()
-            circularRevealAnimator.expand()
-        }
-        LaunchedEffect(retainedProceedResult) {
-            coroutineScope.launch {
-                if (hasProceedResultBecomeSuccess()) {
-                    expandColorCenter()
-                }
-            }
-        }
-        val showColorCenter = (retainedProceedResult is ProceedResult.Success)
-        LaunchedEffect(showColorCenter) {
-            if (!showColorCenter) {
-                circularRevealAnimator.snapToCollapsed()
-            }
-        }
-        if (showColorCenter) {
-            // calculate min height of Color Center so that its bottom matches bottom of the parent Column
-            var colorCenterMinHeight by remember { mutableStateOf<Dp>(Dp.Unspecified) }
-            var colorCenterVisibleHeight by remember { mutableStateOf<Float?>(null) }
-
-            ColorCenter(
-                modifier = Modifier
-                    .onPlaced { coordinates ->
-                        val colorCenterYPosPx = coordinates.positionInParent().y
-                        val parentHeightPx = scrollState.viewportSize.toFloat()
-                        val colorCenterMinHeightPx = parentHeightPx - colorCenterYPosPx
-                        colorCenterMinHeight = with(density) { colorCenterMinHeightPx.toDp() }
-                    }
-                    .onGloballyPositioned block@{ coordinates ->
-                        val ownPosInParent = coordinates.positionInParent()
-                        colorCenterVisibleHeight = calcVisibleHeightInScrollableParent(
-                            parentScrollState = scrollState,
-                            ownPosInParent = ownPosInParent.y,
-                        )
-                    },
-                surfaceColor = retainedProceedResult.colorData.color.toCompose(),
-                isSurfaceColorDark = retainedProceedResult.colorData.isDark,
-                colorCenter = colorCenter,
-                navBarAppearanceController = navBarAppearanceController,
-                circularRevealAnimator = circularRevealAnimator,
-                minHeight = colorCenterMinHeight,
-                visibleHeightInParent = colorCenterVisibleHeight,
-            )
-        }
+        ColorCenterContainer(
+            colorCenter = colorCenter,
+            proceedResult = data.proceedResult,
+            cacheStore = cacheStore,
+            navBarAppearanceController = navBarAppearanceController,
+            parentScrollState = scrollState,
+        )
 //        }
     }
 
@@ -462,6 +388,107 @@ private fun RandomizeColorButton(
                 .rotate(animatedRotation),
             imageVector = Icons.Outlined.Casino,
             contentDescription = iconContentDesc,
+        )
+    }
+}
+
+/**
+ * Contains "container" in name to convey that this Composable may or
+ * may not display [colorCenter], which is its primary content.
+ */
+@Composable
+private fun ColorCenterContainer(
+    colorCenter: @Composable () -> Unit,
+    proceedResult: ProceedResult?,
+    cacheStore: CacheStore,
+    navBarAppearanceController: NavBarAppearanceController,
+    parentScrollState: ScrollState,
+) {
+    val density = LocalDensity.current
+    val coroutineScope = rememberCoroutineScope()
+    val proceedResultCache = cacheStore.getOrNew<ProceedResult??>(ProceedResultCacheTag) {
+        DequeCache(
+            mutationListener = PruneOnSizeThreshold(
+                cacheSizeThreshold = 10, numberOfLatestElementsToKeep = 2,
+            ),
+        )
+    }
+    fun hasProceedResultBecomeSuccess(): Boolean {
+        val values = proceedResultCache.asReversed()
+        val current = values.getOrNull(0)
+        val previous = values.getOrNull(1)
+        return (current is ProceedResult.Success && previous !is ProceedResult.Success)
+    }
+    val retainedProceedResult = retained(proceedResult) { actual, memoized ->
+        val memoizedIsSuccess = (memoized is ProceedResult.Success)
+        val actualIsNotSuccess = (actual !is ProceedResult.Success)
+        if (memoizedIsSuccess && actualIsNotSuccess) {
+            delay(RetainedDelayForColorCenter)
+        }
+        value = actual
+    }
+    LaunchedEffect(retainedProceedResult) {
+        proceedResultCache += retainedProceedResult
+    }
+
+    val circularRevealAnimator = remember {
+        val progressValue = if (retainedProceedResult is ProceedResult.Success) {
+            CircularRevealAnimator.FullyExpandedValue
+        } else {
+            CircularRevealAnimator.FullyCollapsedValue
+        }
+        CircularRevealAnimator(
+            progressAnimatable = Animatable(initialValue = progressValue),
+            animationSpec = spring(stiffness = 100f),
+        )
+    }
+
+    suspend fun expandColorCenter() {
+        circularRevealAnimator.snapToCollapsed()
+        circularRevealAnimator.expand()
+    }
+    LaunchedEffect(retainedProceedResult) {
+        coroutineScope.launch {
+            if (hasProceedResultBecomeSuccess()) {
+                expandColorCenter()
+            }
+        }
+    }
+
+    val showColorCenter = (retainedProceedResult is ProceedResult.Success)
+    LaunchedEffect(showColorCenter) {
+        if (!showColorCenter) {
+            circularRevealAnimator.snapToCollapsed()
+        }
+    }
+
+    if (showColorCenter) {
+        // calculate min height of Color Center so that its bottom matches bottom of the parent Column
+        var colorCenterMinHeight by remember { mutableStateOf<Dp>(Dp.Unspecified) }
+        var colorCenterVisibleHeight by remember { mutableStateOf<Float?>(null) }
+
+        ColorCenter(
+            modifier = Modifier
+                .onPlaced { coordinates ->
+                    val colorCenterYPosPx = coordinates.positionInParent().y
+                    val parentHeightPx = parentScrollState.viewportSize.toFloat()
+                    val colorCenterMinHeightPx = parentHeightPx - colorCenterYPosPx
+                    colorCenterMinHeight = with(density) { colorCenterMinHeightPx.toDp() }
+                }
+                .onGloballyPositioned { coordinates ->
+                    val ownPosInParent = coordinates.positionInParent()
+                    colorCenterVisibleHeight = calcVisibleHeightInScrollableParent(
+                        parentScrollState = parentScrollState,
+                        ownPosInParent = ownPosInParent.y,
+                    )
+                },
+            surfaceColor = retainedProceedResult.colorData.color.toCompose(),
+            isSurfaceColorDark = retainedProceedResult.colorData.isDark,
+            colorCenter = colorCenter,
+            navBarAppearanceController = navBarAppearanceController,
+            circularRevealAnimator = circularRevealAnimator,
+            minHeight = colorCenterMinHeight,
+            visibleHeightInParent = colorCenterVisibleHeight,
         )
     }
 }
