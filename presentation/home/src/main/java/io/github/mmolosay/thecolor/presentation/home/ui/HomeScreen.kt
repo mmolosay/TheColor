@@ -448,7 +448,8 @@ private fun ColorCenterContainer(
         }
         CircularRevealAnimator(
             progressAnimatable = Animatable(initialValue = initialProgressValue),
-            animationSpec = spring(stiffness = 100f),
+            expandAnimationSpec = spring(stiffness = 100f),
+            collapseAnimationSpec = spring(stiffness = 300f),
         )
     }
     suspend fun expandColorCenter() {

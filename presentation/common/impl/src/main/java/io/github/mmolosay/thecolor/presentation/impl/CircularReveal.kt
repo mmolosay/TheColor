@@ -78,21 +78,23 @@ fun interface RadiusProvider {
 class CircularRevealAnimator(
     val progressAnimatable: Animatable<Float, AnimationVector1D> =
         Animatable(initialValue = FullyCollapsedValue),
-    private val animationSpec: AnimationSpec<Float> =
+    private val expandAnimationSpec: AnimationSpec<Float> =
+        spring(stiffness = Spring.StiffnessLow),
+    private val collapseAnimationSpec: AnimationSpec<Float> =
         spring(stiffness = Spring.StiffnessLow),
 ) {
 
     suspend fun expand() {
         progressAnimatable.animateTo(
             targetValue = FullyExpandedValue,
-            animationSpec = animationSpec,
+            animationSpec = expandAnimationSpec,
         )
     }
 
     suspend fun collapse() {
         progressAnimatable.animateTo(
             targetValue = FullyCollapsedValue,
-            animationSpec = animationSpec,
+            animationSpec = collapseAnimationSpec,
         )
     }
 
@@ -136,7 +138,7 @@ private fun Preview() {
     TheColorTheme {
         val animator = remember {
             CircularRevealAnimator(
-                animationSpec = tween(durationMillis = 3000),
+                expandAnimationSpec = tween(durationMillis = 3000),
             )
         }
         val coroutineScope = rememberCoroutineScope()
