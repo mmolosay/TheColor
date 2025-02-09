@@ -114,6 +114,7 @@ import io.github.mmolosay.thecolor.utils.cache.CacheStore
 import io.github.mmolosay.thecolor.utils.cache.DequeCache
 import io.github.mmolosay.thecolor.utils.cache.PruneOnSizeThreshold
 import io.github.mmolosay.thecolor.utils.doNothing
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -151,17 +152,18 @@ fun HomeScreen(
             )
         },
         colorCenter = ColorCenter@{
-            @Suppress("NAME_SHADOWING")
             val actualViewModel = viewModel.colorCenterViewModelFlow
                 .collectAsStateWithLifecycle().value
-            val retainedViewModel = retained(actualViewModel) { actual, memoized ->
-                if (actual == null && memoized != null) {
-                    delay(RetainedDelayForColorCenter)
+            val lastViewModel = retained(actualViewModel) { actual, memoized ->
+                if (actual != null) {
+                    value = actual
                 }
-                value = actual
+            }
+            if (lastViewModel == null) {
+                return@ColorCenter
             }
             ColorCenter(
-                viewModel = retainedViewModel ?: return@ColorCenter,
+                viewModel = lastViewModel,
             )
         },
         navigateToSettings = navigateToSettings,
@@ -420,6 +422,12 @@ private fun ColorCenterContainer(
         val previous = values.getOrNull(1)
         return (current is ProceedResult.Success && previous !is ProceedResult.Success)
     }
+    fun hasProceedResultBecomeNull(): Boolean {
+        val values = proceedResultCache.asReversed()
+        val current = values.getOrNull(0)
+        val previous = values.getOrNull(1)
+        return (current == null && previous is ProceedResult.Success)
+    }
     val retainedProceedResult = retained(proceedResult) { actual, memoized ->
         val memoizedIsSuccess = (memoized is ProceedResult.Success)
         val actualIsNotSuccess = (actual !is ProceedResult.Success)
@@ -428,7 +436,11 @@ private fun ColorCenterContainer(
         }
         value = actual
     }
+    var lastSuccessProceedResult: ProceedResult.Success? by remember { mutableStateOf(null) }
     LaunchedEffect(retainedProceedResult) {
+        if (retainedProceedResult is ProceedResult.Success) {
+            lastSuccessProceedResult = retainedProceedResult
+        }
         proceedResultCache += retainedProceedResult
     }
 
@@ -443,27 +455,37 @@ private fun ColorCenterContainer(
             animationSpec = spring(stiffness = 100f),
         )
     }
-
+    var collapseAnimJob by remember { mutableStateOf<Job?>(null) }
     suspend fun expandColorCenter() {
         circularRevealAnimator.snapToCollapsed()
         circularRevealAnimator.expand()
     }
     LaunchedEffect(retainedProceedResult) {
-        coroutineScope.launch {
-            if (hasProceedResultBecomeSuccess()) {
-                expandColorCenter()
+        when {
+            hasProceedResultBecomeSuccess() -> {
+                collapseAnimJob?.cancel()
+                coroutineScope.launch { expandColorCenter() }
+            }
+            hasProceedResultBecomeNull() -> {
+                collapseAnimJob?.cancel()
+                collapseAnimJob = coroutineScope.launch { circularRevealAnimator.collapse() }
             }
         }
     }
 
-    val showColorCenter = (retainedProceedResult is ProceedResult.Success)
-    LaunchedEffect(showColorCenter) {
-        if (!showColorCenter) {
-            circularRevealAnimator.snapToCollapsed()
-        }
+    fun shouldComposeColorCenter(): Boolean {
+        val retainedProceedResultIsSuccess = (retainedProceedResult is ProceedResult.Success)
+        val collapseAnimIsRunning = (collapseAnimJob?.isActive == true)
+        return (retainedProceedResultIsSuccess || collapseAnimIsRunning)
+    }
+    var composeColorCenter by remember { mutableStateOf(shouldComposeColorCenter()) }
+    LaunchedEffect(circularRevealAnimator.progressAnimatable.isRunning) {
+        composeColorCenter = shouldComposeColorCenter()
+        println("PRIVET, composeColorCenter = $composeColorCenter")
     }
 
-    if (showColorCenter) {
+    val proceedResult = lastSuccessProceedResult
+    if (composeColorCenter && proceedResult != null) {
         // calculate min height of Color Center so that its bottom matches bottom of the parent Column
         var colorCenterMinHeight by remember { mutableStateOf<Dp>(Dp.Unspecified) }
         var colorCenterVisibleHeight by remember { mutableStateOf<Float?>(null) }
@@ -483,8 +505,8 @@ private fun ColorCenterContainer(
                         ownPosInParent = ownPosInParent.y,
                     )
                 },
-            surfaceColor = retainedProceedResult.colorData.color.toCompose(),
-            isSurfaceColorDark = retainedProceedResult.colorData.isDark,
+            surfaceColor = proceedResult.colorData.color.toCompose(),
+            isSurfaceColorDark = proceedResult.colorData.isDark,
             colorCenter = colorCenter,
             navBarAppearanceController = navBarAppearanceController,
             circularRevealAnimator = circularRevealAnimator,
