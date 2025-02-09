@@ -406,7 +406,8 @@ private fun ColorCenterContainer(
 ) {
     val density = LocalDensity.current
     val coroutineScope = rememberCoroutineScope()
-    val proceedResultCache = cacheStore.getOrNew<ProceedResult??>(ProceedResultCacheTag) {
+    val proceedResultCacheTag = CacheStore.Tag("ProceedResultCacheTag")
+    val proceedResultCache = cacheStore.getOrNew<ProceedResult??>(proceedResultCacheTag) {
         DequeCache(
             mutationListener = PruneOnSizeThreshold(
                 cacheSizeThreshold = 10, numberOfLatestElementsToKeep = 2,
@@ -607,7 +608,6 @@ private fun SelectedSwatchDetailsDialogContainer(
 }
 
 private val RetainedDelayForColorCenter = 2.framesDuration
-private val ProceedResultCacheTag = CacheStore.Tag("ProceedResultCacheTag")
 
 /**
  * An [Arrangement] for [ButtonSection].
