@@ -1,6 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.home.ui
 
 import android.widget.Toast
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -230,7 +231,6 @@ fun Home(
 ) {
     val density = LocalDensity.current
     val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
     var positionInRoot by remember { mutableStateOf<DpOffset?>(null) }
     var size by remember { mutableStateOf<DpSize?>(null) }
@@ -507,6 +507,11 @@ private fun ColorCenter(
     visibleHeightInParent: Float?,
 ) {
     val colors = if (isSurfaceColorDark) colorsOnDarkSurface() else colorsOnLightSurface()
+    val animatedSurfaceColor by animateColorAsState(
+        targetValue = surfaceColor,
+        animationSpec = spring(stiffness = 100f), // match with 'animationSpec' of 'CircularRevealAnimator'
+        label = "surface color",
+    )
     TintedSurface(
         modifier = modifier
             .graphicsLayer {
@@ -523,7 +528,7 @@ private fun ColorCenter(
                     minCoverRadius * circularRevealAnimator.progressAnimatable.value
                 },
             ),
-        surfaceColor = surfaceColor,
+        surfaceColor = animatedSurfaceColor,
         contentColors = colors,
     ) {
         val windowInsets = WindowInsets.systemBars.onlyBottom()
