@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.home
+package io.github.mmolosay.thecolor.presentation.home.ui
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable

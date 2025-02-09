@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.home
+package io.github.mmolosay.thecolor.presentation.home.ui
 
 import android.widget.Toast
 import androidx.compose.animation.core.Animatable
