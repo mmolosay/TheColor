@@ -486,8 +486,8 @@ private fun ColorCenterContainer(
     val proceedResult = lastSuccessProceedResult
     if (composeColorCenter && proceedResult != null) {
         // calculate min height of Color Center so that its bottom matches bottom of the parent Column
-        var colorCenterMinHeight by remember { mutableStateOf<Dp>(Dp.Unspecified) }
-        var colorCenterVisibleHeight by remember { mutableStateOf<Float?>(null) }
+        var minHeight by remember { mutableStateOf<Dp>(Dp.Unspecified) }
+        var visibleHeightInParent by remember { mutableStateOf<Float?>(null) }
 
         ColorCenter(
             modifier = Modifier
@@ -495,22 +495,30 @@ private fun ColorCenterContainer(
                     val colorCenterYPosPx = coordinates.positionInParent().y
                     val parentHeightPx = parentScrollState.viewportSize.toFloat()
                     val colorCenterMinHeightPx = parentHeightPx - colorCenterYPosPx
-                    colorCenterMinHeight = with(density) { colorCenterMinHeightPx.toDp() }
+                    minHeight = with(density) { colorCenterMinHeightPx.toDp() }
                 }
                 .onGloballyPositioned { coordinates ->
                     val ownPosInParent = coordinates.positionInParent()
-                    colorCenterVisibleHeight = calcVisibleHeightInScrollableParent(
+                    visibleHeightInParent = calcVisibleHeightInScrollableParent(
                         parentScrollState = parentScrollState,
                         ownPosInParent = ownPosInParent.y,
                     )
-                },
+                }
+                .clipCircle(
+                    center = { size ->
+                        val h = visibleHeightInParent
+                        if (h != null && h != 0f) Offset(x = size.width / 2, y = h)
+                        else size.center
+                    },
+                    radius = RadiusProvider { size, minCoverRadius ->
+                        minCoverRadius * circularRevealAnimator.progressAnimatable.value
+                    },
+                ),
             surfaceColor = proceedResult.colorData.color.toCompose(),
             isSurfaceColorDark = proceedResult.colorData.isDark,
             colorCenter = colorCenter,
             navBarAppearanceController = navBarAppearanceController,
-            circularRevealAnimator = circularRevealAnimator,
-            minHeight = colorCenterMinHeight,
-            visibleHeightInParent = colorCenterVisibleHeight,
+            minHeight = minHeight,
         )
     }
 }
@@ -522,10 +530,8 @@ private fun ColorCenter(
     isSurfaceColorDark: Boolean,
     colorCenter: @Composable () -> Unit,
     navBarAppearanceController: NavBarAppearanceController,
-    circularRevealAnimator: CircularRevealAnimator,
     modifier: Modifier = Modifier,
     minHeight: Dp,
-    visibleHeightInParent: Float?,
 ) {
     val colors = if (isSurfaceColorDark) colorsOnDarkSurface() else colorsOnLightSurface()
     val animatedSurfaceColor by animateColorAsState(
@@ -538,17 +544,7 @@ private fun ColorCenter(
             .graphicsLayer {
                 clip = true
                 shape = ColorCenterShape
-            }
-            .clipCircle(
-                center = { size ->
-                    if (visibleHeightInParent != null && visibleHeightInParent != 0f) {
-                        Offset(x = size.width / 2, y = visibleHeightInParent)
-                    } else size.center
-                },
-                radius = RadiusProvider { size, minCoverRadius ->
-                    minCoverRadius * circularRevealAnimator.progressAnimatable.value
-                },
-            ),
+            },
         surfaceColor = animatedSurfaceColor,
         contentColors = colors,
     ) {
