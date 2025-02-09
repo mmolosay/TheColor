@@ -452,14 +452,10 @@ private fun ColorCenterContainer(
             collapseAnimationSpec = spring(stiffness = 300f),
         )
     }
-    suspend fun expandColorCenter() {
-        circularRevealAnimator.snapToCollapsed()
-        circularRevealAnimator.expand()
-    }
     LaunchedEffect(retainedProceedResult) {
         when {
             hasProceedResultBecomeSuccess() -> {
-                coroutineScope.launch { expandColorCenter() }
+                coroutineScope.launch { circularRevealAnimator.expand() }
             }
             hasProceedResultBecomeNull() -> {
                 coroutineScope.launch { circularRevealAnimator.collapse() }
