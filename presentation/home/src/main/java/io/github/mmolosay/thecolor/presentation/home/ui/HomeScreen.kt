@@ -114,7 +114,6 @@ import io.github.mmolosay.thecolor.utils.cache.CacheStore
 import io.github.mmolosay.thecolor.utils.cache.DequeCache
 import io.github.mmolosay.thecolor.utils.cache.PruneOnSizeThreshold
 import io.github.mmolosay.thecolor.utils.doNothing
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -408,6 +407,7 @@ private fun ColorCenterContainer(
 ) {
     val density = LocalDensity.current
     val coroutineScope = rememberCoroutineScope()
+
     val proceedResultCacheTag = CacheStore.Tag("ProceedResultCacheTag")
     val proceedResultCache = cacheStore.getOrNew<ProceedResult??>(proceedResultCacheTag) {
         DequeCache(
@@ -428,34 +428,29 @@ private fun ColorCenterContainer(
         val previous = values.getOrNull(1)
         return (current == null && previous is ProceedResult.Success)
     }
+
     val retainedProceedResult = retained(proceedResult) { actual, memoized ->
         val memoizedIsSuccess = (memoized is ProceedResult.Success)
         val actualIsNotSuccess = (actual !is ProceedResult.Success)
         if (memoizedIsSuccess && actualIsNotSuccess) {
-            delay(RetainedDelayForColorCenter)
+            delay(2.framesDuration)
         }
         value = actual
     }
-    var lastSuccessProceedResult: ProceedResult.Success? by remember { mutableStateOf(null) }
     LaunchedEffect(retainedProceedResult) {
-        if (retainedProceedResult is ProceedResult.Success) {
-            lastSuccessProceedResult = retainedProceedResult
-        }
         proceedResultCache += retainedProceedResult
     }
 
     val circularRevealAnimator = remember {
-        val progressValue = if (retainedProceedResult is ProceedResult.Success) {
-            CircularRevealAnimator.FullyExpandedValue
-        } else {
-            CircularRevealAnimator.FullyCollapsedValue
+        val initialProgressValue = when {
+            retainedProceedResult is ProceedResult.Success -> CircularRevealAnimator.FullyExpandedValue
+            else -> CircularRevealAnimator.FullyCollapsedValue
         }
         CircularRevealAnimator(
-            progressAnimatable = Animatable(initialValue = progressValue),
+            progressAnimatable = Animatable(initialValue = initialProgressValue),
             animationSpec = spring(stiffness = 100f),
         )
     }
-    var collapseAnimJob by remember { mutableStateOf<Job?>(null) }
     suspend fun expandColorCenter() {
         circularRevealAnimator.snapToCollapsed()
         circularRevealAnimator.expand()
@@ -463,25 +458,29 @@ private fun ColorCenterContainer(
     LaunchedEffect(retainedProceedResult) {
         when {
             hasProceedResultBecomeSuccess() -> {
-                collapseAnimJob?.cancel()
                 coroutineScope.launch { expandColorCenter() }
             }
             hasProceedResultBecomeNull() -> {
-                collapseAnimJob?.cancel()
-                collapseAnimJob = coroutineScope.launch { circularRevealAnimator.collapse() }
+                coroutineScope.launch { circularRevealAnimator.collapse() }
             }
         }
     }
 
+    val isAnimationRunning = (circularRevealAnimator.progressAnimatable.isRunning)
     fun shouldComposeColorCenter(): Boolean {
-        val retainedProceedResultIsSuccess = (retainedProceedResult is ProceedResult.Success)
-        val collapseAnimIsRunning = (collapseAnimJob?.isActive == true)
-        return (retainedProceedResultIsSuccess || collapseAnimIsRunning)
+        val wouldHaveBeenComposedWithoutAnimation = (retainedProceedResult is ProceedResult.Success)
+        return (wouldHaveBeenComposedWithoutAnimation || isAnimationRunning)
     }
     var composeColorCenter by remember { mutableStateOf(shouldComposeColorCenter()) }
-    LaunchedEffect(circularRevealAnimator.progressAnimatable.isRunning) {
+    LaunchedEffect(isAnimationRunning) { // update when animation starts / finishes
         composeColorCenter = shouldComposeColorCenter()
-        println("PRIVET, composeColorCenter = $composeColorCenter")
+    }
+
+    val retainedAsSuccess = (retainedProceedResult as? ProceedResult.Success)
+    var lastSuccessProceedResult = retained(retainedAsSuccess) { actual, _ ->
+        if (actual is ProceedResult.Success) {
+            value = actual
+        }
     }
 
     val proceedResult = lastSuccessProceedResult
@@ -633,8 +632,6 @@ private fun SelectedSwatchDetailsDialogContainer(
         )
     }
 }
-
-private val RetainedDelayForColorCenter = 2.framesDuration
 
 /**
  * An [Arrangement] for [ButtonSection].
