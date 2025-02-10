@@ -409,7 +409,7 @@ private fun ColorCenterContainer(
     val coroutineScope = rememberCoroutineScope()
 
     val proceedResultCacheTag = CacheStore.Tag("ProceedResultCacheTag")
-    val proceedResultCache = cacheStore.getOrNew<ProceedResult??>(proceedResultCacheTag) {
+    val proceedResultCache = cacheStore.getOrNew<ProceedResult?>(proceedResultCacheTag) {
         DequeCache(
             mutationListener = PruneOnSizeThreshold(
                 cacheSizeThreshold = 10, numberOfLatestElementsToKeep = 2,
