@@ -473,15 +473,15 @@ private fun ColorCenterContainer(
         composeColorCenter = shouldComposeColorCenter()
     }
 
-    val retainedAsSuccess = (retainedProceedResult as? ProceedResult.Success)
-    var lastSuccessProceedResult = retained(retainedAsSuccess) { actual, _ ->
-        if (actual is ProceedResult.Success) {
-            value = actual
+    if (composeColorCenter) {
+        val retainedAsSuccess = (retainedProceedResult as? ProceedResult.Success)
+        val lastProceedResultSuccess = retained(retainedAsSuccess) { actual, _ ->
+            if (actual != null) {
+                value = actual
+            }
         }
-    }
-
-    val proceedResult = lastSuccessProceedResult
-    if (composeColorCenter && proceedResult != null) {
+        if (lastProceedResultSuccess == null) return
+        val proceedResult = lastProceedResultSuccess
         // calculate min height of Color Center so that its bottom matches bottom of the parent Column
         var minHeight by remember { mutableStateOf<Dp>(Dp.Unspecified) }
         var visibleHeightInParent by remember { mutableStateOf<Float?>(null) }
