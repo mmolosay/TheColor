@@ -134,6 +134,16 @@ fun HomeScreen(
     val selectedSwatchDetailsDialogController = remember(navBarAppearanceController) {
         navBarAppearanceController.branch("Selected Swatch Details Dialog")
     }
+    val colorCenter: ColorCenterComposable? = run {
+        val viewModel = viewModel.colorCenterViewModelFlow
+            .collectAsStateWithLifecycle().value
+            ?: return@run null
+        ColorCenterComposable {
+            ColorCenter(
+                viewModel = viewModel,
+            )
+        }
+    }
 
     HomeScreen(
         data = data,
@@ -150,21 +160,7 @@ fun HomeScreen(
                 viewModel = viewModel.colorPreviewViewModel,
             )
         },
-        colorCenter = ColorCenter@{
-            val actualViewModel = viewModel.colorCenterViewModelFlow
-                .collectAsStateWithLifecycle().value
-            val lastViewModel = retained(actualViewModel) { actual, memoized ->
-                if (actual != null) {
-                    value = actual
-                }
-            }
-            if (lastViewModel == null) {
-                return@ColorCenter
-            }
-            ColorCenter(
-                viewModel = lastViewModel,
-            )
-        },
+        colorCenter = colorCenter,
         navigateToSettings = navigateToSettings,
         navBarAppearanceController = navBarAppearanceController,
     )
@@ -175,6 +171,11 @@ fun HomeScreen(
     )
 }
 
+fun interface ColorCenterComposable {
+    @Composable
+    operator fun invoke()
+}
+
 @Composable
 fun HomeScreen(
     data: HomeData,
@@ -183,7 +184,7 @@ fun HomeScreen(
     cacheStore: CacheStore,
     colorInput: @Composable () -> Unit,
     colorPreview: @Composable () -> Unit,
-    colorCenter: @Composable () -> Unit,
+    colorCenter: ColorCenterComposable?,
     navigateToSettings: () -> Unit,
     navBarAppearanceController: NavBarAppearanceController,
 ) {
@@ -226,7 +227,7 @@ fun Home(
     cacheStore: CacheStore,
     colorInput: @Composable () -> Unit,
     colorPreview: @Composable () -> Unit,
-    colorCenter: @Composable () -> Unit,
+    colorCenter: ColorCenterComposable?,
     navBarAppearanceController: NavBarAppearanceController,
     modifier: Modifier = Modifier,
 ) {
@@ -399,7 +400,7 @@ private fun RandomizeColorButton(
  */
 @Composable
 private fun ColorCenterContainer(
-    colorCenter: @Composable () -> Unit,
+    colorCenter: ColorCenterComposable?,
     proceedResult: ProceedResult?,
     cacheStore: CacheStore,
     navBarAppearanceController: NavBarAppearanceController,
@@ -482,6 +483,12 @@ private fun ColorCenterContainer(
         }
         if (lastProceedResultSuccess == null) return
         val proceedResult = lastProceedResultSuccess
+        val lastPresentColorCenter = retained(colorCenter) { actual, _ ->
+            if (actual != null) {
+                value = actual
+            }
+        }
+        if (lastPresentColorCenter == null) return
         // calculate min height of Color Center so that its bottom matches bottom of the parent Column
         var minHeight by remember { mutableStateOf<Dp>(Dp.Unspecified) }
         var visibleHeightInParent by remember { mutableStateOf<Float?>(null) }
@@ -513,7 +520,7 @@ private fun ColorCenterContainer(
                 ),
             surfaceColor = proceedResult.colorData.color.toCompose(),
             isSurfaceColorDark = proceedResult.colorData.isDark,
-            colorCenter = colorCenter,
+            colorCenter = lastPresentColorCenter,
             navBarAppearanceController = navBarAppearanceController,
             minHeight = minHeight,
         )
@@ -525,7 +532,7 @@ private fun ColorCenterContainer(
 private fun ColorCenter(
     surfaceColor: Color,
     isSurfaceColorDark: Boolean,
-    colorCenter: @Composable () -> Unit,
+    colorCenter: ColorCenterComposable,
     navBarAppearanceController: NavBarAppearanceController,
     modifier: Modifier = Modifier,
     minHeight: Dp,
