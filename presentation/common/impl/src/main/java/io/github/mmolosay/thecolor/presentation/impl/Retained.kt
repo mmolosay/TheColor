@@ -39,6 +39,26 @@ inline fun <T> retained(
     return memoizedValue
 }
 
+/**
+ * Retains only not-null values.
+ *
+ * Initial [actualValue] may be `null`. It will be used as initial retained value.
+ * Every time this function is called with a new [actualValue], a memoized value will only be
+ * updated if an actual new value is not `null`.
+ * This way, the function returns either a last not-null [actualValue], or `null` if there were
+ * no such yet.
+ */
+@Suppress("NOTHING_TO_INLINE")
+@Composable
+inline fun <T> retainedNotNull(
+    actualValue: T?,
+): T? =
+    retained(actualValue) { actual, memoized ->
+        if (actual != null) {
+            value = actual
+        }
+    }
+
 fun interface RetentionSpec<T> {
     suspend operator fun MutableState<T>.invoke(actualValue: T, memoizedValue: T)
 }

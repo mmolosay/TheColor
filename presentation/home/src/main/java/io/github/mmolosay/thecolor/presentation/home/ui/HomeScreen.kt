@@ -103,6 +103,7 @@ import io.github.mmolosay.thecolor.presentation.impl.clipCircle
 import io.github.mmolosay.thecolor.presentation.impl.framesDuration
 import io.github.mmolosay.thecolor.presentation.impl.onlyBottom
 import io.github.mmolosay.thecolor.presentation.impl.retained
+import io.github.mmolosay.thecolor.presentation.impl.retainedNotNull
 import io.github.mmolosay.thecolor.presentation.impl.toCompose
 import io.github.mmolosay.thecolor.presentation.impl.toDpOffset
 import io.github.mmolosay.thecolor.presentation.impl.toDpSize
@@ -464,31 +465,12 @@ private fun ColorCenterContainer(
         }
     }
 
-    val isAnimationRunning = (circularRevealAnimator.progressAnimatable.isRunning)
-    fun shouldComposeColorCenter(): Boolean {
-        val wouldHaveBeenComposedWithoutAnimation = (retainedProceedResult is ProceedResult.Success)
-        return (wouldHaveBeenComposedWithoutAnimation || isAnimationRunning)
-    }
-    var composeColorCenter by remember { mutableStateOf(shouldComposeColorCenter()) }
-    LaunchedEffect(isAnimationRunning) { // update when animation starts / finishes
-        composeColorCenter = shouldComposeColorCenter()
-    }
-
-    if (composeColorCenter) {
-        val retainedAsSuccess = (retainedProceedResult as? ProceedResult.Success)
-        val lastProceedResultSuccess = retained(retainedAsSuccess) { actual, _ ->
-            if (actual != null) {
-                value = actual
-            }
-        }
-        if (lastProceedResultSuccess == null) return
-        val proceedResult = lastProceedResultSuccess
-        val lastPresentColorCenter = retained(colorCenter) { actual, _ ->
-            if (actual != null) {
-                value = actual
-            }
-        }
-        if (lastPresentColorCenter == null) return
+    /** Wrapper for decorated [colorCenter] with specific positioning inside the parent and animations. */
+    @Composable
+    fun ColorCenter(
+        data: ProceedResult.Success,
+        colorCenter: @Composable () -> Unit,
+    ) {
         // calculate min height of Color Center so that its bottom matches bottom of the parent Column
         var minHeight by remember { mutableStateOf<Dp>(Dp.Unspecified) }
         var visibleHeightInParent by remember { mutableStateOf<Float?>(null) }
@@ -518,12 +500,42 @@ private fun ColorCenterContainer(
                         minCoverRadius * circularRevealAnimator.progressAnimatable.value
                     },
                 ),
-            surfaceColor = proceedResult.colorData.color.toCompose(),
-            isSurfaceColorDark = proceedResult.colorData.isDark,
-            colorCenter = lastPresentColorCenter,
+            surfaceColor = data.colorData.color.toCompose(),
+            isSurfaceColorDark = data.colorData.isDark,
+            colorCenter = colorCenter,
             navBarAppearanceController = navBarAppearanceController,
             minHeight = minHeight,
         )
+    }
+
+    val actualColorCenter: ColorCenterComposable? = run {
+        colorCenter ?: return@run null
+        val retainedAsSuccess = (retainedProceedResult as? ProceedResult.Success) ?: return@run null
+        return@run ColorCenterComposable {
+            ColorCenter(
+                data = retainedAsSuccess,
+                colorCenter = { colorCenter() }, // SAM conversion doesn't work for @Composable lambdas
+            )
+        }
+    }
+    val retainedColorCenter = retainedNotNull(actualValue = actualColorCenter)
+
+    val isAnimationRunning = (circularRevealAnimator.progressAnimatable.isRunning)
+    fun shouldComposeColorCenter(): Boolean {
+        if (actualColorCenter != null) return true
+        return isAnimationRunning
+    }
+    // animation is started in LaunchedEffect(), thus only on next frame.
+    // calculating result of 'shouldComposeColorCenter()' in the next frame as well.
+    var composeColorCenter by remember { mutableStateOf(shouldComposeColorCenter()) }
+    LaunchedEffect(isAnimationRunning) {
+        composeColorCenter = shouldComposeColorCenter()
+    }
+
+    if (composeColorCenter) {
+        if (retainedColorCenter != null) {
+            retainedColorCenter()
+        }
     }
 }
 
