@@ -418,16 +418,18 @@ private fun ColorCenterContainer(
             ),
         )
     }
-    fun hasProceedResultBecomeSuccess(): Boolean {
+    fun currentAndPreviousFromCache(): Pair<ProceedResult?, ProceedResult?> {
         val values = proceedResultCache.asReversed()
         val current = values.getOrNull(0)
         val previous = values.getOrNull(1)
+        return Pair(current, previous)
+    }
+    fun hasProceedResultBecomeSuccess(): Boolean {
+        val (current, previous) = currentAndPreviousFromCache()
         return (current is ProceedResult.Success && previous !is ProceedResult.Success)
     }
     fun hasProceedResultBecomeNull(): Boolean {
-        val values = proceedResultCache.asReversed()
-        val current = values.getOrNull(0)
-        val previous = values.getOrNull(1)
+        val (current, previous) = currentAndPreviousFromCache()
         return (current == null && previous is ProceedResult.Success)
     }
 
@@ -478,10 +480,10 @@ private fun ColorCenterContainer(
         ColorCenter(
             modifier = Modifier
                 .onPlaced { coordinates ->
-                    val colorCenterYPosPx = coordinates.positionInParent().y
-                    val parentHeightPx = parentScrollState.viewportSize.toFloat()
-                    val colorCenterMinHeightPx = parentHeightPx - colorCenterYPosPx
-                    minHeight = with(density) { colorCenterMinHeightPx.toDp() }
+                    val ownYPos = coordinates.positionInParent().y
+                    val parentHeight = parentScrollState.viewportSize
+                    val ownMinHeight = parentHeight - ownYPos
+                    minHeight = with(density) { ownMinHeight.toDp() }
                 }
                 .onGloballyPositioned { coordinates ->
                     val ownPosInParent = coordinates.positionInParent()
@@ -552,7 +554,7 @@ private fun ColorCenter(
     val colors = if (isSurfaceColorDark) colorsOnDarkSurface() else colorsOnLightSurface()
     val animatedSurfaceColor by animateColorAsState(
         targetValue = surfaceColor,
-        animationSpec = spring(stiffness = 100f), // match with 'animationSpec' of 'CircularRevealAnimator'
+        animationSpec = spring(stiffness = 100f),
         label = "surface color",
     )
     TintedSurface(
