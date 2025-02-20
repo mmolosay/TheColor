@@ -87,6 +87,7 @@ import io.github.mmolosay.thecolor.presentation.api.nav.bar.navBarAppearance
 import io.github.mmolosay.thecolor.presentation.center.ColorCenter
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterShape
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
+import io.github.mmolosay.thecolor.presentation.design.animate
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
@@ -551,10 +552,14 @@ private fun ColorCenter(
     modifier: Modifier = Modifier,
     minHeight: Dp,
 ) {
-    val colors = if (isSurfaceColorDark) colorsOnDarkSurface() else colorsOnLightSurface()
+    val animationSpec = spring<Color>(stiffness = 100f)
+    val contentColors = if (isSurfaceColorDark) colorsOnDarkSurface() else colorsOnLightSurface()
+    val animatedContentColors = contentColors.animate(
+        animationSpec = animationSpec,
+    )
     val animatedSurfaceColor by animateColorAsState(
         targetValue = surfaceColor,
-        animationSpec = spring(stiffness = 100f),
+        animationSpec = animationSpec,
         label = "surface color",
     )
     TintedSurface(
@@ -564,7 +569,7 @@ private fun ColorCenter(
                 shape = ColorCenterShape
             },
         surfaceColor = animatedSurfaceColor,
-        contentColors = colors,
+        contentColors = animatedContentColors,
     ) {
         val windowInsets = WindowInsets.systemBars.onlyBottom()
         Box(

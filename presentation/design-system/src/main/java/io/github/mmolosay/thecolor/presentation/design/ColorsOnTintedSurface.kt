@@ -1,5 +1,9 @@
 package io.github.mmolosay.thecolor.presentation.design
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -66,3 +70,27 @@ fun colorsOnDarkSurface(
         accent = accent,
         muted = muted,
     )
+
+/*
+ * Animating each color of MaterialColorScheme using 'animateAsState()' is expensive.
+ * There's a room for improvement TODO: improve performance
+ * Also see io.github.mmolosay.thecolor.presentation.design.ColorScheme -> MaterialColorScheme.animateColors()
+ */
+@Composable
+fun ColorsOnTintedSurface.animate(
+    animationSpec: AnimationSpec<Color> = spring(stiffness = Spring.StiffnessLow),
+): ColorsOnTintedSurface {
+
+    @Suppress("AnimateAsStateLabel")
+    @Composable
+    fun Color.animateAsState() =
+        animateColorAsState(
+            targetValue = this,
+            animationSpec = animationSpec,
+        )
+
+    return ColorsOnTintedSurface(
+        accent = this.accent.animateAsState().value,
+        muted = this.muted.animateAsState().value,
+    )
+}
