@@ -463,10 +463,14 @@ class HomeViewModel @Inject constructor(
         color: Color,
     ) {
         orchestrator.colorInputMutex.withLock {
+            val wouldColorFlowEmitThisColor = colorInputColorStore.wouldEmitIfSet(color)
             withContext(uiDataUpdateDispatcher) {
                 colorInputMediator.send(color = color, from = null)
             }
-            orchestrator.onColorSentToColorInput(color)
+            orchestrator.onColorSentToColorInput(
+                color = color,
+                wouldColorFlowEmitThisColor = wouldColorFlowEmitThisColor,
+            )
         }
     }
 
@@ -506,9 +510,16 @@ private class Orchestrator {
     val colorInputMutex = Mutex()
 
     @Synchronized
-    fun onColorSentToColorInput(color: Color) {
-        flowOfSentButNotYetProcessedColors.update { list ->
-            list + color
+    fun onColorSentToColorInput(
+        color: Color,
+        wouldColorFlowEmitThisColor: Boolean,
+    ) {
+        // if color is not emitted after being sent, then color won't be processed,
+        // and then it will stay in the list forever if we add it there
+        if (wouldColorFlowEmitThisColor) {
+            flowOfSentButNotYetProcessedColors.update { list ->
+                list + color
+            }
         }
     }
 

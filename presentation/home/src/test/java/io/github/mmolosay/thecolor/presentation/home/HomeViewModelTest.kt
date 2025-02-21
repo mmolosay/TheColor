@@ -43,10 +43,12 @@ import io.kotest.matchers.types.beOfType
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.coVerifyOrder
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
+import io.mockk.spyk
 import io.mockk.verify
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -62,6 +64,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import javax.inject.Provider
+import kotlin.time.Duration.Companion.seconds
 import io.github.mmolosay.thecolor.domain.model.ColorDetails as DomainColorDetails
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.AutoProceedWithRandomizedColors as DomainAutoProceedWithRandomizedColors
 
@@ -73,7 +76,7 @@ class HomeViewModelTest {
 
     val colorInputMediator: ColorInputMediator = mockk(relaxed = true)
     val colorCenterViewModel: ColorCenterViewModel = mockk(relaxed = true)
-    val colorInputColorStore: ColorInputColorStore = mockk()
+    val colorInputColorStore: ColorInputColorStore = spyk() // for actual impl of 'wouldEmitIfSet()'
     val colorInputEventStore: ColorInputEventStore = mockk()
 
     val colorDetailsViewModel: ColorDetailsViewModel = mockk(relaxed = true)
@@ -594,6 +597,91 @@ class HomeViewModelTest {
             val proceedResultAsSuccess =
                 data.proceedResult.shouldBeInstanceOf<ProceedResult.Success>()
             proceedResultAsSuccess.colorData shouldBe colorData
+        }
+
+    /**
+     * GIVEN
+     *  1. SUT is initialized
+     *  2. SUT is proceeded with some color
+     *
+     * WHEN
+     *  1. receiving two same [ColorDetailsEvent.ColorSelected] events with color X in a quick succession
+     *  2. then receiving a different [ColorDetailsEvent.ColorSelected] event with color Y
+     *
+     * THEN
+     *  nothing breaks: [proceedExecutor] is invoked for both color X and then for color Y.
+     */
+    @Test
+    fun `when receiving two same 'ColorSelected' events from Color Details rapidly, and then receiving different 'ColorSelected' event, then 'proceed' action is invoked normally`() =
+        runTest(testDispatcher, timeout = 5.seconds) {
+            val initialColor = Color.Hex(0x0)
+            val colorFlow = MutableStateFlow<Color>(value = initialColor)
+            every { colorInputColorStore.colorFlow } returns colorFlow
+            every { colorInputEventStore.eventFlow } returns emptyFlow()
+            val eventsFlow = MutableSharedFlow<ColorDetailsEvent>()
+            every { colorDetailsEventStore.eventFlow } returns eventsFlow
+            every { colorSchemeEventStore.eventFlow } returns emptyFlow()
+            val colorData: ProceedResult.Success.ColorData = mockk()
+            every { createColorData(color = any()) } returns colorData
+            createSut()
+            // we know from other tests that it would be 'CanProceed.Yes'
+            data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
+            val exactColor = Color.Hex(0x1)
+            run emitDataFetchedEvent@{
+                val domainDetails: DomainColorDetails = mockk(relaxed = true) {
+                    every { color } returns initialColor
+                    every { exact } returns mockk {
+                        every { color } returns exactColor
+                    }
+                }
+                val event = ColorDetailsEvent.DataFetched(domainDetails)
+                eventsFlow.emit(event)
+            }
+
+            // clicking "Go to exact color"
+            run emitExactColorSelectedEvents@{
+                val event = ColorDetailsEvent.ColorSelected(
+                    color = exactColor,
+                    colorRole = ColorRole.Exact,
+                )
+                launch {
+                    eventsFlow.emit(event) // 1st time
+                    eventsFlow.emit(event) // 2nd time
+                }
+            }
+            run emitExactColor@{
+                colorFlow.emit(exactColor)
+            }
+            run emitDataFetchedEvent@{
+                val domainDetails: DomainColorDetails = mockk(relaxed = true) {
+                    every { color } returns exactColor
+                }
+                val event = ColorDetailsEvent.DataFetched(domainDetails)
+                eventsFlow.emit(event)
+            }
+            // clicking "Go back to initial color"
+            run emitColorSelectedEvent@{
+                val event = ColorDetailsEvent.ColorSelected(
+                    color = initialColor,
+                    colorRole = ColorRole.Initial,
+                )
+                eventsFlow.emit(event)
+            }
+            run emitInitialColor@{
+                colorFlow.emit(initialColor)
+            }
+            run emitDataFetchedEvent@{
+                val domainDetails: DomainColorDetails = mockk(relaxed = true) {
+                    every { color } returns initialColor
+                }
+                val event = ColorDetailsEvent.DataFetched(domainDetails)
+                eventsFlow.emit(event)
+            }
+
+            coVerifyOrder {
+                proceedExecutor.invoke(color = exactColor, colorRole = ColorRole.Exact)
+                proceedExecutor.invoke(color = initialColor, colorRole = ColorRole.Initial)
+            }
         }
 
     @Test
