@@ -438,11 +438,10 @@ class HomeViewModel @Inject constructor(
         // recreate Color Center ViewModel (and its sub-feature ViewModels) to reset their states
         colorCenterComponentsStore.createNewComponents()
         kotlin.run setProcessor@{
-            val currentProcessor = dataFetchedEventProcessor // capture in closure
             // implementation of a "Composite" design pattern
             dataFetchedEventProcessor = DataFetchedEventProcessor { event ->
                 BuildColorCenterSession().process(event)
-                dataFetchedEventProcessor = currentProcessor // restore previous value
+                dataFetchedEventProcessor = initialDataFetchedEventProcessor()
             }
         }
         // only persist a seed of each new session
