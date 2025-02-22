@@ -140,10 +140,12 @@ fun HomeScreen(
         val viewModel = viewModel.colorCenterViewModelFlow
             .collectAsStateWithLifecycle().value
             ?: return@run null
-        ColorCenterComposable {
-            ColorCenter(
-                viewModel = viewModel,
-            )
+        remember(viewModel) {
+            ColorCenterComposable {
+                ColorCenter(
+                    viewModel = viewModel,
+                )
+            }
         }
     }
 
