@@ -16,6 +16,11 @@ import kotlinx.coroutines.delay
  *
  * Employs [LaunchedEffect] to execute [retentionSpec] when a new [actualValue] arrives.
  * Thus, if [retentionSpec] is still being executed for a previous value, then spec execution is cancelled.
+ *
+ * Doesn't call [retentionSpec] on first composition, because memoized value is already equal to
+ * initial [actualValue].
+ *
+ * Doesn't call [retentionSpec] if updated [actualValue] is already equal to memoized value.
  */
 @Suppress("NOTHING_TO_INLINE")
 @Composable
@@ -26,12 +31,33 @@ inline fun <T> retained(
     val memoizedValueState = remember { mutableStateOf(actualValue) }
     val memoizedValue = memoizedValueState.value
     LaunchedEffect(actualValue) {
+        if (memoizedValue == actualValue) return@LaunchedEffect
         with(retentionSpec) {
             memoizedValueState(actualValue, memoizedValue)
         }
     }
     return memoizedValue
 }
+
+/**
+ * Retains only not-null values.
+ *
+ * Initial [actualValue] may be `null`. It will be used as initial retained value.
+ * Every time this function is called with a new [actualValue], a memoized value will only be
+ * updated if an actual new value is not `null`.
+ * This way, the function returns either a last not-null [actualValue], or `null` if there were
+ * no such yet.
+ */
+@Suppress("NOTHING_TO_INLINE")
+@Composable
+inline fun <T> retainedNotNull(
+    actualValue: T?,
+): T? =
+    retained(actualValue) { actual, memoized ->
+        if (actual != null) {
+            value = actual
+        }
+    }
 
 fun interface RetentionSpec<T> {
     suspend operator fun MutableState<T>.invoke(actualValue: T, memoizedValue: T)

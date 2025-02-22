@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.home
+package io.github.mmolosay.thecolor.presentation.home.ui
 
 import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.updateTransition

@@ -30,6 +30,7 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommand
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommandStore
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
+import io.github.mmolosay.thecolor.utils.cache.CacheStore
 import io.github.mmolosay.thecolor.utils.doNothing
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -78,6 +79,8 @@ class HomeViewModel @Inject constructor(
 
     private val _dataFlow = MutableStateFlow(initialData())
     val dataFlow = _dataFlow.asStateFlow()
+
+    val cacheStore = CacheStore()
 
     private val _navEventFlow = MutableStateFlow<HomeNavEvent?>(null)
     val navEventFlow = _navEventFlow.asStateFlow()
@@ -435,11 +438,10 @@ class HomeViewModel @Inject constructor(
         // recreate Color Center ViewModel (and its sub-feature ViewModels) to reset their states
         colorCenterComponentsStore.createNewComponents()
         kotlin.run setProcessor@{
-            val currentProcessor = dataFetchedEventProcessor // capture in closure
             // implementation of a "Composite" design pattern
             dataFetchedEventProcessor = DataFetchedEventProcessor { event ->
                 BuildColorCenterSession().process(event)
-                dataFetchedEventProcessor = currentProcessor // restore previous value
+                dataFetchedEventProcessor = initialDataFetchedEventProcessor()
             }
         }
         // only persist a seed of each new session
@@ -460,10 +462,14 @@ class HomeViewModel @Inject constructor(
         color: Color,
     ) {
         orchestrator.colorInputMutex.withLock {
+            val wouldColorFlowEmitThisColor = colorInputColorStore.wouldEmitIfSet(color)
             withContext(uiDataUpdateDispatcher) {
                 colorInputMediator.send(color = color, from = null)
             }
-            orchestrator.onColorSentToColorInput(color)
+            orchestrator.onColorSentToColorInput(
+                color = color,
+                wouldColorFlowEmitThisColor = wouldColorFlowEmitThisColor,
+            )
         }
     }
 
@@ -503,9 +509,16 @@ private class Orchestrator {
     val colorInputMutex = Mutex()
 
     @Synchronized
-    fun onColorSentToColorInput(color: Color) {
-        flowOfSentButNotYetProcessedColors.update { list ->
-            list + color
+    fun onColorSentToColorInput(
+        color: Color,
+        wouldColorFlowEmitThisColor: Boolean,
+    ) {
+        // if color is not emitted after being sent, then color won't be processed,
+        // and then it will stay in the list forever if we add it there
+        if (wouldColorFlowEmitThisColor) {
+            flowOfSentButNotYetProcessedColors.update { list ->
+                list + color
+            }
         }
     }
 

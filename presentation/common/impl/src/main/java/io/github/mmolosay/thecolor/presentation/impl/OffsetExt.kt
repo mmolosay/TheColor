@@ -12,3 +12,9 @@ fun Offset.toDpOffset(density: Density): DpOffset =
     with(density) {
         DpOffset(x = x.toDp(), y = y.toDp())
     }
+
+fun DpOffset.toPx(density: Density): Offset =
+    Offset(
+        x = with(density) { this@toPx.x.toPx() },
+        y = with(density) { this@toPx.y.toPx() },
+    )
