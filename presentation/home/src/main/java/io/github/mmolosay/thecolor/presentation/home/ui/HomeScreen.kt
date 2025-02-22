@@ -511,16 +511,18 @@ private fun ColorCenterContainer(
         )
     }
 
-    val actualColorCenter: ColorCenterComposable? = run {
-        colorCenter ?: return@run null
-        val retainedAsSuccess = (retainedProceedResult as? ProceedResult.Success) ?: return@run null
-        return@run ColorCenterComposable {
-            ColorCenter(
-                data = retainedAsSuccess,
-                colorCenter = { colorCenter() }, // SAM conversion doesn't work for @Composable lambdas
-            )
+    val actualColorCenter: ColorCenterComposable? =
+        remember(colorCenter, retainedProceedResult) {
+            colorCenter ?: return@remember null
+            val retainedAsSuccess =
+                (retainedProceedResult as? ProceedResult.Success) ?: return@remember null
+            return@remember ColorCenterComposable {
+                ColorCenter(
+                    data = retainedAsSuccess,
+                    colorCenter = { colorCenter() }, // SAM conversion doesn't work for @Composable lambdas
+                )
+            }
         }
-    }
     val retainedColorCenter = retainedNotNull(actualValue = actualColorCenter)
 
     val isAnimationRunning = (circularRevealAnimator.progressAnimatable.isRunning)
