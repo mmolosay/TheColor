@@ -102,13 +102,15 @@ internal object UiComponents {
         LaunchedEffect(data.text) {
             val old = value
             val newText = data.text.string
-            val hadSelectionAtTheEnd = (old.selection.end == old.text.length)
-            val isNewTextLongerThanOld = (newText.length > old.text.length)
-            // if it was "123|" become "123456|" instead of "123|456"
-            val newSelection = if (hadSelectionAtTheEnd && isNewTextLongerThanOld) {
-                TextRange(index = newText.length)
-            } else {
-                old.selection
+            val newSelection = kotlin.run {
+                val hadSelectionAtTheEnd = (old.selection.end == old.text.length)
+                val isNewTextLongerThanOld = (newText.length > old.text.length)
+                // if it was "123|" become "123456|" instead of "123|456"
+                if (hadSelectionAtTheEnd && isNewTextLongerThanOld) {
+                    TextRange(index = newText.length)
+                } else {
+                    old.selection
+                }
             }
             val new = old.copy(text = newText, selection = newSelection)
             onValueChange(new)

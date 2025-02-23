@@ -305,13 +305,23 @@ fun Home(
 //        }
     }
 
+    val softwareKeyboardController = LocalSoftwareKeyboardController.current
     val proceedResult = data.proceedResult
     LaunchedEffect(proceedResult) {
-        if (proceedResult !is ProceedResult.InvalidSubmittedColor) return@LaunchedEffect
-        Toast
-            .makeText(context, strings.invalidSubmittedColorMessage, Toast.LENGTH_SHORT)
-            .show()
-        proceedResult.discard()
+        when (proceedResult) {
+            is ProceedResult.Success -> {
+                // keyboard blinks when hidden, similar issue: https://stackoverflow.com/q/76901241/8862499
+                // the issue is somewhere in 'Color Input', probably in the internals of TextField()
+                softwareKeyboardController?.hide()
+            }
+            is ProceedResult.InvalidSubmittedColor -> {
+                Toast
+                    .makeText(context, strings.invalidSubmittedColorMessage, Toast.LENGTH_SHORT)
+                    .show()
+                proceedResult.discard()
+            }
+            null -> doNothing()
+        }
     }
 }
 
