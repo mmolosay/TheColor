@@ -311,7 +311,7 @@ fun Home(
         when (proceedResult) {
             is ProceedResult.Success -> {
                 // keyboard blinks when hidden, similar issue: https://stackoverflow.com/q/76901241/8862499
-                // the issue is somewhere in 'Color Input'
+                // the issue is somewhere in 'Color Input', probably in the internals of TextField()
                 softwareKeyboardController?.hide()
             }
             is ProceedResult.InvalidSubmittedColor -> {
