@@ -15,6 +15,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -31,8 +33,29 @@ import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
+import io.github.mmolosay.thecolor.presentation.impl.CircularRevealAnimator.Companion.FullyCollapsedValue
 import kotlinx.coroutines.launch
 import kotlin.math.hypot
+
+/**
+ * A container for the [content] to which circular reveal animation is applied to.
+ * Only composes [content] if it would be visible considering current animation state.
+ */
+@Composable
+fun CircularReveal(
+    animator: CircularRevealAnimator,
+    content: @Composable () -> Unit,
+) {
+    val composeContent by remember {
+        derivedStateOf {
+            val isFullyCollapsed = (animator.progressAnimatable.value == FullyCollapsedValue)
+            !isFullyCollapsed
+        }
+    }
+    if (composeContent) {
+        content()
+    }
+}
 
 /**
  * Clips the content to a circle shape.

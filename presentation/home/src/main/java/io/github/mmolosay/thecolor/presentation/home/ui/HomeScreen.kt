@@ -94,6 +94,7 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeNavEvent
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
+import io.github.mmolosay.thecolor.presentation.impl.CircularReveal
 import io.github.mmolosay.thecolor.presentation.impl.CircularRevealAnimator
 import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver
 import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent
@@ -484,7 +485,7 @@ private fun ColorCenterContainer(
     @Composable
     fun ColorCenter(
         data: ProceedResult.Success,
-        colorCenter: @Composable () -> Unit,
+        colorCenter: ColorCenterComposable,
     ) {
         // calculate min height of Color Center so that its bottom matches bottom of the parent Column
         var minHeight by remember { mutableStateOf<Dp>(Dp.Unspecified) }
@@ -526,33 +527,20 @@ private fun ColorCenterContainer(
     val actualColorCenter: ColorCenterComposable? =
         remember(colorCenter, retainedProceedResult) {
             colorCenter ?: return@remember null
-            val retainedAsSuccess =
-                (retainedProceedResult as? ProceedResult.Success) ?: return@remember null
-            return@remember ColorCenterComposable {
+            val retainedAsSuccess = (retainedProceedResult as? ProceedResult.Success) ?: return@remember null
+            ColorCenterComposable {
                 ColorCenter(
                     data = retainedAsSuccess,
-                    colorCenter = { colorCenter() }, // SAM conversion doesn't work for @Composable lambdas
+                    colorCenter = colorCenter,
                 )
             }
         }
     val retainedColorCenter = retainedNotNull(actualValue = actualColorCenter)
 
-    val isAnimationRunning = (circularRevealAnimator.progressAnimatable.isRunning)
-    fun shouldComposeColorCenter(): Boolean {
-        if (actualColorCenter != null) return true
-        return isAnimationRunning
-    }
-    // animation is started in LaunchedEffect(), thus only on next frame.
-    // calculating result of 'shouldComposeColorCenter()' in the next frame as well.
-    var composeColorCenter by remember { mutableStateOf(shouldComposeColorCenter()) }
-    LaunchedEffect(isAnimationRunning) {
-        composeColorCenter = shouldComposeColorCenter()
-    }
-
-    if (composeColorCenter) {
-        if (retainedColorCenter != null) {
-            retainedColorCenter()
-        }
+    CircularReveal(
+        animator = circularRevealAnimator,
+    ) {
+        retainedColorCenter?.invoke()
     }
 }
 
