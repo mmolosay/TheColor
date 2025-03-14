@@ -26,7 +26,7 @@ class ColorPreviewViewModel @AssistedInject constructor(
     private val colorToColorInt: ColorToColorIntUseCase,
 ) : SimpleViewModel(coroutineScope) {
 
-    val stateFlow: StateFlow<ColorPreviewData> =
+    val dataFlow: StateFlow<ColorPreviewData> =
         colorFlow
             .map { color ->
                 ColorPreviewData(

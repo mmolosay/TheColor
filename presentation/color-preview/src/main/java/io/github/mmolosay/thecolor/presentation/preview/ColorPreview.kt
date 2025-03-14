@@ -17,6 +17,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,13 +29,35 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.api.ColorInt
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.impl.toCompose
+import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun ColorPreview(
     viewModel: ColorPreviewViewModel,
+    uiStateController: ColorPreviewUiStateController,
 ) {
-    val data = viewModel.stateFlow.collectAsStateWithLifecycle().value
-    ColorPreview(data)
+    ColorPreview(
+        dataFlow = viewModel.dataFlow,
+        uiStateController = uiStateController,
+    )
+}
+
+@Composable
+fun ColorPreview(
+    dataFlow: StateFlow<ColorPreviewData>,
+    uiStateController: ColorPreviewUiStateController,
+) {
+    val coroutineScope = rememberCoroutineScope()
+    val dataController = remember {
+        ColorPreviewDataController(
+            coroutineScope = coroutineScope,
+            actualDataFlow = dataFlow,
+            uiStateControllerProxy = uiStateController as ColorPreviewUiStateControllerProxy,
+        )
+    }
+    ColorPreview(
+        data = dataController.controlledDataFlow.collectAsStateWithLifecycle().value,
+    )
 }
 
 @Composable

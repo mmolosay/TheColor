@@ -113,6 +113,7 @@ import io.github.mmolosay.thecolor.presentation.impl.toLifecycleEventObserver
 import io.github.mmolosay.thecolor.presentation.impl.withoutBottom
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInput
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreview
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiStateControllerProxy
 import io.github.mmolosay.thecolor.utils.cache.CacheStore
 import io.github.mmolosay.thecolor.utils.cache.DequeCache
 import io.github.mmolosay.thecolor.utils.cache.PruneOnSizeThreshold
@@ -137,6 +138,20 @@ fun HomeScreen(
     val selectedSwatchDetailsDialogController = remember(navBarAppearanceController) {
         navBarAppearanceController.branch("Selected Swatch Details Dialog")
     }
+    val colorPreview: ColorPreviewWithDependencies = remember {
+        val dataFlow = viewModel.colorPreviewViewModel.dataFlow
+        val uiStateController = ColorPreviewUiStateControllerProxy()
+        ColorPreviewWithDependenciesImpl(
+            dataFlow = dataFlow,
+            uiStateController = uiStateController,
+            composable = {
+                ColorPreview(
+                    dataFlow = dataFlow,
+                    uiStateController = uiStateController,
+                )
+            },
+        )
+    }
     val colorCenter: ColorCenterComposable? = run {
         val viewModel = viewModel.colorCenterViewModelFlow
             .collectAsStateWithLifecycle().value
@@ -160,11 +175,7 @@ fun HomeScreen(
                 viewModel = viewModel.colorInputViewModel,
             )
         },
-        colorPreview = {
-            ColorPreview(
-                viewModel = viewModel.colorPreviewViewModel,
-            )
-        },
+        colorPreview = colorPreview,
         colorCenter = colorCenter,
         navigateToSettings = navigateToSettings,
         navBarAppearanceController = navBarAppearanceController,
@@ -182,13 +193,13 @@ fun interface ColorCenterComposable {
 }
 
 @Composable
-fun HomeScreen(
+private fun HomeScreen(
     data: HomeData,
     strings: HomeUiStrings,
     navEventFlow: Flow<HomeNavEvent>,
     cacheStore: CacheStore,
     colorInput: @Composable () -> Unit,
-    colorPreview: @Composable () -> Unit,
+    colorPreview: ColorPreviewWithDependencies,
     colorCenter: ColorCenterComposable?,
     navigateToSettings: () -> Unit,
     navBarAppearanceController: NavBarAppearanceController,
@@ -226,12 +237,12 @@ fun HomeScreen(
 }
 
 @Composable
-fun Home(
+private fun Home(
     data: HomeData,
     strings: HomeUiStrings,
     cacheStore: CacheStore,
     colorInput: @Composable () -> Unit,
-    colorPreview: @Composable () -> Unit,
+    colorPreview: ColorPreviewWithDependencies,
     colorCenter: ColorCenterComposable?,
     navBarAppearanceController: NavBarAppearanceController,
     modifier: Modifier = Modifier,
@@ -285,24 +296,23 @@ fun Home(
         )
 
         Spacer(modifier = Modifier.height(8.dp))
-        // TODO: animated color preview is a part of bigger animation, see AnimatedColorCenter.kt
-//        AnimatedColorPreview(
-//            colorPreview = colorPreview,
-//            state = uiData.colorPreviewState,
-//            containerSize = size,
-//            containerPositionInRoot = positionInRoot,
-//        )
-        colorPreview()
+
+        AnimatedColorPreview(
+            colorPreview = colorPreview,
+            isColorProceededWith = data.proceedResult is ProceedResult.Success,
+            containerSize = size,
+            containerPositionInRoot = positionInRoot,
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 //        AnimatedColorCenter {
-        ColorCenterContainer(
-            colorCenter = colorCenter,
-            proceedResult = data.proceedResult,
-            cacheStore = cacheStore,
-            navBarAppearanceController = navBarAppearanceController,
-            parentScrollState = scrollState,
-        )
+//        ColorCenterContainer(
+//            colorCenter = colorCenter,
+//            proceedResult = data.proceedResult,
+//            cacheStore = cacheStore,
+//            navBarAppearanceController = navBarAppearanceController,
+//            parentScrollState = scrollState,
+//        )
 //        }
     }
 
@@ -738,12 +748,13 @@ private fun Preview() {
                     text = "Color Input",
                 )
             },
-            colorPreview = {
-                Text(
-                    modifier = Modifier
-                        .background(Color.LightGray),
-                    text = "Color Preview",
-                )
+            colorPreview = remember {
+                NoopColorPreviewWithDependencies {
+                    Text(
+                        modifier = Modifier.background(Color.LightGray),
+                        text = "Color Preview",
+                    )
+                }
             },
             colorCenter = {
                 Text(
