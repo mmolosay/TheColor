@@ -34,10 +34,12 @@ import io.github.mmolosay.thecolor.presentation.preview.hasColor
 import io.github.mmolosay.thecolor.utils.doNothing
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.withTimeoutOrNull
@@ -62,13 +64,13 @@ internal fun AnimatedColorPreview(
     var initialPositionInContainer by remember { mutableStateOf<DpOffset?>(null) }
     var size by remember { mutableStateOf<DpSize?>(null) }
 
-    val animState = when (isColorProceededWith) {
+    val animDest = when (isColorProceededWith) {
         true -> ColorPreviewAnimState.Dived
         false -> ColorPreviewAnimState.Initial
     }
 
-    fun calcAnimationDive() =
-        animState.calcAnimationDive(
+    fun calcAnimDestDive() =
+        animDest.calcAnimationDive(
             containerSize = containerSize,
             previewSize = size,
             previewPositionInContainer = initialPositionInContainer,
@@ -80,7 +82,7 @@ internal fun AnimatedColorPreview(
 
     val diveAnimatable = remember {
         Animatable(
-            initialValue = calcAnimationDive(),
+            initialValue = calcAnimDestDive(),
             typeConverter = Dp.VectorConverter,
             visibilityThreshold = Dp.VisibilityThreshold,
             label = "dive",
@@ -88,11 +90,10 @@ internal fun AnimatedColorPreview(
     }
 
     val actualDataFlow = dataFlow
-    val actualData = actualDataFlow.collectAsStateWithLifecycle().value
     val mutablePacedDataFlow = remember<MutableStateFlow<ColorPreviewData>> {
-        MutableStateFlow(value = actualData)
+        MutableStateFlow(value = actualDataFlow.value)
     }
-    val pacedDataFlow = remember<StateFlow<ColorPreviewData>> {
+    val pacedDataFlow = remember<SharedFlow<ColorPreviewData>> {
         actualDataFlow
             .transformLatest { data ->
                 if (data.hasColor) {
@@ -118,10 +119,10 @@ internal fun AnimatedColorPreview(
                     true -> error("not possible")
                 }
             }
-            .stateIn(
+            .shareIn(
                 scope = coroutineScope,
                 started = SharingStarted.Eagerly,
-                initialValue = actualData,
+                replay = 1,
             )
     }
     LaunchedEffect(Unit) {
@@ -152,7 +153,7 @@ internal fun AnimatedColorPreview(
         flowOfIsColorProceededWith.value = isColorProceededWith
     }
     LaunchedEffect(isColorProceededWith) {
-        val targetValue = calcAnimationDive()
+        val targetValue = calcAnimDestDive()
         if (diveAnimatable.value == targetValue) return@LaunchedEffect
         if (isColorProceededWith) {
             diveAnimatable.animateTo(
@@ -168,7 +169,7 @@ internal fun AnimatedColorPreview(
                     dampingRatio = Spring.DampingRatioNoBouncy, stiffness = 100f,
                 ),
             )
-            mutablePacedDataFlow.value = actualData
+            mutablePacedDataFlow.value = actualDataFlow.value
         }
     }
 }
