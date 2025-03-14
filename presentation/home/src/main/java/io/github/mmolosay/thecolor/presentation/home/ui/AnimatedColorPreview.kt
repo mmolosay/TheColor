@@ -204,7 +204,7 @@ private fun animatedDataFlow(
             }
             when (updated) {
                 null -> emit(data) // 'isColorProceededWith' hasn't changed
-                false -> doNothing() // skip this 'data'
+                false -> doNothing() // skip this 'data' and thus keep last emitted data with color as latest
                 true -> error("not possible")
             }
         }
