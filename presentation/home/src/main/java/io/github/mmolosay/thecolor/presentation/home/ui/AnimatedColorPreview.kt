@@ -5,8 +5,11 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
@@ -16,9 +19,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
@@ -26,6 +32,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.impl.toDpOffset
 import io.github.mmolosay.thecolor.presentation.impl.toDpSize
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
@@ -190,27 +197,27 @@ private fun ColorPreviewAnimState.calcAnimationDive(
     }
 }
 
-//@Preview(
-//    showBackground = true,
-//    backgroundColor = 0xFF_FFFFFF,
-//)
-//@Composable
-//private fun Preview() {
-//    TheColorTheme {
-//        AnimatedColorPreview(
-//            colorPreview = remember {
-//                NoopColorPreviewWithDependencies {
-//                    Box(
-//                        modifier = Modifier
-//                            .size(50.dp)
-//                            .clip(shape = CircleShape)
-//                            .background(Color.DarkGray)
-//                    )
-//                }
-//            },
-//            targetState = ColorPreviewAnimState.Initial,
-//            containerSize = DpSize(width = 150.dp, height = 400.dp),
-//            containerPositionInRoot = DpOffset.Zero,
-//        )
-//    }
-//}
+@Preview(
+    showBackground = true,
+    backgroundColor = 0xFF_FFFFFF,
+)
+@Composable
+private fun Preview() {
+    TheColorTheme {
+        AnimatedColorPreview(
+            colorPreview = remember {
+                NoopColorPreviewWithDependencies {
+                    Box(
+                        modifier = Modifier
+                            .size(50.dp)
+                            .clip(shape = CircleShape)
+                            .background(Color.DarkGray)
+                    )
+                }
+            },
+            isColorProceededWith = false,
+            containerSize = DpSize(width = 150.dp, height = 400.dp),
+            containerPositionInRoot = DpOffset.Zero,
+        )
+    }
+}
