@@ -152,7 +152,6 @@ internal fun AnimatedColorPreview(
 
     LaunchedEffect(isColorProceededWith) {
         val targetValue = calcAnimDestDive()
-        if (diveAnimatable.value == targetValue) return@LaunchedEffect
         if (isColorProceededWith) {
             diveAnimatable.animateTo(
                 targetValue = targetValue,
