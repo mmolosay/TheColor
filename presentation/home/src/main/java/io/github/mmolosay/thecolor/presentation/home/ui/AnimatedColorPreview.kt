@@ -40,7 +40,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.time.Duration.Companion.milliseconds
@@ -61,6 +60,7 @@ internal fun AnimatedColorPreview(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val density = LocalDensity.current
+
     var initialPositionInContainer by remember { mutableStateOf<DpOffset?>(null) }
     var size by remember { mutableStateOf<DpSize?>(null) }
 
@@ -79,6 +79,8 @@ internal fun AnimatedColorPreview(
     val flowOfIsColorProceededWith = remember {
         MutableStateFlow(isColorProceededWith)
     }
+    // LaunchedEffect introduces ~one frame delay, thus updating during composition
+    flowOfIsColorProceededWith.value = isColorProceededWith
 
     val diveAnimatable = remember {
         Animatable(
@@ -148,10 +150,6 @@ internal fun AnimatedColorPreview(
         )
     }
 
-    LaunchedEffect(isColorProceededWith) {
-        // TODO: LaunchedEffect introduces one frame delay; perform during composition?
-        flowOfIsColorProceededWith.value = isColorProceededWith
-    }
     LaunchedEffect(isColorProceededWith) {
         val targetValue = calcAnimDestDive()
         if (diveAnimatable.value == targetValue) return@LaunchedEffect
