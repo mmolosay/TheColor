@@ -44,10 +44,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.transformLatest
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
 import kotlin.time.Duration.Companion.milliseconds
@@ -97,21 +99,14 @@ internal fun AnimatedColorPreview(
     // LaunchedEffect introduces ~one frame delay, thus updating during composition
     flowOfIsColorProceededWith.value = isColorProceededWith
 
-    val actualDataFlow = colorPreview.dataFlow
-    val animatedDataFlow = remember<SharedFlow<ColorPreviewData>> {
-        animatedDataFlow(
+    val dataController = remember {
+        AnimatedDataController(
             coroutineScope = coroutineScope,
-            actualDataFlow = actualDataFlow,
+            actualDataFlow = colorPreview.dataFlow,
             flowOfIsColorProceededWith = flowOfIsColorProceededWith,
         )
     }
-    val mutableAnimatedDataFlow = remember<MutableStateFlow<ColorPreviewData>> {
-        MutableStateFlow(value = actualDataFlow.value)
-    }
-    LaunchedEffect(Unit) {
-        animatedDataFlow.collect(mutableAnimatedDataFlow)
-    }
-    val data = mutableAnimatedDataFlow.collectAsStateWithLifecycle().value
+    val data = dataController.animatedDataFlow.collectAsStateWithLifecycle().value
 
     Box(
         modifier = Modifier
@@ -145,9 +140,9 @@ internal fun AnimatedColorPreview(
                     dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium,
                 ),
             )
-            // animation has finished and we don't need to retain last data with color
-            mutableAnimatedDataFlow.value = actualDataFlow.value
         }
+        // animation has finished and we don't need to retain last data with color
+        dataController.catchUp()
     }
 }
 
@@ -173,17 +168,21 @@ private fun ColorPreviewAnimState.calcAnimationDive(
     }
 }
 
-/**
- * Transformation of [actualDataFlow] that retains certain data in order to have it preserved
- * for "exiting" animation of 'Color Preview'.
- */
-@OptIn(ExperimentalCoroutinesApi::class)
-private fun animatedDataFlow(
+private class AnimatedDataController(
     coroutineScope: CoroutineScope,
-    actualDataFlow: StateFlow<ColorPreviewData>,
-    flowOfIsColorProceededWith: StateFlow<Boolean>,
-): SharedFlow<ColorPreviewData> =
-    actualDataFlow
+    private val actualDataFlow: StateFlow<ColorPreviewData>,
+    private val flowOfIsColorProceededWith: StateFlow<Boolean>,
+) {
+
+    private val _animatedDataFlow = MutableStateFlow<ColorPreviewData>(value = actualDataFlow.value)
+    val animatedDataFlow = _animatedDataFlow.asStateFlow()
+
+    /**
+     * Transformation of [actualDataFlow] that retains certain data in order to have it preserved
+     * for "exiting" animation of 'Color Preview'.
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val transformedDataFlow: SharedFlow<ColorPreviewData> = actualDataFlow
         .transformLatest { data ->
             if (data.hasColor) {
                 emit(data); return@transformLatest
@@ -213,6 +212,17 @@ private fun animatedDataFlow(
             started = SharingStarted.Eagerly,
             replay = 1,
         )
+
+    init {
+        coroutineScope.launch {
+            transformedDataFlow.collect(_animatedDataFlow) // re-emit into mutable flow
+        }
+    }
+
+    fun catchUp() {
+        _animatedDataFlow.value = actualDataFlow.value
+    }
+}
 
 @Preview(
     showBackground = true,
