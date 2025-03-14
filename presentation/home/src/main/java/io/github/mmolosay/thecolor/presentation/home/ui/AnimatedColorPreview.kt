@@ -26,7 +26,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import io.github.mmolosay.thecolor.presentation.impl.framesDuration
 import io.github.mmolosay.thecolor.presentation.impl.toDpOffset
 import io.github.mmolosay.thecolor.presentation.impl.toDpSize
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreview
@@ -43,7 +42,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource
 
 /** UI animation state of 'Color Preview' element. */
@@ -54,7 +52,7 @@ private enum class ColorPreviewAnimState {
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 internal fun AnimatedColorPreview(
-    colorPreview: ColorPreviewWithDependencies, // TODO: redesign? Remove if unused
+    dataFlow: StateFlow<ColorPreviewData>,
     isColorProceededWith: Boolean,
     containerSize: DpSize?,
     containerPositionInRoot: DpOffset?,
@@ -89,12 +87,12 @@ internal fun AnimatedColorPreview(
         )
     }
 
-    val actualDataFlow = colorPreview.dataFlow
+    val actualDataFlow = dataFlow
     val actualData = actualDataFlow.collectAsStateWithLifecycle().value
-    val mutableDataFlow = remember<MutableStateFlow<ColorPreviewData>> {
+    val mutablePacedDataFlow = remember<MutableStateFlow<ColorPreviewData>> {
         MutableStateFlow(value = actualData)
     }
-    val dataFlow = remember<StateFlow<ColorPreviewData>> {
+    val pacedDataFlow = remember<StateFlow<ColorPreviewData>> {
         actualDataFlow
             .transformLatest { data ->
                 if (data.hasColor) {
@@ -127,9 +125,9 @@ internal fun AnimatedColorPreview(
             )
     }
     LaunchedEffect(Unit) {
-        dataFlow.collect(mutableDataFlow)
+        pacedDataFlow.collect(mutablePacedDataFlow)
     }
-    val data = mutableDataFlow.collectAsStateWithLifecycle().value
+    val data = mutablePacedDataFlow.collectAsStateWithLifecycle().value
 
     Box(
         modifier = Modifier
@@ -170,7 +168,7 @@ internal fun AnimatedColorPreview(
                     dampingRatio = Spring.DampingRatioNoBouncy, stiffness = 100f,
                 ),
             )
-            mutableDataFlow.value = actualData
+            mutablePacedDataFlow.value = actualData
         }
     }
 }

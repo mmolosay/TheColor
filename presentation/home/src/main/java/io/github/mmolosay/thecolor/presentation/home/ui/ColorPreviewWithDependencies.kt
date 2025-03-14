@@ -5,6 +5,8 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiStateController
 import kotlinx.coroutines.flow.StateFlow
 
+// TODO: remove if unused
+
 /** Contains 'Color Preview' [composable] with dependencies that were passed to it. */
 internal interface ColorPreviewWithDependencies {
     val dataFlow: StateFlow<ColorPreviewData>
