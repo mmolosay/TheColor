@@ -1,6 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.home.ui
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.VisibilityThreshold
@@ -124,24 +125,24 @@ internal fun AnimatedColorPreview(
         colorPreview.composable.invoke(data)
     }
 
-    LaunchedEffect(isColorProceededWith) {
-        val targetValue = calcAnimDestDive()
-        if (isColorProceededWith) {
-            diveAnimatable.animateTo(
-                targetValue = targetValue,
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMediumLow,
-                ),
-            )
-        } else {
-            diveAnimatable.animateTo(
-                targetValue = targetValue,
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium,
-                ),
-            )
+    LaunchedEffect(animDest) {
+        val animationSpec: AnimationSpec<Dp> = when (animDest) {
+            ColorPreviewAnimState.Initial ->
+                spring(
+                    dampingRatio = Spring.DampingRatioNoBouncy,
+                    stiffness = Spring.StiffnessMedium,
+                )
+            ColorPreviewAnimState.Dived ->
+                spring(
+                    dampingRatio = Spring.DampingRatioLowBouncy,
+                    stiffness = Spring.StiffnessMediumLow,
+                )
         }
-        // animation has finished and we don't need to retain last data with color
+        diveAnimatable.animateTo(
+            targetValue = calcAnimDestDive(),
+            animationSpec = animationSpec,
+        )
+        // animation has finished and we don't need to retain last data with color anymore
         dataController.catchUp()
     }
 }
