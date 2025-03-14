@@ -40,6 +40,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.withTimeoutOrNull
+import timber.log.Timber
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.TimeSource
 
@@ -110,7 +111,7 @@ internal fun AnimatedColorPreview(
                         .drop(1) // replayed value of StateFlow
                         .first()
                     val elapsed = start.elapsedNow()
-                    println("PRIVET, withTimeoutOrNull took $elapsed") // TODO: use Timber
+                    Timber.i("Updated \'isColorProceededWith\' has arrived in $elapsed")
                     return@withTimeoutOrNull value
                 }
                 when (updated) {
