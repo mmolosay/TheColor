@@ -115,7 +115,7 @@ internal fun AnimatedColorPreview(
                 }
                 when (updated) {
                     null -> emit(data) // 'isColorProceededWith' hasn't changed
-                    false -> doNothing() // don't emit 'data'
+                    false -> doNothing() // skip this 'data'
                     true -> error("not possible")
                 }
             }
