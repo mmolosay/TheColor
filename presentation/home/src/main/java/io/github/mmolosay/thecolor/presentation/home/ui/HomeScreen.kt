@@ -112,6 +112,7 @@ import io.github.mmolosay.thecolor.presentation.impl.toDpSize
 import io.github.mmolosay.thecolor.presentation.impl.toLifecycleEventObserver
 import io.github.mmolosay.thecolor.presentation.impl.withoutBottom
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInput
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreview
 import io.github.mmolosay.thecolor.utils.cache.CacheStore
 import io.github.mmolosay.thecolor.utils.cache.DequeCache
 import io.github.mmolosay.thecolor.utils.cache.PruneOnSizeThreshold
@@ -136,10 +137,12 @@ fun HomeScreen(
     val selectedSwatchDetailsDialogController = remember(navBarAppearanceController) {
         navBarAppearanceController.branch("Selected Swatch Details Dialog")
     }
-    val colorPreview: ColorPreviewDependencies = remember {
-        ColorPreviewDependencies(
+    val colorPreview: ColorPreviewWithDependencies = remember {
+        ColorPreviewWithDependencies(
             dataFlow = viewModel.colorPreviewViewModel.dataFlow,
-        )
+        ) { data ->
+            ColorPreview(data)
+        }
     }
     val colorCenter: ColorCenterComposable? = run {
         val viewModel = viewModel.colorCenterViewModelFlow
@@ -188,7 +191,7 @@ private fun HomeScreen(
     navEventFlow: Flow<HomeNavEvent>,
     cacheStore: CacheStore,
     colorInput: @Composable () -> Unit,
-    colorPreview: ColorPreviewDependencies,
+    colorPreview: ColorPreviewWithDependencies,
     colorCenter: ColorCenterComposable?,
     navigateToSettings: () -> Unit,
     navBarAppearanceController: NavBarAppearanceController,
@@ -231,7 +234,7 @@ private fun Home(
     strings: HomeUiStrings,
     cacheStore: CacheStore,
     colorInput: @Composable () -> Unit,
-    colorPreview: ColorPreviewDependencies,
+    colorPreview: ColorPreviewWithDependencies,
     colorCenter: ColorCenterComposable?,
     navBarAppearanceController: NavBarAppearanceController,
     modifier: Modifier = Modifier,
@@ -287,7 +290,7 @@ private fun Home(
         Spacer(modifier = Modifier.height(8.dp))
 
         AnimatedColorPreview(
-            dataFlow = colorPreview.dataFlow,
+            colorPreview = colorPreview,
             isColorProceededWith = data.proceedResult is ProceedResult.Success,
             containerSize = size,
             containerPositionInRoot = positionInRoot,
@@ -737,7 +740,14 @@ private fun Preview() {
                     text = "Color Input",
                 )
             },
-            colorPreview = remember { NoopColorPreviewDependencies },
+            colorPreview = remember {
+                NoopColorPreviewWithDependencies {
+                    Text(
+                        modifier = Modifier.background(Color.LightGray),
+                        text = "Color Preview",
+                    )
+                }
+            },
             colorCenter = {
                 Text(
                     modifier = Modifier

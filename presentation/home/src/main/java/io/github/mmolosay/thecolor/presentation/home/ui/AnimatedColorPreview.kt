@@ -28,7 +28,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.impl.toDpOffset
 import io.github.mmolosay.thecolor.presentation.impl.toDpSize
-import io.github.mmolosay.thecolor.presentation.preview.ColorPreview
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import io.github.mmolosay.thecolor.presentation.preview.hasColor
 import io.github.mmolosay.thecolor.utils.doNothing
@@ -36,7 +35,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
@@ -53,7 +51,7 @@ private enum class ColorPreviewAnimState {
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 internal fun AnimatedColorPreview(
-    dataFlow: StateFlow<ColorPreviewData>,
+    colorPreview: ColorPreviewWithDependencies,
     isColorProceededWith: Boolean,
     containerSize: DpSize?,
     containerPositionInRoot: DpOffset?,
@@ -91,7 +89,7 @@ internal fun AnimatedColorPreview(
         )
     }
 
-    val actualDataFlow = dataFlow
+    val actualDataFlow = colorPreview.dataFlow
     val mutablePacedDataFlow = remember<MutableStateFlow<ColorPreviewData>> {
         MutableStateFlow(value = actualDataFlow.value)
     }
@@ -145,9 +143,7 @@ internal fun AnimatedColorPreview(
                 initialPositionInContainer = selfPositionInRoot - containerPositionInRoot
             },
     ) {
-        ColorPreview(
-            data = data,
-        )
+        colorPreview.composable.invoke(data)
     }
 
     LaunchedEffect(isColorProceededWith) {
@@ -193,7 +189,6 @@ private fun ColorPreviewAnimState.calcAnimationDive(
     }
 }
 
-// TODO: implement
 //@Preview(
 //    showBackground = true,
 //    backgroundColor = 0xFF_FFFFFF,
