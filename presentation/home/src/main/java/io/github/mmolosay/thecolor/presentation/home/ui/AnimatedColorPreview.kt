@@ -74,20 +74,12 @@ internal fun AnimatedColorPreview(
         true -> ColorPreviewAnimState.Dived
         false -> ColorPreviewAnimState.Initial
     }
-
     fun calcAnimDestDive() =
         animDest.calcAnimationDive(
             containerSize = containerSize,
             previewSize = size,
             previewPositionInContainer = initialPositionInContainer,
         )
-
-    val flowOfIsColorProceededWith = remember {
-        MutableStateFlow(isColorProceededWith)
-    }
-    // LaunchedEffect introduces ~one frame delay, thus updating during composition
-    flowOfIsColorProceededWith.value = isColorProceededWith
-
     val diveAnimatable = remember {
         Animatable(
             initialValue = calcAnimDestDive(),
@@ -97,10 +89,13 @@ internal fun AnimatedColorPreview(
         )
     }
 
-    val actualDataFlow = colorPreview.dataFlow
-    val mutablePacedDataFlow = remember<MutableStateFlow<ColorPreviewData>> {
-        MutableStateFlow(value = actualDataFlow.value)
+    val flowOfIsColorProceededWith = remember {
+        MutableStateFlow(isColorProceededWith)
     }
+    // LaunchedEffect introduces ~one frame delay, thus updating during composition
+    flowOfIsColorProceededWith.value = isColorProceededWith
+
+    val actualDataFlow = colorPreview.dataFlow
     val pacedDataFlow = remember<SharedFlow<ColorPreviewData>> {
         actualDataFlow
             .transformLatest { data ->
@@ -132,6 +127,9 @@ internal fun AnimatedColorPreview(
                 started = SharingStarted.Eagerly,
                 replay = 1,
             )
+    }
+    val mutablePacedDataFlow = remember<MutableStateFlow<ColorPreviewData>> {
+        MutableStateFlow(value = actualDataFlow.value)
     }
     LaunchedEffect(Unit) {
         pacedDataFlow.collect(mutablePacedDataFlow)
