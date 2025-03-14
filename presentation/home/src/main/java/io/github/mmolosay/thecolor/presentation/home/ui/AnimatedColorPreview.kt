@@ -158,14 +158,14 @@ internal fun AnimatedColorPreview(
             diveAnimatable.animateTo(
                 targetValue = targetValue,
                 animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioLowBouncy, stiffness = 50f,
+                    dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMediumLow,
                 ),
             )
         } else {
             diveAnimatable.animateTo(
                 targetValue = targetValue,
                 animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioNoBouncy, stiffness = 100f,
+                    dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium,
                 ),
             )
             mutablePacedDataFlow.value = actualDataFlow.value
