@@ -38,10 +38,12 @@ import io.github.mmolosay.thecolor.presentation.impl.toDpSize
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import io.github.mmolosay.thecolor.presentation.preview.hasColor
 import io.github.mmolosay.thecolor.utils.doNothing
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
@@ -96,45 +98,20 @@ internal fun AnimatedColorPreview(
     flowOfIsColorProceededWith.value = isColorProceededWith
 
     val actualDataFlow = colorPreview.dataFlow
-    val pacedDataFlow = remember<SharedFlow<ColorPreviewData>> {
-        actualDataFlow
-            .transformLatest { data ->
-                if (data.hasColor) {
-                    emit(data); return@transformLatest
-                }
-                // has no color
-                if (flowOfIsColorProceededWith.value == false) {
-                    emit(data); return@transformLatest
-                }
-                // 'isColorProceededWith' is true, we have to give it a window to change to false
-                val updated = withTimeoutOrNull(100.milliseconds) {
-                    val start = TimeSource.Monotonic.markNow()
-                    val value = flowOfIsColorProceededWith
-                        .drop(1) // replayed value of StateFlow
-                        .first()
-                    val elapsed = start.elapsedNow()
-                    Timber.i("Updated \'isColorProceededWith\' has arrived in $elapsed")
-                    return@withTimeoutOrNull value
-                }
-                when (updated) {
-                    null -> emit(data) // 'isColorProceededWith' hasn't changed
-                    false -> doNothing() // skip this 'data'
-                    true -> error("not possible")
-                }
-            }
-            .shareIn(
-                scope = coroutineScope,
-                started = SharingStarted.Eagerly,
-                replay = 1,
-            )
+    val animatedDataFlow = remember<SharedFlow<ColorPreviewData>> {
+        animatedDataFlow(
+            coroutineScope = coroutineScope,
+            actualDataFlow = actualDataFlow,
+            flowOfIsColorProceededWith = flowOfIsColorProceededWith,
+        )
     }
-    val mutablePacedDataFlow = remember<MutableStateFlow<ColorPreviewData>> {
+    val mutableAnimatedDataFlow = remember<MutableStateFlow<ColorPreviewData>> {
         MutableStateFlow(value = actualDataFlow.value)
     }
     LaunchedEffect(Unit) {
-        pacedDataFlow.collect(mutablePacedDataFlow)
+        animatedDataFlow.collect(mutableAnimatedDataFlow)
     }
-    val data = mutablePacedDataFlow.collectAsStateWithLifecycle().value
+    val data = mutableAnimatedDataFlow.collectAsStateWithLifecycle().value
 
     Box(
         modifier = Modifier
@@ -168,7 +145,7 @@ internal fun AnimatedColorPreview(
                     dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium,
                 ),
             )
-            mutablePacedDataFlow.value = actualDataFlow.value
+            mutableAnimatedDataFlow.value = actualDataFlow.value
         }
     }
 }
@@ -194,6 +171,47 @@ private fun ColorPreviewAnimState.calcAnimationDive(
         }
     }
 }
+
+/**
+ * Transformation of [actualDataFlow] that retains certain data in order to have it preserved
+ * for "exiting" animation of 'Color Preview'.
+ */
+@OptIn(ExperimentalCoroutinesApi::class)
+private fun animatedDataFlow(
+    coroutineScope: CoroutineScope,
+    actualDataFlow: StateFlow<ColorPreviewData>,
+    flowOfIsColorProceededWith: StateFlow<Boolean>,
+): SharedFlow<ColorPreviewData> =
+    actualDataFlow
+        .transformLatest { data ->
+            if (data.hasColor) {
+                emit(data); return@transformLatest
+            }
+            // has no color
+            if (flowOfIsColorProceededWith.value == false) {
+                emit(data); return@transformLatest
+            }
+            // 'isColorProceededWith' is true, we have to give it a window to change to false
+            val updated = withTimeoutOrNull(100.milliseconds) {
+                val start = TimeSource.Monotonic.markNow()
+                val value = flowOfIsColorProceededWith
+                    .drop(1) // replayed value of StateFlow
+                    .first()
+                val elapsed = start.elapsedNow()
+                Timber.i("Updated \'isColorProceededWith\' has arrived in $elapsed")
+                return@withTimeoutOrNull value
+            }
+            when (updated) {
+                null -> emit(data) // 'isColorProceededWith' hasn't changed
+                false -> doNothing() // skip this 'data'
+                true -> error("not possible")
+            }
+        }
+        .shareIn(
+            scope = coroutineScope,
+            started = SharingStarted.Eagerly,
+            replay = 1,
+        )
 
 @Preview(
     showBackground = true,
