@@ -145,6 +145,7 @@ internal fun AnimatedColorPreview(
                     dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium,
                 ),
             )
+            // animation has finished and we don't need to retain last data with color
             mutableAnimatedDataFlow.value = actualDataFlow.value
         }
     }
