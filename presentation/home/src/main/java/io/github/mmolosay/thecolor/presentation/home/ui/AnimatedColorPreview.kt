@@ -56,11 +56,6 @@ import timber.log.Timber
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.TimeSource
 
-/** UI animation state of 'Color Preview' element. */
-private enum class ColorPreviewAnimState {
-    Initial, Dived;
-}
-
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 internal fun AnimatedColorPreview(
@@ -76,8 +71,8 @@ internal fun AnimatedColorPreview(
     var size by remember { mutableStateOf<DpSize?>(null) }
 
     val animDest = when (isColorProceededWith) {
-        true -> ColorPreviewAnimState.Dived
-        false -> ColorPreviewAnimState.Initial
+        true -> HomeAnimState.ColorPreview.Dived
+        false -> HomeAnimState.ColorPreview.Initial
     }
     fun calcAnimDestDive() =
         animDest.calcAnimationDive(
@@ -127,12 +122,12 @@ internal fun AnimatedColorPreview(
 
     LaunchedEffect(animDest) {
         val animationSpec: AnimationSpec<Dp> = when (animDest) {
-            ColorPreviewAnimState.Initial ->
+            HomeAnimState.ColorPreview.Initial ->
                 spring(
                     dampingRatio = Spring.DampingRatioNoBouncy,
                     stiffness = Spring.StiffnessMedium,
                 )
-            ColorPreviewAnimState.Dived ->
+            HomeAnimState.ColorPreview.Dived ->
                 spring(
                     dampingRatio = Spring.DampingRatioLowBouncy,
                     stiffness = Spring.StiffnessMediumLow,
@@ -148,15 +143,15 @@ internal fun AnimatedColorPreview(
 }
 
 @Stable
-private fun ColorPreviewAnimState.calcAnimationDive(
+private fun HomeAnimState.ColorPreview.calcAnimationDive(
     containerSize: DpSize?,
     previewSize: DpSize?,
     previewPositionInContainer: DpOffset?,
 ): Dp {
     when (this) {
-        ColorPreviewAnimState.Initial ->
+        HomeAnimState.ColorPreview.Initial ->
             return 0.dp
-        ColorPreviewAnimState.Dived -> {
+        HomeAnimState.ColorPreview.Dived -> {
             containerSize ?: return 0.dp
             previewSize ?: return 0.dp
             previewPositionInContainer ?: return 0.dp
