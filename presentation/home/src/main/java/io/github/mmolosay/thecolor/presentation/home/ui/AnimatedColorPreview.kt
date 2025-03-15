@@ -199,7 +199,7 @@ private class AnimatedDataController(
                     .drop(1) // replayed value of StateFlow
                     .first()
                 val elapsed = start.elapsedNow()
-                Timber.i("Updated \'isColorProceededWith\' has arrived in $elapsed")
+                Timber.i("'isColorProceededWith' has changed to $value in $elapsed after $data was emitted")
                 return@withTimeoutOrNull value
             }
             when (updated) {
@@ -208,11 +208,7 @@ private class AnimatedDataController(
                 true -> error("not possible")
             }
         }
-        .shareIn(
-            scope = coroutineScope,
-            started = SharingStarted.Eagerly,
-            replay = 1,
-        )
+        .shareIn(scope = coroutineScope, started = SharingStarted.Eagerly, replay = 1)
 
     init {
         coroutineScope.launch {
