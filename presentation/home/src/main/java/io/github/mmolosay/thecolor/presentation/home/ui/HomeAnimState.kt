@@ -11,3 +11,13 @@ internal data class HomeAnimState(
         Initial, Dived;
     }
 }
+
+internal fun HomeAnimState(
+    isColorProceededWith: Boolean,
+) =
+    HomeAnimState(
+        colorPreview = when (isColorProceededWith) {
+            false -> HomeAnimState.ColorPreview.Initial
+            true -> HomeAnimState.ColorPreview.Dived
+        },
+    )

@@ -241,9 +241,15 @@ private fun Home(
 ) {
     val density = LocalDensity.current
     val context = LocalContext.current
+
     val scrollState = rememberScrollState()
     var positionInRoot by remember { mutableStateOf<DpOffset?>(null) }
     var size by remember { mutableStateOf<DpSize?>(null) }
+
+    val animDest = HomeAnimState(
+        isColorProceededWith = data.proceedResult is ProceedResult.Success,
+    )
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -291,7 +297,7 @@ private fun Home(
 
         AnimatedColorPreview(
             colorPreview = colorPreview,
-            isColorProceededWith = data.proceedResult is ProceedResult.Success,
+            animDest = animDest.colorPreview,
             containerSize = size,
             containerPositionInRoot = positionInRoot,
         )
