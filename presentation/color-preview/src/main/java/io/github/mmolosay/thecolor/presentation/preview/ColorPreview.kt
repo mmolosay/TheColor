@@ -30,7 +30,7 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.impl.toCompose
 
 @Composable
-@Suppress("unused") // good to have a composable that accepts ViewModel
+@Suppress("unused") // good to have a high-level composable that accepts ViewModel
 fun ColorPreview(
     viewModel: ColorPreviewViewModel,
 ) {
