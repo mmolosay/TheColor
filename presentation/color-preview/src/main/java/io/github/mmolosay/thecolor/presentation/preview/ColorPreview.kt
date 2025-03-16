@@ -105,7 +105,7 @@ private fun Main(
     Surface(
         modifier = Modifier.fillMaxSize(),
         shape = CircleShape, // so shadow has the circular shape
-        color = requireNotNull(dataWithColor.color).toCompose(),
+        color = dataWithColor.requireColor().toCompose(),
         shadowElevation = 4.dp,
         content = {},
     )
@@ -119,7 +119,7 @@ private fun UpdateRipple(
     val scaleAnim = remember {
         Animatable(initialValue = 0f)
     }
-    val color = requireNotNull(dataWithColor.color).toCompose()
+    val color = dataWithColor.requireColor().toCompose()
     Box(
         modifier = Modifier
             .fillMaxSize()

@@ -14,3 +14,6 @@ val ColorPreviewData.hasColor: Boolean
 
 val ColorPreviewData.hasNoColor: Boolean
     get() = !this.hasColor
+
+fun ColorPreviewData.requireColor() =
+    requireNotNull(this.color)
