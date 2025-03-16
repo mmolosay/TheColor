@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -67,7 +68,7 @@ fun ColorPreview(
     ) {
         main.let {
             if (it.hasColor) {
-                Main(dataWithColor = it)
+                Main(color = it.requireColor().toCompose())
             }
         }
 
@@ -75,7 +76,7 @@ fun ColorPreview(
             // https://medium.com/@android-world/understanding-the-key-function-in-jetpack-compose-34accc92d567
             key(update) {
                 UpdateRipple(
-                    dataWithColor = update.dataWithColor,
+                    color = update.dataWithColor.requireColor().toCompose(),
                     onAnimationFinished = {
                         updates.remove(update)
                         main = update.dataWithColor
@@ -100,12 +101,12 @@ fun ColorPreview(
 
 @Composable
 private fun Main(
-    dataWithColor: ColorPreviewData,
+    color: Color,
 ) {
     Surface(
         modifier = Modifier.fillMaxSize(),
         shape = CircleShape, // so shadow has the circular shape
-        color = dataWithColor.requireColor().toCompose(),
+        color = color,
         shadowElevation = 4.dp,
         content = {},
     )
@@ -113,13 +114,12 @@ private fun Main(
 
 @Composable
 private fun UpdateRipple(
-    dataWithColor: ColorPreviewData,
+    color: Color,
     onAnimationFinished: () -> Unit,
 ) {
     val scaleAnim = remember {
         Animatable(initialValue = 0f)
     }
-    val color = dataWithColor.requireColor().toCompose()
     Box(
         modifier = Modifier
             .fillMaxSize()
