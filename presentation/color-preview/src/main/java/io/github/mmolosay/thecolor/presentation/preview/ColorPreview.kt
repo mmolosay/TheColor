@@ -83,17 +83,17 @@ fun ColorPreview(
                 )
             }
         }
+    }
 
-        LaunchedEffect(data) {
-            val isAnUpdate = (data != main || updates.isNotEmpty())
-            if (data.hasColor && isAnUpdate) {
-                val id = updates.lastOrNull()?.id?.let { it + 1 } ?: 0
-                val update = UpdateOfDataWithColor(data, id)
-                updates.add(update)
-            }
-            if (data.hasNoColor) {
-                updates.clear()
-            }
+    LaunchedEffect(data) {
+        val isAnUpdate = (data != main || updates.isNotEmpty())
+        if (data.hasColor && isAnUpdate) {
+            val id = updates.lastOrNull()?.id?.let { it + 1 } ?: 0
+            val update = UpdateOfDataWithColor(data, id)
+            updates.add(update)
+        }
+        if (data.hasNoColor) {
+            updates.clear()
         }
     }
 }
