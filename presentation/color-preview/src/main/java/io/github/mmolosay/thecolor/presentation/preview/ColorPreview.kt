@@ -29,6 +29,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.api.ColorInt
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.impl.toCompose
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState as UiState
 
 @Composable
 @Suppress("unused") // good to have a high-level composable that accepts ViewModel
@@ -44,18 +45,27 @@ fun ColorPreview(
 fun ColorPreview(
     data: ColorPreviewData,
 ) {
-    val updates = remember { mutableStateListOf<UpdateOfDataWithColor>() }
+    ColorPreview(
+        uiState = data.toUiState(),
+    )
+}
+
+@Composable
+fun ColorPreview(
+    uiState: UiState,
+) {
+    val updates = remember { mutableStateListOf<UpdateOfVisibleUiState>() }
     // we want to have last data WITH color memoized to show animation of scaling the preview down
     // once the new data WITHOUT color arrives
-    var main by remember { mutableStateOf(data) }
+    var mainUiState by remember { mutableStateOf(uiState) }
     val scale by animateFloatAsState(
-        targetValue = if (data.hasColor) 1f else 0f,
+        targetValue = if (uiState is UiState.Visible) 1f else 0f,
         label = "preview scale",
         finishedListener = { value ->
             // we need to keep last data WITH color until the preview is completely scaled down
             // and gone. Only after it the actual value can be set
             if (value == 0f) {
-                main = data
+                mainUiState = uiState
             }
         },
     )
@@ -66,9 +76,9 @@ fun ColorPreview(
             .scale(scale),
         contentAlignment = Alignment.Center,
     ) {
-        main.let {
-            if (it.hasColor) {
-                Main(color = it.requireColor().toCompose())
+        mainUiState.let {
+            if (it is UiState.Visible) {
+                MainPreview(color = it.color.toCompose())
             }
         }
 
@@ -76,31 +86,31 @@ fun ColorPreview(
             // https://medium.com/@android-world/understanding-the-key-function-in-jetpack-compose-34accc92d567
             key(update) {
                 UpdateRipple(
-                    color = update.dataWithColor.requireColor().toCompose(),
+                    color = update.uiState.color.toCompose(),
                     onAnimationFinished = {
+                        mainUiState = update.uiState
                         updates.remove(update)
-                        main = update.dataWithColor
                     },
                 )
             }
         }
     }
 
-    LaunchedEffect(data) {
-        val isAnUpdate = (data != main || updates.isNotEmpty())
-        if (data.hasColor && isAnUpdate) {
+    LaunchedEffect(uiState) {
+        val isAnUpdate = (uiState != mainUiState || updates.isNotEmpty())
+        if (uiState is UiState.Visible && isAnUpdate) {
             val id = updates.lastOrNull()?.id?.let { it + 1 } ?: 0
-            val update = UpdateOfDataWithColor(data, id)
-            updates.add(update)
+            val update = UpdateOfVisibleUiState(uiState, id)
+            updates += update
         }
-        if (data.hasNoColor) {
+        if (uiState is UiState.Hidden) {
             updates.clear()
         }
     }
 }
 
 @Composable
-private fun Main(
+private fun MainPreview(
     color: Color,
 ) {
     Surface(
@@ -139,8 +149,8 @@ private fun UpdateRipple(
     }
 }
 
-private data class UpdateOfDataWithColor(
-    val dataWithColor: ColorPreviewData,
+private data class UpdateOfVisibleUiState(
+    val uiState: UiState.Visible,
     val id: Int,
 )
 
