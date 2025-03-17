@@ -187,7 +187,7 @@ private class AnimatedDataController(
             if (flowOfAnimDest.value == HomeAnimState.ColorPreview.Initial) {
                 emit(data); return@transformLatest
             }
-            // 'isColorProceededWith' is true, we have to give it a window to change to false
+            // 'animDest' is Dived, we have to give it a window to change to Initial
             val updated = withTimeoutOrNull(100.milliseconds) {
                 val start = TimeSource.Monotonic.markNow()
                 val value = flowOfAnimDest
