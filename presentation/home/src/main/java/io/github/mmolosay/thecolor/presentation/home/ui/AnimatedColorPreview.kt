@@ -186,6 +186,7 @@ private class ColorPreviewUiStateFilterImpl(
                 .drop(1) // replayed value of StateFlow
                 .first()
         }
+        // average 'elapsed' is 10-40 ms with peaks up 90+ ms
         Timber.i("'animDest' has changed to $updatedAnimDest in $elapsed after $uiState was emitted")
         return when (updatedAnimDest) {
             HomeAnimState.ColorPreview.Initial -> false // skip this 'uiState' thus keeping previous appearance to be used while Dived -> Initial animation plays
