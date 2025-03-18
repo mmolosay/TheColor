@@ -5,10 +5,15 @@ package io.github.mmolosay.thecolor.presentation.home.ui
  */
 internal data class HomeAnimState(
     val colorPreview: ColorPreview,
+    val colorCenter: ColorCenter,
 ) {
 
     enum class ColorPreview {
         Initial, Dived;
+    }
+
+    enum class ColorCenter {
+        Collapsed, Expanded;
     }
 }
 
@@ -20,4 +25,9 @@ internal fun HomeAnimState(
             false -> HomeAnimState.ColorPreview.Initial
             true -> HomeAnimState.ColorPreview.Dived
         },
+        colorCenter = when (isColorProceededWith) {
+            false -> HomeAnimState.ColorCenter.Collapsed
+            true -> HomeAnimState.ColorCenter.Expanded
+        },
     )
+

@@ -56,6 +56,7 @@ import kotlin.time.measureTime
 internal fun AnimatedColorPreview(
     colorPreview: ColorPreviewWithDependencies,
     animDest: HomeAnimState.ColorPreview,
+    onAnimDestReached: (dest: HomeAnimState.ColorPreview) -> Unit,
     containerSize: DpSize?,
     containerPositionInRoot: DpOffset?,
 ) {
@@ -134,6 +135,7 @@ internal fun AnimatedColorPreview(
         )
         // animation has finished and we don't need to hold Visible uiState anymore
         controller.catchUp()
+        onAnimDestReached(animDest)
     }
 }
 
@@ -211,6 +213,7 @@ private fun Preview() {
                 }
             },
             animDest = HomeAnimState.ColorPreview.Initial,
+            onAnimDestReached = {},
             containerSize = DpSize(width = 150.dp, height = 400.dp),
             containerPositionInRoot = DpOffset.Zero,
         )

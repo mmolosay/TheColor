@@ -246,9 +246,16 @@ private fun Home(
     var positionInRoot by remember { mutableStateOf<DpOffset?>(null) }
     var size by remember { mutableStateOf<DpSize?>(null) }
 
-    val animDest = HomeAnimState(
-        isColorProceededWith = data.proceedResult is ProceedResult.Success,
-    )
+    fun animDest() =
+        HomeAnimState(
+            isColorProceededWith = data.proceedResult is ProceedResult.Success,
+        )
+    val animOrchestrator = remember {
+        HomeAnimOrchestrator(initialState = animDest())
+    }
+    LaunchedEffect(data.proceedResult) {
+        animOrchestrator.flowOfAnimDest.value = animDest()
+    }
 
     Column(
         modifier = modifier
@@ -295,7 +302,10 @@ private fun Home(
 
         AnimatedColorPreview(
             colorPreview = colorPreview,
-            animDest = animDest.colorPreview,
+            animDest = animOrchestrator.animDest.colorPreview,
+            onAnimDestReached = {
+
+            },
             containerSize = size,
             containerPositionInRoot = positionInRoot,
         )
