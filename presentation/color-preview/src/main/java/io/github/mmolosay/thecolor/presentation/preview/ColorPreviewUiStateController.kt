@@ -42,6 +42,7 @@ class ColorPreviewUiStateController(
     fun catchUp() {
         val actual = actualUiStateFlow.value
         val wasEmitted = manualUiStateFlow.tryEmit(actual)
+        // atm I'm not sure whether tryEmit will work in 100% of cases. May require using suspending emit.
         if (!wasEmitted) error("manualUiStateFlow couldn't emit new value")
     }
 }
