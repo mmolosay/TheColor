@@ -139,7 +139,7 @@ fun HomeScreen(
     }
     val colorPreview: ColorPreviewWithDependencies = remember {
         ColorPreviewWithDependencies(
-            dataFlow = viewModel.colorPreviewViewModel.dataFlow,
+            viewModel = viewModel.colorPreviewViewModel,
         ) { data ->
             ColorPreview(data)
         }

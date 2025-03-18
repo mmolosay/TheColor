@@ -1,12 +1,12 @@
 package io.github.mmolosay.thecolor.presentation.home.ui
 
 import androidx.compose.runtime.Composable
-import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
-import kotlinx.coroutines.flow.StateFlow
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 
 internal fun interface ColorPreviewComposable {
     @Composable
-    operator fun invoke(data: ColorPreviewData)
+    operator fun invoke(uiState: ColorPreviewUiState)
 }
 
 /**
@@ -14,27 +14,27 @@ internal fun interface ColorPreviewComposable {
  */
 internal interface ColorPreviewWithDependencies {
     val composable: ColorPreviewComposable
-    val dataFlow: StateFlow<ColorPreviewData>
+    val viewModel: ColorPreviewViewModel
 }
 
 // constructor function, like 'StateFlow()'
 internal fun ColorPreviewWithDependencies(
-    dataFlow: StateFlow<ColorPreviewData>,
+    viewModel: ColorPreviewViewModel,
     composable: ColorPreviewComposable, // last to enabled trailing lambda syntax
 ): ColorPreviewWithDependencies =
     ColorPreviewWithDependenciesImpl(
         composable = composable,
-        dataFlow = dataFlow,
+        viewModel = viewModel,
     )
 
 private data class ColorPreviewWithDependenciesImpl(
     override val composable: ColorPreviewComposable,
-    override val dataFlow: StateFlow<ColorPreviewData>,
+    override val viewModel: ColorPreviewViewModel,
 ) : ColorPreviewWithDependencies
 
 internal class NoopColorPreviewWithDependencies(
     override val composable: ColorPreviewComposable,
 ) : ColorPreviewWithDependencies {
-    override val dataFlow: StateFlow<ColorPreviewData>
+    override val viewModel: ColorPreviewViewModel
         get() = error("no-op")
 }

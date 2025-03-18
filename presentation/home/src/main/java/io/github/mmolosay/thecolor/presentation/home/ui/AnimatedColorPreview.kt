@@ -36,25 +36,18 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.impl.toDpOffset
 import io.github.mmolosay.thecolor.presentation.impl.toDpSize
-import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
-import io.github.mmolosay.thecolor.presentation.preview.hasColor
-import io.github.mmolosay.thecolor.utils.doNothing
-import kotlinx.coroutines.CoroutineScope
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiStateController
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiStateFilter
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.flow.transformLatest
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.TimeSource
+import kotlin.time.measureTime
 
 /**
  * Animates 'Color Preview' position (dive) and manipulates its data to display 'Color Preview'
@@ -95,14 +88,17 @@ internal fun AnimatedColorPreview(
     // LaunchedEffect introduces ~one frame delay, thus updating during composition
     flowOfAnimDest.value = animDest
 
-    val dataController = remember {
-        AnimatedDataController(
+    val controller = remember {
+        ColorPreviewUiStateController(
             coroutineScope = coroutineScope,
-            actualDataFlow = colorPreview.dataFlow,
-            flowOfAnimDest = flowOfAnimDest,
-        )
+            dataFlow = colorPreview.viewModel.dataFlow,
+        ).apply {
+            val filter = ColorPreviewUiStateFilterImpl(
+                flowOfAnimDest = flowOfAnimDest,
+            )
+            this.filter = filter
+        }
     }
-    val data = dataController.animatedDataFlow.collectAsStateWithLifecycle().value
 
     Box(
         modifier = Modifier
@@ -117,7 +113,8 @@ internal fun AnimatedColorPreview(
                 initialPositionInContainer = selfPositionInRoot - containerPositionInRoot
             },
     ) {
-        colorPreview.composable.invoke(data)
+        val uiState = controller.uiStateFlow.collectAsStateWithLifecycle().value
+        colorPreview.composable.invoke(uiState)
     }
 
     LaunchedEffect(animDest) {
@@ -137,8 +134,8 @@ internal fun AnimatedColorPreview(
             targetValue = calcAnimDestDive(),
             animationSpec = animationSpec,
         )
-        // animation has finished and we don't need to retain last data with color anymore
-        dataController.catchUp()
+        // animation has finished and we don't need to hold Visible uiState anymore
+        controller.catchUp()
     }
 }
 
@@ -164,55 +161,39 @@ private fun HomeAnimState.ColorPreview.calcAnimationDive(
     }
 }
 
-private class AnimatedDataController(
-    coroutineScope: CoroutineScope,
-    private val actualDataFlow: StateFlow<ColorPreviewData>,
+/**
+ * Skips (filters out) certain `uiState`s in order to retain previous
+ * emission to be used in "exiting" animation of 'Color Preview'.
+ */
+private class ColorPreviewUiStateFilterImpl(
     private val flowOfAnimDest: StateFlow<HomeAnimState.ColorPreview>,
-) {
+) : ColorPreviewUiStateFilter {
 
-    private val _animatedDataFlow = MutableStateFlow<ColorPreviewData>(value = actualDataFlow.value)
-    val animatedDataFlow = _animatedDataFlow.asStateFlow()
-
-    /**
-     * Transformation of [actualDataFlow] that skips certain data in order to retain previous
-     * emission to be used in "exiting" animation of 'Color Preview'.
-     */
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val transformedDataFlow: SharedFlow<ColorPreviewData> = actualDataFlow
-        .transformLatest { data ->
-            if (data.hasColor) {
-                emit(data); return@transformLatest
-            }
-            // has no color
-            if (flowOfAnimDest.value == HomeAnimState.ColorPreview.Initial) {
-                emit(data); return@transformLatest
-            }
-            // 'animDest' is Dived, we have to give it a window to change to Initial
-            val updated = withTimeoutOrNull(100.milliseconds) {
-                val start = TimeSource.Monotonic.markNow()
-                val value = flowOfAnimDest
+    override suspend fun submit(uiState: ColorPreviewUiState): Boolean {
+        if (uiState is ColorPreviewUiState.Visible) {
+            return true
+        }
+        // uiState is Hidden
+        if (flowOfAnimDest.value == HomeAnimState.ColorPreview.Initial) {
+            return true
+        }
+        // 'animDest' is 'Dived', we have to give it a window to change to 'Initial'
+        // TODO: solution with timeout is bug prone: laggy devices and debugging will break it
+        val updatedAnimDest = withTimeoutOrNull(100.milliseconds) {
+            val value: HomeAnimState.ColorPreview
+            val elapsed = measureTime {
+                value = flowOfAnimDest
                     .drop(1) // replayed value of StateFlow
                     .first()
-                val elapsed = start.elapsedNow()
-                Timber.i("'animDest' has changed to $value in $elapsed after $data was emitted")
-                return@withTimeoutOrNull value
             }
-            when (updated) {
-                null -> emit(data) // 'animDest' hasn't changed
-                HomeAnimState.ColorPreview.Initial -> doNothing() // skip this 'data' and thus keep last emitted data with color as latest
-                HomeAnimState.ColorPreview.Dived -> error("not possible")
-            }
+            Timber.i("'animDest' has changed to $value in $elapsed after $uiState was emitted")
+            return@withTimeoutOrNull value
         }
-        .shareIn(scope = coroutineScope, started = SharingStarted.Eagerly, replay = 1)
-
-    init {
-        coroutineScope.launch {
-            transformedDataFlow.collect(_animatedDataFlow) // re-emit into mutable flow
+        return when (updatedAnimDest) {
+            null -> true // 'animDest' hasn't changed, we can accept this 'uiState'
+            HomeAnimState.ColorPreview.Initial -> false // skip this 'uiState' to animate
+            HomeAnimState.ColorPreview.Dived -> error("not possible")
         }
-    }
-
-    fun catchUp() {
-        _animatedDataFlow.value = actualDataFlow.value
     }
 }
 
