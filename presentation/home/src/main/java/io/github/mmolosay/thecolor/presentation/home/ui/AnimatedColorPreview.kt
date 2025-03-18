@@ -44,9 +44,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.measureTime
 
 /**
@@ -177,20 +175,17 @@ private class ColorPreviewUiStateFilterImpl(
         if (flowOfAnimDest.value == HomeAnimState.ColorPreview.Initial) {
             return true
         }
-        // 'animDest' is 'Dived', we have to give it a window to change to 'Initial'
-        // TODO: solution with timeout is bug prone: laggy devices and debugging will break it
-        val updatedAnimDest = withTimeoutOrNull(100.milliseconds) {
-            val value: HomeAnimState.ColorPreview
-            val elapsed = measureTime {
-                value = flowOfAnimDest
-                    .drop(1) // replayed value of StateFlow
-                    .first()
-            }
-            Timber.i("'animDest' has changed to $value in $elapsed after $uiState was emitted")
-            return@withTimeoutOrNull value
+        // 'animDest' is 'Dived', but will soon change to 'Initial'
+        // TODO: metaprogramming; we should get information in the comment above from some code, not by knowing internal structure of HomeViewModel
+        // implies that current 'UiState' on UI is 'Visible'
+        val updatedAnimDest: HomeAnimState.ColorPreview
+        val elapsed = measureTime {
+            updatedAnimDest = flowOfAnimDest
+                .drop(1) // replayed value of StateFlow
+                .first()
         }
+        Timber.i("'animDest' has changed to $updatedAnimDest in $elapsed after $uiState was emitted")
         return when (updatedAnimDest) {
-            null -> true // 'animDest' hasn't changed, we can accept this 'uiState'
             HomeAnimState.ColorPreview.Initial -> false // skip this 'uiState' thus keeping previous appearance to be used while Dived -> Initial animation plays
             HomeAnimState.ColorPreview.Dived -> error("not possible")
         }
