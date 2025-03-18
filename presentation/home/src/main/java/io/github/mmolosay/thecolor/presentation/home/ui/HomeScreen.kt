@@ -255,9 +255,7 @@ private fun Home(
             .fillMaxSize()
             .verticalScroll(state = scrollState)
             .onGloballyPositioned { coordinates ->
-                positionInRoot = coordinates
-                    .positionInRoot()
-                    .toDpOffset(density)
+                positionInRoot = coordinates.positionInRoot().toDpOffset(density)
                 size = coordinates.size.toDpSize(density)
             },
         horizontalAlignment = Alignment.CenterHorizontally,

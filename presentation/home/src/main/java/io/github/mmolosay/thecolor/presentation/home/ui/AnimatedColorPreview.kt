@@ -106,9 +106,9 @@ internal fun AnimatedColorPreview(
             .onGloballyPositioned { coordinates ->
                 size = coordinates.size.toDpSize(density)
             }
-            .onGloballyPositioned { coordinates ->
-                if (initialPositionInContainer != null) return@onGloballyPositioned // already set
-                if (containerPositionInRoot == null) return@onGloballyPositioned
+            .onGloballyPositioned l@{ coordinates ->
+                if (initialPositionInContainer != null) return@l // already set
+                if (containerPositionInRoot == null) return@l
                 val selfPositionInRoot = coordinates.positionInRoot().toDpOffset(density)
                 initialPositionInContainer = selfPositionInRoot - containerPositionInRoot
             },
