@@ -173,7 +173,7 @@ private class ColorPreviewUiStateFilterImpl(
         if (uiState is ColorPreviewUiState.Visible) {
             return true
         }
-        // uiState is Hidden
+        // 'uiState' is Hidden
         if (flowOfAnimDest.value == HomeAnimState.ColorPreview.Initial) {
             return true
         }
@@ -191,7 +191,7 @@ private class ColorPreviewUiStateFilterImpl(
         }
         return when (updatedAnimDest) {
             null -> true // 'animDest' hasn't changed, we can accept this 'uiState'
-            HomeAnimState.ColorPreview.Initial -> false // skip this 'uiState' to animate
+            HomeAnimState.ColorPreview.Initial -> false // skip this 'uiState' thus keeping previous appearance to be used while Dived -> Initial animation plays
             HomeAnimState.ColorPreview.Dived -> error("not possible")
         }
     }
