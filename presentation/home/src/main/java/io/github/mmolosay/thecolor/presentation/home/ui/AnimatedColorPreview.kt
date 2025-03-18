@@ -67,15 +67,15 @@ internal fun AnimatedColorPreview(
     var initialPositionInContainer by remember { mutableStateOf<DpOffset?>(null) }
     var size by remember { mutableStateOf<DpSize?>(null) }
 
-    fun calcAnimDestDive() =
-        animDest.calcAnimationDive(
+    fun calcOffset() =
+        animDest.calcVerticalOffset(
             containerSize = containerSize,
             previewSize = size,
             previewPositionInContainer = initialPositionInContainer,
         )
-    val diveAnimatable = remember {
+    val offsetAnimatable = remember {
         Animatable(
-            initialValue = calcAnimDestDive(),
+            initialValue = calcOffset(),
             typeConverter = Dp.VectorConverter,
             visibilityThreshold = Dp.VisibilityThreshold,
             label = "dive",
@@ -102,7 +102,7 @@ internal fun AnimatedColorPreview(
 
     Box(
         modifier = Modifier
-            .offset { IntOffset(x = 0, y = diveAnimatable.value.roundToPx()) }
+            .offset { IntOffset(x = 0, y = offsetAnimatable.value.roundToPx()) }
             .onGloballyPositioned { coordinates ->
                 size = coordinates.size.toDpSize(density)
             }
@@ -130,8 +130,8 @@ internal fun AnimatedColorPreview(
                     stiffness = Spring.StiffnessMediumLow,
                 )
         }
-        diveAnimatable.animateTo(
-            targetValue = calcAnimDestDive(),
+        offsetAnimatable.animateTo(
+            targetValue = calcOffset(),
             animationSpec = animationSpec,
         )
         // animation has finished and we don't need to hold Visible uiState anymore
@@ -140,7 +140,7 @@ internal fun AnimatedColorPreview(
 }
 
 @Stable
-private fun HomeAnimState.ColorPreview.calcAnimationDive(
+private fun HomeAnimState.ColorPreview.calcVerticalOffset(
     containerSize: DpSize?,
     previewSize: DpSize?,
     previewPositionInContainer: DpOffset?,
