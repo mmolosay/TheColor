@@ -15,19 +15,37 @@ internal data class HomeAnimState(
     enum class ColorCenter {
         Collapsed, Expanded;
     }
+
+    fun derive(
+        colorPreview: ColorPreview = this.colorPreview,
+        colorCenter: ColorCenter = this.colorCenter,
+    ) = copy(colorPreview, colorCenter)
+
+    companion object {
+        val Start = HomeAnimState(
+            colorPreview = ColorPreview.Initial,
+            colorCenter = ColorCenter.Collapsed,
+        )
+        val Finished = HomeAnimState(
+            colorPreview = ColorPreview.Dived,
+            colorCenter = ColorCenter.Expanded,
+        )
+    }
 }
 
-internal fun HomeAnimState(
+/**
+ * Produces initial [HomeAnimState] to be used when 'Home' View has just been displayed.
+ */
+internal fun initialHomeAnimState(
     isColorProceededWith: Boolean,
 ) =
-    HomeAnimState(
-        colorPreview = when (isColorProceededWith) {
-            false -> HomeAnimState.ColorPreview.Initial
-            true -> HomeAnimState.ColorPreview.Dived
-        },
-        colorCenter = when (isColorProceededWith) {
-            false -> HomeAnimState.ColorCenter.Collapsed
-            true -> HomeAnimState.ColorCenter.Expanded
-        },
-    )
-
+    when (isColorProceededWith) {
+        false -> HomeAnimState(
+            colorPreview = HomeAnimState.ColorPreview.Initial,
+            colorCenter = HomeAnimState.ColorCenter.Collapsed,
+        )
+        true -> HomeAnimState(
+            colorPreview = HomeAnimState.ColorPreview.Dived,
+            colorCenter = HomeAnimState.ColorCenter.Expanded,
+        )
+    }

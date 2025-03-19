@@ -246,15 +246,25 @@ private fun Home(
     var positionInRoot by remember { mutableStateOf<DpOffset?>(null) }
     var size by remember { mutableStateOf<DpSize?>(null) }
 
-    fun animDest() =
-        HomeAnimState(
+    val animOrchestrator = remember {
+        val initialState = initialHomeAnimState(
             isColorProceededWith = data.proceedResult is ProceedResult.Success,
         )
-    val animOrchestrator = remember {
-        HomeAnimOrchestrator(initialState = animDest())
+        HomeAnimOrchestrator(initialState = initialState)
     }
     LaunchedEffect(data.proceedResult) {
-        animOrchestrator.flowOfAnimDest.value = animDest()
+        val isColorProceededWith = data.proceedResult is ProceedResult.Success
+        val animState = animOrchestrator.currentAnimState
+        val animDest = animOrchestrator.currentAnimDest
+        val newAnimDest = when {
+            animState == HomeAnimState.Start && isColorProceededWith ->
+                animDest.derive(colorPreview = HomeAnimState.ColorPreview.Dived)
+            // TODO: tmp condition while Color Center is commented out
+            !isColorProceededWith ->
+                animDest.derive(colorPreview = HomeAnimState.ColorPreview.Initial)
+            else -> return@LaunchedEffect
+        }
+        animOrchestrator.flowOfAnimDest.value = newAnimDest
     }
 
     Column(
@@ -303,9 +313,7 @@ private fun Home(
         AnimatedColorPreview(
             colorPreview = colorPreview,
             animDest = animOrchestrator.animDest.colorPreview,
-            onAnimDestReached = {
-
-            },
+            onAnimDestReached = { animOrchestrator.animDestReached(it) },
             containerSize = size,
             containerPositionInRoot = positionInRoot,
         )

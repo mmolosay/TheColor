@@ -11,9 +11,16 @@ internal class HomeAnimOrchestrator(
     var flowOfAnimDest = MutableStateFlow<HomeAnimState>(initialState)
 
     fun animDestReached(dest: HomeAnimState.ColorPreview) {
-
+        val newAnimState = currentAnimState.derive(colorPreview = dest)
+        flowOfAnimState.value = newAnimState
     }
 }
+
+internal val HomeAnimOrchestrator.currentAnimState
+    get() = this.flowOfAnimState.value
+
+internal val HomeAnimOrchestrator.currentAnimDest
+    get() = this.flowOfAnimDest.value
 
 internal val HomeAnimOrchestrator.animState
     @Composable
