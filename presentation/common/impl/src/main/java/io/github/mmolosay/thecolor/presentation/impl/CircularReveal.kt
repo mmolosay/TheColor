@@ -40,6 +40,7 @@ import kotlin.math.hypot
 /**
  * A container for the [content] to which circular reveal animation is applied to.
  * Only composes [content] if it would be visible considering current animation state.
+ * [content] must have [Modifier.clipCircle] applied to it with [animator]'s `Animatable` employed.
  */
 @Composable
 fun CircularReveal(
