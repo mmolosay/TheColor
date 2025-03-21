@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
+import io.github.mmolosay.thecolor.presentation.impl.rememberSnapshotFlow
 import io.github.mmolosay.thecolor.presentation.impl.toDpOffset
 import io.github.mmolosay.thecolor.presentation.impl.toDpSize
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState
@@ -82,9 +83,7 @@ internal fun AnimatedColorPreview(
         )
     }
 
-    val flowOfAnimDest = remember {
-        MutableStateFlow(animDest)
-    }.also {
+    val flowOfAnimDest = remember { MutableStateFlow(animDest) }.also {
         it.value = animDest // LaunchedEffect introduces ~one frame delay, thus updating during composition
     }
 
@@ -117,6 +116,10 @@ internal fun AnimatedColorPreview(
     }
 
     LaunchedEffect(animDest) {
+        val targetValue = calcOffset()
+        if (offsetAnimatable.value == targetValue) {
+            return@LaunchedEffect // already in target state
+        }
         val animationSpec: AnimationSpec<Dp> = when (animDest) {
             HomeAnimState.ColorPreview.Initial ->
                 spring(

@@ -38,29 +38,34 @@ internal fun AnimatedColorCenter(
 ) {
     val coroutineScope = rememberCoroutineScope()
 
-    val circularRevealAnimator = remember {
-        val initialProgressValue = when (animDest) {
+    fun targetValue() =
+        when (animDest) {
             HomeAnimState.ColorCenter.Expanded -> CircularRevealAnimator.FullyExpandedValue
             HomeAnimState.ColorCenter.Collapsed -> CircularRevealAnimator.FullyCollapsedValue
         }
+    val animator = remember {
         CircularRevealAnimator(
-            progressAnimatable = Animatable(initialValue = initialProgressValue),
+            progressAnimatable = Animatable(initialValue = targetValue()),
             expandAnimationSpec = spring(stiffness = 100f),
             collapseAnimationSpec = spring(stiffness = 300f),
         )
     }
     LaunchedEffect(animDest) {
+        val targetValue = targetValue()
+        if (animator.progressAnimatable.value == targetValue) {
+            return@LaunchedEffect // already in target state
+        }
         coroutineScope.launch {
             when (animDest) {
-                HomeAnimState.ColorCenter.Expanded -> circularRevealAnimator.expand()
-                HomeAnimState.ColorCenter.Collapsed -> circularRevealAnimator.collapse()
+                HomeAnimState.ColorCenter.Expanded -> animator.expand()
+                HomeAnimState.ColorCenter.Collapsed -> animator.collapse()
             }
             onAnimDestReached(animDest)
         }
     }
 
     CircularReveal(
-        animator = circularRevealAnimator,
+        animator = animator,
     ) {
         var visibleHeightInParent by remember { mutableStateOf<Float?>(null) }
         Box(
@@ -79,7 +84,7 @@ internal fun AnimatedColorCenter(
                         else size.center
                     },
                     radius = RadiusProvider { size, minCoverRadius ->
-                        minCoverRadius * circularRevealAnimator.progressAnimatable.value
+                        minCoverRadius * animator.progressAnimatable.value
                     },
                 ),
         ) {
