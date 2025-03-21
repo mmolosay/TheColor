@@ -93,6 +93,7 @@ import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObser
 import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent
 import io.github.mmolosay.thecolor.presentation.impl.TintedSurface
 import io.github.mmolosay.thecolor.presentation.impl.onlyBottom
+import io.github.mmolosay.thecolor.presentation.impl.rememberSnapshotFlow
 import io.github.mmolosay.thecolor.presentation.impl.toCompose
 import io.github.mmolosay.thecolor.presentation.impl.toDpOffset
 import io.github.mmolosay.thecolor.presentation.impl.toDpSize
@@ -103,7 +104,6 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreview
 import io.github.mmolosay.thecolor.utils.cache.CacheStore
 import io.github.mmolosay.thecolor.utils.doNothing
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
@@ -239,20 +239,15 @@ private fun Home(
         val initialState = initialHomeAnimState(isColorProceededWith)
         HomeAnimController(initialState)
     }
-    val flowOfIsColorProceededWith = remember {
-        MutableStateFlow(isColorProceededWith)
-    }
-    flowOfIsColorProceededWith.value = isColorProceededWith
+    val flowOfIsColorProceededWith = rememberSnapshotFlow(isColorProceededWith)
     LaunchedEffect(Unit) {
-        flowOfIsColorProceededWith
-            .drop(1) // replayed value of StateFlow
-            .collect { isColorProceededWith ->
-                val sequence =
-                    if (isColorProceededWith) HomeAnimSequences.ForwardFull
-                    else HomeAnimSequences.BackwardFull
-                animController.updateSequence(sequence)
-                animController.start()
-            }
+        flowOfIsColorProceededWith.drop(1/*initial value*/).collect { isColorProceededWith ->
+            val sequence =
+                if (isColorProceededWith) HomeAnimSequences.ForwardFull
+                else HomeAnimSequences.BackwardFull
+            animController.updateSequence(sequence)
+            animController.start()
+        }
     }
     val animDest = animController.destState.collectAsStateWithLifecycle().value
 
