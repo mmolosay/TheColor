@@ -84,20 +84,19 @@ internal fun AnimatedColorPreview(
 
     val flowOfAnimDest = remember {
         MutableStateFlow(animDest)
+    }.also {
+        it.value = animDest // LaunchedEffect introduces ~one frame delay, thus updating during composition
     }
-    // LaunchedEffect introduces ~one frame delay, thus updating during composition
-    flowOfAnimDest.value = animDest
 
     val controller = remember {
+        val filter = ColorPreviewUiStateFilterImpl(
+            flowOfAnimDest = flowOfAnimDest,
+        )
         ColorPreviewUiStateController(
             coroutineScope = coroutineScope,
             dataFlow = colorPreview.viewModel.dataFlow,
-        ).apply {
-            val filter = ColorPreviewUiStateFilterImpl(
-                flowOfAnimDest = flowOfAnimDest,
-            )
-            this.filter = filter
-        }
+            filter = filter,
+        )
     }
 
     Box(

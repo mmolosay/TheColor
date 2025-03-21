@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.preview
 
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -13,6 +14,8 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState as U
 
 /**
  * Allows to manipulate actual flow of [UiState].
+ * Thus, using values of [uiStateFlow], effectively allows to control how 'Color Preview' is displayed in UI.
+ *
  * In the essence, this class transforms [actualUiStateFlow] into processed [uiStateFlow].
  * You can think of it as an operator on the flow.
  */
@@ -20,17 +23,14 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState as U
 class ColorPreviewUiStateController(
     coroutineScope: CoroutineScope,
     private val actualUiStateFlow: StateFlow<UiState>,
+    private val filter: ColorPreviewUiStateFilter,
 ) {
-    var filter: ColorPreviewUiStateFilter? = null
     val uiStateFlow: StateFlow<UiState>
     val manualUiStateFlow: MutableSharedFlow<UiState>
 
     init {
         val filtered = actualUiStateFlow.transformLatest { uiState ->
-            val shouldEmit = kotlin.run {
-                val filter = filter
-                if (filter != null) filter.submit(uiState) else true
-            }
+            val shouldEmit = filter.submit(uiState)
             if (shouldEmit) emit(uiState)
         }
         val manual = MutableSharedFlow<UiState>(replay = 1)
@@ -50,6 +50,7 @@ class ColorPreviewUiStateController(
 fun ColorPreviewUiStateController(
     coroutineScope: CoroutineScope,
     dataFlow: StateFlow<ColorPreviewData>,
+    filter: ColorPreviewUiStateFilter,
 ): ColorPreviewUiStateController {
     val uiStateFlow = dataFlow
         .map { data -> data.toUiState() }
@@ -57,6 +58,7 @@ fun ColorPreviewUiStateController(
     return ColorPreviewUiStateController(
         coroutineScope = coroutineScope,
         actualUiStateFlow = uiStateFlow,
+        filter = filter,
     )
 }
 
