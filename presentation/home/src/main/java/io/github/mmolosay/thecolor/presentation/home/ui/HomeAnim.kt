@@ -60,12 +60,11 @@ internal object HomeAnimSequences {
 }
 
 internal class HomeAnimController(
-    initialState: HomeAnimState,
+    currentState: HomeAnimState,
 ) {
 
-    private var currentState: HomeAnimState = initialState
+    private var currentState: HomeAnimState = currentState
     val destState = MutableStateFlow(currentState)
-
     private var sequence: HomeAnimSequence? = null
 
     fun updateSequence(sequence: HomeAnimSequence) {
