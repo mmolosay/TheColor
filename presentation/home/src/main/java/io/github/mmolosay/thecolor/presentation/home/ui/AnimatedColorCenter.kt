@@ -21,7 +21,7 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedR
 import io.github.mmolosay.thecolor.presentation.impl.CircularReveal
 import io.github.mmolosay.thecolor.presentation.impl.CircularRevealAnimator
 import io.github.mmolosay.thecolor.presentation.impl.RadiusProvider
-import io.github.mmolosay.thecolor.presentation.impl.calcVisibleHeightInScrollableParent
+import io.github.mmolosay.thecolor.presentation.impl.calcVisibleHeightInScrollableContainer
 import io.github.mmolosay.thecolor.presentation.impl.clipCircle
 import io.github.mmolosay.thecolor.presentation.impl.retainedNotNull
 import io.github.mmolosay.thecolor.utils.cache.CacheStore
@@ -34,7 +34,7 @@ internal fun AnimatedColorCenter(
     colorCenter: ColorCenterComposable?,
     animDest: HomeAnimState.ColorCenter,
     onAnimDestReached: (HomeAnimState.ColorCenter) -> Unit,
-    parentScrollState: ScrollState,
+    containerScrollState: ScrollState,
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -67,9 +67,9 @@ internal fun AnimatedColorCenter(
             modifier = Modifier
                 .onGloballyPositioned { coordinates ->
                     val ownPosInParent = coordinates.positionInParent()
-                    visibleHeightInParent = calcVisibleHeightInScrollableParent(
-                        parentScrollState = parentScrollState,
-                        ownPosInParent = ownPosInParent.y,
+                    visibleHeightInParent = calcVisibleHeightInScrollableContainer(
+                        containerScrollState = containerScrollState,
+                        ownPosInContainer = ownPosInParent.y,
                     )
                 }
                 .clipCircle(

@@ -57,7 +57,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onPlaced
-import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -105,11 +104,9 @@ import io.github.mmolosay.thecolor.utils.cache.CacheStore
 import io.github.mmolosay.thecolor.utils.doNothing
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.map
 import kotlin.random.Random
 
 @Composable
@@ -235,7 +232,7 @@ private fun Home(
     val isColorProceededWith = proceedResult is ProceedResult.Success
 
     val scrollState = rememberScrollState()
-    var positionInRoot by remember { mutableStateOf<DpOffset?>(null) }
+    var posInRoot by remember { mutableStateOf<DpOffset?>(null) }
     var size by remember { mutableStateOf<DpSize?>(null) }
 
     val animController = remember {
@@ -264,7 +261,7 @@ private fun Home(
             .fillMaxSize()
             .verticalScroll(state = scrollState)
             .onGloballyPositioned { coordinates ->
-                positionInRoot = coordinates.positionInRoot().toDpOffset(density)
+                posInRoot = coordinates.positionInRoot().toDpOffset(density)
                 size = coordinates.size.toDpSize(density)
             },
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -307,7 +304,7 @@ private fun Home(
             animDest = animDest.colorPreview,
             onAnimDestReached = { animController.reportDestReached(it) },
             containerSize = size,
-            containerPositionInRoot = positionInRoot,
+            containerPosInRoot = posInRoot,
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -316,11 +313,12 @@ private fun Home(
                 colorCenter = colorCenter,
                 proceededColorData = (proceedResult as? ProceedResult.Success)?.colorData,
                 navBarAppearanceController = navBarAppearanceController,
-                parentScrollState = scrollState,
+                containerScrollState = scrollState,
+                containerPosInRoot = posInRoot,
             ),
             animDest = animDest.colorCenter,
             onAnimDestReached = { animController.reportDestReached(it) },
-            parentScrollState = scrollState,
+            containerScrollState = scrollState,
         )
     }
 
@@ -430,21 +428,23 @@ private fun decoratedColorCenterComposable(
     colorCenter: ColorCenterComposable?,
     proceededColorData: ProceedResult.Success.ColorData?,
     navBarAppearanceController: NavBarAppearanceController,
-    parentScrollState: ScrollState,
+    containerScrollState: ScrollState,
+    containerPosInRoot: DpOffset?,
 ): ColorCenterComposable? {
     if (colorCenter == null) return null
     if (proceededColorData == null) return null
     return ColorCenterComposable {
         val density = LocalDensity.current
-        // calculate min height of Color Center so that its bottom matches bottom of the parent Column
         var minHeight by remember { mutableStateOf<Dp>(Dp.Unspecified) }
         DecoratedColorCenter(
             modifier = Modifier
                 .onPlaced { coordinates ->
-                    val ownYPos = coordinates.positionInParent().y
-                    val parentHeight = parentScrollState.viewportSize
-                    val ownMinHeight = parentHeight - ownYPos
-                    minHeight = with(density) { ownMinHeight.toDp() }
+                    // calculate min height of Color Center so that its bottom matches bottom of the parent Column
+                    containerPosInRoot ?: return@onPlaced
+                    val containerHeight = with(density) { containerScrollState.viewportSize.toDp() }
+                    val ownPosInRoot = coordinates.positionInRoot().toDpOffset(density)
+                    val ownYPosInContainer = (ownPosInRoot - containerPosInRoot).y
+                    minHeight = containerHeight - ownYPosInContainer
                 },
             surfaceColor = proceededColorData.color.toCompose(),
             isSurfaceColorDark = proceededColorData.isDark,

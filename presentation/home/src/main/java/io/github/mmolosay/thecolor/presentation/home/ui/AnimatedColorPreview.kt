@@ -58,19 +58,19 @@ internal fun AnimatedColorPreview(
     animDest: HomeAnimState.ColorPreview,
     onAnimDestReached: (dest: HomeAnimState.ColorPreview) -> Unit,
     containerSize: DpSize?,
-    containerPositionInRoot: DpOffset?,
+    containerPosInRoot: DpOffset?,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val density = LocalDensity.current
 
-    var initialPositionInContainer by remember { mutableStateOf<DpOffset?>(null) }
+    var initialPosInContainer by remember { mutableStateOf<DpOffset?>(null) }
     var size by remember { mutableStateOf<DpSize?>(null) }
 
     fun calcOffset() =
         animDest.calcVerticalOffset(
             containerSize = containerSize,
             previewSize = size,
-            previewPositionInContainer = initialPositionInContainer,
+            previewPositionInContainer = initialPosInContainer,
         )
     val offsetAnimatable = remember {
         Animatable(
@@ -106,10 +106,10 @@ internal fun AnimatedColorPreview(
                 size = coordinates.size.toDpSize(density)
             }
             .onGloballyPositioned l@{ coordinates ->
-                if (initialPositionInContainer != null) return@l // already set
-                if (containerPositionInRoot == null) return@l
-                val selfPositionInRoot = coordinates.positionInRoot().toDpOffset(density)
-                initialPositionInContainer = selfPositionInRoot - containerPositionInRoot
+                if (initialPosInContainer != null) return@l // already set
+                if (containerPosInRoot == null) return@l
+                val ownPosInRoot = coordinates.positionInRoot().toDpOffset(density)
+                initialPosInContainer = ownPosInRoot - containerPosInRoot
             },
     ) {
         val uiState = controller.uiStateFlow.collectAsStateWithLifecycle().value
@@ -216,7 +216,7 @@ private fun Preview() {
             animDest = HomeAnimState.ColorPreview.Initial,
             onAnimDestReached = {},
             containerSize = DpSize(width = 150.dp, height = 400.dp),
-            containerPositionInRoot = DpOffset.Zero,
+            containerPosInRoot = DpOffset.Zero,
         )
     }
 }
