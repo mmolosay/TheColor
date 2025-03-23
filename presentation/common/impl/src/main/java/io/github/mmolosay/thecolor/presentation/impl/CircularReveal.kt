@@ -1,11 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.impl
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.AnimationSpec
-import androidx.compose.animation.core.AnimationVector1D
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +14,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
@@ -33,23 +29,23 @@ import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.impl.CircularRevealAnimator.Companion.FullyCollapsedValue
 import kotlinx.coroutines.launch
 import kotlin.math.hypot
 
 /**
  * A container for the [content] to which circular reveal animation is applied to.
  * Only composes [content] if it would be visible considering current animation state.
- * [content] must have [Modifier.clipCircle] applied to it with [animator]'s `Animatable` employed.
+ * [content] must have [Modifier.clipCircle] applied to it.
  */
 @Composable
 fun CircularReveal(
-    animator: CircularRevealAnimator,
+    animProgress: Float,
     content: @Composable () -> Unit,
 ) {
+    val updatedAnimProgress by rememberUpdatedState(animProgress) // 'derivedStateOf' reads State<T>
     val composeContent by remember {
         derivedStateOf {
-            val isFullyCollapsed = (animator.progressAnimatable.value == FullyCollapsedValue)
+            val isFullyCollapsed = (updatedAnimProgress == 0f)
             !isFullyCollapsed
         }
     }
@@ -97,44 +93,6 @@ fun interface RadiusProvider {
 }
 
 /**
- * Facade API for controlling circular reveal animation.
- */
-class CircularRevealAnimator(
-    val progressAnimatable: Animatable<Float, AnimationVector1D> =
-        Animatable(initialValue = FullyCollapsedValue),
-    private val expandAnimationSpec: AnimationSpec<Float> =
-        spring(stiffness = Spring.StiffnessLow),
-    private val collapseAnimationSpec: AnimationSpec<Float> =
-        spring(stiffness = Spring.StiffnessLow),
-) {
-
-    suspend fun expand() {
-        progressAnimatable.animateTo(
-            targetValue = FullyExpandedValue,
-            animationSpec = expandAnimationSpec,
-        )
-    }
-
-    suspend fun collapse() {
-        progressAnimatable.animateTo(
-            targetValue = FullyCollapsedValue,
-            animationSpec = collapseAnimationSpec,
-        )
-    }
-
-    suspend fun snapToCollapsed() {
-        progressAnimatable.snapTo(
-            targetValue = FullyCollapsedValue,
-        )
-    }
-
-    companion object {
-        const val FullyCollapsedValue = 0f
-        const val FullyExpandedValue = 1f
-    }
-}
-
-/**
  * Calculates a radius of a smallest circle that will fully cover given [rect].
  * The center of the circle is at receiver [Offset], and [rect] is placed at [Offset.Zero].
  */
@@ -160,10 +118,8 @@ private fun Offset.radiusOfCoveringCircle(rect: Rect): Float {
 @Composable
 private fun Preview() {
     TheColorTheme {
-        val animator = remember {
-            CircularRevealAnimator(
-                expandAnimationSpec = tween(durationMillis = 3000),
-            )
+        val progressAnimatable = remember {
+            Animatable(initialValue = 0f)
         }
         val coroutineScope = rememberCoroutineScope()
         Column(
@@ -176,7 +132,7 @@ private fun Preview() {
                     .clipCircle(
                         center = { size -> size.center },
                         radius = RadiusProvider { size, minCoverRadius ->
-                            minCoverRadius * animator.progressAnimatable.value
+                            minCoverRadius * progressAnimatable.value
                         },
                     )
                     .background(Color.Blue),
@@ -194,7 +150,7 @@ private fun Preview() {
                 Button(
                     onClick = {
                         coroutineScope.launch {
-                            animator.expand()
+                            progressAnimatable.animateTo(targetValue = 1f)
                         }
                     },
                 ) {
@@ -203,7 +159,7 @@ private fun Preview() {
                 Button(
                     onClick = {
                         coroutineScope.launch {
-                            animator.collapse()
+                            progressAnimatable.animateTo(targetValue = 0f)
                         }
                     },
                 ) {
