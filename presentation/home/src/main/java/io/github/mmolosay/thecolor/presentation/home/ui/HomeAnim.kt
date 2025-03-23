@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.home.ui
 
+import androidx.compose.ui.unit.dp
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorCenter
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -94,3 +95,10 @@ internal class HomeAnimController(
         destState.value = iterator.next()
     }
 }
+
+/**
+ * 'Color Center's focal point is a point on the screen that is the center of the clipping circle
+ * in its circular reveal animation.
+ * It is also a point where 'Color Preview' dives to and rises from during its animation.
+ */
+internal val ColorCenterFocalPointBottomOffset = 96.dp

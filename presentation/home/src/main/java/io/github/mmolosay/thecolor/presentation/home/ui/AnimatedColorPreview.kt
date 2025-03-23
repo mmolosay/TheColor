@@ -16,7 +16,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -35,7 +34,6 @@ import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.impl.rememberSnapshotFlow
 import io.github.mmolosay.thecolor.presentation.impl.toDpOffset
 import io.github.mmolosay.thecolor.presentation.impl.toDpSize
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState
@@ -105,7 +103,6 @@ internal fun AnimatedColorPreview(
                 size = coordinates.size.toDpSize(density)
             }
             .onGloballyPositioned l@{ coordinates ->
-                if (initialPosInContainer != null) return@l // already set
                 if (containerPosInRoot == null) return@l
                 val ownPosInRoot = coordinates.positionInRoot().toDpOffset(density)
                 initialPosInContainer = ownPosInRoot - containerPosInRoot
@@ -155,9 +152,8 @@ private fun HomeAnimState.ColorPreview.calcVerticalOffset(
             containerSize ?: return 0.dp
             previewSize ?: return 0.dp
             previewPositionInContainer ?: return 0.dp
-            val offsetFromContainerBottom = previewSize.height
             val diveTargetPointInContainer =
-                containerSize.height - previewSize.height - offsetFromContainerBottom
+                containerSize.height - (previewSize.height / 2) - ColorCenterFocalPointBottomOffset
             val dive = diveTargetPointInContainer - previewPositionInContainer.y
             return dive.coerceAtLeast(0.dp)
         }

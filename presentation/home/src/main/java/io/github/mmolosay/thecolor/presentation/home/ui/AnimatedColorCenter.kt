@@ -17,6 +17,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.center
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.platform.LocalDensity
 import io.github.mmolosay.thecolor.presentation.impl.CircularReveal
 import io.github.mmolosay.thecolor.presentation.impl.RadiusProvider
 import io.github.mmolosay.thecolor.presentation.impl.calcVisibleHeightInScrollableContainer
@@ -30,6 +31,7 @@ internal fun AnimatedColorCenter(
     onAnimDestReached: (HomeAnimState.ColorCenter) -> Unit,
     containerScrollState: ScrollState,
 ) {
+    val density = LocalDensity.current
     val coroutineScope = rememberCoroutineScope()
 
     fun targetValue() =
@@ -75,8 +77,13 @@ internal fun AnimatedColorCenter(
                 .clipCircle(
                     center = { size ->
                         val h = visibleHeightInParent
-                        if (h != null && h != 0f) Offset(x = size.width / 2, y = h)
-                        else size.center
+                        if (h != null && h != 0f) {
+                            val focalPointOffset = with(density) { ColorCenterFocalPointBottomOffset.toPx() }
+                            val y = (h - focalPointOffset).coerceAtLeast(0f)
+                            Offset(x = size.width / 2, y = y)
+                        } else {
+                            size.center
+                        }
                     },
                     radius = RadiusProvider { size, minCoverRadius ->
                         minCoverRadius * progressAnimatable.value
