@@ -66,6 +66,8 @@ fun Modifier.clipCircle(
     radius: RadiusProvider,
 ): Modifier =
     drawWithCache {
+        // TODO: for some reason, re-allocates and re-executes values that are meant to be cached
+        //  on every animation frame; investigate
         val path = Path()
         val center = center(this.size)
         val radiusOfCoveringCircle = center.radiusOfCoveringCircle(this.size.toRect())
