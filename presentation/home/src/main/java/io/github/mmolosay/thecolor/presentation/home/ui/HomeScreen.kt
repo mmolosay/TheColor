@@ -301,8 +301,6 @@ private fun Home(
             containerSize = size,
             containerPosInRoot = posInRoot,
         )
-
-        Spacer(modifier = Modifier.height(16.dp))
         AnimatedColorCenter(
             colorCenter = decoratedColorCenterComposable(
                 colorCenter = colorCenter,
