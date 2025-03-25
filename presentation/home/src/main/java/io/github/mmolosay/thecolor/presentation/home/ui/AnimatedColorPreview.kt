@@ -63,14 +63,14 @@ internal fun AnimatedColorPreview(
     val coroutineScope = rememberCoroutineScope()
     val density = LocalDensity.current
 
-    var initialPosInContainer by remember { mutableStateOf<DpOffset?>(null) }
+    var posInContainer by remember { mutableStateOf<DpOffset?>(null) }
     var size by remember { mutableStateOf<DpSize?>(null) }
 
     fun calcOffset() =
         animDest.calcVerticalOffset(
             containerSize = containerSize,
             previewSize = size,
-            previewPositionInContainer = initialPosInContainer,
+            previewPositionInContainer = posInContainer,
         )
     val offsetAnimatable = remember {
         Animatable(
@@ -105,7 +105,7 @@ internal fun AnimatedColorPreview(
             .onGloballyPositioned l@{ coordinates ->
                 if (containerPosInRoot == null) return@l
                 val ownPosInRoot = coordinates.positionInRoot().toDpOffset(density)
-                initialPosInContainer = ownPosInRoot - containerPosInRoot
+                posInContainer = ownPosInRoot - containerPosInRoot
             },
     ) {
         val uiState = controller.uiStateFlow.collectAsStateWithLifecycle().value
