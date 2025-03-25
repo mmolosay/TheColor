@@ -74,7 +74,7 @@ internal fun AnimatedColorPreview(
         )
     val offsetAnimatable = remember {
         Animatable(
-            initialValue = calcOffset(),
+            initialValue = calcOffset() ?: 0.dp,
             typeConverter = Dp.VectorConverter,
             visibilityThreshold = Dp.VisibilityThreshold,
             label = "dive",
@@ -113,7 +113,7 @@ internal fun AnimatedColorPreview(
     }
 
     LaunchedEffect(animDest) {
-        val targetValue = calcOffset()
+        val targetValue = calcOffset() ?: return@LaunchedEffect
         if (offsetAnimatable.value == targetValue) {
             return@LaunchedEffect // already in target state
         }
@@ -130,7 +130,7 @@ internal fun AnimatedColorPreview(
                 )
         }
         offsetAnimatable.animateTo(
-            targetValue = calcOffset(),
+            targetValue = targetValue,
             animationSpec = animationSpec,
         )
         // animation has finished and we don't need to hold Visible uiState anymore
@@ -144,14 +144,14 @@ private fun HomeAnimState.ColorPreview.calcVerticalOffset(
     containerSize: DpSize?,
     previewSize: DpSize?,
     previewPositionInContainer: DpOffset?,
-): Dp {
+): Dp? {
     when (this) {
         HomeAnimState.ColorPreview.Initial ->
             return 0.dp
         HomeAnimState.ColorPreview.Dived -> {
-            containerSize ?: return 0.dp
-            previewSize ?: return 0.dp
-            previewPositionInContainer ?: return 0.dp
+            containerSize ?: return null
+            previewSize ?: return null
+            previewPositionInContainer ?: return null
             val diveTargetPointInContainer =
                 containerSize.height - (previewSize.height / 2) - ColorCenterFocalPointBottomOffset
             val dive = diveTargetPointInContainer - previewPositionInContainer.y
