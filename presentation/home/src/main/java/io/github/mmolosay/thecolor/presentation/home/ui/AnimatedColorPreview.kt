@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -66,32 +67,28 @@ internal fun AnimatedColorPreview(
     var posInContainer by remember { mutableStateOf<DpOffset?>(null) }
     var size by remember { mutableStateOf<DpSize?>(null) }
 
-    fun verticalOffsetParamsOrNull() =
-        VerticalOffset.paramsOrNull(
+    val verticalOffsetParams by produceState<VerticalOffset.Params?>(
+        initialValue = null,
+        /*keys*/ containerSize, size, posInContainer,
+    ) {
+        value = VerticalOffset.paramsOrNull(
             containerSize = containerSize,
             previewSize = size,
             previewPosInContainer = posInContainer,
         )
-
-    var verticalOffsetParams by remember { mutableStateOf(verticalOffsetParamsOrNull()) }
-    LaunchedEffect(containerSize, size, posInContainer) {
-        verticalOffsetParams = verticalOffsetParamsOrNull()
     }
-
-    fun makeOffsetAnimatable(): Animatable<Dp, AnimationVector1D>? {
-        val params = verticalOffsetParams ?: return null
-        return Animatable(
+    val offsetAnimatable by produceState<Animatable<Dp, AnimationVector1D>?>(
+        initialValue = null,
+        /*keys*/ verticalOffsetParams,
+    ) {
+        if (value != null) return@produceState // already initialized
+        val params = verticalOffsetParams ?: return@produceState
+        value = Animatable(
             initialValue = VerticalOffset.calc(animDest, params),
             typeConverter = Dp.VectorConverter,
             visibilityThreshold = Dp.VisibilityThreshold,
             label = "dive",
         )
-    }
-
-    var offsetAnimatable by remember { mutableStateOf(makeOffsetAnimatable()) }
-    LaunchedEffect(verticalOffsetParams) {
-        if (offsetAnimatable != null) return@LaunchedEffect // already initialized
-        offsetAnimatable = makeOffsetAnimatable()
     }
 
     val flowOfAnimDest = remember { MutableStateFlow(animDest) }.also {
