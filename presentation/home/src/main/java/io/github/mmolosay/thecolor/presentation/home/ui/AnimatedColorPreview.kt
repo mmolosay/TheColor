@@ -67,7 +67,7 @@ internal fun AnimatedColorPreview(
     var size by remember { mutableStateOf<DpSize?>(null) }
 
     fun verticalOffsetParamsOrNull() =
-        verticalOffsetParamsOrNull(
+        VerticalOffset.paramsOrNull(
             containerSize = containerSize,
             previewSize = size,
             previewPosInContainer = posInContainer,
@@ -81,7 +81,7 @@ internal fun AnimatedColorPreview(
     fun makeOffsetAnimatable(): Animatable<Dp, AnimationVector1D>? {
         val params = verticalOffsetParams ?: return null
         return Animatable(
-            initialValue = calcVerticalOffset(animDest, params),
+            initialValue = VerticalOffset.calc(animDest, params),
             typeConverter = Dp.VectorConverter,
             visibilityThreshold = Dp.VisibilityThreshold,
             label = "dive",
@@ -134,7 +134,7 @@ internal fun AnimatedColorPreview(
         val offsetAnimatable = offsetAnimatable ?: return@LaunchedEffect
         val targetValue = kotlin.run {
             val params = verticalOffsetParams ?: return@LaunchedEffect
-            calcVerticalOffset(animDest, params)
+            VerticalOffset.calc(animDest, params)
         }
         if (offsetAnimatable.value == targetValue) {
             return@LaunchedEffect // already in target state
@@ -161,38 +161,42 @@ internal fun AnimatedColorPreview(
     }
 }
 
-private data class VerticalOffsetParams(
-    val containerSize: DpSize,
-    val previewSize: DpSize,
-    val previewPosInContainer: DpOffset,
-)
+private object VerticalOffset {
 
-private fun verticalOffsetParamsOrNull(
-    containerSize: DpSize?,
-    previewSize: DpSize?,
-    previewPosInContainer: DpOffset?,
-): VerticalOffsetParams? {
-    return VerticalOffsetParams(
-        containerSize = containerSize ?: return null,
-        previewSize = previewSize ?: return null,
-        previewPosInContainer = previewPosInContainer ?: return null,
-    )
-}
-
-private fun calcVerticalOffset(
-    animState: HomeAnimState.ColorPreview,
-    params: VerticalOffsetParams,
-): Dp =
-    when (animState) {
-        HomeAnimState.ColorPreview.Initial ->
-            0.dp
-        HomeAnimState.ColorPreview.Dived -> {
-            val diveTargetPointInContainer =
-                params.containerSize.height - (params.previewSize.height / 2) - ColorCenterFocalPointBottomOffset
-            val dive = diveTargetPointInContainer - params.previewPosInContainer.y
-            dive.coerceAtLeast(0.dp)
+    fun calc(
+        animState: HomeAnimState.ColorPreview,
+        params: Params,
+    ): Dp =
+        when (animState) {
+            HomeAnimState.ColorPreview.Initial ->
+                0.dp
+            HomeAnimState.ColorPreview.Dived -> {
+                val diveTargetPointInContainer =
+                    params.containerSize.height - (params.previewSize.height / 2) - ColorCenterFocalPointBottomOffset
+                val dive = diveTargetPointInContainer - params.previewPosInContainer.y
+                dive.coerceAtLeast(0.dp)
+            }
         }
+
+
+    data class Params(
+        val containerSize: DpSize,
+        val previewSize: DpSize,
+        val previewPosInContainer: DpOffset,
+    )
+
+    fun paramsOrNull(
+        containerSize: DpSize?,
+        previewSize: DpSize?,
+        previewPosInContainer: DpOffset?,
+    ): Params? {
+        return Params(
+            containerSize = containerSize ?: return null,
+            previewSize = previewSize ?: return null,
+            previewPosInContainer = previewPosInContainer ?: return null,
+        )
     }
+}
 
 /**
  * Skips (filters out) certain `uiState`s in order to retain previous
