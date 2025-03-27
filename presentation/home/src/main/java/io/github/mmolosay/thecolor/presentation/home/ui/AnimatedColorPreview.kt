@@ -2,6 +2,7 @@ package io.github.mmolosay.thecolor.presentation.home.ui
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.VisibilityThreshold
@@ -13,7 +14,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -66,19 +66,32 @@ internal fun AnimatedColorPreview(
     var posInContainer by remember { mutableStateOf<DpOffset?>(null) }
     var size by remember { mutableStateOf<DpSize?>(null) }
 
-    fun calcOffset() =
-        animDest.calcVerticalOffset(
+    fun verticalOffsetParamsOrNull() =
+        verticalOffsetParamsOrNull(
             containerSize = containerSize,
             previewSize = size,
-            previewPositionInContainer = posInContainer,
+            previewPosInContainer = posInContainer,
         )
-    val offsetAnimatable = remember {
-        Animatable(
-            initialValue = calcOffset() ?: 0.dp,
+
+    var verticalOffsetParams by remember { mutableStateOf(verticalOffsetParamsOrNull()) }
+    LaunchedEffect(containerSize, size, posInContainer) {
+        verticalOffsetParams = verticalOffsetParamsOrNull()
+    }
+
+    fun makeOffsetAnimatable(): Animatable<Dp, AnimationVector1D>? {
+        val params = verticalOffsetParams ?: return null
+        return Animatable(
+            initialValue = calcVerticalOffset(animDest, params),
             typeConverter = Dp.VectorConverter,
             visibilityThreshold = Dp.VisibilityThreshold,
             label = "dive",
         )
+    }
+
+    var offsetAnimatable by remember { mutableStateOf(makeOffsetAnimatable()) }
+    LaunchedEffect(verticalOffsetParams) {
+        if (offsetAnimatable != null) return@LaunchedEffect // already initialized
+        offsetAnimatable = makeOffsetAnimatable()
     }
 
     val flowOfAnimDest = remember { MutableStateFlow(animDest) }.also {
@@ -98,7 +111,12 @@ internal fun AnimatedColorPreview(
 
     Box(
         modifier = Modifier
-            .offset { IntOffset(x = 0, y = offsetAnimatable.value.roundToPx()) }
+            .run {
+                val animatable = offsetAnimatable
+                if (animatable != null) {
+                    offset { IntOffset(x = 0, y = animatable.value.roundToPx()) }
+                } else this
+            }
             .onGloballyPositioned { coordinates ->
                 size = coordinates.size.toDpSize(density)
             }
@@ -113,7 +131,11 @@ internal fun AnimatedColorPreview(
     }
 
     LaunchedEffect(animDest) {
-        val targetValue = calcOffset() ?: return@LaunchedEffect
+        val offsetAnimatable = offsetAnimatable ?: return@LaunchedEffect
+        val targetValue = kotlin.run {
+            val params = verticalOffsetParams ?: return@LaunchedEffect
+            calcVerticalOffset(animDest, params)
+        }
         if (offsetAnimatable.value == targetValue) {
             return@LaunchedEffect // already in target state
         }
@@ -139,26 +161,38 @@ internal fun AnimatedColorPreview(
     }
 }
 
-@Stable
-private fun HomeAnimState.ColorPreview.calcVerticalOffset(
+private data class VerticalOffsetParams(
+    val containerSize: DpSize,
+    val previewSize: DpSize,
+    val previewPosInContainer: DpOffset,
+)
+
+private fun verticalOffsetParamsOrNull(
     containerSize: DpSize?,
     previewSize: DpSize?,
-    previewPositionInContainer: DpOffset?,
-): Dp? {
-    when (this) {
+    previewPosInContainer: DpOffset?,
+): VerticalOffsetParams? {
+    return VerticalOffsetParams(
+        containerSize = containerSize ?: return null,
+        previewSize = previewSize ?: return null,
+        previewPosInContainer = previewPosInContainer ?: return null,
+    )
+}
+
+private fun calcVerticalOffset(
+    animState: HomeAnimState.ColorPreview,
+    params: VerticalOffsetParams,
+): Dp =
+    when (animState) {
         HomeAnimState.ColorPreview.Initial ->
-            return 0.dp
+            0.dp
         HomeAnimState.ColorPreview.Dived -> {
-            containerSize ?: return null
-            previewSize ?: return null
-            previewPositionInContainer ?: return null
             val diveTargetPointInContainer =
-                containerSize.height - (previewSize.height / 2) - ColorCenterFocalPointBottomOffset
-            val dive = diveTargetPointInContainer - previewPositionInContainer.y
-            return dive.coerceAtLeast(0.dp)
+                params.containerSize.height - (params.previewSize.height / 2) - ColorCenterFocalPointBottomOffset
+            val dive = diveTargetPointInContainer - params.previewPosInContainer.y
+            dive.coerceAtLeast(0.dp)
         }
     }
-}
 
 /**
  * Skips (filters out) certain `uiState`s in order to retain previous
