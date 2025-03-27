@@ -232,6 +232,9 @@ private fun Home(
     val isColorProceededWith = proceedResult is ProceedResult.Success
 
     val scrollState = rememberScrollState()
+    val viewportHeight = scrollState.viewportSize
+        .takeUnless { it == 0 }
+        ?.let { with(density) { it.toDp() } }
     var posInRoot by remember { mutableStateOf<DpOffset?>(null) }
     var size by remember { mutableStateOf<DpSize?>(null) }
 
@@ -298,7 +301,7 @@ private fun Home(
             colorPreview = colorPreview,
             animDest = animDest.colorPreview,
             onAnimDestReached = { animController.reportDestReached(it) },
-            containerSize = size,
+            containerViewportHeight = viewportHeight,
             containerPosInRoot = posInRoot,
         )
         AnimatedColorCenter(

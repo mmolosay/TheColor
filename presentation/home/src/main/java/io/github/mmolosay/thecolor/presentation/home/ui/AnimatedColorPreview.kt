@@ -58,7 +58,7 @@ internal fun AnimatedColorPreview(
     colorPreview: ColorPreviewWithDependencies,
     animDest: HomeAnimState.ColorPreview,
     onAnimDestReached: (dest: HomeAnimState.ColorPreview) -> Unit,
-    containerSize: DpSize?,
+    containerViewportHeight: Dp?,
     containerPosInRoot: DpOffset?,
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -69,10 +69,10 @@ internal fun AnimatedColorPreview(
 
     val verticalOffsetParams by produceState<VerticalOffset.Params?>(
         initialValue = null,
-        /*keys*/ containerSize, size, posInContainer,
+        /*keys*/ containerViewportHeight, size, posInContainer,
     ) {
         value = VerticalOffset.paramsOrNull(
-            containerSize = containerSize,
+            containerViewportHeight = containerViewportHeight,
             previewSize = size,
             previewPosInContainer = posInContainer,
         )
@@ -169,7 +169,7 @@ private object VerticalOffset {
                 0.dp
             HomeAnimState.ColorPreview.Dived -> {
                 val diveTargetPointInContainer =
-                    params.containerSize.height - (params.previewSize.height / 2) - ColorCenterFocalPointBottomOffset
+                    params.containerViewportHeight - (params.previewSize.height / 2) - ColorCenterFocalPointBottomOffset
                 val dive = diveTargetPointInContainer - params.previewPosInContainer.y
                 dive.coerceAtLeast(0.dp)
             }
@@ -177,18 +177,18 @@ private object VerticalOffset {
 
 
     data class Params(
-        val containerSize: DpSize,
+        val containerViewportHeight: Dp,
         val previewSize: DpSize,
         val previewPosInContainer: DpOffset,
     )
 
     fun paramsOrNull(
-        containerSize: DpSize?,
+        containerViewportHeight: Dp?,
         previewSize: DpSize?,
         previewPosInContainer: DpOffset?,
     ): Params? {
         return Params(
-            containerSize = containerSize ?: return null,
+            containerViewportHeight = containerViewportHeight ?: return null,
             previewSize = previewSize ?: return null,
             previewPosInContainer = previewPosInContainer ?: return null,
         )
@@ -249,7 +249,7 @@ private fun Preview() {
             },
             animDest = HomeAnimState.ColorPreview.Initial,
             onAnimDestReached = {},
-            containerSize = DpSize(width = 150.dp, height = 400.dp),
+            containerViewportHeight = 400.dp,
             containerPosInRoot = DpOffset.Zero,
         )
     }
