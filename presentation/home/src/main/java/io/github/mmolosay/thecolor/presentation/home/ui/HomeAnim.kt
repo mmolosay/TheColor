@@ -74,7 +74,8 @@ internal class HomeAnimController(
 
     fun start() {
         val sequence = requireNotNull(sequence)
-        val dest = requireNotNull(sequence.nextAfter(currentState))
+        require(currentState in sequence)
+        val dest = sequence.nextAfter(currentState) ?: currentState // sequence is already finished
         destState.value = requireNotNull(dest)
     }
 
