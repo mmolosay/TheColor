@@ -239,15 +239,13 @@ private fun Home(
     var size by remember { mutableStateOf<DpSize?>(null) }
 
     val animController = remember {
-        val initialState = initialHomeAnimState(isColorProceededWith)
+        val initialState = HomeAnimState(isColorProceededWith)
         HomeAnimController(initialState)
     }
     val flowOfIsColorProceededWith = rememberSnapshotFlow(isColorProceededWith)
     LaunchedEffect(Unit) {
         flowOfIsColorProceededWith.drop(1/*initial value*/).collect { isColorProceededWith ->
-            val sequence =
-                if (isColorProceededWith) HomeAnimSequences.ForwardFull
-                else HomeAnimSequences.BackwardFull
+            val sequence = HomeAnimSequence(isColorProceededWith)
             animController.updateSequence(sequence)
             animController.start()
         }

@@ -24,17 +24,31 @@ internal data class HomeAnimState(
     }
 }
 
+private object HomeAnimStates {
+
+    val Collapsed = HomeAnimState(
+        colorPreview = ColorPreview.Initial,
+        colorCenter = ColorCenter.Collapsed,
+    )
+
+    val Expanded = HomeAnimState(
+        colorPreview = ColorPreview.Dived,
+        colorCenter = ColorCenter.Expanded,
+    )
+}
+
 /**
- * Produces initial [HomeAnimState] to be used when 'Home' View has just been displayed.
+ * Infers which [HomeAnimState] to use based on the current state of 'Home' feature.
  */
-internal fun initialHomeAnimState(
+internal fun HomeAnimState(
     isColorProceededWith: Boolean,
-) =
+): HomeAnimState =
     when (isColorProceededWith) {
-        false -> HomeAnimSequences.ForwardFull.first()
-        true -> HomeAnimSequences.BackwardFull.first()
+        false -> HomeAnimStates.Collapsed
+        true -> HomeAnimStates.Expanded
     }
 
+// TODO: abolish type? Replace with typealias?
 internal class HomeAnimSequence(states: List<HomeAnimState>) : List<HomeAnimState> by states {
 
     // TODO: rework? extract into List utils?
@@ -45,15 +59,24 @@ internal class HomeAnimSequence(states: List<HomeAnimState>) : List<HomeAnimStat
     }
 }
 
-internal object HomeAnimSequences {
+/**
+ * Infers which [HomeAnimSequence] to use based on the updated state of 'Home' feature.
+ */
+internal fun HomeAnimSequence(
+    isColorProceededWith: Boolean,
+): HomeAnimSequence =
+    when (isColorProceededWith) {
+        true -> HomeAnimSequences.ForwardFull
+        false -> HomeAnimSequences.BackwardFull
+    }
+
+private object HomeAnimSequences {
 
     val ForwardFull = kotlin.run {
-        val state0 = HomeAnimState(
-            colorPreview = ColorPreview.Initial,
-            colorCenter = ColorCenter.Collapsed,
-        )
+        val state0 = HomeAnimStates.Collapsed
         val state1 = state0.copy(colorPreview = ColorPreview.Dived)
         val state2 = state1.copy(colorCenter = ColorCenter.Expanded)
+        require(state2 == HomeAnimStates.Expanded)
         HomeAnimSequence(listOf(state0, state1, state2))
     }
 
@@ -61,11 +84,11 @@ internal object HomeAnimSequences {
 }
 
 internal class HomeAnimController(
-    currentState: HomeAnimState,
+    initialState: HomeAnimState,
 ) {
 
-    private var currentState: HomeAnimState = currentState
-    val destState = MutableStateFlow(currentState)
+    private var currentState: HomeAnimState = initialState
+    val destState = MutableStateFlow(initialState)
     private var sequence: HomeAnimSequence? = null
 
     fun updateSequence(sequence: HomeAnimSequence) {
