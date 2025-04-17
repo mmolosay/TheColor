@@ -365,7 +365,7 @@ private fun ProceedButton(
     val colors = ButtonDefaults.buttonColors()
     val colorsAnimationProgress by animateFloatAsState(
         targetValue = if (enabled) 1f else 0f,
-        // animationSpec is default to be the same as in Color Preview
+        // animationSpec is kept default to be the same as in Color Preview
         label = "proceed button colors",
     )
     val animatedColors = ButtonColors(
