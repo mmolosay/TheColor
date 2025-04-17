@@ -242,6 +242,8 @@ private fun Home(
         val initialState = HomeAnimState(isColorProceededWith)
         HomeAnimController(initialState)
     }
+    val animDest = animController.destState.collectAsStateWithLifecycle().value
+
     val flowOfIsColorProceededWith = rememberSnapshotFlow(isColorProceededWith)
     LaunchedEffect(Unit) {
         flowOfIsColorProceededWith.drop(1/*initial value*/).collect { isColorProceededWith ->
@@ -250,7 +252,6 @@ private fun Home(
             animController.start()
         }
     }
-    val animDest = animController.destState.collectAsStateWithLifecycle().value
 
     Column(
         modifier = modifier
