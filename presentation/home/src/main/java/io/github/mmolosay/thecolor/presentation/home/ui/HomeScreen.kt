@@ -134,7 +134,7 @@ fun HomeScreen(
             .collectAsStateWithLifecycle().value
             ?: return@run null
         remember(viewModel) {
-            ColorCenterComposable {
+            {
                 ColorCenter(
                     viewModel = viewModel,
                 )
@@ -165,10 +165,7 @@ fun HomeScreen(
 }
 
 // syntactic sugar that makes nullable types easier to read
-internal fun interface ColorCenterComposable {
-    @Composable
-    operator fun invoke()
-}
+internal typealias ColorCenterComposable = @Composable () -> Unit
 
 @Composable
 private fun HomeScreen(
@@ -303,14 +300,17 @@ private fun Home(
             containerViewportHeight = viewportHeight,
             containerPosInRoot = posInRoot,
         )
-        AnimatedColorCenter(
-            colorCenter = decoratedColorCenterComposable(
+        val decoratedColorCenter = remember(colorCenter, proceedResult) {
+            decoratedColorCenterComposable(
                 colorCenter = colorCenter,
                 proceededColorData = (proceedResult as? ProceedResult.Success)?.colorData,
                 navBarAppearanceController = navBarAppearanceController,
                 containerScrollState = scrollState,
                 containerPosInRoot = posInRoot,
-            ),
+            )
+        }
+        AnimatedColorCenter(
+            colorCenter = decoratedColorCenter,
             animDest = animDest.colorCenter,
             onAnimDestReached = { animController.reportDestReached(it) },
             containerScrollState = scrollState,
@@ -428,7 +428,7 @@ private fun decoratedColorCenterComposable(
 ): ColorCenterComposable? {
     if (colorCenter == null) return null
     if (proceededColorData == null) return null
-    return ColorCenterComposable {
+    return {
         val density = LocalDensity.current
         var minHeight by remember { mutableStateOf<Dp>(Dp.Unspecified) }
         DecoratedColorCenter(
