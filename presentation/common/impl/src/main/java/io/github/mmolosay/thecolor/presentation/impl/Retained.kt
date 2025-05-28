@@ -33,7 +33,7 @@ inline fun <T> retained(
     LaunchedEffect(actualValue) {
         if (memoizedValue == actualValue) return@LaunchedEffect
         with(retentionSpec) {
-            memoizedValueState(actualValue, memoizedValue)
+            memoizedValueState(actualValue)
         }
     }
     return memoizedValue
@@ -53,12 +53,12 @@ inline fun <T> retained(
 inline fun <T> retainedNotNull(
     actualValue: T?,
 ): T? =
-    retained(actualValue) { actual, memoized ->
+    retained(actualValue) { actual ->
         if (actual != null) {
             value = actual
         }
     }
 
 fun interface RetentionSpec<T> {
-    suspend operator fun MutableState<T>.invoke(actualValue: T, memoizedValue: T)
+    suspend operator fun MutableState<T>.invoke(actualValue: T)
 }
