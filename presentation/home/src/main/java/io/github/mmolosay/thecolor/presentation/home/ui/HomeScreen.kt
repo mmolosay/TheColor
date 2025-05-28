@@ -92,8 +92,10 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver
 import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent
 import io.github.mmolosay.thecolor.presentation.impl.TintedSurface
+import io.github.mmolosay.thecolor.presentation.impl.framesDuration
 import io.github.mmolosay.thecolor.presentation.impl.onlyBottom
 import io.github.mmolosay.thecolor.presentation.impl.rememberSnapshotFlow
+import io.github.mmolosay.thecolor.presentation.impl.retained
 import io.github.mmolosay.thecolor.presentation.impl.toCompose
 import io.github.mmolosay.thecolor.presentation.impl.toDpOffset
 import io.github.mmolosay.thecolor.presentation.impl.toDpSize
@@ -103,6 +105,7 @@ import io.github.mmolosay.thecolor.presentation.input.impl.ColorInput
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreview
 import io.github.mmolosay.thecolor.utils.cache.CacheStore
 import io.github.mmolosay.thecolor.utils.doNothing
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.emptyFlow
@@ -225,8 +228,14 @@ private fun Home(
     val density = LocalDensity.current
     val context = LocalContext.current
 
+    val retainedData = retained(data) { actual ->
+        // TODO: may be done without time delay?
+        //  Specific flag when data updates to inform the reason of data change?
+        delay(2.framesDuration)
+        value = actual
+    }
+    val retainedIsColorProceededWith = retainedData.proceedResult is ProceedResult.Success
     val proceedResult = data.proceedResult
-    val isColorProceededWith = proceedResult is ProceedResult.Success
 
     val scrollState = rememberScrollState()
     val viewportHeight = scrollState.viewportSize
@@ -236,14 +245,14 @@ private fun Home(
     var size by remember { mutableStateOf<DpSize?>(null) }
 
     val animController = remember {
-        val initialState = HomeAnimState(isColorProceededWith)
+        val initialState = HomeAnimState(retainedIsColorProceededWith)
         HomeAnimController(initialState)
     }
     val animDest = animController.destState.collectAsStateWithLifecycle().value
 
-    val flowOfIsColorProceededWith = rememberSnapshotFlow(isColorProceededWith)
+    val flowOfRetainedIsColorProceededWith = rememberSnapshotFlow(retainedIsColorProceededWith)
     LaunchedEffect(Unit) {
-        flowOfIsColorProceededWith.drop(1/*initial value*/).collect { isColorProceededWith ->
+        flowOfRetainedIsColorProceededWith.drop(1/*initial value*/).collect { isColorProceededWith ->
             val sequence = HomeAnimSequence(isColorProceededWith)
             animController.updateSequence(sequence)
             animController.start()
@@ -300,10 +309,10 @@ private fun Home(
             containerViewportHeight = viewportHeight,
             containerPosInRoot = posInRoot,
         )
-        val decoratedColorCenter = remember(colorCenter, proceedResult) {
+        val decoratedColorCenter = remember(retainedData.proceedResult) {
             decoratedColorCenterComposable(
                 colorCenter = colorCenter,
-                proceededColorData = (proceedResult as? ProceedResult.Success)?.colorData,
+                proceededColorData = (retainedData.proceedResult as? ProceedResult.Success)?.colorData,
                 navBarAppearanceController = navBarAppearanceController,
                 containerScrollState = scrollState,
                 containerPosInRoot = posInRoot,
