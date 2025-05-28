@@ -16,7 +16,7 @@ internal data class HomeAnimState(
 ) {
 
     enum class ColorPreview {
-        Initial, Dived;
+        NotDived, Dived;
     }
 
     enum class ColorCenter {
@@ -27,7 +27,7 @@ internal data class HomeAnimState(
 private object HomeAnimStates {
 
     val Collapsed = HomeAnimState(
-        colorPreview = ColorPreview.Initial,
+        colorPreview = ColorPreview.NotDived,
         colorCenter = ColorCenter.Collapsed,
     )
 

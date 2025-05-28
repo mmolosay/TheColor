@@ -137,7 +137,7 @@ internal fun AnimatedColorPreview(
             return@LaunchedEffect // already in target state
         }
         val animationSpec: AnimationSpec<Dp> = when (animDest) {
-            HomeAnimState.ColorPreview.Initial ->
+            HomeAnimState.ColorPreview.NotDived ->
                 spring(
                     dampingRatio = Spring.DampingRatioNoBouncy,
                     stiffness = Spring.StiffnessMedium,
@@ -165,7 +165,7 @@ private object VerticalOffset {
         params: Params,
     ): Dp =
         when (animState) {
-            HomeAnimState.ColorPreview.Initial ->
+            HomeAnimState.ColorPreview.NotDived ->
                 0.dp
             HomeAnimState.ColorPreview.Dived -> {
                 val diveTargetPointInContainer =
@@ -208,7 +208,7 @@ private class ColorPreviewUiStateFilterImpl(
             return true
         }
         // 'uiState' is Hidden
-        if (flowOfAnimDest.value == HomeAnimState.ColorPreview.Initial) {
+        if (flowOfAnimDest.value == HomeAnimState.ColorPreview.NotDived) {
             return true
         }
         // 'animDest' is 'Dived', but will soon change to 'Initial'
@@ -223,7 +223,7 @@ private class ColorPreviewUiStateFilterImpl(
         // average 'elapsed' is 10-40 ms with peaks up 90+ ms
         Timber.i("'animDest' has changed to $updatedAnimDest in $elapsed after $uiState was emitted")
         return when (updatedAnimDest) {
-            HomeAnimState.ColorPreview.Initial -> false // skip this 'uiState' thus keeping previous appearance to be used while Dived -> Initial animation plays
+            HomeAnimState.ColorPreview.NotDived -> false // skip this 'uiState' thus keeping previous appearance to be used while Dived -> Initial animation plays
             HomeAnimState.ColorPreview.Dived -> error("not possible")
         }
     }
@@ -247,7 +247,7 @@ private fun Preview() {
                     )
                 }
             },
-            animDest = HomeAnimState.ColorPreview.Initial,
+            animDest = HomeAnimState.ColorPreview.NotDived,
             onAnimDestReached = {},
             containerViewportHeight = 400.dp,
             containerPosInRoot = DpOffset.Zero,
