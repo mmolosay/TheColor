@@ -38,21 +38,25 @@ fun ColorPreview(
 ) {
     ColorPreview(
         data = viewModel.dataFlow.collectAsStateWithLifecycle().value,
+        onAnimationFinished = { TODO("unused overload") },
     )
 }
 
 @Composable
 fun ColorPreview(
     data: ColorPreviewData,
+    onAnimationFinished: (UiState) -> Unit,
 ) {
     ColorPreview(
         uiState = data.toUiState(),
+        onAnimationFinished = onAnimationFinished,
     )
 }
 
 @Composable
 fun ColorPreview(
     uiState: UiState,
+    onAnimationFinished: (UiState) -> Unit,
 ) {
     val updates = remember { mutableStateListOf<UpdateOfVisibleUiState>() }
     // we want to have last data WITH color memoized to show animation of scaling the preview down
@@ -66,6 +70,7 @@ fun ColorPreview(
             // and gone. Only after it the actual value can be set
             if (value == 0f) {
                 mainUiState = uiState
+                onAnimationFinished(uiState)
             }
         },
     )
@@ -89,6 +94,7 @@ fun ColorPreview(
                     color = update.uiState.color.toCompose(),
                     onAnimationFinished = {
                         mainUiState = update.uiState
+                        onAnimationFinished(update.uiState)
                         updates.remove(update)
                     },
                 )
@@ -160,6 +166,7 @@ private fun Preview() {
     TheColorTheme {
         ColorPreview(
             data = previewData(),
+            onAnimationFinished = {},
         )
     }
 }

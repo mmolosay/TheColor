@@ -94,7 +94,6 @@ import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObser
 import io.github.mmolosay.thecolor.presentation.impl.TintedSurface
 import io.github.mmolosay.thecolor.presentation.impl.framesDuration
 import io.github.mmolosay.thecolor.presentation.impl.onlyBottom
-import io.github.mmolosay.thecolor.presentation.impl.rememberSnapshotFlow
 import io.github.mmolosay.thecolor.presentation.impl.retained
 import io.github.mmolosay.thecolor.presentation.impl.toCompose
 import io.github.mmolosay.thecolor.presentation.impl.toDpOffset
@@ -107,6 +106,8 @@ import io.github.mmolosay.thecolor.utils.cache.CacheStore
 import io.github.mmolosay.thecolor.utils.doNothing
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
@@ -125,11 +126,19 @@ fun HomeScreen(
     val selectedSwatchDetailsDialogController = remember(navBarAppearanceController) {
         navBarAppearanceController.branch("Selected Swatch Details Dialog")
     }
+    val colorInput: @Composable () -> Unit = {
+        ColorInput(
+            viewModel = viewModel.colorInputViewModel,
+        )
+    }
     val colorPreview: ColorPreviewWithDependencies = remember {
         ColorPreviewWithDependencies(
             viewModel = viewModel.colorPreviewViewModel,
-        ) { data ->
-            ColorPreview(data)
+        ) { uiState, onAnimationFinished ->
+            ColorPreview(
+                uiState = uiState,
+                onAnimationFinished = onAnimationFinished,
+            )
         }
     }
     val colorCenter: ColorCenterComposable? = run {
@@ -145,19 +154,42 @@ fun HomeScreen(
         }
     }
 
+    val uiState = run {
+        val isColorPreviewVisible = run {
+            val data = viewModel.colorPreviewViewModel.dataFlow.value
+            isColorPreviewVisible(data)
+        }
+        val isColorCenterVisible = isColorCenterVisible(data.proceedResult)
+        HomeUiState(isColorPreviewVisible, isColorCenterVisible)
+    }
+    val animController = remember {
+        val currentState = HomeAnimState(
+            isColorPreviewVisible = uiState.isColorPreviewVisible,
+            isColorCenterVisible = uiState.isColorCenterVisible,
+        )
+        HomeAnimController(currentState)
+    }
+    LaunchedEffect(uiState) {
+        val sequence = HomeAnimSequence(
+            from = animController.lastReachedState, // aka current
+            to = HomeAnimState(
+                isColorPreviewVisible = uiState.isColorPreviewVisible,
+                isColorCenterVisible = uiState.isColorCenterVisible,
+            ),
+        )
+        animController.start(sequence)
+    }
+
     HomeScreen(
         data = data,
         strings = strings,
         navEventFlow = navEventFlow,
         cacheStore = viewModel.cacheStore,
-        colorInput = {
-            ColorInput(
-                viewModel = viewModel.colorInputViewModel,
-            )
-        },
+        colorInput = colorInput,
         colorPreview = colorPreview,
         colorCenter = colorCenter,
         navigateToSettings = navigateToSettings,
+        animController = animController,
         navBarAppearanceController = navBarAppearanceController,
     )
 
@@ -166,6 +198,12 @@ fun HomeScreen(
         navBarAppearanceController = selectedSwatchDetailsDialogController,
     )
 }
+
+/** Describes UI state of 'Home' View. Used to infer appropriate animation sequence / state. */
+private data class HomeUiState(
+    val isColorPreviewVisible: Boolean,
+    val isColorCenterVisible: Boolean,
+)
 
 // syntactic sugar that makes nullable types easier to read
 internal typealias ColorCenterComposable = @Composable () -> Unit
@@ -180,6 +218,7 @@ private fun HomeScreen(
     colorPreview: ColorPreviewWithDependencies,
     colorCenter: ColorCenterComposable?,
     navigateToSettings: () -> Unit,
+    animController: HomeAnimController,
     navBarAppearanceController: NavBarAppearanceController,
 ) {
     val focusManager = LocalFocusManager.current
@@ -197,6 +236,7 @@ private fun HomeScreen(
             colorInput = colorInput,
             colorPreview = colorPreview,
             colorCenter = colorCenter,
+            animController = animController,
             navBarAppearanceController = navBarAppearanceController,
         )
     }
@@ -222,6 +262,7 @@ private fun Home(
     colorInput: @Composable () -> Unit,
     colorPreview: ColorPreviewWithDependencies,
     colorCenter: ColorCenterComposable?,
+    animController: HomeAnimController,
     navBarAppearanceController: NavBarAppearanceController,
     modifier: Modifier = Modifier,
 ) {
@@ -234,7 +275,6 @@ private fun Home(
         delay(2.framesDuration)
         value = actual
     }
-    val retainedIsColorProceededWith = retainedData.proceedResult is ProceedResult.Success
     val proceedResult = data.proceedResult
 
     val scrollState = rememberScrollState()
@@ -244,20 +284,7 @@ private fun Home(
     var posInRoot by remember { mutableStateOf<DpOffset?>(null) }
     var size by remember { mutableStateOf<DpSize?>(null) }
 
-    val animController = remember {
-        val initialState = HomeAnimState(retainedIsColorProceededWith)
-        HomeAnimController(initialState)
-    }
     val animDest = animController.destState.collectAsStateWithLifecycle().value
-
-    val flowOfRetainedIsColorProceededWith = rememberSnapshotFlow(retainedIsColorProceededWith)
-    LaunchedEffect(Unit) {
-        flowOfRetainedIsColorProceededWith.drop(1/*initial value*/).collect { isColorProceededWith ->
-            val sequence = HomeAnimSequence(isColorProceededWith)
-            animController.updateSequence(sequence)
-            animController.start()
-        }
-    }
 
     Column(
         modifier = modifier
@@ -305,7 +332,8 @@ private fun Home(
         AnimatedColorPreview(
             colorPreview = colorPreview,
             animDest = animDest.colorPreview,
-            onAnimDestReached = { animController.reportDestReached(it) },
+            onPositionAnimDestReached = { animController.reportDestReached(it) },
+            onVisibilityAnimDestReached = { animController.reportDestReached(it) },
             containerViewportHeight = viewportHeight,
             containerPosInRoot = posInRoot,
         )
@@ -654,7 +682,7 @@ private fun Preview() {
                 )
             },
             colorPreview = remember {
-                NoopColorPreviewWithDependencies {
+                NoopColorPreviewWithDependencies { _, _ ->
                     Text(
                         modifier = Modifier.background(Color.LightGray),
                         text = "Color Preview",
@@ -672,6 +700,16 @@ private fun Preview() {
                 )
             },
             navigateToSettings = {},
+            animController = remember {
+                val currentState = HomeAnimState(
+                    colorPreview = HomeAnimState.ColorPreview(
+                        position = HomeAnimState.ColorPreview.Position.NotDived,
+                        visibility = HomeAnimState.ColorPreview.Visibility.Hidden,
+                    ),
+                    colorCenter = HomeAnimState.ColorCenter.Collapsed,
+                )
+                HomeAnimController(currentState)
+            },
             navBarAppearanceController = remember { RootNavBarAppearanceController() },
         )
     }

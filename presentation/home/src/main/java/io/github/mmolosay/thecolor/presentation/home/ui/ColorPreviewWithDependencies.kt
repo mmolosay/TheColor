@@ -6,13 +6,16 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 
 internal fun interface ColorPreviewComposable {
     @Composable
-    operator fun invoke(uiState: ColorPreviewUiState)
+    operator fun invoke(
+        uiState: ColorPreviewUiState,
+        onAnimationFinished: (ColorPreviewUiState) -> Unit,
+    )
 }
 
 /**
  * Contains 'Color Preview' [composable] and dependencies that it requires.
  */
-internal interface ColorPreviewWithDependencies {
+internal sealed interface ColorPreviewWithDependencies {
     val composable: ColorPreviewComposable
     val viewModel: ColorPreviewViewModel
 }

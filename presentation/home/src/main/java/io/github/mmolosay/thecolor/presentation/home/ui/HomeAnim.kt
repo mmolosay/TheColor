@@ -68,96 +68,117 @@ private object HomeAnimStates {
 /**
  * Infers which [HomeAnimState] to use based on the current state of 'Home' feature.
  */
+@Suppress("KotlinConstantConditions")
 internal fun HomeAnimState(
-    isColorProceededWith: Boolean,
-): HomeAnimState =
-    when (isColorProceededWith) {
-        false -> HomeAnimStates.Collapsed
-        true -> HomeAnimStates.Expanded
+    isColorPreviewVisible: Boolean, // is there a valid color in 'Color Input'
+    isColorCenterVisible: Boolean, // whether the color was proceeded with
+): HomeAnimState {
+    if (!isColorPreviewVisible) {
+        assert(isColorCenterVisible == false) // transitive assumption according to impl of ViewModels
+        return FullForwardSequence[0]
     }
+    assert(isColorPreviewVisible == true)
+    return when (isColorCenterVisible) {
+        false -> FullForwardSequence[1]
+        true -> FullForwardSequence.last()
+    }
+}
 
 // TODO: abolish type? Replace with typealias?
 internal class HomeAnimSequence(states: List<HomeAnimState>) : List<HomeAnimState> by states {
 
     // TODO: rework? extract into List utils?
-    fun nextAfter(state: HomeAnimState): HomeAnimState? {
-        val indexOfState = indexOf(state)
-        if (indexOfState == -1) return null
+    fun HomeAnimState.next(): HomeAnimState? {
+        require(this in this@HomeAnimSequence) // state in sequence
+        val indexOfState = indexOf(this) // can't be -1 because of contains() check above ↑
         return getOrNull(indexOfState + 1)
     }
 }
 
-/**
- * Infers which [HomeAnimSequence] to use based on the updated state of 'Home' feature.
- */
-internal fun HomeAnimSequence(
-    isColorProceededWith: Boolean,
-): HomeAnimSequence =
-    when (isColorProceededWith) {
-        true -> HomeAnimSequences.ForwardFull
-        false -> HomeAnimSequences.BackwardFull
+private val FullForwardSequence: HomeAnimSequence = run {
+    val states = buildList {
+        HomeAnimStates.Collapsed
+            .also { add(it) }
+        last().copy(colorPreviewVisibility = ColorPreview.Visibility.Visible)
+            .also { add(it) }
+        last().copy(colorPreviewPosition = ColorPreview.Position.Dived)
+            .also { add(it) }
+        last().copy(colorCenter = ColorCenter.Expanded)
+            .also { add(it) }
     }
-
-private object HomeAnimSequences {
-
-    val ForwardFull = kotlin.run {
-        val states = buildList {
-            HomeAnimStates.Collapsed
-                .also { add(it) }
-            last().copy(colorPreviewVisibility = ColorPreview.Visibility.Visible)
-                .also { add(it) }
-            last().copy(colorPreviewPosition = ColorPreview.Position.Dived)
-                .also { add(it) }
-            last().copy(colorCenter = ColorCenter.Expanded)
-                .also { add(it) }
-        }
-        assert(states.last() == HomeAnimStates.Expanded)
-        HomeAnimSequence(states)
-    }
-
-    val BackwardFull = HomeAnimSequence(ForwardFull.reversed())
+    assert(states.last() == HomeAnimStates.Expanded)
+    HomeAnimSequence(states)
 }
 
-internal class HomeAnimController(
-    initialState: HomeAnimState,
-) {
-
-    private var currentState: HomeAnimState = initialState
-    val destState = MutableStateFlow(initialState)
-    private var sequence: HomeAnimSequence? = null
-
-    fun updateSequence(sequence: HomeAnimSequence) {
-        this.sequence = sequence
+internal fun HomeAnimSequence(
+    from: HomeAnimState,
+    to: HomeAnimState,
+): HomeAnimSequence {
+    require(from in FullForwardSequence)
+    require(to in FullForwardSequence)
+    val indexOfCurrent = FullForwardSequence.indexOf(from)
+    val indexOfDest = FullForwardSequence.indexOf(to)
+    val subsequence = if (indexOfCurrent <= indexOfDest) {
+        FullForwardSequence.subList(indexOfCurrent, indexOfDest + 1)
+    } else {
+        FullForwardSequence.subList(indexOfDest, indexOfCurrent + 1).reversed()
     }
+    return HomeAnimSequence(subsequence)
+}
 
-    fun start() {
-        val sequence = requireNotNull(sequence)
-        require(currentState in sequence)
-        val dest = sequence.nextAfter(currentState) ?: currentState // sequence is already finished
+// TODO: ADD UNIT TESTS
+internal class HomeAnimController(
+    currentState: HomeAnimState,
+) {
+    var lastReachedState: HomeAnimState = currentState
+    private var currentTransientState: HomeAnimState = currentState
+    val destState = MutableStateFlow(currentState)
+
+    private var sequence: HomeAnimSequence? = null
+    private var isRunning = false
+
+    /** Starts animation of [sequence] until the end of it. */
+    fun start(sequence: HomeAnimSequence) {
+        this.sequence = sequence
+        val dest = nextInSequence() ?: return // sequence is already finished
         destState.value = requireNotNull(dest)
+        isRunning = true
     }
 
     fun reportDestReached(dest: ColorPreview.Position) {
-        currentState = currentState.copy(colorPreviewPosition = dest)
-        updateDestStateWithNextInSequence()
+        currentTransientState = currentTransientState.copy(colorPreviewPosition = dest)
+        checkIfDestIsReachedAndSetNext()
     }
 
     fun reportDestReached(dest: ColorPreview.Visibility) {
-        currentState = currentState.copy(colorPreviewVisibility = dest)
-        updateDestStateWithNextInSequence()
+        currentTransientState = currentTransientState.copy(colorPreviewVisibility = dest)
+        checkIfDestIsReachedAndSetNext()
     }
 
     fun reportDestReached(dest: ColorCenter) {
-        currentState = currentState.copy(colorCenter = dest)
-        updateDestStateWithNextInSequence()
+        currentTransientState = currentTransientState.copy(colorCenter = dest)
+        checkIfDestIsReachedAndSetNext()
     }
 
-    private fun updateDestStateWithNextInSequence() {
-        val sequence = sequence ?: return
-        val indexOfCurrentState = sequence.indexOf(currentState)
-        val iterator = sequence.listIterator(indexOfCurrentState + 1)
-        if (!iterator.hasNext()) return // sequence is finished
-        destState.value = iterator.next()
+    private fun nextInSequence(): HomeAnimState? {
+        val sequence = requireNotNull(sequence)
+        require(lastReachedState in sequence)
+        return with(sequence) { lastReachedState.next() }
+    }
+
+    private fun checkIfDestIsReachedAndSetNext() {
+        val currentDest = destState.value
+        if (currentTransientState != currentDest) return
+        assert(currentTransientState == currentDest)
+        lastReachedState = currentTransientState
+
+        if (!isRunning) return // if running, update next dest
+        val nextDest = nextInSequence()
+        if (nextDest != null) {
+            destState.value = nextDest
+        } else {
+            isRunning = false
+        }
     }
 }
 

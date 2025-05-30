@@ -5,6 +5,8 @@ import io.github.mmolosay.thecolor.presentation.api.ColorInt
 /**
  * Describes how 'Color Preview' View is displayed in UI.
  * Platform-agnostic.
+ * Derived from data provided by [ColorPreviewViewModel].
+ *
  */
 sealed interface ColorPreviewUiState {
     data object Hidden : ColorPreviewUiState
@@ -15,7 +17,7 @@ sealed interface ColorPreviewUiState {
  * Resolves how provided [ColorPreviewData] will be displayed in UI.
  * This behaviour must be backed up by [ColorPreview] composable (or other implementation of View).
  */
-internal fun ColorPreviewData.toUiState(): ColorPreviewUiState =
+fun ColorPreviewData.toUiState(): ColorPreviewUiState =
     when (this.hasColor) {
         true -> ColorPreviewUiState.Visible(color = this.requireColor())
         false -> ColorPreviewUiState.Hidden

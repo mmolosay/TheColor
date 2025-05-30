@@ -40,6 +40,7 @@ import io.github.mmolosay.thecolor.presentation.impl.toDpSize
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiStateController
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiStateFilter
+import io.github.mmolosay.thecolor.presentation.preview.toUiState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -57,7 +58,8 @@ import kotlin.time.measureTime
 internal fun AnimatedColorPreview(
     colorPreview: ColorPreviewWithDependencies,
     animDest: HomeAnimState.ColorPreview,
-    onAnimDestReached: (dest: HomeAnimState.ColorPreview.Position) -> Unit,
+    onPositionAnimDestReached: (dest: HomeAnimState.ColorPreview.Position) -> Unit,
+    onVisibilityAnimDestReached: (dest: HomeAnimState.ColorPreview.Visibility) -> Unit, // TODO: call me
     containerViewportHeight: Dp?,
     containerPosInRoot: DpOffset?,
 ) {
@@ -124,8 +126,18 @@ internal fun AnimatedColorPreview(
                 posInContainer = ownPosInRoot - containerPosInRoot
             },
     ) {
-        val uiState = controller.uiStateFlow.collectAsStateWithLifecycle().value
-        colorPreview.composable.invoke(uiState)
+//        val uiState = controller.uiStateFlow.collectAsStateWithLifecycle().value // TODO: restore?
+        val uiState = colorPreview.viewModel.dataFlow.collectAsStateWithLifecycle().value.toUiState()
+        colorPreview.composable.invoke(
+            uiState = uiState,
+            onAnimationFinished = { uiState ->
+                val animState = when (uiState) {
+                    is ColorPreviewUiState.Hidden -> HomeAnimState.ColorPreview.Visibility.Hidden
+                    is ColorPreviewUiState.Visible -> HomeAnimState.ColorPreview.Visibility.Visible
+                }
+                onVisibilityAnimDestReached(animState)
+            },
+        )
     }
 
     // TODO: position is being animated here, but visibility (collapse & expand) in ColorPreview() Composable itself
@@ -157,7 +169,7 @@ internal fun AnimatedColorPreview(
         )
         // animation has finished and we don't need to hold Visible uiState anymore
         controller.catchUp()
-        onAnimDestReached(animDestPosition)
+        onPositionAnimDestReached(animDestPosition)
     }
 }
 
@@ -242,7 +254,7 @@ private fun Preview() {
     TheColorTheme {
         AnimatedColorPreview(
             colorPreview = remember {
-                NoopColorPreviewWithDependencies {
+                NoopColorPreviewWithDependencies { _, _ ->
                     Box(
                         modifier = Modifier
                             .size(50.dp)
@@ -255,7 +267,8 @@ private fun Preview() {
                 position = HomeAnimState.ColorPreview.Position.NotDived,
                 visibility = HomeAnimState.ColorPreview.Visibility.Visible,
             ),
-            onAnimDestReached = {},
+            onPositionAnimDestReached = {},
+            onVisibilityAnimDestReached = {},
             containerViewportHeight = 400.dp,
             containerPosInRoot = DpOffset.Zero,
         )
