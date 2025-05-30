@@ -57,7 +57,7 @@ import kotlin.time.measureTime
 internal fun AnimatedColorPreview(
     colorPreview: ColorPreviewWithDependencies,
     animDest: HomeAnimState.ColorPreview,
-    onAnimDestReached: (dest: HomeAnimState.ColorPreview) -> Unit,
+    onAnimDestReached: (dest: HomeAnimState.ColorPreview.Position) -> Unit,
     containerViewportHeight: Dp?,
     containerPosInRoot: DpOffset?,
 ) {
@@ -84,7 +84,7 @@ internal fun AnimatedColorPreview(
         if (value != null) return@produceState // already initialized
         val params = verticalOffsetParams ?: return@produceState
         value = Animatable(
-            initialValue = VerticalOffset.calc(animDest, params),
+            initialValue = VerticalOffset.calc(animDest.position, params),
             typeConverter = Dp.VectorConverter,
             visibilityThreshold = Dp.VisibilityThreshold,
             label = "dive",
@@ -127,22 +127,24 @@ internal fun AnimatedColorPreview(
         colorPreview.composable.invoke(uiState)
     }
 
-    LaunchedEffect(animDest) {
+    // TODO: position is being animated here, but visibility (collapse & expand) in ColorPreview() Composable itself
+    //  Why such a separation?
+    LaunchedEffect(animDest.position) {
         val offsetAnimatable = offsetAnimatable ?: return@LaunchedEffect
         val targetValue = kotlin.run {
             val params = verticalOffsetParams ?: return@LaunchedEffect
-            VerticalOffset.calc(animDest, params)
+            VerticalOffset.calc(animDest.position, params)
         }
         if (offsetAnimatable.value == targetValue) {
             return@LaunchedEffect // already in target state
         }
-        val animationSpec: AnimationSpec<Dp> = when (animDest) {
-            HomeAnimState.ColorPreview.NotDived ->
+        val animationSpec: AnimationSpec<Dp> = when (animDest.position) {
+            HomeAnimState.ColorPreview.Position.NotDived ->
                 spring(
                     dampingRatio = Spring.DampingRatioNoBouncy,
                     stiffness = Spring.StiffnessMedium,
                 )
-            HomeAnimState.ColorPreview.Dived ->
+            HomeAnimState.ColorPreview.Position.Dived ->
                 spring(
                     dampingRatio = Spring.DampingRatioLowBouncy,
                     stiffness = Spring.StiffnessMediumLow,
@@ -154,20 +156,20 @@ internal fun AnimatedColorPreview(
         )
         // animation has finished and we don't need to hold Visible uiState anymore
         controller.catchUp()
-        onAnimDestReached(animDest)
+        onAnimDestReached(animDest.position)
     }
 }
 
 private object VerticalOffset {
 
     fun calc(
-        animState: HomeAnimState.ColorPreview,
+        position: HomeAnimState.ColorPreview.Position,
         params: Params,
     ): Dp =
-        when (animState) {
-            HomeAnimState.ColorPreview.NotDived ->
+        when (position) {
+            HomeAnimState.ColorPreview.Position.NotDived ->
                 0.dp
-            HomeAnimState.ColorPreview.Dived -> {
+            HomeAnimState.ColorPreview.Position.Dived -> {
                 val diveTargetPointInContainer =
                     params.containerViewportHeight - (params.previewSize.height / 2) - ColorCenterFocalPointBottomOffset
                 val dive = diveTargetPointInContainer - params.previewPosInContainer.y
@@ -201,19 +203,20 @@ private object VerticalOffset {
  */
 private class ColorPreviewUiStateFilterImpl(
     private val flowOfAnimDest: StateFlow<HomeAnimState.ColorPreview>,
+//    private val flowOfCurrentUiState: StateFlow<ColorPreviewUiState>, // TODO: implement and use in assert(), TDC:001
 ) : ColorPreviewUiStateFilter {
 
     override suspend fun submit(uiState: ColorPreviewUiState): Boolean {
         if (uiState is ColorPreviewUiState.Visible) {
             return true
         }
-        // 'uiState' is Hidden
-        if (flowOfAnimDest.value == HomeAnimState.ColorPreview.NotDived) {
+        assert(uiState is ColorPreviewUiState.Hidden) // the only type left excluding Visible
+        if (flowOfAnimDest.value.position == HomeAnimState.ColorPreview.Position.NotDived) {
             return true
         }
-        // 'animDest' is 'Dived', but will soon change to 'Initial'
+        assert(flowOfAnimDest.value.position == HomeAnimState.ColorPreview.Position.Dived) // will soon change to 'NotDived'
         // TODO: metaprogramming; we should get information in the comment above from some code, not by knowing internal structure of HomeViewModel
-        // implies that current 'UiState' on UI is 'Visible'
+        // implies that current 'UiState' on UI is 'Visible' // TODO: here, TDC:001
         val updatedAnimDest: HomeAnimState.ColorPreview
         val elapsed = measureTime {
             updatedAnimDest = flowOfAnimDest
@@ -222,9 +225,9 @@ private class ColorPreviewUiStateFilterImpl(
         }
         // average 'elapsed' is 10-40 ms with peaks up 90+ ms
         Timber.i("'animDest' has changed to $updatedAnimDest in $elapsed after $uiState was emitted")
-        return when (updatedAnimDest) {
-            HomeAnimState.ColorPreview.NotDived -> false // skip this 'uiState' thus keeping previous appearance to be used while Dived -> Initial animation plays
-            HomeAnimState.ColorPreview.Dived -> error("not possible")
+        return when (updatedAnimDest.position) {
+            HomeAnimState.ColorPreview.Position.NotDived -> false // skip this 'uiState' thus keeping previous appearance to be used while Dived -> Initial animation plays
+            HomeAnimState.ColorPreview.Position.Dived -> error("not possible")
         }
     }
 }
@@ -247,7 +250,10 @@ private fun Preview() {
                     )
                 }
             },
-            animDest = HomeAnimState.ColorPreview.NotDived,
+            animDest = HomeAnimState.ColorPreview(
+                position = HomeAnimState.ColorPreview.Position.NotDived,
+                visibility = HomeAnimState.ColorPreview.Visibility.Visible,
+            ),
             onAnimDestReached = {},
             containerViewportHeight = 400.dp,
             containerPosInRoot = DpOffset.Zero,

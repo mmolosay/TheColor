@@ -15,24 +15,52 @@ internal data class HomeAnimState(
     val colorCenter: ColorCenter,
 ) {
 
-    enum class ColorPreview {
-        NotDived, Dived;
+    data class ColorPreview(
+        val position: Position,
+        val visibility: Visibility,
+    ) {
+        enum class Position {
+            NotDived, Dived;
+        }
+        enum class Visibility {
+            Visible, Hidden;
+        }
     }
 
     enum class ColorCenter {
         Collapsed, Expanded;
     }
+
+    // TODO: try Arrow.io lenses
+    fun copy(
+        colorPreviewPosition: ColorPreview.Position = this.colorPreview.position,
+        colorPreviewVisibility: ColorPreview.Visibility = this.colorPreview.visibility,
+        colorCenter: ColorCenter = this.colorCenter,
+    ) =
+        copy(
+            colorPreview = colorPreview.copy(
+                position = colorPreviewPosition,
+                visibility = colorPreviewVisibility,
+            ),
+            colorCenter = colorCenter,
+        )
 }
 
 private object HomeAnimStates {
 
     val Collapsed = HomeAnimState(
-        colorPreview = ColorPreview.NotDived,
+        colorPreview = ColorPreview(
+            position = ColorPreview.Position.NotDived,
+            visibility = ColorPreview.Visibility.Hidden,
+        ),
         colorCenter = ColorCenter.Collapsed,
     )
 
     val Expanded = HomeAnimState(
-        colorPreview = ColorPreview.Dived,
+        colorPreview = ColorPreview(
+            position = ColorPreview.Position.Dived,
+            visibility = ColorPreview.Visibility.Visible,
+        ),
         colorCenter = ColorCenter.Expanded,
     )
 }
@@ -73,11 +101,13 @@ internal fun HomeAnimSequence(
 private object HomeAnimSequences {
 
     val ForwardFull = kotlin.run {
+        // TODO: use list builder with last().copy(..)
         val state0 = HomeAnimStates.Collapsed
-        val state1 = state0.copy(colorPreview = ColorPreview.Dived)
-        val state2 = state1.copy(colorCenter = ColorCenter.Expanded)
-        require(state2 == HomeAnimStates.Expanded)
-        HomeAnimSequence(listOf(state0, state1, state2))
+        val state1 = state0.copy(colorPreviewVisibility = ColorPreview.Visibility.Visible)
+        val state2 = state1.copy(colorPreviewPosition = ColorPreview.Position.Dived)
+        val state3 = state2.copy(colorCenter = ColorCenter.Expanded)
+        assert(state3 == HomeAnimStates.Expanded)
+        HomeAnimSequence(listOf(state0, state1, state2, state3))
     }
 
     val BackwardFull = HomeAnimSequence(ForwardFull.reversed())
@@ -102,8 +132,13 @@ internal class HomeAnimController(
         destState.value = requireNotNull(dest)
     }
 
-    fun reportDestReached(dest: ColorPreview) {
-        currentState = currentState.copy(colorPreview = dest)
+    fun reportDestReached(dest: ColorPreview.Position) {
+        currentState = currentState.copy(colorPreviewPosition = dest)
+        updateDestStateWithNextInSequence()
+    }
+
+    fun reportDestReached(dest: ColorPreview.Visibility) {
+        currentState = currentState.copy(colorPreviewVisibility = dest)
         updateDestStateWithNextInSequence()
     }
 
