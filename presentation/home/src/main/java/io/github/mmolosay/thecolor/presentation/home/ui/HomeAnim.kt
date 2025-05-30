@@ -101,13 +101,18 @@ internal fun HomeAnimSequence(
 private object HomeAnimSequences {
 
     val ForwardFull = kotlin.run {
-        // TODO: use list builder with last().copy(..)
-        val state0 = HomeAnimStates.Collapsed
-        val state1 = state0.copy(colorPreviewVisibility = ColorPreview.Visibility.Visible)
-        val state2 = state1.copy(colorPreviewPosition = ColorPreview.Position.Dived)
-        val state3 = state2.copy(colorCenter = ColorCenter.Expanded)
-        assert(state3 == HomeAnimStates.Expanded)
-        HomeAnimSequence(listOf(state0, state1, state2, state3))
+        val states = buildList {
+            HomeAnimStates.Collapsed
+                .also { add(it) }
+            last().copy(colorPreviewVisibility = ColorPreview.Visibility.Visible)
+                .also { add(it) }
+            last().copy(colorPreviewPosition = ColorPreview.Position.Dived)
+                .also { add(it) }
+            last().copy(colorCenter = ColorCenter.Expanded)
+                .also { add(it) }
+        }
+        assert(states.last() == HomeAnimStates.Expanded)
+        HomeAnimSequence(states)
     }
 
     val BackwardFull = HomeAnimSequence(ForwardFull.reversed())
