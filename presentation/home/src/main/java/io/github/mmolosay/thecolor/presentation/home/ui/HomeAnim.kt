@@ -66,7 +66,7 @@ private object HomeAnimStates {
 }
 
 /**
- * Infers which [HomeAnimState] to use based on the current state of 'Home' feature.
+ * Infers appropriate (initial or target) [HomeAnimState] based on the specified state of 'Home' feature.
  */
 @Suppress("KotlinConstantConditions")
 internal fun HomeAnimState(
