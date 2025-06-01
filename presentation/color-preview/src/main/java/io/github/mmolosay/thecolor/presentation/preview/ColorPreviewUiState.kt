@@ -15,7 +15,7 @@ sealed interface ColorPreviewUiState {
 
 /**
  * Resolves how provided [ColorPreviewData] will be displayed in UI.
- * This behaviour must be backed up by [ColorPreview] composable (or other implementation of View).
+ * This behaviour must be backed up by [AnimatedColorPreview] composable (or other implementation of View).
  */
 fun ColorPreviewData.toUiState(): ColorPreviewUiState =
     when (this.hasColor) {

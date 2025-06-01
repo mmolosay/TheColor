@@ -6,6 +6,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -25,25 +26,48 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.api.ColorInt
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.impl.toCompose
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState as UiState
 
+/**
+ * Simple 'Color Preview' Composable.
+ * Does not animate [data] changes.
+ */
 @Composable
 fun ColorPreview(
     data: ColorPreviewData,
-    onAnimationFinished: (UiState) -> Unit,
 ) {
     ColorPreview(
         uiState = data.toUiState(),
-        onAnimationFinished = onAnimationFinished,
     )
 }
 
+/**
+ * Simple 'Color Preview' Composable.
+ * Does not animate [uiState] changes.
+ */
 @Composable
 fun ColorPreview(
+    uiState: UiState,
+) {
+    when (uiState) {
+        is UiState.Hidden -> return // nothing to compose
+        is UiState.Visible -> {
+            ColorPreviewBox {
+                MainPreview(color = uiState.color.toCompose())
+            }
+        }
+    }
+}
+
+/**
+ * Animated 'Color Preview' Composable.
+ * DOES animate [uiState] changes.
+ */
+@Composable
+fun AnimatedColorPreview(
     uiState: UiState,
     onAnimationFinished: (UiState) -> Unit,
 ) {
@@ -59,16 +83,13 @@ fun ColorPreview(
             // and gone. Only after it the actual value can be set
             if (value == 0f) {
                 mainUiState = uiState
-                onAnimationFinished(uiState)
             }
+            onAnimationFinished(uiState)
         },
     )
 
-    Box(
-        modifier = Modifier
-            .size(48.dp)
-            .scale(scale),
-        contentAlignment = Alignment.Center,
+    ColorPreviewBox(
+        modifier = Modifier.scale(scale),
     ) {
         mainUiState.let {
             if (it is UiState.Visible) {
@@ -102,6 +123,18 @@ fun ColorPreview(
             updates.clear()
         }
     }
+}
+
+@Composable
+private fun ColorPreviewBox(
+    modifier: Modifier = Modifier,
+    content: @Composable BoxScope.() -> Unit,
+) {
+    Box(
+        modifier = modifier.size(48.dp),
+        contentAlignment = Alignment.Center,
+        content = content,
+    )
 }
 
 @Composable
@@ -151,16 +184,21 @@ private data class UpdateOfVisibleUiState(
 
 @Preview(showBackground = true)
 @Composable
-private fun Preview() {
+private fun NotAnimatedPreview() {
     TheColorTheme {
         ColorPreview(
-            data = previewData(),
-            onAnimationFinished = {},
+            uiState = UiState.Visible(color = ColorInt(0x13264D)),
         )
     }
 }
 
-private fun previewData() =
-    ColorPreviewData(
-        color = ColorInt(0x13264D),
-    )
+@Preview(showBackground = true)
+@Composable
+private fun AnimatedPreview() {
+    TheColorTheme {
+        AnimatedColorPreview(
+            uiState = UiState.Visible(color = ColorInt(0x13264D)),
+            onAnimationFinished = {},
+        )
+    }
+}

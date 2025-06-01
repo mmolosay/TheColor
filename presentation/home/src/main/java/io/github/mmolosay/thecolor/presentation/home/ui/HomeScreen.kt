@@ -101,14 +101,11 @@ import io.github.mmolosay.thecolor.presentation.impl.toDpSize
 import io.github.mmolosay.thecolor.presentation.impl.toLifecycleEventObserver
 import io.github.mmolosay.thecolor.presentation.impl.withoutBottom
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInput
-import io.github.mmolosay.thecolor.presentation.preview.ColorPreview
+import io.github.mmolosay.thecolor.presentation.preview.AnimatedColorPreview
 import io.github.mmolosay.thecolor.utils.cache.CacheStore
 import io.github.mmolosay.thecolor.utils.doNothing
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlin.random.Random
@@ -135,7 +132,7 @@ fun HomeScreen(
         ColorPreviewWithDependencies(
             viewModel = viewModel.colorPreviewViewModel,
         ) { uiState, onAnimationFinished ->
-            ColorPreview(
+            AnimatedColorPreview(
                 uiState = uiState,
                 onAnimationFinished = onAnimationFinished,
             )
