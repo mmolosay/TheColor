@@ -216,11 +216,16 @@ private class ColorPreviewUiStateFilterImpl(
     val animDest: ColorPreviewAnimState
         get() = flowOfAnimDest.value
 
+    /*
+     * Two cases may possibly be here:
+     * 1. 'animDest' is set first, and corresponding 'uiState' is submitted after.
+     * 2. 'uiState' is submitted first, and corresponding 'animDest' is set after.
+     */
     override suspend fun submit(uiState: ColorPreviewUiState): Boolean {
         val animState = uiState.toAnimState()
-        if (animState == animDest.visibility) return true
+        if (animState == animDest.visibility) return true // 1st case
 
-        val nextDest = flowOfAnimDest.firstNext()
+        val nextDest = flowOfAnimDest.firstNext() // 2nd case
         if (animState == nextDest.visibility) return true
         Timber.i("$uiState was submitted, but neither current nor next anim dest is $animState")
         return false
