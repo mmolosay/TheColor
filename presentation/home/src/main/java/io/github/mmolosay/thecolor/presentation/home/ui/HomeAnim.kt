@@ -146,16 +146,19 @@ internal class HomeAnimController(
     }
 
     fun reportDestReached(dest: ColorPreview.Position) {
+        if (!isRunning) return
         currentTransientState = currentTransientState.copy(colorPreviewPosition = dest)
         checkIfDestIsReachedAndSetNext()
     }
 
     fun reportDestReached(dest: ColorPreview.Visibility) {
+        if (!isRunning) return
         currentTransientState = currentTransientState.copy(colorPreviewVisibility = dest)
         checkIfDestIsReachedAndSetNext()
     }
 
     fun reportDestReached(dest: ColorCenter) {
+        if (!isRunning) return
         currentTransientState = currentTransientState.copy(colorCenter = dest)
         checkIfDestIsReachedAndSetNext()
     }
