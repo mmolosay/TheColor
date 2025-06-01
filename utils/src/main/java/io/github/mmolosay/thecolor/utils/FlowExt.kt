@@ -4,6 +4,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withTimeout
@@ -42,3 +44,12 @@ suspend fun <T> Flow<T>.firstWithTimeout(timeout: Duration): T {
 @DelicateCoroutinesApi
 suspend fun <T> Flow<T>.firstPronto(): T =
     this.firstWithTimeout(10.milliseconds)
+
+/**
+ * Returns the first value emitted by the [StateFlow] after the current one (per se "next").
+ * It is achieved by [drop]ping the replayed value of [StateFlow] and then taking the next one.
+ */
+suspend fun <T> StateFlow<T>.firstNext(): T =
+    this
+        .drop(1) // replayed value of StateFlow
+        .first()

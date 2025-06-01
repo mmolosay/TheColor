@@ -35,19 +35,17 @@ import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
+import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPreview as ColorPreviewAnimState
 import io.github.mmolosay.thecolor.presentation.impl.toDpOffset
 import io.github.mmolosay.thecolor.presentation.impl.toDpSize
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiStateController
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiStateFilter
-import io.github.mmolosay.thecolor.presentation.preview.toUiState
+import io.github.mmolosay.thecolor.utils.firstNext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.first
 import timber.log.Timber
-import kotlin.time.measureTime
 
 /**
  * Animates 'Color Preview' position (dive) and manipulates its data to display 'Color Preview'
@@ -57,9 +55,9 @@ import kotlin.time.measureTime
 @Composable
 internal fun AnimatedColorPreview(
     colorPreview: ColorPreviewWithDependencies,
-    animDest: HomeAnimState.ColorPreview,
-    onPositionAnimDestReached: (dest: HomeAnimState.ColorPreview.Position) -> Unit,
-    onVisibilityAnimDestReached: (dest: HomeAnimState.ColorPreview.Visibility) -> Unit, // TODO: call me
+    animDest: ColorPreviewAnimState,
+    onPositionAnimDestReached: (dest: ColorPreviewAnimState.Position) -> Unit,
+    onVisibilityAnimDestReached: (dest: ColorPreviewAnimState.Visibility) -> Unit, // TODO: call me
     containerViewportHeight: Dp?,
     containerPosInRoot: DpOffset?,
 ) {
@@ -126,15 +124,11 @@ internal fun AnimatedColorPreview(
                 posInContainer = ownPosInRoot - containerPosInRoot
             },
     ) {
-//        val uiState = controller.uiStateFlow.collectAsStateWithLifecycle().value // TODO: restore?
-        val uiState = colorPreview.viewModel.dataFlow.collectAsStateWithLifecycle().value.toUiState()
+        val uiState = controller.uiStateFlow.collectAsStateWithLifecycle().value
         colorPreview.composable.invoke(
             uiState = uiState,
             onAnimationFinished = { uiState ->
-                val animState = when (uiState) {
-                    is ColorPreviewUiState.Hidden -> HomeAnimState.ColorPreview.Visibility.Hidden
-                    is ColorPreviewUiState.Visible -> HomeAnimState.ColorPreview.Visibility.Visible
-                }
+                val animState = uiState.toAnimState()
                 onVisibilityAnimDestReached(animState)
             },
         )
@@ -152,12 +146,12 @@ internal fun AnimatedColorPreview(
             return@LaunchedEffect // already in target state
         }
         val animationSpec: AnimationSpec<Dp> = when (animDestPosition) {
-            HomeAnimState.ColorPreview.Position.NotDived ->
+            ColorPreviewAnimState.Position.NotDived ->
                 spring(
                     dampingRatio = Spring.DampingRatioNoBouncy,
                     stiffness = Spring.StiffnessMedium,
                 )
-            HomeAnimState.ColorPreview.Position.Dived ->
+            ColorPreviewAnimState.Position.Dived ->
                 spring(
                     dampingRatio = Spring.DampingRatioLowBouncy,
                     stiffness = Spring.StiffnessMediumLow,
@@ -176,13 +170,13 @@ internal fun AnimatedColorPreview(
 private object VerticalOffset {
 
     fun calc(
-        position: HomeAnimState.ColorPreview.Position,
+        position: ColorPreviewAnimState.Position,
         params: Params,
     ): Dp =
         when (position) {
-            HomeAnimState.ColorPreview.Position.NotDived ->
+            ColorPreviewAnimState.Position.NotDived ->
                 0.dp
-            HomeAnimState.ColorPreview.Position.Dived -> {
+            ColorPreviewAnimState.Position.Dived -> {
                 val diveTargetPointInContainer =
                     params.containerViewportHeight - (params.previewSize.height / 2) - ColorCenterFocalPointBottomOffset
                 val dive = diveTargetPointInContainer - params.previewPosInContainer.y
@@ -215,35 +209,51 @@ private object VerticalOffset {
  * emission to be used in "exiting" animation of 'Color Preview'.
  */
 private class ColorPreviewUiStateFilterImpl(
-    private val flowOfAnimDest: StateFlow<HomeAnimState.ColorPreview>,
+    private val flowOfAnimDest: StateFlow<ColorPreviewAnimState>,
 //    private val flowOfCurrentUiState: StateFlow<ColorPreviewUiState>, // TODO: implement and use in assert(), TDC:001
 ) : ColorPreviewUiStateFilter {
 
+    val animDest: ColorPreviewAnimState
+        get() = flowOfAnimDest.value
+
     override suspend fun submit(uiState: ColorPreviewUiState): Boolean {
-        if (uiState is ColorPreviewUiState.Visible) {
-            return true
-        }
-        assert(uiState is ColorPreviewUiState.Hidden) // the only type left excluding Visible
-        if (flowOfAnimDest.value.position == HomeAnimState.ColorPreview.Position.NotDived) {
-            return true
-        }
-        assert(flowOfAnimDest.value.position == HomeAnimState.ColorPreview.Position.Dived) // will soon change to 'NotDived'
-        // TODO: metaprogramming; we should get information in the comment above from some code, not by knowing internal structure of HomeViewModel
-        // implies that current 'UiState' on UI is 'Visible' // TODO: here, TDC:001
-        val updatedAnimDest: HomeAnimState.ColorPreview
-        val elapsed = measureTime {
-            updatedAnimDest = flowOfAnimDest
-                .drop(1) // replayed value of StateFlow
-                .first()
-        }
-        // average 'elapsed' is 10-40 ms with peaks up 90+ ms
-        Timber.i("'animDest' has changed to $updatedAnimDest in $elapsed after $uiState was emitted")
-        return when (updatedAnimDest.position) {
-            HomeAnimState.ColorPreview.Position.NotDived -> false // skip this 'uiState' thus keeping previous appearance to be used while Dived -> NotDived animation plays
-            HomeAnimState.ColorPreview.Position.Dived -> error("not possible")
-        }
+        val animState = uiState.toAnimState()
+        if (animState == animDest.visibility) return true
+
+        val nextDest = flowOfAnimDest.firstNext()
+        if (animState == nextDest.visibility) return true
+        Timber.i("$uiState was submitted, but neither current nor next anim dest is $animState")
+        return false
+
+        // TODO: remove outdated commented code below?
+//        if (uiState is ColorPreviewUiState.Visible) {
+//
+//        }
+//        assert(uiState is ColorPreviewUiState.Hidden) // the only type left excluding 'Visible'
+//        if (animDest.position == ColorPreview.Position.NotDived) {
+//            return true
+//        }
+//        assert(animDest.position == ColorPreview.Position.Dived) // will soon change to 'NotDived'
+//        // TODO: metaprogramming; we should get information in the comment above from some code, not by knowing internal structure of HomeViewModel
+//        // implies that current 'UiState' on UI is 'Visible' // TODO: here, TDC:001
+//        val updatedAnimDest: ColorPreview
+//        val elapsed = measureTime {
+//            updatedAnimDest = flowOfAnimDest.firstNext()
+//        }
+//        // average 'elapsed' is 10-40 ms with peaks up to 90+ ms
+//        Timber.i("'animDest' has changed to $updatedAnimDest in $elapsed after $uiState was emitted")
+//        return when (updatedAnimDest.position) {
+//            ColorPreview.Position.NotDived -> false // skip this 'uiState' thus keeping previous appearance to be used while Dived -> NotDived animation plays
+//            ColorPreview.Position.Dived -> error("not possible")
+//        }
     }
 }
+
+private fun ColorPreviewUiState.toAnimState(): ColorPreviewAnimState.Visibility =
+    when (this) {
+        is ColorPreviewUiState.Hidden -> ColorPreviewAnimState.Visibility.Hidden
+        is ColorPreviewUiState.Visible -> ColorPreviewAnimState.Visibility.Visible
+    }
 
 @Preview(
     showBackground = true,
@@ -263,9 +273,9 @@ private fun Preview() {
                     )
                 }
             },
-            animDest = HomeAnimState.ColorPreview(
-                position = HomeAnimState.ColorPreview.Position.NotDived,
-                visibility = HomeAnimState.ColorPreview.Visibility.Visible,
+            animDest = ColorPreviewAnimState(
+                position = ColorPreviewAnimState.Position.NotDived,
+                visibility = ColorPreviewAnimState.Visibility.Visible,
             ),
             onPositionAnimDestReached = {},
             onVisibilityAnimDestReached = {},
