@@ -32,17 +32,6 @@ import io.github.mmolosay.thecolor.presentation.impl.toCompose
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState as UiState
 
 @Composable
-@Suppress("unused") // good to have a high-level composable that accepts ViewModel
-fun ColorPreview(
-    viewModel: ColorPreviewViewModel,
-) {
-    ColorPreview(
-        data = viewModel.dataFlow.collectAsStateWithLifecycle().value,
-        onAnimationFinished = { TODO("unused overload") },
-    )
-}
-
-@Composable
 fun ColorPreview(
     data: ColorPreviewData,
     onAnimationFinished: (UiState) -> Unit,
