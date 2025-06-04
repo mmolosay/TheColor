@@ -29,6 +29,8 @@ import androidx.compose.ui.unit.dp
 import io.github.mmolosay.thecolor.presentation.api.ColorInt
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.impl.toCompose
+import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.seconds
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState as UiState
 
 /**
@@ -192,13 +194,36 @@ private fun NotAnimatedPreview() {
     }
 }
 
+/*
+ * LaunchedEffect() in default, "static" preview may not always work.
+ * Launch this preview with "Start Interactive Mode".
+ */
 @Preview(showBackground = true)
 @Composable
 private fun AnimatedPreview() {
     TheColorTheme {
+        var uiState by remember { mutableStateOf<UiState>(UiState.Hidden) }
         AnimatedColorPreview(
-            uiState = UiState.Visible(color = ColorInt(0x13264D)),
+            uiState = uiState,
             onAnimationFinished = {},
         )
+        LaunchedEffect(Unit) {
+            while (true) {
+                delay(2.seconds)
+                uiState = UiState.Visible(color = ColorInt(0x13264D))
+                delay(1.seconds)
+                uiState = UiState.Hidden
+                delay(1.seconds)
+                uiState = UiState.Visible(color = ColorInt(0x180100))
+                delay(1.seconds)
+                uiState = UiState.Visible(color = ColorInt(0x2215A9))
+                delay(1.seconds)
+                uiState = UiState.Visible(color = ColorInt(0x246651))
+                delay(1.seconds)
+                uiState = UiState.Visible(color = ColorInt(0x6AE237))
+                delay(1.seconds)
+                uiState = UiState.Hidden
+            }
+        }
     }
 }
