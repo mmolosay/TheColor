@@ -217,8 +217,8 @@ private class ColorPreviewUiStateFilterImpl(
 
     /*
      * Two cases may possibly be here:
-     * 1. 'animDest' is set first, and corresponding 'uiState' is submitted after.
-     * 2. 'uiState' is submitted first, and corresponding 'animDest' is set after.
+     * 1. 'uiState' is submitted first, and corresponding 'animDest' is set after. 99% of all cases
+     * 2. 'animDest' is set first, and corresponding 'uiState' is submitted after. 1% of all cases
      */
     override suspend fun submit(uiState: ColorPreviewUiState): Boolean {
         val animState = uiState.toAnimState()
