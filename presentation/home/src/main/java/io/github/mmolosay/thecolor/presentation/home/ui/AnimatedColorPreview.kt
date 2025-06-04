@@ -35,7 +35,6 @@ import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPreview as ColorPreviewAnimState
 import io.github.mmolosay.thecolor.presentation.impl.toDpOffset
 import io.github.mmolosay.thecolor.presentation.impl.toDpSize
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState
@@ -46,6 +45,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import timber.log.Timber
+import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPreview as ColorPreviewAnimState
 
 /**
  * Animates 'Color Preview' position (dive) and manipulates its data to display 'Color Preview'
@@ -57,7 +57,7 @@ internal fun AnimatedColorPreview(
     colorPreview: ColorPreviewWithDependencies,
     animDest: ColorPreviewAnimState,
     onPositionAnimDestReached: (dest: ColorPreviewAnimState.Position) -> Unit,
-    onVisibilityAnimDestReached: (dest: ColorPreviewAnimState.Visibility) -> Unit, // TODO: call me
+    onVisibilityAnimDestReached: (dest: ColorPreviewAnimState.Visibility) -> Unit,
     containerViewportHeight: Dp?,
     containerPosInRoot: DpOffset?,
 ) {
@@ -210,7 +210,6 @@ private object VerticalOffset {
  */
 private class ColorPreviewUiStateFilterImpl(
     private val flowOfAnimDest: StateFlow<ColorPreviewAnimState>,
-//    private val flowOfCurrentUiState: StateFlow<ColorPreviewUiState>, // TODO: implement and use in assert(), TDC:001
 ) : ColorPreviewUiStateFilter {
 
     val animDest: ColorPreviewAnimState
@@ -229,28 +228,6 @@ private class ColorPreviewUiStateFilterImpl(
         if (animState == nextDest.visibility) return true
         Timber.i("$uiState was submitted, but neither current nor next anim dest is $animState")
         return false
-
-        // TODO: remove outdated commented code below?
-//        if (uiState is ColorPreviewUiState.Visible) {
-//
-//        }
-//        assert(uiState is ColorPreviewUiState.Hidden) // the only type left excluding 'Visible'
-//        if (animDest.position == ColorPreview.Position.NotDived) {
-//            return true
-//        }
-//        assert(animDest.position == ColorPreview.Position.Dived) // will soon change to 'NotDived'
-//        // TODO: metaprogramming; we should get information in the comment above from some code, not by knowing internal structure of HomeViewModel
-//        // implies that current 'UiState' on UI is 'Visible' // TODO: here, TDC:001
-//        val updatedAnimDest: ColorPreview
-//        val elapsed = measureTime {
-//            updatedAnimDest = flowOfAnimDest.firstNext()
-//        }
-//        // average 'elapsed' is 10-40 ms with peaks up to 90+ ms
-//        Timber.i("'animDest' has changed to $updatedAnimDest in $elapsed after $uiState was emitted")
-//        return when (updatedAnimDest.position) {
-//            ColorPreview.Position.NotDived -> false // skip this 'uiState' thus keeping previous appearance to be used while Dived -> NotDived animation plays
-//            ColorPreview.Position.Dived -> error("not possible")
-//        }
     }
 }
 
