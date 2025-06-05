@@ -74,20 +74,17 @@ fun AnimatedColorPreview(
     onAnimationFinished: (UiState) -> Unit,
 ) {
     val updates = remember { mutableStateListOf<UpdateOfVisibleUiState>() }
-    // we want to have last data WITH color memoized to show animation of scaling the preview down
-    // once the new data WITHOUT color arrives
+    // we want to have last 'UiState.Visible' memoized to show animation of scaling the preview down
     var mainUiState by remember { mutableStateOf(uiState) }
-    val scaleTargetValue = if (uiState is UiState.Visible) 1f else 0f
     val scale by animateFloatAsState(
-        targetValue = scaleTargetValue,
+        targetValue = if (uiState is UiState.Visible) 1f else 0f,
         label = "preview scale",
-        finishedListener = { value ->
-            // we need to keep last data WITH color until the preview is completely scaled down
-            // and gone. Only after it the actual value can be set
-            if (value == scaleTargetValue) {
-                mainUiState = uiState
-            }
+        finishedListener = {
+            mainUiState = uiState
             onAnimationFinished(uiState)
+            if (uiState is UiState.Hidden) {
+                updates.clear()
+            }
         },
     )
 
@@ -121,13 +118,15 @@ fun AnimatedColorPreview(
             val isMainVisible = (mainUiState is UiState.Visible)
             (isNewVisible && isMainVisible)
         }
-        if (isAnUpdate && uiState is UiState.Visible) {
-            val id = updates.lastOrNull()?.id?.let { it + 1 } ?: 0
-            val update = UpdateOfVisibleUiState(uiState, id)
-            updates += update
-        }
-        if (uiState is UiState.Hidden) {
-            updates.clear()
+        if (uiState is UiState.Visible) {
+            if (isAnUpdate) {
+                val id = updates.lastOrNull()?.id?.let { it + 1 } ?: 0
+                val update = UpdateOfVisibleUiState(uiState, id)
+                updates += update
+            } else {
+                // Visible state should be set immediately to be displayed while scale animation expands
+                mainUiState = uiState
+            }
         }
     }
 }
