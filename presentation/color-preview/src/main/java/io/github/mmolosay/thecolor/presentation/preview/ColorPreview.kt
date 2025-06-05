@@ -77,13 +77,14 @@ fun AnimatedColorPreview(
     // we want to have last data WITH color memoized to show animation of scaling the preview down
     // once the new data WITHOUT color arrives
     var mainUiState by remember { mutableStateOf(uiState) }
+    val scaleTargetValue = if (uiState is UiState.Visible) 1f else 0f
     val scale by animateFloatAsState(
-        targetValue = if (uiState is UiState.Visible) 1f else 0f,
+        targetValue = scaleTargetValue,
         label = "preview scale",
         finishedListener = { value ->
             // we need to keep last data WITH color until the preview is completely scaled down
             // and gone. Only after it the actual value can be set
-            if (value == 0f) {
+            if (value == scaleTargetValue) {
                 mainUiState = uiState
             }
             onAnimationFinished(uiState)
@@ -115,8 +116,12 @@ fun AnimatedColorPreview(
     }
 
     LaunchedEffect(uiState) {
-        val isAnUpdate = (uiState != mainUiState || updates.isNotEmpty())
-        if (uiState is UiState.Visible && isAnUpdate) {
+        val isAnUpdate = kotlin.run {
+            val isNewVisible = (uiState is UiState.Visible)
+            val isMainVisible = (mainUiState is UiState.Visible)
+            (isNewVisible && isMainVisible)
+        }
+        if (isAnUpdate && uiState is UiState.Visible) {
             val id = updates.lastOrNull()?.id?.let { it + 1 } ?: 0
             val update = UpdateOfVisibleUiState(uiState, id)
             updates += update
