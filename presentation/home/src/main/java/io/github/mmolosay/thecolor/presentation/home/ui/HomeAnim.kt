@@ -123,6 +123,7 @@ internal fun HomeAnimSequence(
     } else {
         FullForwardSequence.subList(indexOfDest, indexOfCurrent + 1).reversed()
     }
+    require(subsequence.isNotEmpty()) { "Cannot make 'HomeAnimSequence' from $from to $to" }
     return HomeAnimSequence(subsequence)
 }
 
@@ -130,8 +131,9 @@ internal fun HomeAnimSequence(
 internal class HomeAnimController(
     currentState: HomeAnimState,
 ) {
-    var lastReachedState: HomeAnimState = currentState
-    private var currentTransientState: HomeAnimState = currentState
+    // key state is a state that occurs in started sequence
+    private var lastReachedKeyState: HomeAnimState = currentState
+    var currentState: HomeAnimState = currentState
     val destState = MutableStateFlow(currentState)
 
     private var sequence: HomeAnimSequence? = null
@@ -139,41 +141,48 @@ internal class HomeAnimController(
 
     /** Starts animation of [sequence] until the end of it. */
     fun start(sequence: HomeAnimSequence) {
+        require(sequence.isNotEmpty())
+        require(isCurrentStateStable())
+        require(sequence.first() == currentState) // sequence must start from current state
+        if (sequence.size == 1) return // nothing to animate to
         this.sequence = sequence
-        val dest = nextInSequence() ?: return // sequence is already finished
+        val dest = requireNotNull(nextInSequence()) // atp sequence is guaranteed to have at least 2 elements
         destState.value = requireNotNull(dest)
         isRunning = true
     }
 
     fun reportDestReached(dest: ColorPreview.Position) {
         if (!isRunning) return
-        currentTransientState = currentTransientState.copy(colorPreviewPosition = dest)
+        currentState = currentState.copy(colorPreviewPosition = dest)
         checkIfDestIsReachedAndSetNext()
     }
 
     fun reportDestReached(dest: ColorPreview.Visibility) {
         if (!isRunning) return
-        currentTransientState = currentTransientState.copy(colorPreviewVisibility = dest)
+        currentState = currentState.copy(colorPreviewVisibility = dest)
         checkIfDestIsReachedAndSetNext()
     }
 
     fun reportDestReached(dest: ColorCenter) {
         if (!isRunning) return
-        currentTransientState = currentTransientState.copy(colorCenter = dest)
+        currentState = currentState.copy(colorCenter = dest)
         checkIfDestIsReachedAndSetNext()
     }
 
     private fun nextInSequence(): HomeAnimState? {
         val sequence = requireNotNull(sequence)
-        require(lastReachedState in sequence)
-        return with(sequence) { lastReachedState.next() }
+        require(lastReachedKeyState in sequence)
+        return with(sequence) { lastReachedKeyState.next() }
     }
+
+    private fun isCurrentStateStable() =
+        (currentState == lastReachedKeyState) && !isRunning
 
     private fun checkIfDestIsReachedAndSetNext() {
         val currentDest = destState.value
-        if (currentTransientState != currentDest) return
-        assert(currentTransientState == currentDest)
-        lastReachedState = currentTransientState
+        if (currentState != currentDest) return
+        assert(currentState == currentDest)
+        lastReachedKeyState = currentState
 
         if (!isRunning) return // if running, update next dest
         val nextDest = nextInSequence()
@@ -181,6 +190,7 @@ internal class HomeAnimController(
             destState.value = nextDest
         } else {
             isRunning = false
+            this.sequence = null
         }
     }
 }

@@ -168,7 +168,7 @@ fun HomeScreen(
     }
     LaunchedEffect(uiState) {
         val sequence = HomeAnimSequence(
-            from = animController.lastReachedState, // aka current
+            from = animController.currentState,
             to = HomeAnimState(
                 isColorPreviewVisible = uiState.isColorPreviewVisible,
                 isColorCenterVisible = uiState.isColorCenterVisible,
