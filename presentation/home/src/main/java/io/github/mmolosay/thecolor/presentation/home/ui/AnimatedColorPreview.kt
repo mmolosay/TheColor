@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.home.ui
 
+import androidx.annotation.VisibleForTesting
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.AnimationVector1D
@@ -204,61 +205,58 @@ private object VerticalOffset {
     }
 }
 
-// TODO: ADD UNIT TESTS
-private object FlowOfAnimatedUiState {
+@VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+internal fun FlowOfAnimatedUiState(
+    flowOfOriginalData: StateFlow<ColorPreviewData>,
+    flowOfAnimDest: StateFlow<ColorPreviewAnimState>,
+    coroutineScope: CoroutineScope,
+): StateFlow<ColorPreviewUiState?> {
+    val pendingUiStates = mutableListOf<ColorPreviewUiState>()
+    var pendingAnimDest: ColorPreviewAnimState.Visibility? = null
 
-    operator fun invoke(
-        flowOfOriginalData: StateFlow<ColorPreviewData>,
-        flowOfAnimDest: StateFlow<ColorPreviewAnimState>,
-        coroutineScope: CoroutineScope,
-    ): StateFlow<ColorPreviewUiState?> {
-        val pendingUiStates = mutableListOf<ColorPreviewUiState>()
-        var pendingAnimDest: ColorPreviewAnimState.Visibility? = null
+    val flowOfAnimDest = flowOfAnimDest.map { it.visibility }.stateIn(
+        scope = coroutineScope, started = SharingStarted.WhileSubscribed(),
+        initialValue = flowOfAnimDest.value.visibility,
+    )
+    val flowOfAnimatedUiState = MutableStateFlow<ColorPreviewUiState?>(null)
 
-        val flowOfAnimDest = flowOfAnimDest.map { it.visibility }.stateIn(
-            scope = coroutineScope, started = SharingStarted.WhileSubscribed(),
-            initialValue = flowOfAnimDest.value.visibility,
-        )
-        val flowOfAnimatedUiState = MutableStateFlow<ColorPreviewUiState?>(null)
-
-        fun trySatisfyPendingAnimDest() {
-            if (pendingAnimDest == null) return
-            if (pendingUiStates.isEmpty()) return
-            val pendingUiStatesToAnimStates =
-                pendingUiStates
-                    .reversed() // newest first
-                    .map { uiState -> uiState to uiState.toAnimState() }
-            val match =
-                pendingUiStatesToAnimStates.firstOrNull { (uiState, animState) ->
-                    animState == pendingAnimDest
-                }
-            if (match != null) {
-                pendingUiStates.clear()
-                pendingAnimDest = null // satisfied and cleared
-                flowOfAnimatedUiState.value = match.first // matched 'uiState'
+    fun trySatisfyPendingAnimDest() {
+        if (pendingAnimDest == null) return
+        if (pendingUiStates.isEmpty()) return
+        val pendingUiStatesToAnimStates =
+            pendingUiStates
+                .reversed() // newest first
+                .map { uiState -> uiState to uiState.toAnimState() }
+        val match =
+            pendingUiStatesToAnimStates.firstOrNull { (uiState, animState) ->
+                animState == pendingAnimDest
             }
+        if (match != null) {
+            pendingUiStates.clear()
+            pendingAnimDest = null // satisfied and cleared
+            flowOfAnimatedUiState.value = match.first // matched 'uiState'
         }
-        coroutineScope.launch {
-            flowOfAnimDest.collect { animDest ->
-                pendingAnimDest = animDest
-                trySatisfyPendingAnimDest()
-            }
-        }
-        coroutineScope.launch {
-            flowOfOriginalData.map { data -> data.toUiState() }.collect { uiState ->
-                pendingUiStates += uiState
-                trySatisfyPendingAnimDest()
-                if (pendingAnimDest == null) {
-                    val animState = uiState.toAnimState()
-                    val currentAnimDest = flowOfAnimDest.value
-                    if (animState == currentAnimDest) {
-                        flowOfAnimatedUiState.value = uiState
-                    }
-                }
-            }
-        }
-        return flowOfAnimatedUiState.asStateFlow()
     }
+    coroutineScope.launch {
+        flowOfAnimDest.collect { animDest ->
+            pendingAnimDest = animDest
+            trySatisfyPendingAnimDest()
+        }
+    }
+    coroutineScope.launch {
+        flowOfOriginalData.map { data -> data.toUiState() }.collect { uiState ->
+            pendingUiStates += uiState
+            trySatisfyPendingAnimDest()
+            if (pendingAnimDest == null) {
+                val animState = uiState.toAnimState()
+                val currentAnimDest = flowOfAnimDest.value
+                if (animState == currentAnimDest) {
+                    flowOfAnimatedUiState.value = uiState
+                }
+            }
+        }
+    }
+    return flowOfAnimatedUiState.asStateFlow()
 }
 
 private fun ColorPreviewUiState.toAnimState(): ColorPreviewAnimState.Visibility =
