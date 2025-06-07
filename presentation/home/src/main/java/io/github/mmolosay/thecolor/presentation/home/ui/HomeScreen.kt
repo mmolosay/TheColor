@@ -48,6 +48,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -102,12 +103,19 @@ import io.github.mmolosay.thecolor.presentation.impl.toLifecycleEventObserver
 import io.github.mmolosay.thecolor.presentation.impl.withoutBottom
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInput
 import io.github.mmolosay.thecolor.presentation.preview.AnimatedColorPreview
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import io.github.mmolosay.thecolor.utils.cache.CacheStore
 import io.github.mmolosay.thecolor.utils.doNothing
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlin.random.Random
 
 @Composable
@@ -117,6 +125,8 @@ fun HomeScreen(
     navBarAppearanceController: NavBarAppearanceController,
 ) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
     val strings = remember(context) { HomeUiStrings(context) }
     val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
     val navEventFlow = viewModel.navEventFlow.filterNotNull()
@@ -151,30 +161,32 @@ fun HomeScreen(
         }
     }
 
-    val uiState = run {
-        val isColorPreviewVisible = run {
-            val data = viewModel.colorPreviewViewModel.dataFlow.value
-            isColorPreviewVisible(data)
-        }
-        val isColorCenterVisible = isColorCenterVisible(data.proceedResult)
-        HomeUiState(isColorPreviewVisible, isColorCenterVisible)
+    val flowOfUiState = remember {
+        FlowOfHomeUiState(
+            flowOfColorPreviewData = viewModel.colorPreviewViewModel.dataFlow,
+            flowOfHomeData = viewModel.dataFlow,
+            coroutineScope = coroutineScope,
+        )
     }
     val animController = remember {
+        val uiState = flowOfUiState.value
         val currentState = HomeAnimState(
             isColorPreviewVisible = uiState.isColorPreviewVisible,
             isColorCenterVisible = uiState.isColorCenterVisible,
         )
         HomeAnimController(currentState)
     }
-    LaunchedEffect(uiState) {
-        val sequence = HomeAnimSequence(
-            from = animController.currentState,
-            to = HomeAnimState(
-                isColorPreviewVisible = uiState.isColorPreviewVisible,
-                isColorCenterVisible = uiState.isColorCenterVisible,
-            ),
-        )
-        animController.start(sequence)
+    LaunchedEffect(Unit) {
+        flowOfUiState.collect { uiState ->
+            val sequence = HomeAnimSequence(
+                from = animController.currentState,
+                to = HomeAnimState(
+                    isColorPreviewVisible = uiState.isColorPreviewVisible,
+                    isColorCenterVisible = uiState.isColorCenterVisible,
+                ),
+            )
+            animController.start(sequence)
+        }
     }
 
     HomeScreen(
@@ -194,6 +206,36 @@ fun HomeScreen(
         data = data.colorSchemeSelectedSwatchData,
         navBarAppearanceController = selectedSwatchDetailsDialogController,
     )
+}
+
+private fun FlowOfHomeUiState(
+    flowOfColorPreviewData: StateFlow<ColorPreviewData>,
+    flowOfHomeData: StateFlow<HomeData>,
+    coroutineScope: CoroutineScope,
+): StateFlow<HomeUiState> {
+    val flowOfIsColorPreviewVisible = run {
+        val initialValue = isColorPreviewVisible(data = flowOfColorPreviewData.value)
+        flowOfColorPreviewData
+            .map { data -> isColorPreviewVisible(data) }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), initialValue)
+    }
+    val flowOfIsColorCenterVisible = run {
+        val initialValue = isColorCenterVisible(flowOfHomeData.value.proceedResult)
+        flowOfHomeData
+            .map { data -> isColorCenterVisible(data.proceedResult) }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), initialValue)
+    }
+
+    val flowOfHomeUiState = combine(
+        flowOfIsColorPreviewVisible,
+        flowOfIsColorCenterVisible,
+        transform = ::HomeUiState,
+    )
+    val initialValue = HomeUiState(
+        isColorPreviewVisible = flowOfIsColorPreviewVisible.value,
+        isColorCenterVisible = flowOfIsColorCenterVisible.value,
+    )
+    return flowOfHomeUiState.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), initialValue)
 }
 
 /** Describes UI state of 'Home' View. Used to infer appropriate animation sequence / state. */
