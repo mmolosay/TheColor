@@ -213,6 +213,8 @@ private fun FlowOfHomeUiState(
     flowOfHomeData: StateFlow<HomeData>,
     coroutineScope: CoroutineScope,
 ): StateFlow<HomeUiState> {
+    // mapping StateFlow to StateFlow involves boilerplate 'stateIn()':
+    // https://github.com/Kotlin/kotlinx.coroutines/issues/2631
     val flowOfIsColorPreviewVisible = run {
         val initialValue = isColorPreviewVisible(data = flowOfColorPreviewData.value)
         flowOfColorPreviewData
