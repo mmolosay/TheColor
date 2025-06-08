@@ -237,6 +237,14 @@ internal fun FlowOfAnimatedUiState(
             flowOfAnimatedUiState.value = match.first // matched 'uiState'
         }
     }
+    /*
+     * Most of the times, new original data will be emitted and collected first,
+     * and new anim dest (if any) will be emitted and collected second.
+     * Elapsed between original data and anim dest emissions:
+     * Mean average: 13.65ms
+     * Median: 13.61ms
+     * Range: 3.18ms - 24.64ms
+     */
     coroutineScope.launch {
         flowOfAnimDest.collect { animDest ->
             pendingAnimDest = animDest
