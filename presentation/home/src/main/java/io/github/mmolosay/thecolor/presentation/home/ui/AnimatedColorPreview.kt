@@ -43,6 +43,7 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState
 import io.github.mmolosay.thecolor.presentation.preview.toUiState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -50,6 +51,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPreview as ColorPreviewAnimState
 
 /**
@@ -213,6 +215,7 @@ internal fun FlowOfAnimatedUiState(
 ): StateFlow<ColorPreviewUiState?> {
     val pendingUiStates = mutableListOf<ColorPreviewUiState>()
     var pendingAnimDest: ColorPreviewAnimState.Visibility? = null
+    val windowBetweenOriginalDataAndAnimDest = 24.64.milliseconds * 2 // see benchmark comment below
 
     val flowOfAnimDest = flowOfAnimDest.map { it.visibility }.stateIn(
         scope = coroutineScope, started = SharingStarted.WhileSubscribed(),
@@ -220,9 +223,9 @@ internal fun FlowOfAnimatedUiState(
     )
     val flowOfAnimatedUiState = MutableStateFlow<ColorPreviewUiState?>(null)
 
-    fun trySatisfyPendingAnimDest() {
-        if (pendingAnimDest == null) return
-        if (pendingUiStates.isEmpty()) return
+    fun trySatisfyPendingAnimDest(): Boolean {
+        if (pendingAnimDest == null) return false
+        if (pendingUiStates.isEmpty()) return false
         val pendingUiStatesToAnimStates =
             pendingUiStates
                 .reversed() // newest first
@@ -235,7 +238,9 @@ internal fun FlowOfAnimatedUiState(
             pendingUiStates.clear()
             pendingAnimDest = null // satisfied and cleared
             flowOfAnimatedUiState.value = match.first // matched 'uiState'
+            return true
         }
+        return false
     }
     /*
      * Most of the times, new original data will be emitted and collected first,
@@ -254,8 +259,11 @@ internal fun FlowOfAnimatedUiState(
     coroutineScope.launch {
         flowOfOriginalData.map { data -> data.toUiState() }.collect { uiState ->
             pendingUiStates += uiState
-            trySatisfyPendingAnimDest()
+            val wasSatisfied = trySatisfyPendingAnimDest()
+            if (wasSatisfied) return@collect
+            delay(windowBetweenOriginalDataAndAnimDest) // allow new anim dest to arrive
             if (pendingAnimDest == null) {
+                // pass this uiState if it satisfies current, already satisfied anim dest
                 val animState = uiState.toAnimState()
                 val currentAnimDest = flowOfAnimDest.value
                 if (animState == currentAnimDest) {

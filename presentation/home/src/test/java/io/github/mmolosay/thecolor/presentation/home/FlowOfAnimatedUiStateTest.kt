@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
+import kotlin.time.Duration.Companion.milliseconds
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPreview as ColorPreviewAnimState
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState as UiState
 
@@ -223,6 +224,7 @@ internal class FlowOfAnimatedUiStateTest {
         }
 
         val flowOfUiState = sut()
+        testDispatcher.scheduler.advanceUntilIdle()
         // WHEN #2
         kotlin.run {
             val value = ColorPreviewData(color = ColorInt(0x1))
@@ -230,5 +232,58 @@ internal class FlowOfAnimatedUiStateTest {
         }
         testDispatcher.scheduler.advanceUntilIdle()
         flowOfUiState.value shouldBe UiState.Visible(color = ColorInt(0x1))
+    }
+
+    /**
+     * GIVEN
+     * - [flowOfOriginalData] has color X
+     * - [flowOfAnimDest] has [ColorPreviewAnimState.Visibility.Visible]
+     *
+     * WHEN
+     * 1. [sut] flow is created
+     * 2. [flowOfOriginalData] emits [ColorPreviewData] with color Y
+     * 3. [flowOfAnimDest] emits [ColorPreviewAnimState.Visibility.Hidden]
+     * 4. [flowOfOriginalData] emits [ColorPreviewData] with no color
+     *
+     * THEN
+     * SUT flow value is [UiState.Hidden].
+     */
+    @Test
+    fun `#5`() = runTest {
+        kotlin.run initFlowOfOriginalData@{
+            val value = ColorPreviewData(color = ColorInt(0x0))
+            flowOfOriginalData = MutableStateFlow(value)
+        }
+        kotlin.run initFlowOfAnimDest@{
+            val value = mockk<ColorPreviewAnimState> {
+                every { visibility } returns ColorPreviewAnimState.Visibility.Visible
+            }
+            flowOfAnimDest = MutableStateFlow(value)
+        }
+
+        val flowOfUiState = sut()
+        testDispatcher.scheduler.advanceUntilIdle()
+        // WHEN #2
+        kotlin.run {
+            val value = ColorPreviewData(color = ColorInt(0x1))
+            flowOfOriginalData.emit(value)
+        }
+        testDispatcher.scheduler.advanceTimeBy(25.milliseconds)
+        // WHEN #3
+        kotlin.run {
+            val value = mockk<ColorPreviewAnimState> {
+                every { visibility } returns ColorPreviewAnimState.Visibility.Hidden
+            }
+            flowOfAnimDest.emit(value)
+        }
+        testDispatcher.scheduler.advanceUntilIdle()
+        flowOfUiState.value shouldBe UiState.Visible(color = ColorInt(0x0))
+        // WHEN #4
+        kotlin.run {
+            val value = ColorPreviewData(color = null)
+            flowOfOriginalData.emit(value)
+        }
+        testDispatcher.scheduler.advanceUntilIdle()
+        flowOfUiState.value shouldBe UiState.Hidden
     }
 }
