@@ -131,7 +131,7 @@ internal fun HomeAnimSequence(
 internal class HomeAnimController(
     currentState: HomeAnimState,
 ) {
-    // key state is a state that occurs in started sequence
+    // key state is a state that occurs in started sequence; like a key frame
     private var lastReachedKeyState: HomeAnimState = currentState
     var currentState: HomeAnimState = currentState
     val destState = MutableStateFlow(currentState)
