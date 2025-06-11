@@ -62,7 +62,7 @@ import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPrevi
 @Composable
 internal fun AnimatedColorPreview(
     colorPreview: ColorPreviewWithDependencies,
-    animDest: ColorPreviewAnimState,
+    flowOfAnimDest: StateFlow<ColorPreviewAnimState>,
     onPositionAnimDestReached: (dest: ColorPreviewAnimState.Position) -> Unit,
     onVisibilityAnimDestReached: (dest: ColorPreviewAnimState.Visibility) -> Unit,
     containerViewportHeight: Dp?,
@@ -74,10 +74,7 @@ internal fun AnimatedColorPreview(
     var posInContainer by remember { mutableStateOf<DpOffset?>(null) }
     var size by remember { mutableStateOf<DpSize?>(null) }
 
-    val (animDestPosition, animDestVisibility) = animDest
-    val flowOfAnimDest = remember { MutableStateFlow(animDest) }.also {
-        it.value = animDest // LaunchedEffect introduces ~one frame delay, thus updating during composition
-    }
+    fun animDest() = flowOfAnimDest.value
 
     val verticalOffsetParams by produceState<VerticalOffset.Params?>(
         initialValue = null,
@@ -96,7 +93,7 @@ internal fun AnimatedColorPreview(
         if (value != null) return@produceState // already initialized
         val params = verticalOffsetParams ?: return@produceState
         value = Animatable(
-            initialValue = VerticalOffset.calc(animDestPosition, params),
+            initialValue = VerticalOffset.calc(animDest().position, params),
             typeConverter = Dp.VectorConverter,
             visibilityThreshold = Dp.VisibilityThreshold,
             label = "dive",
@@ -141,32 +138,34 @@ internal fun AnimatedColorPreview(
 
     // TODO: position is being animated here, but visibility (collapse & expand) in ColorPreview() Composable itself
     //  Why such a separation?
-    LaunchedEffect(animDestPosition) {
-        val offsetAnimatable = offsetAnimatable ?: return@LaunchedEffect
-        val targetValue = kotlin.run {
-            val params = verticalOffsetParams ?: return@LaunchedEffect
-            VerticalOffset.calc(animDestPosition, params)
-        }
-        if (offsetAnimatable.value == targetValue) {
-            return@LaunchedEffect // already in target state
-        }
-        val animationSpec: AnimationSpec<Dp> = when (animDestPosition) {
-            ColorPreviewAnimState.Position.NotDived ->
-                spring(
-                    dampingRatio = Spring.DampingRatioNoBouncy,
-                    stiffness = Spring.StiffnessMedium,
+    LaunchedEffect(Unit) {
+        flowOfAnimDest.collect { animDest ->
+            val offsetAnimatable = offsetAnimatable ?: return@collect
+            val targetValue = kotlin.run {
+                val params = verticalOffsetParams ?: return@collect
+                VerticalOffset.calc(animDest.position, params)
+            }
+            if (offsetAnimatable.value == targetValue) return@collect // already in target state
+            val animationSpec: AnimationSpec<Dp> = when (animDest.position) {
+                ColorPreviewAnimState.Position.NotDived ->
+                    spring(
+                        dampingRatio = Spring.DampingRatioNoBouncy,
+                        stiffness = Spring.StiffnessMedium,
+                    )
+                ColorPreviewAnimState.Position.Dived ->
+                    spring(
+                        dampingRatio = Spring.DampingRatioLowBouncy,
+                        stiffness = Spring.StiffnessMediumLow,
+                    )
+            }
+            launch { // run in individual coroutine to allow graceful animation cancellation
+                offsetAnimatable.animateTo(
+                    targetValue = targetValue,
+                    animationSpec = animationSpec,
                 )
-            ColorPreviewAnimState.Position.Dived ->
-                spring(
-                    dampingRatio = Spring.DampingRatioLowBouncy,
-                    stiffness = Spring.StiffnessMediumLow,
-                )
+                onPositionAnimDestReached(animDest.position)
+            }
         }
-        offsetAnimatable.animateTo(
-            targetValue = targetValue,
-            animationSpec = animationSpec,
-        )
-        onPositionAnimDestReached(animDestPosition)
     }
 }
 
@@ -303,10 +302,13 @@ private fun Preview() {
                     )
                 }
             },
-            animDest = ColorPreviewAnimState(
-                position = ColorPreviewAnimState.Position.NotDived,
-                visibility = ColorPreviewAnimState.Visibility.Visible,
-            ),
+            flowOfAnimDest = remember {
+                val value = ColorPreviewAnimState(
+                    position = ColorPreviewAnimState.Position.NotDived,
+                    visibility = ColorPreviewAnimState.Visibility.Visible,
+                )
+                MutableStateFlow(value)
+            },
             onPositionAnimDestReached = {},
             onVisibilityAnimDestReached = {},
             containerViewportHeight = 400.dp,

@@ -309,6 +309,7 @@ private fun Home(
 ) {
     val density = LocalDensity.current
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     val retainedData = retained(data) { actual ->
         // TODO: may be done without time delay?
@@ -326,6 +327,16 @@ private fun Home(
     var size by remember { mutableStateOf<DpSize?>(null) }
 
     val animDest = animController.destState.collectAsStateWithLifecycle().value
+    val colorPreviewAnimDest = run {
+        val upstream = animController.destState
+        remember(upstream) {
+            // mapping StateFlow to StateFlow involves boilerplate 'stateIn()':
+            // https://github.com/Kotlin/kotlinx.coroutines/issues/2631
+            upstream
+                .map { it.colorPreview }
+                .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), upstream.value.colorPreview)
+        }
+    }
 
     Column(
         modifier = modifier
@@ -372,7 +383,7 @@ private fun Home(
 
         AnimatedColorPreview(
             colorPreview = colorPreview,
-            animDest = animDest.colorPreview,
+            flowOfAnimDest = colorPreviewAnimDest,
             onPositionAnimDestReached = { animController.reportDestReached(it) },
             onVisibilityAnimDestReached = { animController.reportDestReached(it) },
             containerViewportHeight = viewportHeight,
