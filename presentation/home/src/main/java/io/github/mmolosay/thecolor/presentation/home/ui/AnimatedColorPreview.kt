@@ -235,7 +235,7 @@ internal fun FlowOfAnimatedUiState(
                 animState == pendingAnimDest
             }
         if (match != null) {
-            pendingUiStates.clear()
+            pendingUiStates.clear() // only remove uiStates that were before the match?
             pendingAnimDest = null // satisfied and cleared
             flowOfAnimatedUiState.value = match.first // matched 'uiState'
             return true
@@ -263,11 +263,15 @@ internal fun FlowOfAnimatedUiState(
             if (wasSatisfied) return@collect
             delay(windowBetweenOriginalDataAndAnimDest) // allow new anim dest to arrive
             if (pendingAnimDest == null) {
-                // pass this uiState if it satisfies current, already satisfied anim dest
+                // emit this uiState if it satisfies current, already satisfied anim dest
                 val animState = uiState.toAnimState()
                 val currentAnimDest = flowOfAnimDest.value
                 if (animState == currentAnimDest) {
                     flowOfAnimatedUiState.value = uiState
+                    // remove this uiState as fulfilled
+                    pendingUiStates.lastOrNull()?.let { lastAdded ->
+                        if (lastAdded == uiState) pendingUiStates.removeLastOrNull()
+                    }
                 }
             }
         }
