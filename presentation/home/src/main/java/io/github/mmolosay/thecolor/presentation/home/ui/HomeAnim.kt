@@ -141,14 +141,22 @@ internal class HomeAnimController(
 
     /** Starts animation of [sequence] until the end of it. */
     fun start(sequence: HomeAnimSequence) {
-        require(sequence.isNotEmpty())
-        require(isCurrentStateStable())
+        require(sequence.isNotEmpty()) { "can't animate empty sequence" }
         require(sequence.first() == currentState) // sequence must start from current state
-        if (sequence.size == 1) return // nothing to animate to
-        this.sequence = sequence
-        val dest = requireNotNull(nextInSequence()) // atp sequence is guaranteed to have at least 2 elements
-        destState.value = requireNotNull(dest)
-        isRunning = true
+        if (sequence.size == 1) {
+            if (!isRunning) return // nothing to animate
+            // animating from half-finished dest back to current state
+            if (sequence.single() == currentState) {
+                assert(isRunning)
+                this.sequence = sequence
+                destState.value = sequence.single()
+            }
+        } else {
+            this.sequence = sequence
+            val dest = requireNotNull(nextInSequence()) // atp sequence is guaranteed to have at least 2 elements
+            destState.value = requireNotNull(dest)
+            isRunning = true
+        }
     }
 
     fun reportDestReached(dest: ColorPreview.Position) {
@@ -174,9 +182,6 @@ internal class HomeAnimController(
         require(lastReachedKeyState in sequence)
         return with(sequence) { lastReachedKeyState.next() }
     }
-
-    private fun isCurrentStateStable() =
-        (currentState == lastReachedKeyState) && !isRunning
 
     private fun checkIfDestIsReachedAndSetNext() {
         val currentDest = destState.value

@@ -43,11 +43,13 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState
 import io.github.mmolosay.thecolor.presentation.preview.toUiState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -139,7 +141,7 @@ internal fun AnimatedColorPreview(
     // TODO: position is being animated here, but visibility (collapse & expand) in ColorPreview() Composable itself
     //  Why such a separation?
     LaunchedEffect(Unit) {
-        flowOfAnimDest.collect { animDest ->
+        flowOfAnimDest.collectLatest collect@{ animDest ->
             val offsetAnimatable = offsetAnimatable ?: return@collect
             val targetValue = kotlin.run {
                 val params = verticalOffsetParams ?: return@collect
@@ -158,13 +160,11 @@ internal fun AnimatedColorPreview(
                         stiffness = Spring.StiffnessMediumLow,
                     )
             }
-            launch { // run in individual coroutine to allow graceful animation cancellation
-                offsetAnimatable.animateTo(
-                    targetValue = targetValue,
-                    animationSpec = animationSpec,
-                )
-                onPositionAnimDestReached(animDest.position)
-            }
+            offsetAnimatable.animateTo(
+                targetValue = targetValue,
+                animationSpec = animationSpec,
+            )
+            onPositionAnimDestReached(animDest.position)
         }
     }
 }
