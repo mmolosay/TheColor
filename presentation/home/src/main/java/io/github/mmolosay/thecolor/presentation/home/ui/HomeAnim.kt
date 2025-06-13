@@ -85,7 +85,14 @@ internal fun HomeAnimState(
 }
 
 // TODO: abolish type? Replace with typealias?
-internal class HomeAnimSequence(states: List<HomeAnimState>) : List<HomeAnimState> by states
+internal class HomeAnimSequence(
+    private val states: List<HomeAnimState>,
+) : List<HomeAnimState> by states {
+
+    // inheritance 'by' delegate doesn't inherit methods of 'Any'
+    override fun toString(): String =
+        states.toString()
+}
 
 private val FullForwardSequence: HomeAnimSequence = run {
     val states = buildList {
@@ -131,20 +138,23 @@ internal class HomeAnimController(
 
     fun run(sequence: HomeAnimSequence) {
         require(sequence.isNotEmpty()) { "can't animate empty sequence" }
-        require(sequence.first() == currentState) // sequence must start from current state
+        require(sequence.first() == currentState) { "sequence must start from current state" }
         if (sequence.size == 1) {
-            if (!isRunning) return // nothing to animate
-            // animating from half-finished dest back to current state
-            if ((sequence.single() == currentState) && isRunning) {
-                this.sequence = sequence
-                indexOfDestInSequence = 0
-                flowOfDestState.value = sequence.single()
+            when {
+                isRunning && (sequence.single() == currentState) -> {
+                    // animating from half-finished dest back to current state
+                    this.sequence = sequence
+                    indexOfDestInSequence = 0
+                    flowOfDestState.value = sequence.single()
+                }
+                !isRunning -> return // nothing to animate
+                else -> error("Running an illegal sequence: $sequence")
             }
         } else {
             this.sequence = sequence
             indexOfDestInSequence = 0
             flowOfDestState.value = requireNotNull(nextInSequence())
-            indexOfDestInSequence = requireNotNull(indexOfDestInSequence) + 1
+            indexOfDestInSequence = 1
             isRunning = true
         }
     }
