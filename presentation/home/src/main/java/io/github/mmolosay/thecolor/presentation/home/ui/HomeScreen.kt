@@ -185,7 +185,7 @@ fun HomeScreen(
                     isColorCenterVisible = uiState.isColorCenterVisible,
                 ),
             )
-            animController.start(sequence)
+            animController.run(sequence)
         }
     }
 
@@ -326,9 +326,9 @@ private fun Home(
     var posInRoot by remember { mutableStateOf<DpOffset?>(null) }
     var size by remember { mutableStateOf<DpSize?>(null) }
 
-    val animDest = animController.destState.collectAsStateWithLifecycle().value
+    val animDest = animController.flowOfDestState.collectAsStateWithLifecycle().value
     val colorPreviewAnimDest = run {
-        val upstream = animController.destState
+        val upstream = animController.flowOfDestState
         remember(upstream) {
             // mapping StateFlow to StateFlow involves boilerplate 'stateIn()':
             // https://github.com/Kotlin/kotlinx.coroutines/issues/2631

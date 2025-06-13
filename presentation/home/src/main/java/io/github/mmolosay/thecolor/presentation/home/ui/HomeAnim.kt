@@ -134,27 +134,25 @@ internal class HomeAnimController(
     // key state is a state that occurs in started sequence; like a key frame
     private var lastReachedKeyState: HomeAnimState = currentState
     var currentState: HomeAnimState = currentState
-    val destState = MutableStateFlow(currentState)
+    val flowOfDestState = MutableStateFlow(currentState)
 
     private var sequence: HomeAnimSequence? = null
     private var isRunning = false
 
     /** Starts animation of [sequence] until the end of it. */
-    fun start(sequence: HomeAnimSequence) {
+    fun run(sequence: HomeAnimSequence) {
         require(sequence.isNotEmpty()) { "can't animate empty sequence" }
         require(sequence.first() == currentState) // sequence must start from current state
         if (sequence.size == 1) {
             if (!isRunning) return // nothing to animate
             // animating from half-finished dest back to current state
-            if (sequence.single() == currentState) {
-                assert(isRunning)
+            if ((sequence.single() == currentState) && isRunning) {
                 this.sequence = sequence
-                destState.value = sequence.single()
+                flowOfDestState.value = sequence.single()
             }
         } else {
             this.sequence = sequence
-            val dest = requireNotNull(nextInSequence()) // atp sequence is guaranteed to have at least 2 elements
-            destState.value = requireNotNull(dest)
+            flowOfDestState.value = requireNotNull(nextInSequence())
             isRunning = true
         }
     }
@@ -184,7 +182,7 @@ internal class HomeAnimController(
     }
 
     private fun checkIfDestIsReachedAndSetNext() {
-        val currentDest = destState.value
+        val currentDest = flowOfDestState.value
         if (currentState != currentDest) return
         assert(currentState == currentDest)
         lastReachedKeyState = currentState
@@ -192,7 +190,7 @@ internal class HomeAnimController(
         if (!isRunning) return // if running, update next dest
         val nextDest = nextInSequence()
         if (nextDest != null) {
-            destState.value = nextDest
+            flowOfDestState.value = nextDest
         } else {
             isRunning = false
             this.sequence = null
