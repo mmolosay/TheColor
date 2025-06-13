@@ -119,7 +119,6 @@ internal fun HomeAnimSequence(
     return HomeAnimSequence(subsequence)
 }
 
-// TODO: ADD UNIT TESTS
 internal class HomeAnimController(
     currentState: HomeAnimState,
 ) {
@@ -130,7 +129,6 @@ internal class HomeAnimController(
     private var indexOfDestInSequence: Int? = null
     private var isRunning = false
 
-    /** Starts animation of [sequence] until the end of it. */
     fun run(sequence: HomeAnimSequence) {
         require(sequence.isNotEmpty()) { "can't animate empty sequence" }
         require(sequence.first() == currentState) // sequence must start from current state
