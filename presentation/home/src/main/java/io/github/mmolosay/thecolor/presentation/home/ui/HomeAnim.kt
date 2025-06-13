@@ -85,15 +85,7 @@ internal fun HomeAnimState(
 }
 
 // TODO: abolish type? Replace with typealias?
-internal class HomeAnimSequence(states: List<HomeAnimState>) : List<HomeAnimState> by states {
-
-    // TODO: rework? extract into List utils?
-    fun HomeAnimState.next(): HomeAnimState? {
-        require(this in this@HomeAnimSequence) // state in sequence
-        val indexOfState = indexOf(this) // can't be -1 because of contains() check above ↑
-        return getOrNull(indexOfState + 1)
-    }
-}
+internal class HomeAnimSequence(states: List<HomeAnimState>) : List<HomeAnimState> by states
 
 private val FullForwardSequence: HomeAnimSequence = run {
     val states = buildList {
@@ -131,12 +123,11 @@ internal fun HomeAnimSequence(
 internal class HomeAnimController(
     currentState: HomeAnimState,
 ) {
-    // key state is a state that occurs in started sequence; like a key frame
-    private var lastReachedKeyState: HomeAnimState = currentState
     var currentState: HomeAnimState = currentState
     val flowOfDestState = MutableStateFlow(currentState)
 
     private var sequence: HomeAnimSequence? = null
+    private var indexOfDestInSequence: Int? = null
     private var isRunning = false
 
     /** Starts animation of [sequence] until the end of it. */
@@ -148,11 +139,14 @@ internal class HomeAnimController(
             // animating from half-finished dest back to current state
             if ((sequence.single() == currentState) && isRunning) {
                 this.sequence = sequence
+                indexOfDestInSequence = 0
                 flowOfDestState.value = sequence.single()
             }
         } else {
             this.sequence = sequence
+            indexOfDestInSequence = 0
             flowOfDestState.value = requireNotNull(nextInSequence())
+            indexOfDestInSequence = requireNotNull(indexOfDestInSequence) + 1
             isRunning = true
         }
     }
@@ -177,23 +171,25 @@ internal class HomeAnimController(
 
     private fun nextInSequence(): HomeAnimState? {
         val sequence = requireNotNull(sequence)
-        require(lastReachedKeyState in sequence)
-        return with(sequence) { lastReachedKeyState.next() }
+        val indexOfDestInSequence = requireNotNull(indexOfDestInSequence)
+        val indexOfNext = indexOfDestInSequence + 1
+        return sequence.getOrNull(indexOfNext)
     }
 
     private fun checkIfDestIsReachedAndSetNext() {
         val currentDest = flowOfDestState.value
         if (currentState != currentDest) return
-        assert(currentState == currentDest)
-        lastReachedKeyState = currentState
 
         if (!isRunning) return // if running, update next dest
+        assert(currentState == currentDest) // dest is reached
         val nextDest = nextInSequence()
         if (nextDest != null) {
             flowOfDestState.value = nextDest
+            indexOfDestInSequence = requireNotNull(indexOfDestInSequence) + 1
         } else {
             isRunning = false
-            this.sequence = null
+            sequence = null
+            indexOfDestInSequence = null
         }
     }
 }
