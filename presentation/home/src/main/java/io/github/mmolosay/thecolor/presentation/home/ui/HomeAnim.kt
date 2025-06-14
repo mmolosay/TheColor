@@ -5,6 +5,7 @@ import arrow.optics.copy
 import arrow.optics.optics
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorCenter
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPreview
+import io.github.mmolosay.thecolor.utils.nextOrNull
 import io.github.mmolosay.thecolor.utils.startsWith
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -154,7 +155,7 @@ internal class HomeAnimController(
         require(sequence.first() == currentState) { "sequence must start from current state" }
         val sequenceIterator = sequence.drop(1).listIterator() // drop first 'currentState'
         val oldDest = flowOfDestState.value
-        val newDest = requireNotNull(nextInSequence(sequenceIterator))
+        val newDest = requireNotNull(sequenceIterator.next())
         val isDestActuallyNew = (newDest != oldDest)
         val doesNewSequenceExtendOneThatIsAlreadyRunning = kotlin.run {
             val runningSequence = runningSequence ?: return@run false
@@ -192,21 +193,13 @@ internal class HomeAnimController(
         checkIfDestIsReachedAndSetNext()
     }
 
-    private fun nextInSequence(): HomeAnimState? {
-        val sequenceIterator = requireNotNull(runningSequenceIterator)
-        return nextInSequence(iterator = sequenceIterator)
-    }
-
-    private fun nextInSequence(iterator: Iterator<HomeAnimState>): HomeAnimState? =
-        if (iterator.hasNext()) iterator.next() else null
-
     private fun checkIfDestIsReachedAndSetNext() {
         val currentDest = flowOfDestState.value
         if (currentState != currentDest) return
 
         if (!isRunning) return // if running, update next dest
         assert(currentState == currentDest) // dest is reached
-        val nextDest = nextInSequence()
+        val nextDest = requireNotNull(runningSequenceIterator).nextOrNull()
         if (nextDest != null) {
             flowOfDestState.value = nextDest
         } else {
