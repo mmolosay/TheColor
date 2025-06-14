@@ -169,21 +169,14 @@ fun HomeScreen(
         )
     }
     val animController = remember {
-        val uiState = flowOfUiState.value
-        val currentState = HomeAnimState(
-            isColorPreviewVisible = uiState.isColorPreviewVisible,
-            isColorCenterVisible = uiState.isColorCenterVisible,
-        )
+        val currentState = flowOfUiState.value.toAnimState()
         HomeAnimController(currentState)
     }
     LaunchedEffect(Unit) {
         flowOfUiState.collect { uiState ->
             val sequence = HomeAnimSequence(
                 from = animController.currentState,
-                to = HomeAnimState(
-                    isColorPreviewVisible = uiState.isColorPreviewVisible,
-                    isColorCenterVisible = uiState.isColorCenterVisible,
-                ),
+                to = uiState.toAnimState(),
             )
             animController.run(sequence)
         }
@@ -245,6 +238,12 @@ private data class HomeUiState(
     val isColorPreviewVisible: Boolean,
     val isColorCenterVisible: Boolean,
 )
+
+private fun HomeUiState.toAnimState(): HomeAnimState =
+    HomeAnimState(
+        isColorPreviewVisible = this.isColorPreviewVisible,
+        isColorCenterVisible = this.isColorCenterVisible,
+    )
 
 // syntactic sugar that makes nullable types easier to read
 internal typealias ColorCenterComposable = @Composable () -> Unit
