@@ -132,8 +132,7 @@ internal class HomeAnimController(
     var currentState: HomeAnimState = currentState
     val flowOfDestState = MutableStateFlow(currentState)
 
-    private var sequence: HomeAnimSequence? = null
-    private var indexOfDestInSequence: Int? = null
+    private var sequenceIterator: Iterator<HomeAnimState>? = null
     private var isRunning = false
 
     fun run(sequence: HomeAnimSequence) {
@@ -143,18 +142,15 @@ internal class HomeAnimController(
             when {
                 isRunning && (sequence.single() == currentState) -> {
                     // animating from half-finished dest back to current state
-                    this.sequence = sequence
-                    indexOfDestInSequence = 0
-                    flowOfDestState.value = sequence.single()
+                    sequenceIterator = sequence.listIterator()
+                    flowOfDestState.value = requireNotNull(nextInSequence())
                 }
                 !isRunning -> return // nothing to animate
                 else -> error("Running an illegal sequence: $sequence")
             }
         } else {
-            this.sequence = sequence
-            indexOfDestInSequence = 0
+            sequenceIterator = sequence.drop(1).listIterator() // drop currentState
             flowOfDestState.value = requireNotNull(nextInSequence())
-            indexOfDestInSequence = 1
             isRunning = true
         }
     }
@@ -178,10 +174,8 @@ internal class HomeAnimController(
     }
 
     private fun nextInSequence(): HomeAnimState? {
-        val sequence = requireNotNull(sequence)
-        val indexOfDestInSequence = requireNotNull(indexOfDestInSequence)
-        val indexOfNext = indexOfDestInSequence + 1
-        return sequence.getOrNull(indexOfNext)
+        val sequenceIterator = requireNotNull(sequenceIterator)
+        return if (sequenceIterator.hasNext()) sequenceIterator.next() else null
     }
 
     private fun checkIfDestIsReachedAndSetNext() {
@@ -193,11 +187,9 @@ internal class HomeAnimController(
         val nextDest = nextInSequence()
         if (nextDest != null) {
             flowOfDestState.value = nextDest
-            indexOfDestInSequence = requireNotNull(indexOfDestInSequence) + 1
         } else {
             isRunning = false
-            sequence = null
-            indexOfDestInSequence = null
+            sequenceIterator = null
         }
     }
 }
