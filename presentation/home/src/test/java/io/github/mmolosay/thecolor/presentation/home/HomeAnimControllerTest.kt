@@ -90,29 +90,7 @@ internal class HomeAnimControllerTest {
     }
 
     @Test
-    fun `when animation is not running and sequence has single state, then nothing happens`() = runTest {
-        sut = kotlin.run {
-            val initialState = HomeAnimState(
-                colorPreview = ColorPreview(
-                    position = ColorPreview.Position.NotDived,
-                    visibility = ColorPreview.Visibility.Hidden,
-                ),
-                colorCenter = ColorCenter.Collapsed,
-            )
-            HomeAnimController(initialState)
-        }
-        val initialCurrentState = sut.currentState
-        val initialDestState = sut.flowOfDestState.value
-
-        val sequence = HomeAnimSequence(states = listOf(sut.currentState))
-        sut.run(sequence)
-
-        sut.currentState shouldBe initialCurrentState
-        sut.flowOfDestState.value shouldBe initialDestState
-    }
-
-    @Test
-    fun `when animation 'X → Y' is running and sequence has single X state, then animation back towards X starts`() = runTest {
+    fun `when animation 'X → Y' is running and new sequence is 'X → X', then animation back towards X starts`() = runTest {
         val state1 = HomeAnimState(
             colorPreview = ColorPreview(
                 position = ColorPreview.Position.NotDived,
@@ -127,7 +105,7 @@ internal class HomeAnimControllerTest {
         // reached state is not reported, thus animation is still running
         sut.currentState shouldBe state1
         sut.flowOfDestState.value shouldBe state2
-        sut.run(sequence = HomeAnimSequence(states = listOf(state1)))
+        sut.run(sequence = HomeAnimSequence(states = listOf(state1, state1)))
         sut.reportDestReached(state1.colorPreview.visibility) // state1 is reached
 
         sut.currentState shouldBe state1

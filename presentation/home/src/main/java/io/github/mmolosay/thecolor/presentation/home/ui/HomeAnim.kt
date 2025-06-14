@@ -84,10 +84,13 @@ internal fun HomeAnimState(
     }
 }
 
-// TODO: abolish type? Replace with typealias?
 internal class HomeAnimSequence(
     private val states: List<HomeAnimState>,
 ) : List<HomeAnimState> by states {
+
+    init {
+        require(states.size >= 2) { "Sequence must have at least 2 states: start and finish" }
+    }
 
     // inheritance 'by' delegate doesn't inherit methods of 'Any'
     override fun toString(): String =
@@ -115,12 +118,18 @@ internal fun HomeAnimSequence(
 ): HomeAnimSequence {
     require(from in FullForwardSequence)
     require(to in FullForwardSequence)
-    val indexOfCurrent = FullForwardSequence.indexOf(from)
-    val indexOfDest = FullForwardSequence.indexOf(to)
-    val subsequence = if (indexOfCurrent <= indexOfDest) {
-        FullForwardSequence.subList(indexOfCurrent, indexOfDest + 1)
-    } else {
-        FullForwardSequence.subList(indexOfDest, indexOfCurrent + 1).reversed()
+    val indexOfCurrent = FullForwardSequence.indexOf(from) // -1 is impossible due to 'contains()' check above
+    val indexOfDest = FullForwardSequence.indexOf(to) // -1 is impossible due to 'contains()' check above
+    val subsequence = when {
+        indexOfCurrent < indexOfDest ->
+            FullForwardSequence.subList(indexOfCurrent, indexOfDest + 1)
+        indexOfCurrent > indexOfDest ->
+            FullForwardSequence.subList(indexOfDest, indexOfCurrent + 1).reversed()
+        else -> {
+            assert(indexOfCurrent == indexOfDest)
+            val state = FullForwardSequence[indexOfCurrent]
+            listOf(state, state)
+        }
     }
     require(subsequence.isNotEmpty()) { "Cannot make 'HomeAnimSequence' from $from to $to" }
     return HomeAnimSequence(subsequence)
@@ -136,23 +145,10 @@ internal class HomeAnimController(
     private var isRunning = false
 
     fun run(sequence: HomeAnimSequence) {
-        require(sequence.isNotEmpty()) { "can't animate empty sequence" }
         require(sequence.first() == currentState) { "sequence must start from current state" }
-        if (sequence.size == 1) {
-            when {
-                isRunning && (sequence.single() == currentState) -> {
-                    // animating from half-finished dest back to current state
-                    sequenceIterator = sequence.listIterator()
-                    flowOfDestState.value = requireNotNull(nextInSequence())
-                }
-                !isRunning -> return // nothing to animate
-                else -> error("Running an illegal sequence: $sequence")
-            }
-        } else {
-            sequenceIterator = sequence.drop(1).listIterator() // drop currentState
-            flowOfDestState.value = requireNotNull(nextInSequence())
-            isRunning = true
-        }
+        sequenceIterator = sequence.drop(1).listIterator() // drop first 'currentState'
+        flowOfDestState.value = requireNotNull(nextInSequence())
+        isRunning = true
     }
 
     fun reportDestReached(dest: ColorPreview.Position) {
