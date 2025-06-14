@@ -145,14 +145,19 @@ internal class HomeAnimController(
     var currentState: HomeAnimState = currentState
     val flowOfDestState = MutableStateFlow(currentState)
 
-    private var sequenceIterator: Iterator<HomeAnimState>? = null
+    private var runningSequenceIterator: Iterator<HomeAnimState>? = null
     private var isRunning = false
 
     fun run(sequence: HomeAnimSequence) {
         require(sequence.first() == currentState) { "sequence must start from current state" }
-        sequenceIterator = sequence.drop(1).listIterator() // drop first 'currentState'
-        flowOfDestState.value = requireNotNull(nextInSequence())
-        isRunning = true
+        val sequenceIterator = sequence.drop(1).listIterator() // drop first 'currentState'
+        val oldDest = flowOfDestState.value
+        val newDest = requireNotNull(nextInSequence(sequenceIterator))
+        if (oldDest != newDest) {
+            flowOfDestState.value = newDest
+            runningSequenceIterator = sequenceIterator
+            isRunning = true
+        }
     }
 
     fun reportDestReached(dest: ColorPreview.Position) {
@@ -180,9 +185,12 @@ internal class HomeAnimController(
     }
 
     private fun nextInSequence(): HomeAnimState? {
-        val sequenceIterator = requireNotNull(sequenceIterator)
-        return if (sequenceIterator.hasNext()) sequenceIterator.next() else null
+        val sequenceIterator = requireNotNull(runningSequenceIterator)
+        return nextInSequence(iterator = sequenceIterator)
     }
+
+    private fun nextInSequence(iterator: Iterator<HomeAnimState>): HomeAnimState? =
+        if (iterator.hasNext()) iterator.next() else null
 
     private fun checkIfDestIsReachedAndSetNext() {
         val currentDest = flowOfDestState.value
@@ -194,8 +202,8 @@ internal class HomeAnimController(
         if (nextDest != null) {
             flowOfDestState.value = nextDest
         } else {
+            runningSequenceIterator = null
             isRunning = false
-            sequenceIterator = null
         }
     }
 }
