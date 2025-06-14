@@ -44,7 +44,6 @@ dependencies {
     implementation("com.squareup.moshi:moshi-kotlin:1.15.0")
 
     // Data Local
-    implementation("androidx.room:room-runtime:${libs.versions.room.get()}")
     implementation("androidx.datastore:datastore-preferences:${libs.versions.dataStore.preferences.get()}")
 
     // Hilt

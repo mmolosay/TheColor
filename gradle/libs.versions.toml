@@ -33,7 +33,6 @@ retrofit-moshi = "2.7.0"
 okhttp3-loggingInterceptor = "4.8.0"
 
 # Local
-room = "2.6.1"
 dataStore-preferences = "1.1.1"
 
 # Testing
