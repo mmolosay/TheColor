@@ -1,14 +1,20 @@
 package io.github.mmolosay.thecolor.presentation.home
 
+import arrow.optics.copy
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimController
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimSequence
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorCenter
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPreview
+import io.github.mmolosay.thecolor.presentation.home.ui.colorCenter
+import io.github.mmolosay.thecolor.presentation.home.ui.colorPreview
+import io.github.mmolosay.thecolor.presentation.home.ui.position
+import io.github.mmolosay.thecolor.presentation.home.ui.visibility
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
+import kotlin.collections.last
 import kotlin.time.Duration.Companion.seconds
 
 internal class HomeAnimControllerTest {
@@ -31,12 +37,15 @@ internal class HomeAnimControllerTest {
         val sequence = buildList {
             sut.currentState
                 .also { add(it) }
-            last().copy(colorPreviewVisibility = ColorPreview.Visibility.Visible)
-                .also { add(it) }
-            last().copy(colorPreviewPosition = ColorPreview.Position.Dived)
-                .also { add(it) }
-            last().copy(colorCenter = ColorCenter.Expanded)
-                .also { add(it) }
+            last().copy {
+                HomeAnimState.colorPreview.visibility set ColorPreview.Visibility.Visible
+            }.also { add(it) }
+            last().copy {
+                HomeAnimState.colorPreview.position set ColorPreview.Position.Dived
+            }.also { add(it) }
+            last().copy {
+                HomeAnimState.colorCenter set ColorCenter.Expanded
+            }.also { add(it) }
         }.let { states -> HomeAnimSequence(states) }
         sut.run(sequence)
 
@@ -75,8 +84,9 @@ internal class HomeAnimControllerTest {
         val sequence = buildList {
             sut.currentState
                 .also { add(it) }
-            last().copy(colorPreviewVisibility = ColorPreview.Visibility.Visible)
-                .also { add(it) }
+            last().copy {
+                HomeAnimState.colorPreview.visibility set ColorPreview.Visibility.Visible
+            }.also { add(it) }
         }.let { states -> HomeAnimSequence(states) }
         sut.run(sequence)
 
@@ -98,7 +108,9 @@ internal class HomeAnimControllerTest {
             ),
             colorCenter = ColorCenter.Collapsed,
         )
-        val state2 =  state1.copy(colorPreviewVisibility = ColorPreview.Visibility.Visible)
+        val state2 = state1.copy {
+            HomeAnimState.colorPreview.visibility set ColorPreview.Visibility.Visible
+        }
         sut = HomeAnimController(state1)
 
         sut.run(sequence = HomeAnimSequence(states = listOf(state1, state2)))

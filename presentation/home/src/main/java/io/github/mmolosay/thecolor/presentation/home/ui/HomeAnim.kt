@@ -1,6 +1,8 @@
 package io.github.mmolosay.thecolor.presentation.home.ui
 
 import androidx.compose.ui.unit.dp
+import arrow.optics.copy
+import arrow.optics.optics
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorCenter
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,11 +12,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
  * It can be used to either describe a current state of the UI in terms of animation sequence,
  * or to define a destination animation state that UI should animate to.
  */
-internal data class HomeAnimState(
+@optics
+/* internal but @optics */
+data class HomeAnimState(
     val colorPreview: ColorPreview,
     val colorCenter: ColorCenter,
 ) {
 
+    @optics
     data class ColorPreview(
         val position: Position,
         val visibility: Visibility,
@@ -25,25 +30,17 @@ internal data class HomeAnimState(
         enum class Visibility {
             Visible, Hidden;
         }
+
+        // The @optics lenses are generated in the companion object
+        companion object
     }
 
     enum class ColorCenter {
         Collapsed, Expanded;
     }
 
-    // TODO: try Arrow.io lenses
-    fun copy(
-        colorPreviewPosition: ColorPreview.Position = this.colorPreview.position,
-        colorPreviewVisibility: ColorPreview.Visibility = this.colorPreview.visibility,
-        colorCenter: ColorCenter = this.colorCenter,
-    ) =
-        copy(
-            colorPreview = colorPreview.copy(
-                position = colorPreviewPosition,
-                visibility = colorPreviewVisibility,
-            ),
-            colorCenter = colorCenter,
-        )
+    // The @optics lenses are generated in the companion object
+    companion object
 }
 
 private object HomeAnimStates {
@@ -99,14 +96,21 @@ internal class HomeAnimSequence(
 
 private val FullForwardSequence: HomeAnimSequence = run {
     val states = buildList {
+        // 0
         HomeAnimStates.Collapsed
             .also { add(it) }
-        last().copy(colorPreviewVisibility = ColorPreview.Visibility.Visible)
-            .also { add(it) }
-        last().copy(colorPreviewPosition = ColorPreview.Position.Dived)
-            .also { add(it) }
-        last().copy(colorCenter = ColorCenter.Expanded)
-            .also { add(it) }
+        // 1
+        last().copy {
+            HomeAnimState.colorPreview.visibility set ColorPreview.Visibility.Visible
+        }.also { add(it) }
+        // 2
+        last().copy {
+            HomeAnimState.colorPreview.position set ColorPreview.Position.Dived
+        }.also { add(it) }
+        // 3
+        last().copy {
+            HomeAnimState.colorCenter set ColorCenter.Expanded
+        }.also { add(it) }
     }
     assert(states.last() == HomeAnimStates.Expanded)
     HomeAnimSequence(states)
@@ -153,19 +157,25 @@ internal class HomeAnimController(
 
     fun reportDestReached(dest: ColorPreview.Position) {
         if (!isRunning) return
-        currentState = currentState.copy(colorPreviewPosition = dest)
+        currentState = currentState.copy {
+            HomeAnimState.colorPreview.position set dest
+        }
         checkIfDestIsReachedAndSetNext()
     }
 
     fun reportDestReached(dest: ColorPreview.Visibility) {
         if (!isRunning) return
-        currentState = currentState.copy(colorPreviewVisibility = dest)
+        currentState = currentState.copy {
+            HomeAnimState.colorPreview.visibility set dest
+        }
         checkIfDestIsReachedAndSetNext()
     }
 
     fun reportDestReached(dest: ColorCenter) {
         if (!isRunning) return
-        currentState = currentState.copy(colorCenter = dest)
+        currentState = currentState.copy {
+            HomeAnimState.colorCenter set dest
+        }
         checkIfDestIsReachedAndSetNext()
     }
 
