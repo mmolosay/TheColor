@@ -5,6 +5,7 @@ import arrow.optics.copy
 import arrow.optics.optics
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorCenter
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPreview
+import io.github.mmolosay.thecolor.utils.startsWith
 import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
@@ -145,6 +146,7 @@ internal class HomeAnimController(
     var currentState: HomeAnimState = currentState
     val flowOfDestState = MutableStateFlow(currentState)
 
+    private var runningSequence: HomeAnimSequence? = null
     private var runningSequenceIterator: Iterator<HomeAnimState>? = null
     private var isRunning = false
 
@@ -153,8 +155,14 @@ internal class HomeAnimController(
         val sequenceIterator = sequence.drop(1).listIterator() // drop first 'currentState'
         val oldDest = flowOfDestState.value
         val newDest = requireNotNull(nextInSequence(sequenceIterator))
-        if (oldDest != newDest) {
+        val isDestActuallyNew = (newDest != oldDest)
+        val doesNewSequenceExtendOneThatIsAlreadyRunning = kotlin.run {
+            val runningSequence = runningSequence ?: return@run false
+            sequence.startsWith(runningSequence)
+        }
+        if (isDestActuallyNew || doesNewSequenceExtendOneThatIsAlreadyRunning) {
             flowOfDestState.value = newDest
+            runningSequence = sequence
             runningSequenceIterator = sequenceIterator
             isRunning = true
         }
@@ -202,6 +210,7 @@ internal class HomeAnimController(
         if (nextDest != null) {
             flowOfDestState.value = nextDest
         } else {
+            runningSequence = null
             runningSequenceIterator = null
             isRunning = false
         }
