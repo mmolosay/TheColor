@@ -3,7 +3,7 @@
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
-    id("org.jetbrains.kotlin.kapt")
+    id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
 }
 
@@ -26,10 +26,6 @@ android {
             languageVersion.set(JavaLanguageVersion.of(version))
         }
     }
-
-    kapt {
-        correctErrorTypes = true
-    }
 }
 
 @Suppress("SpellCheckingInspection")
@@ -48,5 +44,5 @@ dependencies {
 
     // Hilt
     implementation("com.google.dagger:hilt-android:${libs.versions.hilt.get()}")
-    kapt("com.google.dagger:hilt-compiler:${libs.versions.hilt.get()}")
+    ksp("com.google.dagger:hilt-compiler:${libs.versions.hilt.get()}")
 }
