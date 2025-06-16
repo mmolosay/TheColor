@@ -137,7 +137,6 @@ internal fun HomeAnimSequence(
             listOf(state, state)
         }
     }
-    require(subsequence.isNotEmpty()) { "Cannot make 'HomeAnimSequence' from $from to $to" }
     return HomeAnimSequence(subsequence)
 }
 
