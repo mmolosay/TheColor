@@ -21,6 +21,101 @@ internal class HomeAnimControllerTest {
 
     lateinit var sut: HomeAnimController
 
+    /**
+     * GIVEN
+     * [sut] is created with some initial state X.
+     *
+     * WHEN
+     * sequence [X, X] is submitted to run
+     *
+     * THEN
+     * SUT recognizes this sequence as no-op and doesn't start animation.
+     * Thus, [HomeAnimController.isRunning] remains `false`.
+     */
+    @Test
+    fun `given initial state is X, when sequence 'X → X' is submitted, then it doesn't start`() = runTest {
+        val initialState = HomeAnimState(
+            colorPreview = ColorPreview(
+                position = ColorPreview.Position.NotDived,
+                visibility = ColorPreview.Visibility.Hidden,
+            ),
+            colorCenter = ColorCenter.Collapsed,
+        )
+        sut = HomeAnimController(initialState)
+
+        val sequence = HomeAnimSequence(states = listOf(initialState, initialState))
+        sut.run(sequence)
+
+        sut.isRunning shouldBe false
+    }
+
+    // TODO: finish me? Was added to test/debug an actual behaviour of SUT in a controlled manner
+    @Test
+    fun `whaaa`() = runTest {
+        sut = kotlin.run {
+            val initialState = HomeAnimState(
+                colorPreview = ColorPreview(
+                    position = ColorPreview.Position.NotDived,
+                    visibility = ColorPreview.Visibility.Hidden,
+                ),
+                colorCenter = ColorCenter.Collapsed,
+            )
+            HomeAnimController(initialState)
+        }
+
+        kotlin.run makeColorPreviewVisible@{
+            val sequence = buildList {
+                sut.currentState
+                    .also { add(it) }
+                last().copy {
+                    HomeAnimState.colorPreview.visibility set ColorPreview.Visibility.Visible
+                }.also { add(it) }
+            }.let { states -> HomeAnimSequence(states) }
+            sut.run(sequence)
+        }
+
+        // until it's not finished
+        kotlin.run runFullForwardSequence@{
+            val sequence = buildList {
+                sut.currentState
+                    .also { add(it) }
+                last().copy {
+                    HomeAnimState.colorPreview.visibility set ColorPreview.Visibility.Visible
+                }.also { add(it) }
+                last().copy {
+                    HomeAnimState.colorPreview.position set ColorPreview.Position.Dived
+                }.also { add(it) }
+                last().copy {
+                    HomeAnimState.colorCenter set ColorCenter.Expanded
+                }.also { add(it) }
+            }.let { states -> HomeAnimSequence(states) }
+            sut.run(sequence)
+        }
+        sut.reportDestReached(ColorPreview.Visibility.Visible) // first dest is reached
+
+        // e.g. proceeded color changes
+        kotlin.run cancelOngoingSequence@{
+            val currentState = sut.currentState
+            val sequence = HomeAnimSequence(states = listOf(currentState, currentState))
+            sut.run(sequence)
+        }
+
+        // until it's not finished
+        kotlin.run runFullForwardSequence@{
+            val sequence = buildList {
+                sut.currentState
+                    .also { add(it) }
+                last().copy {
+                    HomeAnimState.colorPreview.position set ColorPreview.Position.Dived
+                }.also { add(it) }
+                last().copy {
+                    HomeAnimState.colorCenter set ColorCenter.Expanded
+                }.also { add(it) }
+            }.let { states -> HomeAnimSequence(states) }
+            sut.run(sequence)
+        }
+    }
+
     @Test
     fun `run sequence of 4 states`() = runTest {
         sut = kotlin.run {

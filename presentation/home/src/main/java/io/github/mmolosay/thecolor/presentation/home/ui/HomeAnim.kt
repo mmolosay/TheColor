@@ -5,9 +5,8 @@ import arrow.optics.copy
 import arrow.optics.optics
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorCenter
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPreview
-import io.github.mmolosay.thecolor.utils.nextOrNull
-import io.github.mmolosay.thecolor.utils.startsWith
 import kotlinx.coroutines.flow.MutableStateFlow
+import timber.log.Timber
 
 /**
  * State of UI animation of 'Home' View.
@@ -144,28 +143,27 @@ internal class HomeAnimController(
     currentState: HomeAnimState,
 ) {
     var currentState: HomeAnimState = currentState
+        private set
+
     val flowOfDestState = MutableStateFlow(currentState)
 
-    private var runningSequence: HomeAnimSequence? = null
-    private var runningSequenceIterator: Iterator<HomeAnimState>? = null
-    private var isRunning = false
+    private val destState: HomeAnimState
+        get() = flowOfDestState.value
+
+    private var runningSequence: IterableSequence? = null
+
+    val isRunning: Boolean
+        get() = (runningSequence != null)
 
     fun run(sequence: HomeAnimSequence) {
         require(sequence.first() == currentState) { "sequence must start from current state" }
-        val sequenceIterator = sequence.drop(1).listIterator() // drop first 'currentState'
-        val oldDest = flowOfDestState.value
-        val newDest = requireNotNull(sequenceIterator.next())
-        val isDestActuallyNew = (newDest != oldDest)
-        val doesNewSequenceExtendOneThatIsAlreadyRunning = kotlin.run {
-            val runningSequence = runningSequence ?: return@run false
-            sequence.startsWith(runningSequence)
+        kotlin.run doNotRunIfSequenceIsNoOp@{
+            val destStates = sequence.drop(1) // current state
+            if (destStates.all { it == destState }) return // sequence is no-op
         }
-        if (isDestActuallyNew || doesNewSequenceExtendOneThatIsAlreadyRunning) {
-            flowOfDestState.value = newDest
-            runningSequence = sequence
-            runningSequenceIterator = sequenceIterator
-            isRunning = true
-        }
+        val runningSequence = IterableSequence(sequence = sequence, index = 0)
+        flowOfDestState.value = requireNotNull(runningSequence.advance())
+        this.runningSequence = runningSequence
     }
 
     fun reportDestReached(dest: ColorPreview.Position) {
@@ -189,22 +187,36 @@ internal class HomeAnimController(
         currentState = currentState.copy {
             HomeAnimState.colorCenter set dest
         }
+        Timber.d("DBG | updated currentState = $currentState")
         checkIfDestIsReachedAndSetNext()
     }
 
     private fun checkIfDestIsReachedAndSetNext() {
-        val currentDest = flowOfDestState.value
-        if (currentState != currentDest) return
+        if (currentState != destState) return // dest is not reached yet
 
         if (!isRunning) return // if running, update next dest
-        assert(currentState == currentDest) // dest is reached
-        val nextDest = requireNotNull(runningSequenceIterator).nextOrNull()
-        if (nextDest != null) {
-            flowOfDestState.value = nextDest
+        assert(currentState == destState) // dest is reached
+        val nextState = requireNotNull(runningSequence).advance()
+        if (nextState != null) {
+            flowOfDestState.value = nextState
+            Timber.d("DBG | updated destState = $nextState") // TODO: remove me
         } else {
-            runningSequence = null
-            runningSequenceIterator = null
-            isRunning = false
+            runningSequence = null // sequence is finished
+            Timber.d("DBG | sequence is finished") // TODO: remove me
+        }
+    }
+
+    // TODO: return back to simple iterator if 'sequence' property remains unused
+    private data class IterableSequence(
+        val sequence: HomeAnimSequence,
+        var index: Int,
+    ) {
+        val currentState: HomeAnimState?
+            get() = sequence.getOrNull(index)
+
+        fun advance(): HomeAnimState? {
+            index += 1
+            return currentState
         }
     }
 }
