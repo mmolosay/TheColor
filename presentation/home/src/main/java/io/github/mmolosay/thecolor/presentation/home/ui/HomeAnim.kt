@@ -73,8 +73,8 @@ private object HomeAnimStates {
  */
 @Suppress("KotlinConstantConditions")
 internal fun HomeAnimState(
-    isColorPreviewVisible: Boolean, // is there a valid color in 'Color Input'
-    isColorCenterVisible: Boolean, // whether the color was proceeded with
+    isColorPreviewVisible: Boolean,
+    isColorCenterVisible: Boolean,
 ): HomeAnimState {
     if (!isColorPreviewVisible) {
         assert(isColorCenterVisible == false) // transitive assumption according to impl of ViewModels
