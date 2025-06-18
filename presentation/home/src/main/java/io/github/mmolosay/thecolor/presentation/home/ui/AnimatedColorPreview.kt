@@ -41,6 +41,7 @@ import io.github.mmolosay.thecolor.presentation.impl.toDpSize
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState
 import io.github.mmolosay.thecolor.presentation.preview.toUiState
+import io.github.mmolosay.thecolor.utils.mapDistinctly
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -49,7 +50,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -154,39 +154,34 @@ internal fun AnimatedColorPreview(
     // TODO: position is being animated here, but visibility (collapse & expand) in ColorPreview() Composable itself
     //  Why such a separation?
     LaunchedEffect(Unit) {
-        flowOfAnimDest
-            .map { it.position }
-            // although 'flowOfAnimDest' is a 'StateFlow', if its value changes but 'position' stays
-            // the same, then two same 'position's will be emitted in succession.
-            .distinctUntilChanged()
-            .collectLatest collect@{ animDest ->
-                val offsetAnimatable = offsetAnimatable ?: return@collect
-                val targetValue = kotlin.run {
-                    val params = verticalOffsetParams ?: return@collect
-                    VerticalOffset.calc(animDest, params)
-                }
-                if (offsetAnimatable.value == targetValue) {
-                    onPositionAnimDestReached(animDest)
-                    return@collect // already in target state
-                }
-                val animationSpec: AnimationSpec<Dp> = when (animDest) {
-                    ColorPreviewAnimState.Position.NotDived ->
-                        spring(
-                            dampingRatio = Spring.DampingRatioNoBouncy,
-                            stiffness = Spring.StiffnessMedium,
-                        )
-                    ColorPreviewAnimState.Position.Dived ->
-                        spring(
-                            dampingRatio = Spring.DampingRatioLowBouncy,
-                            stiffness = Spring.StiffnessMediumLow,
-                        )
-                }
-                offsetAnimatable.animateTo(
-                    targetValue = targetValue,
-                    animationSpec = animationSpec,
-                )
-                onPositionAnimDestReached(animDest)
+        flowOfAnimDest.mapDistinctly { it.position }.collectLatest collect@{ animDest ->
+            val offsetAnimatable = offsetAnimatable ?: return@collect
+            val targetValue = kotlin.run {
+                val params = verticalOffsetParams ?: return@collect
+                VerticalOffset.calc(animDest, params)
             }
+            if (offsetAnimatable.value == targetValue) {
+                onPositionAnimDestReached(animDest)
+                return@collect // already in target state
+            }
+            val animationSpec: AnimationSpec<Dp> = when (animDest) {
+                ColorPreviewAnimState.Position.NotDived ->
+                    spring(
+                        dampingRatio = Spring.DampingRatioNoBouncy,
+                        stiffness = Spring.StiffnessMedium,
+                    )
+                ColorPreviewAnimState.Position.Dived ->
+                    spring(
+                        dampingRatio = Spring.DampingRatioLowBouncy,
+                        stiffness = Spring.StiffnessMediumLow,
+                    )
+            }
+            offsetAnimatable.animateTo(
+                targetValue = targetValue,
+                animationSpec = animationSpec,
+            )
+            onPositionAnimDestReached(animDest)
+        }
     }
 }
 

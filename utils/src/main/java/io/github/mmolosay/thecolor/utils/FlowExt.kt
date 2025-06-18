@@ -5,8 +5,10 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withTimeout
 import kotlin.time.Duration
@@ -53,3 +55,17 @@ suspend fun <T> StateFlow<T>.firstNext(): T =
     this
         .drop(1) // replayed value of StateFlow
         .first()
+
+/**
+ * Returns a flow with [map] and [distinctUntilChanged] operators applied to it.
+ * This operator is a shortcut for mapping a [StateFlow].
+
+ * Although the receiver is a [StateFlow], if its value changes but [transform] produces
+ * the same value, then two same values will be emitted from the returned flow in succession.
+ */
+inline fun <T, R> StateFlow<T>.mapDistinctly(
+    crossinline transform: suspend (value: T) -> R,
+): Flow<R> =
+    this
+        .map(transform)
+        .distinctUntilChanged()
