@@ -10,7 +10,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -22,7 +21,6 @@ import io.github.mmolosay.thecolor.presentation.impl.CircularReveal
 import io.github.mmolosay.thecolor.presentation.impl.RadiusProvider
 import io.github.mmolosay.thecolor.presentation.impl.calcVisibleHeightInScrollableContainer
 import io.github.mmolosay.thecolor.presentation.impl.clipCircle
-import kotlinx.coroutines.launch
 
 @Composable
 internal fun AnimatedColorCenter(
@@ -32,7 +30,6 @@ internal fun AnimatedColorCenter(
     containerScrollState: ScrollState,
 ) {
     val density = LocalDensity.current
-    val coroutineScope = rememberCoroutineScope()
 
     fun targetValue() =
         when (animDest) {
@@ -48,17 +45,15 @@ internal fun AnimatedColorCenter(
         if (progressAnimatable.value == targetValue) {
             return@LaunchedEffect // already in target state
         }
-        coroutineScope.launch {
-            val animSpec: AnimationSpec<Float> = when (animDest) {
-                HomeAnimState.ColorCenter.Expanded -> spring(stiffness = 100f)
-                HomeAnimState.ColorCenter.Collapsed -> spring(stiffness = 300f)
-            }
-            progressAnimatable.animateTo(
-                targetValue = targetValue,
-                animationSpec = animSpec,
-            )
-            onAnimDestReached(animDest)
+        val animSpec: AnimationSpec<Float> = when (animDest) {
+            HomeAnimState.ColorCenter.Expanded -> spring(stiffness = 100f)
+            HomeAnimState.ColorCenter.Collapsed -> spring(stiffness = 300f)
         }
+        progressAnimatable.animateTo(
+            targetValue = targetValue,
+            animationSpec = animSpec,
+        )
+        onAnimDestReached(animDest)
     }
 
     CircularReveal(
