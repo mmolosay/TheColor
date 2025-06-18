@@ -43,6 +43,7 @@ internal fun AnimatedColorCenter(
     LaunchedEffect(animDest) {
         val targetValue = targetValue()
         if (progressAnimatable.value == targetValue) {
+            onAnimDestReached(animDest)
             return@LaunchedEffect // already in target state
         }
         val animSpec: AnimationSpec<Float> = when (animDest) {
