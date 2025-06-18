@@ -144,6 +144,7 @@ internal fun HomeAnimSequence(
     return HomeAnimSequence(subsequence)
 }
 
+// TODO: remove logs
 internal class HomeAnimController(
     currentState: HomeAnimState,
 ) {
@@ -161,6 +162,13 @@ internal class HomeAnimController(
         get() = (runningSequence != null)
 
     fun run(sequence: HomeAnimSequence) {
+        Timber.d("DBG | ----------------------------")
+        Timber.d("DBG | running new sequence $sequence")
+        Timber.d("DBG | currentState = $currentState")
+        Timber.d("DBG | currentDest = ${flowOfDestState.value}")
+        Timber.d("DBG | runningSequence = $runningSequence")
+        Timber.d("DBG | ----------------------------")
+
         require(sequence.first() == currentState) { "sequence must start from current state" }
         kotlin.run doNotRunIfSequenceIsNoOp@{
             val destStates = sequence.drop(1) // current state
@@ -173,22 +181,39 @@ internal class HomeAnimController(
 
     fun reportDestReached(dest: ColorPreview.Position) {
         if (!isRunning) return
+        Timber.d("DBG | ----------------------------")
+        Timber.d("DBG | dest ColorPreview.Position.$dest is reached")
+        if (dest != flowOfDestState.value.colorPreview.position) {
+            errorReportedReachedStateDoesntMatchDest(dest)
+        }
         currentState = currentState.copy {
             HomeAnimState.colorPreview.position set dest
         }
+        Timber.d("DBG | updated currentState = $currentState")
         checkIfDestIsReachedAndSetNext()
     }
 
     fun reportDestReached(dest: ColorPreview.Visibility) {
         if (!isRunning) return
+        Timber.d("DBG | ----------------------------")
+        Timber.d("DBG | dest ColorPreview.Visibility.$dest is reached")
+        if (dest != flowOfDestState.value.colorPreview.visibility) {
+            errorReportedReachedStateDoesntMatchDest(dest)
+        }
         currentState = currentState.copy {
             HomeAnimState.colorPreview.visibility set dest
         }
+        Timber.d("DBG | updated currentState = $currentState")
         checkIfDestIsReachedAndSetNext()
     }
 
     fun reportDestReached(dest: ColorCenter) {
         if (!isRunning) return
+        Timber.d("DBG | ----------------------------")
+        Timber.d("DBG | dest ColorCenter.$dest is reached")
+        if (dest != flowOfDestState.value.colorCenter) {
+            errorReportedReachedStateDoesntMatchDest(dest)
+        }
         currentState = currentState.copy {
             HomeAnimState.colorCenter set dest
         }
@@ -204,12 +229,15 @@ internal class HomeAnimController(
         val nextState = requireNotNull(runningSequence).advance()
         if (nextState != null) {
             flowOfDestState.value = nextState
-            Timber.d("DBG | updated destState = $nextState") // TODO: remove me
+            Timber.d("DBG | updated destState = $nextState")
         } else {
             runningSequence = null // sequence is finished
-            Timber.d("DBG | sequence is finished") // TODO: remove me
+            Timber.d("DBG | sequence is finished")
         }
     }
+
+    private fun errorReportedReachedStateDoesntMatchDest(dest: Any): Nothing =
+        error("$dest is reported as reached but dest has different value")
 
     // TODO: return back to simple iterator if 'sequence' property remains unused
     private data class IterableSequence(

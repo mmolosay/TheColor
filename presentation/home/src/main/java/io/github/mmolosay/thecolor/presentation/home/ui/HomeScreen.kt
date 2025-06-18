@@ -116,6 +116,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import timber.log.Timber
 import kotlin.random.Random
 
 @Composable
@@ -174,6 +175,7 @@ fun HomeScreen(
     }
     LaunchedEffect(Unit) {
         flowOfUiState.collect { uiState ->
+            Timber.d("DBG | uiState = $uiState") // TODO: remove me
             val sequence = HomeAnimSequence(
                 from = animController.currentState,
                 to = uiState.toAnimState(),
