@@ -401,7 +401,12 @@ private fun Home(
         }
         AnimatedColorCenter(
             colorCenter = decoratedColorCenter,
-            animDest = animDest.colorCenter,
+            flowOfAnimDest = kotlin.run {
+                val upstream = animController.flowOfDestState
+                upstream
+                    .map { it.colorCenter }
+                    .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), upstream.value.colorCenter)
+            },
             onAnimDestReached = { animController.reportDestReached(it) },
             containerScrollState = scrollState,
         )

@@ -22,40 +22,45 @@ import io.github.mmolosay.thecolor.presentation.impl.CircularReveal
 import io.github.mmolosay.thecolor.presentation.impl.RadiusProvider
 import io.github.mmolosay.thecolor.presentation.impl.calcVisibleHeightInScrollableContainer
 import io.github.mmolosay.thecolor.presentation.impl.clipCircle
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 internal fun AnimatedColorCenter(
     colorCenter: ColorCenterComposable?,
-    animDest: HomeAnimState.ColorCenter,
+    flowOfAnimDest: StateFlow<HomeAnimState.ColorCenter>,
     onAnimDestReached: (HomeAnimState.ColorCenter) -> Unit,
     containerScrollState: ScrollState,
 ) {
     val density = LocalDensity.current
 
-    fun targetValue() =
-        when (animDest) {
+    fun HomeAnimState.ColorCenter.targetValue() =
+        when (this) {
             HomeAnimState.ColorCenter.Expanded -> 1f
             HomeAnimState.ColorCenter.Collapsed -> 0f
         }
 
     val progressAnimatable = remember {
-        Animatable(initialValue = targetValue())
+        val initialValue = flowOfAnimDest.value.targetValue()
+        Animatable(initialValue)
     }
-    LaunchedEffect(animDest) {
-        val targetValue = targetValue()
-        if (progressAnimatable.value == targetValue) {
+    LaunchedEffect(Unit) {
+        flowOfAnimDest.collectLatest collect@{ animDest ->
+            val targetValue = animDest.targetValue()
+            if (progressAnimatable.value == targetValue) {
+                onAnimDestReached(animDest)
+                return@collect // already in target state
+            }
+            val animSpec: AnimationSpec<Float> = when (animDest) {
+                HomeAnimState.ColorCenter.Expanded -> spring(stiffness = 100f)
+                HomeAnimState.ColorCenter.Collapsed -> spring(stiffness = 300f)
+            }
+            progressAnimatable.animateTo(
+                targetValue = targetValue,
+                animationSpec = animSpec,
+            )
             onAnimDestReached(animDest)
-            return@LaunchedEffect // already in target state
         }
-        val animSpec: AnimationSpec<Float> = when (animDest) {
-            HomeAnimState.ColorCenter.Expanded -> spring(stiffness = 100f)
-            HomeAnimState.ColorCenter.Collapsed -> spring(stiffness = 300f)
-        }
-        progressAnimatable.animateTo(
-            targetValue = targetValue,
-            animationSpec = animSpec,
-        )
-        onAnimDestReached(animDest)
     }
 
     CircularReveal(
