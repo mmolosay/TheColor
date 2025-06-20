@@ -157,9 +157,8 @@ internal class HomeAnimController(
             val destStates = sequence.drop(1) // current state
             if (destStates.all { it == destState }) return // sequence is no-op
         }
-        val runningSequence = IterableSequence(sequence = sequence, index = 0)
-        flowOfDestState.value = requireNotNull(runningSequence.advance())
-        this.runningSequence = runningSequence
+        this.runningSequence = IterableSequence(sequence = sequence, index = 0)
+        setNextDestFromSequence()
     }
 
     fun reportDestReached(dest: ColorPreview.Position) {
@@ -198,10 +197,8 @@ internal class HomeAnimController(
         checkIfDestIsReachedAndSetNext()
     }
 
-    private fun checkIfDestIsReachedAndSetNext() {
+    private fun setNextDestFromSequence() {
         if (!isRunning) return
-        if (currentState != destState) return // dest is not reached yet
-        assert(currentState == destState) // dest is reached
         val nextState = requireNotNull(runningSequence).advance()
         if (nextState != null) {
             flowOfDestState.value = nextState
@@ -209,6 +206,13 @@ internal class HomeAnimController(
         } else {
             runningSequence = null // sequence is finished
             Timber.d("DBG | sequence is finished")
+        }
+    }
+
+    private fun checkIfDestIsReachedAndSetNext() {
+        if (!isRunning) return
+        if (currentState == destState) {
+            setNextDestFromSequence()
         }
     }
 
