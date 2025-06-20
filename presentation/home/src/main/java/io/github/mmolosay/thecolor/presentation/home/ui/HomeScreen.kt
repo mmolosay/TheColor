@@ -327,8 +327,6 @@ private fun Home(
     var posInRoot by remember { mutableStateOf<DpOffset?>(null) }
     var size by remember { mutableStateOf<DpSize?>(null) }
 
-    val animDest = animController.flowOfDestState.collectAsStateWithLifecycle().value
-
     Column(
         modifier = modifier
             .fillMaxSize()
