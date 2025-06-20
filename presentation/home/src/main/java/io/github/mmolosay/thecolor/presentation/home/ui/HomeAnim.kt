@@ -139,7 +139,7 @@ internal class HomeAnimController(
     private val destState: HomeAnimState
         get() = flowOfDestState.value
 
-    private var runningSequence: IterableSequence? = null
+    private var runningSequence: AdvancingSequence? = null
 
     val isRunning: Boolean
         get() = (runningSequence != null)
@@ -157,7 +157,7 @@ internal class HomeAnimController(
             val destStates = sequence.drop(1) // current state
             if (destStates.all { it == destState }) return // sequence is no-op
         }
-        this.runningSequence = IterableSequence(sequence = sequence, index = 0)
+        runningSequence = AdvancingSequence(sequence)
         setNextDestFromSequence()
     }
 
@@ -219,11 +219,12 @@ internal class HomeAnimController(
     private fun errorReportedReachedStateDoesntMatchDest(dest: Any): Nothing =
         error("$dest is reported as reached but dest has different value")
 
-    // TODO: return back to simple iterator if 'sequence' property remains unused
-    private data class IterableSequence(
+    // TODO: return back to simple iterator if 'sequence' and 'currentState' properties remain unused
+    private class AdvancingSequence(
         val sequence: HomeAnimSequence,
-        var index: Int,
     ) {
+        private var index: Int = 0
+
         val currentState: HomeAnimState?
             get() = sequence.getOrNull(index)
 
