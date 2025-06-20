@@ -54,7 +54,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
-import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPreview as ColorPreviewAnimState
+import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPreview as AnimState
 
 /**
  * Animates 'Color Preview' position (dive) and manipulates its data to display 'Color Preview'
@@ -64,9 +64,10 @@ import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPrevi
 @Composable
 internal fun AnimatedColorPreview(
     colorPreview: ColorPreviewWithDependencies,
-    flowOfAnimDest: StateFlow<ColorPreviewAnimState>,
-    onPositionAnimDestReached: (dest: ColorPreviewAnimState.Position) -> Unit,
-    onVisibilityAnimDestReached: (dest: ColorPreviewAnimState.Visibility) -> Unit,
+    flowOfPositionAnimDest: StateFlow<AnimState.Position>,
+    flowOfVisibilityAnimDest: StateFlow<AnimState.Visibility>,
+    onPositionAnimDestReached: (dest: AnimState.Position) -> Unit,
+    onVisibilityAnimDestReached: (dest: AnimState.Visibility) -> Unit,
     containerViewportHeight: Dp?,
     containerPosInRoot: DpOffset?,
 ) {
@@ -76,11 +77,7 @@ internal fun AnimatedColorPreview(
     var posInContainer by remember { mutableStateOf<DpOffset?>(null) }
     var size by remember { mutableStateOf<DpSize?>(null) }
 
-    fun animDest() = flowOfAnimDest.value
     val visibilityAnimDestRegistry = remember {
-        val flowOfVisibilityAnimDest = flowOfAnimDest
-            .map { it.visibility }
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), animDest().visibility)
         CompletableAnimDestRegistry(
             flowOfAnimDest = flowOfVisibilityAnimDest,
             coroutineScope = coroutineScope,
@@ -103,8 +100,9 @@ internal fun AnimatedColorPreview(
     ) {
         if (value != null) return@produceState // already initialized
         val params = verticalOffsetParams ?: return@produceState
+        val positionAnimDest = flowOfPositionAnimDest.value
         value = Animatable(
-            initialValue = VerticalOffset.calc(animDest().position, params),
+            initialValue = VerticalOffset.calc(positionAnimDest, params),
             typeConverter = Dp.VectorConverter,
             visibilityThreshold = Dp.VisibilityThreshold,
             label = "dive",
@@ -132,7 +130,7 @@ internal fun AnimatedColorPreview(
         val flowOfAnimatedUiState = remember {
             FlowOfAnimatedUiState(
                 flowOfOriginalData = colorPreview.viewModel.dataFlow,
-                flowOfAnimDest = flowOfAnimDest,
+                flowOfVisibilityAnimDest = flowOfVisibilityAnimDest,
                 coroutineScope = coroutineScope,
             )
         }
@@ -154,7 +152,7 @@ internal fun AnimatedColorPreview(
     // TODO: position is being animated here, but visibility (collapse & expand) in ColorPreview() Composable itself
     //  Why such a separation?
     LaunchedEffect(Unit) {
-        flowOfAnimDest.mapDistinctly { it.position }.collectLatest collect@{ animDest ->
+        flowOfPositionAnimDest.collectLatest collect@{ animDest ->
             val offsetAnimatable = offsetAnimatable ?: return@collect
             val targetValue = kotlin.run {
                 val params = verticalOffsetParams ?: return@collect
@@ -165,12 +163,12 @@ internal fun AnimatedColorPreview(
                 return@collect // already in target state
             }
             val animationSpec: AnimationSpec<Dp> = when (animDest) {
-                ColorPreviewAnimState.Position.NotDived ->
+                AnimState.Position.NotDived ->
                     spring(
                         dampingRatio = Spring.DampingRatioNoBouncy,
                         stiffness = Spring.StiffnessMedium,
                     )
-                ColorPreviewAnimState.Position.Dived ->
+                AnimState.Position.Dived ->
                     spring(
                         dampingRatio = Spring.DampingRatioLowBouncy,
                         stiffness = Spring.StiffnessMediumLow,
@@ -188,13 +186,13 @@ internal fun AnimatedColorPreview(
 private object VerticalOffset {
 
     fun calc(
-        position: ColorPreviewAnimState.Position,
+        position: AnimState.Position,
         params: Params,
     ): Dp =
         when (position) {
-            ColorPreviewAnimState.Position.NotDived ->
+            AnimState.Position.NotDived ->
                 0.dp
-            ColorPreviewAnimState.Position.Dived -> {
+            AnimState.Position.Dived -> {
                 val diveTargetPointInContainer =
                     params.containerViewportHeight - (params.previewSize.height / 2) - ColorCenterFocalPointBottomOffset
                 val dive = diveTargetPointInContainer - params.previewPosInContainer.y
@@ -225,17 +223,12 @@ private object VerticalOffset {
 @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
 internal fun FlowOfAnimatedUiState(
     flowOfOriginalData: StateFlow<ColorPreviewData>,
-    flowOfAnimDest: StateFlow<ColorPreviewAnimState>,
+    flowOfVisibilityAnimDest: StateFlow<AnimState.Visibility>,
     coroutineScope: CoroutineScope,
 ): StateFlow<ColorPreviewUiState?> {
     val pendingUiStates = mutableListOf<ColorPreviewUiState>()
-    var pendingAnimDest: ColorPreviewAnimState.Visibility? = null
+    var pendingAnimDest: AnimState.Visibility? = null
     val windowBetweenOriginalDataAndAnimDest = 24.64.milliseconds * 2 // see benchmark comment below
-
-    val flowOfAnimDest = flowOfAnimDest.map { it.visibility }.stateIn(
-        scope = coroutineScope, started = SharingStarted.WhileSubscribed(),
-        initialValue = flowOfAnimDest.value.visibility,
-    )
     val flowOfAnimatedUiState = MutableStateFlow<ColorPreviewUiState?>(null)
 
     fun trySatisfyPendingAnimDest(): Boolean {
@@ -266,7 +259,7 @@ internal fun FlowOfAnimatedUiState(
      * Range: 3.18ms - 24.64ms
      */
     coroutineScope.launch {
-        flowOfAnimDest.collect { animDest ->
+        flowOfVisibilityAnimDest.collect { animDest ->
             pendingAnimDest = animDest
             trySatisfyPendingAnimDest()
         }
@@ -280,7 +273,7 @@ internal fun FlowOfAnimatedUiState(
             if (pendingAnimDest == null) {
                 // emit this uiState if it satisfies current, already satisfied anim dest
                 val animState = uiState.toAnimState()
-                val currentAnimDest = flowOfAnimDest.value
+                val currentAnimDest = flowOfVisibilityAnimDest.value
                 if (animState == currentAnimDest) {
                     flowOfAnimatedUiState.value = uiState
                     // remove this uiState as fulfilled
@@ -294,10 +287,10 @@ internal fun FlowOfAnimatedUiState(
     return flowOfAnimatedUiState.asStateFlow()
 }
 
-private fun ColorPreviewUiState.toAnimState(): ColorPreviewAnimState.Visibility =
+private fun ColorPreviewUiState.toAnimState(): AnimState.Visibility =
     when (this) {
-        is ColorPreviewUiState.Hidden -> ColorPreviewAnimState.Visibility.Hidden
-        is ColorPreviewUiState.Visible -> ColorPreviewAnimState.Visibility.Visible
+        is ColorPreviewUiState.Hidden -> AnimState.Visibility.Hidden
+        is ColorPreviewUiState.Visible -> AnimState.Visibility.Visible
     }
 
 @Preview(
@@ -318,13 +311,8 @@ private fun Preview() {
                     )
                 }
             },
-            flowOfAnimDest = remember {
-                val value = ColorPreviewAnimState(
-                    position = ColorPreviewAnimState.Position.NotDived,
-                    visibility = ColorPreviewAnimState.Visibility.Visible,
-                )
-                MutableStateFlow(value)
-            },
+            flowOfPositionAnimDest = remember { MutableStateFlow(AnimState.Position.NotDived) },
+            flowOfVisibilityAnimDest = remember { MutableStateFlow(AnimState.Visibility.Visible) },
             onPositionAnimDestReached = {},
             onVisibilityAnimDestReached = {},
             containerViewportHeight = 400.dp,

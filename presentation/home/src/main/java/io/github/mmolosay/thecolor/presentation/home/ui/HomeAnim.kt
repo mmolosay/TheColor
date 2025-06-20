@@ -1,8 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.home.ui
 
 import androidx.compose.ui.unit.dp
-import arrow.optics.copy
-import arrow.optics.optics
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorCenter
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPreview
 import kotlinx.coroutines.CoroutineScope
@@ -18,52 +16,37 @@ import timber.log.Timber
  * It can be used to either describe a current state of the UI in terms of animation sequence,
  * or to define a destination animation state that UI should animate to.
  */
-@optics
-/* internal but @optics */
-data class HomeAnimState(
-    val colorPreview: ColorPreview,
+internal data class HomeAnimState(
+    val colorPreviewPosition: ColorPreview.Position,
+    val colorPreviewVisibility: ColorPreview.Visibility,
     val colorCenter: ColorCenter,
 ) {
 
-    @optics
-    data class ColorPreview(
-        val position: Position,
-        val visibility: Visibility,
-    ) {
+    object ColorPreview {
         enum class Position {
             NotDived, Dived;
         }
         enum class Visibility {
             Visible, Hidden;
         }
-
-        // The @optics lenses are generated in the companion object
-        companion object
     }
 
     enum class ColorCenter {
         Collapsed, Expanded;
     }
-
-    // The @optics lenses are generated in the companion object
-    companion object
 }
 
 private object HomeAnimStates {
 
     val Collapsed = HomeAnimState(
-        colorPreview = ColorPreview(
-            position = ColorPreview.Position.NotDived,
-            visibility = ColorPreview.Visibility.Hidden,
-        ),
+        colorPreviewPosition = ColorPreview.Position.NotDived,
+        colorPreviewVisibility = ColorPreview.Visibility.Hidden,
         colorCenter = ColorCenter.Collapsed,
     )
 
     val Expanded = HomeAnimState(
-        colorPreview = ColorPreview(
-            position = ColorPreview.Position.Dived,
-            visibility = ColorPreview.Visibility.Visible,
-        ),
+        colorPreviewPosition = ColorPreview.Position.Dived,
+        colorPreviewVisibility = ColorPreview.Visibility.Visible,
         colorCenter = ColorCenter.Expanded,
     )
 }
@@ -106,17 +89,17 @@ private val FullForwardSequence: HomeAnimSequence = run {
         HomeAnimStates.Collapsed
             .also { add(it) }
         // 1
-        last().copy {
-            HomeAnimState.colorPreview.visibility set ColorPreview.Visibility.Visible
-        }.also { add(it) }
+        last().copy(
+            colorPreviewVisibility = ColorPreview.Visibility.Visible,
+        ).also { add(it) }
         // 2
-        last().copy {
-            HomeAnimState.colorPreview.position set ColorPreview.Position.Dived
-        }.also { add(it) }
+        last().copy(
+            colorPreviewPosition = ColorPreview.Position.Dived,
+        ).also { add(it) }
         // 3
-        last().copy {
-            HomeAnimState.colorCenter set ColorCenter.Expanded
-        }.also { add(it) }
+        last().copy(
+            colorCenter = ColorCenter.Expanded,
+        ).also { add(it) }
     }
     assert(states.last() == HomeAnimStates.Expanded)
     HomeAnimSequence(states)
@@ -183,12 +166,10 @@ internal class HomeAnimController(
         if (!isRunning) return
         Timber.d("DBG | ----------------------------")
         Timber.d("DBG | dest ColorPreview.Position.$dest is reached")
-        if (dest != flowOfDestState.value.colorPreview.position) {
+        if (dest != destState.colorPreviewPosition) {
             errorReportedReachedStateDoesntMatchDest(dest)
         }
-        currentState = currentState.copy {
-            HomeAnimState.colorPreview.position set dest
-        }
+        currentState = currentState.copy(colorPreviewPosition = dest)
         Timber.d("DBG | updated currentState = $currentState")
         checkIfDestIsReachedAndSetNext()
     }
@@ -197,12 +178,10 @@ internal class HomeAnimController(
         if (!isRunning) return
         Timber.d("DBG | ----------------------------")
         Timber.d("DBG | dest ColorPreview.Visibility.$dest is reached")
-        if (dest != flowOfDestState.value.colorPreview.visibility) {
+        if (dest != destState.colorPreviewVisibility) {
             errorReportedReachedStateDoesntMatchDest(dest)
         }
-        currentState = currentState.copy {
-            HomeAnimState.colorPreview.visibility set dest
-        }
+        currentState = currentState.copy(colorPreviewVisibility = dest)
         Timber.d("DBG | updated currentState = $currentState")
         checkIfDestIsReachedAndSetNext()
     }
@@ -211,20 +190,17 @@ internal class HomeAnimController(
         if (!isRunning) return
         Timber.d("DBG | ----------------------------")
         Timber.d("DBG | dest ColorCenter.$dest is reached")
-        if (dest != flowOfDestState.value.colorCenter) {
+        if (dest != destState.colorCenter) {
             errorReportedReachedStateDoesntMatchDest(dest)
         }
-        currentState = currentState.copy {
-            HomeAnimState.colorCenter set dest
-        }
+        currentState = currentState.copy(colorCenter = dest)
         Timber.d("DBG | updated currentState = $currentState")
         checkIfDestIsReachedAndSetNext()
     }
 
     private fun checkIfDestIsReachedAndSetNext() {
+        if (!isRunning) return
         if (currentState != destState) return // dest is not reached yet
-
-        if (!isRunning) return // if running, update next dest
         assert(currentState == destState) // dest is reached
         val nextState = requireNotNull(runningSequence).advance()
         if (nextState != null) {

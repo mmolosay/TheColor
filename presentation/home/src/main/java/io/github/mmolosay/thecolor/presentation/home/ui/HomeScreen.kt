@@ -328,16 +328,6 @@ private fun Home(
     var size by remember { mutableStateOf<DpSize?>(null) }
 
     val animDest = animController.flowOfDestState.collectAsStateWithLifecycle().value
-    val colorPreviewAnimDest = run {
-        val upstream = animController.flowOfDestState
-        remember(upstream) {
-            // mapping StateFlow to StateFlow involves boilerplate 'stateIn()':
-            // https://github.com/Kotlin/kotlinx.coroutines/issues/2631
-            upstream
-                .map { it.colorPreview }
-                .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), upstream.value.colorPreview)
-        }
-    }
 
     Column(
         modifier = modifier
@@ -384,7 +374,18 @@ private fun Home(
 
         AnimatedColorPreview(
             colorPreview = colorPreview,
-            flowOfAnimDest = colorPreviewAnimDest,
+            flowOfPositionAnimDest = kotlin.run {
+                val upstream = animController.flowOfDestState
+                upstream
+                    .map { it.colorPreviewPosition }
+                    .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), upstream.value.colorPreviewPosition)
+            },
+            flowOfVisibilityAnimDest = kotlin.run {
+                val upstream = animController.flowOfDestState
+                upstream
+                    .map { it.colorPreviewVisibility }
+                    .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), upstream.value.colorPreviewVisibility)
+            },
             onPositionAnimDestReached = { animController.reportDestReached(it) },
             onVisibilityAnimDestReached = { animController.reportDestReached(it) },
             containerViewportHeight = viewportHeight,
@@ -760,10 +761,8 @@ private fun Preview() {
             navigateToSettings = {},
             animController = remember {
                 val currentState = HomeAnimState(
-                    colorPreview = HomeAnimState.ColorPreview(
-                        position = HomeAnimState.ColorPreview.Position.NotDived,
-                        visibility = HomeAnimState.ColorPreview.Visibility.Hidden,
-                    ),
+                    colorPreviewPosition = HomeAnimState.ColorPreview.Position.NotDived,
+                    colorPreviewVisibility = HomeAnimState.ColorPreview.Visibility.Hidden,
                     colorCenter = HomeAnimState.ColorCenter.Collapsed,
                 )
                 HomeAnimController(currentState)

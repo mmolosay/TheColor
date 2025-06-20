@@ -4,8 +4,6 @@ import io.github.mmolosay.thecolor.presentation.api.ColorInt
 import io.github.mmolosay.thecolor.presentation.home.ui.FlowOfAnimatedUiState
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import io.kotest.matchers.shouldBe
-import io.mockk.every
-import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +12,7 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import kotlin.time.Duration.Companion.milliseconds
-import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPreview as ColorPreviewAnimState
+import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPreview as AnimState
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState as UiState
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -22,7 +20,7 @@ internal class FlowOfAnimatedUiStateTest {
 
     lateinit var flowOfOriginalData: MutableStateFlow<ColorPreviewData>
 
-    lateinit var flowOfAnimDest: MutableStateFlow<ColorPreviewAnimState>
+    lateinit var flowOfVisibilityAnimDest: MutableStateFlow<AnimState.Visibility>
 
     val testDispatcher = StandardTestDispatcher()
     val coroutineScope = CoroutineScope(testDispatcher)
@@ -30,13 +28,13 @@ internal class FlowOfAnimatedUiStateTest {
     fun sut(): StateFlow<UiState?> =
         FlowOfAnimatedUiState(
             flowOfOriginalData = flowOfOriginalData,
-            flowOfAnimDest = flowOfAnimDest,
+            flowOfVisibilityAnimDest = flowOfVisibilityAnimDest,
             coroutineScope = coroutineScope,
         )
 
     /**
      * GIVEN
-     * [flowOfOriginalData] and [flowOfAnimDest] initialized in some way (doesn't matter)
+     * [flowOfOriginalData] and [flowOfVisibilityAnimDest] initialized in some way (doesn't matter)
      *
      * WHEN
      * [sut] flow is created
@@ -50,12 +48,7 @@ internal class FlowOfAnimatedUiStateTest {
             val value = ColorPreviewData(color = null)
             flowOfOriginalData = MutableStateFlow(value)
         }
-        kotlin.run initFlowOfAnimDest@{
-            val value = mockk<ColorPreviewAnimState> {
-                every { visibility } returns ColorPreviewAnimState.Visibility.Hidden
-            }
-            flowOfAnimDest = MutableStateFlow(value)
-        }
+        flowOfVisibilityAnimDest = MutableStateFlow(AnimState.Visibility.Hidden)
 
         val flowOfUiState = sut()
 
@@ -66,7 +59,7 @@ internal class FlowOfAnimatedUiStateTest {
     /**
      * GIVEN
      * - [flowOfOriginalData] has no color
-     * - [flowOfAnimDest] has [ColorPreviewAnimState.Visibility.Hidden]
+     * - [flowOfVisibilityAnimDest] has [AnimState.Visibility.Hidden]
      *
      * WHEN
      * [sut] flow is created
@@ -80,22 +73,17 @@ internal class FlowOfAnimatedUiStateTest {
             val value = ColorPreviewData(color = null)
             flowOfOriginalData = MutableStateFlow(value)
         }
-        kotlin.run initFlowOfAnimDest@{
-            val value = mockk<ColorPreviewAnimState> {
-                every { visibility } returns ColorPreviewAnimState.Visibility.Hidden
-            }
-            flowOfAnimDest = MutableStateFlow(value)
-        }
+        flowOfVisibilityAnimDest = MutableStateFlow(AnimState.Visibility.Hidden)
 
         val flowOfUiState = sut()
-
         testDispatcher.scheduler.advanceUntilIdle()
+
         flowOfUiState.value shouldBe UiState.Hidden
     }
 
     /**
      * If [flowOfOriginalData] emits value dX first,
-     * and then [flowOfAnimDest] emits value adY,
+     * and then [flowOfVisibilityAnimDest] emits value adY,
      * then SUT will process dX only after adY arrives.
      * Thus, dX satisfies adY and dX is accepted (emitted from SUT flow)
      *
@@ -103,12 +91,12 @@ internal class FlowOfAnimatedUiStateTest {
      *
      * GIVEN
      * - [flowOfOriginalData] has no color
-     * - [flowOfAnimDest] has [ColorPreviewAnimState.Visibility.Hidden]
+     * - [flowOfVisibilityAnimDest] has [AnimState.Visibility.Hidden]
      *
      * WHEN
      * 1. [sut] flow is created
      * 2. [flowOfOriginalData] emits [ColorPreviewData] with color X
-     * 3. [flowOfAnimDest] emits [ColorPreviewAnimState.Visibility.Visible]
+     * 3. [flowOfVisibilityAnimDest] emits [AnimState.Visibility.Visible]
      *
      * THEN
      * SUT flow value is [UiState.Visible] with color X.
@@ -119,17 +107,11 @@ internal class FlowOfAnimatedUiStateTest {
             val value = ColorPreviewData(color = null)
             flowOfOriginalData = MutableStateFlow(value)
         }
-        kotlin.run initFlowOfAnimDest@{
-            val value = mockk<ColorPreviewAnimState> {
-                every { visibility } returns ColorPreviewAnimState.Visibility.Hidden
-            }
-            flowOfAnimDest = MutableStateFlow(value)
-        }
+        flowOfVisibilityAnimDest = MutableStateFlow(AnimState.Visibility.Hidden)
 
         val flowOfUiState = sut()
-
-        flowOfUiState.value shouldBe null // from test #0
         testDispatcher.scheduler.advanceUntilIdle()
+
         flowOfUiState.value shouldBe UiState.Hidden // from test #1
         kotlin.run {
             val value = ColorPreviewData(color = ColorInt(0x0))
@@ -137,12 +119,7 @@ internal class FlowOfAnimatedUiStateTest {
         }
         testDispatcher.scheduler.advanceUntilIdle()
         flowOfUiState.value shouldBe UiState.Hidden // nothing has changed
-        kotlin.run {
-            val value = mockk<ColorPreviewAnimState> {
-                every { visibility } returns ColorPreviewAnimState.Visibility.Visible
-            }
-            flowOfAnimDest.emit(value)
-        }
+        flowOfVisibilityAnimDest.emit(AnimState.Visibility.Visible)
         testDispatcher.scheduler.advanceUntilIdle()
         flowOfUiState.value shouldBe UiState.Visible(color = ColorInt(0x0))
     }
@@ -152,11 +129,11 @@ internal class FlowOfAnimatedUiStateTest {
      *
      * GIVEN
      * - [flowOfOriginalData] has no color
-     * - [flowOfAnimDest] has [ColorPreviewAnimState.Visibility.Hidden]
+     * - [flowOfVisibilityAnimDest] has [AnimState.Visibility.Hidden]
      *
      * WHEN
      * 1. [sut] flow is created
-     * 2. [flowOfAnimDest] emits [ColorPreviewAnimState.Visibility.Visible]
+     * 2. [flowOfVisibilityAnimDest] emits [AnimState.Visibility.Visible]
      * 3. [flowOfOriginalData] emits [ColorPreviewData] with color X
      *
      * THEN
@@ -168,22 +145,13 @@ internal class FlowOfAnimatedUiStateTest {
             val value = ColorPreviewData(color = null)
             flowOfOriginalData = MutableStateFlow(value)
         }
-        kotlin.run initFlowOfAnimDest@{
-            val value = mockk<ColorPreviewAnimState> {
-                every { visibility } returns ColorPreviewAnimState.Visibility.Hidden
-            }
-            flowOfAnimDest = MutableStateFlow(value)
-        }
+        flowOfVisibilityAnimDest = MutableStateFlow(AnimState.Visibility.Hidden)
 
         val flowOfUiState = sut()
+        testDispatcher.scheduler.advanceUntilIdle()
 
         // WHEN #2
-        kotlin.run {
-            val value = mockk<ColorPreviewAnimState> {
-                every { visibility } returns ColorPreviewAnimState.Visibility.Visible
-            }
-            flowOfAnimDest.emit(value)
-        }
+        flowOfVisibilityAnimDest.emit(AnimState.Visibility.Visible)
         testDispatcher.scheduler.advanceUntilIdle()
         flowOfUiState.value shouldBe UiState.Hidden // nothing has changed
         // WHEN #3
@@ -197,11 +165,11 @@ internal class FlowOfAnimatedUiStateTest {
 
     /**
      * If [flowOfOriginalData] emits value that (in translation to [UiState]) satisfies
-     * current value of [flowOfAnimDest], then it is accepted (emitted from SUT flow).
+     * current value of [flowOfVisibilityAnimDest], then it is accepted (emitted from SUT flow).
      *
      * GIVEN
      * - [flowOfOriginalData] has color X
-     * - [flowOfAnimDest] has [ColorPreviewAnimState.Visibility.Visible]
+     * - [flowOfVisibilityAnimDest] has [AnimState.Visibility.Visible]
      *
      * WHEN
      * 1. [sut] flow is created
@@ -216,15 +184,11 @@ internal class FlowOfAnimatedUiStateTest {
             val value = ColorPreviewData(color = ColorInt(0x0))
             flowOfOriginalData = MutableStateFlow(value)
         }
-        kotlin.run initFlowOfAnimDest@{
-            val value = mockk<ColorPreviewAnimState> {
-                every { visibility } returns ColorPreviewAnimState.Visibility.Visible
-            }
-            flowOfAnimDest = MutableStateFlow(value)
-        }
+        flowOfVisibilityAnimDest = MutableStateFlow(AnimState.Visibility.Visible)
 
         val flowOfUiState = sut()
         testDispatcher.scheduler.advanceUntilIdle()
+
         // WHEN #2
         kotlin.run {
             val value = ColorPreviewData(color = ColorInt(0x1))
@@ -237,12 +201,12 @@ internal class FlowOfAnimatedUiStateTest {
     /**
      * GIVEN
      * - [flowOfOriginalData] has color X
-     * - [flowOfAnimDest] has [ColorPreviewAnimState.Visibility.Visible]
+     * - [flowOfVisibilityAnimDest] has [AnimState.Visibility.Visible]
      *
      * WHEN
      * 1. [sut] flow is created
      * 2. [flowOfOriginalData] emits [ColorPreviewData] with color Y
-     * 3. [flowOfAnimDest] emits [ColorPreviewAnimState.Visibility.Hidden]
+     * 3. [flowOfVisibilityAnimDest] emits [AnimState.Visibility.Hidden]
      * 4. [flowOfOriginalData] emits [ColorPreviewData] with no color
      *
      * THEN
@@ -254,15 +218,11 @@ internal class FlowOfAnimatedUiStateTest {
             val value = ColorPreviewData(color = ColorInt(0x0))
             flowOfOriginalData = MutableStateFlow(value)
         }
-        kotlin.run initFlowOfAnimDest@{
-            val value = mockk<ColorPreviewAnimState> {
-                every { visibility } returns ColorPreviewAnimState.Visibility.Visible
-            }
-            flowOfAnimDest = MutableStateFlow(value)
-        }
+        flowOfVisibilityAnimDest = MutableStateFlow(AnimState.Visibility.Visible)
 
         val flowOfUiState = sut()
         testDispatcher.scheduler.advanceUntilIdle()
+
         // WHEN #2
         kotlin.run {
             val value = ColorPreviewData(color = ColorInt(0x1))
@@ -270,12 +230,7 @@ internal class FlowOfAnimatedUiStateTest {
         }
         testDispatcher.scheduler.advanceTimeBy(25.milliseconds)
         // WHEN #3
-        kotlin.run {
-            val value = mockk<ColorPreviewAnimState> {
-                every { visibility } returns ColorPreviewAnimState.Visibility.Hidden
-            }
-            flowOfAnimDest.emit(value)
-        }
+        flowOfVisibilityAnimDest.emit(AnimState.Visibility.Hidden)
         testDispatcher.scheduler.advanceUntilIdle()
         flowOfUiState.value shouldBe UiState.Visible(color = ColorInt(0x0))
         // WHEN #4
