@@ -81,7 +81,7 @@ internal class HomeAnimControllerTest {
             }.let { states -> HomeAnimSequence(states) }
             sut.run(sequence)
         }
-        sut.reportDestReached(ColorPreview.Visibility.Visible) // first dest is reached
+        sut.reportStateReached(ColorPreview.Visibility.Visible) // first dest is reached
 
         // e.g. proceeded color changes
         kotlin.run cancelOngoingSequence@{
@@ -135,17 +135,17 @@ internal class HomeAnimControllerTest {
         sut.currentState shouldBe sequence[0]
         sut.flowOfDestState.value shouldBe sequence[1]
         delay(1.seconds)
-        sut.reportDestReached(ColorPreview.Visibility.Visible)
+        sut.reportStateReached(ColorPreview.Visibility.Visible)
 
         sut.currentState shouldBe sequence[1]
         sut.flowOfDestState.value shouldBe sequence[2]
         delay(1.seconds)
-        sut.reportDestReached(ColorPreview.Position.Dived)
+        sut.reportStateReached(ColorPreview.Position.Dived)
 
         sut.currentState shouldBe sequence[2]
         sut.flowOfDestState.value shouldBe sequence[3]
         delay(1.seconds)
-        sut.reportDestReached(ColorCenter.Expanded)
+        sut.reportStateReached(ColorCenter.Expanded)
 
         sut.currentState shouldBe sequence[3]
         sut.flowOfDestState.value shouldBe sequence[3]
@@ -174,7 +174,7 @@ internal class HomeAnimControllerTest {
         sut.currentState shouldBe sequence[0]
         sut.flowOfDestState.value shouldBe sequence[1]
         delay(1.seconds)
-        sut.reportDestReached(ColorPreview.Visibility.Visible)
+        sut.reportStateReached(ColorPreview.Visibility.Visible)
 
         sut.currentState shouldBe sequence[1]
         sut.flowOfDestState.value shouldBe sequence[1]
@@ -195,7 +195,7 @@ internal class HomeAnimControllerTest {
         sut.currentState shouldBe state1
         sut.flowOfDestState.value shouldBe state2
         sut.run(sequence = HomeAnimSequence(states = listOf(state1, state1)))
-        sut.reportDestReached(state1.colorPreviewVisibility) // state1 is reached
+        sut.reportStateReached(state1.colorPreviewVisibility) // state1 is reached
 
         sut.currentState shouldBe state1
         sut.flowOfDestState.value shouldBe state1
