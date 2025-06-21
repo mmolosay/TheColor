@@ -199,7 +199,7 @@ internal class HomeAnimController(
         if (!isRunning) return
         val nextState = requireNotNull(runningSequence).advance()
         if (nextState != null) {
-            if (nextState != destState) {
+            if (nextState != destState || nextState != currentState) {
                 flowOfDestState.value = nextState
                 Timber.d("DBG | updated destState = $nextState")
             } else {
