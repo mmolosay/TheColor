@@ -74,13 +74,6 @@ internal fun AnimatedColorPreview(
     var posInContainer by remember { mutableStateOf<DpOffset?>(null) }
     var size by remember { mutableStateOf<DpSize?>(null) }
 
-    val visibilityAnimDestRegistry = remember {
-        CompletableAnimDestRegistry(
-            flowOfAnimDest = flowOfVisibilityAnimDest,
-            coroutineScope = coroutineScope,
-        )
-    }
-
     val verticalOffsetParams by produceState<VerticalOffset.Params?>(
         initialValue = null,
         /*keys*/ containerViewportHeight, size, posInContainer,
@@ -136,11 +129,8 @@ internal fun AnimatedColorPreview(
             colorPreview.composable.invoke(
                 uiState = uiState,
                 onAnimationFinished = { uiState ->
-                    // TODO: extract to caller?
-                    visibilityAnimDestRegistry.onAnimationFinished(
-                        reachedAnimState = uiState.toAnimState(),
-                        onAnimDestReached = onVisibilityAnimFinished,
-                    )
+                    val reachedAnimState = uiState.toAnimState()
+                    onVisibilityAnimFinished(reachedAnimState)
                 },
             )
         }

@@ -191,7 +191,7 @@ internal class HomeAnimController(
             Timber.d("DBG | updated currentState = $currentState")
             checkIfDestIsReachedAndSetNext()
         } else {
-            Timber.w("$reachedValue is reported as reached but dest is $destValue")
+            Timber.d("DBG | $reachedValue is reported as reached but dest is $destValue")
         }
     }
 
@@ -232,68 +232,6 @@ internal class HomeAnimController(
             return currentState
         }
     }
-}
-
-/**
- * When we receive a new anim dest via [flowOfAnimDest] and animate UI towards this state,
- * sometimes it may happen so that "on animation finished" callback is invoked multiple times
- * (e.g. due to rapid data changes). This results in calling [HomeAnimController.reportStateReached]
- * multiple times, which may mess up [HomeAnimController.currentState] and thus whole screen's animation.
- *
- * This class transforms [flowOfAnimDest] into a flow of [CompletableVisibilityAnimDest].
- * Each new anim dest is marked as "not yet completed".
- * Once UI finishes animating towards this anim dest, it is marked as "completed".
- * Thus, successive "on animation finished" callbacks can check this value and don't report to
- * [HomeAnimController] more than once for any given anim dest.
- */
-internal class CompletableAnimDestRegistry<T>(
-    flowOfAnimDest: StateFlow<T>,
-    coroutineScope: CoroutineScope,
-) {
-    private val _flowOfCompletableAnimDest: MutableStateFlow<CompletableAnimDest<T>>
-    val currentCompletableAnimDest: CompletableAnimDest<T>
-        get() = _flowOfCompletableAnimDest.value
-
-    init {
-        fun T.toCompletableAnimDest() =
-            CompletableAnimDest(animDest = this, isCompleted = false)
-        val initialValue = flowOfAnimDest.value.toCompletableAnimDest()
-        val mutableFlow = MutableStateFlow(initialValue)
-        _flowOfCompletableAnimDest = mutableFlow
-        coroutineScope.launch {
-            flowOfAnimDest
-                .map { it.toCompletableAnimDest() }
-                .collect(mutableFlow)
-        }
-    }
-
-    fun markCurrentAnimDestAsCompleted() {
-        val flow = requireNotNull(_flowOfCompletableAnimDest)
-        flow.update { completableAnimDest ->
-            completableAnimDest.copy(isCompleted = true)
-        }
-    }
-
-    data class CompletableAnimDest<T>(
-        val animDest: T,
-        val isCompleted: Boolean,
-    )
-}
-
-/**
- * Callback to be invoked when animation towards some anim dest is finished.
- * Employs [CompletableAnimDestRegistry] to avoid multiple invocations of [onAnimDestReached].
- */
-internal fun <T> CompletableAnimDestRegistry<T>.onAnimationFinished(
-    reachedAnimState: T,
-    onAnimDestReached: (T) -> Unit,
-) {
-    val wasCurrentAnimDestAlreadyReportedAsReached = (currentCompletableAnimDest.isCompleted)
-    if (wasCurrentAnimDestAlreadyReportedAsReached) return
-    val isThisUiStateACurrentAnimDest = (reachedAnimState != currentCompletableAnimDest.animDest)
-    if (isThisUiStateACurrentAnimDest) return
-    onAnimDestReached(reachedAnimState)
-    markCurrentAnimDestAsCompleted()
 }
 
 /**

@@ -18,6 +18,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -73,6 +74,7 @@ fun AnimatedColorPreview(
     uiState: UiState,
     onAnimationFinished: (UiState) -> Unit,
 ) {
+    val latestUiState by rememberUpdatedState(uiState) // lambdas may capture old uiState
     val updates = remember { mutableStateListOf<UpdateOfVisibleUiState>() }
     // we want to have last 'UiState.Visible' memoized to show animation of scaling the preview down
     var mainUiState by remember { mutableStateOf(uiState) }
@@ -80,6 +82,7 @@ fun AnimatedColorPreview(
         targetValue = if (uiState is UiState.Visible) 1f else 0f,
         label = "preview scale",
         finishedListener = {
+            // uiState == latestUiState here because if former changes animation will restart with new value
             mainUiState = uiState
             onAnimationFinished(uiState)
             if (uiState is UiState.Hidden) {
@@ -104,8 +107,11 @@ fun AnimatedColorPreview(
                     color = update.uiState.color.toCompose(),
                     onAnimationFinished = {
                         mainUiState = update.uiState
-                        onAnimationFinished(update.uiState)
                         updates.remove(update)
+                        // don't invoke a callback if collapsing
+                        if (latestUiState !is UiState.Hidden) {
+                            onAnimationFinished(update.uiState)
+                        }
                     },
                 )
             }
