@@ -3,12 +3,7 @@ package io.github.mmolosay.thecolor.presentation.home.ui
 import androidx.compose.ui.unit.dp
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorCenter
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPreview
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /**
@@ -139,7 +134,7 @@ internal class HomeAnimController(
     private val destState: HomeAnimState
         get() = flowOfDestState.value
 
-    private var runningSequence: AdvancingSequence? = null
+    private var runningSequence: Iterator<HomeAnimState>? = null
 
     val isRunning: Boolean
         get() = (runningSequence != null)
@@ -153,7 +148,7 @@ internal class HomeAnimController(
         Timber.d("DBG | ----------------------------")
 
         require(sequence.first() == currentState) { "sequence must start from current state" }
-        runningSequence = AdvancingSequence(sequence)
+        runningSequence = sequence.listIterator(index = 1) // first element is 'currentState'
         setNextDestFromSequence()
     }
 
@@ -197,7 +192,9 @@ internal class HomeAnimController(
 
     private fun setNextDestFromSequence() {
         if (!isRunning) return
-        val nextState = requireNotNull(runningSequence).advance()
+        val nextState = requireNotNull(runningSequence).run {
+            if (hasNext()) next() else null
+        }
         if (nextState != null) {
             if (nextState != destState || nextState != currentState) {
                 flowOfDestState.value = nextState
@@ -215,21 +212,6 @@ internal class HomeAnimController(
         if (!isRunning) return
         if (currentState == destState) {
             setNextDestFromSequence()
-        }
-    }
-
-    // TODO: return back to simple iterator if 'sequence' and 'currentState' properties remain unused
-    private class AdvancingSequence(
-        val sequence: HomeAnimSequence,
-    ) {
-        private var index: Int = 0
-
-        val currentState: HomeAnimState?
-            get() = sequence.getOrNull(index)
-
-        fun advance(): HomeAnimState? {
-            index += 1
-            return currentState
         }
     }
 }
