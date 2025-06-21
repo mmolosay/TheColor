@@ -41,17 +41,14 @@ import io.github.mmolosay.thecolor.presentation.impl.toDpSize
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState
 import io.github.mmolosay.thecolor.presentation.preview.toUiState
-import io.github.mmolosay.thecolor.utils.mapDistinctly
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPreview as AnimState
@@ -66,8 +63,8 @@ internal fun AnimatedColorPreview(
     colorPreview: ColorPreviewWithDependencies,
     flowOfPositionAnimDest: StateFlow<AnimState.Position>,
     flowOfVisibilityAnimDest: StateFlow<AnimState.Visibility>,
-    onPositionAnimDestReached: (dest: AnimState.Position) -> Unit,
-    onVisibilityAnimDestReached: (dest: AnimState.Visibility) -> Unit,
+    onPositionAnimFinished: (dest: AnimState.Position) -> Unit,
+    onVisibilityAnimFinished: (dest: AnimState.Visibility) -> Unit,
     containerViewportHeight: Dp?,
     containerPosInRoot: DpOffset?,
 ) {
@@ -142,7 +139,7 @@ internal fun AnimatedColorPreview(
                     // TODO: extract to caller?
                     visibilityAnimDestRegistry.onAnimationFinished(
                         reachedAnimState = uiState.toAnimState(),
-                        onAnimDestReached = onVisibilityAnimDestReached,
+                        onAnimDestReached = onVisibilityAnimFinished,
                     )
                 },
             )
@@ -159,7 +156,7 @@ internal fun AnimatedColorPreview(
                 VerticalOffset.calc(animDest, params)
             }
             if (offsetAnimatable.value == targetValue) {
-                onPositionAnimDestReached(animDest)
+                onPositionAnimFinished(animDest)
                 return@collect // already in target state
             }
             val animationSpec: AnimationSpec<Dp> = when (animDest) {
@@ -178,7 +175,7 @@ internal fun AnimatedColorPreview(
                 targetValue = targetValue,
                 animationSpec = animationSpec,
             )
-            onPositionAnimDestReached(animDest)
+            onPositionAnimFinished(animDest)
         }
     }
 }
@@ -313,8 +310,8 @@ private fun Preview() {
             },
             flowOfPositionAnimDest = remember { MutableStateFlow(AnimState.Position.NotDived) },
             flowOfVisibilityAnimDest = remember { MutableStateFlow(AnimState.Visibility.Visible) },
-            onPositionAnimDestReached = {},
-            onVisibilityAnimDestReached = {},
+            onPositionAnimFinished = {},
+            onVisibilityAnimFinished = {},
             containerViewportHeight = 400.dp,
             containerPosInRoot = DpOffset.Zero,
         )

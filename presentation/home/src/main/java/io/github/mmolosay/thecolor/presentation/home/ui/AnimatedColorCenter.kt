@@ -29,7 +29,7 @@ import kotlinx.coroutines.flow.collectLatest
 internal fun AnimatedColorCenter(
     colorCenter: ColorCenterComposable?,
     flowOfAnimDest: StateFlow<HomeAnimState.ColorCenter>,
-    onAnimDestReached: (HomeAnimState.ColorCenter) -> Unit,
+    onAnimFinished: (dest: HomeAnimState.ColorCenter) -> Unit,
     containerScrollState: ScrollState,
 ) {
     val density = LocalDensity.current
@@ -48,7 +48,7 @@ internal fun AnimatedColorCenter(
         flowOfAnimDest.collectLatest collect@{ animDest ->
             val targetValue = animDest.targetValue()
             if (progressAnimatable.value == targetValue) {
-                onAnimDestReached(animDest)
+                onAnimFinished(animDest)
                 return@collect // already in target state
             }
             val animSpec: AnimationSpec<Float> = when (animDest) {
@@ -59,7 +59,7 @@ internal fun AnimatedColorCenter(
                 targetValue = targetValue,
                 animationSpec = animSpec,
             )
-            onAnimDestReached(animDest)
+            onAnimFinished(animDest)
         }
     }
 
