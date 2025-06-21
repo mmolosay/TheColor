@@ -3,6 +3,7 @@ package io.github.mmolosay.thecolor.presentation.home.ui
 import androidx.compose.ui.unit.dp
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorCenter
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPreview
+import io.github.mmolosay.thecolor.utils.doNothing
 import kotlinx.coroutines.flow.MutableStateFlow
 import timber.log.Timber
 
@@ -131,10 +132,14 @@ internal class HomeAnimController(
 
     val flowOfDestState = MutableStateFlow(currentState)
 
+    // TODO: make public and use in tests
     private val destState: HomeAnimState
         get() = flowOfDestState.value
 
-    private var runningSequence: Iterator<HomeAnimState>? = null
+    private val currentSegment: SequenceSegment
+        get() = SequenceSegment(start = currentState, dest = destState)
+
+    private var runningSequence: RunningSequence? = null
 
     val isRunning: Boolean
         get() = (runningSequence != null)
@@ -148,7 +153,8 @@ internal class HomeAnimController(
         Timber.d("DBG | ----------------------------")
 
         require(sequence.first() == currentState) { "sequence must start from current state" }
-        runningSequence = sequence.listIterator(index = 1) // first element is 'currentState'
+        val adjustedSequence = adjustSubmittedSequence(sequence)
+        runningSequence = RunningSequence(adjustedSequence)
         setNextDestFromSequence()
     }
 
@@ -190,20 +196,48 @@ internal class HomeAnimController(
         }
     }
 
+    /**
+     * Same sequence may have different meanings depending on the current state of animation.
+     * For example, if segment (2 → 3) is running and sequence [2, 1] is submitted, then we
+     * want first to animate back to 2, and only then animate to 1.
+     * We need to tweak submitted, "raw" [sequence] according to the current state of animation to
+     * make the [sequence] easy to execute.
+     */
+    private fun adjustSubmittedSequence(sequence: HomeAnimSequence): HomeAnimSequence {
+        if (!isRunning) return sequence
+        assert(isRunning == true)
+        val newStates = sequence.toMutableList()
+        val firstSegment = SequenceSegment(start = sequence[0], dest = sequence[1])
+        if (currentSegment.start == firstSegment.start) {
+            if (currentSegment.dest != firstSegment.dest && firstSegment.isEmpty().not()) {
+                // before animating to firstSegment.dest, animate back to firstSegment.start
+                newStates.add(index = 1, element = firstSegment.start)
+            }
+        }
+        return HomeAnimSequence(newStates)
+    }
+
     private fun setNextDestFromSequence() {
         if (!isRunning) return
-        val nextState = requireNotNull(runningSequence).run {
-            if (hasNext()) next() else null
-        }
-        if (nextState != null) {
-            if (nextState != destState || nextState != currentState) {
-                flowOfDestState.value = nextState
-                Timber.d("DBG | updated destState = $nextState")
-            } else {
-                setNextDestFromSequence()
+        val runningSequence = requireNotNull(runningSequence)
+        val segmentToRun = runningSequence.segment()
+        if (segmentToRun != null) {
+            require(segmentToRun.start == currentState)
+            when {
+                segmentToRun.dest != destState -> {
+                    flowOfDestState.value = segmentToRun.dest
+                    Timber.d("DBG | updated destState = $destState")
+                }
+                currentSegment == segmentToRun && currentSegment.isEmpty().not() -> {
+                    doNothing() // identical segment is already running
+                }
+                segmentToRun.dest == destState || segmentToRun.isEmpty() -> {
+                    runningSequence.advance()
+                    setNextDestFromSequence()
+                }
             }
         } else {
-            runningSequence = null // sequence is finished
+            this.runningSequence = null // sequence is finished
             Timber.d("DBG | sequence is finished")
         }
     }
@@ -211,9 +245,34 @@ internal class HomeAnimController(
     private fun checkIfDestIsReachedAndSetNext() {
         if (!isRunning) return
         if (currentState == destState) {
+            requireNotNull(runningSequence).advance()
             setNextDestFromSequence()
         }
     }
+
+    private class RunningSequence(
+        private val sequence: HomeAnimSequence,
+    ) {
+        private var index: Int = 0
+
+        fun segment(): SequenceSegment? {
+            val currentState = sequence.getOrNull(index) ?: return null
+            val nextState = sequence.getOrNull(index + 1) ?: return null
+            return SequenceSegment(start = currentState, dest = nextState)
+        }
+
+        fun advance() {
+            index++
+        }
+    }
+
+    private data class SequenceSegment(
+        val start: HomeAnimState,
+        val dest: HomeAnimState,
+    )
+
+    private fun SequenceSegment.isEmpty(): Boolean =
+        (start == dest)
 }
 
 /**
