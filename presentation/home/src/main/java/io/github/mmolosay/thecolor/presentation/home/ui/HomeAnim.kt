@@ -210,10 +210,8 @@ internal class HomeAnimController(
 
     /**
      * Same sequence may have different meanings depending on the current state of animation.
-     * For example, if segment (2 → 3) is running and sequence [2, 1] is submitted, then we
-     * want first to animate back to 2, and only then animate to 1.
-     * We need to tweak submitted, "raw" [sequence] according to the current state of animation to
-     * make the [sequence] easy to execute.
+     * We need to adjust (normalize) submitted, "raw" [sequence] according to the current state of
+     * animation to make the [sequence] easy to execute in segments.
      */
     private fun normalizeSubmittedSequence(sequence: HomeAnimSequence): HomeAnimSequence {
         if (!isRunning) return sequence
