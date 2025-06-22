@@ -132,8 +132,7 @@ internal class HomeAnimController(
 
     val flowOfDestState = MutableStateFlow(currentState)
 
-    // TODO: make public and use in tests
-    private val destState: HomeAnimState
+    val destState: HomeAnimState
         get() = flowOfDestState.value
 
     private val currentSegment: SequenceSegment

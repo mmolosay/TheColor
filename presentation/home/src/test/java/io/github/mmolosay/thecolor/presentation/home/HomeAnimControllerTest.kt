@@ -35,11 +35,11 @@ internal class HomeAnimControllerTest {
         }.let { states -> HomeAnimSequence(states) }
         sut.run(sequence)
         sut.currentState shouldBe sequence[0]
-        sut.flowOfDestState.value shouldBe sequence[1]
+        sut.destState shouldBe sequence[1]
 
         sut.reportValueReached(ColorPreview.Visibility.Visible)
         sut.currentState shouldBe sequence[1]
-        sut.flowOfDestState.value shouldBe sequence[1]
+        sut.destState shouldBe sequence[1]
     }
 
     @Test
@@ -68,19 +68,19 @@ internal class HomeAnimControllerTest {
         }.let { states -> HomeAnimSequence(states) }
         sut.run(sequence)
         sut.currentState shouldBe sequence[0]
-        sut.flowOfDestState.value shouldBe sequence[1]
+        sut.destState shouldBe sequence[1]
 
         sut.reportValueReached(ColorPreview.Visibility.Visible)
         sut.currentState shouldBe sequence[1]
-        sut.flowOfDestState.value shouldBe sequence[2]
+        sut.destState shouldBe sequence[2]
 
         sut.reportValueReached(ColorPreview.Position.Dived)
         sut.currentState shouldBe sequence[2]
-        sut.flowOfDestState.value shouldBe sequence[3]
+        sut.destState shouldBe sequence[3]
 
         sut.reportValueReached(ColorCenter.Expanded)
         sut.currentState shouldBe sequence[3]
-        sut.flowOfDestState.value shouldBe sequence[3]
+        sut.destState shouldBe sequence[3]
     }
 
     /**
@@ -145,14 +145,14 @@ internal class HomeAnimControllerTest {
         val sequence12 = HomeAnimSequence(states = listOf(state1, state2))
         sut.run(sequence12)
         sut.currentState shouldBe state1
-        sut.flowOfDestState.value shouldBe state2
+        sut.destState shouldBe state2
 
         doNothing() // state 2 hasn't been reached yet (animation is still running)
 
         val sequence11 = HomeAnimSequence(states = listOf(state1, state1))
         sut.run(sequence11)
         sut.currentState shouldBe state1
-        sut.flowOfDestState.value shouldBe state1
+        sut.destState shouldBe state1
 
         // difference between states 2 and 1 is in Color Preview position, not in Color Preview Visibility
         // so reporting the latter as reached shouldn't be considered as an indicator that state 1 is reached
@@ -189,22 +189,22 @@ internal class HomeAnimControllerTest {
         // WHEN #1
         val sequence12 = HomeAnimSequence(states = listOf(state1, state2))
         sut.run(sequence12)
-        sut.flowOfDestState.value shouldBe state2
+        sut.destState shouldBe state2
         // WHEN #2
         doNothing() // state 2 hasn't been reached yet (animation is still running)
         // WHEN #3
         val sequence123 = HomeAnimSequence(states = listOf(state1, state2, state3))
         sut.run(sequence123)
         sut.currentState shouldBe state1
-        sut.flowOfDestState.value shouldBe state2
+        sut.destState shouldBe state2
 
         sut.reportValueReached(state2.colorPreviewVisibility)
         sut.currentState shouldBe state2
-        sut.flowOfDestState.value shouldBe state3
+        sut.destState shouldBe state3
 
         sut.reportValueReached(state3.colorPreviewPosition)
         sut.currentState shouldBe state3
-        sut.flowOfDestState.value shouldBe state3
+        sut.destState shouldBe state3
         sut.isRunning shouldBe false // finished
     }
 
@@ -236,18 +236,18 @@ internal class HomeAnimControllerTest {
         // WHEN #1
         val sequence123 = HomeAnimSequence(states = listOf(state1, state2, state3))
         sut.run(sequence123)
-        sut.flowOfDestState.value shouldBe state2
+        sut.destState shouldBe state2
         // WHEN #2
         doNothing() // state 2 hasn't been reached yet (animation is still running)
         // WHEN #3
         val sequence12 = HomeAnimSequence(states = listOf(state1, state2))
         sut.run(sequence12)
         sut.currentState shouldBe state1
-        sut.flowOfDestState.value shouldBe state2
+        sut.destState shouldBe state2
 
         sut.reportValueReached(state2.colorPreviewVisibility)
         sut.currentState shouldBe state2
-        sut.flowOfDestState.value shouldBe state2
+        sut.destState shouldBe state2
         sut.isRunning shouldBe false // finished
     }
 
@@ -265,18 +265,18 @@ internal class HomeAnimControllerTest {
         val sequence23 = HomeAnimSequence(states = listOf(state2, state3))
         sut.run(sequence23)
         sut.currentState shouldBe state2
-        sut.flowOfDestState.value shouldBe state3
+        sut.destState shouldBe state3
 
         doNothing() // state 3 hasn't been reached yet (animation is still running)
 
         val sequence21 = HomeAnimSequence(states = listOf(state2, state1))
         sut.run(sequence21)
         sut.currentState shouldBe state2
-        sut.flowOfDestState.value shouldBe state2
+        sut.destState shouldBe state2
 
         sut.reportValueReached(ColorPreview.Position.NotDived)
         sut.currentState shouldBe state2
-        sut.flowOfDestState.value shouldBe state1
+        sut.destState shouldBe state1
 
         sut.reportValueReached(ColorPreview.Visibility.Hidden)
         sut.currentState shouldBe state1
@@ -296,7 +296,7 @@ internal class HomeAnimControllerTest {
         val sequence12 = HomeAnimSequence(states = listOf(state1, state2))
         sut.run(sequence12)
         sut.currentState shouldBe state1
-        sut.flowOfDestState.value shouldBe state2
+        sut.destState shouldBe state2
 
         doNothing()// reached state is not reported, thus animation is still running
 
@@ -305,7 +305,7 @@ internal class HomeAnimControllerTest {
 
         sut.reportValueReached(state1.colorPreviewVisibility) // state1 is reached
         sut.currentState shouldBe state1
-        sut.flowOfDestState.value shouldBe state1
+        sut.destState shouldBe state1
         sut.isRunning shouldBe false
     }
 }
