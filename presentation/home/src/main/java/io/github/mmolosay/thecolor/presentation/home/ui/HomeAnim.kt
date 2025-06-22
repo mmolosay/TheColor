@@ -139,6 +139,8 @@ internal class HomeAnimController(
     private val currentSegment: SequenceSegment
         get() = SequenceSegment(start = currentState, dest = destState)
 
+    private var currentDiff: AnimStateDiff = currentSegment.toDiff()
+
     private var runningSequence: RunningSequence? = null
 
     val isRunning: Boolean
@@ -162,6 +164,7 @@ internal class HomeAnimController(
         reportStateReached(
             reachedValue = value,
             destValue = destState.colorPreviewPosition,
+            isExpectedToBeReached = (currentDiff.colorPreviewPosition != null),
             applyToCurrentState = { it.copy(colorPreviewPosition = value) },
         )
 
@@ -169,6 +172,7 @@ internal class HomeAnimController(
         reportStateReached(
             reachedValue = value,
             destValue = destState.colorPreviewVisibility,
+            isExpectedToBeReached = (currentDiff.colorPreviewVisibility != null),
             applyToCurrentState = { it.copy(colorPreviewVisibility = value) },
         )
 
@@ -176,24 +180,33 @@ internal class HomeAnimController(
         reportStateReached(
             reachedValue = value,
             destValue = destState.colorCenter,
+            isExpectedToBeReached = (currentDiff.colorCenter != null),
             applyToCurrentState = { it.copy(colorCenter = value) },
         )
 
     fun <T> reportStateReached(
         reachedValue: T,
         destValue: T,
+        isExpectedToBeReached: Boolean,
         applyToCurrentState: (HomeAnimState) -> HomeAnimState,
     ) {
         if (!isRunning) return
         Timber.d("DBG | ----------------------------")
         Timber.d("DBG | dest $reachedValue is reached")
-        if (reachedValue == destValue) {
-            currentState = applyToCurrentState(currentState)
-            Timber.d("DBG | updated currentState = $currentState")
-            checkIfDestIsReachedAndSetNext()
-        } else {
+        if (reachedValue != destValue) {
             Timber.d("DBG | $reachedValue is reported as reached but dest is $destValue")
+            return
         }
+        if (!isExpectedToBeReached) {
+            Timber.d("DBG | $reachedValue is reported as reached but isn't expected to be " +
+                    "reached in order to advance to next animation segment")
+            return
+        }
+        assert(reachedValue == destValue)
+        assert(isExpectedToBeReached)
+        currentState = applyToCurrentState(currentState)
+        Timber.d("DBG | updated currentState = $currentState")
+        checkIfDestIsReachedAndSetNext()
     }
 
     /**
@@ -225,6 +238,14 @@ internal class HomeAnimController(
             require(segmentToRun.start == currentState)
             when {
                 segmentToRun.dest != destState -> {
+                    if (currentSegment.isEmpty().not() &&
+                        segmentToRun.isEmpty() &&
+                        currentSegment.start == segmentToRun.dest
+                    ) {
+                        currentDiff = currentSegment.dest.diffWithNext(currentSegment.start)
+                    } else {
+                        currentDiff = segmentToRun.toDiff()
+                    }
                     flowOfDestState.value = segmentToRun.dest
                     Timber.d("DBG | updated destState = $destState")
                 }
@@ -273,6 +294,35 @@ internal class HomeAnimController(
 
     private fun SequenceSegment.isEmpty(): Boolean =
         (start == dest)
+
+    private data class AnimStateDiff(
+        val colorPreviewPosition: ColorPreview.Position?,
+        val colorPreviewVisibility: ColorPreview.Visibility?,
+        val colorCenter: ColorCenter?,
+    )
+
+    private fun AnimStateDiff.isEmpty(): Boolean {
+        if (colorPreviewPosition != null) return false
+        if (colorPreviewVisibility != null) return false
+        if (colorCenter != null) return false
+        return true
+    }
+
+    private fun HomeAnimState.diffWithNext(other: HomeAnimState): AnimStateDiff {
+        fun <T> componentDiff(value: HomeAnimState.() -> T): T? {
+            val valueInThis = this.value()
+            val valueInOther = other.value()
+            return if (valueInThis != valueInOther) valueInOther else null
+        }
+        return AnimStateDiff(
+            colorPreviewPosition = componentDiff { colorPreviewPosition },
+            colorPreviewVisibility = componentDiff { colorPreviewVisibility },
+            colorCenter = componentDiff { colorCenter },
+        )
+    }
+
+    private fun SequenceSegment.toDiff(): AnimStateDiff =
+        this.start.diffWithNext(this.dest)
 }
 
 /**

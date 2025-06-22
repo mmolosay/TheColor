@@ -110,6 +110,58 @@ internal class HomeAnimControllerTest {
     }
 
     /**
+     * GIVEN
+     * [sut] is created with some initial state 1.
+     *
+     * WHEN
+     * 1. sequence [1, 2] is submitted to run. Some property X is different between states 1 and 2,
+     * effectively meaning that the property X is being animated in this segment.
+     *
+     * 2. segment (1, 2) has not been even partially executed yet (e.g. animation 1 → 2 is still ongoing).
+     *
+     * 3. new sequence [1, 1] is submitted to run. Considering that at the moment the segment (1, 2)
+     * is running, with new sequence it starts running a segment (1, 1), which sets dest state to state 1.
+     * As mentioned above, difference in (1, 2) is in property X. If the segment (1, 2) has been
+     * reversed back to 1 on half way there, that means that property X is the one that should be reported
+     * as reached in order to confirm that state 1 has been returned.
+     *
+     * 4. property Y is reported as reached. Since it's a part of state 1 but it is
+     * NOT THE ONE BEING ANIMATED (different between states 2 and 1), then
+     * it should be ignored and shouldn't be considered as an indicator that state 1 is reached.
+     *
+     * THEN
+     * dest state stays equal to state 2. Sequence doesn't finish.
+     */
+    @Test
+    fun `given sequence '1 → 2' is running where value of property X is being animated, when new segment (1 → 1) is started and value of property Y is reported as reached, then dest state is NOT updated`() = runTest {
+        val state1 = HomeAnimState(
+            colorPreviewPosition = ColorPreview.Position.NotDived,
+            colorPreviewVisibility = ColorPreview.Visibility.Visible,
+            colorCenter = ColorCenter.Collapsed,
+        )
+        val state2 = state1.copy(colorPreviewPosition = ColorPreview.Position.Dived)
+        sut = HomeAnimController(state1)
+
+        val sequence12 = HomeAnimSequence(states = listOf(state1, state2))
+        sut.run(sequence12)
+        sut.currentState shouldBe state1
+        sut.flowOfDestState.value shouldBe state2
+
+        doNothing() // state 2 hasn't been reached yet (animation is still running)
+
+        val sequence11 = HomeAnimSequence(states = listOf(state1, state1))
+        sut.run(sequence11)
+        sut.currentState shouldBe state1
+        sut.flowOfDestState.value shouldBe state1
+
+        // difference between states 2 and 1 is in Color Preview position, not in Color Preview Visibility
+        // so reporting the latter as reached shouldn't be considered as an indicator that state 1 is reached
+        sut.reportStateReached(ColorPreview.Visibility.Visible)
+        sut.isRunning shouldBe true // state 1 is not reached, thus animation is still running
+        sut.isRunning shouldNotBe false
+    }
+
+    /**
      * See also the test below with sequences in reversed order.
      *
      * GIVEN
