@@ -236,32 +236,33 @@ internal class HomeAnimController(
         if (!isRunning) return
         val runningSequence = requireNotNull(runningSequence)
         val segmentToRun = runningSequence.segment()
-        if (segmentToRun != null) {
-            require(segmentToRun.start == currentState)
-            when {
-                segmentToRun.dest != destState -> {
-                    if (currentSegment.isEmpty().not() &&
-                        segmentToRun.isEmpty() &&
-                        currentSegment.start == segmentToRun.dest
-                    ) {
-                        currentDiff = currentSegment.dest.diffWithNext(currentSegment.start)
-                    } else {
-                        currentDiff = segmentToRun.toDiff()
-                    }
-                    flowOfDestState.value = segmentToRun.dest
-                    Timber.d("DBG | updated destState = $destState")
-                }
-                currentSegment == segmentToRun && currentSegment.isEmpty().not() -> {
-                    doNothing() // identical segment is already running
-                }
-                segmentToRun.dest == destState || segmentToRun.isEmpty() -> {
-                    runningSequence.advance()
-                    setNextDestFromSequence()
-                }
-            }
-        } else {
+        if (segmentToRun == null) {
             this.runningSequence = null // sequence is finished
             Timber.d("DBG | sequence is finished")
+            return
+        }
+        require(segmentToRun.start == currentState)
+        if (segmentToRun.dest != destState) {
+            currentDiff = if (currentSegment.isEmpty().not() &&
+                segmentToRun.isEmpty() &&
+                currentSegment.start == segmentToRun.dest
+            ) {
+                currentSegment.dest.diffWithNext(currentSegment.start)
+            } else {
+                segmentToRun.toDiff()
+            }
+            flowOfDestState.value = segmentToRun.dest
+            Timber.d("DBG | updated destState = $destState")
+            return
+        }
+        if (currentSegment == segmentToRun && currentSegment.isEmpty().not()) {
+            doNothing() // identical segment is already running
+            return
+        }
+        if (segmentToRun.dest == destState || segmentToRun.isEmpty()) {
+            runningSequence.advance()
+            setNextDestFromSequence()
+            return
         }
     }
 
