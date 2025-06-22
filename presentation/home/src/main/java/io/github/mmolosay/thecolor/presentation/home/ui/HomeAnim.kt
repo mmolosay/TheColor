@@ -303,13 +303,6 @@ internal class HomeAnimController(
         val colorCenter: ColorCenter?,
     )
 
-    private fun AnimStateDiff.isEmpty(): Boolean {
-        if (colorPreviewPosition != null) return false
-        if (colorPreviewVisibility != null) return false
-        if (colorCenter != null) return false
-        return true
-    }
-
     private fun HomeAnimState.diffWithNext(other: HomeAnimState): AnimStateDiff {
         fun <T> componentDiff(value: HomeAnimState.() -> T): T? {
             val valueInThis = this.value()
