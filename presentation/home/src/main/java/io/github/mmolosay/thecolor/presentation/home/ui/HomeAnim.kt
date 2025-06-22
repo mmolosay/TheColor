@@ -135,8 +135,8 @@ internal class HomeAnimController(
     val destState: HomeAnimState
         get() = flowOfDestState.value
 
-    private val currentSegment: SequenceSegment
-        get() = SequenceSegment(start = currentState, dest = destState)
+    private val currentSegment: Segment
+        get() = Segment(start = currentState, dest = destState)
 
     private var currentDiff: AnimStateDiff = currentSegment.toDiff()
 
@@ -219,7 +219,7 @@ internal class HomeAnimController(
         if (!isRunning) return sequence
         assert(isRunning == true)
         val newStates = sequence.toMutableList()
-        val firstSegment = SequenceSegment(start = sequence[0], dest = sequence[1])
+        val firstSegment = Segment(start = sequence[0], dest = sequence[1])
         // if current == (2, 3) && first == (2, 1), then make first == (2, 2) to reverse current (2, 3)
         kotlin.run {
             val currentAndFirstStartFromSameButFinishOnDiffStates =
@@ -278,10 +278,10 @@ internal class HomeAnimController(
     ) {
         private var index: Int = 0
 
-        fun segment(): SequenceSegment? {
+        fun segment(): Segment? {
             val currentState = sequence.getOrNull(index) ?: return null
             val nextState = sequence.getOrNull(index + 1) ?: return null
-            return SequenceSegment(start = currentState, dest = nextState)
+            return Segment(start = currentState, dest = nextState)
         }
 
         fun advance() {
@@ -289,12 +289,12 @@ internal class HomeAnimController(
         }
     }
 
-    private data class SequenceSegment(
+    private data class Segment(
         val start: HomeAnimState,
         val dest: HomeAnimState,
     )
 
-    private fun SequenceSegment.isEmpty(): Boolean =
+    private fun Segment.isEmpty(): Boolean =
         (start == dest)
 
     private data class AnimStateDiff(
@@ -323,7 +323,7 @@ internal class HomeAnimController(
         )
     }
 
-    private fun SequenceSegment.toDiff(): AnimStateDiff =
+    private fun Segment.toDiff(): AnimStateDiff =
         this.start.diffWithNext(this.dest)
 }
 
