@@ -384,8 +384,8 @@ private fun Home(
                     .map { it.colorPreviewVisibility }
                     .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), upstream.value.colorPreviewVisibility)
             },
-            onPositionAnimFinished = { animController.reportStateReached(it) },
-            onVisibilityAnimFinished = { animController.reportStateReached(it) },
+            onPositionAnimFinished = { animController.reportValueReached(it) },
+            onVisibilityAnimFinished = { animController.reportValueReached(it) },
             containerViewportHeight = viewportHeight,
             containerPosInRoot = posInRoot,
         )
@@ -406,7 +406,7 @@ private fun Home(
                     .map { it.colorCenter }
                     .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), upstream.value.colorCenter)
             },
-            onAnimFinished = { animController.reportStateReached(it) },
+            onAnimFinished = { animController.reportValueReached(it) },
             containerScrollState = scrollState,
         )
     }

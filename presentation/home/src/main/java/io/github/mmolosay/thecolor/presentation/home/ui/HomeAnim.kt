@@ -160,31 +160,31 @@ internal class HomeAnimController(
         setNextDestFromSequence()
     }
 
-    fun reportStateReached(value: ColorPreview.Position) =
-        reportStateReached(
+    fun reportValueReached(value: ColorPreview.Position) =
+        reportValueReached(
             reachedValue = value,
             destValue = destState.colorPreviewPosition,
             isExpectedToBeReached = (currentDiff.colorPreviewPosition != null),
             applyToCurrentState = { it.copy(colorPreviewPosition = value) },
         )
 
-    fun reportStateReached(value: ColorPreview.Visibility) =
-        reportStateReached(
+    fun reportValueReached(value: ColorPreview.Visibility) =
+        reportValueReached(
             reachedValue = value,
             destValue = destState.colorPreviewVisibility,
             isExpectedToBeReached = (currentDiff.colorPreviewVisibility != null),
             applyToCurrentState = { it.copy(colorPreviewVisibility = value) },
         )
 
-    fun reportStateReached(value: ColorCenter) =
-        reportStateReached(
+    fun reportValueReached(value: ColorCenter) =
+        reportValueReached(
             reachedValue = value,
             destValue = destState.colorCenter,
             isExpectedToBeReached = (currentDiff.colorCenter != null),
             applyToCurrentState = { it.copy(colorCenter = value) },
         )
 
-    fun <T> reportStateReached(
+    fun <T> reportValueReached(
         reachedValue: T,
         destValue: T,
         isExpectedToBeReached: Boolean,
