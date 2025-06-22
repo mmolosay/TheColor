@@ -8,7 +8,6 @@ import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPrevi
 import io.github.mmolosay.thecolor.utils.doNothing
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 
 internal class HomeAnimControllerTest {
@@ -16,7 +15,7 @@ internal class HomeAnimControllerTest {
     lateinit var sut: HomeAnimController
 
     @Test
-    fun `run sequence of 2 states`() = runTest {
+    fun `run sequence of 2 states`() {
         sut = kotlin.run {
             val initialState = HomeAnimState(
                 colorPreviewPosition = ColorPreview.Position.NotDived,
@@ -43,7 +42,7 @@ internal class HomeAnimControllerTest {
     }
 
     @Test
-    fun `run sequence of 4 states`() = runTest {
+    fun `run sequence of 4 states`() {
         sut = kotlin.run {
             val initialState = HomeAnimState(
                 colorPreviewPosition = ColorPreview.Position.NotDived,
@@ -95,7 +94,7 @@ internal class HomeAnimControllerTest {
      * Thus, [HomeAnimController.isRunning] remains `false`.
      */
     @Test
-    fun `given initial state is 1, when sequence '1 → 1' is submitted, then it doesn't start`() = runTest {
+    fun `given initial state is 1, when sequence '1 → 1' is submitted, then it doesn't start`() {
         val state1 = HomeAnimState(
             colorPreviewPosition = ColorPreview.Position.NotDived,
             colorPreviewVisibility = ColorPreview.Visibility.Hidden,
@@ -133,7 +132,7 @@ internal class HomeAnimControllerTest {
      * dest state stays equal to state 2. Sequence doesn't finish.
      */
     @Test
-    fun `given sequence '1 → 2' is running where value of property X is being animated, when new segment (1 → 1) is started and value of property Y is reported as reached, then dest state is NOT updated`() = runTest {
+    fun `given sequence '1 → 2' is running where value of property X is being animated, when new segment (1 → 1) is started and value of property Y is reported as reached, then dest state is NOT updated`() {
         val state1 = HomeAnimState(
             colorPreviewPosition = ColorPreview.Position.NotDived,
             colorPreviewVisibility = ColorPreview.Visibility.Visible,
@@ -176,7 +175,7 @@ internal class HomeAnimControllerTest {
      * all states from latter sequence [1, 2, 3] are animated.
      */
     @Test
-    fun `given initial state is 1, when sequence '1 → 2' is submitted, and then another sequence '1 → 2 → 3' is submitted before first sequence is partially executed, then all states from second sequence are animated`() = runTest {
+    fun `given initial state is 1, when sequence '1 → 2' is submitted, and then another sequence '1 → 2 → 3' is submitted before first sequence is partially executed, then all states from second sequence are animated`() {
         val state1 = HomeAnimState(
             colorPreviewPosition = ColorPreview.Position.NotDived,
             colorPreviewVisibility = ColorPreview.Visibility.Hidden,
@@ -223,7 +222,7 @@ internal class HomeAnimControllerTest {
      * all states from latter sequence [1, 2] are animated.
      */
     @Test
-    fun `given initial state is 1, when sequence '1 → 2 → 3' is submitted, and then another sequence '1 → 2' is submitted before first sequence is partially executed, then all states from second sequence are animated`() = runTest {
+    fun `given initial state is 1, when sequence '1 → 2 → 3' is submitted, and then another sequence '1 → 2' is submitted before first sequence is partially executed, then all states from second sequence are animated`() {
         val state1 = HomeAnimState(
             colorPreviewPosition = ColorPreview.Position.NotDived,
             colorPreviewVisibility = ColorPreview.Visibility.Hidden,
@@ -252,7 +251,7 @@ internal class HomeAnimControllerTest {
     }
 
     @Test
-    fun `when animation '2 → 3' is running and new sequence is '2 → 1', then 2 is not skipped`() = runTest {
+    fun `when animation '2 → 3' is running and new sequence is '2 → 1', then 2 is not skipped`() {
         val state1 = HomeAnimState(
             colorPreviewPosition = ColorPreview.Position.NotDived,
             colorPreviewVisibility = ColorPreview.Visibility.Hidden,
@@ -284,7 +283,7 @@ internal class HomeAnimControllerTest {
     }
 
     @Test
-    fun `when animation '1 → 2' is running and new sequence is '1 → 1', then animation back towards 1 starts`() = runTest {
+    fun `when animation '1 → 2' is running and new sequence is '1 → 1', then animation back towards 1 starts`() {
         val state1 = HomeAnimState(
             colorPreviewPosition = ColorPreview.Position.NotDived,
             colorPreviewVisibility = ColorPreview.Visibility.Hidden,
