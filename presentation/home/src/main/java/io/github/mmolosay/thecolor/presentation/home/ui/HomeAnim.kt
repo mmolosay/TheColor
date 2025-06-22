@@ -241,13 +241,12 @@ internal class HomeAnimController(
         }
         require(segmentToRun.start == currentState)
         if (segmentToRun.dest != destState) {
-            currentDiff = if (currentSegment.isEmpty().not() &&
-                segmentToRun.isEmpty() &&
-                currentSegment.start == segmentToRun.dest
-            ) {
-                currentSegment.dest.diffWithNext(currentSegment.start)
+            val isAnimatingToNewState = (currentState != destState)
+            val willAnimateBackToCurrent = (segmentToRun.dest == currentState)
+            if (isAnimatingToNewState && willAnimateBackToCurrent) {
+                currentDiff = destState.diffWithNext(currentState)
             } else {
-                segmentToRun.toDiff()
+                currentDiff = segmentToRun.toDiff()
             }
             flowOfDestState.value = segmentToRun.dest
             Timber.d("DBG | updated destState = $destState")
