@@ -221,10 +221,13 @@ internal class HomeAnimController(
         assert(isRunning == true)
         val newStates = sequence.toMutableList()
         val firstSegment = SequenceSegment(start = sequence[0], dest = sequence[1])
-        if (currentSegment.start == firstSegment.start) {
-            if (currentSegment.dest != firstSegment.dest && firstSegment.isEmpty().not()) {
+        // if current == (2, 3) && first == (2, 1), then make first == (2, 2) to reverse current (2, 3)
+        kotlin.run {
+            val currentAndFirstStartFromSameButFinishOnDiffStates =
+                (currentSegment.start == firstSegment.start) && (currentSegment.dest != firstSegment.dest)
+            if (currentAndFirstStartFromSameButFinishOnDiffStates && firstSegment.isEmpty().not()) {
                 // before animating to firstSegment.dest, animate back to firstSegment.start
-                newStates.add(index = 1, element = firstSegment.start)
+                newStates.add(index = 1, element = currentSegment.start)
             }
         }
         return HomeAnimSequence(newStates)
