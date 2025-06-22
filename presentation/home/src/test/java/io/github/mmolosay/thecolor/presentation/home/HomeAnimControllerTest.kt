@@ -132,7 +132,7 @@ internal class HomeAnimControllerTest {
      * dest state stays equal to state 2. Sequence doesn't finish.
      */
     @Test
-    fun `given sequence '1 → 2' is running where value of property X is being animated, when new segment (1 → 1) is started and value of property Y is reported as reached, then dest state is NOT updated`() {
+    fun `given segment '1 → 2' is running where value of property X is being animated, when new segment (1 → 1) is started and value of property Y is reported as reached, then dest state is NOT updated`() {
         val state1 = HomeAnimState(
             colorPreviewPosition = ColorPreview.Position.NotDived,
             colorPreviewVisibility = ColorPreview.Visibility.Visible,
@@ -251,7 +251,7 @@ internal class HomeAnimControllerTest {
     }
 
     @Test
-    fun `when animation '2 → 3' is running and new sequence is '2 → 1', then 2 is not skipped`() {
+    fun `when segment '2 → 3' is running and new sequence is '2 → 1', then 2 is not skipped`() {
         val state1 = HomeAnimState(
             colorPreviewPosition = ColorPreview.Position.NotDived,
             colorPreviewVisibility = ColorPreview.Visibility.Hidden,
@@ -283,7 +283,7 @@ internal class HomeAnimControllerTest {
     }
 
     @Test
-    fun `when animation '1 → 2' is running and new sequence is '1 → 1', then animation back towards 1 starts`() {
+    fun `when segment '1 → 2' is running and new sequence is '1 → 1', then animation back towards 1 starts`() {
         val state1 = HomeAnimState(
             colorPreviewPosition = ColorPreview.Position.NotDived,
             colorPreviewVisibility = ColorPreview.Visibility.Hidden,
