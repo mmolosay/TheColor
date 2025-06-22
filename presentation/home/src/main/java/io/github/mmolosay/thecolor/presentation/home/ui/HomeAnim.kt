@@ -155,7 +155,7 @@ internal class HomeAnimController(
         Timber.d("DBG | ----------------------------")
 
         require(sequence.first() == currentState) { "sequence must start from current state" }
-        val adjustedSequence = adjustSubmittedSequence(sequence)
+        val adjustedSequence = normalizeSubmittedSequence(sequence)
         runningSequence = RunningSequence(adjustedSequence)
         setNextDestFromSequence()
     }
@@ -216,7 +216,7 @@ internal class HomeAnimController(
      * We need to tweak submitted, "raw" [sequence] according to the current state of animation to
      * make the [sequence] easy to execute.
      */
-    private fun adjustSubmittedSequence(sequence: HomeAnimSequence): HomeAnimSequence {
+    private fun normalizeSubmittedSequence(sequence: HomeAnimSequence): HomeAnimSequence {
         if (!isRunning) return sequence
         assert(isRunning == true)
         val newStates = sequence.toMutableList()
