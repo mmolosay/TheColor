@@ -15,7 +15,16 @@ import javax.inject.Singleton
  * Value classes are replaced with values they're wrapping in runtime.
  */
 @JvmInline
-value class ColorInt(val hex: Int)
+value class ColorInt(val hex: Int) {
+
+    // for a convenient presentation in debugger
+    override fun toString() =
+        hex
+            .toString(radix = 16)
+            .uppercase()
+            .padStart(6, '0')
+            .let { "#$it" }
+}
 
 /** Converts domain [Color] into [ColorInt]. */
 @Singleton
