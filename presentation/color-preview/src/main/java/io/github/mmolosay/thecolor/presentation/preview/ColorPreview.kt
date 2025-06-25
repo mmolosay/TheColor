@@ -4,6 +4,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -18,6 +19,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -30,7 +32,9 @@ import androidx.compose.ui.unit.dp
 import io.github.mmolosay.thecolor.presentation.api.ColorInt
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.impl.toCompose
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.seconds
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState as UiState
 
@@ -74,25 +78,48 @@ fun AnimatedColorPreview(
     uiState: UiState,
     onAnimationFinished: (UiState) -> Unit,
 ) {
+    val coroutineScope = rememberCoroutineScope()
+
     val latestUiState by rememberUpdatedState(uiState) // lambdas may capture old uiState
     val updates = remember { mutableStateListOf<UpdateOfVisibleUiState>() }
     // we want to have last 'UiState.Visible' memoized to show animation of scaling the preview down
     var mainUiState by remember { mutableStateOf(uiState) }
-    val scale by animateFloatAsState(
-        targetValue = if (uiState is UiState.Visible) 1f else 0f,
-        label = "preview scale",
-        finishedListener = {
-            // uiState == latestUiState here because if former changes animation will restart with new value
-            mainUiState = uiState
+
+    fun scaleTargetValue(uiState: UiState): Float =
+        if (uiState is UiState.Visible) 1f else 0f
+    val scaleAnimatable = remember {
+        Animatable(initialValue = scaleTargetValue(uiState))
+    }
+    LaunchedEffect(uiState) {
+        val targetValue = scaleTargetValue(uiState)
+        if (scaleAnimatable.value == targetValue) {
+            if (uiState == mainUiState) {
+                onAnimationFinished(uiState)
+                println("DBG | ColorPreview onAnimationFinished() scale, uiState = $uiState")
+            }
+            return@LaunchedEffect // already in target state
+        }
+        if (scaleAnimatable.isRunning && scaleAnimatable.targetValue == targetValue) {
+            return@LaunchedEffect // already animating to target state
+        }
+        // start animation in different scope to prevent animation cancellation when uiState changes
+        // and scope of LaunchedEffect is cancelled
+        coroutineScope.launch {
+            scaleAnimatable.animateTo(
+                targetValue = targetValue,
+                animationSpec = tween(3000),
+            )
             onAnimationFinished(uiState)
+            println("DBG | ColorPreview onAnimationFinished() scale, uiState = $uiState")
             if (uiState is UiState.Hidden) {
+                mainUiState = uiState
                 updates.clear()
             }
-        },
-    )
+        }
+    }
 
     ColorPreviewBox(
-        modifier = Modifier.scale(scale),
+        modifier = Modifier.scale(scaleAnimatable.value),
     ) {
         mainUiState.let {
             if (it is UiState.Visible) {
@@ -109,7 +136,8 @@ fun AnimatedColorPreview(
                         mainUiState = update.uiState
                         updates.remove(update)
                         // don't invoke a callback if collapsing
-                        if (latestUiState !is UiState.Hidden) {
+                        if (latestUiState !is UiState.Hidden && !scaleAnimatable.isRunning) {
+                            println("DBG | ColorPreview onAnimationFinished() update = ${update.uiState}")
                             onAnimationFinished(update.uiState)
                         }
                     },
