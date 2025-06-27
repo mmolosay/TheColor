@@ -1,13 +1,14 @@
 package io.github.mmolosay.thecolor.presentation.home.ui
 
 import androidx.compose.runtime.Composable
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 
 internal fun interface ColorPreviewComposable {
     @Composable
     operator fun invoke(
-        uiState: ColorPreviewUiState,
+        animController: ColorPreviewAnimController,
         onAnimationFinished: (ColorPreviewUiState) -> Unit,
     )
 }

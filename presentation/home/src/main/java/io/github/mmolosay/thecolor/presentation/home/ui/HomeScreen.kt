@@ -142,9 +142,9 @@ fun HomeScreen(
     val colorPreview: ColorPreviewWithDependencies = remember {
         ColorPreviewWithDependencies(
             viewModel = viewModel.colorPreviewViewModel,
-        ) { uiState, onAnimationFinished ->
+        ) { animController, onAnimationFinished ->
             AnimatedColorPreview(
-                uiState = uiState,
+                animController = animController,
                 onAnimationFinished = onAnimationFinished,
             )
         }
@@ -184,6 +184,7 @@ fun HomeScreen(
         }
     }
 
+    // TODO: get rid of slot-based approach for nested Views?
     HomeScreen(
         data = data,
         strings = strings,

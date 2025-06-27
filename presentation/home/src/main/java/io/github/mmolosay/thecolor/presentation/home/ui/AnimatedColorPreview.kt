@@ -34,10 +34,11 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.impl.toDpOffset
 import io.github.mmolosay.thecolor.presentation.impl.toDpSize
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimControllerImpl
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState
 import io.github.mmolosay.thecolor.presentation.preview.toUiState
@@ -48,6 +49,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
@@ -124,12 +127,20 @@ internal fun AnimatedColorPreview(
                 coroutineScope = coroutineScope,
             )
         }
-        val uiState = flowOfAnimatedUiState.collectAsStateWithLifecycle().value
-        if (uiState != null) {
+        val animController by produceState<ColorPreviewAnimController?>(initialValue = null) {
+            val uiState = flowOfAnimatedUiState.filterNotNull().first()
+            value = ColorPreviewAnimControllerImpl(uiState)
+        }
+        LaunchedEffect(Unit) {
+            flowOfAnimatedUiState.filterNotNull().collect { uiState ->
+                animController?.onNewUiState(uiState)
+            }
+        }
+        if (animController != null) {
             colorPreview.composable.invoke(
-                uiState = uiState,
-                onAnimationFinished = { uiState ->
-                    val reachedAnimState = uiState.toAnimState()
+                animController = animController!!,
+                onAnimationFinished = { reachedUiState ->
+                    val reachedAnimState = reachedUiState.toAnimState()
                     onVisibilityAnimFinished(reachedAnimState)
                 },
             )
