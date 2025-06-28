@@ -142,10 +142,10 @@ fun HomeScreen(
     val colorPreview: ColorPreviewWithDependencies = remember {
         ColorPreviewWithDependencies(
             viewModel = viewModel.colorPreviewViewModel,
-        ) { animController, onAnimationFinished ->
+        ) { animController, onUiStateReached ->
             AnimatedColorPreview(
                 animController = animController,
-                onAnimationFinished = onAnimationFinished,
+                onUiStateReached = onUiStateReached,
             )
         }
     }
@@ -385,8 +385,8 @@ private fun Home(
                     .map { it.colorPreviewVisibility }
                     .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), upstream.value.colorPreviewVisibility)
             },
-            onPositionAnimFinished = { animController.reportValueReached(it) },
-            onVisibilityAnimFinished = { animController.reportValueReached(it) },
+            onPositionReached = animController::onValueReached,
+            onVisibilityReached = animController::onValueReached,
             containerViewportHeight = viewportHeight,
             containerPosInRoot = posInRoot,
         )
@@ -407,7 +407,7 @@ private fun Home(
                     .map { it.colorCenter }
                     .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), upstream.value.colorCenter)
             },
-            onAnimFinished = { animController.reportValueReached(it) },
+            onReached = animController::onValueReached,
             containerScrollState = scrollState,
         )
     }

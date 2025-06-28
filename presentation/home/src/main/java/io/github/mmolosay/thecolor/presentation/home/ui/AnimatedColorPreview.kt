@@ -66,8 +66,8 @@ internal fun AnimatedColorPreview(
     colorPreview: ColorPreviewWithDependencies,
     flowOfPositionAnimDest: StateFlow<AnimState.Position>,
     flowOfVisibilityAnimDest: StateFlow<AnimState.Visibility>,
-    onPositionAnimFinished: (dest: AnimState.Position) -> Unit,
-    onVisibilityAnimFinished: (dest: AnimState.Visibility) -> Unit,
+    onPositionReached: (reached: AnimState.Position) -> Unit,
+    onVisibilityReached: (reached: AnimState.Visibility) -> Unit,
     containerViewportHeight: Dp?,
     containerPosInRoot: DpOffset?,
 ) {
@@ -139,9 +139,9 @@ internal fun AnimatedColorPreview(
         if (animController != null) {
             colorPreview.composable.invoke(
                 animController = animController!!,
-                onAnimationFinished = { reachedUiState ->
+                onUiStateReached = { reachedUiState ->
                     val reachedAnimState = reachedUiState.toAnimState()
-                    onVisibilityAnimFinished(reachedAnimState)
+                    onVisibilityReached(reachedAnimState)
                 },
             )
         }
@@ -157,7 +157,7 @@ internal fun AnimatedColorPreview(
                 VerticalOffset.calc(animDest, params)
             }
             if (offsetAnimatable.value == targetValue) {
-                onPositionAnimFinished(animDest)
+                onPositionReached(animDest)
                 return@collect // already in target state
             }
             val animationSpec: AnimationSpec<Dp> = when (animDest) {
@@ -176,7 +176,7 @@ internal fun AnimatedColorPreview(
                 targetValue = targetValue,
                 animationSpec = animationSpec,
             )
-            onPositionAnimFinished(animDest)
+            onPositionReached(animDest)
         }
     }
 }
@@ -311,8 +311,8 @@ private fun Preview() {
             },
             flowOfPositionAnimDest = remember { MutableStateFlow(AnimState.Position.NotDived) },
             flowOfVisibilityAnimDest = remember { MutableStateFlow(AnimState.Visibility.Visible) },
-            onPositionAnimFinished = {},
-            onVisibilityAnimFinished = {},
+            onPositionReached = {},
+            onVisibilityReached = {},
             containerViewportHeight = 400.dp,
             containerPosInRoot = DpOffset.Zero,
         )

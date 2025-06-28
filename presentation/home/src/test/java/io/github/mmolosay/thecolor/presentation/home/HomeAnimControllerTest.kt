@@ -36,9 +36,10 @@ internal class HomeAnimControllerTest {
         sut.currentState shouldBe sequence[0]
         sut.destState shouldBe sequence[1]
 
-        sut.reportValueReached(ColorPreview.Visibility.Visible)
+        sut.onValueReached(value = ColorPreview.Visibility.Visible)
         sut.currentState shouldBe sequence[1]
         sut.destState shouldBe sequence[1]
+        sut.isRunning shouldBe false // finished
     }
 
     @Test
@@ -69,17 +70,18 @@ internal class HomeAnimControllerTest {
         sut.currentState shouldBe sequence[0]
         sut.destState shouldBe sequence[1]
 
-        sut.reportValueReached(ColorPreview.Visibility.Visible)
+        sut.onValueReached(value = ColorPreview.Visibility.Visible)
         sut.currentState shouldBe sequence[1]
         sut.destState shouldBe sequence[2]
 
-        sut.reportValueReached(ColorPreview.Position.Dived)
+        sut.onValueReached(value = ColorPreview.Position.Dived)
         sut.currentState shouldBe sequence[2]
         sut.destState shouldBe sequence[3]
 
-        sut.reportValueReached(ColorCenter.Expanded)
+        sut.onValueReached(value = ColorCenter.Expanded)
         sut.currentState shouldBe sequence[3]
         sut.destState shouldBe sequence[3]
+        sut.isRunning shouldBe false // finished
     }
 
     /**
@@ -153,11 +155,11 @@ internal class HomeAnimControllerTest {
         sut.currentState shouldBe state1
         sut.destState shouldBe state1
 
-        // difference between states 2 and 1 is in Color Preview position, not in Color Preview Visibility
+        // difference between states 2 and 1 is in Color Preview Position, not in Color Preview Visibility
         // so reporting the latter as reached shouldn't be considered as an indicator that state 1 is reached
-        sut.reportValueReached(ColorPreview.Visibility.Visible)
+        sut.onValueReached(value = ColorPreview.Visibility.Visible)
         sut.isRunning shouldBe true // state 1 is not reached, thus animation is still running
-        sut.isRunning shouldNotBe false
+        sut.isRunning shouldNotBe false // not finished yet
     }
 
     /**
@@ -197,11 +199,11 @@ internal class HomeAnimControllerTest {
         sut.currentState shouldBe state1
         sut.destState shouldBe state2
 
-        sut.reportValueReached(state2.colorPreviewVisibility)
+        sut.onValueReached(value = ColorPreview.Visibility.Visible)
         sut.currentState shouldBe state2
         sut.destState shouldBe state3
 
-        sut.reportValueReached(state3.colorPreviewPosition)
+        sut.onValueReached(value = ColorPreview.Position.Dived)
         sut.currentState shouldBe state3
         sut.destState shouldBe state3
         sut.isRunning shouldBe false // finished
@@ -244,7 +246,7 @@ internal class HomeAnimControllerTest {
         sut.currentState shouldBe state1
         sut.destState shouldBe state2
 
-        sut.reportValueReached(state2.colorPreviewVisibility)
+        sut.onValueReached(value = ColorPreview.Visibility.Visible)
         sut.currentState shouldBe state2
         sut.destState shouldBe state2
         sut.isRunning shouldBe false // finished
@@ -273,11 +275,11 @@ internal class HomeAnimControllerTest {
         sut.currentState shouldBe state2
         sut.destState shouldBe state2
 
-        sut.reportValueReached(ColorPreview.Position.NotDived)
+        sut.onValueReached(value = ColorPreview.Position.NotDived)
         sut.currentState shouldBe state2
         sut.destState shouldBe state1
 
-        sut.reportValueReached(ColorPreview.Visibility.Hidden)
+        sut.onValueReached(value = ColorPreview.Visibility.Hidden)
         sut.currentState shouldBe state1
         sut.isRunning shouldBe false
     }
@@ -302,7 +304,7 @@ internal class HomeAnimControllerTest {
         val sequence11 = HomeAnimSequence(states = listOf(state1, state1))
         sut.run(sequence11)
 
-        sut.reportValueReached(state1.colorPreviewVisibility) // state1 is reached
+        sut.onValueReached(value = ColorPreview.Visibility.Hidden) // state1 is reached
         sut.currentState shouldBe state1
         sut.destState shouldBe state1
         sut.isRunning shouldBe false

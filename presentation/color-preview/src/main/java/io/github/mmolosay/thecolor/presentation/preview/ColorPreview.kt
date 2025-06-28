@@ -69,7 +69,7 @@ fun ColorPreview(
 @Composable
 fun AnimatedColorPreview(
     animController: ColorPreviewAnimController,
-    onAnimationFinished: (UiState) -> Unit,
+    onUiStateReached: (reached: UiState) -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -91,7 +91,7 @@ fun AnimatedColorPreview(
             val targetValue = scaleTargetValue(visibility.dest)
             if (scaleAnimatable.value == targetValue) {
                 if (visibility.cause == mainUiState) {
-                    onAnimationFinished(visibility.cause)
+                    onUiStateReached(visibility.cause)
                 }
                 return@collect // already in target state
             }
@@ -103,7 +103,7 @@ fun AnimatedColorPreview(
                     targetValue = targetValue,
                 )
                 animController.onVisibilityAnimFinished(reached = visibility)
-                onAnimationFinished(visibility.cause)
+                onUiStateReached(visibility.cause)
                 if (visibility.cause is UiState.Hidden) {
                     updates.clear()
                 }
@@ -137,7 +137,7 @@ fun AnimatedColorPreview(
                         }
                         // don't invoke a callback if collapsing
                         if (animController.latestUiState !is UiState.Hidden && !scaleAnimatable.isRunning) {
-                            onAnimationFinished(update.uiState)
+                            onUiStateReached(update.uiState)
                         }
                     },
                 )
@@ -226,7 +226,7 @@ private fun AnimatedPreview() {
         }
         AnimatedColorPreview(
             animController = animController,
-            onAnimationFinished = {},
+            onUiStateReached = {},
         )
         LaunchedEffect(Unit) {
             while (true) {

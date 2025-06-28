@@ -9,7 +9,7 @@ internal fun interface ColorPreviewComposable {
     @Composable
     operator fun invoke(
         animController: ColorPreviewAnimController,
-        onAnimationFinished: (ColorPreviewUiState) -> Unit,
+        onUiStateReached: (ColorPreviewUiState) -> Unit,
     )
 }
 
