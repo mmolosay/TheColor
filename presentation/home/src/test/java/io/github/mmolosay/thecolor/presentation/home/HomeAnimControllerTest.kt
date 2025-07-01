@@ -309,4 +309,52 @@ internal class HomeAnimControllerTest {
         sut.destState shouldBe state1
         sut.isRunning shouldBe false
     }
+
+
+    /**
+     * GIVEN
+     * [sut] is created with some initial state 2.
+     *
+     * WHEN
+     * 1. sequence [2, 1] is submitted to run
+     * 2. sequence [2, 1] has not been even partially executed yet (e.g. animation 2 → 1 is still ongoing)
+     * 3. new sequence [2, 3] is submitted to run
+     * 4. segment (2, 2) starts, because animation of segment (2 → 1) from step 2 has "shifted" actual state from 2 to 1.5.
+     * So now segment (1.5 → 2) is running
+     * 5. the same sequence [2, 3] as in step 3 is submitted to run (again)
+     *
+     * THEN
+     * ongoing segment (2 → 2) (which is more like segment (1.5 → 2)) is not skipped and
+     * dest state stays equal to state 2 instead of jumping to state 3.
+     */
+    @Test
+    fun `given segment (2 → 1) is running, when sequence '2 → 3' is submitted twice, then state 2 is not skipped`() {
+        val state1 = HomeAnimState(
+            colorPreviewPosition = ColorPreview.Position.NotDived,
+            colorPreviewVisibility = ColorPreview.Visibility.Hidden,
+            colorCenter = ColorCenter.Collapsed,
+        )
+        val state2 = state1.copy(colorPreviewVisibility = ColorPreview.Visibility.Visible)
+        val state3 = state2.copy(colorPreviewPosition = ColorPreview.Position.Dived)
+        sut = HomeAnimController(state2)
+
+        val sequence21 = HomeAnimSequence(states = listOf(state2, state1))
+        sut.run(sequence21)
+        sut.currentState shouldBe state2
+        sut.destState shouldBe state1
+
+        doNothing() // ColorPreview.Visibility -> Hidden is still running
+
+        val sequence23 = HomeAnimSequence(states = listOf(state2, state3))
+        sut.run(sequence23)
+        sut.currentState shouldBe state2
+        sut.destState shouldBe state2
+
+        doNothing()// ColorPreview.Visibility -> Visible is still running
+
+        sut.run(sequence23)
+        sut.currentState shouldBe state2
+        sut.destState shouldBe state2 // state 2 is NOT skipped
+        sut.destState shouldNotBe state3
+    }
 }

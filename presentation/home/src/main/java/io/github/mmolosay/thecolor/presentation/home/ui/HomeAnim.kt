@@ -3,7 +3,6 @@ package io.github.mmolosay.thecolor.presentation.home.ui
 import androidx.compose.ui.unit.dp
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorCenter
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPreview
-import io.github.mmolosay.thecolor.utils.doNothing
 import kotlinx.coroutines.flow.MutableStateFlow
 import timber.log.Timber
 
@@ -147,10 +146,10 @@ internal class HomeAnimController(
 
     fun run(sequence: HomeAnimSequence) {
         Timber.d("DBG | ----------------------------")
-        Timber.d("DBG | running new sequence $sequence")
+        Timber.d("DBG | submitted new sequence $sequence")
         Timber.d("DBG | currentState = $currentState")
         Timber.d("DBG | currentDest = ${flowOfDestState.value}")
-        Timber.d("DBG | runningSequence = $runningSequence")
+        Timber.d("DBG | runningSequence = ${runningSequence?.sequence}")
         Timber.d("DBG | ----------------------------")
 
         require(sequence.first() == currentState) { "sequence must start from current state" }
@@ -250,13 +249,15 @@ internal class HomeAnimController(
             pendingDests.putAll(destState diffTo segmentToRun.dest)
             flowOfDestState.value = segmentToRun.dest
             Timber.d("DBG | updated destState = $destState")
+            Timber.d("DBG | updated pendingDests = $pendingDests")
             return
         }
-        if (currentSegment == segmentToRun && currentSegment.isEmpty().not()) {
-            doNothing() // identical segment is already running
-            return
+        if (currentSegment == segmentToRun && pendingDests.isNotEmpty()) {
+            Timber.d("DBG | segment is already running $segmentToRun")
+            return // identical segment is already running
         }
         if (segmentToRun.dest == destState || segmentToRun.isEmpty()) {
+            Timber.d("DBG | skipping dest ${segmentToRun.dest}")
             runningSequence.advance()
             setNextDestFromSequence()
             return
@@ -288,7 +289,7 @@ internal class HomeAnimController(
     }
 
     private class RunningSequence(
-        private val sequence: HomeAnimSequence,
+        val sequence: HomeAnimSequence,
     ) {
         private var index: Int = 0
 
