@@ -4,6 +4,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
@@ -69,3 +70,13 @@ inline fun <T, R> StateFlow<T>.mapDistinctly(
     this
         .map(transform)
         .distinctUntilChanged()
+
+/**
+ * Performs [tryEmit()][MutableSharedFlow.tryEmit] with assertion that the [value]
+ * was indeed emitted.
+ * See [MutableSharedFlow.tryEmit] for more details.
+ */
+fun <T> MutableSharedFlow<T>.requireEmit(value: T) {
+    val wasEmitted = this.tryEmit(value)
+    require(wasEmitted) { "Failed to emit value $value" }
+}

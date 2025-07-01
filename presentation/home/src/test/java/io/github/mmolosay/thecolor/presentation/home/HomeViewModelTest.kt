@@ -977,7 +977,6 @@ class HomeViewModelTest {
             lastSearchedColorRepository = lastSearchedColorRepository,
             colorFactory = colorFactory,
             defaultDispatcher = testDispatcher,
-            uiDataUpdateDispatcher = testDispatcher,
         ).also {
             sut = it
         }

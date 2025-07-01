@@ -46,7 +46,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -74,7 +73,6 @@ class HomeViewModel @Inject constructor(
     private val lastSearchedColorRepository: LastSearchedColorRepository,
     private val colorFactory: ColorFactory,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
-    @Named("uiDataUpdateDispatcher") private val uiDataUpdateDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val _dataFlow = MutableStateFlow(initialData())
@@ -463,9 +461,7 @@ class HomeViewModel @Inject constructor(
     ) {
         orchestrator.colorInputMutex.withLock {
             val wouldColorFlowEmitThisColor = colorInputColorStore.wouldEmitIfSet(color)
-            withContext(uiDataUpdateDispatcher) {
-                colorInputMediator.send(color = color, from = null)
-            }
+            colorInputMediator.send(color = color, from = null)
             orchestrator.onColorSentToColorInput(
                 color = color,
                 wouldColorFlowEmitThisColor = wouldColorFlowEmitThisColor,

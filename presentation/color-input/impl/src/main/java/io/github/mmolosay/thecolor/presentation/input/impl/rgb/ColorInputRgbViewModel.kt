@@ -195,9 +195,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         // don't synchronize this update with other Views to avoid update loop
         if (!update.causedByUser) return
         val parsedColor = (update.payload.colorInputState as? ColorInputState.Valid)?.color
-        coroutineScope.launch(uiDataUpdateDispatcher) {
-            mediator.send(color = parsedColor, from = DomainColorInputType.Rgb)
-        }
+        mediator.send(color = parsedColor, from = DomainColorInputType.Rgb)
     }
 
     private fun onSubmitEventConsumed(wasAccepted: Boolean) {
