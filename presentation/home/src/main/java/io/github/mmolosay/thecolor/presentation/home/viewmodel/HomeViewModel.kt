@@ -122,7 +122,7 @@ class HomeViewModel @Inject constructor(
      */
     private var proceedExecutorFlow = MutableStateFlow<ProceedExecutor?>(null)
     private var colorCenterSession: ColorCenterSession? = null
-    private val orchestrator = Orchestrator()
+    private val colorInputOrchestrator = ColorInputOrchestrator()
     private var dataFetchedEventProcessor: DataFetchedEventProcessor? = initialDataFetchedEventProcessor()
 
     init {
@@ -140,7 +140,7 @@ class HomeViewModel @Inject constructor(
         }
 
     private suspend fun onColorFromColorInput(color: Color?) {
-        orchestrator.colorInputMutex.withLock {
+        colorInputOrchestrator.mutex.withLock {
             try {
                 val session = colorCenterSession
                 if (session != null && color != null &&
@@ -157,7 +157,7 @@ class HomeViewModel @Inject constructor(
                 }
                 onColorCenterSessionEnded()
             } finally {
-                orchestrator.onColorProcessedFromColorInput(color)
+                colorInputOrchestrator.onColorProcessed(color)
             }
         }
 
@@ -335,7 +335,7 @@ class HomeViewModel @Inject constructor(
         colorRole: ColorRole?,
         isNewColorCenterSession: Boolean,
     ) {
-        orchestrator.suspendUntilProceedIsAllowed()
+        colorInputOrchestrator.suspendUntilAllSentColorsAreProcessed()
         if (isNewColorCenterSession) {
             onColorCenterSessionStarted(color)
         }
@@ -459,10 +459,10 @@ class HomeViewModel @Inject constructor(
     private suspend fun sendColorToColorInput(
         color: Color,
     ) {
-        orchestrator.colorInputMutex.withLock {
+        colorInputOrchestrator.mutex.withLock {
             val wouldColorFlowEmitThisColor = colorInputColorStore.wouldEmitIfSet(color)
             colorInputMediator.send(color = color, from = null)
-            orchestrator.onColorSentToColorInput(
+            colorInputOrchestrator.onColorSentToColorInput(
                 color = color,
                 wouldColorFlowEmitThisColor = wouldColorFlowEmitThisColor,
             )
@@ -484,10 +484,11 @@ class HomeViewModel @Inject constructor(
 }
 
 /**
- * Coordinates different parts of [HomeViewModel] so that they are executed in controlled
- * manner. Components will wait for the ones they depend on to be executed first.
+ * Coordinates updates to and from [ColorInputMediator].
+ * [HomeViewModel] both sends colors to mediator and collects them from it.
+ * Both (emission and collection) must be coordinated with each other to avoid race condition.
  */
-private class Orchestrator {
+private class ColorInputOrchestrator {
 
     /**
      * List of colors that were sent to [ColorInputMediator] from [HomeViewModel],
@@ -502,7 +503,7 @@ private class Orchestrator {
      * Sometimes step 3 may perform quicker than step 2, thus 'onColorProcessedFromColorInput()'
      * is called before 'onColorSentToColorInput()'. Mutex helps to mitigate that.
      */
-    val colorInputMutex = Mutex()
+    val mutex = Mutex()
 
     @Synchronized
     fun onColorSentToColorInput(
@@ -519,7 +520,8 @@ private class Orchestrator {
     }
 
     @Synchronized
-    fun onColorProcessedFromColorInput(color: Color?) {
+    fun onColorProcessed(color: Color?) {
+        if (color == null) return // List<Color> doesn't contain nulls, so nothing to remove
         flowOfSentButNotYetProcessedColors.update { list ->
             list.toMutableList().also {
                 it.asReversed().remove(color) // remove latest entry
@@ -527,13 +529,12 @@ private class Orchestrator {
         }
     }
 
-    suspend fun suspendUntilProceedIsAllowed() =
-        suspendUntilAllSentColorsAreProcessed()
-
-    private suspend fun suspendUntilAllSentColorsAreProcessed() {
-        val list = flowOfSentButNotYetProcessedColors.value
-        val thereAreNoUnprocessedColors = (list.isEmpty())
-        if (thereAreNoUnprocessedColors) return
+    suspend fun suspendUntilAllSentColorsAreProcessed() {
+        val thereAreNoUnprocessedColors = kotlin.run {
+            val list = flowOfSentButNotYetProcessedColors.value
+            list.isEmpty()
+        }
+        if (thereAreNoUnprocessedColors) return // fast route
         flowOfSentButNotYetProcessedColors.first { it.isEmpty() }
         return // explicit return to have a place for breakpoint after the suspension
     }
