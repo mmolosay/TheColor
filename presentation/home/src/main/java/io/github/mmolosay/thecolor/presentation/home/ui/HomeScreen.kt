@@ -103,13 +103,12 @@ import io.github.mmolosay.thecolor.presentation.impl.toLifecycleEventObserver
 import io.github.mmolosay.thecolor.presentation.impl.withoutBottom
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInput
 import io.github.mmolosay.thecolor.presentation.preview.AnimatedColorPreview
-import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import io.github.mmolosay.thecolor.utils.cache.CacheStore
 import io.github.mmolosay.thecolor.utils.doNothing
+import io.github.mmolosay.thecolor.utils.stabilize
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combineTransform
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -158,11 +157,12 @@ fun HomeScreen(
     }
 
     val flowOfUiState = remember {
-        FlowOfHomeUiState(
-            flowOfColorPreviewData = viewModel.colorPreviewViewModel.dataFlow,
-            flowOfHomeData = viewModel.dataFlow,
-            flowOfIsDataBeingUpdated = viewModel.flowOfIsDataBeingUpdated,
-        )
+        val flowOfIsColorPreviewVisible = viewModel.colorPreviewViewModel.dataFlow
+            .map { data -> isColorPreviewVisible(data) }
+        val flowOfIsColorCenterVisible = viewModel.dataFlow
+            .map { data -> isColorCenterVisible(data.proceedResult) }
+        combine(flowOfIsColorPreviewVisible, flowOfIsColorCenterVisible, ::HomeUiState)
+            .stabilize(viewModel.flowOfIsDataBeingUpdated)
     }
     val animController by produceState<HomeAnimController?>(initialValue = null) {
         val uiState = flowOfUiState.first()
@@ -181,10 +181,7 @@ fun HomeScreen(
     }
 
     val flowOfData = remember {
-        FlowOfStableHomeData(
-            flowOfOriginalData = viewModel.dataFlow,
-            flowOfIsDataBeingUpdated = viewModel.flowOfIsDataBeingUpdated,
-        )
+        viewModel.dataFlow.stabilize(viewModel.flowOfIsDataBeingUpdated)
     }
     @SuppressLint("StateFlowValueCalledInComposition")
     val data = flowOfData
@@ -209,38 +206,6 @@ fun HomeScreen(
         navBarAppearanceController = selectedSwatchDetailsDialogController,
     )
 }
-
-private fun FlowOfHomeUiState(
-    flowOfColorPreviewData: StateFlow<ColorPreviewData>,
-    flowOfHomeData: StateFlow<HomeData>,
-    flowOfIsDataBeingUpdated: StateFlow<Boolean>,
-): Flow<HomeUiState> {
-    val flowOfIsColorPreviewVisible = flowOfColorPreviewData
-        .map { data -> isColorPreviewVisible(data) }
-    val flowOfIsColorCenterVisible = flowOfHomeData
-        .map { data -> isColorCenterVisible(data.proceedResult) }
-    return combineTransform(
-        flowOfIsColorPreviewVisible,
-        flowOfIsColorCenterVisible,
-        flowOfIsDataBeingUpdated,
-    ) { isColorPreviewVisible, isColorCenterVisible, isDataBeingUpdated ->
-        if (isDataBeingUpdated) return@combineTransform
-        val uiState = HomeUiState(isColorPreviewVisible, isColorCenterVisible)
-        emit(uiState)
-    }
-}
-
-private fun FlowOfStableHomeData(
-    flowOfOriginalData: Flow<HomeData>,
-    flowOfIsDataBeingUpdated: Flow<Boolean>,
-): Flow<HomeData> =
-    combineTransform(
-        flowOfOriginalData,
-        flowOfIsDataBeingUpdated,
-    ) { data, isDataBeingUpdated ->
-        if (isDataBeingUpdated) return@combineTransform
-        emit(data)
-    }
 
 /** Describes UI state of 'Home' View. Used to infer appropriate animation sequence / state. */
 private data class HomeUiState(
