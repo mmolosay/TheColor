@@ -47,6 +47,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -106,7 +107,6 @@ import io.github.mmolosay.thecolor.presentation.preview.AnimatedColorPreview
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import io.github.mmolosay.thecolor.utils.cache.CacheStore
 import io.github.mmolosay.thecolor.utils.doNothing
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -114,6 +114,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import timber.log.Timber
@@ -126,8 +127,6 @@ fun HomeScreen(
     navBarAppearanceController: NavBarAppearanceController,
 ) {
     val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
-
     val strings = remember(context) { HomeUiStrings(context) }
     val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
     val navEventFlow = viewModel.navEventFlow.filterNotNull()
@@ -150,8 +149,7 @@ fun HomeScreen(
         }
     }
     val colorCenter: ColorCenterComposable? = run {
-        val viewModel = viewModel.colorCenterViewModelFlow
-            .collectAsStateWithLifecycle().value
+        val viewModel = viewModel.colorCenterViewModelFlow.collectAsStateWithLifecycle().value
             ?: return@run null
         remember(viewModel) {
             {
@@ -167,16 +165,16 @@ fun HomeScreen(
             flowOfColorPreviewData = viewModel.colorPreviewViewModel.dataFlow,
             flowOfHomeData = viewModel.dataFlow,
             flowOfIsDataBeingUpdated = viewModel.flowOfIsDataBeingUpdated,
-            coroutineScope = coroutineScope,
         )
     }
-    val animController = remember {
-        val currentState = flowOfUiState.value.toAnimState()
-        HomeAnimController(currentState)
+    val animController by produceState<HomeAnimController?>(initialValue = null) {
+        val uiState = flowOfUiState.first()
+        value = HomeAnimController(uiState.toAnimState())
     }
     LaunchedEffect(Unit) {
         flowOfUiState.collect { uiState ->
             Timber.d("DBG | uiState = $uiState") // TODO: remove me
+            val animController = animController ?: return@collect
             val sequence = HomeAnimSequence(
                 from = animController.currentState,
                 to = uiState.toAnimState(),
@@ -209,24 +207,12 @@ private fun FlowOfHomeUiState(
     flowOfColorPreviewData: StateFlow<ColorPreviewData>,
     flowOfHomeData: StateFlow<HomeData>,
     flowOfIsDataBeingUpdated: StateFlow<Boolean>,
-    coroutineScope: CoroutineScope,
-): StateFlow<HomeUiState> {
-    // mapping StateFlow to StateFlow involves boilerplate 'stateIn()':
-    // https://github.com/Kotlin/kotlinx.coroutines/issues/2631
-    val flowOfIsColorPreviewVisible = run {
-        val initialValue = isColorPreviewVisible(data = flowOfColorPreviewData.value)
-        flowOfColorPreviewData
-            .map { data -> isColorPreviewVisible(data) }
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), initialValue)
-    }
-    val flowOfIsColorCenterVisible = run {
-        val initialValue = isColorCenterVisible(flowOfHomeData.value.proceedResult)
-        flowOfHomeData
-            .map { data -> isColorCenterVisible(data.proceedResult) }
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), initialValue)
-    }
-
-    val flowOfHomeUiState: Flow<HomeUiState> = combineTransform(
+): Flow<HomeUiState> {
+    val flowOfIsColorPreviewVisible = flowOfColorPreviewData
+        .map { data -> isColorPreviewVisible(data) }
+    val flowOfIsColorCenterVisible = flowOfHomeData
+        .map { data -> isColorCenterVisible(data.proceedResult) }
+    return combineTransform(
         flowOfIsColorPreviewVisible,
         flowOfIsColorCenterVisible,
         flowOfIsDataBeingUpdated,
@@ -235,11 +221,6 @@ private fun FlowOfHomeUiState(
         val uiState = HomeUiState(isColorPreviewVisible, isColorCenterVisible)
         emit(uiState)
     }
-    val initialValue = HomeUiState(
-        isColorPreviewVisible = flowOfIsColorPreviewVisible.value,
-        isColorCenterVisible = flowOfIsColorCenterVisible.value,
-    )
-    return flowOfHomeUiState.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), initialValue)
 }
 
 /** Describes UI state of 'Home' View. Used to infer appropriate animation sequence / state. */
@@ -267,7 +248,7 @@ private fun HomeScreen(
     colorPreview: ColorPreviewWithDependencies,
     colorCenter: ColorCenterComposable?,
     navigateToSettings: () -> Unit,
-    animController: HomeAnimController,
+    animController: HomeAnimController?,
     navBarAppearanceController: NavBarAppearanceController,
 ) {
     val focusManager = LocalFocusManager.current
@@ -311,7 +292,7 @@ private fun Home(
     colorInput: @Composable () -> Unit,
     colorPreview: ColorPreviewWithDependencies,
     colorCenter: ColorCenterComposable?,
-    animController: HomeAnimController,
+    animController: HomeAnimController?,
     navBarAppearanceController: NavBarAppearanceController,
     modifier: Modifier = Modifier,
 ) {
@@ -377,45 +358,47 @@ private fun Home(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        AnimatedColorPreview(
-            colorPreview = colorPreview,
-            flowOfPositionAnimDest = kotlin.run {
-                val upstream = animController.flowOfDestState
-                upstream
-                    .map { it.colorPreviewPosition }
-                    .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), upstream.value.colorPreviewPosition)
-            },
-            flowOfVisibilityAnimDest = kotlin.run {
-                val upstream = animController.flowOfDestState
-                upstream
-                    .map { it.colorPreviewVisibility }
-                    .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), upstream.value.colorPreviewVisibility)
-            },
-            onPositionReached = animController::onValueReached,
-            onVisibilityReached = animController::onValueReached,
-            containerViewportHeight = viewportHeight,
-            containerPosInRoot = posInRoot,
-        )
-        val decoratedColorCenter = remember(retainedData.proceedResult) {
-            decoratedColorCenterComposable(
-                colorCenter = colorCenter,
-                proceededColorData = (retainedData.proceedResult as? ProceedResult.Success)?.colorData,
-                navBarAppearanceController = navBarAppearanceController,
-                containerScrollState = scrollState,
+        if (animController != null) {
+            AnimatedColorPreview(
+                colorPreview = colorPreview,
+                flowOfPositionAnimDest = kotlin.run {
+                    val upstream = animController.flowOfDestState
+                    upstream
+                        .map { it.colorPreviewPosition }
+                        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), upstream.value.colorPreviewPosition)
+                },
+                flowOfVisibilityAnimDest = kotlin.run {
+                    val upstream = animController.flowOfDestState
+                    upstream
+                        .map { it.colorPreviewVisibility }
+                        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), upstream.value.colorPreviewVisibility)
+                },
+                onPositionReached = animController::onValueReached,
+                onVisibilityReached = animController::onValueReached,
+                containerViewportHeight = viewportHeight,
                 containerPosInRoot = posInRoot,
             )
+            val decoratedColorCenter = remember(retainedData.proceedResult) {
+                decoratedColorCenterComposable(
+                    colorCenter = colorCenter,
+                    proceededColorData = (retainedData.proceedResult as? ProceedResult.Success)?.colorData,
+                    navBarAppearanceController = navBarAppearanceController,
+                    containerScrollState = scrollState,
+                    containerPosInRoot = posInRoot,
+                )
+            }
+            AnimatedColorCenter(
+                colorCenter = decoratedColorCenter,
+                flowOfAnimDest = kotlin.run {
+                    val upstream = animController.flowOfDestState
+                    upstream
+                        .map { it.colorCenter }
+                        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), upstream.value.colorCenter)
+                },
+                onReached = animController::onValueReached,
+                containerScrollState = scrollState,
+            )
         }
-        AnimatedColorCenter(
-            colorCenter = decoratedColorCenter,
-            flowOfAnimDest = kotlin.run {
-                val upstream = animController.flowOfDestState
-                upstream
-                    .map { it.colorCenter }
-                    .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), upstream.value.colorCenter)
-            },
-            onReached = animController::onValueReached,
-            containerScrollState = scrollState,
-        )
     }
 
     val softwareKeyboardController = LocalSoftwareKeyboardController.current
