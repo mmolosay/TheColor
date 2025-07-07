@@ -223,18 +223,19 @@ class HomeViewModel @Inject constructor(
                  * so is the collection job on old instances of Command/Event stores.
                 */
                 if (components != null) {
-                    val coroutineScope = components.colorCenterCoroutineScope
-                    coroutineScope.launch(defaultDispatcher) {
-                        val eventStore = components.colorDetailsEventStore
-                        eventStore.eventFlow.collect(::onEventFromColorDetailsOfColorCenter)
-                    }
-                    coroutineScope.launch(defaultDispatcher) {
-                        val eventStore = components.colorSchemeEventStore
-                        eventStore.eventFlow.collect(::onEventFromColorScheme)
-                    }
-                    coroutineScope.launch(defaultDispatcher) {
-                        val eventStore = components.selectedSwatchColorDetailsEventStore
-                        eventStore.eventFlow.collect(::onEventFromColorDetailsOfSelectedSwatch)
+                    components.colorCenterCoroutineScope.launch(defaultDispatcher) {
+                        launch {
+                            val eventStore = components.colorDetailsEventStore
+                            eventStore.eventFlow.collect(::onEventFromColorDetailsOfColorCenter)
+                        }
+                        launch {
+                            val eventStore = components.colorSchemeEventStore
+                            eventStore.eventFlow.collect(::onEventFromColorScheme)
+                        }
+                        launch {
+                            val eventStore = components.selectedSwatchColorDetailsEventStore
+                            eventStore.eventFlow.collect(::onEventFromColorDetailsOfSelectedSwatch)
+                        }
                     }
                 }
 
