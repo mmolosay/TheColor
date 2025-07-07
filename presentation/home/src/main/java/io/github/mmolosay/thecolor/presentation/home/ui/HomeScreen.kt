@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.home.ui
 
+import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
@@ -94,9 +95,7 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver
 import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent
 import io.github.mmolosay.thecolor.presentation.impl.TintedSurface
-import io.github.mmolosay.thecolor.presentation.impl.framesDuration
 import io.github.mmolosay.thecolor.presentation.impl.onlyBottom
-import io.github.mmolosay.thecolor.presentation.impl.retained
 import io.github.mmolosay.thecolor.presentation.impl.toCompose
 import io.github.mmolosay.thecolor.presentation.impl.toDpOffset
 import io.github.mmolosay.thecolor.presentation.impl.toDpSize
@@ -107,7 +106,6 @@ import io.github.mmolosay.thecolor.presentation.preview.AnimatedColorPreview
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import io.github.mmolosay.thecolor.utils.cache.CacheStore
 import io.github.mmolosay.thecolor.utils.doNothing
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -128,7 +126,6 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
     val strings = remember(context) { HomeUiStrings(context) }
-    val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
     val navEventFlow = viewModel.navEventFlow.filterNotNull()
     val selectedSwatchDetailsDialogController = remember(navBarAppearanceController) {
         navBarAppearanceController.branch("Selected Swatch Details Dialog")
@@ -183,6 +180,16 @@ fun HomeScreen(
         }
     }
 
+    val flowOfData = remember {
+        FlowOfStableHomeData(
+            flowOfOriginalData = viewModel.dataFlow,
+            flowOfIsDataBeingUpdated = viewModel.flowOfIsDataBeingUpdated,
+        )
+    }
+    @SuppressLint("StateFlowValueCalledInComposition")
+    val data = flowOfData
+        .collectAsStateWithLifecycle(initialValue = viewModel.dataFlow.value).value
+
     // TODO: get rid of slot-based approach for nested Views?
     HomeScreen(
         data = data,
@@ -222,6 +229,18 @@ private fun FlowOfHomeUiState(
         emit(uiState)
     }
 }
+
+private fun FlowOfStableHomeData(
+    flowOfOriginalData: Flow<HomeData>,
+    flowOfIsDataBeingUpdated: Flow<Boolean>,
+): Flow<HomeData> =
+    combineTransform(
+        flowOfOriginalData,
+        flowOfIsDataBeingUpdated,
+    ) { data, isDataBeingUpdated ->
+        if (isDataBeingUpdated) return@combineTransform
+        emit(data)
+    }
 
 /** Describes UI state of 'Home' View. Used to infer appropriate animation sequence / state. */
 private data class HomeUiState(
@@ -300,12 +319,6 @@ private fun Home(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    val retainedData = retained(data) { actual ->
-        // TODO: may be done without time delay?
-        //  Specific flag when data updates to inform the reason of data change?
-        delay(2.framesDuration)
-        value = actual
-    }
     val proceedResult = data.proceedResult
 
     val scrollState = rememberScrollState()
@@ -378,10 +391,10 @@ private fun Home(
                 containerViewportHeight = viewportHeight,
                 containerPosInRoot = posInRoot,
             )
-            val decoratedColorCenter = remember(retainedData.proceedResult) {
+            val decoratedColorCenter = remember(proceedResult) {
                 decoratedColorCenterComposable(
                     colorCenter = colorCenter,
-                    proceededColorData = (retainedData.proceedResult as? ProceedResult.Success)?.colorData,
+                    proceededColorData = (proceedResult as? ProceedResult.Success)?.colorData,
                     navBarAppearanceController = navBarAppearanceController,
                     containerScrollState = scrollState,
                     containerPosInRoot = posInRoot,
