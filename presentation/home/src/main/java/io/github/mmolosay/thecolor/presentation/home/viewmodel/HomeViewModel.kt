@@ -141,7 +141,7 @@ class HomeViewModel @Inject constructor(
         collectColorsFromColorInput()
         collectEventsFromColorInput()
         collectColorCenterComponents()
-        proceedWithLastSearchedColor()
+        maybeProceedWithLastSearchedColor()
     }
 
     private fun collectColorsFromColorInput() =
@@ -308,7 +308,7 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun proceedWithLastSearchedColor() {
+    private fun maybeProceedWithLastSearchedColor() {
         viewModelScope.launch(defaultDispatcher) {
             val resumeFromLastSearchedColorOnStartup = userPreferencesRepository
                 .flowOfResumeFromLastSearchedColorOnStartup()
