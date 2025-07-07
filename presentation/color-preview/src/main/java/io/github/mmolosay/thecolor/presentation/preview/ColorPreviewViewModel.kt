@@ -6,11 +6,14 @@ import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.api.SimpleViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import javax.inject.Named
 
 /**
  * Handles presentation logic of the 'Color Preview' feature.
@@ -24,20 +27,21 @@ class ColorPreviewViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     @Assisted colorFlow: StateFlow<Color?>,
     private val colorToColorInt: ColorToColorIntUseCase,
+    @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
-    val dataFlow: StateFlow<ColorPreviewData> =
-        colorFlow
-            .map { color ->
-                ColorPreviewData(
-                    color = with(colorToColorInt) { color?.toColorInt() },
-                )
-            }
-            .stateIn(
-                scope = coroutineScope,
-                started = SharingStarted.Eagerly,
-                initialValue = ColorPreviewData(color = null),
+    val dataFlow: StateFlow<ColorPreviewData> = kotlin.run {
+        fun value(color: Color?) =
+            ColorPreviewData(
+                color = with(colorToColorInt) { color?.toColorInt() },
             )
+
+        val initialValue = value(colorFlow.value)
+        colorFlow
+            .map(::value)
+            .flowOn(defaultDispatcher)
+            .stateIn(coroutineScope, SharingStarted.Eagerly, initialValue)
+    }
 
     @AssistedFactory
     fun interface Factory {

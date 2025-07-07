@@ -24,6 +24,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -58,6 +59,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
     private val _statefulDataFlow = MutableStateFlow(initialStatefulData())
     val dataStateFlow: StateFlow<DataState> = _statefulDataFlow
         .map { it.toDataState() }
+        .flowOn(defaultDispatcher)
         .stateIn(
             scope = coroutineScope,
             started = SharingStarted.Eagerly, // View will start collecting immediately, also simplifies tests

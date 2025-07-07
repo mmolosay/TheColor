@@ -124,11 +124,8 @@ class HomeViewModel @Inject constructor(
     val colorCenterViewModelFlow: StateFlow<ColorCenterViewModel?> =
         colorCenterComponentsStore.componentsFlow
             .map { it?.colorCenterViewModel }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000),
-                initialValue = null,
-            )
+            .flowOn(defaultDispatcher)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), initialValue = null)
 
     /*
      * Having this as 'StateFlow' rather than as a simple variable solves race condition of
