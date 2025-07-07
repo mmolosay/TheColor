@@ -111,7 +111,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
@@ -166,6 +166,7 @@ fun HomeScreen(
         FlowOfHomeUiState(
             flowOfColorPreviewData = viewModel.colorPreviewViewModel.dataFlow,
             flowOfHomeData = viewModel.dataFlow,
+            flowOfIsDataBeingUpdated = viewModel.flowOfIsDataBeingUpdated,
             coroutineScope = coroutineScope,
         )
     }
@@ -207,6 +208,7 @@ fun HomeScreen(
 private fun FlowOfHomeUiState(
     flowOfColorPreviewData: StateFlow<ColorPreviewData>,
     flowOfHomeData: StateFlow<HomeData>,
+    flowOfIsDataBeingUpdated: StateFlow<Boolean>,
     coroutineScope: CoroutineScope,
 ): StateFlow<HomeUiState> {
     // mapping StateFlow to StateFlow involves boilerplate 'stateIn()':
@@ -224,11 +226,15 @@ private fun FlowOfHomeUiState(
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), initialValue)
     }
 
-    val flowOfHomeUiState = combine(
+    val flowOfHomeUiState: Flow<HomeUiState> = combineTransform(
         flowOfIsColorPreviewVisible,
         flowOfIsColorCenterVisible,
-        transform = ::HomeUiState,
-    )
+        flowOfIsDataBeingUpdated,
+    ) { isColorPreviewVisible, isColorCenterVisible, isDataBeingUpdated ->
+        if (isDataBeingUpdated) return@combineTransform
+        val uiState = HomeUiState(isColorPreviewVisible, isColorCenterVisible)
+        emit(uiState)
+    }
     val initialValue = HomeUiState(
         isColorPreviewVisible = flowOfIsColorPreviewVisible.value,
         isColorCenterVisible = flowOfIsColorCenterVisible.value,

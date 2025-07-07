@@ -40,6 +40,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -77,6 +78,20 @@ class HomeViewModel @Inject constructor(
 
     private val _dataFlow = MutableStateFlow(initialData())
     val dataFlow = _dataFlow.asStateFlow()
+
+    private val dataUpdateGuard = DataUpdateGuard() // TODO: not all places use it atm
+    val flowOfIsDataBeingUpdated: StateFlow<Boolean> = kotlin.run {
+        // mapping StateFlow to StateFlow involves boilerplate 'stateIn()':
+        // https://github.com/Kotlin/kotlinx.coroutines/issues/2631
+        fun value(numberOfOngoingUpdates: Int): Boolean =
+            (numberOfOngoingUpdates != 0)
+        val upstream = dataUpdateGuard.flowOfOngoingUpdates
+        val initialValue = value(upstream.value)
+        upstream
+            .map(::value)
+            .flowOn(defaultDispatcher)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), initialValue)
+    }
 
     val cacheStore = CacheStore()
 
@@ -304,12 +319,14 @@ class HomeViewModel @Inject constructor(
             if (!enabled) return@launch
             val lastSearchedColor =
                 lastSearchedColorRepository.getLastSearchedColor() ?: return@launch
-            sendColorToColorInput(color = lastSearchedColor)
-            proceed(
-                color = lastSearchedColor,
-                colorRole = null,
-                isNewColorCenterSession = true,
-            )
+            dataUpdateGuard.withCounter {
+                sendColorToColorInput(color = lastSearchedColor)
+                proceed(
+                    color = lastSearchedColor,
+                    colorRole = null,
+                    isNewColorCenterSession = true,
+                )
+            }
         }
     }
 
@@ -360,19 +377,21 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun randomizeColor() {
-        val color = colorFactory.random()
         viewModelScope.launch(defaultDispatcher) {
-            sendColorToColorInput(color)
+            val color = colorFactory.random()
             val shouldProceed = userPreferencesRepository
                 .flowOfAutoProceedWithRandomizedColors()
                 .first()
                 .enabled
-            if (shouldProceed) {
-                proceed(
-                    color = color,
-                    colorRole = null,
-                    isNewColorCenterSession = true,
-                )
+            dataUpdateGuard.withCounter {
+                sendColorToColorInput(color)
+                if (shouldProceed) {
+                    proceed(
+                        color = color,
+                        colorRole = null,
+                        isNewColorCenterSession = true,
+                    )
+                }
             }
         }
     }
@@ -537,6 +556,25 @@ private class ColorInputOrchestrator {
         if (thereAreNoUnprocessedColors) return // fast route
         flowOfSentButNotYetProcessedColors.first { it.isEmpty() }
         return // explicit return to have a place for breakpoint after the suspension
+    }
+}
+
+/**
+ * Tracks the number of ongoing data updates using reference counting technique.
+ * Ensures correct behaviour in concurrent execution when multiple data updates are
+ * running in parallel.
+ * Finishing one won't falsely signal that all are done (as it would've been with simple boolean).
+ */
+private class DataUpdateGuard {
+    val flowOfOngoingUpdates = MutableStateFlow(0)
+
+    inline fun withCounter(block: () -> Unit) {
+        flowOfOngoingUpdates.update { it + 1 }
+        try {
+            block()
+        } finally {
+            flowOfOngoingUpdates.update { it - 1 }
+        }
     }
 }
 

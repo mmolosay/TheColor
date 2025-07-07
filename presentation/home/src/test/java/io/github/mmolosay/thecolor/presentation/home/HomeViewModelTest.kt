@@ -54,6 +54,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.take
@@ -959,6 +960,43 @@ class HomeViewModelTest {
             coVerify(exactly = 1) {
                 proceedExecutor.invoke(color = randomColor, colorRole = null)
             }
+        }
+
+    /*
+     * It's hard to unit test the difference that "is data being updated" flag makes.
+     * It requires to control execution of `randomizeColor()` method on suspension points.
+     */
+    @Test
+    fun `invoking 'randomize color' starts data transaction and sets 'is data being updated' flag first to true and then to false`() =
+        runTest(testDispatcher) {
+            val colorFlow = MutableStateFlow<Color?>(null)
+            every { colorInputColorStore.colorFlow } returns colorFlow
+            every { colorInputEventStore.eventFlow } returns emptyFlow()
+            every { colorDetailsEventStore.eventFlow } returns emptyFlow()
+            every { colorSchemeEventStore.eventFlow } returns emptyFlow()
+            val randomColor: Color.Hex = mockk()
+            every { colorFactory.random() } returns randomColor
+            val featureValue = DomainAutoProceedWithRandomizedColors(enabled = true)
+            every { userPreferencesRepository.flowOfAutoProceedWithRandomizedColors() } returns MutableStateFlow(
+                featureValue
+            )
+            every { createColorData(color = any()) } returns mockk()
+            createSut()
+
+            val listOfIsDataBeingUpdatedValues = mutableListOf<Boolean>()
+            val isDataBeingUpdatedCollectionJob = launch {
+                sut.flowOfIsDataBeingUpdated
+                    .drop(1) // replayed value
+                    .take(2) // 1st update to true, 2nd update to false
+                    .toList(listOfIsDataBeingUpdatedValues)
+            }
+
+            data.randomizeColor()
+            // emit generated random color from color flow as 'ColorInputMediator' would've done
+            colorFlow.emit(randomColor)
+
+            isDataBeingUpdatedCollectionJob.join()
+            listOfIsDataBeingUpdatedValues shouldBe listOf(true, false)
         }
 
     fun createSut() =
