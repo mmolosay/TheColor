@@ -180,12 +180,12 @@ fun HomeScreen(
         }
     }
 
-    val flowOfData = remember {
-        viewModel.dataFlow.stabilize(viewModel.flowOfIsDataBeingUpdated)
+    val data = run {
+        val flowOfData = remember {
+            viewModel.dataFlow.stabilize(viewModel.flowOfIsDataBeingUpdated)
+        }
+        flowOfData.collectAsStateWithLifecycle(initialValue = viewModel.dataFlow.value).value
     }
-    @SuppressLint("StateFlowValueCalledInComposition")
-    val data = flowOfData
-        .collectAsStateWithLifecycle(initialValue = viewModel.dataFlow.value).value
 
     // TODO: get rid of slot-based approach for nested Views?
     HomeScreen(
