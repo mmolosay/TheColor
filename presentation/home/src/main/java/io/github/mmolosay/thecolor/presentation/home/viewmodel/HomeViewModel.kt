@@ -33,6 +33,7 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
 import io.github.mmolosay.thecolor.utils.cache.CacheStore
 import io.github.mmolosay.thecolor.utils.doNothing
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -47,6 +48,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -58,6 +60,7 @@ import javax.inject.Singleton
  * It creates objects that are shared between sub-feature ViewModels via assisted injection and
  * factories.
  */
+// TODO: remove logs
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     colorInputMediatorFactory: ColorInputMediator.Factory,
@@ -102,6 +105,8 @@ class HomeViewModel @Inject constructor(
         colorInputMediatorFactory.create(
             colorInputColorStore = colorInputColorStore,
         )
+    private val flowOfProcessedColorsFromColorInput =
+        MutableStateFlow<Color?>(colorInputColorStore.colorFlow.value)
 
     val colorInputViewModel: ColorInputViewModel =
         colorInputViewModelFactory.create(
@@ -110,10 +115,12 @@ class HomeViewModel @Inject constructor(
             colorInputMediator = colorInputMediator,
         )
 
+    val colorPreviewColorProcessedConfirmation = Channel<Color?>(Channel.UNLIMITED)
     val colorPreviewViewModel: ColorPreviewViewModel =
         colorPreviewViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
-            colorFlow = colorInputColorStore.colorFlow,
+            colorFlow = flowOfProcessedColorsFromColorInput,
+            colorProcessedConfirmation = colorPreviewColorProcessedConfirmation,
         )
 
     private val colorCenterComponentsStore: ColorCenterComponentsStore =
@@ -152,27 +159,38 @@ class HomeViewModel @Inject constructor(
         }
 
     private suspend fun onColorFromColorInput(color: Color?) {
+        Timber.d("HomeViewModel | onColorFromColorInput(), color $color")
+        Timber.d("HomeViewModel | onColorFromColorInput() outside lock")
         colorInputOrchestrator.mutex.withLock {
-            try {
-                val session = colorCenterSession
-                if (session != null && color != null &&
-                    with(doesColorBelongToSession) { color doesBelongTo session }
-                ) {
-                    return // ignore re-emitted color or colors that are part of ongoing session
-                }
+            Timber.d("HomeViewModel | onColorFromColorInput() inside lock")
+            dataUpdateGuard.withCounter {
+                try {
+                    val session = colorCenterSession
+                    if (session != null && color != null &&
+                        with(doesColorBelongToSession) { color doesBelongTo session }
+                    ) {
+                        return // ignore re-emitted color or colors that are part of ongoing session
+                    }
 
-                _dataFlow.update {
-                    it.copy(
-                        canProceed = CanProceed(colorFromColorInput = color),
-                        proceedResult = null, // 'proceed' wasn't invoked for new color yet
-                    )
+                    _dataFlow.update {
+                        it.copy(
+                            canProceed = CanProceed(colorFromColorInput = color),
+                            proceedResult = null, // 'proceed' wasn't invoked for new color yet
+                        )
+                    }
+                    Timber.d("HomeViewModel | onColorFromColorInput() dataFlow updated")
+                    onColorCenterSessionEnded()
+                } finally {
+                    colorInputOrchestrator.onColorProcessed(color)
+                    flowOfProcessedColorsFromColorInput.emit(color)
+                    while (true) {
+                        val confirmedColor = colorPreviewColorProcessedConfirmation.receive()
+                        if (confirmedColor == color) break
+                    }
+                    Timber.d("HomeViewModel | onColorFromColorInput() received $color confirmation from ColorPreview")
                 }
-                onColorCenterSessionEnded()
-            } finally {
-                colorInputOrchestrator.onColorProcessed(color)
             }
         }
-
     }
 
     private fun collectEventsFromColorInput() =
@@ -350,7 +368,9 @@ class HomeViewModel @Inject constructor(
         colorRole: ColorRole?,
         isNewColorCenterSession: Boolean,
     ) {
+        Timber.d("HomeViewModel | proceed() before suspendUntilAllSentColorsAreProcessed()")
         colorInputOrchestrator.suspendUntilAllSentColorsAreProcessed()
+        Timber.d("HomeViewModel | proceed() after suspendUntilAllSentColorsAreProcessed()")
         if (isNewColorCenterSession) {
             onColorCenterSessionStarted(color)
         }
@@ -372,6 +392,7 @@ class HomeViewModel @Inject constructor(
                 it.copy(proceedResult = proceedResult)
             }
         }
+        Timber.d("HomeViewModel | proceed() dataFlow is updated")
     }
 
     private fun randomizeColor() {
@@ -476,13 +497,16 @@ class HomeViewModel @Inject constructor(
     private suspend fun sendColorToColorInput(
         color: Color,
     ) {
+        Timber.d("HomeViewModel | sendColorToColorInput() outside lock")
         colorInputOrchestrator.mutex.withLock {
+            Timber.d("HomeViewModel | sendColorToColorInput() inside lock")
             val wouldColorFlowEmitThisColor = colorInputColorStore.wouldEmitIfSet(color)
             colorInputMediator.send(color = color, from = null)
             colorInputOrchestrator.onColorSentToColorInput(
                 color = color,
                 wouldColorFlowEmitThisColor = wouldColorFlowEmitThisColor,
             )
+            Timber.d("HomeViewModel | sendColorToColorInput() color sent to color input")
         }
     }
 
@@ -568,10 +592,12 @@ private class DataUpdateGuard {
 
     inline fun withCounter(block: () -> Unit) {
         flowOfOngoingUpdates.update { it + 1 }
+        Timber.d("HomeViewModel | DataUpdateGuard.withCounter() increased, now = ${flowOfOngoingUpdates.value}")
         try {
             block()
         } finally {
             flowOfOngoingUpdates.update { it - 1 }
+            Timber.d("HomeViewModel | DataUpdateGuard.withCounter() decreased, now = ${flowOfOngoingUpdates.value}")
         }
     }
 }

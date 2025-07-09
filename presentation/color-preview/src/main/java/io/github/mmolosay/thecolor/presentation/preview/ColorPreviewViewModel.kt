@@ -8,11 +8,13 @@ import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.api.SimpleViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.transform
+import timber.log.Timber
 import javax.inject.Named
 
 /**
@@ -23,9 +25,11 @@ import javax.inject.Named
  *
  * Instead, it can be created within "simple" `ViewModel` or Google's `ViewModel`.
  */
+// TODO: remove logs
 class ColorPreviewViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     @Assisted colorFlow: StateFlow<Color?>,
+    @Assisted colorProcessedConfirmation: SendChannel<Color?>?,
     private val colorToColorInt: ColorToColorIntUseCase,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
@@ -38,7 +42,16 @@ class ColorPreviewViewModel @AssistedInject constructor(
 
         val initialValue = value(colorFlow.value)
         colorFlow
-            .map(::value)
+            .transform { color ->
+//                Timber.d("HomeViewModel | ColorPreviewViewModel dataFlow, new color $color, delay starts")
+//                delay(100) // TODO: remove me
+//                Timber.d("HomeViewModel | ColorPreviewViewModel dataFlow, delay finished")
+                emit(value(color))
+                Timber.d("HomeViewModel | ColorPreviewViewModel dataFlow, data for color $color emitted")
+                colorProcessedConfirmation?.send(color)
+                Timber.d("HomeViewModel | ColorPreviewViewModel dataFlow, $color processed confirmation was sent")
+                println() // TODO: breakpoint, remove me
+            }
             .flowOn(defaultDispatcher)
             .stateIn(coroutineScope, SharingStarted.Eagerly, initialValue)
     }
@@ -48,6 +61,7 @@ class ColorPreviewViewModel @AssistedInject constructor(
         fun create(
             coroutineScope: CoroutineScope,
             colorFlow: StateFlow<Color?>,
+            colorProcessedConfirmation: SendChannel<Color?>?,
         ): ColorPreviewViewModel
     }
 }
