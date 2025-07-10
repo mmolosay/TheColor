@@ -48,7 +48,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -60,7 +59,6 @@ import javax.inject.Singleton
  * It creates objects that are shared between sub-feature ViewModels via assisted injection and
  * factories.
  */
-// TODO: remove logs
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     colorInputMediatorFactory: ColorInputMediator.Factory,
@@ -159,10 +157,7 @@ class HomeViewModel @Inject constructor(
         }
 
     private suspend fun onColorFromColorInput(color: Color?) {
-        Timber.d("HomeViewModel | onColorFromColorInput(), color $color")
-        Timber.d("HomeViewModel | onColorFromColorInput() outside lock")
         colorInputOrchestrator.mutex.withLock {
-            Timber.d("HomeViewModel | onColorFromColorInput() inside lock")
             dataUpdateGuard.withCounter {
                 try {
                     val session = colorCenterSession
@@ -178,7 +173,6 @@ class HomeViewModel @Inject constructor(
                             proceedResult = null, // 'proceed' wasn't invoked for new color yet
                         )
                     }
-                    Timber.d("HomeViewModel | onColorFromColorInput() dataFlow updated")
                     onColorCenterSessionEnded()
                 } finally {
                     colorInputOrchestrator.onColorProcessed(color)
@@ -187,7 +181,6 @@ class HomeViewModel @Inject constructor(
                         val confirmedColor = colorPreviewColorProcessedConfirmation.receive()
                         if (confirmedColor == color) break
                     }
-                    Timber.d("HomeViewModel | onColorFromColorInput() received $color confirmation from ColorPreview")
                 }
             }
         }
@@ -368,9 +361,7 @@ class HomeViewModel @Inject constructor(
         colorRole: ColorRole?,
         isNewColorCenterSession: Boolean,
     ) {
-        Timber.d("HomeViewModel | proceed() before suspendUntilAllSentColorsAreProcessed()")
         colorInputOrchestrator.suspendUntilAllSentColorsAreProcessed()
-        Timber.d("HomeViewModel | proceed() after suspendUntilAllSentColorsAreProcessed()")
         if (isNewColorCenterSession) {
             onColorCenterSessionStarted(color)
         }
@@ -392,7 +383,6 @@ class HomeViewModel @Inject constructor(
                 it.copy(proceedResult = proceedResult)
             }
         }
-        Timber.d("HomeViewModel | proceed() dataFlow is updated")
     }
 
     private fun randomizeColor() {
@@ -497,16 +487,13 @@ class HomeViewModel @Inject constructor(
     private suspend fun sendColorToColorInput(
         color: Color,
     ) {
-        Timber.d("HomeViewModel | sendColorToColorInput() outside lock")
         colorInputOrchestrator.mutex.withLock {
-            Timber.d("HomeViewModel | sendColorToColorInput() inside lock")
             val wouldColorFlowEmitThisColor = colorInputColorStore.wouldEmitIfSet(color)
             colorInputMediator.send(color = color, from = null)
             colorInputOrchestrator.onColorSentToColorInput(
                 color = color,
                 wouldColorFlowEmitThisColor = wouldColorFlowEmitThisColor,
             )
-            Timber.d("HomeViewModel | sendColorToColorInput() color sent to color input")
         }
     }
 
@@ -592,12 +579,10 @@ private class DataUpdateGuard {
 
     inline fun withCounter(block: () -> Unit) {
         flowOfOngoingUpdates.update { it + 1 }
-        Timber.d("HomeViewModel | DataUpdateGuard.withCounter() increased, now = ${flowOfOngoingUpdates.value}")
         try {
             block()
         } finally {
             flowOfOngoingUpdates.update { it - 1 }
-            Timber.d("HomeViewModel | DataUpdateGuard.withCounter() decreased, now = ${flowOfOngoingUpdates.value}")
         }
     }
 }
