@@ -1,6 +1,5 @@
 package io.github.mmolosay.thecolor.presentation.home.ui
 
-import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
@@ -109,10 +108,12 @@ import io.github.mmolosay.thecolor.utils.stabilize
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import timber.log.Timber
 import kotlin.random.Random
@@ -124,6 +125,8 @@ fun HomeScreen(
     navBarAppearanceController: NavBarAppearanceController,
 ) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
     val strings = remember(context) { HomeUiStrings(context) }
     val navEventFlow = viewModel.navEventFlow.filterNotNull()
     val selectedSwatchDetailsDialogController = remember(navBarAppearanceController) {
@@ -163,6 +166,9 @@ fun HomeScreen(
             .map { data -> isColorCenterVisible(data.proceedResult) }
         combine(flowOfIsColorPreviewVisible, flowOfIsColorCenterVisible, ::HomeUiState)
             .stabilize(viewModel.flowOfIsDataBeingUpdated)
+            .distinctUntilChanged()
+            // make it hot to allow replaying last value when creating 'animController'
+            .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
     }
     val animController by produceState<HomeAnimController?>(initialValue = null) {
         val uiState = flowOfUiState.first()
