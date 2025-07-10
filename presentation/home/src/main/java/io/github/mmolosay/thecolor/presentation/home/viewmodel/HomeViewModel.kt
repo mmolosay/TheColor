@@ -2,9 +2,13 @@ package io.github.mmolosay.thecolor.presentation.home.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.Module
+import dagger.Provides
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import dagger.hilt.InstallIn
+import dagger.hilt.android.components.ViewModelComponent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.repository.LastSearchedColorRepository
@@ -66,6 +70,7 @@ class HomeViewModel @Inject constructor(
     colorInputViewModelFactory: ColorInputViewModel.Factory,
     private val colorInputColorStore: ColorInputColorStore,
     private val colorInputEventStore: ColorInputEventStore,
+    private val colorProcessedConfirmationChannelForColorPreview: Channel<Color?>,
     colorPreviewViewModelFactory: ColorPreviewViewModel.Factory,
     colorCenterComponentsStoreFactory: ColorCenterComponentsStore.Factory,
     private val proceedExecutorFactory: ProceedExecutor.Factory,
@@ -114,12 +119,11 @@ class HomeViewModel @Inject constructor(
             colorInputMediator = colorInputMediator,
         )
 
-    val colorPreviewColorProcessedConfirmation = Channel<Color?>(Channel.UNLIMITED)
     val colorPreviewViewModel: ColorPreviewViewModel =
         colorPreviewViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
             colorFlow = flowOfProcessedColorsFromColorInput,
-            colorProcessedConfirmation = colorPreviewColorProcessedConfirmation,
+            colorProcessedConfirmation = colorProcessedConfirmationChannelForColorPreview,
         )
 
     private val colorCenterComponentsStore: ColorCenterComponentsStore =
@@ -178,7 +182,7 @@ class HomeViewModel @Inject constructor(
                 } finally {
                     colorInputOrchestrator.onColorProcessed(color)
                     flowOfProcessedColorsFromColorInput.emit(color)
-                    colorPreviewColorProcessedConfirmation.receiveAllUntil(color)
+                    colorProcessedConfirmationChannelForColorPreview.receiveAllUntil(color)
                 }
             }
         }
@@ -509,6 +513,15 @@ class HomeViewModel @Inject constructor(
         }
 }
 
+@Module
+@InstallIn(ViewModelComponent::class)
+object HomeViewModelDiModule {
+
+    @Provides
+    fun provideColorProcessedConfirmationChannelForColorPreview(): Channel<Color?> =
+        Channel<Color?>(Channel.UNLIMITED)
+}
+
 /**
  * Coordinates updates to and from [ColorInputMediator].
  * [HomeViewModel] both sends colors to mediator and collects them from it.
@@ -568,9 +581,15 @@ private class ColorInputOrchestrator {
 
 /**
  * Tracks the number of ongoing data updates using reference counting technique.
+ *
+ * [HomeViewModel] may update its data multiple times during the same factual data transaction.
+ * Having a counter of ongoing updates that data consumer (View) takes into account ensures that
+ * consumer won't collect unstable, inconsistent data that is about to change, because data transaction
+ * is still running.
+ *
  * Ensures correct behaviour in concurrent execution when multiple data updates are
  * running in parallel.
- * Finishing one won't falsely signal that all are done (as it would've been with simple boolean).
+ * Finishing one won't falsely signal that all are done (as it would've been with a simple boolean).
  */
 private class DataUpdateGuard {
     val flowOfOngoingUpdates = MutableStateFlow(0)
@@ -585,6 +604,11 @@ private class DataUpdateGuard {
     }
 }
 
+/**
+ * Simple wrapper that is used to be more literate in unit tests.
+ * Instead of verifying that command was sent to [ColorDetailsCommandStore] as the result of
+ * invoking [HomeViewModel.proceed], we can verify that [ProceedExecutor] was called.
+ */
 /* private but Dagger */
 class ProceedExecutor @AssistedInject constructor(
     @Assisted private val colorDetailsCommandStore: ColorDetailsCommandStore,

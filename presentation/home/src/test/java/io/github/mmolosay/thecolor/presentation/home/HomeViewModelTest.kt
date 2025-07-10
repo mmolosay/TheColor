@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.home
 
+import androidx.lifecycle.viewModelScope
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.ResumeFromLastSearchedColorOnStartup
 import io.github.mmolosay.thecolor.domain.repository.LastSearchedColorRepository
@@ -22,6 +23,7 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.CanProceed
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModelDiModule
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ProceedExecutor
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.components
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
@@ -52,6 +54,8 @@ import io.mockk.spyk
 import io.mockk.verify
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.drop
@@ -60,6 +64,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
@@ -76,9 +81,13 @@ class HomeViewModelTest {
     val testDispatcher = UnconfinedTestDispatcher()
 
     val colorInputMediator: ColorInputMediator = mockk(relaxed = true)
-    val colorCenterViewModel: ColorCenterViewModel = mockk(relaxed = true)
     val colorInputColorStore: ColorInputColorStore = spyk() // for actual impl of 'wouldEmitIfSet()'
     val colorInputEventStore: ColorInputEventStore = mockk()
+
+    val colorProcessedConfirmationChannelForColorPreviewReal: Channel<Color?> =
+        HomeViewModelDiModule.provideColorProcessedConfirmationChannelForColorPreview()
+    val colorProcessedConfirmationChannelForColorPreviewMock: Channel<Color?> =
+        mockk(relaxed = true)
 
     val colorDetailsViewModel: ColorDetailsViewModel = mockk(relaxed = true)
     val colorDetailsCommandStore: ColorDetailsCommandStore = mockk {
@@ -91,6 +100,7 @@ class HomeViewModelTest {
     val colorDetailsEventStoreProvider: Provider<ColorDetailsEventStore> = mockk {
         every { get() } returns colorDetailsEventStore
     }
+
     val colorSchemeViewModel: ColorSchemeViewModel = mockk(relaxed = true)
     val colorSchemeCommandStore: ColorSchemeCommandStore = mockk {
         coEvery { issue(command = any()) } just runs
@@ -102,6 +112,8 @@ class HomeViewModelTest {
     val colorSchemeEventStoreProvider: Provider<ColorSchemeEventStore> = mockk {
         every { get() } returns colorSchemeEventStore
     }
+
+    val colorCenterViewModel: ColorCenterViewModel = mockk(relaxed = true)
     val colorCenterComponentsStore = ColorCenterComponentsStore(
         viewModelScope = CoroutineScope(testDispatcher),
         colorDetailsCommandStoreProvider = colorDetailsCommandStoreProvider,
@@ -112,6 +124,7 @@ class HomeViewModelTest {
         colorSchemeViewModelFactory = { _, _, _ -> colorSchemeViewModel },
         colorCenterViewModelFactory = { _, _, _ -> colorCenterViewModel },
     )
+
     val proceedExecutor: ProceedExecutor = mockk {
         coEvery { this@mockk.invoke(color = any(), colorRole = any()) } just runs
     }
@@ -121,6 +134,7 @@ class HomeViewModelTest {
             colorSchemeCommandStore = any(),
         ) } returns proceedExecutor
     }
+
     val createColorData: CreateColorDataUseCase = mockk()
 
     // real implementation, there's no need to have mock for color comparison
@@ -166,44 +180,62 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `when receiving a not-null color from Color Input, then data has 'CanProceed Yes'`() {
-        // from other tests, we know that this will produce 'CanProceed.No' in data
-        val colorFlow = MutableStateFlow<Color?>(null)
-        every { colorInputColorStore.colorFlow } returns colorFlow
-        every { colorInputEventStore.eventFlow } returns emptyFlow()
-        every { colorDetailsEventStore.eventFlow } returns emptyFlow()
-        every { colorSchemeEventStore.eventFlow } returns emptyFlow()
-        createSut()
+    fun `when receiving a not-null color from Color Input, then data has 'CanProceed Yes'`() =
+        runTest(testDispatcher) {
+            // from other tests, we know that this will produce 'CanProceed.No' in data
+            val colorFlow = MutableStateFlow<Color?>(null)
+            every { colorInputColorStore.colorFlow } returns colorFlow
+            every { colorInputEventStore.eventFlow } returns emptyFlow()
+            every { colorDetailsEventStore.eventFlow } returns emptyFlow()
+            every { colorSchemeEventStore.eventFlow } returns emptyFlow()
+            createSut()
 
-        colorFlow.value = mockk<Color>()
+            val color = mockk<Color>()
+            run emitColorFromColorInput@{
+                colorFlow.emit(color)
+            }
+            run emitConfirmationFromColorPreview@{
+                colorProcessedConfirmationChannelForColorPreviewReal.send(color)
+            }
 
-        data.canProceed should beOfType<CanProceed.Yes>()
-    }
-
+            data.canProceed should beOfType<CanProceed.Yes>()
+        }
 
     @Test
-    fun `when receiving a 'null' color from Color Input, then data has 'CanProceed No'`() {
-        val colorFlow = MutableStateFlow<Color?>(null)
-        every { colorInputColorStore.colorFlow } returns colorFlow
-        every { colorInputEventStore.eventFlow } returns emptyFlow()
-        every { colorDetailsEventStore.eventFlow } returns emptyFlow()
-        every { colorSchemeEventStore.eventFlow } returns emptyFlow()
-        createSut()
+    fun `when receiving a 'null' color from Color Input, then data has 'CanProceed No'`() =
+        runTest(testDispatcher) {
+            val colorFlow = MutableStateFlow<Color?>(null)
+            every { colorInputColorStore.colorFlow } returns colorFlow
+            every { colorInputEventStore.eventFlow } returns emptyFlow()
+            every { colorDetailsEventStore.eventFlow } returns emptyFlow()
+            every { colorSchemeEventStore.eventFlow } returns emptyFlow()
+            createSut()
 
-        colorFlow.value = null
+            val color: Color? = null
+            run emitColorFromColorInput@{
+                colorFlow.emit(color)
+            }
+            run emitConfirmationFromColorPreview@{
+                colorProcessedConfirmationChannelForColorPreviewReal.send(color)
+            }
 
-        data.canProceed should beOfType<CanProceed.No>()
-    }
+            data.canProceed should beOfType<CanProceed.No>()
+        }
 
     /**
-     * - GIVEN that 'proceed' was already invoked and there's a color in Color Center
-     * - WHEN
-     *  1. [ColorDetailsEvent.ColorSelected] for "exact" color is emitted (e.g. due to user clicking on "go to exact" button)
-     *  2. the event is handled and "exact" color is sent to [ColorInputMediator]
-     *  3. the update of the [ColorInputColorStore] received and processed. SUT checks whether the
-     *  new color (which is "exact" color) belongs to the ongoing color session.
-     * - THEN "exact" color is confirmed to belong to the ongoing color session and it (session)
-     * is not ended, thus [HomeData.proceedResult] is not set to `null`.
+     * GIVEN
+     * 1. [sut] is created
+     * 2. 'proceed' was already invoked and there's a color in Color Center
+     *
+     * WHEN
+     * 1. [ColorDetailsEvent.ColorSelected] for "exact" color is emitted (e.g. due to user clicking on "go to exact" button)
+     * 2. the event is handled and "exact" color is sent to [ColorInputMediator]
+     * 3. the update of the [ColorInputColorStore] received and processed. SUT checks whether the
+     * new color (which is "exact" color) belongs to the ongoing color session.
+     *
+     * THEN
+     * "exact" color is confirmed to belong to the ongoing color session and it (session)
+     * doesn't get finished, thus [HomeData.proceedResult] is not set to `null`.
      */
     @Test
     fun `when receiving a not-null RGB color from Color Input due to 'ExactColorSelected', then session is not finished`() =
@@ -240,12 +272,50 @@ class HomeViewModelTest {
                 )
                 eventsFlow.emit(event)
             }
-            run emitExactColor@{
+            run emitExactColorFromColorInput@{
                 colorFlow.emit(exactColor)
+            }
+            run emitConfirmationFromColorPreview@{
+                colorProcessedConfirmationChannelForColorPreviewReal.send(exactColor)
             }
 
             // indicator of not finished session
             data.proceedResult shouldNotBe null
+        }
+
+
+    @Test
+    fun `when receiving any color from Color Input, then 'proceed' is not executed until Color Preview confirms that it has processed this color as well`() =
+        runTest(testDispatcher) {
+            val colorFlow = MutableStateFlow<Color?>(null)
+            every { colorInputColorStore.colorFlow } returns colorFlow
+            every { colorInputEventStore.eventFlow } returns emptyFlow()
+            every { colorDetailsEventStore.eventFlow } returns emptyFlow()
+            every { colorSchemeEventStore.eventFlow } returns emptyFlow()
+            every { createColorData(color = any()) } returns mockk()
+            coEvery {
+                // relaxed suspend functions (such as receive()) will return a stub immediately.
+                // Channel.receiveAllUntil() contains forever loop, which will result in OOM if receive() doesn't suspend
+                colorProcessedConfirmationChannelForColorPreviewMock.receive()
+            } coAnswers {
+                suspendCancellableCoroutine {}
+            }
+            createSut(
+                colorProcessedConfirmationChannelForColorPreview = colorProcessedConfirmationChannelForColorPreviewMock,
+            )
+
+            val color = mockk<Color>()
+            run emitExactColorFromColorInput@{
+                colorFlow.emit(color)
+            }
+
+            coVerify(exactly = 0) {
+                colorProcessedConfirmationChannelForColorPreviewMock.send(color)
+            }
+            coVerify(exactly = 0) {
+                proceedExecutor.invoke(color = color, colorRole = any())
+            }
+            sut.viewModelScope.cancel()
         }
 
     @Test
@@ -284,12 +354,18 @@ class HomeViewModelTest {
     }
 
     /**
-     * - GIVEN that there's some color in [ColorInputColorStore] and SUT is created
-     * - WHEN [ColorInputEvent.Submit] with valid color is sent
-     * - THEN [proceedExecutor] is invoked.
+     * GIVEN
+     * 1. [sut] is created
+     * 2. there's some color in [ColorInputColorStore]
+     *
+     * WHEN
+     * [ColorInputEvent.Submit] with valid color is sent
+     *
+     * THEN
+     * [proceedExecutor] is invoked.
      */
     @Test
-    fun `when receiving a 'Sumbit' event from Color Input with 'Valid' color input state, then 'proceed executor' is invoked`() =
+    fun `when receiving a 'Submit' event from Color Input with 'Valid' color input state, then 'proceed executor' is invoked`() =
         runTest(testDispatcher) {
             every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
             val eventsFlow = MutableSharedFlow<ColorInputEvent>()
@@ -312,9 +388,15 @@ class HomeViewModelTest {
         }
 
     /**
-     * - GIVEN that there's some color in [ColorInputColorStore] and SUT is created
-     * - WHEN [ColorInputEvent.Submit] with valid color is sent
-     * - THEN [data] is updated with [ProceedResult.Success].
+     * GIVEN
+     * 1. [sut] is created
+     * 2. there's some color in [ColorInputColorStore]
+     *
+     * WHEN
+     * [ColorInputEvent.Submit] with valid color is sent
+     *
+     * THEN
+     * [data] is updated with [ProceedResult.Success].
      */
     @Test
     fun `when receiving a 'Submit' event from Color Input with 'Valid' color input state, then 'proceed' action is invoked, thus 'proceedResult' is set to 'Success'`() =
@@ -341,9 +423,15 @@ class HomeViewModelTest {
         }
 
     /**
-     * - GIVEN that there's some color in [ColorInputColorStore] and SUT is created
-     * - WHEN [ColorInputEvent.Submit] with invalid color is sent
-     * - THEN [data] is updated with [ProceedResult.InvalidSubmittedColor].
+     * GIVEN
+     * 1. [sut] is created
+     * 2. there's some color in [ColorInputColorStore]
+     *
+     * WHEN
+     * [ColorInputEvent.Submit] with invalid color is sent
+     *
+     * THEN
+     * [data] is updated with [ProceedResult.InvalidSubmittedColor].
      */
     @Test
     fun `when receiving a 'Submit' event from Color Input with 'Invalid' color input state, then 'proceed' action is not invoked, thus 'proceedResult' is set to 'InvalidSubmittedColor'`() =
@@ -367,12 +455,18 @@ class HomeViewModelTest {
         }
 
     /**
-     * - GIVEN that there's some color in [ColorInputColorStore] and SUT is created
-     * - WHEN [ColorInputEvent.Submit] with valid color is sent
-     * - THEN [ColorInputEvent.Submit.onConsumed] is invoked with `true` value for `wasAccepted` parameter.
+     * GIVEN
+     * 1. [sut] is created
+     * 2. there's some color in [ColorInputColorStore]
+     *
+     * WHEN
+     * [ColorInputEvent.Submit] with valid color is sent
+     *
+     * THEN
+     * [ColorInputEvent.Submit.onConsumed] is invoked with `true` value for `wasAccepted` parameter.
      */
     @Test
-    fun `when receiving a 'Submit' event from Color Input with 'Valid' color input state, then submission is reported as accepted'`() =
+    fun `when receiving a 'Submit' event from Color Input with 'Valid' color input state, then submission is reported as accepted`() =
         runTest(testDispatcher) {
             every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
             val eventsFlow = MutableSharedFlow<ColorInputEvent>()
@@ -396,12 +490,18 @@ class HomeViewModelTest {
         }
 
     /**
-     * - GIVEN that there's some color in [ColorInputColorStore] and SUT is created
-     * - WHEN [ColorInputEvent.Submit] with invalid color is sent
-     * - THEN [ColorInputEvent.Submit.onConsumed] is invoked with `false` value for `wasAccepted` parameter.
+     * GIVEN
+     * 1. [sut] is created
+     * 2. there's some color in [ColorInputColorStore]
+     *
+     * WHEN
+     * [ColorInputEvent.Submit] with invalid color is sent
+     *
+     * THEN
+     * [ColorInputEvent.Submit.onConsumed] is invoked with `false` value for `wasAccepted` parameter.
      */
     @Test
-    fun `when receiving a 'Submit' event from Color Input with 'Invalid' color input state, then submission is reported as not accepted'`() =
+    fun `when receiving a 'Submit' event from Color Input with 'Invalid' color input state, then submission is reported as not accepted`() =
         runTest(testDispatcher) {
             every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
             val eventsFlow = MutableSharedFlow<ColorInputEvent>()
@@ -424,9 +524,15 @@ class HomeViewModelTest {
         }
 
     /**
-     * - GIVEN that SUT has [data] with [ProceedResult.InvalidSubmittedColor]
-     * - WHEN [ProceedResult.InvalidSubmittedColor.discard] is invoked
-     * - THEN [data] is updated and `proceedResult` is set to `null`.
+     * GIVEN
+     * 1. [sut] is created
+     * 2. [sut] has [data] with [ProceedResult.InvalidSubmittedColor]
+     *
+     * WHEN
+     * [ProceedResult.InvalidSubmittedColor.discard] is invoked
+     *
+     * THEN
+     * [data] is updated and `proceedResult` is set to `null`.
      */
     @Test
     fun `given that 'ProceedResult InvalidSubmittedColor' is set in data, when its 'discard' callback is invoked, then proceed result value is set to 'null'`() =
@@ -483,7 +589,9 @@ class HomeViewModelTest {
             coEvery {
                 colorInputMediator.send(color = any(), from = any())
             } coAnswers  {
-                colorInputColorFlow.emit(value = firstArg())
+                val sentColor = firstArg<Color>()
+                colorInputColorFlow.emit(sentColor)
+                colorProcessedConfirmationChannelForColorPreviewReal.send(sentColor)
             }
             every { colorInputColorStore.colorFlow } returns colorInputColorFlow
             every { colorInputEventStore.eventFlow } returns emptyFlow()
@@ -505,11 +613,13 @@ class HomeViewModelTest {
                 eventsFlow.emit(event)
             }
 
-            val event = ColorDetailsEvent.ColorSelected(
-                color = exactColor,
-                colorRole = ColorRole.Exact,
-            )
-            eventsFlow.emit(event)
+            run emitColorSelectedEvent@{
+                val event = ColorDetailsEvent.ColorSelected(
+                    color = exactColor,
+                    colorRole = ColorRole.Exact,
+                )
+                eventsFlow.emit(event)
+            }
 
             coVerify {
                 proceedExecutor.invoke(color = exactColor, colorRole = ColorRole.Exact)
@@ -556,8 +666,11 @@ class HomeViewModelTest {
                 )
                 eventsFlow.emit(event)
             }
-            run emitExactColor@{
+            run emitExactColorFromColorInput@{
                 colorFlow.emit(exactColor)
+            }
+            run emitConfirmationFromColorPreview@{
+                colorProcessedConfirmationChannelForColorPreviewReal.send(exactColor)
             }
             run emitDataFetchedEvent@{
                 val event = ColorDetailsEvent.DataFetched(
@@ -602,12 +715,12 @@ class HomeViewModelTest {
 
     /**
      * GIVEN
-     *  1. SUT is initialized
-     *  2. SUT is proceeded with some color
+     * 1. [sut] is created
+     * 2. [sut] is proceeded with some color
      *
      * WHEN
-     *  1. receiving two same [ColorDetailsEvent.ColorSelected] events with color X in a quick succession
-     *  2. then receiving a different [ColorDetailsEvent.ColorSelected] event with color Y
+     * 1. receiving two same [ColorDetailsEvent.ColorSelected] events with color X in a quick succession
+     * 2. then receiving a different [ColorDetailsEvent.ColorSelected] event with color Y
      *
      * THEN
      *  nothing breaks: [proceedExecutor] is invoked for both color X and then for color Y.
@@ -650,8 +763,11 @@ class HomeViewModelTest {
                     eventsFlow.emit(event) // 2nd time
                 }
             }
-            run emitExactColor@{
+            run emitExactColorFromColorInput@{
                 colorFlow.emit(exactColor)
+            }
+            run emitConfirmationFromColorPreview@{
+                colorProcessedConfirmationChannelForColorPreviewReal.send(exactColor)
             }
             run emitDataFetchedEvent@{
                 val domainDetails: DomainColorDetails = mockk(relaxed = true) {
@@ -668,8 +784,11 @@ class HomeViewModelTest {
                 )
                 eventsFlow.emit(event)
             }
-            run emitInitialColor@{
+            run emitInitialColorFromColorInput@{
                 colorFlow.emit(initialColor)
+            }
+            run emitConfirmationFromColorPreview@{
+                colorProcessedConfirmationChannelForColorPreviewReal.send(initialColor)
             }
             run emitDataFetchedEvent@{
                 val domainDetails: DomainColorDetails = mockk(relaxed = true) {
@@ -731,40 +850,42 @@ class HomeViewModelTest {
         }
 
     @Test
-    fun `when receiving 'null' color from Color Input after 'proceed' was invoked, then 'proceedResult' is cleared`() {
-        val initialColor = Color.Hex(0x0)
-        val colorFlow = MutableStateFlow<Color?>(initialColor)
-        every { colorInputColorStore.colorFlow } returns colorFlow
-        every { colorInputEventStore.eventFlow } returns emptyFlow()
-        every { colorDetailsEventStore.eventFlow } returns emptyFlow()
-        every { colorSchemeEventStore.eventFlow } returns emptyFlow()
-        every { createColorData(color = any()) } returns mockk()
-        createSut()
+    fun `when receiving 'null' color from Color Input after 'proceed' was invoked, then 'proceedResult' is cleared`() =
+        runTest(testDispatcher) {
+            val initialColor = Color.Hex(0x0)
+            val colorFlow = MutableStateFlow<Color?>(initialColor)
+            every { colorInputColorStore.colorFlow } returns colorFlow
+            every { colorInputEventStore.eventFlow } returns emptyFlow()
+            every { colorDetailsEventStore.eventFlow } returns emptyFlow()
+            every { colorSchemeEventStore.eventFlow } returns emptyFlow()
+            every { createColorData(color = any()) } returns mockk()
+            createSut()
 
-        // we know from other tests that it would be 'CanProceed.Yes'
-        data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
-        colorFlow.value = null
+            // we know from other tests that it would be 'CanProceed.Yes'
+            data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
+            colorFlow.emit(null)
 
-        data.proceedResult shouldBe null
-    }
+            data.proceedResult shouldBe null
+        }
 
     @Test
-    fun `when receiving not-null color from Color Input after 'proceed' was invoked, then 'proceedResult' is cleared`() {
-        val initialColor = Color.Hex(0x0)
-        val colorFlow = MutableStateFlow<Color?>(initialColor)
-        every { colorInputColorStore.colorFlow } returns colorFlow
-        every { colorInputEventStore.eventFlow } returns emptyFlow()
-        every { colorDetailsEventStore.eventFlow } returns emptyFlow()
-        every { colorSchemeEventStore.eventFlow } returns emptyFlow()
-        every { createColorData(color = any()) } returns mockk()
-        createSut()
+    fun `when receiving not-null color from Color Input after 'proceed' was invoked, then 'proceedResult' is cleared`() =
+        runTest(testDispatcher) {
+            val initialColor = Color.Hex(0x0)
+            val colorFlow = MutableStateFlow<Color?>(initialColor)
+            every { colorInputColorStore.colorFlow } returns colorFlow
+            every { colorInputEventStore.eventFlow } returns emptyFlow()
+            every { colorDetailsEventStore.eventFlow } returns emptyFlow()
+            every { colorSchemeEventStore.eventFlow } returns emptyFlow()
+            every { createColorData(color = any()) } returns mockk()
+            createSut()
 
-        // we know from other tests that it would be 'CanProceed.Yes'
-        data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
-        colorFlow.value = Color.Hex(0x1)
+            // we know from other tests that it would be 'CanProceed.Yes'
+            data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
+            colorFlow.emit(Color.Hex(0x1))
 
-        data.proceedResult shouldBe null
-    }
+            data.proceedResult shouldBe null
+        }
 
     @Test
     fun `when 'proceed' is invoked and Color Input is cleared before 'DataFetched' event arrives, then no exception is thrown`() =
@@ -819,24 +940,28 @@ class HomeViewModelTest {
                     every { color } returns mockk()
                 }
             }
-            // emit event for first invokation of 'proceed'
+            // emit event for first invocation of 'proceed'
             kotlin.run {
                 val event = ColorDetailsEvent.DataFetched(domainDetails)
                 eventsFlow.emit(event)
             }
+            // emit event for second invocation of 'proceed'
             shouldNotThrowAny {
-                // emit event for second invokation of 'proceed'
                 val event = ColorDetailsEvent.DataFetched(domainDetails)
                 eventsFlow.emit(event)
             }
         }
 
     /**
-     * - GIVEN
-     *  1. "should resume from last searched color on app startup" is enabled
-     *  2. last searched color is successfully retrieved
-     * - WHEN SUT is created
-     * - THEN last searched color is proceeded with and [data] is updated with [ProceedResult.Success].
+     * GIVEN
+     * 1. "should resume from last searched color on app startup" is enabled
+     * 2. last searched color is successfully retrieved
+     *
+     * WHEN
+     * [sut] is created
+     *
+     * THEN
+     * last searched color is proceeded with and [data] is updated with [ProceedResult.Success].
      */
     @Test
     fun `when 'resume from last searched color on app startup' is enabled, then 'proceed' action is invoked for this color, thus 'proceedResult' is set to 'Success'`() =
@@ -853,7 +978,9 @@ class HomeViewModelTest {
             coEvery {
                 colorInputMediator.send(color = any(), from = any())
             } coAnswers  {
-                colorInputColorFlow.emit(value = firstArg())
+                val sentColor = firstArg<Color>()
+                colorInputColorFlow.emit(sentColor)
+                colorProcessedConfirmationChannelForColorPreviewReal.send(sentColor)
             }
             every { colorInputColorStore.colorFlow } returns colorInputColorFlow
             every { colorInputEventStore.eventFlow } returns emptyFlow()
@@ -906,6 +1033,9 @@ class HomeViewModelTest {
             run emitExactColor@{
                 colorFlow.emit(exactColor)
             }
+            run emitConfirmationFromColorPreview@{
+                colorProcessedConfirmationChannelForColorPreviewReal.send(exactColor)
+            }
             run emitDataFetchedEvent@{
                 val event = ColorDetailsEvent.DataFetched(
                     domainDetails = mockk(relaxed = true),
@@ -954,8 +1084,12 @@ class HomeViewModelTest {
             createSut()
 
             data.randomizeColor()
-            // emit generated random color from color flow as 'ColorInputMediator' would've done
-            colorFlow.emit(randomColor)
+            run emitColorFromColorInput@{
+                colorFlow.emit(randomColor)
+            }
+            run emitConfirmationFromColorPreview@{
+                colorProcessedConfirmationChannelForColorPreviewReal.send(randomColor)
+            }
 
             coVerify(exactly = 1) {
                 proceedExecutor.invoke(color = randomColor, colorRole = null)
@@ -992,20 +1126,27 @@ class HomeViewModelTest {
             }
 
             data.randomizeColor()
-            // emit generated random color from color flow as 'ColorInputMediator' would've done
-            colorFlow.emit(randomColor)
+            run emitColorFromColorInput@{
+                colorFlow.emit(randomColor)
+            }
+            run emitConfirmationFromColorPreview@{
+                colorProcessedConfirmationChannelForColorPreviewReal.send(randomColor)
+            }
 
             isDataBeingUpdatedCollectionJob.join()
             listOfIsDataBeingUpdatedValues shouldBe listOf(true, false)
         }
 
-    fun createSut() =
+    fun createSut(
+        colorProcessedConfirmationChannelForColorPreview: Channel<Color?> = colorProcessedConfirmationChannelForColorPreviewReal,
+    ) =
         HomeViewModel(
             colorInputMediatorFactory = { _ -> colorInputMediator },
             colorInputViewModelFactory = { _, _, _ -> mockk(relaxed = true) },
             colorInputColorStore = colorInputColorStore,
             colorInputEventStore = colorInputEventStore,
-            colorPreviewViewModelFactory = { _, _ -> mockk(relaxed = true) },
+            colorProcessedConfirmationChannelForColorPreview = colorProcessedConfirmationChannelForColorPreview,
+            colorPreviewViewModelFactory = { _, _, _ -> mockk(relaxed = true) },
             colorCenterComponentsStoreFactory = { _ -> colorCenterComponentsStore },
             proceedExecutorFactory = proceedExecutorFactory,
             createColorData = createColorData,
