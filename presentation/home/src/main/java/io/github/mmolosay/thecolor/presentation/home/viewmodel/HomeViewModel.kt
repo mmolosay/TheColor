@@ -32,6 +32,7 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommandStore
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
 import io.github.mmolosay.thecolor.utils.cache.CacheStore
 import io.github.mmolosay.thecolor.utils.doNothing
+import io.github.mmolosay.thecolor.utils.receiveAllUntil
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -177,10 +178,7 @@ class HomeViewModel @Inject constructor(
                 } finally {
                     colorInputOrchestrator.onColorProcessed(color)
                     flowOfProcessedColorsFromColorInput.emit(color)
-                    while (true) {
-                        val confirmedColor = colorPreviewColorProcessedConfirmation.receive()
-                        if (confirmedColor == color) break
-                    }
+                    colorPreviewColorProcessedConfirmation.receiveAllUntil(color)
                 }
             }
         }
