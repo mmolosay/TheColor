@@ -160,20 +160,20 @@ class HomeViewModel @Inject constructor(
         colorInputOrchestrator.mutex.withLock {
             dataUpdateGuard.withCounter {
                 try {
-                    val session = colorCenterSession
-                    if (session != null && color != null &&
+                    val belongsToOngoingSession = kotlin.run {
+                        val session = colorCenterSession
+                        if (session == null || color == null) return@run false
                         with(doesColorBelongToSession) { color doesBelongTo session }
-                    ) {
-                        return // ignore re-emitted color or colors that are part of ongoing session
                     }
-
-                    _dataFlow.update {
-                        it.copy(
-                            canProceed = CanProceed(colorFromColorInput = color),
-                            proceedResult = null, // 'proceed' wasn't invoked for new color yet
-                        )
+                    if (!belongsToOngoingSession) {
+                        _dataFlow.update {
+                            it.copy(
+                                canProceed = CanProceed(colorFromColorInput = color),
+                                proceedResult = null, // 'proceed' wasn't invoked for new color yet
+                            )
+                        }
+                        onColorCenterSessionEnded()
                     }
-                    onColorCenterSessionEnded()
                 } finally {
                     colorInputOrchestrator.onColorProcessed(color)
                     flowOfProcessedColorsFromColorInput.emit(color)
