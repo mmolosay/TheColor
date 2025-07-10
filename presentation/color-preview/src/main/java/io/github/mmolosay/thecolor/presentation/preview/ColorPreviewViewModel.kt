@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transform
-import timber.log.Timber
 import javax.inject.Named
 
 /**
@@ -25,7 +24,6 @@ import javax.inject.Named
  *
  * Instead, it can be created within "simple" `ViewModel` or Google's `ViewModel`.
  */
-// TODO: remove logs
 class ColorPreviewViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     @Assisted colorFlow: StateFlow<Color?>,
@@ -43,14 +41,9 @@ class ColorPreviewViewModel @AssistedInject constructor(
         val initialValue = value(colorFlow.value)
         colorFlow
             .transform { color ->
-//                Timber.d("HomeViewModel | ColorPreviewViewModel dataFlow, new color $color, delay starts")
-//                delay(100) // TODO: remove me
-//                Timber.d("HomeViewModel | ColorPreviewViewModel dataFlow, delay finished")
-                emit(value(color))
-                Timber.d("HomeViewModel | ColorPreviewViewModel dataFlow, data for color $color emitted")
+                val data = value(color)
+                emit(data)
                 colorProcessedConfirmation?.send(color)
-                Timber.d("HomeViewModel | ColorPreviewViewModel dataFlow, $color processed confirmation was sent")
-                println() // TODO: breakpoint, remove me
             }
             .flowOn(defaultDispatcher)
             .stateIn(coroutineScope, SharingStarted.Eagerly, initialValue)
