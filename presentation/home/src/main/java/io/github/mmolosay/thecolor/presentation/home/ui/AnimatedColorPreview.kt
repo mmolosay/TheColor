@@ -45,6 +45,7 @@ import io.github.mmolosay.thecolor.presentation.preview.toUiState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -122,7 +123,7 @@ internal fun AnimatedColorPreview(
     ) {
         val flowOfAnimatedUiState = remember {
             FlowOfAnimatedUiState(
-                flowOfOriginalData = colorPreview.viewModel.dataFlow,
+                flowOfOriginalData = colorPreview.viewModel.dataFlow.filterNotNull(),
                 flowOfVisibilityAnimDest = flowOfVisibilityAnimDest,
                 coroutineScope = coroutineScope,
             )
@@ -220,7 +221,7 @@ private object VerticalOffset {
 
 @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
 internal fun FlowOfAnimatedUiState(
-    flowOfOriginalData: StateFlow<ColorPreviewData>,
+    flowOfOriginalData: Flow<ColorPreviewData>,
     flowOfVisibilityAnimDest: StateFlow<AnimState.Visibility>,
     coroutineScope: CoroutineScope,
 ): StateFlow<ColorPreviewUiState?> {

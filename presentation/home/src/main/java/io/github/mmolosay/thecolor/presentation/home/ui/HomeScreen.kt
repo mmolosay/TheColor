@@ -161,6 +161,7 @@ fun HomeScreen(
 
     val flowOfUiState = remember {
         val flowOfIsColorPreviewVisible = viewModel.colorPreviewViewModel.dataFlow
+            .filterNotNull()
             .map { data -> isColorPreviewVisible(data) }
         val flowOfIsColorCenterVisible = viewModel.dataFlow
             .map { data -> isColorCenterVisible(data.proceedResult) }

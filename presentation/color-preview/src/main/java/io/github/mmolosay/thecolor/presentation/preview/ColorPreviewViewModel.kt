@@ -9,6 +9,7 @@ import io.github.mmolosay.thecolor.presentation.api.SimpleViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOn
@@ -26,34 +27,32 @@ import javax.inject.Named
  */
 class ColorPreviewViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted colorFlow: StateFlow<Color?>,
+    @Assisted colorFlow: Flow<Color?>,
     @Assisted colorProcessedConfirmation: SendChannel<Color?>?,
     private val colorToColorInt: ColorToColorIntUseCase,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
-    val dataFlow: StateFlow<ColorPreviewData> = kotlin.run {
-        fun value(color: Color?) =
+    val dataFlow: StateFlow<ColorPreviewData?> = kotlin.run {
+        fun data(color: Color?) =
             ColorPreviewData(
                 color = with(colorToColorInt) { color?.toColorInt() },
             )
-
-        val initialValue = value(colorFlow.value)
         colorFlow
             .transform { color ->
-                val data = value(color)
+                val data = data(color)
                 emit(data)
                 colorProcessedConfirmation?.send(color)
             }
             .flowOn(defaultDispatcher)
-            .stateIn(coroutineScope, SharingStarted.Eagerly, initialValue)
+            .stateIn(coroutineScope, SharingStarted.Eagerly, initialValue = null)
     }
 
     @AssistedFactory
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            colorFlow: StateFlow<Color?>,
+            colorFlow: Flow<Color?>,
             colorProcessedConfirmation: SendChannel<Color?>?,
         ): ColorPreviewViewModel
     }
