@@ -28,9 +28,10 @@ class ColorCenterSession(
 /**
  * Returns all colors that are related to this session.
  */
-fun ColorCenterSession.allColors(): Set<Color> =
+internal fun ColorCenterSession.allColors(): Set<Color> =
     relatedColors + seed
 
+/* internal but Dagger */
 class DoesColorBelongToSessionUseCase @Inject constructor(
     private val colorComparator: ColorComparator,
 ) {
@@ -43,42 +44,5 @@ class DoesColorBelongToSessionUseCase @Inject constructor(
         return allAllowedColors.any { allowedColor ->
             with(colorComparator) { color isSameAs allowedColor }
         }
-    }
-}
-
-/**
- * Creates instances of [ColorCenterSession] in a progressive manner.
- * It is an implementation of a "Builder" design pattern.
- * The instance of a builder is reusable: dependencies will be disposed of once the `build()` is called,
- * allowing for a new round of the instance creation.
- */
-/* internal but Dagger */
-class ColorCenterSessionBuilder @Inject constructor() {
-
-    var seed: Color? = null
-    var relatedColors: Set<Color>? = null
-
-    fun seed(color: Color) = apply {
-        this.seed = color
-    }
-
-    fun relatedColors(colors: Set<Color>) = apply {
-        this.relatedColors = colors
-    }
-
-    fun build(): ColorCenterSession {
-        val seed = requireNotNull(seed)
-        val allowedColors = requireNotNull(relatedColors)
-        return ColorCenterSession(
-            seed = seed,
-            relatedColors = allowedColors,
-        ).also {
-            clear()
-        }
-    }
-
-    fun clear() {
-        this.seed = null
-        this.relatedColors = null
     }
 }

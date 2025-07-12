@@ -79,7 +79,6 @@ class HomeViewModel @Inject constructor(
     colorCenterComponentsStoreFactory: ColorCenterComponentsStore.Factory,
     private val proceedExecutorFactory: ProceedExecutor.Factory,
     private val createColorData: CreateColorDataUseCase,
-    private val colorCenterSessionBuilder: ColorCenterSessionBuilder,
     private val doesColorBelongToSession: DoesColorBelongToSessionUseCase,
     private val userPreferencesRepository: UserPreferencesRepository,
     private val lastSearchedColorRepository: LastSearchedColorRepository,
@@ -470,11 +469,7 @@ class HomeViewModel @Inject constructor(
                 .filterIsInstance<ColorDetailsEvent.DataFetched>()
                 .first { it.domainDetails.color == seed }
             val relatedColors = setOf(event.domainDetails.exact.color)
-            // TODO: get rid of builder?
-            val newSession = colorCenterSessionBuilder
-                .seed(seed)
-                .relatedColors(relatedColors)
-                .build()
+            val newSession = ColorCenterSession(seed, relatedColors)
             ensureActive()
             colorCenterSession = newSession
         }.also {
@@ -487,7 +482,6 @@ class HomeViewModel @Inject constructor(
         createNewColorSessionJob?.cancel()
         createNewColorSessionJob = null
         colorCenterSession = null
-        colorCenterSessionBuilder.clear()
         colorCenterComponentsStore.disposeComponents()
     }
 

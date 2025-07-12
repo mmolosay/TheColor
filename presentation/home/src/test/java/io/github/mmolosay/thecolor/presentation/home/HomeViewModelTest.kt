@@ -17,7 +17,6 @@ import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsVi
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorRole
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterComponentsStore
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterSession
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterSessionBuilder
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.CreateColorDataUseCase
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.DoesColorBelongToSessionUseCase
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
@@ -1203,7 +1202,6 @@ class HomeViewModelTest {
             colorCenterComponentsStoreFactory = { _ -> colorCenterComponentsStore },
             proceedExecutorFactory = proceedExecutorFactory,
             createColorData = createColorData,
-            colorCenterSessionBuilder = ColorCenterSessionBuilder(),
             doesColorBelongToSession = doesColorBelongToSession,
             userPreferencesRepository = userPreferencesRepository,
             lastSearchedColorRepository = lastSearchedColorRepository,
