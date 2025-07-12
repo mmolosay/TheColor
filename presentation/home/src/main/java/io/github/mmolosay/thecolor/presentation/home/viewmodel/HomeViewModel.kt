@@ -168,12 +168,7 @@ class HomeViewModel @Inject constructor(
         colorInputOrchestrator.mutex.withLock {
             dataUpdateGuard.withCounter {
                 try {
-                    val belongsToOngoingSession = kotlin.run {
-                        val session = colorCenterSession
-                        if (session == null || color == null) return@run false
-                        with(doesColorBelongToSession) { color doesBelongTo session }
-                    }
-                    if (!belongsToOngoingSession) {
+                    if (!color.doesBelongToOngoingSession()) {
                         _dataFlow.update {
                             it.copy(
                                 canProceed = CanProceed(colorFromColorInput = color),
@@ -214,6 +209,8 @@ class HomeViewModel @Inject constructor(
                 proceed(
                     color = colorInputState.color,
                     colorRole = null,
+                    // even though new color from Color Input MAY belong to the ongoing session,
+                    // it's not produced from the "seed" of the ongoing session, thus logically it's a new one
                     isNewColorCenterSession = true,
                 )
             }
@@ -274,7 +271,7 @@ class HomeViewModel @Inject constructor(
                 proceed(
                     color = event.color,
                     colorRole = event.colorRole,
-                    isNewColorCenterSession = false, // atm all colors from this event are part of the ongoing session
+                    isNewColorCenterSession = !event.color.doesBelongToOngoingSession(),
                 )
             }
             is ColorDetailsEvent.DataFetched ->
@@ -330,13 +327,14 @@ class HomeViewModel @Inject constructor(
                 .first()
             val enabled = resumeFromLastSearchedColorOnStartup.enabled
             if (!enabled) return@launch
-            val lastSearchedColor =
-                lastSearchedColorRepository.getLastSearchedColor() ?: return@launch
+            val color = lastSearchedColorRepository.getLastSearchedColor() ?: return@launch
             dataUpdateGuard.withCounter {
-                sendColorToColorInput(color = lastSearchedColor)
+                sendColorToColorInput(color)
                 proceed(
-                    color = lastSearchedColor,
+                    color = color,
                     colorRole = null,
+                    // even though last searched color MAY belong to the ongoing session,
+                    // it's not produced from the "seed" of the ongoing session, thus logically it's a new one
                     isNewColorCenterSession = true,
                 )
             }
@@ -351,7 +349,7 @@ class HomeViewModel @Inject constructor(
             proceed(
                 color = color,
                 colorRole = null, // standalone color (without a role)
-                isNewColorCenterSession = true, // color from Color Input, thus new session
+                isNewColorCenterSession = !color.doesBelongToOngoingSession(),
             )
         }
     }
@@ -400,6 +398,8 @@ class HomeViewModel @Inject constructor(
                     proceed(
                         color = color,
                         colorRole = null,
+                        // even though new randomized color MAY belong to the ongoing session,
+                        // it's not produced from the "seed" of the ongoing session, thus logically it's a new one
                         isNewColorCenterSession = true,
                     )
                 }
@@ -496,6 +496,12 @@ class HomeViewModel @Inject constructor(
                 wouldColorFlowEmitThisColor = wouldColorFlowEmitThisColor,
             )
         }
+    }
+
+    private fun Color?.doesBelongToOngoingSession(): Boolean {
+        val color = this ?: return false
+        val session = colorCenterSession ?: return false
+        return with(doesColorBelongToSession) { color doesBelongTo session }
     }
 }
 
