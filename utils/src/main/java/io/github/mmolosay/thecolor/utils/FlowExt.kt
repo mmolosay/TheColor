@@ -90,6 +90,10 @@ fun <T> MutableSharedFlow<T>.requireEmit(value: T) {
  * This is useful to prevent intermediate, unstable values from being collected while some
  * external update operation is in progress.
  *
+ * You may want to apply [distinctUntilChanged] after this operator.
+ * If flow of [isBeingUpdated] updates without source flow emitting a new value,
+ * then the latest value will be re-emitted when [isBeingUpdated] becomes `false`.
+ *
  * @param isBeingUpdated A flow indicating whether data is currently being updated.
  * One can think of it as of "is the source flow actively emitting non-final values" flow.
  */
