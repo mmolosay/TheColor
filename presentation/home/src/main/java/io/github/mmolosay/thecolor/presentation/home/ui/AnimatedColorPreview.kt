@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -69,8 +70,8 @@ internal fun AnimatedColorPreview(
     flowOfVisibilityAnimDest: StateFlow<AnimState.Visibility>,
     onPositionReached: (reached: AnimState.Position) -> Unit,
     onVisibilityReached: (reached: AnimState.Visibility) -> Unit,
-    containerViewportHeight: Dp?,
-    containerPosInRoot: DpOffset?,
+    stateOfContainerViewportHeight: State<Dp?>,
+    stateOfContainerPosInRoot: State<DpOffset?>,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val density = LocalDensity.current
@@ -80,10 +81,10 @@ internal fun AnimatedColorPreview(
 
     val verticalOffsetParams by produceState<VerticalOffset.Params?>(
         initialValue = null,
-        /*keys*/ containerViewportHeight, size, posInContainer,
+        /*keys*/ stateOfContainerViewportHeight.value, size, posInContainer,
     ) {
         value = VerticalOffset.paramsOrNull(
-            containerViewportHeight = containerViewportHeight,
+            containerViewportHeight = stateOfContainerViewportHeight.value,
             previewSize = size,
             previewPosInContainer = posInContainer,
         )
@@ -110,6 +111,7 @@ internal fun AnimatedColorPreview(
             }
             // 'posInContainer' should be calculated before applying 'dive' animation offset (modifier)
             .onGloballyPositioned l@{ coordinates ->
+                val containerPosInRoot = stateOfContainerPosInRoot.value
                 if (containerPosInRoot == null) return@l
                 val ownPosInRoot = coordinates.positionInRoot().toDpOffset(density)
                 posInContainer = ownPosInRoot - containerPosInRoot
@@ -314,8 +316,8 @@ private fun Preview() {
             flowOfVisibilityAnimDest = remember { MutableStateFlow(AnimState.Visibility.Visible) },
             onPositionReached = {},
             onVisibilityReached = {},
-            containerViewportHeight = 400.dp,
-            containerPosInRoot = DpOffset.Zero,
+            stateOfContainerViewportHeight = remember { mutableStateOf(400.dp) },
+            stateOfContainerPosInRoot = remember { mutableStateOf(DpOffset.Zero) },
         )
     }
 }

@@ -44,6 +44,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -294,10 +295,12 @@ private fun Home(
     val proceedResult = data.proceedResult
 
     val scrollState = rememberScrollState()
-    val viewportHeight = scrollState.viewportSize
-        .takeUnless { it == 0 }
-        ?.let { with(density) { it.toDp() } }
-    var posInRoot by remember { mutableStateOf<DpOffset?>(null) }
+    val stateOfViewportHeight = produceState<Dp?>(initialValue = null, /*keys*/ scrollState.viewportSize) {
+        value = scrollState.viewportSize
+            .takeUnless { it == 0 }
+            ?.let { with(density) { it.toDp() } }
+    }
+    var stateOfPosInRoot = remember { mutableStateOf<DpOffset?>(null) }
     var size by remember { mutableStateOf<DpSize?>(null) }
 
     Column(
@@ -305,7 +308,7 @@ private fun Home(
             .fillMaxSize()
             .verticalScroll(state = scrollState)
             .onGloballyPositioned { coordinates ->
-                posInRoot = coordinates.positionInRoot().toDpOffset(density)
+                stateOfPosInRoot.value = coordinates.positionInRoot().toDpOffset(density)
                 size = coordinates.size.toDpSize(density)
             },
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -360,8 +363,8 @@ private fun Home(
                 },
                 onPositionReached = animController::onValueReached,
                 onVisibilityReached = animController::onValueReached,
-                containerViewportHeight = viewportHeight,
-                containerPosInRoot = posInRoot,
+                stateOfContainerViewportHeight = stateOfViewportHeight,
+                stateOfContainerPosInRoot = stateOfPosInRoot,
             )
             val decoratedColorCenter = remember(colorCenter, proceedResult) {
                 decoratedColorCenterComposable(
@@ -369,7 +372,7 @@ private fun Home(
                     proceededColorData = (proceedResult as? ProceedResult.Success)?.colorData,
                     navBarAppearanceController = navBarAppearanceController,
                     containerScrollState = scrollState,
-                    containerPosInRoot = posInRoot,
+                    stateOfContainerPosInRoot = stateOfPosInRoot,
                 )
             }
             AnimatedColorCenter(
@@ -493,22 +496,22 @@ private fun decoratedColorCenterComposable(
     proceededColorData: ProceedResult.Success.ColorData?,
     navBarAppearanceController: NavBarAppearanceController,
     containerScrollState: ScrollState,
-    containerPosInRoot: DpOffset?,
+    stateOfContainerPosInRoot: State<DpOffset?>,
 ): ColorCenterComposable? {
     if (colorCenter == null) return null
     if (proceededColorData == null) return null
     return {
         val density = LocalDensity.current
-        var minHeight by remember { mutableStateOf<Dp>(Dp.Unspecified) }
+        var minHeight = remember { mutableStateOf<Dp>(Dp.Unspecified) }
         DecoratedColorCenter(
             modifier = Modifier
                 .onPlaced { coordinates ->
                     // calculate min height of Color Center so that its bottom matches bottom of the parent Column
-                    containerPosInRoot ?: return@onPlaced
+                    val containerPosInRoot = stateOfContainerPosInRoot.value ?: return@onPlaced
                     val containerHeight = with(density) { containerScrollState.viewportSize.toDp() }
                     val ownPosInRoot = coordinates.positionInRoot().toDpOffset(density)
                     val ownYPosInContainer = (ownPosInRoot - containerPosInRoot).y
-                    minHeight = containerHeight - ownYPosInContainer
+                    minHeight.value = containerHeight - ownYPosInContainer
                 },
             surfaceColor = proceededColorData.color.toCompose(),
             isSurfaceColorDark = proceededColorData.isDark,
@@ -527,7 +530,7 @@ private fun DecoratedColorCenter(
     colorCenter: ColorCenterComposable,
     navBarAppearanceController: NavBarAppearanceController,
     modifier: Modifier = Modifier,
-    minHeight: Dp,
+    minHeight: State<Dp>, // wrapped in State to avoid recompositions
 ) {
     val animationSpec = spring<Color>(stiffness = 100f)
     val contentColors = if (isSurfaceColorDark) colorsOnDarkSurface() else colorsOnLightSurface()
@@ -551,7 +554,7 @@ private fun DecoratedColorCenter(
         val windowInsets = WindowInsets.systemBars.onlyBottom()
         Box(
             modifier = Modifier
-                .sizeIn(minHeight = minHeight) // it's important to set size before paddings
+                .sizeIn(minHeight = minHeight.value) // it's important to set size before paddings
                 .padding(windowInsets.asPaddingValues())
                 .consumeWindowInsets(windowInsets)
                 .padding(top = 24.dp), // to accommodate to convex 'ColorCenterShape'
