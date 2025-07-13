@@ -351,15 +351,21 @@ private fun Home(
                 colorPreview = colorPreview,
                 flowOfPositionAnimDest = kotlin.run {
                     val upstream = animController.flowOfDestState
-                    upstream
-                        .map { it.colorPreviewPosition }
-                        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), upstream.value.colorPreviewPosition)
+                    remember(upstream) {
+                        fun value(animState: HomeAnimState) = animState.colorPreviewPosition
+                        upstream
+                            .map(::value)
+                            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), value(upstream.value))
+                    }
                 },
                 flowOfVisibilityAnimDest = kotlin.run {
                     val upstream = animController.flowOfDestState
-                    upstream
-                        .map { it.colorPreviewVisibility }
-                        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), upstream.value.colorPreviewVisibility)
+                    remember(upstream) {
+                        fun value(animState: HomeAnimState) = animState.colorPreviewVisibility
+                        upstream
+                            .map(::value)
+                            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), value(upstream.value))
+                    }
                 },
                 onPositionReached = animController::onValueReached,
                 onVisibilityReached = animController::onValueReached,
@@ -379,9 +385,12 @@ private fun Home(
                 colorCenter = decoratedColorCenter,
                 flowOfAnimDest = kotlin.run {
                     val upstream = animController.flowOfDestState
-                    upstream
-                        .map { it.colorCenter }
-                        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), upstream.value.colorCenter)
+                    remember(upstream) {
+                        fun value(animState: HomeAnimState) = animState.colorCenter
+                        upstream
+                            .map(::value)
+                            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), value(upstream.value))
+                    }
                 },
                 onReached = animController::onValueReached,
                 containerScrollState = scrollState,
