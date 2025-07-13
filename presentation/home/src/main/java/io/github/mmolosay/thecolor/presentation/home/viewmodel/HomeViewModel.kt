@@ -94,7 +94,7 @@ class HomeViewModel @Inject constructor(
         // mapping StateFlow to StateFlow involves boilerplate 'stateIn()':
         // https://github.com/Kotlin/kotlinx.coroutines/issues/2631
         fun value(numberOfOngoingUpdates: Int): Boolean =
-            (numberOfOngoingUpdates != 0)
+            (numberOfOngoingUpdates > 0)
         val upstream = dataUpdateGuard.flowOfOngoingUpdates
         val initialValue = value(upstream.value)
         upstream
@@ -592,6 +592,7 @@ private class DataUpdateGuard {
             block()
         } finally {
             flowOfOngoingUpdates.update { it - 1 }
+            assert(flowOfOngoingUpdates.value >= 0)
         }
     }
 }
