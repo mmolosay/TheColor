@@ -149,9 +149,9 @@ fun HomeScreen(
     }
     val colorCenter: ColorCenterComposable? = run {
         val viewModel = viewModel.colorCenterViewModelFlow.collectAsStateWithLifecycle().value
-            ?: return@run null
         remember(viewModel) {
-            {
+            if (viewModel == null) return@remember null
+            return@remember {
                 ColorCenter(
                     viewModel = viewModel,
                 )
@@ -363,7 +363,7 @@ private fun Home(
                 containerViewportHeight = viewportHeight,
                 containerPosInRoot = posInRoot,
             )
-            val decoratedColorCenter = remember(proceedResult) {
+            val decoratedColorCenter = remember(colorCenter, proceedResult) {
                 decoratedColorCenterComposable(
                     colorCenter = colorCenter,
                     proceededColorData = (proceedResult as? ProceedResult.Success)?.colorData,
