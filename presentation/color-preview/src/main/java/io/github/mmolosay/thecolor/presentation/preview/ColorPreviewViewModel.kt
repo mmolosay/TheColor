@@ -28,7 +28,7 @@ import javax.inject.Named
 class ColorPreviewViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     @Assisted colorFlow: Flow<Color?>,
-    @Assisted colorProcessedConfirmation: SendChannel<Color?>?,
+    @Assisted colorProcessedConfirmationChannel: SendChannel<Color?>?,
     private val colorToColorInt: ColorToColorIntUseCase,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
@@ -42,7 +42,7 @@ class ColorPreviewViewModel @AssistedInject constructor(
             .transform { color ->
                 val data = data(color)
                 emit(data)
-                colorProcessedConfirmation?.send(color)
+                colorProcessedConfirmationChannel?.send(color)
             }
             .flowOn(defaultDispatcher)
             .stateIn(coroutineScope, SharingStarted.Eagerly, initialValue = null)
@@ -53,7 +53,7 @@ class ColorPreviewViewModel @AssistedInject constructor(
         fun create(
             coroutineScope: CoroutineScope,
             colorFlow: Flow<Color?>,
-            colorProcessedConfirmation: SendChannel<Color?>?,
+            colorProcessedConfirmationChannel: SendChannel<Color?>?,
         ): ColorPreviewViewModel
     }
 }

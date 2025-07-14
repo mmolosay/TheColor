@@ -126,7 +126,7 @@ class HomeViewModel @Inject constructor(
         colorPreviewViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
             colorFlow = flowOfProcessedColorsFromColorInput,
-            colorProcessedConfirmation = colorProcessedConfirmationChannelForColorPreview,
+            colorProcessedConfirmationChannel = colorProcessedConfirmationChannelForColorPreview,
         )
 
     private val colorCenterComponentsStore: ColorCenterComponentsStore =
