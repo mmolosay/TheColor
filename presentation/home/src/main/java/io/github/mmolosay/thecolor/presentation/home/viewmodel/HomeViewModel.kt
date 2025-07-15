@@ -459,8 +459,8 @@ class HomeViewModel @Inject constructor(
             colorCenterSession = newSession
         }.also { job ->
             createNewColorSessionJob?.cancel()
-            createNewColorSessionJob = it
             createNewColorSessionJob = job
+            job.invokeOnCompletion { createNewColorSessionJob = null }
         }
     }
 
