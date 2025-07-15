@@ -206,13 +206,11 @@ class HomeViewModel @Inject constructor(
     ): Boolean {
         if (colorInputState is ColorInputState.Valid) {
             viewModelScope.launch(defaultDispatcher) {
-                proceed(
-                    color = colorInputState.color,
-                    colorRole = null,
-                    // even though new color from Color Input MAY belong to the ongoing session,
-                    // it's not produced from the "seed" of the ongoing session, thus logically it's a new one
-                    isNewColorCenterSession = true,
-                )
+                val color = colorInputState.color
+                // even though new color from Color Input MAY belong to the ongoing session,
+                // it's not produced from the "seed" of the ongoing session, thus logically it's a new one
+                onColorCenterSessionStarted(color)
+                proceed(color = color, colorRole = null)
             }
             return true
         } else {
@@ -267,12 +265,12 @@ class HomeViewModel @Inject constructor(
     private suspend fun onEventFromColorDetailsOfColorCenter(event: ColorDetailsEvent) {
         when (event) {
             is ColorDetailsEvent.ColorSelected -> {
-                sendColorToColorInput(color = event.color)
-                proceed(
-                    color = event.color,
-                    colorRole = event.colorRole,
-                    isNewColorCenterSession = !event.color.doesBelongToOngoingSession(),
-                )
+                val color = event.color
+                sendColorToColorInput(color)
+                if (!color.doesBelongToOngoingSession()) {
+                    onColorCenterSessionStarted(color)
+                }
+                proceed(color = color, colorRole = event.colorRole)
             }
             is ColorDetailsEvent.DataFetched ->
                 doNothing() // ignore, handled in onColorCenterSessionStarted()
@@ -330,13 +328,10 @@ class HomeViewModel @Inject constructor(
             val color = lastSearchedColorRepository.getLastSearchedColor() ?: return@launch
             dataUpdateGuard.withCounter {
                 sendColorToColorInput(color)
-                proceed(
-                    color = color,
-                    colorRole = null,
-                    // even though last searched color MAY belong to the ongoing session,
-                    // it's not produced from the "seed" of the ongoing session, thus logically it's a new one
-                    isNewColorCenterSession = true,
-                )
+                // even though last searched color MAY belong to the ongoing session,
+                // it's not produced from the "seed" of the ongoing session, thus logically it's a new one
+                onColorCenterSessionStarted(color)
+                proceed(color = color, colorRole = null)
             }
         }
     }
@@ -346,27 +341,21 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch(defaultDispatcher) {
             onColorCenterSessionEnded() // end current session (if any)
             val color = requireNotNull(colorInputColorStore.colorFlow.value)
-            proceed(
-                color = color,
-                colorRole = null, // standalone color (without a role)
-                isNewColorCenterSession = !color.doesBelongToOngoingSession(),
-            )
+            if (!color.doesBelongToOngoingSession()) {
+                onColorCenterSessionStarted(color)
+            }
+            proceed(color = color, colorRole = null)
         }
     }
 
     /**
-     * Wraps execution of [ProceedExecutor] in accompanying, ViewModel-specific logic, like managing
-     * color center session and updating exposed data.
+     * Wraps execution of [ProceedExecutor] in accompanying, ViewModel-specific logic,
+     * like updating exposed data.
      */
     private suspend fun proceed(
         color: Color,
         colorRole: ColorRole?,
-        isNewColorCenterSession: Boolean,
     ) {
-        colorInputOrchestrator.suspendUntilAllSentColorsAreProcessed()
-        if (isNewColorCenterSession) {
-            onColorCenterSessionStarted(color)
-        }
         kotlin.run invokeProceedExecutor@{
             val proceedExecutor = proceedExecutorFlow.filterNotNull().first()
             proceedExecutor.invoke(
@@ -390,18 +379,14 @@ class HomeViewModel @Inject constructor(
             val color = colorFactory.random()
             val shouldProceed = userPreferencesRepository
                 .flowOfAutoProceedWithRandomizedColors()
-                .first()
-                .enabled
+                .first().enabled
             dataUpdateGuard.withCounter {
                 sendColorToColorInput(color)
                 if (shouldProceed) {
-                    proceed(
-                        color = color,
-                        colorRole = null,
-                        // even though new randomized color MAY belong to the ongoing session,
-                        // it's not produced from the "seed" of the ongoing session, thus logically it's a new one
-                        isNewColorCenterSession = true,
-                    )
+                    // even though new randomized color MAY belong to the ongoing session,
+                    // it's not produced from the "seed" of the ongoing session, thus logically it's a new one
+                    onColorCenterSessionStarted(color)
+                    proceed(color = color, colorRole = null)
                 }
             }
         }
@@ -472,9 +457,10 @@ class HomeViewModel @Inject constructor(
             val newSession = ColorCenterSession(seed, relatedColors)
             ensureActive()
             colorCenterSession = newSession
-        }.also {
+        }.also { job ->
             createNewColorSessionJob?.cancel()
             createNewColorSessionJob = it
+            createNewColorSessionJob = job
         }
     }
 
@@ -496,6 +482,7 @@ class HomeViewModel @Inject constructor(
                 wouldColorFlowEmitThisColor = wouldColorFlowEmitThisColor,
             )
         }
+        colorInputOrchestrator.suspendUntilAllSentColorsAreProcessed()
     }
 
     private fun Color?.doesBelongToOngoingSession(): Boolean {
