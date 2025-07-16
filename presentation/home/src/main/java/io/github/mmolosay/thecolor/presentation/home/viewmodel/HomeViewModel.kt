@@ -148,6 +148,7 @@ class HomeViewModel @Inject constructor(
     private var proceedExecutorFlow = MutableStateFlow<ProceedExecutor?>(null)
     private var colorCenterSession: ColorCenterSession? = null
     private var createNewColorSessionJob: Job? = null
+    private var randomizeColorJob: Job? = null
     private val colorInputOrchestrator = ColorInputOrchestrator()
 
     init {
@@ -389,6 +390,9 @@ class HomeViewModel @Inject constructor(
                     proceed(color = color, colorRole = null)
                 }
             }
+        }.also { job ->
+            randomizeColorJob?.cancel()
+            randomizeColorJob = job
         }
     }
 
@@ -460,7 +464,6 @@ class HomeViewModel @Inject constructor(
         }.also { job ->
             createNewColorSessionJob?.cancel()
             createNewColorSessionJob = job
-            job.invokeOnCompletion { createNewColorSessionJob = null }
         }
     }
 
