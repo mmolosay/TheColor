@@ -36,6 +36,7 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEventStore
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
 import io.github.mmolosay.thecolor.testing.MainDispatcherExtension
+import io.github.mmolosay.thecolor.utils.ClosableSuspendGate
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
@@ -123,6 +124,7 @@ class HomeViewModelTest {
         colorSchemeViewModelFactory = { _, _, _ -> colorSchemeViewModel },
         colorCenterViewModelFactory = { _, _, _ -> colorCenterViewModel },
     )
+    val emissionGateForFlowOfColorCenterViewModel = ClosableSuspendGate(closed = false)
 
     val proceedExecutor: ProceedExecutor = mockk {
         coEvery { this@mockk.invoke(color = any(), colorRole = any()) } just runs
@@ -1154,6 +1156,7 @@ class HomeViewModelTest {
      * It's hard to unit test the difference that "is data being updated" flag makes.
      * It requires to control execution of `randomizeColor()` method on suspension points.
      */
+    // TODO: write proper test using 'SuspendGate'
     @Test
     fun `invoking 'randomize color' starts data transaction and sets 'is data being updated' flag first to true and then to false`() =
         runTest(testDispatcher) {
@@ -1200,6 +1203,7 @@ class HomeViewModelTest {
             colorProcessedConfirmationChannelForColorPreview = colorProcessedConfirmationChannelForColorPreview,
             colorPreviewViewModelFactory = { _, _, _ -> mockk(relaxed = true) },
             colorCenterComponentsStoreFactory = { _ -> colorCenterComponentsStore },
+            emissionGateForFlowOfColorCenterViewModel = emissionGateForFlowOfColorCenterViewModel,
             proceedExecutorFactory = proceedExecutorFactory,
             createColorData = createColorData,
             doesColorBelongToSession = doesColorBelongToSession,

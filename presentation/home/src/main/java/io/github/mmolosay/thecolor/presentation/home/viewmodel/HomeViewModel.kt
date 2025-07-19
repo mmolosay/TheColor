@@ -34,11 +34,14 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommand
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommandStore
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
+import io.github.mmolosay.thecolor.utils.SuspendGate
+import io.github.mmolosay.thecolor.utils.OpenSuspendGate
 import io.github.mmolosay.thecolor.utils.cache.CacheStore
 import io.github.mmolosay.thecolor.utils.doNothing
 import io.github.mmolosay.thecolor.utils.receiveAllUntil
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.ensureActive
@@ -53,7 +56,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -69,6 +74,7 @@ import javax.inject.Singleton
  * factories.
  */
 @HiltViewModel
+@OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModel @Inject constructor(
     colorInputMediatorFactory: ColorInputMediator.Factory,
     colorInputViewModelFactory: ColorInputViewModel.Factory,
@@ -77,6 +83,7 @@ class HomeViewModel @Inject constructor(
     private val colorProcessedConfirmationChannelForColorPreview: Channel<Color?>,
     colorPreviewViewModelFactory: ColorPreviewViewModel.Factory,
     colorCenterComponentsStoreFactory: ColorCenterComponentsStore.Factory,
+    @Named("flowOfColorCenterViewModel") emissionGateForFlowOfColorCenterViewModel: SuspendGate,
     private val proceedExecutorFactory: ProceedExecutor.Factory,
     private val createColorData: CreateColorDataUseCase,
     private val doesColorBelongToSession: DoesColorBelongToSessionUseCase,
@@ -136,7 +143,10 @@ class HomeViewModel @Inject constructor(
 
     val colorCenterViewModelFlow: StateFlow<ColorCenterViewModel?> =
         colorCenterComponentsStore.componentsFlow
-            .map { it?.colorCenterViewModel }
+            .transformLatest { components ->
+                emissionGateForFlowOfColorCenterViewModel.awaitOpen()
+                emit(components?.colorCenterViewModel)
+            }
             .flowOn(defaultDispatcher)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), initialValue = null)
 
@@ -502,6 +512,11 @@ object HomeViewModelDiModule {
     @Provides
     fun provideColorProcessedConfirmationChannelForColorPreview(): Channel<Color?> =
         Channel<Color?>(Channel.UNLIMITED)
+
+    @Provides
+    @Named("flowOfColorCenterViewModel")
+    fun provideEmissionGateForFlowOfColorCenterViewModel(): SuspendGate =
+        OpenSuspendGate
 }
 
 /**
