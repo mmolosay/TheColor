@@ -213,7 +213,7 @@ class HomeViewModel @Inject constructor(
                 } finally {
                     colorInputOrchestrator.onColorProcessed(color)
                     flowOfProcessedColorsFromColorInput.emit(color)
-                    colorProcessedConfirmationChannelForColorPreview.receiveAllUntil(color) // TODO: why here? Move to the end of data transaction?
+                    colorProcessedConfirmationChannelForColorPreview.receiveAllUntil(color)
                 }
             }
         }
