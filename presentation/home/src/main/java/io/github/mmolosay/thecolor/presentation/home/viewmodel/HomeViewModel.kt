@@ -564,10 +564,10 @@ object HomeViewModelDiModule {
 private class ColorInputOrchestrator {
 
     /**
-     * List of colors that were sent to [ColorInputMediator] from [HomeViewModel],
+     * Set of colors that were sent to [ColorInputMediator] from [HomeViewModel],
      * but not yet collected and processed in [HomeViewModel.onColorFromColorInput].
      */
-    private val flowOfSentButNotYetProcessedColors = MutableStateFlow(emptyList<Color>())
+    private val flowOfSentButNotYetProcessedColors = MutableStateFlow(emptySet<Color>())
 
     /*
      * 1. color is sent to ColorInputMediator
@@ -584,21 +584,19 @@ private class ColorInputOrchestrator {
         wouldColorFlowEmitThisColor: Boolean,
     ) {
         // if color is not emitted after being sent, then color won't be processed,
-        // and then it will stay in the list forever if we add it there
+        // and then it will stay in the set forever if we add it there
         if (wouldColorFlowEmitThisColor) {
-            flowOfSentButNotYetProcessedColors.update { list ->
-                list + color
+            flowOfSentButNotYetProcessedColors.update { set ->
+                set + color
             }
         }
     }
 
     @Synchronized
     fun onColorProcessed(color: Color?) {
-        if (color == null) return // List<Color> doesn't contain nulls, so nothing to remove
-        flowOfSentButNotYetProcessedColors.update { list ->
-            list.toMutableList().also {
-                it.asReversed().remove(color) // remove latest entry
-            }
+        if (color == null) return // Set<Color> doesn't contain nulls, so nothing to remove
+        flowOfSentButNotYetProcessedColors.update { set ->
+            set - color
         }
     }
 
@@ -607,9 +605,8 @@ private class ColorInputOrchestrator {
             val list = flowOfSentButNotYetProcessedColors.value
             list.isEmpty()
         }
-        if (thereAreNoUnprocessedColors) return // fast route
+        if (thereAreNoUnprocessedColors) return // fast route without suspension
         flowOfSentButNotYetProcessedColors.first { it.isEmpty() }
-        return // explicit return to have a place for breakpoint after the suspension
     }
 }
 
