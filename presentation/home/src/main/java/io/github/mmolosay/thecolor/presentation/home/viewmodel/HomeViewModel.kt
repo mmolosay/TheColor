@@ -23,6 +23,7 @@ import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCo
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEvent
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorRole
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterComponentsConsumerRegistry.ConsumerId
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterSessionStore.SessionState
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.CanProceed
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ColorSchemeSelectedSwatchData
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
@@ -63,6 +64,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -177,8 +179,7 @@ class HomeViewModel @Inject constructor(
      * the write has happened, so that not-null value can be read after suspension.
      */
     private var proceedExecutorFlow = MutableStateFlow<ProceedExecutor?>(null)
-    private var colorCenterSession: ColorCenterSession? = null
-    private var createNewColorSessionJob: Job? = null
+    private val ccSessionStore = ColorCenterSessionStore()
     private var randomizeColorJob: Job? = null
     private val colorInputOrchestrator = ColorInputOrchestrator()
 
@@ -499,24 +500,22 @@ class HomeViewModel @Inject constructor(
             lastSearchedColorRepository.setLastSearchedColor(seed)
         }
         viewModelScope.launch(defaultDispatcher, start = CoroutineStart.UNDISPATCHED) buildSession@{
+            ccSessionStore.cancelAndClearSession()
+            ccSessionStore.sessionState = SessionState.BeingBuilt(seed, coroutineContext.job)
             val components = requireNotNull(colorCenterComponentsStore.components)
             val event = components.colorDetailsEventStore.eventFlow
                 .filterIsInstance<ColorDetailsEvent.DataFetched>()
                 .first { it.domainDetails.color == seed }
             val relatedColors = setOf(event.domainDetails.exact.color)
             val newSession = ColorCenterSession(seed, relatedColors)
+            val newSessionState = SessionState.Ongoing(newSession)
             ensureActive()
-            colorCenterSession = newSession
-        }.also { job ->
-            createNewColorSessionJob?.cancel()
-            createNewColorSessionJob = job
+            ccSessionStore.sessionState = newSessionState
         }
     }
 
     private fun onColorCenterSessionEnded() {
-        createNewColorSessionJob?.cancel()
-        createNewColorSessionJob = null
-        colorCenterSession = null
+        ccSessionStore.cancelAndClearSession()
         colorCenterComponentsStore.disposeComponents()
     }
 
@@ -536,7 +535,7 @@ class HomeViewModel @Inject constructor(
 
     private fun Color?.doesBelongToOngoingSession(): Boolean {
         val color = this ?: return false
-        val session = colorCenterSession ?: return false
+        val session = (ccSessionStore.sessionState as? SessionState.Ongoing)?.session ?: return false
         return with(doesColorBelongToSession) { color doesBelongTo session }
     }
 
@@ -677,6 +676,26 @@ private class ColorCenterComponentsConsumerRegistry {
 
     @JvmInline
     value class ConsumerId(val value: Any)
+}
+
+private class ColorCenterSessionStore {
+
+    var sessionState: SessionState = SessionState.NoSession
+        @Synchronized get
+        @Synchronized set
+
+    sealed interface SessionState {
+        data object NoSession : SessionState
+        data class BeingBuilt(val seed: Color, val job: Job) : SessionState
+        data class Ongoing(val session: ColorCenterSession) : SessionState
+    }
+
+    @Synchronized
+    fun cancelAndClearSession() {
+        val sessionState = this.sessionState
+        (sessionState as? SessionState.BeingBuilt)?.job?.cancel()
+        this.sessionState = SessionState.NoSession
+    }
 }
 
 /**
