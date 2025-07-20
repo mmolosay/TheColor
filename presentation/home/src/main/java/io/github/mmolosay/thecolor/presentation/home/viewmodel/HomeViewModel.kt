@@ -63,7 +63,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -105,7 +104,7 @@ class HomeViewModel @Inject constructor(
     private val _dataFlow = MutableStateFlow(initialData())
     val dataFlow = _dataFlow.asStateFlow()
 
-    private val dataUpdateGuard = DataUpdateGuard() // TODO: not all places use it atm
+    private val dataUpdateGuard = DataUpdateGuard()
     val flowOfIsDataBeingUpdated: StateFlow<Boolean> = kotlin.run {
         // mapping StateFlow to StateFlow involves boilerplate 'stateIn()':
         // https://github.com/Kotlin/kotlinx.coroutines/issues/2631
@@ -235,11 +234,14 @@ class HomeViewModel @Inject constructor(
     ): Boolean {
         if (colorInputState is ColorInputState.Valid) {
             viewModelScope.launch(defaultDispatcher) {
-                val color = colorInputState.color
-                // even though new color from Color Input MAY belong to the ongoing session,
-                // it's not produced from the "seed" of the ongoing session, thus logically it's a new one
-                onColorCenterSessionStarted(color)
-                proceed(color = color, colorRole = null)
+                dataUpdateGuard.withCounter {
+                    val color = colorInputState.color
+                    // even though new color from Color Input MAY belong to the ongoing session,
+                    // it's not produced from the "seed" of the ongoing session, thus logically it's a new one
+                    onColorCenterSessionStarted(color)
+                    proceed(color = color, colorRole = null)
+                    componentsConsumerRegistry.suspendUntilAllConsumed()
+                }
             }
             return true
         } else {
@@ -291,41 +293,50 @@ class HomeViewModel @Inject constructor(
             }
         }
 
-    private suspend fun onEventFromColorDetailsOfColorCenter(event: ColorDetailsEvent) {
-        when (event) {
-            is ColorDetailsEvent.ColorSelected -> {
-                val color = event.color
-                sendColorToColorInput(color)
-                if (!color.doesBelongToOngoingSession()) {
-                    onColorCenterSessionStarted(color)
-                }
-                proceed(color = color, colorRole = event.colorRole)
+    private fun onEventFromColorDetailsOfColorCenter(event: ColorDetailsEvent) {
+        viewModelScope.launch(defaultDispatcher) {
+            when (event) {
+                is ColorDetailsEvent.ColorSelected ->
+                    dataUpdateGuard.withCounter {
+                        val color = event.color
+                        sendColorToColorInput(color)
+                        var wereNewComponentsCreated = false
+                        if (!color.doesBelongToOngoingSession()) {
+                            onColorCenterSessionStarted(color)
+                            wereNewComponentsCreated = true
+                        }
+                        proceed(color = color, colorRole = event.colorRole)
+                        if (wereNewComponentsCreated) {
+                            componentsConsumerRegistry.suspendUntilAllConsumed()
+                        }
+                    }
+                is ColorDetailsEvent.DataFetched ->
+                    doNothing() // ignore, handled in onColorCenterSessionStarted()
             }
-            is ColorDetailsEvent.DataFetched ->
-                doNothing() // ignore, handled in onColorCenterSessionStarted()
         }
     }
 
-    private suspend fun onEventFromColorScheme(event: ColorSchemeEvent) {
-        when (event) {
-            is ColorSchemeEvent.SwatchSelected -> {
-                val command = ColorDetailsCommand.SetColorDetails(
-                    domainDetails = event.swatchColorDetails,
-                )
-                val commandStore = colorCenterComponentsStore.components
-                    ?.selectedSwatchColorDetailsCommandStore
-                    ?: return
-                commandStore.issue(command)
-
-                val selectedSwatchColorDetailsViewModel = colorCenterComponentsStore.components
-                    ?.selectedSwatchColorDetailsViewModel
-                    ?: return
-                _dataFlow.update {
-                    val data = ColorSchemeSelectedSwatchData(
-                        colorDetailsViewModel = selectedSwatchColorDetailsViewModel,
-                        discard = ::clearColorSchemeSwatchSelectedData,
+    private fun onEventFromColorScheme(event: ColorSchemeEvent) {
+        viewModelScope.launch(defaultDispatcher) {
+            when (event) {
+                is ColorSchemeEvent.SwatchSelected -> {
+                    val command = ColorDetailsCommand.SetColorDetails(
+                        domainDetails = event.swatchColorDetails,
                     )
-                    it.copy(colorSchemeSelectedSwatchData = data)
+                    val commandStore = colorCenterComponentsStore.components
+                        ?.selectedSwatchColorDetailsCommandStore
+                        ?: return@launch
+                    commandStore.issue(command)
+                    val selectedSwatchColorDetailsViewModel = colorCenterComponentsStore.components
+                        ?.selectedSwatchColorDetailsViewModel
+                        ?: return@launch
+                    _dataFlow.update {
+                        val data = ColorSchemeSelectedSwatchData(
+                            colorDetailsViewModel = selectedSwatchColorDetailsViewModel,
+                            discard = ::clearColorSchemeSwatchSelectedData,
+                        )
+                        it.copy(colorSchemeSelectedSwatchData = data)
+                    }
                 }
             }
         }
@@ -361,6 +372,7 @@ class HomeViewModel @Inject constructor(
                 // it's not produced from the "seed" of the ongoing session, thus logically it's a new one
                 onColorCenterSessionStarted(color)
                 proceed(color = color, colorRole = null)
+                componentsConsumerRegistry.suspendUntilAllConsumed()
             }
         }
     }
