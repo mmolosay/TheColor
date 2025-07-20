@@ -32,6 +32,7 @@ import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommandStore
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEventStore
@@ -62,8 +63,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.take
@@ -305,6 +304,35 @@ class HomeViewModelTest {
                 proceedExecutor.invoke(color = color, colorRole = any())
             }
             sut.viewModelScope.cancel() // SUT is suspended waiting for confirmation from Color Preview
+        }
+
+    /**
+     * Ongoing data transaction should wait until [HomeViewModel.colorProcessedConfirmationChannelForColorPreview]
+     * sends confirmation that the new color was processed by [ColorPreviewViewModel] before said
+     * data transaction finishes.
+     */
+    @Test
+    fun `when receiving any color from Color Input, then 'is data being updated' flag stays true until Color Preview confirms that it has processed this color as well`() =
+        runTest(testDispatcher) {
+            mockStoresWithEmptyFlows()
+            val colorInputColorFlow = MutableStateFlow<Color?>(null)
+            every { colorInputColorStore.colorFlow } returns colorInputColorFlow
+            every { createColorData(color = any()) } returns mockk()
+            createSut(
+                colorProcessedConfirmationChannelForColorPreview = colorProcessedConfirmationChannelForColorPreviewReal,
+            )
+
+            val color = mockk<Color>()
+            run emitExactColorFromColorInput@{
+                colorInputColorFlow.emit(color)
+            }
+            sut.flowOfIsDataBeingUpdated.value shouldBe true // data transaction has started and is ongoing
+            // colorProcessedConfirmationChannelForColorPreviewReal.send(color) wasn't called yet
+
+            run emitConfirmationFromColorPreview@{
+                colorProcessedConfirmationChannelForColorPreviewReal.send(color)
+            }
+            sut.flowOfIsDataBeingUpdated.value shouldBe false // data transaction has finished
         }
 
     @Test
@@ -1198,47 +1226,6 @@ class HomeViewModelTest {
             coVerify(exactly = 1) {
                 proceedExecutor.invoke(color = randomColor, colorRole = null)
             }
-        }
-
-    /*
-     * It's hard to unit test the difference that "is data being updated" flag makes.
-     * It requires to control execution of `randomizeColor()` method on suspension points.
-     */
-    // TODO: write proper test using 'SuspendGate'
-    @Test
-    fun `invoking 'randomize color' starts data transaction and sets 'is data being updated' flag first to true and then to false`() =
-        runTest(testDispatcher) {
-            mockStoresWithEmptyFlows()
-            val colorInputColorFlow = MutableStateFlow<Color?>(null)
-            every { colorInputColorStore.colorFlow } returns colorInputColorFlow
-            val randomColor: Color.Hex = mockk()
-            every { colorFactory.random() } returns randomColor
-            run {
-                val featureValue = DomainAutoProceedWithRandomizedColors(enabled = true)
-                every { userPreferencesRepository.flowOfAutoProceedWithRandomizedColors() }
-                    .returns(MutableStateFlow(featureValue))
-            }
-            every { createColorData(color = any()) } returns mockk()
-            createSut()
-
-            val listOfIsDataBeingUpdatedValues = mutableListOf<Boolean>()
-            val isDataBeingUpdatedCollectionJob = launch {
-                sut.flowOfIsDataBeingUpdated
-                    .drop(1) // replayed value
-                    .take(2) // 1st update to true, 2nd update to false
-                    .toList(listOfIsDataBeingUpdatedValues)
-            }
-
-            data.randomizeColor()
-            run emitColorFromColorInput@{
-                colorInputColorFlow.emit(randomColor)
-            }
-            run emitConfirmationFromColorPreview@{
-                colorProcessedConfirmationChannelForColorPreviewReal.send(randomColor)
-            }
-
-            isDataBeingUpdatedCollectionJob.join()
-            listOfIsDataBeingUpdatedValues shouldBe listOf(true, false)
         }
 
     fun createSut(
