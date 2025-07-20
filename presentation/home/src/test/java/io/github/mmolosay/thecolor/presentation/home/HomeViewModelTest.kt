@@ -38,6 +38,8 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEventStore
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
 import io.github.mmolosay.thecolor.testing.MainDispatcherExtension
 import io.github.mmolosay.thecolor.utils.ClosableSuspendGate
+import io.github.mmolosay.thecolor.utils.OpenSuspendGate
+import io.github.mmolosay.thecolor.utils.SuspendGate
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
@@ -126,7 +128,6 @@ class HomeViewModelTest {
         colorSchemeViewModelFactory = { _, _, _ -> colorSchemeViewModel },
         colorCenterViewModelFactory = { _, _, _ -> colorCenterViewModel },
     )
-    val emissionGateForFlowOfColorCenterViewModel = ClosableSuspendGate(closed = false)
 
     val proceedExecutor: ProceedExecutor = mockk {
         coEvery { this@mockk.invoke(color = any(), colorRole = any()) } just runs
@@ -1023,13 +1024,13 @@ class HomeViewModelTest {
      *
      * GIVEN
      * 1. [sut] is created.
-     * 2. [emissionGateForFlowOfColorCenterViewModel] is closed to simulate a possible delay.
+     * 2. [SuspendGate] is closed to simulate a possible delay.
      * 3. View is subscribed to [HomeViewModel.colorCenterViewModelFlow] to activate it.
      *
      * WHEN
      * 1. 'proceed' is invoked. New Color Center session is started, thus new [ColorCenterComponents]
      * are created.
-     * 2. [emissionGateForFlowOfColorCenterViewModel] is opened to allow [HomeViewModel.colorCenterViewModelFlow]
+     * 2. [SuspendGate] is opened to allow [HomeViewModel.colorCenterViewModelFlow]
      * to process new [ColorCenterComponents] and emit new ViewModel instance.
      *
      * THEN
@@ -1046,8 +1047,10 @@ class HomeViewModelTest {
             val colorDetailsColorFlow = MutableSharedFlow<ColorDetailsEvent>()
             every { colorDetailsEventStore.eventFlow } returns colorDetailsColorFlow
             every { createColorData(color = any()) } returns mockk()
-            createSut()
-            emissionGateForFlowOfColorCenterViewModel.close()
+            val emissionGateForFlowOfColorCenterViewModel = ClosableSuspendGate(closed = true)
+            createSut(
+                emissionGateForFlowOfColorCenterViewModel = emissionGateForFlowOfColorCenterViewModel,
+            )
             val colorCenterViewModelFlowCollectionJob = launch {
                 // start collecting to activate the flow
                 sut.colorCenterViewModelFlow.collect()
@@ -1245,6 +1248,7 @@ class HomeViewModelTest {
 
     fun createSut(
         colorProcessedConfirmationChannelForColorPreview: Channel<Color?> = colorProcessedConfirmationChannelForColorPreviewReal,
+        emissionGateForFlowOfColorCenterViewModel: SuspendGate = OpenSuspendGate,
     ) =
         HomeViewModel(
             colorInputMediatorFactory = { _ -> colorInputMediator },
