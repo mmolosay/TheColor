@@ -709,7 +709,7 @@ class HomeViewModelTest {
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             val initialColor = Color.Hex(0x0)
-            val colorInputColorFlow = MutableStateFlow<Color>(value = initialColor)
+            val colorInputColorFlow = MutableStateFlow<Color>(initialColor)
             every { colorInputColorStore.colorFlow } returns colorInputColorFlow
             val colorDetailsEventFlow = MutableSharedFlow<ColorDetailsEvent>()
             every { colorDetailsEventStore.eventFlow } returns colorDetailsEventFlow
@@ -730,7 +730,7 @@ class HomeViewModelTest {
                 colorDetailsEventFlow.emit(event)
             }
 
-            // clicking "Go to exact color"
+            // clicking "Go to exact color" twice in a quick succession
             run emitExactColorSelectedEvents@{
                 val event = ColorDetailsEvent.ColorSelected(
                     color = exactColor,
@@ -1025,7 +1025,6 @@ class HomeViewModelTest {
      * GIVEN
      * 1. [sut] is created.
      * 2. [SuspendGate] is closed to simulate a possible delay.
-     * 3. View is subscribed to [HomeViewModel.colorCenterViewModelFlow] to activate it.
      *
      * WHEN
      * 1. 'proceed' is invoked. New Color Center session is started, thus new [ColorCenterComponents]
@@ -1051,10 +1050,6 @@ class HomeViewModelTest {
             createSut(
                 emissionGateForFlowOfColorCenterViewModel = emissionGateForFlowOfColorCenterViewModel,
             )
-            val colorCenterViewModelFlowCollectionJob = launch {
-                // start collecting to activate the flow
-                sut.colorCenterViewModelFlow.collect()
-            }
 
             // we know from other tests that it would be 'CanProceed.Yes'
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed()
@@ -1066,7 +1061,6 @@ class HomeViewModelTest {
 
             sut.colorCenterViewModelFlow.value shouldBe components.colorCenterViewModel // already new instance
             sut.flowOfIsDataBeingUpdated.value shouldBe false // data transaction has finished
-            colorCenterViewModelFlowCollectionJob.cancel()
         }
 
     /**
@@ -1219,10 +1213,11 @@ class HomeViewModelTest {
             every { colorInputColorStore.colorFlow } returns colorInputColorFlow
             val randomColor: Color.Hex = mockk()
             every { colorFactory.random() } returns randomColor
-            val featureValue = DomainAutoProceedWithRandomizedColors(enabled = true)
-            every { userPreferencesRepository.flowOfAutoProceedWithRandomizedColors() } returns MutableStateFlow(
-                featureValue
-            )
+            run {
+                val featureValue = DomainAutoProceedWithRandomizedColors(enabled = true)
+                every { userPreferencesRepository.flowOfAutoProceedWithRandomizedColors() }
+                    .returns(MutableStateFlow(featureValue))
+            }
             every { createColorData(color = any()) } returns mockk()
             createSut()
 

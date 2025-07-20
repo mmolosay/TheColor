@@ -164,7 +164,7 @@ class HomeViewModel @Inject constructor(
                 }
             }
             .flowOn(defaultDispatcher)
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), initialValue = null)
+            .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = null)
     }
 
     /*
