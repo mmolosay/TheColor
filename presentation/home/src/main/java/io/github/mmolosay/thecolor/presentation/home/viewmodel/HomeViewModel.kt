@@ -22,6 +22,7 @@ import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCo
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommandStore
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEvent
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorRole
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterComponentsConsumerRegistry.ConsumerId
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.CanProceed
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ColorSchemeSelectedSwatchData
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
@@ -43,7 +44,11 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -62,6 +67,7 @@ import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -72,6 +78,9 @@ import javax.inject.Singleton
  *
  * It creates objects that are shared between sub-feature ViewModels via assisted injection and
  * factories.
+ *
+ * @param emissionGateForFlowOfColorCenterViewModel is used in unit tests to simulate a possible
+ * delay when processing values from the upstream flow due to non-deterministic CPU scheduling.
  */
 @HiltViewModel
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -107,7 +116,7 @@ class HomeViewModel @Inject constructor(
         upstream
             .map(::value)
             .flowOn(defaultDispatcher)
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), initialValue)
+            .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue)
     }
 
     val cacheStore = CacheStore()
@@ -140,15 +149,24 @@ class HomeViewModel @Inject constructor(
         colorCenterComponentsStoreFactory.create(
             viewModelScope = viewModelScope,
         )
+    private val componentsConsumerRegistry = ColorCenterComponentsConsumerRegistry()
 
-    val colorCenterViewModelFlow: StateFlow<ColorCenterViewModel?> =
+    val colorCenterViewModelFlow: StateFlow<ColorCenterViewModel?> = kotlin.run {
+        val componentsConsumedConfirmationChannel = kotlin.run {
+            val consumerId = ConsumerId("colorCenterViewModelFlow")
+            componentsConsumerRegistry.register(consumerId)
+        }
         colorCenterComponentsStore.componentsFlow
             .transformLatest { components ->
                 emissionGateForFlowOfColorCenterViewModel.awaitOpen()
-                emit(components?.colorCenterViewModel)
+                withContext(NonCancellable) {
+                    emit(components?.colorCenterViewModel)
+                    componentsConsumedConfirmationChannel.send(components)
+                }
             }
             .flowOn(defaultDispatcher)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), initialValue = null)
+    }
 
     /*
      * Having this as 'StateFlow' rather than as a simple variable solves race condition of
@@ -191,7 +209,7 @@ class HomeViewModel @Inject constructor(
                 } finally {
                     colorInputOrchestrator.onColorProcessed(color)
                     flowOfProcessedColorsFromColorInput.emit(color)
-                    colorProcessedConfirmationChannelForColorPreview.receiveAllUntil(color)
+                    colorProcessedConfirmationChannelForColorPreview.receiveAllUntil(color) // TODO: why here? Move to the end of data transaction?
                 }
             }
         }
@@ -350,12 +368,15 @@ class HomeViewModel @Inject constructor(
     /** Variation that takes current color of Color Input. */
     private fun proceed() {
         viewModelScope.launch(defaultDispatcher) {
-            onColorCenterSessionEnded() // end current session (if any)
-            val color = requireNotNull(colorInputColorStore.colorFlow.value)
-            if (!color.doesBelongToOngoingSession()) {
-                onColorCenterSessionStarted(color)
+            dataUpdateGuard.withCounter {
+                onColorCenterSessionEnded() // end current session (if any)
+                val color = requireNotNull(colorInputColorStore.colorFlow.value)
+                if (!color.doesBelongToOngoingSession()) {
+                    onColorCenterSessionStarted(color)
+                }
+                proceed(color = color, colorRole = null)
+                componentsConsumerRegistry.suspendUntilAllConsumed() // TODO: find better solution than adding this line where new Components were created
             }
-            proceed(color = color, colorRole = null)
         }
     }
 
@@ -398,6 +419,7 @@ class HomeViewModel @Inject constructor(
                     // it's not produced from the "seed" of the ongoing session, thus logically it's a new one
                     onColorCenterSessionStarted(color)
                     proceed(color = color, colorRole = null)
+                    componentsConsumerRegistry.suspendUntilAllConsumed() // TODO: find better solution than adding this line where new Components were created
                 }
             }
         }.also { job ->
@@ -503,6 +525,11 @@ class HomeViewModel @Inject constructor(
         val session = colorCenterSession ?: return false
         return with(doesColorBelongToSession) { color doesBelongTo session }
     }
+
+    private suspend fun ColorCenterComponentsConsumerRegistry.suspendUntilAllConsumed() {
+        val components = colorCenterComponentsStore.components
+        this.suspendUntilAllConsumed(components)
+    }
 }
 
 @Module
@@ -600,6 +627,45 @@ private class DataUpdateGuard {
             assert(flowOfOngoingUpdates.value >= 0)
         }
     }
+}
+
+/**
+ * Coordinates confirmation from multiple consumers that a shared [ColorCenterComponents] instance
+ * has been received and processed.
+ *
+ * This registry is used to ensure that all [register]ed consumers have consumed the latest components
+ * before proceeding. It provides a method [suspendUntilAllConsumed] to suspend until
+ * every consumer has acknowledged the most recent components.
+ * This avoids relying on flow emission timing (that may get delayed due to non-deterministic
+ * CPU scheduling) to guarantee that all consumers have processed the latest components before
+ * [DataUpdateGuard] finishes ongoing data transaction.
+ *
+ * This "await confirmation from consumer" approach, rather than simple
+ * `flowOfMappedComponents.first { ... }`, avoids making a transitive assumption about the
+ * implementation of consumers (the fact that they employ / depend on components).
+ */
+private class ColorCenterComponentsConsumerRegistry {
+
+    private val mapOfConsumersToChannels =
+        mutableMapOf<ConsumerId, ReceiveChannel<ColorCenterComponents?>>()
+
+    fun register(consumer: ConsumerId): SendChannel<ColorCenterComponents?> {
+        require(mapOfConsumersToChannels[consumer] == null) { "Consumer is already registered" }
+        val consumedConfirmationChannel = Channel<ColorCenterComponents?>(Channel.CONFLATED)
+        mapOfConsumersToChannels[consumer] = consumedConfirmationChannel
+        return consumedConfirmationChannel
+    }
+
+    suspend fun suspendUntilAllConsumed(components: ColorCenterComponents?) {
+        coroutineScope {
+            mapOfConsumersToChannels.values.forEach { consumedConfirmationChannel ->
+                launch { consumedConfirmationChannel.receiveAllUntil(components) }
+            }
+        }
+    }
+
+    @JvmInline
+    value class ConsumerId(val value: Any)
 }
 
 /**

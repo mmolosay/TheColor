@@ -15,6 +15,7 @@ import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEv
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEventStore
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorRole
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterComponents
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterComponentsStore
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterSession
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.CreateColorDataUseCase
@@ -59,6 +60,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
@@ -1013,6 +1015,55 @@ class HomeViewModelTest {
                 val event = ColorDetailsEvent.DataFetched(domainDetails)
                 colorDetailsColorFlow.emit(event)
             }
+        }
+
+    /**
+     * Ongoing data transaction should wait until [HomeViewModel.colorCenterViewModelFlow] emits
+     * new instance before said data transaction finishes.
+     *
+     * GIVEN
+     * 1. [sut] is created.
+     * 2. [emissionGateForFlowOfColorCenterViewModel] is closed to simulate a possible delay.
+     * 3. View is subscribed to [HomeViewModel.colorCenterViewModelFlow] to activate it.
+     *
+     * WHEN
+     * 1. 'proceed' is invoked. New Color Center session is started, thus new [ColorCenterComponents]
+     * are created.
+     * 2. [emissionGateForFlowOfColorCenterViewModel] is opened to allow [HomeViewModel.colorCenterViewModelFlow]
+     * to process new [ColorCenterComponents] and emit new ViewModel instance.
+     *
+     * THEN
+     * 1. [HomeViewModel.colorCenterViewModelFlow] emits new ViewModel instance.
+     * 2. [HomeViewModel.flowOfIsDataBeingUpdated] emits `false` to indicate that data transaction has finished.
+     */
+    @Test
+    fun `when 'proceed' is invoked, then 'is data being updated' is set back to false only after flow of ColorCenterViewModel emits new instance`() =
+        runTest(testDispatcher) {
+            mockStoresWithEmptyFlows()
+            val currentColor = Color.Hex(0x0) // name 'color' conflicts with fields of DomainColorDetails
+            val colorInputColorFlow = MutableStateFlow<Color?>(currentColor)
+            every { colorInputColorStore.colorFlow } returns colorInputColorFlow
+            val colorDetailsColorFlow = MutableSharedFlow<ColorDetailsEvent>()
+            every { colorDetailsEventStore.eventFlow } returns colorDetailsColorFlow
+            every { createColorData(color = any()) } returns mockk()
+            createSut()
+            emissionGateForFlowOfColorCenterViewModel.close()
+            val colorCenterViewModelFlowCollectionJob = launch {
+                // start collecting to activate the flow
+                sut.colorCenterViewModelFlow.collect()
+            }
+
+            // we know from other tests that it would be 'CanProceed.Yes'
+            data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed()
+            // no need to emit ColorDetailsEvent.DataFetched: we're not interested in building ColorCenterSession in this test
+            val components = colorCenterComponentsStore.components.shouldNotBeNull() // new components were created
+            sut.colorCenterViewModelFlow.value shouldNotBe components.colorCenterViewModel // still old instance
+            sut.flowOfIsDataBeingUpdated.value shouldBe true // data transaction is still running
+            emissionGateForFlowOfColorCenterViewModel.open() // allow flow of ColorCenterViewModel to emit new instance
+
+            sut.colorCenterViewModelFlow.value shouldBe components.colorCenterViewModel // already new instance
+            sut.flowOfIsDataBeingUpdated.value shouldBe false // data transaction has finished
+            colorCenterViewModelFlowCollectionJob.cancel()
         }
 
     /**

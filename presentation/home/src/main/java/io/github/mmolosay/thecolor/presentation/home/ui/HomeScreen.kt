@@ -149,7 +149,17 @@ fun HomeScreen(
         }
     }
     val colorCenter: ColorCenterComposable? = run {
-        val viewModel = viewModel.colorCenterViewModelFlow.collectAsStateWithLifecycle().value
+        val viewModel = run {
+            val upstream = viewModel.colorCenterViewModelFlow
+            val flowOfColorCenterViewModel = remember {
+                upstream
+                    .stabilize(viewModel.flowOfIsDataBeingUpdated)
+                    .distinctUntilChanged()
+            }
+            flowOfColorCenterViewModel
+                .collectAsStateWithLifecycle(initialValue = upstream.value)
+                .value
+        }
         remember(viewModel) {
             if (viewModel == null) return@remember null
             return@remember {
