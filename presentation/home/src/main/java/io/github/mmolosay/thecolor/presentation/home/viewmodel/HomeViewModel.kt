@@ -369,13 +369,11 @@ class HomeViewModel @Inject constructor(
     private fun proceed() {
         viewModelScope.launch(defaultDispatcher) {
             dataUpdateGuard.withCounter {
-                onColorCenterSessionEnded() // end current session (if any)
                 val color = requireNotNull(colorInputColorStore.colorFlow.value)
-                if (!color.doesBelongToOngoingSession()) {
-                    onColorCenterSessionStarted(color)
-                }
+                onColorCenterSessionEnded() // end current session (if any)
+                onColorCenterSessionStarted(color)
                 proceed(color = color, colorRole = null)
-                componentsConsumerRegistry.suspendUntilAllConsumed() // TODO: find better solution than adding this line where new Components were created
+                componentsConsumerRegistry.suspendUntilAllConsumed()
             }
         }
     }
@@ -419,7 +417,7 @@ class HomeViewModel @Inject constructor(
                     // it's not produced from the "seed" of the ongoing session, thus logically it's a new one
                     onColorCenterSessionStarted(color)
                     proceed(color = color, colorRole = null)
-                    componentsConsumerRegistry.suspendUntilAllConsumed() // TODO: find better solution than adding this line where new Components were created
+                    componentsConsumerRegistry.suspendUntilAllConsumed()
                 }
             }
         }.also { job ->
