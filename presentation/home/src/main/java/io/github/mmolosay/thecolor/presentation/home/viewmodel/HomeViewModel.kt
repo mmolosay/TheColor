@@ -36,12 +36,13 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommand
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommandStore
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
-import io.github.mmolosay.thecolor.utils.SuspendGate
 import io.github.mmolosay.thecolor.utils.OpenSuspendGate
+import io.github.mmolosay.thecolor.utils.SuspendGate
 import io.github.mmolosay.thecolor.utils.cache.CacheStore
 import io.github.mmolosay.thecolor.utils.doNothing
 import io.github.mmolosay.thecolor.utils.receiveAllUntil
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -180,7 +181,7 @@ class HomeViewModel @Inject constructor(
      */
     private var proceedExecutorFlow = MutableStateFlow<ProceedExecutor?>(null)
     private val ccSessionStore = ColorCenterSessionStore()
-    private var randomizeColorJob: Job? = null
+    private var jobWithProceed: Job? = null
     private val colorInputOrchestrator = ColorInputOrchestrator()
 
     init {
@@ -247,6 +248,8 @@ class HomeViewModel @Inject constructor(
                     proceed(color = color, colorRole = null)
                     componentsConsumerRegistry.suspendUntilAllConsumed()
                 }
+            }.also { job ->
+                job.setToJobWithProceed()
             }
             return true
         } else {
@@ -299,9 +302,9 @@ class HomeViewModel @Inject constructor(
         }
 
     private fun onEventFromColorDetailsOfColorCenter(event: ColorDetailsEvent) {
-        viewModelScope.launch(defaultDispatcher) {
-            when (event) {
-                is ColorDetailsEvent.ColorSelected ->
+        when (event) {
+            is ColorDetailsEvent.ColorSelected ->
+                viewModelScope.launch(defaultDispatcher) {
                     dataUpdateGuard.withCounter {
                         val color = event.color
                         sendColorToColorInput(color)
@@ -315,9 +318,11 @@ class HomeViewModel @Inject constructor(
                             componentsConsumerRegistry.suspendUntilAllConsumed()
                         }
                     }
-                is ColorDetailsEvent.DataFetched ->
-                    doNothing() // ignore, handled in onColorCenterSessionStarted()
-            }
+                }.also { job ->
+                    job.setToJobWithProceed()
+                }
+            is ColorDetailsEvent.DataFetched ->
+                doNothing() // ignore, handled in onColorCenterSessionStarted()
         }
     }
 
@@ -379,6 +384,8 @@ class HomeViewModel @Inject constructor(
                 proceed(color = color, colorRole = null)
                 componentsConsumerRegistry.suspendUntilAllConsumed()
             }
+        }.also { job ->
+            job.setToJobWithProceed()
         }
     }
 
@@ -392,6 +399,8 @@ class HomeViewModel @Inject constructor(
                 proceed(color = color, colorRole = null)
                 componentsConsumerRegistry.suspendUntilAllConsumed()
             }
+        }.also { job ->
+            job.setToJobWithProceed()
         }
     }
 
@@ -438,8 +447,7 @@ class HomeViewModel @Inject constructor(
                 }
             }
         }.also { job ->
-            randomizeColorJob?.cancel()
-            randomizeColorJob = job
+            job.setToJobWithProceed()
         }
     }
 
@@ -531,6 +539,11 @@ class HomeViewModel @Inject constructor(
             )
         }
         colorInputOrchestrator.suspendUntilAllSentColorsAreProcessed()
+    }
+
+    private fun Job.setToJobWithProceed() {
+        jobWithProceed?.cancel()
+        jobWithProceed = this
     }
 
     private fun Color?.doesBelongToOngoingSession(): Boolean {
