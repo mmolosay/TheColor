@@ -78,6 +78,10 @@ import javax.inject.Singleton
  * It creates objects that are shared between sub-feature ViewModels via assisted injection and
  * factories.
  *
+ * @param colorProcessedConfirmationChannelForColorPreview is passed to [ColorPreviewViewModel]
+ * and is used to get notified when it has processed new color emitted from the color flow.
+ * See [ColorPreviewViewModel] for details.
+ *
  * @param emissionGateForFlowOfColorCenterViewModel is used in unit tests to simulate a possible
  * delay when processing values from the upstream flow due to non-deterministic CPU scheduling.
  */
