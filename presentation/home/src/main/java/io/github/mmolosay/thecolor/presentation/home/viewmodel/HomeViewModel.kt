@@ -265,10 +265,13 @@ class HomeViewModel @Inject constructor(
 
     private fun collectColorCenterComponents() =
         viewModelScope.launch(defaultDispatcher) {
+            val componentsConsumedConfirmationChannel = kotlin.run {
+                val consumerId = ConsumerId("collectColorCenterComponents()")
+                componentsConsumerRegistry.register(consumerId)
+            }
             colorCenterComponentsStore.componentsFlow.collectLatest { components ->
-                // subscribe to new dependencies once new Color Center is created.
-                if (components != null) {
-                    coroutineScope {
+                coroutineScope {
+                    if (components != null) {
                         launch {
                             components.colorDetailsEventStore.eventFlow
                                 .collect(::onEventFromColorDetailsOfColorCenter)
@@ -282,6 +285,8 @@ class HomeViewModel @Inject constructor(
                                 .collect(::onEventFromColorDetailsOfSelectedSwatch)
                         }
                     }
+                    // TODO: unit test me
+                    componentsConsumedConfirmationChannel.send(components)
                 }
                 if (components != null) {
                     proceedExecutorFlow.value = proceedExecutorFactory.create(
