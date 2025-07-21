@@ -42,7 +42,6 @@ import io.github.mmolosay.thecolor.utils.cache.CacheStore
 import io.github.mmolosay.thecolor.utils.doNothing
 import io.github.mmolosay.thecolor.utils.receiveAllUntil
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -56,6 +55,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
@@ -265,15 +265,10 @@ class HomeViewModel @Inject constructor(
 
     private fun collectColorCenterComponents() =
         viewModelScope.launch(defaultDispatcher) {
-            colorCenterComponentsStore.componentsFlow.collect { components ->
-                /*
-                 * Subscribe to new dependencies once new Color Center is created.
-                 * Launch collection coroutines from Color Center coroutine scope,
-                 * so when ColorCenterViewModel is disposed of and its coroutine scope is cancelled,
-                 * so is the collection job on old instances of Command/Event stores.
-                */
+            colorCenterComponentsStore.componentsFlow.collectLatest { components ->
+                // subscribe to new dependencies once new Color Center is created.
                 if (components != null) {
-                    components.colorCenterCoroutineScope.launch(defaultDispatcher) {
+                    coroutineScope {
                         launch {
                             components.colorDetailsEventStore.eventFlow
                                 .collect(::onEventFromColorDetailsOfColorCenter)
