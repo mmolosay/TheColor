@@ -275,20 +275,19 @@ class HomeViewModel @Inject constructor(
                 if (components != null) {
                     components.colorCenterCoroutineScope.launch(defaultDispatcher) {
                         launch {
-                            val eventStore = components.colorDetailsEventStore
-                            eventStore.eventFlow.collect(::onEventFromColorDetailsOfColorCenter)
+                            components.colorDetailsEventStore.eventFlow
+                                .collect(::onEventFromColorDetailsOfColorCenter)
                         }
                         launch {
-                            val eventStore = components.colorSchemeEventStore
-                            eventStore.eventFlow.collect(::onEventFromColorScheme)
+                            components.colorSchemeEventStore.eventFlow
+                                .collect(::onEventFromColorScheme)
                         }
                         launch {
-                            val eventStore = components.selectedSwatchColorDetailsEventStore
-                            eventStore.eventFlow.collect(::onEventFromColorDetailsOfSelectedSwatch)
+                            components.selectedSwatchColorDetailsEventStore.eventFlow
+                                .collect(::onEventFromColorDetailsOfSelectedSwatch)
                         }
                     }
                 }
-
                 if (components != null) {
                     proceedExecutorFlow.value = proceedExecutorFactory.create(
                         colorDetailsCommandStore = components.colorDetailsCommandStore,
