@@ -4,9 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.Module
 import dagger.Provides
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +16,6 @@ import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.api.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommand
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommandStore
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEvent
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorRole
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterComponentsConsumerRegistry.ConsumerId
@@ -34,7 +30,6 @@ import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputViewModel
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommand
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommandStore
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
 import io.github.mmolosay.thecolor.utils.OpenSuspendGate
 import io.github.mmolosay.thecolor.utils.SuspendGate
@@ -58,7 +53,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -99,7 +93,6 @@ class HomeViewModel @Inject constructor(
     colorPreviewViewModelFactory: ColorPreviewViewModel.Factory,
     colorCenterComponentsStoreFactory: ColorCenterComponentsStore.Factory,
     @Named("flowOfColorCenterViewModel") emissionGateForFlowOfColorCenterViewModel: SuspendGate,
-    private val proceedExecutorFactory: ProceedExecutor.Factory,
     private val createColorData: CreateColorDataUseCase,
     private val doesColorBelongToSession: DoesColorBelongToSessionUseCase,
     private val userPreferencesRepository: UserPreferencesRepository,
@@ -174,12 +167,6 @@ class HomeViewModel @Inject constructor(
             .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = null)
     }
 
-    /*
-     * Having this as 'StateFlow' rather than as a simple variable solves race condition of
-     * read-write from/into the variable. It also allows suspending the read operation until
-     * the write has happened, so that not-null value can be read after suspension.
-     */
-    private var proceedExecutorFlow = MutableStateFlow<ProceedExecutor?>(null)
     private val ccSessionStore = ColorCenterSessionStore()
     private var jobWithProceed: Job? = null
     private val colorInputOrchestrator = ColorInputOrchestrator()
@@ -288,15 +275,6 @@ class HomeViewModel @Inject constructor(
                     // TODO: unit test me
                     componentsConsumedConfirmationChannel.send(components)
                 }
-                if (components != null) {
-                    proceedExecutorFlow.value = proceedExecutorFactory.create(
-                        colorDetailsCommandStore = components.colorDetailsCommandStore,
-                        colorSchemeCommandStore = components.colorSchemeCommandStore,
-                    )
-                } else {
-                    // components == null
-                    proceedExecutorFlow.value = null
-                }
             }
         }
 
@@ -403,20 +381,18 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Wraps execution of [ProceedExecutor] in accompanying, ViewModel-specific logic,
-     * like updating exposed data.
-     */
     private suspend fun proceed(
         color: Color,
         colorRole: ColorRole?,
     ) {
-        kotlin.run invokeProceedExecutor@{
-            val proceedExecutor = proceedExecutorFlow.filterNotNull().first()
-            proceedExecutor.invoke(
-                color = color,
-                colorRole = colorRole,
-            )
+        val components = requireNotNull(colorCenterComponentsStore.components)
+        kotlin.run issueCommandToColorDetails@{
+            val command = ColorDetailsCommand.FetchData(color, colorRole)
+            components.colorDetailsCommandStore.issue(command)
+        }
+        kotlin.run issueCommandToColorScheme@{
+            val command = ColorSchemeCommand.FetchData(color)
+            components.colorSchemeCommandStore.issue(command)
         }
         kotlin.run updateData@{
             val colorData = createColorData(color)
@@ -711,40 +687,10 @@ private class ColorCenterSessionStore {
 }
 
 /**
- * Simple wrapper that is used to be more literate in unit tests.
- * Instead of verifying that command was sent to [ColorDetailsCommandStore] as the result of
- * invoking [HomeViewModel.proceed], we can verify that [ProceedExecutor] was called.
+ * Creates an instance of [HomeData.ProceedResult.Success.ColorData].
+ * It is a part of the internal [HomeViewModel] implementation, but is extracted into an injectable
+ * component to enable mocking in unit tests.
  */
-/* private but Dagger */
-class ProceedExecutor @AssistedInject constructor(
-    @Assisted private val colorDetailsCommandStore: ColorDetailsCommandStore,
-    @Assisted private val colorSchemeCommandStore: ColorSchemeCommandStore,
-) {
-
-    suspend operator fun invoke(
-        color: Color,
-        colorRole: ColorRole?,
-    ) {
-        kotlin.run sendToColorDetails@{
-            val command = ColorDetailsCommand.FetchData(color, colorRole)
-            colorDetailsCommandStore.issue(command)
-        }
-        kotlin.run sendToColorScheme@{
-            val command = ColorSchemeCommand.FetchData(color)
-            colorSchemeCommandStore.issue(command)
-        }
-    }
-
-    @AssistedFactory
-    fun interface Factory {
-        fun create(
-            colorDetailsCommandStore: ColorDetailsCommandStore,
-            colorSchemeCommandStore: ColorSchemeCommandStore,
-        ): ProceedExecutor
-    }
-}
-
-/** Creates instance of [HomeData.ProceedResult.Success.ColorData]. */
 /* private but Dagger */
 @Singleton
 class CreateColorDataUseCase @Inject constructor(

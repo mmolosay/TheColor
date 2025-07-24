@@ -15,6 +15,8 @@ import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEv
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEventStore
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorRole
+import io.github.mmolosay.thecolor.presentation.home.HomeViewModelTest.MyMatchers.matchAny
+import io.github.mmolosay.thecolor.presentation.home.HomeViewModelTest.MyMatchers.match
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterComponents
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterComponentsStore
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterSession
@@ -25,7 +27,6 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.CanProce
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModelDiModule
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.ProceedExecutor
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.components
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
@@ -33,6 +34,7 @@ import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommand
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommandStore
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEventStore
@@ -48,6 +50,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.mockk.MockKVerificationScope
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifyOrder
@@ -127,16 +130,6 @@ class HomeViewModelTest {
         colorSchemeViewModelFactory = { _, _, _ -> colorSchemeViewModel },
         colorCenterViewModelFactory = { _, _, _ -> colorCenterViewModel },
     )
-
-    val proceedExecutor: ProceedExecutor = mockk {
-        coEvery { this@mockk.invoke(color = any(), colorRole = any()) } just runs
-    }
-    val proceedExecutorFactory: ProceedExecutor.Factory = mockk {
-        every { create(
-            colorDetailsCommandStore = any(),
-            colorSchemeCommandStore = any(),
-        ) } returns proceedExecutor
-    }
 
     val createColorData: CreateColorDataUseCase = mockk()
 
@@ -301,7 +294,7 @@ class HomeViewModelTest {
                 colorProcessedConfirmationChannelForColorPreviewMock.send(color)
             }
             coVerify(exactly = 0) {
-                proceedExecutor.invoke(color = color, colorRole = any())
+                proceed(colorMatcher = matchAny(), colorRoleMatcher = matchAny())
             }
             sut.viewModelScope.cancel() // SUT is suspended waiting for confirmation from Color Preview
         }
@@ -336,7 +329,7 @@ class HomeViewModelTest {
         }
 
     @Test
-    fun `invoking 'proceed' action from UI invokes 'proceed executor'`() =
+    fun `invoking 'proceed' action invokes 'proceed' method`() =
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
@@ -347,7 +340,7 @@ class HomeViewModelTest {
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
 
             coVerify {
-                proceedExecutor.invoke(color = any(), colorRole = any())
+                proceed(colorMatcher = matchAny(), colorRoleMatcher = matchAny())
             }
         }
 
@@ -375,10 +368,10 @@ class HomeViewModelTest {
      * [ColorInputEvent.Submit] with valid color is sent
      *
      * THEN
-     * [proceedExecutor] is invoked.
+     * [HomeViewModel.proceed] is invoked.
      */
     @Test
-    fun `when receiving a 'Submit' event from Color Input with 'Valid' color input state, then 'proceed executor' is invoked`() =
+    fun `when receiving a 'Submit' event from Color Input with 'Valid' color input state, then 'proceed' method is invoked`() =
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
@@ -395,7 +388,7 @@ class HomeViewModelTest {
             colorInputEventFlow.emit(event)
 
             coVerify {
-                proceedExecutor.invoke(color = any(), colorRole = any())
+                proceed(colorMatcher = matchAny(), colorRoleMatcher = matchAny())
             }
         }
 
@@ -591,7 +584,7 @@ class HomeViewModelTest {
         }
 
     @Test
-    fun `when receiving a 'ColorSelected' event from Color Details, 'proceed executor' is invoked`() =
+    fun `when receiving a 'ColorSelected' event from Color Details, then 'proceed' method is invoked`() =
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             val initialColor = Color.Hex(0x0)
@@ -631,7 +624,7 @@ class HomeViewModelTest {
             }
 
             coVerify {
-                proceedExecutor.invoke(color = exactColor, colorRole = ColorRole.Exact)
+                proceed(colorMatcher = match(exactColor), colorRoleMatcher = match(ColorRole.Exact))
             }
         }
 
@@ -730,7 +723,7 @@ class HomeViewModelTest {
      * 2. then receiving a different [ColorDetailsEvent.ColorSelected] event with color Y
      *
      * THEN
-     *  nothing breaks: [proceedExecutor] is invoked for both color X and then for color Y.
+     *  nothing breaks: [HomeViewModel.proceed] is invoked for both color X and then for color Y.
      */
     @Test
     fun `when receiving two same 'ColorSelected' events from Color Details rapidly, and then receiving different 'ColorSelected' event, then 'proceed' action is invoked normally`() =
@@ -805,8 +798,8 @@ class HomeViewModelTest {
             }
 
             coVerifyOrder {
-                proceedExecutor.invoke(color = exactColor, colorRole = ColorRole.Exact)
-                proceedExecutor.invoke(color = initialColor, colorRole = ColorRole.Initial)
+                proceed(colorMatcher = match(exactColor), colorRoleMatcher = match(ColorRole.Exact))
+                proceed(colorMatcher = match(initialColor), colorRoleMatcher = match(ColorRole.Initial))
             }
         }
 
@@ -1224,7 +1217,7 @@ class HomeViewModelTest {
             }
 
             coVerify(exactly = 1) {
-                proceedExecutor.invoke(color = randomColor, colorRole = null)
+                proceed(colorMatcher = match(randomColor), colorRoleMatcher = match(null))
             }
         }
 
@@ -1241,7 +1234,6 @@ class HomeViewModelTest {
             colorPreviewViewModelFactory = { _, _, _ -> mockk(relaxed = true) },
             colorCenterComponentsStoreFactory = { _ -> colorCenterComponentsStore },
             emissionGateForFlowOfColorCenterViewModel = emissionGateForFlowOfColorCenterViewModel,
-            proceedExecutorFactory = proceedExecutorFactory,
             createColorData = createColorData,
             doesColorBelongToSession = doesColorBelongToSession,
             userPreferencesRepository = userPreferencesRepository,
@@ -1260,5 +1252,40 @@ class HomeViewModelTest {
         every { colorInputEventStore.eventFlow } returns emptyFlow()
         every { colorDetailsEventStore.eventFlow } returns MutableSharedFlow()
         every { colorSchemeEventStore.eventFlow } returns emptyFlow()
+    }
+
+    /**
+     * Verifies that [HomeViewModel.proceed] was invoked with the specified parameters.
+     * Use inside [coVerify] block.
+     */
+    suspend inline fun MockKVerificationScope.proceed(
+        colorMatcher: MyMatcher<Color> = matchAny(),
+        colorRoleMatcher: MyMatcher<ColorRole?> = matchAny(),
+    ) {
+        kotlin.run verifyColorDetailsCommandIssued@{
+            // and(matcher, matcher) is inconvenient to use
+            val expectedCommand = match<ColorDetailsCommand> { command ->
+                if (command !is ColorDetailsCommand.FetchData) return@match false
+                colorMatcher.match(command.color) && colorRoleMatcher.match(command.colorRole)
+            }
+            colorDetailsCommandStore.issue(command = expectedCommand)
+        }
+        kotlin.run verifyColorSchemeCommandIssued@{
+            // and(matcher, matcher) is inconvenient to use
+            val expectedCommand = match<ColorSchemeCommand> { command ->
+                if (command !is ColorSchemeCommand.FetchData) return@match false
+                colorMatcher.match(command.color)
+            }
+            colorSchemeCommandStore.issue(command = expectedCommand)
+        }
+    }
+
+    fun interface MyMatcher<in T> {
+        fun match(actual: T): Boolean
+    }
+
+    object MyMatchers {
+        fun <T> matchAny() = MyMatcher<T> { true }
+        fun <T> match(expected: T) = MyMatcher<T> { actual -> actual == expected }
     }
 }
