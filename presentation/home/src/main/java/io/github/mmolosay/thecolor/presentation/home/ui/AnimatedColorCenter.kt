@@ -36,7 +36,7 @@ internal fun AnimatedColorCenter(
     containerScrollState: ScrollState,
 ) {
     val density = LocalDensity.current
-    val retainedColorCenter by retainedNotNull(colorCenter)
+    val stateOfRetainedColorCenter = retainedNotNull(colorCenter)
 
     fun HomeAnimState.ColorCenter.targetValue() =
         when (this) {
@@ -63,6 +63,9 @@ internal fun AnimatedColorCenter(
                 targetValue = targetValue,
                 animationSpec = animSpec,
             )
+            if (progressAnimatable.value == 0f) {
+                stateOfRetainedColorCenter.value = null // free for GC
+            }
             onReached(animDest)
         }
     }
@@ -97,7 +100,8 @@ internal fun AnimatedColorCenter(
                     },
                 ),
         ) {
-            retainedColorCenter?.invoke()
+            val colorCenter = stateOfRetainedColorCenter.value
+            colorCenter?.invoke()
         }
     }
 }

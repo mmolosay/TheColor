@@ -28,7 +28,7 @@ import kotlinx.coroutines.delay
 inline fun <T> retained(
     actualValue: T,
     retentionSpec: RetentionSpec<T>,
-): State<T> {
+): MutableState<T> {
     val stateOfMemoizedValue = remember { mutableStateOf(actualValue) }
     LaunchedEffect(actualValue) {
         if (stateOfMemoizedValue.value == actualValue) return@LaunchedEffect
@@ -54,7 +54,7 @@ inline fun <T> retained(
 @Composable
 inline fun <T> retainedNotNull(
     actualValue: T?,
-): State<T?> =
+): MutableState<T?> =
     retained(actualValue) { actual ->
         if (actual != null) {
             value = actual
