@@ -10,6 +10,7 @@ import dagger.hilt.android.components.ViewModelComponent
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.api.SimpleViewModel
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModelDiModule.GateForDataFlow
 import io.github.mmolosay.thecolor.utils.OpenSuspendGate
 import io.github.mmolosay.thecolor.utils.SuspendGate
 import kotlinx.coroutines.CoroutineDispatcher
@@ -25,6 +26,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
 import javax.inject.Named
+import javax.inject.Qualifier
 
 /**
  * Handles presentation logic of the 'Color Preview' feature.
@@ -39,7 +41,7 @@ class ColorPreviewViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     @Assisted colorFlow: Flow<Color?>,
     @Assisted colorProcessedConfirmationChannel: SendChannel<Color?>?,
-    @Named("gateForDataFlow") gateForDataFlow: SuspendGate,
+    @GateForDataFlow gateForDataFlow: SuspendGate,
     private val colorToColorInt: ColorToColorIntUseCase,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
@@ -82,7 +84,11 @@ class ColorPreviewViewModel @AssistedInject constructor(
 internal object ColorPreviewViewModelDiModule {
 
     @Provides
-    @Named("gateForDataFlow")
+    @GateForDataFlow
     fun provideGateForDataFlow(): SuspendGate =
         OpenSuspendGate
+
+    @Qualifier
+    @Retention(AnnotationRetention.BINARY)
+    annotation class GateForDataFlow
 }
