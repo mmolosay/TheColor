@@ -115,7 +115,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
-import timber.log.Timber
 import kotlin.random.Random
 
 @Composable
@@ -187,7 +186,6 @@ fun HomeScreen(
     }
     LaunchedEffect(Unit) {
         flowOfUiState.collect { uiState ->
-            Timber.d("DBG | uiState = $uiState") // TODO: remove me
             val animController = animController ?: return@collect
             val sequence = HomeAnimSequence(
                 from = animController.currentState,
@@ -204,7 +202,6 @@ fun HomeScreen(
         flowOfData.collectAsStateWithLifecycle(initialValue = viewModel.dataFlow.value).value
     }
 
-    // TODO: get rid of slot-based approach for nested Views?
     HomeScreen(
         data = data,
         strings = strings,
