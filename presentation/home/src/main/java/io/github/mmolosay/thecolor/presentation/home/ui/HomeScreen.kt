@@ -55,6 +55,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
@@ -68,7 +69,6 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -97,7 +97,6 @@ import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObser
 import io.github.mmolosay.thecolor.presentation.impl.TintedSurface
 import io.github.mmolosay.thecolor.presentation.impl.onlyBottom
 import io.github.mmolosay.thecolor.presentation.impl.toCompose
-import io.github.mmolosay.thecolor.presentation.impl.toDpOffset
 import io.github.mmolosay.thecolor.presentation.impl.toDpSize
 import io.github.mmolosay.thecolor.presentation.impl.toLifecycleEventObserver
 import io.github.mmolosay.thecolor.presentation.impl.withoutBottom
@@ -310,7 +309,7 @@ private fun Home(
             .takeUnless { it == 0 }
             ?.let { with(density) { it.toDp() } }
     }
-    var stateOfPosInRoot = remember { mutableStateOf<DpOffset?>(null) }
+    val stateOfPosInRoot = remember { mutableStateOf<Offset?>(null) }
     var size by remember { mutableStateOf<DpSize?>(null) }
 
     Column(
@@ -318,7 +317,7 @@ private fun Home(
             .fillMaxSize()
             .verticalScroll(state = scrollState)
             .onGloballyPositioned { coordinates ->
-                stateOfPosInRoot.value = coordinates.positionInRoot().toDpOffset(density)
+                stateOfPosInRoot.value = coordinates.positionInRoot()
                 size = coordinates.size.toDpSize(density)
             },
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -515,28 +514,29 @@ private fun decoratedColorCenterComposable(
     proceededColorData: ProceedResult.Success.ColorData?,
     navBarAppearanceController: NavBarAppearanceController,
     containerScrollState: ScrollState,
-    stateOfContainerPosInRoot: State<DpOffset?>,
+    stateOfContainerPosInRoot: State<Offset?>,
 ): ColorCenterComposable? {
     if (colorCenter == null) return null
     if (proceededColorData == null) return null
     return {
         val density = LocalDensity.current
-        var minHeight = remember { mutableStateOf<Dp>(Dp.Unspecified) }
+        val stateOfMinHeight = remember { mutableStateOf<Dp>(Dp.Unspecified) }
         DecoratedColorCenter(
             modifier = Modifier
                 .onPlaced { coordinates ->
                     // calculate min height of Color Center so that its bottom matches bottom of the parent Column
                     val containerPosInRoot = stateOfContainerPosInRoot.value ?: return@onPlaced
-                    val containerHeight = with(density) { containerScrollState.viewportSize.toDp() }
-                    val ownPosInRoot = coordinates.positionInRoot().toDpOffset(density)
+                    val containerHeight = containerScrollState.viewportSize
+                    val ownPosInRoot = coordinates.positionInRoot()
                     val ownYPosInContainer = (ownPosInRoot - containerPosInRoot).y
-                    minHeight.value = containerHeight - ownYPosInContainer
+                    stateOfMinHeight.value =
+                        with(density) { (containerHeight - ownYPosInContainer).toDp() }
                 },
             surfaceColor = proceededColorData.color.toCompose(),
             isSurfaceColorDark = proceededColorData.isDark,
             colorCenter = colorCenter,
             navBarAppearanceController = navBarAppearanceController,
-            minHeight = minHeight,
+            stateOfMinHeight = stateOfMinHeight,
         )
     }
 }
@@ -549,7 +549,7 @@ private fun DecoratedColorCenter(
     colorCenter: ColorCenterComposable,
     navBarAppearanceController: NavBarAppearanceController,
     modifier: Modifier = Modifier,
-    minHeight: State<Dp>, // wrapped in State to avoid recompositions
+    stateOfMinHeight: State<Dp>, // wrapped in State to avoid recompositions
 ) {
     val animationSpec = spring<Color>(stiffness = 100f)
     val contentColors = if (isSurfaceColorDark) colorsOnDarkSurface() else colorsOnLightSurface()
@@ -573,7 +573,7 @@ private fun DecoratedColorCenter(
         val windowInsets = WindowInsets.systemBars.onlyBottom()
         Box(
             modifier = Modifier
-                .sizeIn(minHeight = minHeight.value) // it's important to set size before paddings
+                .sizeIn(minHeight = stateOfMinHeight.value) // it's important to set size before paddings
                 .padding(windowInsets.asPaddingValues())
                 .consumeWindowInsets(windowInsets)
                 .padding(top = 24.dp), // to accommodate to convex 'ColorCenterShape'
