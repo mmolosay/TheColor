@@ -18,8 +18,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.mmolosay.thecolor.presentation.design.Brightness
-import io.github.mmolosay.thecolor.presentation.design.Material3DynamicColorsAvailability.areDynamicColorsAvailable
 import io.github.mmolosay.thecolor.presentation.design.LocalDefaultShouldUseLightTintForNavBarControls
+import io.github.mmolosay.thecolor.presentation.design.Material3DynamicColorsAvailability.areDynamicColorsAvailable
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.animateColors
 import io.github.mmolosay.thecolor.presentation.design.brightness
@@ -123,8 +123,9 @@ class MainActivity : AppCompatActivity() {
             enableEdgeToEdge(colorSchemeBrightness = colorScheme.brightness())
         }
 
-        val materialColorScheme = colorScheme.toMaterialColorScheme(context)
-        val animatedMaterialColorScheme = materialColorScheme.animateColors()
+        val targetMaterialColorScheme = remember(colorScheme) { colorScheme.toMaterialColorScheme(context) }
+        val animatedMaterialColorScheme = targetMaterialColorScheme.animateColors()
+
         val useLightTintForNavBarControls = remember(colorScheme) {
             colorScheme.shouldUseLightTintForNavBarControls()
         }
