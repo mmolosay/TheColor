@@ -1111,7 +1111,7 @@ class HomeViewModelTest {
             every { createColorData(color = any()) } returns mockk()
             val gate = ClosableSuspendGate(closed = true)
             createSut(
-                emissionGateForFlowOfColorCenterViewModel = gate,
+                gateForFlowOfColorCenterViewModel = gate,
             )
 
             // we know from other tests that it would be 'CanProceed.Yes'
@@ -1265,7 +1265,7 @@ class HomeViewModelTest {
 
     fun createSut(
         colorProcessedConfirmationChannelForColorPreview: Channel<Color?> = colorProcessedConfirmationChannelForColorPreviewReal,
-        emissionGateForFlowOfColorCenterViewModel: SuspendGate = OpenSuspendGate,
+        gateForFlowOfColorCenterViewModel: SuspendGate = OpenSuspendGate,
         gateForCollectColorCenterComponent: SuspendGate = OpenSuspendGate,
     ) =
         HomeViewModel(
@@ -1276,7 +1276,7 @@ class HomeViewModelTest {
             colorProcessedConfirmationChannelForColorPreview = colorProcessedConfirmationChannelForColorPreview,
             colorPreviewViewModelFactory = { _, _, _ -> mockk(relaxed = true) },
             colorCenterComponentsStoreFactory = { _ -> colorCenterComponentsStore },
-            emissionGateForFlowOfColorCenterViewModel = emissionGateForFlowOfColorCenterViewModel,
+            gateForFlowOfColorCenterViewModel = gateForFlowOfColorCenterViewModel,
             gateForCollectColorCenterComponent = gateForCollectColorCenterComponent,
             createColorData = createColorData,
             doesColorBelongToSession = doesColorBelongToSession,

@@ -77,7 +77,7 @@ import javax.inject.Singleton
  * and is used to get notified when it has processed new color emitted from the color flow.
  * See [ColorPreviewViewModel] for details.
  *
- * @param emissionGateForFlowOfColorCenterViewModel is used in unit tests to simulate a possible
+ * @param gateForFlowOfColorCenterViewModel is used in unit tests to simulate a possible
  * delay when processing values from the upstream flow due to non-deterministic CPU scheduling.
  */
 @HiltViewModel
@@ -90,7 +90,7 @@ class HomeViewModel @Inject constructor(
     private val colorProcessedConfirmationChannelForColorPreview: Channel<Color?>,
     colorPreviewViewModelFactory: ColorPreviewViewModel.Factory,
     colorCenterComponentsStoreFactory: ColorCenterComponentsStore.Factory,
-    @Named("emissionGateForFlowOfColorCenterViewModel") emissionGateForFlowOfColorCenterViewModel: SuspendGate, // TODO: rename me
+    @Named("gateForFlowOfColorCenterViewModel") gateForFlowOfColorCenterViewModel: SuspendGate,
     @Named("gateForCollectColorCenterComponent") private val gateForCollectColorCenterComponent: SuspendGate,
     private val createColorData: CreateColorDataUseCase,
     private val doesColorBelongToSession: DoesColorBelongToSessionUseCase,
@@ -157,7 +157,7 @@ class HomeViewModel @Inject constructor(
         }
         colorCenterComponentsStore.componentsFlow
             .transformLatest { components ->
-                emissionGateForFlowOfColorCenterViewModel.awaitOpen()
+                gateForFlowOfColorCenterViewModel.awaitOpen()
                 lastConsumedComponents = components
                 emit(components?.colorCenterViewModel)
             }
@@ -549,8 +549,8 @@ object HomeViewModelDiModule {
         Channel<Color?>(Channel.UNLIMITED)
 
     @Provides
-    @Named("emissionGateForFlowOfColorCenterViewModel")
-    fun provideEmissionGateForFlowOfColorCenterViewModel(): SuspendGate =
+    @Named("gateForFlowOfColorCenterViewModel")
+    fun provideGateForFlowOfColorCenterViewModel(): SuspendGate =
         OpenSuspendGate
 
     @Provides
