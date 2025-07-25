@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -24,20 +25,17 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.DpOffset
-import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.coerceAtLeast
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.impl.toDpOffset
-import io.github.mmolosay.thecolor.presentation.impl.toDpSize
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimControllerImpl
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
@@ -70,14 +68,14 @@ internal fun AnimatedColorPreview(
     flowOfVisibilityAnimDest: StateFlow<AnimState.Visibility>,
     onPositionReached: (reached: AnimState.Position) -> Unit,
     onVisibilityReached: (reached: AnimState.Visibility) -> Unit,
-    stateOfContainerViewportHeight: State<Dp?>,
-    stateOfContainerPosInRoot: State<DpOffset?>,
+    stateOfContainerViewportHeight: State<Int?>,
+    stateOfContainerPosInRoot: State<Offset?>,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val density = LocalDensity.current
 
-    var posInContainer by remember { mutableStateOf<DpOffset?>(null) }
-    var size by remember { mutableStateOf<DpSize?>(null) }
+    var posInContainer by remember { mutableStateOf<Offset?>(null) }
+    var size by remember { mutableStateOf<IntSize?>(null) }
 
     val verticalOffsetParams by produceState<VerticalOffset.Params?>(
         initialValue = null,
@@ -89,7 +87,7 @@ internal fun AnimatedColorPreview(
             previewPosInContainer = posInContainer,
         )
     }
-    val offsetAnimatable by produceState<Animatable<Dp, AnimationVector1D>?>(
+    val offsetAnimatable by produceState<Animatable<Int, AnimationVector1D>?>(
         initialValue = null,
         /*keys*/ verticalOffsetParams,
     ) {
@@ -97,9 +95,9 @@ internal fun AnimatedColorPreview(
         val params = verticalOffsetParams ?: return@produceState
         val positionAnimDest = flowOfPositionAnimDest.value
         value = Animatable(
-            initialValue = VerticalOffset.calc(positionAnimDest, params),
-            typeConverter = Dp.VectorConverter,
-            visibilityThreshold = Dp.VisibilityThreshold,
+            initialValue = VerticalOffset.calc(positionAnimDest, params, density),
+            typeConverter = Int.VectorConverter,
+            visibilityThreshold = Int.VisibilityThreshold,
             label = "dive",
         )
     }
@@ -107,19 +105,19 @@ internal fun AnimatedColorPreview(
     Box(
         modifier = Modifier
             .onGloballyPositioned { coordinates ->
-                size = coordinates.size.toDpSize(density)
+                size = coordinates.size
             }
             // 'posInContainer' should be calculated before applying 'dive' animation offset (modifier)
             .onGloballyPositioned l@{ coordinates ->
                 val containerPosInRoot = stateOfContainerPosInRoot.value
                 if (containerPosInRoot == null) return@l
-                val ownPosInRoot = coordinates.positionInRoot().toDpOffset(density)
+                val ownPosInRoot = coordinates.positionInRoot()
                 posInContainer = ownPosInRoot - containerPosInRoot
             }
             .run applyDiveAnimOffset@{
                 val animatable = offsetAnimatable
                 if (animatable != null) {
-                    offset { IntOffset(x = 0, y = animatable.value.roundToPx()) }
+                    offset { IntOffset(x = 0, y = animatable.value) }
                 } else this
             },
     ) {
@@ -157,13 +155,13 @@ internal fun AnimatedColorPreview(
             val offsetAnimatable = offsetAnimatable ?: return@collect
             val targetValue = kotlin.run {
                 val params = verticalOffsetParams ?: return@collect
-                VerticalOffset.calc(animDest, params)
+                VerticalOffset.calc(animDest, params, density)
             }
             if (offsetAnimatable.value == targetValue) {
                 onPositionReached(animDest)
                 return@collect // already in target state
             }
-            val animationSpec: AnimationSpec<Dp> = when (animDest) {
+            val animationSpec: AnimationSpec<Int> = when (animDest) {
                 AnimState.Position.NotDived ->
                     spring(
                         dampingRatio = Spring.DampingRatioNoBouncy,
@@ -189,29 +187,32 @@ private object VerticalOffset {
     fun calc(
         position: AnimState.Position,
         params: Params,
-    ): Dp =
+        density: Density,
+    ): Int =
         when (position) {
             AnimState.Position.NotDived ->
-                0.dp
+                0
             AnimState.Position.Dived -> {
+                val focalPointBottomOffset =
+                    with(density) { ColorCenterFocalPointBottomOffset.toPx() }
                 val diveTargetPointInContainer =
-                    params.containerViewportHeight - (params.previewSize.height / 2) - ColorCenterFocalPointBottomOffset
+                    params.containerViewportHeight - (params.previewSize.height / 2) - focalPointBottomOffset
                 val dive = diveTargetPointInContainer - params.previewPosInContainer.y
-                dive.coerceAtLeast(0.dp)
+                dive.toInt().coerceAtLeast(0)
             }
         }
 
 
     data class Params(
-        val containerViewportHeight: Dp,
-        val previewSize: DpSize,
-        val previewPosInContainer: DpOffset,
+        val containerViewportHeight: Int,
+        val previewSize: IntSize,
+        val previewPosInContainer: Offset,
     )
 
     fun paramsOrNull(
-        containerViewportHeight: Dp?,
-        previewSize: DpSize?,
-        previewPosInContainer: DpOffset?,
+        containerViewportHeight: Int?,
+        previewSize: IntSize?,
+        previewPosInContainer: Offset?,
     ): Params? {
         return Params(
             containerViewportHeight = containerViewportHeight ?: return null,
@@ -316,8 +317,8 @@ private fun Preview() {
             flowOfVisibilityAnimDest = remember { MutableStateFlow(AnimState.Visibility.Visible) },
             onPositionReached = {},
             onVisibilityReached = {},
-            stateOfContainerViewportHeight = remember { mutableStateOf(400.dp) },
-            stateOfContainerPosInRoot = remember { mutableStateOf(DpOffset.Zero) },
+            stateOfContainerViewportHeight = remember { mutableIntStateOf(400) },
+            stateOfContainerPosInRoot = remember { mutableStateOf(Offset.Zero) },
         )
     }
 }

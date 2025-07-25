@@ -304,10 +304,8 @@ private fun Home(
     val proceedResult = data.proceedResult
 
     val scrollState = rememberScrollState()
-    val stateOfViewportHeight = produceState<Dp?>(initialValue = null, /*keys*/ scrollState.viewportSize) {
-        value = scrollState.viewportSize
-            .takeUnless { it == 0 }
-            ?.let { with(density) { it.toDp() } }
+    val stateOfViewportHeight = produceState<Int?>(initialValue = null, /*keys*/ scrollState.viewportSize) {
+        value = scrollState.viewportSize.takeUnless { it == 0 } // consider 0 size as unknown
     }
     val stateOfPosInRoot = remember { mutableStateOf<Offset?>(null) }
     var size by remember { mutableStateOf<DpSize?>(null) }
