@@ -90,7 +90,8 @@ class HomeViewModel @Inject constructor(
     private val colorProcessedConfirmationChannelForColorPreview: Channel<Color?>,
     colorPreviewViewModelFactory: ColorPreviewViewModel.Factory,
     colorCenterComponentsStoreFactory: ColorCenterComponentsStore.Factory,
-    @Named("flowOfColorCenterViewModel") emissionGateForFlowOfColorCenterViewModel: SuspendGate,
+    @Named("emissionGateForFlowOfColorCenterViewModel") emissionGateForFlowOfColorCenterViewModel: SuspendGate, // TODO: rename me
+    @Named("gateForCollectColorCenterComponent") private val gateForCollectColorCenterComponent: SuspendGate,
     private val createColorData: CreateColorDataUseCase,
     private val doesColorBelongToSession: DoesColorBelongToSessionUseCase,
     private val userPreferencesRepository: UserPreferencesRepository,
@@ -276,8 +277,10 @@ class HomeViewModel @Inject constructor(
                                 .collect(::onEventFromColorDetailsOfSelectedSwatch)
                         }
                     }
-                    // TODO: unit test me
-                    componentsConsumedConfirmationChannel.send(components)
+                    launch {
+                        gateForCollectColorCenterComponent.awaitOpen()
+                        componentsConsumedConfirmationChannel.send(components)
+                    }
                 }
             }
         }
@@ -546,8 +549,13 @@ object HomeViewModelDiModule {
         Channel<Color?>(Channel.UNLIMITED)
 
     @Provides
-    @Named("flowOfColorCenterViewModel")
+    @Named("emissionGateForFlowOfColorCenterViewModel")
     fun provideEmissionGateForFlowOfColorCenterViewModel(): SuspendGate =
+        OpenSuspendGate
+
+    @Provides
+    @Named("gateForCollectColorCenterComponent")
+    fun provideGateForCollectColorCenterComponent(): SuspendGate =
         OpenSuspendGate
 }
 

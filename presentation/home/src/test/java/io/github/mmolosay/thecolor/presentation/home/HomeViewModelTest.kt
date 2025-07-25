@@ -1067,9 +1067,51 @@ class HomeViewModelTest {
             val colorDetailsColorFlow = MutableSharedFlow<ColorDetailsEvent>()
             every { colorDetailsEventStore.eventFlow } returns colorDetailsColorFlow
             every { createColorData(color = any()) } returns mockk()
-            val emissionGateForFlowOfColorCenterViewModel = ClosableSuspendGate(closed = true)
+            val gate = ClosableSuspendGate(closed = true)
             createSut(
-                emissionGateForFlowOfColorCenterViewModel = emissionGateForFlowOfColorCenterViewModel,
+                gateForCollectColorCenterComponent = gate,
+            )
+
+            // we know from other tests that it would be 'CanProceed.Yes'
+            data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed()
+            // no need to emit ColorDetailsEvent.DataFetched: we're not interested in building ColorCenterSession in this test
+            colorCenterComponentsStore.components shouldNotBe null // new components were created
+            sut.flowOfIsDataBeingUpdated.value shouldBe true // data transaction is still running
+            gate.open() // allow flow of ColorCenterViewModel to emit new instance
+
+            sut.flowOfIsDataBeingUpdated.value shouldBe false // data transaction has finished
+        }
+
+    /**
+     * Ongoing data transaction should wait until [HomeViewModel.collectColorCenterComponents]
+     * collects new components before said data transaction finishes.
+     *
+     * GIVEN
+     * 1. [sut] is created.
+     * 2. [SuspendGate] is closed to simulate a possible delay.
+     *
+     * WHEN
+     * 1. 'proceed' is invoked. New Color Center session is started, thus new [ColorCenterComponents]
+     * are created.
+     * 2. [SuspendGate] is opened to allow [HomeViewModel.collectColorCenterComponents]
+     * to process new [ColorCenterComponents] and start collecting values from new Command/Event Stores.
+     *
+     * THEN
+     * [HomeViewModel.flowOfIsDataBeingUpdated] emits `false` to indicate that data transaction has finished.
+     */
+    @Test
+    fun `when 'proceed' is invoked, then 'is data being updated' is set back to false only after 'collectColorCenterComponents()' collects new components`() =
+        runTest(testDispatcher) {
+            mockStoresWithEmptyFlows()
+            val currentColor = Color.Hex(0x0) // name 'color' conflicts with fields of DomainColorDetails
+            val colorInputColorFlow = MutableStateFlow<Color?>(currentColor)
+            every { colorInputColorStore.colorFlow } returns colorInputColorFlow
+            val colorDetailsColorFlow = MutableSharedFlow<ColorDetailsEvent>()
+            every { colorDetailsEventStore.eventFlow } returns colorDetailsColorFlow
+            every { createColorData(color = any()) } returns mockk()
+            val gate = ClosableSuspendGate(closed = true)
+            createSut(
+                emissionGateForFlowOfColorCenterViewModel = gate,
             )
 
             // we know from other tests that it would be 'CanProceed.Yes'
@@ -1078,7 +1120,7 @@ class HomeViewModelTest {
             val components = colorCenterComponentsStore.components.shouldNotBeNull() // new components were created
             sut.colorCenterViewModelFlow.value shouldNotBe components.colorCenterViewModel // still old instance
             sut.flowOfIsDataBeingUpdated.value shouldBe true // data transaction is still running
-            emissionGateForFlowOfColorCenterViewModel.open() // allow flow of ColorCenterViewModel to emit new instance
+            gate.open() // allow flow of ColorCenterViewModel to emit new instance
 
             sut.colorCenterViewModelFlow.value shouldBe components.colorCenterViewModel // already new instance
             sut.flowOfIsDataBeingUpdated.value shouldBe false // data transaction has finished
@@ -1224,6 +1266,7 @@ class HomeViewModelTest {
     fun createSut(
         colorProcessedConfirmationChannelForColorPreview: Channel<Color?> = colorProcessedConfirmationChannelForColorPreviewReal,
         emissionGateForFlowOfColorCenterViewModel: SuspendGate = OpenSuspendGate,
+        gateForCollectColorCenterComponent: SuspendGate = OpenSuspendGate,
     ) =
         HomeViewModel(
             colorInputMediatorFactory = { _ -> colorInputMediator },
@@ -1234,6 +1277,7 @@ class HomeViewModelTest {
             colorPreviewViewModelFactory = { _, _, _ -> mockk(relaxed = true) },
             colorCenterComponentsStoreFactory = { _ -> colorCenterComponentsStore },
             emissionGateForFlowOfColorCenterViewModel = emissionGateForFlowOfColorCenterViewModel,
+            gateForCollectColorCenterComponent = gateForCollectColorCenterComponent,
             createColorData = createColorData,
             doesColorBelongToSession = doesColorBelongToSession,
             userPreferencesRepository = userPreferencesRepository,
