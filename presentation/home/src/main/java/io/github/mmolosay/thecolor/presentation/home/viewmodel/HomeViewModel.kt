@@ -40,7 +40,6 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
@@ -63,7 +62,6 @@ import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -151,6 +149,7 @@ class HomeViewModel @Inject constructor(
     private val componentsConsumerRegistry = ColorCenterComponentsConsumerRegistry()
 
     val colorCenterViewModelFlow: StateFlow<ColorCenterViewModel?> = kotlin.run {
+        var lastConsumedComponents: ColorCenterComponents? = null
         val componentsConsumedConfirmationChannel = kotlin.run {
             val consumerId = ConsumerId("colorCenterViewModelFlow")
             componentsConsumerRegistry.register(consumerId)
@@ -158,13 +157,18 @@ class HomeViewModel @Inject constructor(
         colorCenterComponentsStore.componentsFlow
             .transformLatest { components ->
                 emissionGateForFlowOfColorCenterViewModel.awaitOpen()
-                withContext(NonCancellable) {
-                    emit(components?.colorCenterViewModel)
-                    componentsConsumedConfirmationChannel.send(components)
-                }
+                lastConsumedComponents = components
+                emit(components?.colorCenterViewModel)
             }
             .flowOn(defaultDispatcher)
             .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = null)
+            .also { flow ->
+                viewModelScope.launch(defaultDispatcher) {
+                    flow.collectLatest {
+                        componentsConsumedConfirmationChannel.send(lastConsumedComponents)
+                    }
+                }
+            }
     }
 
     private val ccSessionStore = ColorCenterSessionStore()
