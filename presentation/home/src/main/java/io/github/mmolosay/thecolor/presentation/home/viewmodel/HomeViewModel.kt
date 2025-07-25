@@ -542,7 +542,7 @@ class HomeViewModel @Inject constructor(
 
 @Module
 @InstallIn(ViewModelComponent::class)
-object HomeViewModelDiModule {
+internal object HomeViewModelDiModule {
 
     @Provides
     fun provideColorProcessedConfirmationChannelForColorPreview(): Channel<Color?> =
