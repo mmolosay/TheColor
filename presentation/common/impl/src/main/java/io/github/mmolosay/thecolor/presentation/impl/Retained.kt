@@ -3,6 +3,7 @@ package io.github.mmolosay.thecolor.presentation.impl
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import kotlinx.coroutines.delay
@@ -27,16 +28,15 @@ import kotlinx.coroutines.delay
 inline fun <T> retained(
     actualValue: T,
     retentionSpec: RetentionSpec<T>,
-): T {
-    val memoizedValueState = remember { mutableStateOf(actualValue) }
-    val memoizedValue = memoizedValueState.value
+): State<T> {
+    val stateOfMemoizedValue = remember { mutableStateOf(actualValue) }
     LaunchedEffect(actualValue) {
-        if (memoizedValue == actualValue) return@LaunchedEffect
+        if (stateOfMemoizedValue.value == actualValue) return@LaunchedEffect
         with(retentionSpec) {
-            memoizedValueState(actualValue)
+            stateOfMemoizedValue.invoke(actualValue)
         }
     }
-    return memoizedValue
+    return stateOfMemoizedValue
 }
 
 /**
@@ -47,12 +47,14 @@ inline fun <T> retained(
  * updated if an actual new value is not `null`.
  * This way, the function returns either a last not-null [actualValue], or `null` if there were
  * no such yet.
+ *
+ * @see retained
  */
 @Suppress("NOTHING_TO_INLINE")
 @Composable
 inline fun <T> retainedNotNull(
     actualValue: T?,
-): T? =
+): State<T?> =
     retained(actualValue) { actual ->
         if (actual != null) {
             value = actual

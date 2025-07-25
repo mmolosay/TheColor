@@ -21,9 +21,13 @@ import io.github.mmolosay.thecolor.presentation.impl.CircularReveal
 import io.github.mmolosay.thecolor.presentation.impl.RadiusProvider
 import io.github.mmolosay.thecolor.presentation.impl.calcVisibleHeightInScrollableContainer
 import io.github.mmolosay.thecolor.presentation.impl.clipCircle
+import io.github.mmolosay.thecolor.presentation.impl.retainedNotNull
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 
+/**
+ * Animates 'Color Center's circular reveal.
+ */
 @Composable
 internal fun AnimatedColorCenter(
     colorCenter: ColorCenterComposable?,
@@ -32,6 +36,7 @@ internal fun AnimatedColorCenter(
     containerScrollState: ScrollState,
 ) {
     val density = LocalDensity.current
+    val retainedColorCenter by retainedNotNull(colorCenter)
 
     fun HomeAnimState.ColorCenter.targetValue() =
         when (this) {
@@ -79,7 +84,8 @@ internal fun AnimatedColorCenter(
                     center = { size ->
                         val h = visibleHeightInParent
                         if (h != null && h != 0f) {
-                            val focalPointOffset = with(density) { ColorCenterFocalPointBottomOffset.toPx() }
+                            val focalPointOffset =
+                                with(density) { ColorCenterFocalPointBottomOffset.toPx() }
                             val y = (h - focalPointOffset).coerceAtLeast(0f)
                             Offset(x = size.width / 2, y = y)
                         } else {
@@ -91,137 +97,7 @@ internal fun AnimatedColorCenter(
                     },
                 ),
         ) {
-            colorCenter?.invoke()
+            retainedColorCenter?.invoke()
         }
     }
 }
-
-/**
- * Contains "container" in name to convey that this Composable may or
- * may not display [colorCenter], which is its primary content.
- */
-//@Composable
-//private fun ColorCenterContainer(
-//    colorCenter: ColorCenterComposable?,
-//    proceedResult: ProceedResult?,
-//    cacheStore: CacheStore,
-//    navBarAppearanceController: NavBarAppearanceController,
-//    parentScrollState: ScrollState,
-//) {
-//    val coroutineScope = rememberCoroutineScope()
-//
-//    val proceedResultCacheTag = CacheStore.Tag("ProceedResultCacheTag")
-//    val proceedResultCache = cacheStore.getOrNew<ProceedResult?>(proceedResultCacheTag) {
-//        DequeCache(
-//            mutationListener = PruneOnSizeThreshold(
-//                cacheSizeThreshold = 10, numberOfLatestElementsToKeep = 2,
-//            ),
-//        )
-//    }
-//
-//    fun currentAndPreviousFromCache(): Pair<ProceedResult?, ProceedResult?> {
-//        val values = proceedResultCache.asReversed()
-//        val current = values.getOrNull(0)
-//        val previous = values.getOrNull(1)
-//        return Pair(current, previous)
-//    }
-//
-//    fun hasProceedResultBecomeSuccess(): Boolean {
-//        val (current, previous) = currentAndPreviousFromCache()
-//        return (current is ProceedResult.Success && previous !is ProceedResult.Success)
-//    }
-//
-//    fun hasProceedResultBecomeNull(): Boolean {
-//        val (current, previous) = currentAndPreviousFromCache()
-//        return (current == null && previous is ProceedResult.Success)
-//    }
-//
-////    val retainedProceedResult = retained(proceedResult) { actual, memoized ->
-////        val memoizedIsSuccess = (memoized is ProceedResult.Success)
-////        val actualIsNotSuccess = (actual !is ProceedResult.Success)
-////        if (memoizedIsSuccess && actualIsNotSuccess) {
-////            delay(2.framesDuration)
-////        }
-////        value = actual
-////    }
-//    val retainedProceedResult = proceedResult
-//    LaunchedEffect(retainedProceedResult) {
-//        proceedResultCache += retainedProceedResult
-//    }
-//
-//    val circularRevealAnimator = remember {
-//        val initialProgressValue = when {
-//            retainedProceedResult is ProceedResult.Success -> CircularRevealAnimator.FullyExpandedValue
-//            else -> CircularRevealAnimator.FullyCollapsedValue
-//        }
-//        CircularRevealAnimator(
-//            progressAnimatable = Animatable(initialValue = initialProgressValue),
-//            expandAnimationSpec = spring(stiffness = 100f),
-//            collapseAnimationSpec = spring(stiffness = 300f),
-//        )
-//    }
-//    LaunchedEffect(retainedProceedResult) {
-//        when {
-//            hasProceedResultBecomeSuccess() -> {
-//                coroutineScope.launch { circularRevealAnimator.expand() }
-//            }
-//            hasProceedResultBecomeNull() -> {
-//                coroutineScope.launch { circularRevealAnimator.collapse() }
-//            }
-//        }
-//    }
-//
-//    /** Wrapper for decorated [colorCenter] with specific positioning inside the parent and animations. */
-//    @Composable
-//    fun ColorCenter(
-//        data: ProceedResult.Success,
-//        colorCenter: ColorCenterComposable,
-//    ) {
-//        var visibleHeightInParent by remember { mutableStateOf<Float?>(null) }
-//        DecoratedColorCenter(
-//            modifier = Modifier
-//                .onGloballyPositioned { coordinates ->
-//                    val ownPosInParent = coordinates.positionInParent()
-//                    visibleHeightInParent = calcVisibleHeightInScrollableParent(
-//                        parentScrollState = parentScrollState,
-//                        ownPosInParent = ownPosInParent.y,
-//                    )
-//                }
-//                .clipCircle(
-//                    center = { size ->
-//                        val h = visibleHeightInParent
-//                        if (h != null && h != 0f) Offset(x = size.width / 2, y = h)
-//                        else size.center
-//                    },
-//                    radius = RadiusProvider { size, minCoverRadius ->
-//                        minCoverRadius * circularRevealAnimator.progressAnimatable.value
-//                    },
-//                ),
-//            surfaceColor = data.colorData.color.toCompose(),
-//            isSurfaceColorDark = data.colorData.isDark,
-//            colorCenter = colorCenter,
-//            navBarAppearanceController = navBarAppearanceController,
-//            minHeight = minHeight,
-//        )
-//    }
-//
-//    val actualColorCenter: ColorCenterComposable? =
-//        remember(colorCenter, retainedProceedResult) {
-//            colorCenter ?: return@remember null
-//            val retainedAsSuccess =
-//                (retainedProceedResult as? ProceedResult.Success) ?: return@remember null
-//            ColorCenterComposable {
-//                ColorCenter(
-//                    data = retainedAsSuccess,
-//                    colorCenter = colorCenter,
-//                )
-//            }
-//        }
-//    val retainedColorCenter = retainedNotNull(actualValue = actualColorCenter)
-//
-//    CircularReveal(
-//        animator = circularRevealAnimator,
-//    ) {
-//        retainedColorCenter?.invoke()
-//    }
-//}
