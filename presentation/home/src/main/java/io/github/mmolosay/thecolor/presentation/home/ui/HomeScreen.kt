@@ -546,14 +546,12 @@ private fun DecoratedColorCenter(
     modifier: Modifier = Modifier,
     stateOfMinHeight: State<Dp>, // wrapped in State to avoid recompositions
 ) {
-    val animationSpec = spring<Color>(stiffness = 100f)
+    fun <T> animationSpec() = spring<T>(stiffness = 100f)
     val contentColors = if (isSurfaceColorDark) colorsOnDarkSurface() else colorsOnLightSurface()
-    val animatedContentColors = contentColors.animate(
-        animationSpec = animationSpec,
-    )
+    val animatedContentColors = contentColors.animate(animationSpec())
     val animatedSurfaceColor by animateColorAsState(
         targetValue = surfaceColor,
-        animationSpec = animationSpec,
+        animationSpec = animationSpec(),
         label = "surface color",
     )
     TintedSurface(

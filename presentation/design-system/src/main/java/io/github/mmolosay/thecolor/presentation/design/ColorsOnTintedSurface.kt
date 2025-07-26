@@ -1,14 +1,19 @@
 package io.github.mmolosay.thecolor.presentation.design
 
-import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationSpec
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 
 // prefer using 'colorsOnTintedSurface' to get and 'ProvideColorsOnTintedSurface' to set
@@ -37,7 +42,7 @@ fun ProvideColorsOnTintedSurface(
  * Collection of colors to be used on surface of no particular (known beforehand) color.
  * They are guaranteed to be contrast against the color of background (surface).
  *
- * Doesn't depend on current [ColorScheme].
+ * Doesn't depend on current [MaterialTheme.colorScheme].
  *
  * @see colorsOnLightSurface
  * @see colorsOnDarkSurface
@@ -71,26 +76,39 @@ fun colorsOnDarkSurface(
         muted = muted,
     )
 
-/*
- * Animating each color of MaterialColorScheme using 'animateAsState()' is expensive.
- * There's a room for improvement TODO: improve performance
- * Also see io.github.mmolosay.thecolor.presentation.design.ColorScheme -> MaterialColorScheme.animateColors()
- */
 @Composable
 fun ColorsOnTintedSurface.animate(
-    animationSpec: AnimationSpec<Color> = spring(stiffness = Spring.StiffnessLow),
+    animationSpec: AnimationSpec<Float> = spring(),
 ): ColorsOnTintedSurface {
-
-    @Suppress("AnimateAsStateLabel")
-    @Composable
-    fun Color.animateAsState() =
-        animateColorAsState(
-            targetValue = this,
+    val target = this
+    var animated by remember { mutableStateOf(target) }
+    LaunchedEffect(target) {
+        val source = animated
+        if (source == target) return@LaunchedEffect
+        val animatable = Animatable(initialValue = 0f)
+        animatable.animateTo(
+            targetValue = 1f,
             animationSpec = animationSpec,
-        )
+        ) {
+            animated = lerp(source, target, value)
+        }
+    }
+    return animated
+}
 
+private fun lerp(
+    start: ColorsOnTintedSurface,
+    stop: ColorsOnTintedSurface,
+    fraction: Float,
+): ColorsOnTintedSurface {
+    fun lerp(color: ColorsOnTintedSurface.() -> Color): Color =
+        androidx.compose.ui.graphics.lerp(
+            start = start.color(),
+            stop = stop.color(),
+            fraction = fraction,
+        )
     return ColorsOnTintedSurface(
-        accent = this.accent.animateAsState().value,
-        muted = this.muted.animateAsState().value,
+        accent = lerp { accent },
+        muted = lerp { muted },
     )
 }
