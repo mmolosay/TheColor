@@ -4,7 +4,6 @@ import androidx.compose.ui.unit.dp
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorCenter
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPreview
 import kotlinx.coroutines.flow.MutableStateFlow
-import timber.log.Timber
 
 /**
  * State of UI animation of 'Home' View.
@@ -122,7 +121,6 @@ internal fun HomeAnimSequence(
     return HomeAnimSequence(subsequence)
 }
 
-// TODO: remove logs
 internal class HomeAnimController(
     currentState: HomeAnimState,
 ) {
@@ -145,13 +143,6 @@ internal class HomeAnimController(
         get() = (runningSequence != null)
 
     fun run(sequence: HomeAnimSequence) {
-        Timber.d("DBG | ----------------------------")
-        Timber.d("DBG | submitted new sequence $sequence")
-        Timber.d("DBG | currentState = $currentState")
-        Timber.d("DBG | currentDest = ${flowOfDestState.value}")
-        Timber.d("DBG | runningSequence = ${runningSequence?.sequence}")
-        Timber.d("DBG | ----------------------------")
-
         require(sequence.first() == currentState) { "sequence must start from current state" }
         val adjustedSequence = normalizeSubmittedSequence(sequence)
         runningSequence = RunningSequence(adjustedSequence)
@@ -189,26 +180,16 @@ internal class HomeAnimController(
         applyToCurrentState: (HomeAnimState) -> HomeAnimState,
     ) {
         if (!isRunning) return
-        Timber.d("DBG | ----------------------------")
-        Timber.d("DBG | dest $reachedValue is reached")
-        if (reachedValue != destValue) {
-            Timber.d("DBG | $reachedValue is reported as reached but dest is $destValue")
-            return
-        }
+        if (reachedValue != destValue) return
         val isExpectedToBeReached = kotlin.run {
             @Suppress("UNCHECKED_CAST")
             val pendingDest = pendingDests[component] as T?
             (reachedValue == pendingDest)
         }
-        if (!isExpectedToBeReached) {
-            Timber.d("DBG | $reachedValue is reported as reached but isn't expected to be " +
-                    "reached in order to advance to next animation segment")
-            return
-        }
+        if (!isExpectedToBeReached) return
         assert(reachedValue == destValue)
         assert(isExpectedToBeReached)
         currentState = applyToCurrentState(currentState)
-        Timber.d("DBG | updated currentState = $currentState")
         pendingDests.remove(component)
         checkIfDestIsReachedAndSetNext()
     }
@@ -241,23 +222,18 @@ internal class HomeAnimController(
         val segmentToRun = runningSequence.segment()
         if (segmentToRun == null) {
             this.runningSequence = null // sequence is finished
-            Timber.d("DBG | sequence is finished")
             return
         }
         require(segmentToRun.start == currentState)
         if (segmentToRun.dest != destState) {
             pendingDests.putAll(destState diffTo segmentToRun.dest)
             flowOfDestState.value = segmentToRun.dest
-            Timber.d("DBG | updated destState = $destState")
-            Timber.d("DBG | updated pendingDests = $pendingDests")
             return
         }
         if (currentSegment == segmentToRun && pendingDests.isNotEmpty()) {
-            Timber.d("DBG | segment is already running $segmentToRun")
             return // identical segment is already running
         }
         if (segmentToRun.dest == destState || segmentToRun.isEmpty()) {
-            Timber.d("DBG | skipping dest ${segmentToRun.dest}")
             runningSequence.advance()
             setNextDestFromSequence()
             return
