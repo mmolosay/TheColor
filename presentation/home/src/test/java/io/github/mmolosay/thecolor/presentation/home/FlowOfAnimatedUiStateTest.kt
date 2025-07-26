@@ -232,7 +232,7 @@ internal class FlowOfAnimatedUiStateTest {
         // WHEN #3
         flowOfVisibilityAnimDest.emit(AnimState.Visibility.Hidden)
         testDispatcher.scheduler.advanceUntilIdle()
-        flowOfUiState.value shouldBe UiState.Visible(color = ColorInt(0x0))
+        flowOfUiState.value shouldBe UiState.Visible(color = ColorInt(0x1))
         // WHEN #4
         kotlin.run {
             val value = ColorPreviewData(color = null)

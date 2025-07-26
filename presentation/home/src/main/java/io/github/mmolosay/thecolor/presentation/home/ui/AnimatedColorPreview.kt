@@ -43,17 +43,16 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState
 import io.github.mmolosay.thecolor.presentation.preview.toUiState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.milliseconds
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPreview as AnimState
 
 /**
@@ -228,64 +227,20 @@ internal fun FlowOfAnimatedUiState(
     flowOfVisibilityAnimDest: StateFlow<AnimState.Visibility>,
     coroutineScope: CoroutineScope,
 ): StateFlow<ColorPreviewUiState?> {
-    val pendingUiStates = mutableListOf<ColorPreviewUiState>()
-    var pendingAnimDest: AnimState.Visibility? = null
-    val windowBetweenOriginalDataAndAnimDest = 24.64.milliseconds * 2 // see benchmark comment below
     val flowOfAnimatedUiState = MutableStateFlow<ColorPreviewUiState?>(null)
-
-    fun trySatisfyPendingAnimDest(): Boolean {
-        if (pendingAnimDest == null) return false
-        if (pendingUiStates.isEmpty()) return false
-        val pendingUiStatesToAnimStates =
-            pendingUiStates
-                .reversed() // newest first
-                .map { uiState -> uiState to uiState.toAnimState() }
-        val match =
-            pendingUiStatesToAnimStates.firstOrNull { (uiState, animState) ->
-                animState == pendingAnimDest
-            }
-        if (match != null) {
-            pendingUiStates.clear() // only remove uiStates that were before the match?
-            pendingAnimDest = null // satisfied and cleared
-            flowOfAnimatedUiState.value = match.first // matched 'uiState'
-            return true
-        }
-        return false
-    }
     /*
-     * Most of the times, new original data will be emitted and collected first,
-     * and new anim dest (if any) will be emitted and collected second.
-     * Elapsed between original data and anim dest emissions:
-     * Mean average: 13.65ms
-     * Median: 13.61ms
-     * Range: 3.18ms - 24.64ms
+     * Most of the time, new original data will be emitted first,
+     * and new anim dest (if any) will be emitted second.
      */
-    coroutineScope.launch {
-        flowOfVisibilityAnimDest.collect { animDest ->
-            pendingAnimDest = animDest
-            trySatisfyPendingAnimDest()
+    combine(
+        flowOfOriginalData.map { data -> data.toUiState() },
+        flowOfVisibilityAnimDest,
+    ) { uiState, animDest ->
+        if (uiState.toAnimState() == animDest) {
+            flowOfAnimatedUiState.value = uiState
         }
     }
-    coroutineScope.launch {
-        flowOfOriginalData.map { data -> data.toUiState() }.collect { uiState ->
-            pendingUiStates += uiState
-            val wasSatisfied = trySatisfyPendingAnimDest()
-            if (wasSatisfied) return@collect
-            delay(windowBetweenOriginalDataAndAnimDest) // allow new anim dest to arrive
-            if (pendingAnimDest == null) {
-                // emit this uiState if it satisfies current, already satisfied anim dest
-                val animState = uiState.toAnimState()
-                val currentAnimDest = flowOfVisibilityAnimDest.value
-                if (animState == currentAnimDest) {
-                    flowOfAnimatedUiState.value = uiState
-                    // remove this uiState as fulfilled
-                    pendingUiStates.lastOrNull()?.let { lastAdded ->
-                        if (lastAdded == uiState) pendingUiStates.removeLastOrNull()
-                    }
-                }
-            }
-        }
-    }
+        .launchIn(coroutineScope)
     return flowOfAnimatedUiState.asStateFlow()
 }
 
