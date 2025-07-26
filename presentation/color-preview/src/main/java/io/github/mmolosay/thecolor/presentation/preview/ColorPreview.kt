@@ -28,6 +28,7 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.impl.toCompose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimState as AnimState
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState as UiState
@@ -243,6 +244,14 @@ private fun AnimatedPreview() {
                 delay(1.seconds)
                 animController.onNewUiState(UiState.Visible(color = ColorInt(0x6AE237)))
                 delay(1.seconds)
+                animController.onNewUiState(UiState.Visible(color = ColorInt(0x180100)))
+                delay(200.milliseconds)
+                animController.onNewUiState(UiState.Visible(color = ColorInt(0x2215A9)))
+                delay(200.milliseconds)
+                animController.onNewUiState(UiState.Visible(color = ColorInt(0x246651)))
+                delay(200.milliseconds)
+                animController.onNewUiState(UiState.Visible(color = ColorInt(0x6AE237)))
+                delay(2.seconds)
                 animController.onNewUiState(UiState.Hidden)
             }
         }
