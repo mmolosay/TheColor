@@ -36,7 +36,6 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommand
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
 import io.github.mmolosay.thecolor.utils.OpenSuspendGate
 import io.github.mmolosay.thecolor.utils.SuspendGate
-import io.github.mmolosay.thecolor.utils.cache.CacheStore
 import io.github.mmolosay.thecolor.utils.doNothing
 import io.github.mmolosay.thecolor.utils.receiveAllUntil
 import kotlinx.coroutines.CoroutineDispatcher
@@ -120,8 +119,6 @@ class HomeViewModel @Inject constructor(
             .flowOn(defaultDispatcher)
             .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue)
     }
-
-    val cacheStore = CacheStore()
 
     private val _navEventFlow = MutableStateFlow<HomeNavEvent?>(null)
     val navEventFlow = _navEventFlow.asStateFlow()

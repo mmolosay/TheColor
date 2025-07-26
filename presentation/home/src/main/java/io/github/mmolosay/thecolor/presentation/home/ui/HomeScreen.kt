@@ -102,7 +102,6 @@ import io.github.mmolosay.thecolor.presentation.impl.toLifecycleEventObserver
 import io.github.mmolosay.thecolor.presentation.impl.withoutBottom
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInput
 import io.github.mmolosay.thecolor.presentation.preview.AnimatedColorPreview
-import io.github.mmolosay.thecolor.utils.cache.CacheStore
 import io.github.mmolosay.thecolor.utils.doNothing
 import io.github.mmolosay.thecolor.utils.stabilize
 import kotlinx.coroutines.flow.Flow
@@ -206,7 +205,6 @@ fun HomeScreen(
         data = data,
         strings = strings,
         navEventFlow = navEventFlow,
-        cacheStore = viewModel.cacheStore,
         colorInput = colorInput,
         colorPreview = colorPreview,
         colorCenter = colorCenter,
@@ -241,7 +239,6 @@ private fun HomeScreen(
     data: HomeData,
     strings: HomeUiStrings,
     navEventFlow: Flow<HomeNavEvent>,
-    cacheStore: CacheStore,
     colorInput: @Composable () -> Unit,
     colorPreview: ColorPreviewWithDependencies,
     colorCenter: ColorCenterComposable?,
@@ -260,7 +257,6 @@ private fun HomeScreen(
                 .consumeWindowInsets(contentPadding), // ensures correct height of 'TopAppBar()'
             data = data,
             strings = strings,
-            cacheStore = cacheStore,
             colorInput = colorInput,
             colorPreview = colorPreview,
             colorCenter = colorCenter,
@@ -286,7 +282,6 @@ private fun HomeScreen(
 private fun Home(
     data: HomeData,
     strings: HomeUiStrings,
-    cacheStore: CacheStore,
     colorInput: @Composable () -> Unit,
     colorPreview: ColorPreviewWithDependencies,
     colorCenter: ColorCenterComposable?,
@@ -716,8 +711,7 @@ private fun Preview() {
         HomeScreen(
             data = previewData(),
             strings = previewUiStrings(),
-            navEventFlow = emptyFlow(),
-            cacheStore = remember { CacheStore() },
+            navEventFlow = remember { emptyFlow() },
             colorInput = {
                 Text(
                     modifier = Modifier
