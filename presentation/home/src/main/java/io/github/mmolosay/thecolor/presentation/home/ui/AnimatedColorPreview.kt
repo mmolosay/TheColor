@@ -147,8 +147,6 @@ internal fun AnimatedColorPreview(
         }
     }
 
-    // TODO: position is being animated here, but visibility (collapse & expand) in ColorPreview() Composable itself
-    //  Why such a separation?
     LaunchedEffect(Unit) {
         flowOfPositionAnimDest.collectLatest collect@{ animDest ->
             val offsetAnimatable = offsetAnimatable ?: return@collect
