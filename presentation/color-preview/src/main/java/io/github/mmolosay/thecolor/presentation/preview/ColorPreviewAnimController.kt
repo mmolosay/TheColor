@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController.VisibilityAnimDest
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimState.Visibility
+import io.github.mmolosay.thecolor.utils.requireEmit
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -87,9 +88,4 @@ class ColorPreviewAnimControllerImpl(
             },
             cause = this,
         )
-
-    private fun <T> MutableSharedFlow<T>.requireEmit(value: T) {
-        val wasEmitted = this.tryEmit(value)
-        require(wasEmitted) { "value must be emitted" }
-    }
 }
