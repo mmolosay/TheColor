@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.impl
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -10,11 +11,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
@@ -30,6 +31,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import kotlin.math.hypot
 
 /**
@@ -38,14 +40,13 @@ import kotlin.math.hypot
  * [content] must have [Modifier.clipCircle] applied to it.
  */
 @Composable
-fun CircularReveal(
-    animProgress: Float,
+inline fun CircularReveal(
+    stateOfAnimProgress: State<Float>,
     content: @Composable () -> Unit,
 ) {
-    val updatedAnimProgress by rememberUpdatedState(animProgress) // 'derivedStateOf' reads State<T>
     val composeContent by remember {
         derivedStateOf {
-            val isFullyCollapsed = (updatedAnimProgress == 0f)
+            val isFullyCollapsed = (stateOfAnimProgress.value == 0f)
             !isFullyCollapsed
         }
     }
@@ -66,18 +67,21 @@ fun Modifier.clipCircle(
     radius: RadiusProvider,
 ): Modifier =
     drawWithCache {
-        // TODO: for some reason, re-allocates and re-executes values that are meant to be cached
-        //  on every animation frame; investigate
         val path = Path()
-        val center = center(this.size)
-        val radiusOfCoveringCircle = center.radiusOfCoveringCircle(this.size.toRect())
 
         onDrawWithContent {
+            // lambdas that may read State must be invoked inside onDrawWithContent()
+            // to avoid re-creating cached objects (like path)
+            val center = center(this.size)
+            val radiusOfCoveringCircle = center.radiusOfCoveringCircle(this.size.toRect())
+
+            @SuppressLint("TimberTagLength")
+            Timber
+                .tag("CircularReveal.clipCircle.drawWithCache.onDrawWithContent")
+                .v("size = $size, path = $path, center = $center, radiusOfCoveringCircle = $radiusOfCoveringCircle, radius = $radius")
             path.rewind()
-            val circleRect = Rect(
-                center = center,
-                radius = radius(elementSize = this.size, minCoverRadius = radiusOfCoveringCircle),
-            )
+            val radius = radius(elementSize = this.size, minCoverRadius = radiusOfCoveringCircle)
+            val circleRect = Rect(center = center, radius = radius)
             path.addOval(circleRect)
 
             clipPath(path) {
@@ -100,12 +104,7 @@ fun interface RadiusProvider {
  */
 private fun Offset.radiusOfCoveringCircle(rect: Rect): Float {
     val center = this
-    val corners = listOf(
-        rect.topLeft,
-        rect.topRight,
-        rect.bottomRight,
-        rect.bottomLeft,
-    )
+    val corners = listOf(rect.topLeft, rect.topRight, rect.bottomRight, rect.bottomLeft)
     val distanceToCorners = corners.map { corner ->
         hypot(corner.x - center.x, corner.y - center.y)
     }

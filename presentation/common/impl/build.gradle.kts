@@ -66,6 +66,9 @@ dependencies {
     implementation("com.google.dagger:hilt-android:${libs.versions.hilt.get()}")
     ksp("com.google.dagger:hilt-compiler:${libs.versions.hilt.get()}")
 
+    // Misc (preserve alphabetical order)
+    implementation("com.jakewharton.timber:timber:${libs.versions.jakewhartonTimber.get()}")
+
     // Testing
     testImplementation(project(":utils:testing"))
     testImplementation("org.junit.jupiter:junit-jupiter-api:${libs.versions.junit.get()}")

@@ -7,6 +7,7 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,6 +23,7 @@ import io.github.mmolosay.thecolor.presentation.impl.RadiusProvider
 import io.github.mmolosay.thecolor.presentation.impl.calcVisibleHeightInScrollableContainer
 import io.github.mmolosay.thecolor.presentation.impl.clipCircle
 import io.github.mmolosay.thecolor.presentation.impl.retainedNotNull
+import io.github.mmolosay.thecolor.presentation.impl.thenIf
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 
@@ -71,9 +73,12 @@ internal fun AnimatedColorCenter(
     }
 
     CircularReveal(
-        animProgress = progressAnimatable.value,
+        stateOfAnimProgress = progressAnimatable.asState(),
     ) {
         var visibleHeightInParent by remember { mutableStateOf<Float?>(null) }
+        val shouldAddClipCircleModifier by remember {
+            derivedStateOf { progressAnimatable.isRunning }
+        }
         Box(
             modifier = Modifier
                 .onGloballyPositioned { coordinates ->
@@ -83,22 +88,29 @@ internal fun AnimatedColorCenter(
                         ownPosInContainer = ownPosInParent.y,
                     )
                 }
-                .clipCircle(
-                    center = { size ->
-                        val h = visibleHeightInParent
-                        if (h != null && h != 0f) {
-                            val focalPointOffset =
-                                with(density) { ColorCenterFocalPointBottomOffset.toPx() }
-                            val y = (h - focalPointOffset).coerceAtLeast(0f)
-                            Offset(x = size.width / 2, y = y)
-                        } else {
-                            size.center
-                        }
-                    },
-                    radius = RadiusProvider { size, minCoverRadius ->
-                        minCoverRadius * progressAnimatable.value
-                    },
-                ),
+                /*
+                 * 1. Scrolling outer container updates 'visibleHeightInParent'.
+                 * 2. 'drawWithCache()' detects this because it is being read in 'center()' lambda and re-draws 'clipCircle()'.
+                 * To avoid unnecessary re-draws, don't apply 'clipCircle()' if it won't make the difference in UI.
+                 */
+                .thenIf(shouldAddClipCircleModifier) {
+                    clipCircle(
+                        center = { size ->
+                            val h = visibleHeightInParent
+                            if (h != null && h != 0f) {
+                                val focalPointOffset =
+                                    with(density) { ColorCenterFocalPointBottomOffset.toPx() }
+                                val y = (h - focalPointOffset).coerceAtLeast(0f)
+                                Offset(x = size.width / 2, y = y)
+                            } else {
+                                size.center
+                            }
+                        },
+                        radius = RadiusProvider { size, minCoverRadius ->
+                            minCoverRadius * progressAnimatable.value
+                        },
+                    )
+                },
         ) {
             val colorCenter = stateOfRetainedColorCenter.value
             colorCenter?.invoke()
