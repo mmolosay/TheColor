@@ -43,7 +43,6 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState
 import io.github.mmolosay.thecolor.presentation.preview.toUiState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -52,7 +51,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPreview as AnimState
 
 /**
@@ -101,42 +99,43 @@ internal fun AnimatedColorPreview(
         )
     }
 
-    Box(
-        modifier = Modifier
-            .onGloballyPositioned { coordinates ->
-                size = coordinates.size
-            }
-            // 'posInContainer' should be calculated before applying 'dive' animation offset (modifier)
-            .onGloballyPositioned l@{ coordinates ->
-                val containerPosInRoot = stateOfContainerPosInRoot.value
-                if (containerPosInRoot == null) return@l
-                val ownPosInRoot = coordinates.positionInRoot()
-                posInContainer = ownPosInRoot - containerPosInRoot
-            }
-            .run applyDiveAnimOffset@{
-                val animatable = offsetAnimatable
-                if (animatable != null) {
-                    offset { IntOffset(x = 0, y = animatable.value) }
-                } else this
-            },
-    ) {
-        val flowOfAnimatedUiState = remember {
-            FlowOfAnimatedUiState(
-                flowOfOriginalData = colorPreview.viewModel.dataFlow.filterNotNull(),
-                flowOfVisibilityAnimDest = flowOfVisibilityAnimDest,
-                coroutineScope = coroutineScope,
-            )
+    val flowOfAnimatedUiState = remember {
+        FlowOfAnimatedUiState(
+            flowOfOriginalData = colorPreview.viewModel.dataFlow,
+            flowOfVisibilityAnimDest = flowOfVisibilityAnimDest,
+            coroutineScope = coroutineScope,
+        )
+    }
+    val animController by produceState<ColorPreviewAnimController?>(initialValue = null) {
+        val uiState = flowOfAnimatedUiState.filterNotNull().first()
+        value = ColorPreviewAnimControllerImpl(uiState)
+    }
+    LaunchedEffect(Unit) {
+        flowOfAnimatedUiState.filterNotNull().collect { uiState ->
+            animController?.onNewUiState(uiState)
         }
-        val animController by produceState<ColorPreviewAnimController?>(initialValue = null) {
-            val uiState = flowOfAnimatedUiState.filterNotNull().first()
-            value = ColorPreviewAnimControllerImpl(uiState)
-        }
-        LaunchedEffect(Unit) {
-            flowOfAnimatedUiState.filterNotNull().collect { uiState ->
-                animController?.onNewUiState(uiState)
-            }
-        }
-        if (animController != null) {
+    }
+
+    if (animController != null) {
+        Box(
+            modifier = Modifier
+                .onGloballyPositioned { coordinates ->
+                    size = coordinates.size
+                }
+                // 'posInContainer' should be calculated before applying 'dive' animation offset (modifier)
+                .onGloballyPositioned l@{ coordinates ->
+                    val containerPosInRoot = stateOfContainerPosInRoot.value
+                    if (containerPosInRoot == null) return@l
+                    val ownPosInRoot = coordinates.positionInRoot()
+                    posInContainer = ownPosInRoot - containerPosInRoot
+                }
+                .run applyDiveAnimOffset@{
+                    val animatable = offsetAnimatable
+                    if (animatable != null) {
+                        offset { IntOffset(x = 0, y = animatable.value) }
+                    } else this
+                },
+        ) {
             colorPreview.composable.invoke(
                 animController = animController!!,
                 onUiStateReached = { reachedUiState ->
@@ -221,7 +220,7 @@ private object VerticalOffset {
 
 @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
 internal fun FlowOfAnimatedUiState(
-    flowOfOriginalData: Flow<ColorPreviewData>,
+    flowOfOriginalData: StateFlow<ColorPreviewData?>,
     flowOfVisibilityAnimDest: StateFlow<AnimState.Visibility>,
     coroutineScope: CoroutineScope,
 ): StateFlow<ColorPreviewUiState?> {
@@ -231,9 +230,11 @@ internal fun FlowOfAnimatedUiState(
      * and new anim dest (if any) will be emitted second.
      */
     combine(
-        flowOfOriginalData.map { data -> data.toUiState() },
+        flowOfOriginalData,
         flowOfVisibilityAnimDest,
-    ) { uiState, animDest ->
+    ) { data, animDest ->
+        data ?: return@combine
+        val uiState = data.toUiState()
         if (uiState.toAnimState() == animDest) {
             flowOfAnimatedUiState.value = uiState
         }
