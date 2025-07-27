@@ -102,6 +102,8 @@ import io.github.mmolosay.thecolor.presentation.impl.toLifecycleEventObserver
 import io.github.mmolosay.thecolor.presentation.impl.withoutBottom
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInput
 import io.github.mmolosay.thecolor.presentation.preview.AnimatedColorPreview
+import io.github.mmolosay.thecolor.utils.cache.DequeCache
+import io.github.mmolosay.thecolor.utils.cache.PruneOnSizeThreshold
 import io.github.mmolosay.thecolor.utils.doNothing
 import io.github.mmolosay.thecolor.utils.stabilize
 import kotlinx.coroutines.flow.Flow
@@ -414,6 +416,11 @@ private fun Home(
             null -> doNothing()
         }
     }
+
+    ScrollToTopOnNullProceedResultAsSideEffect(
+        proceedResult = proceedResult,
+        scrollState = scrollState,
+    )
 }
 
 @Composable
@@ -636,6 +643,30 @@ private fun SelectedSwatchDetailsDialogContainer(
                 data.discard()
             },
         )
+    }
+}
+
+@Composable
+private fun ScrollToTopOnNullProceedResultAsSideEffect(
+    proceedResult: ProceedResult?,
+    scrollState: ScrollState,
+) {
+    val cacheOfProceedResult = remember {
+        DequeCache<ProceedResult?>(
+            mutationListener = PruneOnSizeThreshold(cacheSizeThreshold = 2),
+        )
+    }
+    LaunchedEffect(proceedResult) {
+        val current = proceedResult
+        // previous may be present but equal to 'null'
+        if (cacheOfProceedResult.isNotEmpty()) {
+            val previous = cacheOfProceedResult.last()
+            val wasSuccessButBecameNull = (previous is ProceedResult.Success && current == null)
+            if (wasSuccessButBecameNull && scrollState.value != 0) {
+                scrollState.animateScrollTo(0)
+            }
+        }
+        cacheOfProceedResult += proceedResult
     }
 }
 
