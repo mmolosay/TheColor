@@ -44,13 +44,13 @@ import io.github.mmolosay.thecolor.presentation.preview.toUiState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.stateIn
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPreview as AnimState
 
 /**
@@ -224,23 +224,21 @@ internal fun FlowOfAnimatedUiState(
     flowOfVisibilityAnimDest: StateFlow<AnimState.Visibility>,
     coroutineScope: CoroutineScope,
 ): StateFlow<ColorPreviewUiState?> {
-    val flowOfAnimatedUiState = MutableStateFlow<ColorPreviewUiState?>(null)
     /*
      * Most of the time, new original data will be emitted first,
      * and new anim dest (if any) will be emitted second.
      */
-    combine(
+    return combineTransform(
         flowOfOriginalData,
         flowOfVisibilityAnimDest,
     ) { data, animDest ->
-        data ?: return@combine
+        data ?: return@combineTransform
         val uiState = data.toUiState()
         if (uiState.toAnimState() == animDest) {
-            flowOfAnimatedUiState.value = uiState
+            emit(uiState)
         }
     }
-        .launchIn(coroutineScope)
-    return flowOfAnimatedUiState.asStateFlow()
+        .stateIn(coroutineScope, SharingStarted.Eagerly, initialValue = null)
 }
 
 private fun ColorPreviewUiState.toAnimState(): AnimState.Visibility =

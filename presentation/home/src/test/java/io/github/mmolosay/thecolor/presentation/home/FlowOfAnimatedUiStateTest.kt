@@ -52,7 +52,7 @@ internal class FlowOfAnimatedUiStateTest {
 
         val flowOfUiState = sut()
 
-        // not advancing time here to preserve intial value
+        // not advancing time here to preserve initial value
         flowOfUiState.value shouldBe null
     }
 
