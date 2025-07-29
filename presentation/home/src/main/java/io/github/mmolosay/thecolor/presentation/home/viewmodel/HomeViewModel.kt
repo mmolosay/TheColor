@@ -39,6 +39,7 @@ import io.github.mmolosay.thecolor.utils.SuspendGate
 import io.github.mmolosay.thecolor.utils.doNothing
 import io.github.mmolosay.thecolor.utils.receiveAllUntil
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -484,13 +485,13 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun onColorCenterSessionStarted(seed: Color) {
+    private fun CoroutineScope.onColorCenterSessionStarted(seed: Color) {
         // recreate Color Center ViewModel (and its sub-feature ViewModels) to reset their states
         colorCenterComponentsStore.createNewComponents()
-        viewModelScope.launch(defaultDispatcher) {
+        launch(defaultDispatcher) {
             lastSearchedColorRepository.setLastSearchedColor(seed)
         }
-        viewModelScope.launch(defaultDispatcher, start = CoroutineStart.UNDISPATCHED) buildSession@{
+        launch(defaultDispatcher, start = CoroutineStart.UNDISPATCHED) buildSession@{
             ccSessionStore.cancelAndClearSession()
             ccSessionStore.sessionState = SessionState.BeingBuilt(seed, coroutineContext.job)
             val components = requireNotNull(colorCenterComponentsStore.components)
