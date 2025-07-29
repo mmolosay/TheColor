@@ -81,8 +81,6 @@ dependencies {
 
     // Misc (preserve alphabetical order)
     implementation("com.jakewharton.timber:timber:${libs.versions.jakewhartonTimber.get()}")
-    implementation("io.arrow-kt:arrow-optics:${libs.versions.arrow.optics.lib.get()}")
-    ksp("io.arrow-kt:arrow-optics-ksp-plugin:${libs.versions.arrow.optics.ksp.plugin.get()}")
     implementation("io.github.mmolosay:debounce:${libs.versions.mmolosayDebounce.get()}")
 
     // Testing
