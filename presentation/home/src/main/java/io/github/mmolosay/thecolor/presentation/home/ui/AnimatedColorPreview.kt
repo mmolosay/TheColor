@@ -54,8 +54,8 @@ import kotlinx.coroutines.flow.stateIn
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPreview as AnimState
 
 /**
- * Animates 'Color Preview' position (dive) and manipulates its data to display 'Color Preview'
- * in an appropriate state.
+ * Animates 'Color Preview' position (dive) and manipulates its data to display [colorPreview]
+ * in an appropriate (relative to 'Home's animation) state.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable
