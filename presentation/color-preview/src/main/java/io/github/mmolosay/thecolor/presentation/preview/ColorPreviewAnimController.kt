@@ -8,7 +8,6 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimControll
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimState.Visibility
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState as UiState
 
@@ -50,26 +49,21 @@ class ColorPreviewAnimControllerImpl(
     override var latestUiState by mutableStateOf(uiState)
     override var mainUiState by mutableStateOf(uiState)
 
-    // TODO: abolish separation of Mutable/Immutable flows
-
-    private val _flowOfVisibilityDest: MutableStateFlow<VisibilityAnimDest> =
-        MutableStateFlow(value = uiState.toVisibilityAnimDest())
-    override val flowOfVisibilityDest = _flowOfVisibilityDest.asStateFlow()
-
-    private val _flowOfVisibleUiStateUpdates = MutableStateFlow<List<UpdateOfVisibleUiState>>(emptyList())
-    override val flowOfVisibleUiStateUpdates = _flowOfVisibleUiStateUpdates.asStateFlow()
+    override val flowOfVisibilityDest = MutableStateFlow(value = uiState.toVisibilityAnimDest())
+    override val flowOfVisibleUiStateUpdates =
+        MutableStateFlow<List<UpdateOfVisibleUiState>>(emptyList())
 
     override fun onVisibilityAnimFinished(reached: VisibilityAnimDest) {
         if (reached.cause is UiState.Hidden) {
             mainUiState = reached.cause
-            _flowOfVisibleUiStateUpdates.update { emptyList() }
+            flowOfVisibleUiStateUpdates.update { emptyList() }
         }
     }
 
     override fun onNewUiState(uiState: UiState) {
-        _flowOfVisibilityDest.value = uiState.toVisibilityAnimDest()
+        flowOfVisibilityDest.value = uiState.toVisibilityAnimDest()
         if (mainUiState is UiState.Visible && uiState is UiState.Visible) {
-            _flowOfVisibleUiStateUpdates.update { updates ->
+            flowOfVisibleUiStateUpdates.update { updates ->
                 val id = updates.lastOrNull()?.id?.let { it + 1 } ?: 0
                 val update = UpdateOfVisibleUiState(uiState, id)
                 updates + update
@@ -85,7 +79,7 @@ class ColorPreviewAnimControllerImpl(
 
     override fun onUpdateAnimFinished(update: UpdateOfVisibleUiState) {
         mainUiState = update.uiState
-        _flowOfVisibleUiStateUpdates.update { updates ->
+        flowOfVisibleUiStateUpdates.update { updates ->
             updates.toMutableList().apply {
                 val wasRemoved = remove(update)
                 require(wasRemoved) { "finished update wasn't in the list of the ongoing updates" }
