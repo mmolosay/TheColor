@@ -1,57 +1,119 @@
 package io.github.mmolosay.thecolor.presentation.home.ui
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.CompositingStrategy
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.center
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.platform.LocalDensity
+import io.github.mmolosay.thecolor.presentation.impl.CircularReveal
+import io.github.mmolosay.thecolor.presentation.impl.RadiusProvider
+import io.github.mmolosay.thecolor.presentation.impl.calcVisibleHeightInScrollableContainer
+import io.github.mmolosay.thecolor.presentation.impl.clipCircle
+import io.github.mmolosay.thecolor.presentation.impl.retainedNotNull
+import io.github.mmolosay.thecolor.presentation.impl.thenIf
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 
+/**
+ * Animates 'Color Center's circular reveal.
+ */
 @Composable
 internal fun AnimatedColorCenter(
-    colorCenter: @Composable () -> Unit,
+    colorCenter: ColorCenterComposable?,
+    flowOfAnimDest: StateFlow<HomeAnimState.ColorCenter>,
+    onReached: (reached: HomeAnimState.ColorCenter) -> Unit,
+    containerScrollState: ScrollState,
 ) {
-    NotInlineContainer(
-        modifier = Modifier
-            .circularReveal(radius = 80.dp), // TODO: doesn't work as it should, development suspended
-    ) {
-        colorCenter()
-    }
-}
+    val density = LocalDensity.current
+    val stateOfRetainedColorCenter = retainedNotNull(colorCenter)
 
-@Composable
-private fun NotInlineContainer(
-    modifier: Modifier,
-    content: @Composable () -> Unit,
-) {
-    Box(
-        modifier = modifier,
-    ) {
-        content()
-    }
-}
-
-private fun Modifier.circularReveal(
-    radius: Dp,
-): Modifier =
-    this
-        .graphicsLayer {
-            compositingStrategy = CompositingStrategy.Offscreen
+    fun HomeAnimState.ColorCenter.targetValue() =
+        when (this) {
+            HomeAnimState.ColorCenter.Expanded -> 1f
+            HomeAnimState.ColorCenter.Collapsed -> 0f
         }
-        .drawWithCache {
 
-            onDrawWithContent {
-                drawContent()
-                drawCircle(
-                    color = Color.Black,
-                    radius = radius.toPx(),
-//                    center = Offset(x = size.width / 2, y = 40.dp.toPx()),
-//                    center = Offset.Zero,
-                    blendMode = BlendMode.DstIn,
-                )
+    val progressAnimatable = remember {
+        val initialValue = flowOfAnimDest.value.targetValue()
+        Animatable(initialValue)
+    }
+    LaunchedEffect(Unit) {
+        flowOfAnimDest.collectLatest collect@{ animDest ->
+            val targetValue = animDest.targetValue()
+            if (progressAnimatable.value == targetValue) {
+                onReached(animDest)
+                return@collect // already in target state
             }
+            val animSpec: AnimationSpec<Float> = when (animDest) {
+                HomeAnimState.ColorCenter.Expanded -> spring(stiffness = 100f)
+                HomeAnimState.ColorCenter.Collapsed -> spring(stiffness = 300f)
+            }
+            progressAnimatable.animateTo(
+                targetValue = targetValue,
+                animationSpec = animSpec,
+            )
+            if (progressAnimatable.value == 0f) {
+                stateOfRetainedColorCenter.value = null // free for GC
+            }
+            onReached(animDest)
         }
+    }
+
+    CircularReveal(
+        stateOfAnimProgress = progressAnimatable.asState(),
+    ) {
+        var visibleHeightInParent by remember { mutableStateOf<Float?>(null) }
+        val shouldAddClipCircleModifier by remember {
+            derivedStateOf { progressAnimatable.isRunning }
+        }
+        Box(
+            modifier = Modifier
+                .onGloballyPositioned { coordinates ->
+                    val ownPosInParent = coordinates.positionInParent()
+                    visibleHeightInParent = calcVisibleHeightInScrollableContainer(
+                        containerScrollState = containerScrollState,
+                        ownPosInContainer = ownPosInParent.y,
+                    )
+                }
+                /*
+                 * 1. Scrolling outer container updates 'visibleHeightInParent'.
+                 * 2. 'drawWithCache()' detects this because it is being read in 'center()' lambda and re-draws 'clipCircle()'.
+                 * To avoid unnecessary re-draws, don't apply 'clipCircle()' if it won't make the difference in UI.
+                 */
+                .thenIf(shouldAddClipCircleModifier) {
+                    clipCircle(
+                        center = { size ->
+                            val h = visibleHeightInParent
+                            if (h != null && h != 0f) {
+                                val focalPointOffset =
+                                    with(density) { ColorCenterFocalPointBottomOffset.toPx() }
+                                val y = (h - focalPointOffset).coerceAtLeast(0f)
+                                Offset(x = size.width / 2, y = y)
+                            } else {
+                                size.center
+                            }
+                        },
+                        radius = RadiusProvider { size, minCoverRadius ->
+                            minCoverRadius * progressAnimatable.value
+                        },
+                    )
+                },
+        ) {
+            val colorCenter = stateOfRetainedColorCenter.value
+            colorCenter?.invoke()
+        }
+    }
+}

@@ -7,6 +7,7 @@ import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
+import io.github.mmolosay.thecolor.utils.requireEmit
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -75,8 +76,7 @@ class ColorInputMediator @AssistedInject constructor(
             }
 
     init {
-        // should be 100% successful with BufferOverflow.DROP_OLDEST
-        colorStateFlow.tryEmit(ColorState.AbsentOrInvalid)
+        colorStateFlow.requireEmit(ColorState.AbsentOrInvalid)
     }
 
     /**
@@ -87,13 +87,13 @@ class ColorInputMediator @AssistedInject constructor(
      * Passing `null` [color] will emit empty [ColorInput]s from flows.
      * Passing `null` [from] will not ignore any flow and all of them will emit.
      */
-    suspend fun send(
+    fun send(
         color: Color?,
         from: DomainColorInputType?,
     ) {
         lastSourceInputType = from
         colorInputColorStore.set(color)
-        colorStateFlow.emit(color.toState())
+        colorStateFlow.requireEmit(color.toState())
     }
 
     private fun Color?.toState(): ColorState =

@@ -169,8 +169,7 @@ fun ColorCenter(
     ) { i ->
         val page = pages[i]
         Box(
-            modifier = Modifier
-                .sizeIn(minHeight = minHeightDp ?: Dp.Unspecified),
+            modifier = Modifier.sizeIn(minHeight = minHeightDp ?: Dp.Unspecified),
             propagateMinConstraints = true, // propagate min height also to page content
         ) {
             page()
@@ -179,10 +178,13 @@ fun ColorCenter(
 
     LaunchedEffect(data.changePageEvent) {
         val event = data.changePageEvent ?: return@LaunchedEffect
-        userScrollEnabled = false
-        pagerState.animateScrollToPage(page = event.destPage)
-        event.onConsumed()
-        userScrollEnabled = true
+        try {
+            userScrollEnabled = false
+            pagerState.animateScrollToPage(page = event.destPage)
+            event.onConsumed()
+        } finally {
+            userScrollEnabled = true // ensure re-enabled if LaunchedEffect() is cancelled
+        }
     }
 }
 

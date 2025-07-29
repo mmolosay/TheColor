@@ -1,15 +1,21 @@
 package io.github.mmolosay.thecolor.presentation.design
 
 import android.content.Context
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import io.github.mmolosay.thecolor.presentation.design.Material3DynamicColorsAvailability.areDynamicColorsAvailable
 import androidx.compose.material3.ColorScheme as MaterialColorScheme
 
@@ -139,61 +145,74 @@ private val midnightColorScheme: MaterialColorScheme by lazy {
     )
 }
 
-/*
- * Animating each color of MaterialColorScheme using 'animateAsState()' is expensive.
- * There's a room for improvement TODO: improve performance
- */
 @Composable
 fun MaterialColorScheme.animateColors(): MaterialColorScheme {
-    val animationSpec = tween<Color>(
-        durationMillis = 400,
-        easing = LinearOutSlowInEasing,
-    )
+    val target = this
+    var animated by remember { mutableStateOf(target) }
+    LaunchedEffect(target) {
+        val source = animated
+        if (source == target) return@LaunchedEffect
+        val animatable = Animatable(initialValue = 0f)
+        animatable.animateTo(
+            targetValue = 1f,
+            animationSpec = spring(
+                stiffness = Spring.StiffnessLow,
+                visibilityThreshold = Spring.DefaultDisplacementThreshold,
+            ),
+        ) {
+            animated = lerp(source, target, value)
+        }
+    }
+    return animated
+}
 
-    @Suppress("AnimateAsStateLabel")
-    @Composable
-    fun Color.animateAsState() =
-        animateColorAsState(
-            targetValue = this,
-            animationSpec = animationSpec,
+private fun lerp(
+    start: MaterialColorScheme,
+    stop: MaterialColorScheme,
+    fraction: Float,
+): MaterialColorScheme {
+    fun lerp(color: MaterialColorScheme.() -> Color): Color =
+        lerp(
+            start = start.color(),
+            stop = stop.color(),
+            fraction = fraction,
         )
-
-    return this.copy(
-        primary = this.primary.animateAsState().value,
-        onPrimary = this.onPrimary.animateAsState().value,
-        primaryContainer = this.primaryContainer.animateAsState().value,
-        onPrimaryContainer = this.onPrimaryContainer.animateAsState().value,
-        inversePrimary = this.inversePrimary.animateAsState().value,
-        secondary = this.secondary.animateAsState().value,
-        onSecondary = this.onSecondary.animateAsState().value,
-        secondaryContainer = this.secondaryContainer.animateAsState().value,
-        onSecondaryContainer = this.onSecondaryContainer.animateAsState().value,
-        tertiary = this.tertiary.animateAsState().value,
-        onTertiary = this.onTertiary.animateAsState().value,
-        tertiaryContainer = this.tertiaryContainer.animateAsState().value,
-        onTertiaryContainer = this.onTertiaryContainer.animateAsState().value,
-        background = this.background.animateAsState().value,
-        onBackground = this.onBackground.animateAsState().value,
-        surface = this.surface.animateAsState().value,
-        onSurface = this.onSurface.animateAsState().value,
-        surfaceVariant = this.surfaceVariant.animateAsState().value,
-        onSurfaceVariant = this.onSurfaceVariant.animateAsState().value,
-        surfaceTint = this.surfaceTint.animateAsState().value,
-        inverseSurface = this.inverseSurface.animateAsState().value,
-        inverseOnSurface = this.inverseOnSurface.animateAsState().value,
-        error = this.error.animateAsState().value,
-        onError = this.onError.animateAsState().value,
-        errorContainer = this.errorContainer.animateAsState().value,
-        onErrorContainer = this.onErrorContainer.animateAsState().value,
-        outline = this.outline.animateAsState().value,
-        outlineVariant = this.outlineVariant.animateAsState().value,
-        scrim = this.scrim.animateAsState().value,
-        surfaceBright = this.surfaceBright.animateAsState().value,
-        surfaceDim = this.surfaceDim.animateAsState().value,
-        surfaceContainer = this.surfaceContainer.animateAsState().value,
-        surfaceContainerHigh = this.surfaceContainerHigh.animateAsState().value,
-        surfaceContainerHighest = this.surfaceContainerHighest.animateAsState().value,
-        surfaceContainerLow = this.surfaceContainerLow.animateAsState().value,
-        surfaceContainerLowest = this.surfaceContainerLowest.animateAsState().value,
+    return MaterialColorScheme(
+        primary = lerp { primary },
+        onPrimary = lerp { onPrimary },
+        primaryContainer = lerp { primaryContainer },
+        onPrimaryContainer = lerp { onPrimaryContainer },
+        inversePrimary = lerp { inversePrimary },
+        secondary = lerp { secondary },
+        onSecondary = lerp { onSecondary },
+        secondaryContainer = lerp { secondaryContainer },
+        onSecondaryContainer = lerp { onSecondaryContainer },
+        tertiary = lerp { tertiary },
+        onTertiary = lerp { onTertiary },
+        tertiaryContainer = lerp { tertiaryContainer },
+        onTertiaryContainer = lerp { onTertiaryContainer },
+        background = lerp { background },
+        onBackground = lerp { onBackground },
+        surface = lerp { surface },
+        onSurface = lerp { onSurface },
+        surfaceVariant = lerp { surfaceVariant },
+        onSurfaceVariant = lerp { onSurfaceVariant },
+        surfaceTint = lerp { surfaceTint },
+        inverseSurface = lerp { inverseSurface },
+        inverseOnSurface = lerp { inverseOnSurface },
+        error = lerp { error },
+        onError = lerp { onError },
+        errorContainer = lerp { errorContainer },
+        onErrorContainer = lerp { onErrorContainer },
+        outline = lerp { outline },
+        outlineVariant = lerp { outlineVariant },
+        scrim = lerp { scrim },
+        surfaceBright = lerp { surfaceBright },
+        surfaceDim = lerp { surfaceDim },
+        surfaceContainer = lerp { surfaceContainer },
+        surfaceContainerHigh = lerp { surfaceContainerHigh },
+        surfaceContainerHighest = lerp { surfaceContainerHighest },
+        surfaceContainerLow = lerp { surfaceContainerLow },
+        surfaceContainerLowest = lerp { surfaceContainerLowest },
     )
 }

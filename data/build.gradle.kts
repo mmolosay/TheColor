@@ -39,11 +39,6 @@ dependencies {
     implementation("javax.inject:javax.inject:1")
 
     // Local
-    val roomVersion = libs.versions.room.get()
-    implementation("androidx.room:room-runtime:$roomVersion")
-    implementation("androidx.room:room-ktx:$roomVersion")
-    ksp("androidx.room:room-compiler:$roomVersion")
-
     implementation("androidx.datastore:datastore-preferences:${libs.versions.dataStore.preferences.get()}")
 
     // Remote

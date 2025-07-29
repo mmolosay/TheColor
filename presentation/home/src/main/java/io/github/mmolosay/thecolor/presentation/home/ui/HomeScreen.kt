@@ -2,7 +2,6 @@ package io.github.mmolosay.thecolor.presentation.home.ui
 
 import android.widget.Toast
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -45,9 +44,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -55,13 +56,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onPlaced
-import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -70,7 +69,6 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -94,34 +92,30 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeNavEvent
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
-import io.github.mmolosay.thecolor.presentation.impl.CircularReveal
-import io.github.mmolosay.thecolor.presentation.impl.CircularRevealAnimator
 import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver
 import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent
-import io.github.mmolosay.thecolor.presentation.impl.RadiusProvider
 import io.github.mmolosay.thecolor.presentation.impl.TintedSurface
-import io.github.mmolosay.thecolor.presentation.impl.calcVisibleHeightInScrollableParent
-import io.github.mmolosay.thecolor.presentation.impl.clipCircle
-import io.github.mmolosay.thecolor.presentation.impl.framesDuration
 import io.github.mmolosay.thecolor.presentation.impl.onlyBottom
-import io.github.mmolosay.thecolor.presentation.impl.retained
-import io.github.mmolosay.thecolor.presentation.impl.retainedNotNull
 import io.github.mmolosay.thecolor.presentation.impl.toCompose
-import io.github.mmolosay.thecolor.presentation.impl.toDpOffset
 import io.github.mmolosay.thecolor.presentation.impl.toDpSize
 import io.github.mmolosay.thecolor.presentation.impl.toLifecycleEventObserver
 import io.github.mmolosay.thecolor.presentation.impl.withoutBottom
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInput
-import io.github.mmolosay.thecolor.presentation.preview.ColorPreview
-import io.github.mmolosay.thecolor.utils.cache.CacheStore
+import io.github.mmolosay.thecolor.presentation.preview.AnimatedColorPreview
 import io.github.mmolosay.thecolor.utils.cache.DequeCache
 import io.github.mmolosay.thecolor.utils.cache.PruneOnSizeThreshold
 import io.github.mmolosay.thecolor.utils.doNothing
-import kotlinx.coroutines.delay
+import io.github.mmolosay.thecolor.utils.stabilize
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.stateIn
 import kotlin.random.Random
 
 @Composable
@@ -131,18 +125,43 @@ fun HomeScreen(
     navBarAppearanceController: NavBarAppearanceController,
 ) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
     val strings = remember(context) { HomeUiStrings(context) }
-    val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
     val navEventFlow = viewModel.navEventFlow.filterNotNull()
     val selectedSwatchDetailsDialogController = remember(navBarAppearanceController) {
         navBarAppearanceController.branch("Selected Swatch Details Dialog")
     }
+    val colorInput: @Composable () -> Unit = {
+        ColorInput(
+            viewModel = viewModel.colorInputViewModel,
+        )
+    }
+    val colorPreview: ColorPreviewWithDependencies = remember {
+        ColorPreviewWithDependencies(
+            viewModel = viewModel.colorPreviewViewModel,
+        ) { animController, onUiStateReached ->
+            AnimatedColorPreview(
+                animController = animController,
+                onUiStateReached = onUiStateReached,
+            )
+        }
+    }
     val colorCenter: ColorCenterComposable? = run {
-        val viewModel = viewModel.colorCenterViewModelFlow
-            .collectAsStateWithLifecycle().value
-            ?: return@run null
+        val viewModel = run {
+            val upstream = viewModel.colorCenterViewModelFlow
+            val flowOfColorCenterViewModel = remember {
+                upstream
+                    .stabilize(viewModel.flowOfIsDataBeingUpdated)
+                    .distinctUntilChanged()
+            }
+            flowOfColorCenterViewModel
+                .collectAsStateWithLifecycle(initialValue = upstream.value)
+                .value
+        }
         remember(viewModel) {
-            ColorCenterComposable {
+            if (viewModel == null) return@remember null
+            return@remember {
                 ColorCenter(
                     viewModel = viewModel,
                 )
@@ -150,23 +169,49 @@ fun HomeScreen(
         }
     }
 
+    val flowOfUiState = remember {
+        val flowOfIsColorPreviewVisible = viewModel.colorPreviewViewModel.dataFlow
+            .filterNotNull()
+            .map { data -> isColorPreviewVisible(data) }
+        val flowOfIsColorCenterVisible = viewModel.dataFlow
+            .map { data -> isColorCenterVisible(data.proceedResult) }
+        combine(flowOfIsColorPreviewVisible, flowOfIsColorCenterVisible, ::HomeUiState)
+            .stabilize(viewModel.flowOfIsDataBeingUpdated)
+            .distinctUntilChanged()
+            // make it hot to allow replaying last value when creating 'animController'
+            .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
+    }
+    val animController by produceState<HomeAnimController?>(initialValue = null) {
+        val uiState = flowOfUiState.first()
+        value = HomeAnimController(uiState.toAnimState())
+    }
+    LaunchedEffect(Unit) {
+        flowOfUiState.collect { uiState ->
+            val animController = animController ?: return@collect
+            val sequence = HomeAnimSequence(
+                from = animController.currentState,
+                to = uiState.toAnimState(),
+            )
+            animController.run(sequence)
+        }
+    }
+
+    val data = run {
+        val flowOfData = remember {
+            viewModel.dataFlow.stabilize(viewModel.flowOfIsDataBeingUpdated)
+        }
+        flowOfData.collectAsStateWithLifecycle(initialValue = viewModel.dataFlow.value).value
+    }
+
     HomeScreen(
         data = data,
         strings = strings,
         navEventFlow = navEventFlow,
-        cacheStore = viewModel.cacheStore,
-        colorInput = {
-            ColorInput(
-                viewModel = viewModel.colorInputViewModel,
-            )
-        },
-        colorPreview = {
-            ColorPreview(
-                viewModel = viewModel.colorPreviewViewModel,
-            )
-        },
+        colorInput = colorInput,
+        colorPreview = colorPreview,
         colorCenter = colorCenter,
         navigateToSettings = navigateToSettings,
+        animController = animController,
         navBarAppearanceController = navBarAppearanceController,
     )
 
@@ -176,21 +221,31 @@ fun HomeScreen(
     )
 }
 
-fun interface ColorCenterComposable {
-    @Composable
-    operator fun invoke()
-}
+/** Describes UI state of 'Home' View. Used to infer appropriate animation sequence / state. */
+private data class HomeUiState(
+    val isColorPreviewVisible: Boolean,
+    val isColorCenterVisible: Boolean,
+)
+
+private fun HomeUiState.toAnimState(): HomeAnimState =
+    HomeAnimState(
+        isColorPreviewVisible = this.isColorPreviewVisible,
+        isColorCenterVisible = this.isColorCenterVisible,
+    )
+
+// syntactic sugar that makes nullable types easier to read
+internal typealias ColorCenterComposable = @Composable () -> Unit
 
 @Composable
-fun HomeScreen(
+private fun HomeScreen(
     data: HomeData,
     strings: HomeUiStrings,
     navEventFlow: Flow<HomeNavEvent>,
-    cacheStore: CacheStore,
     colorInput: @Composable () -> Unit,
-    colorPreview: @Composable () -> Unit,
+    colorPreview: ColorPreviewWithDependencies,
     colorCenter: ColorCenterComposable?,
     navigateToSettings: () -> Unit,
+    animController: HomeAnimController?,
     navBarAppearanceController: NavBarAppearanceController,
 ) {
     val focusManager = LocalFocusManager.current
@@ -204,10 +259,10 @@ fun HomeScreen(
                 .consumeWindowInsets(contentPadding), // ensures correct height of 'TopAppBar()'
             data = data,
             strings = strings,
-            cacheStore = cacheStore,
             colorInput = colorInput,
             colorPreview = colorPreview,
             colorCenter = colorCenter,
+            animController = animController,
             navBarAppearanceController = navBarAppearanceController,
         )
     }
@@ -226,29 +281,35 @@ fun HomeScreen(
 }
 
 @Composable
-fun Home(
+private fun Home(
     data: HomeData,
     strings: HomeUiStrings,
-    cacheStore: CacheStore,
     colorInput: @Composable () -> Unit,
-    colorPreview: @Composable () -> Unit,
+    colorPreview: ColorPreviewWithDependencies,
     colorCenter: ColorCenterComposable?,
+    animController: HomeAnimController?,
     navBarAppearanceController: NavBarAppearanceController,
     modifier: Modifier = Modifier,
 ) {
     val density = LocalDensity.current
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
+    val proceedResult = data.proceedResult
+
     val scrollState = rememberScrollState()
-    var positionInRoot by remember { mutableStateOf<DpOffset?>(null) }
+    val stateOfViewportHeight = produceState<Int?>(initialValue = null, /*keys*/ scrollState.viewportSize) {
+        value = scrollState.viewportSize.takeUnless { it == 0 } // consider 0 size as unknown
+    }
+    val stateOfPosInRoot = remember { mutableStateOf<Offset?>(null) }
     var size by remember { mutableStateOf<DpSize?>(null) }
+
     Column(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(state = scrollState)
             .onGloballyPositioned { coordinates ->
-                positionInRoot = coordinates
-                    .positionInRoot()
-                    .toDpOffset(density)
+                stateOfPosInRoot.value = coordinates.positionInRoot()
                 size = coordinates.size.toDpSize(density)
             },
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -285,29 +346,60 @@ fun Home(
         )
 
         Spacer(modifier = Modifier.height(8.dp))
-        // TODO: animated color preview is a part of bigger animation, see AnimatedColorCenter.kt
-//        AnimatedColorPreview(
-//            colorPreview = colorPreview,
-//            state = uiData.colorPreviewState,
-//            containerSize = size,
-//            containerPositionInRoot = positionInRoot,
-//        )
-        colorPreview()
 
-        Spacer(modifier = Modifier.height(16.dp))
-//        AnimatedColorCenter {
-        ColorCenterContainer(
-            colorCenter = colorCenter,
-            proceedResult = data.proceedResult,
-            cacheStore = cacheStore,
-            navBarAppearanceController = navBarAppearanceController,
-            parentScrollState = scrollState,
-        )
-//        }
+        if (animController != null) {
+            AnimatedColorPreview(
+                colorPreview = colorPreview,
+                flowOfPositionAnimDest = kotlin.run {
+                    val upstream = animController.flowOfDestState
+                    remember(upstream) {
+                        fun value(animState: HomeAnimState) = animState.colorPreviewPosition
+                        upstream
+                            .map(::value)
+                            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), value(upstream.value))
+                    }
+                },
+                flowOfVisibilityAnimDest = kotlin.run {
+                    val upstream = animController.flowOfDestState
+                    remember(upstream) {
+                        fun value(animState: HomeAnimState) = animState.colorPreviewVisibility
+                        upstream
+                            .map(::value)
+                            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), value(upstream.value))
+                    }
+                },
+                onPositionReached = animController::onValueReached,
+                onVisibilityReached = animController::onValueReached,
+                stateOfContainerViewportHeight = stateOfViewportHeight,
+                stateOfContainerPosInRoot = stateOfPosInRoot,
+            )
+            val decoratedColorCenter = remember(colorCenter, proceedResult) {
+                decoratedColorCenterComposable(
+                    colorCenter = colorCenter,
+                    proceededColorData = (proceedResult as? ProceedResult.Success)?.colorData,
+                    navBarAppearanceController = navBarAppearanceController,
+                    containerScrollState = scrollState,
+                    stateOfContainerPosInRoot = stateOfPosInRoot,
+                )
+            }
+            AnimatedColorCenter(
+                colorCenter = decoratedColorCenter,
+                flowOfAnimDest = kotlin.run {
+                    val upstream = animController.flowOfDestState
+                    remember(upstream) {
+                        fun value(animState: HomeAnimState) = animState.colorCenter
+                        upstream
+                            .map(::value)
+                            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), value(upstream.value))
+                    }
+                },
+                onReached = animController::onValueReached,
+                containerScrollState = scrollState,
+            )
+        }
     }
 
     val softwareKeyboardController = LocalSoftwareKeyboardController.current
-    val proceedResult = data.proceedResult
     LaunchedEffect(proceedResult) {
         when (proceedResult) {
             is ProceedResult.Success -> {
@@ -324,6 +416,11 @@ fun Home(
             null -> doNothing()
         }
     }
+
+    ScrollToTopOnNullProceedResultAsSideEffect(
+        proceedResult = proceedResult,
+        scrollState = scrollState,
+    )
 }
 
 @Composable
@@ -355,7 +452,7 @@ private fun ProceedButton(
     val colors = ButtonDefaults.buttonColors()
     val colorsAnimationProgress by animateFloatAsState(
         targetValue = if (enabled) 1f else 0f,
-        // animationSpec is default to be the same as in Color Preview
+        // animationSpec is kept default to be the same as in Color Preview
         label = "proceed button colors",
     )
     val animatedColors = ButtonColors(
@@ -409,159 +506,54 @@ private fun RandomizeColorButton(
     }
 }
 
-/**
- * Contains "container" in name to convey that this Composable may or
- * may not display [colorCenter], which is its primary content.
- */
-@Composable
-private fun ColorCenterContainer(
+private fun decoratedColorCenterComposable(
     colorCenter: ColorCenterComposable?,
-    proceedResult: ProceedResult?,
-    cacheStore: CacheStore,
+    proceededColorData: ProceedResult.Success.ColorData?,
     navBarAppearanceController: NavBarAppearanceController,
-    parentScrollState: ScrollState,
-) {
-    val density = LocalDensity.current
-    val coroutineScope = rememberCoroutineScope()
-
-    val proceedResultCacheTag = CacheStore.Tag("ProceedResultCacheTag")
-    val proceedResultCache = cacheStore.getOrNew<ProceedResult?>(proceedResultCacheTag) {
-        DequeCache(
-            mutationListener = PruneOnSizeThreshold(
-                cacheSizeThreshold = 10, numberOfLatestElementsToKeep = 2,
-            ),
-        )
-    }
-    fun currentAndPreviousFromCache(): Pair<ProceedResult?, ProceedResult?> {
-        val values = proceedResultCache.asReversed()
-        val current = values.getOrNull(0)
-        val previous = values.getOrNull(1)
-        return Pair(current, previous)
-    }
-    fun hasProceedResultBecomeSuccess(): Boolean {
-        val (current, previous) = currentAndPreviousFromCache()
-        return (current is ProceedResult.Success && previous !is ProceedResult.Success)
-    }
-    fun hasProceedResultBecomeNull(): Boolean {
-        val (current, previous) = currentAndPreviousFromCache()
-        return (current == null && previous is ProceedResult.Success)
-    }
-
-    val retainedProceedResult = retained(proceedResult) { actual, memoized ->
-        val memoizedIsSuccess = (memoized is ProceedResult.Success)
-        val actualIsNotSuccess = (actual !is ProceedResult.Success)
-        if (memoizedIsSuccess && actualIsNotSuccess) {
-            delay(2.framesDuration)
-        }
-        value = actual
-    }
-    LaunchedEffect(retainedProceedResult) {
-        proceedResultCache += retainedProceedResult
-    }
-
-    val circularRevealAnimator = remember {
-        val initialProgressValue = when {
-            retainedProceedResult is ProceedResult.Success -> CircularRevealAnimator.FullyExpandedValue
-            else -> CircularRevealAnimator.FullyCollapsedValue
-        }
-        CircularRevealAnimator(
-            progressAnimatable = Animatable(initialValue = initialProgressValue),
-            expandAnimationSpec = spring(stiffness = 100f),
-            collapseAnimationSpec = spring(stiffness = 300f),
-        )
-    }
-    LaunchedEffect(retainedProceedResult) {
-        when {
-            hasProceedResultBecomeSuccess() -> {
-                coroutineScope.launch { circularRevealAnimator.expand() }
-            }
-            hasProceedResultBecomeNull() -> {
-                coroutineScope.launch { circularRevealAnimator.collapse() }
-            }
-        }
-    }
-
-    /** Wrapper for decorated [colorCenter] with specific positioning inside the parent and animations. */
-    @Composable
-    fun ColorCenter(
-        data: ProceedResult.Success,
-        colorCenter: ColorCenterComposable,
-    ) {
-        // calculate min height of Color Center so that its bottom matches bottom of the parent Column
-        var minHeight by remember { mutableStateOf<Dp>(Dp.Unspecified) }
-        var visibleHeightInParent by remember { mutableStateOf<Float?>(null) }
-
-        ColorCenter(
+    containerScrollState: ScrollState,
+    stateOfContainerPosInRoot: State<Offset?>,
+): ColorCenterComposable? {
+    if (colorCenter == null) return null
+    if (proceededColorData == null) return null
+    return {
+        val density = LocalDensity.current
+        val stateOfMinHeight = remember { mutableStateOf<Dp>(Dp.Unspecified) }
+        DecoratedColorCenter(
             modifier = Modifier
                 .onPlaced { coordinates ->
-                    val ownYPos = coordinates.positionInParent().y
-                    val parentHeight = parentScrollState.viewportSize
-                    val ownMinHeight = parentHeight - ownYPos
-                    minHeight = with(density) { ownMinHeight.toDp() }
-                }
-                .onGloballyPositioned { coordinates ->
-                    val ownPosInParent = coordinates.positionInParent()
-                    visibleHeightInParent = calcVisibleHeightInScrollableParent(
-                        parentScrollState = parentScrollState,
-                        ownPosInParent = ownPosInParent.y,
-                    )
-                }
-                .clipCircle(
-                    center = { size ->
-                        val h = visibleHeightInParent
-                        if (h != null && h != 0f) Offset(x = size.width / 2, y = h)
-                        else size.center
-                    },
-                    radius = RadiusProvider { size, minCoverRadius ->
-                        minCoverRadius * circularRevealAnimator.progressAnimatable.value
-                    },
-                ),
-            surfaceColor = data.colorData.color.toCompose(),
-            isSurfaceColorDark = data.colorData.isDark,
+                    // calculate min height of Color Center so that its bottom matches bottom of the parent Column
+                    val containerPosInRoot = stateOfContainerPosInRoot.value ?: return@onPlaced
+                    val containerHeight = containerScrollState.viewportSize
+                    val ownPosInRoot = coordinates.positionInRoot()
+                    val ownYPosInContainer = (ownPosInRoot - containerPosInRoot).y
+                    stateOfMinHeight.value =
+                        with(density) { (containerHeight - ownYPosInContainer).toDp() }
+                },
+            surfaceColor = proceededColorData.color.toCompose(),
+            isSurfaceColorDark = proceededColorData.isDark,
             colorCenter = colorCenter,
             navBarAppearanceController = navBarAppearanceController,
-            minHeight = minHeight,
+            stateOfMinHeight = stateOfMinHeight,
         )
-    }
-
-    val actualColorCenter: ColorCenterComposable? =
-        remember(colorCenter, retainedProceedResult) {
-            colorCenter ?: return@remember null
-            val retainedAsSuccess = (retainedProceedResult as? ProceedResult.Success) ?: return@remember null
-            ColorCenterComposable {
-                ColorCenter(
-                    data = retainedAsSuccess,
-                    colorCenter = colorCenter,
-                )
-            }
-        }
-    val retainedColorCenter = retainedNotNull(actualValue = actualColorCenter)
-
-    CircularReveal(
-        animator = circularRevealAnimator,
-    ) {
-        retainedColorCenter?.invoke()
     }
 }
 
 /** Decorates bare [colorCenter] in a way that's specific for this screen. */
 @Composable
-private fun ColorCenter(
+private fun DecoratedColorCenter(
     surfaceColor: Color,
     isSurfaceColorDark: Boolean,
     colorCenter: ColorCenterComposable,
     navBarAppearanceController: NavBarAppearanceController,
     modifier: Modifier = Modifier,
-    minHeight: Dp,
+    stateOfMinHeight: State<Dp>, // wrapped in State to avoid recompositions
 ) {
-    val animationSpec = spring<Color>(stiffness = 100f)
+    fun <T> animationSpec() = spring<T>(stiffness = 100f)
     val contentColors = if (isSurfaceColorDark) colorsOnDarkSurface() else colorsOnLightSurface()
-    val animatedContentColors = contentColors.animate(
-        animationSpec = animationSpec,
-    )
+    val animatedContentColors = contentColors.animate(animationSpec())
     val animatedSurfaceColor by animateColorAsState(
         targetValue = surfaceColor,
-        animationSpec = animationSpec,
+        animationSpec = animationSpec(),
         label = "surface color",
     )
     TintedSurface(
@@ -576,7 +568,7 @@ private fun ColorCenter(
         val windowInsets = WindowInsets.systemBars.onlyBottom()
         Box(
             modifier = Modifier
-                .sizeIn(minHeight = minHeight) // it's important to set size before paddings
+                .sizeIn(minHeight = stateOfMinHeight.value) // it's important to set size before paddings
                 .padding(windowInsets.asPaddingValues())
                 .consumeWindowInsets(windowInsets)
                 .padding(top = 24.dp), // to accommodate to convex 'ColorCenterShape'
@@ -654,6 +646,30 @@ private fun SelectedSwatchDetailsDialogContainer(
     }
 }
 
+@Composable
+private fun ScrollToTopOnNullProceedResultAsSideEffect(
+    proceedResult: ProceedResult?,
+    scrollState: ScrollState,
+) {
+    val cacheOfProceedResult = remember {
+        DequeCache<ProceedResult?>(
+            mutationListener = PruneOnSizeThreshold(cacheSizeThreshold = 2),
+        )
+    }
+    LaunchedEffect(proceedResult) {
+        val current = proceedResult
+        // previous may be present but equal to 'null'
+        if (cacheOfProceedResult.isNotEmpty()) {
+            val previous = cacheOfProceedResult.last()
+            val wasSuccessButBecameNull = (previous is ProceedResult.Success && current == null)
+            if (wasSuccessButBecameNull && scrollState.value != 0) {
+                scrollState.animateScrollTo(0)
+            }
+        }
+        cacheOfProceedResult += proceedResult
+    }
+}
+
 /**
  * An [Arrangement] for [ButtonSection].
  * Places first element right in the center of the container.
@@ -726,8 +742,7 @@ private fun Preview() {
         HomeScreen(
             data = previewData(),
             strings = previewUiStrings(),
-            navEventFlow = emptyFlow(),
-            cacheStore = remember { CacheStore() },
+            navEventFlow = remember { emptyFlow() },
             colorInput = {
                 Text(
                     modifier = Modifier
@@ -738,12 +753,13 @@ private fun Preview() {
                     text = "Color Input",
                 )
             },
-            colorPreview = {
-                Text(
-                    modifier = Modifier
-                        .background(Color.LightGray),
-                    text = "Color Preview",
-                )
+            colorPreview = remember {
+                NoopColorPreviewWithDependencies { _, _ ->
+                    Text(
+                        modifier = Modifier.background(Color.LightGray),
+                        text = "Color Preview",
+                    )
+                }
             },
             colorCenter = {
                 Text(
@@ -756,6 +772,14 @@ private fun Preview() {
                 )
             },
             navigateToSettings = {},
+            animController = remember {
+                val currentState = HomeAnimState(
+                    colorPreviewPosition = HomeAnimState.ColorPreview.Position.NotDived,
+                    colorPreviewVisibility = HomeAnimState.ColorPreview.Visibility.Hidden,
+                    colorCenter = HomeAnimState.ColorCenter.Collapsed,
+                )
+                HomeAnimController(currentState)
+            },
             navBarAppearanceController = remember { RootNavBarAppearanceController() },
         )
     }

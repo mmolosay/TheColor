@@ -74,8 +74,9 @@ class CreateColorDetailsDataUseCaseTest {
             sut = it
         }
 
-    // Arrow lenses cannot be used properly: copy {} doesn't seem to work with my Kotlin version
-    // https://arrow-kt.io/learn/immutable-data/lens/#more-powerful-copy
+    // Arrow lenses are tedious to use with sealed classes without inherited properties.
+    // Doesn't worth employing lenses to be used only here.
+    // https://arrow-kt.io/learn/immutable-data/lens/#sealed-class-hierarchies
     fun ColorDetailsData.copyWithNoopLambdas() =
         this.copy(
             exactMatch = exactMatch.run {

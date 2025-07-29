@@ -1,7 +1,7 @@
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    id("kotlin-kapt")
+    id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
     id("org.jetbrains.kotlin.plugin.compose")
 }
@@ -36,10 +36,6 @@ android {
             val version = libs.versions.java.get().toInt()
             languageVersion.set(JavaLanguageVersion.of(version))
         }
-    }
-
-    kapt {
-        correctErrorTypes = true
     }
 }
 
@@ -76,7 +72,7 @@ dependencies {
 
     // Hilt
     implementation("com.google.dagger:hilt-android:${libs.versions.hilt.get()}")
-    kapt("com.google.dagger:hilt-android-compiler:${libs.versions.hilt.get()}")
+    ksp("com.google.dagger:hilt-android-compiler:${libs.versions.hilt.get()}")
 
     // Misc (preserve alphabetical order)
     implementation("com.jakewharton.timber:timber:${libs.versions.jakewhartonTimber.get()}")

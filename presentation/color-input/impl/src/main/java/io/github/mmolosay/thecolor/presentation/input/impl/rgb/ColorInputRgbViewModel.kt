@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -68,6 +69,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     private val fullDataUpdateFlow: StateFlow<Update<FullDataRgb>?> =
         dataUpdateFlow
             .map(::makeFullDataUpdate)
+            .flowOn(defaultDispatcher)
             .onEachNotNull(::onEachFullDataUpdate)
             .stateIn(
                 scope = coroutineScope,
@@ -79,6 +81,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         fullDataUpdateFlow
             .map { update -> update?.payload?.coreData }
             .map { colorInputRgbData -> colorInputRgbData.asDataState() }
+            .flowOn(defaultDispatcher)
             .stateIn(
                 scope = coroutineScope,
                 started = SharingStartedEagerlyAnd(WhileSubscribed(5000)),
@@ -195,9 +198,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         // don't synchronize this update with other Views to avoid update loop
         if (!update.causedByUser) return
         val parsedColor = (update.payload.colorInputState as? ColorInputState.Valid)?.color
-        coroutineScope.launch(uiDataUpdateDispatcher) {
-            mediator.send(color = parsedColor, from = DomainColorInputType.Rgb)
-        }
+        mediator.send(color = parsedColor, from = DomainColorInputType.Rgb)
     }
 
     private fun onSubmitEventConsumed(wasAccepted: Boolean) {

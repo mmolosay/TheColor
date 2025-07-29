@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -64,6 +65,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
     private val fullDataUpdateFlow: StateFlow<Update<FullDataHex>?> =
         dataUpdateFlow
             .map(::makeFullDataUpdate)
+            .flowOn(defaultDispatcher)
             .onEachNotNull(::onEachFullDataUpdate)
             .stateIn(
                 scope = coroutineScope,
@@ -75,6 +77,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
         fullDataUpdateFlow
             .map { update -> update?.payload?.coreData }
             .map { colorInputHexData -> colorInputHexData.asDataState() }
+            .flowOn(defaultDispatcher)
             .stateIn(
                 scope = coroutineScope,
                 started = SharingStartedEagerlyAnd(WhileSubscribed(5000)),
@@ -165,9 +168,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
         // don't synchronize this update with other Views to avoid update loop
         if (!update.causedByUser) return
         val parsedColor = (update.payload.colorInputState as? ColorInputState.Valid)?.color
-        coroutineScope.launch(uiDataUpdateDispatcher) {
-            mediator.send(color = parsedColor, from = DomainColorInputType.Hex)
-        }
+        mediator.send(color = parsedColor, from = DomainColorInputType.Hex)
     }
 
     private fun onSubmitEventConsumed(wasAccepted: Boolean) {
