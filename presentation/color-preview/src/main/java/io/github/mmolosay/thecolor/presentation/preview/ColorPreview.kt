@@ -12,7 +12,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -23,7 +22,6 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.api.ColorInt
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.impl.toCompose
@@ -67,6 +65,8 @@ fun ColorPreview(
 
 /**
  * Animated 'Color Preview' Composable.
+ *
+ * [animController] has to be operated on the side of the caller.
  */
 @Composable
 fun AnimatedColorPreview(
@@ -76,7 +76,7 @@ fun AnimatedColorPreview(
     val coroutineScope = rememberCoroutineScope()
 
     val mainUiState = animController.mainUiState
-    val updates by animController.flowOfVisibleUiStateUpdates.collectAsStateWithLifecycle()
+    val updatesOfVisibleUiState = animController.updatesOfVisibleUiState
 
     fun scaleTargetValue(dest: AnimState.Visibility): Float =
         when (dest) {
@@ -85,27 +85,29 @@ fun AnimatedColorPreview(
         }
 
     val scaleAnimatable = remember {
-        val initialVisibility = animController.visibilityDest.dest
+        val initialVisibility = animController.visibilityDest.value
         Animatable(initialValue = scaleTargetValue(initialVisibility))
     }
     LaunchedEffect(Unit) {
-        animController.flowOfVisibilityDest.collect { visibility ->
-            val targetValue = scaleTargetValue(visibility.dest)
+        animController.flowOfVisibilityDest.collect { visibilityDestWithCause ->
+            val (visibilityDest, cause) = visibilityDestWithCause
+            val targetValue = scaleTargetValue(visibilityDest)
             if (scaleAnimatable.value == targetValue) {
-                if (visibility.cause == mainUiState) {
-                    onUiStateReached(visibility.cause)
+                if (cause == animController.mainUiState) {
+                    onUiStateReached(cause)
                 }
                 return@collect // already in target state
             }
             if (scaleAnimatable.isRunning && scaleAnimatable.targetValue == targetValue) {
                 return@collect // already animating to target state
             }
+            // TODO: remove coroutine
             coroutineScope.launch {
                 scaleAnimatable.animateTo(
                     targetValue = targetValue,
                 )
-                animController.onVisibilityAnimFinished(reached = visibility)
-                onUiStateReached(visibility.cause)
+                animController.onVisibilityAnimFinished(reached = visibilityDestWithCause)
+                onUiStateReached(cause)
             }
         }
     }
@@ -116,7 +118,7 @@ fun AnimatedColorPreview(
         if (mainUiState is UiState.Visible) {
             MainPreview(color = mainUiState.color.toCompose())
         }
-        updates.forEach { update ->
+        updatesOfVisibleUiState.forEach { update ->
             // https://medium.com/@android-world/understanding-the-key-function-in-jetpack-compose-34accc92d567
             key(update) {
                 UpdateRipple(

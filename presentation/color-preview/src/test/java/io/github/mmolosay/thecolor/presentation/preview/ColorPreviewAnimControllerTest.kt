@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.preview
 
-import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController.VisibilityAnimDest
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController.VisibilityWithCause
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import org.junit.jupiter.api.Test
@@ -18,8 +18,8 @@ class ColorPreviewAnimControllerTest {
         val newUiState = mockk<UiState.Visible>()
         sut.onNewUiState(newUiState)
 
-        sut.flowOfVisibilityDest.value shouldBe VisibilityAnimDest(
-            dest = AnimState.Visibility.Expanded,
+        sut.flowOfVisibilityDest.value shouldBe VisibilityWithCause(
+            value = AnimState.Visibility.Expanded,
             cause = newUiState,
         )
     }
@@ -37,8 +37,8 @@ class ColorPreviewAnimControllerTest {
         val newUiState = mockk<UiState.Visible>()
         sut.onNewUiState(newUiState)
 
-        sut.flowOfVisibilityDest.value shouldBe VisibilityAnimDest(
-            dest = AnimState.Visibility.Expanded,
+        sut.flowOfVisibilityDest.value shouldBe VisibilityWithCause(
+            value = AnimState.Visibility.Expanded,
             cause = newUiState,
         )
     }
@@ -50,7 +50,7 @@ class ColorPreviewAnimControllerTest {
      * so that it's visible during expanding animation.
      */
     @Test
-    fun `given SUT is created with 'UiState Hidden', when new 'UiState Visible' arrives, then mainUiState is updated`() {
+    fun `given SUT is created with 'UiState Hidden', when new 'UiState Visible' arrives, then 'mainUiState' is updated`() {
         sut = ColorPreviewAnimControllerImpl(uiState = UiState.Hidden)
 
         val newUiState = mockk<UiState.Visible>()

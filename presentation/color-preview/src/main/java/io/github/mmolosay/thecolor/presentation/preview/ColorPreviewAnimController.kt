@@ -1,36 +1,44 @@
 package io.github.mmolosay.thecolor.presentation.preview
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController.UpdateOfVisibleUiState
-import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController.VisibilityAnimDest
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController.VisibilityWithCause
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimState.Visibility
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState as UiState
 
+/*
+ * This class takes different approach than `HomeAnimController`:
+ * while latter exposes data to View via platform-agnostic Flows,
+ * this class does so via Compose-specific State.
+ */
 // interface for better visibility of exposed API
 interface ColorPreviewAnimController {
     val latestUiState: UiState
     val mainUiState: UiState
 
-    val flowOfVisibilityDest: StateFlow<VisibilityAnimDest>
-    val visibilityDest: VisibilityAnimDest
+    // delivering values via Flow + collect() is quicker than via State + LaunchedEffect()
+    val flowOfVisibilityDest: StateFlow<VisibilityWithCause>
+    val visibilityDest: VisibilityWithCause
         get() = flowOfVisibilityDest.value
 
-    val flowOfVisibleUiStateUpdates: StateFlow<List<UpdateOfVisibleUiState>>
+    val updatesOfVisibleUiState: List<UpdateOfVisibleUiState>
 
-    fun onVisibilityAnimFinished(reached: VisibilityAnimDest)
     fun onNewUiState(uiState: UiState)
-    fun onUpdateAnimFinished(update: UpdateOfVisibleUiState)
+    /*internal*/ fun onVisibilityAnimFinished(reached: VisibilityWithCause)
+    /*internal*/ fun onUpdateAnimFinished(update: UpdateOfVisibleUiState)
 
-    data class VisibilityAnimDest(
-        val dest: Visibility,
+    /** Couples [Visibility] with the [UiState] that [cause]d it. */
+    data class VisibilityWithCause(
+        val value: Visibility,
         val cause: UiState,
     )
 
+    /** A `visible` [UiState] that arrived when the [mainUiState] was also `visible`. */
     data class UpdateOfVisibleUiState(
         val uiState: UiState.Visible,
         val id: Int,
@@ -49,25 +57,15 @@ class ColorPreviewAnimControllerImpl(
     override var latestUiState by mutableStateOf(uiState)
     override var mainUiState by mutableStateOf(uiState)
 
-    override val flowOfVisibilityDest = MutableStateFlow(value = uiState.toVisibilityAnimDest())
-    override val flowOfVisibleUiStateUpdates =
-        MutableStateFlow<List<UpdateOfVisibleUiState>>(emptyList())
-
-    override fun onVisibilityAnimFinished(reached: VisibilityAnimDest) {
-        if (reached.cause is UiState.Hidden) {
-            mainUiState = reached.cause
-            flowOfVisibleUiStateUpdates.update { emptyList() }
-        }
-    }
+    override val flowOfVisibilityDest = MutableStateFlow(value = uiState.toVisibilityWithCause())
+    override val updatesOfVisibleUiState = mutableStateListOf<UpdateOfVisibleUiState>()
 
     override fun onNewUiState(uiState: UiState) {
-        flowOfVisibilityDest.value = uiState.toVisibilityAnimDest()
+        flowOfVisibilityDest.value = uiState.toVisibilityWithCause()
         if (mainUiState is UiState.Visible && uiState is UiState.Visible) {
-            flowOfVisibleUiStateUpdates.update { updates ->
-                val id = updates.lastOrNull()?.id?.let { it + 1 } ?: 0
-                val update = UpdateOfVisibleUiState(uiState, id)
-                updates + update
-            }
+            val id = updatesOfVisibleUiState.lastOrNull()?.id?.let { it + 1 } ?: 0
+            val update = UpdateOfVisibleUiState(uiState, id)
+            updatesOfVisibleUiState += update
         } else {
             // set mainUiState so it's visible during animation
             if (uiState is UiState.Visible) {
@@ -77,19 +75,23 @@ class ColorPreviewAnimControllerImpl(
         this.latestUiState = uiState
     }
 
-    override fun onUpdateAnimFinished(update: UpdateOfVisibleUiState) {
-        mainUiState = update.uiState
-        flowOfVisibleUiStateUpdates.update { updates ->
-            updates.toMutableList().apply {
-                val wasRemoved = remove(update)
-                require(wasRemoved) { "finished update wasn't in the list of the ongoing updates" }
-            }
+    override fun onVisibilityAnimFinished(reached: VisibilityWithCause) {
+        if (reached.cause is UiState.Hidden) {
+            mainUiState = reached.cause
+            updatesOfVisibleUiState.clear()
         }
     }
 
-    private fun UiState.toVisibilityAnimDest() =
-        VisibilityAnimDest(
-            dest = when (this) {
+    override fun onUpdateAnimFinished(update: UpdateOfVisibleUiState) {
+        mainUiState = update.uiState
+        updatesOfVisibleUiState.remove(update).also { wasRemoved ->
+            require(wasRemoved) { "finished update wasn't in the list of the ongoing updates" }
+        }
+    }
+
+    private fun UiState.toVisibilityWithCause() =
+        VisibilityWithCause(
+            value = when (this) {
                 is UiState.Hidden -> Visibility.Collapsed
                 is UiState.Visible -> Visibility.Expanded
             },
