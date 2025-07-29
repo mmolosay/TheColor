@@ -12,8 +12,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -23,6 +23,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.api.ColorInt
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.impl.toCompose
@@ -75,7 +76,7 @@ fun AnimatedColorPreview(
     val coroutineScope = rememberCoroutineScope()
 
     val mainUiState = animController.mainUiState
-    val updates = remember { mutableStateListOf<UpdateOfVisibleUiState>() }
+    val updates by animController.flowOfVisibleUiStateUpdates.collectAsStateWithLifecycle()
 
     fun scaleTargetValue(dest: AnimState.Visibility): Float =
         when (dest) {
@@ -105,18 +106,7 @@ fun AnimatedColorPreview(
                 )
                 animController.onVisibilityAnimFinished(reached = visibility)
                 onUiStateReached(visibility.cause)
-                if (visibility.cause is UiState.Hidden) {
-                    updates.clear()
-                }
             }
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        animController.flowOfVisibleUiStateUpdates.collect { visibleUiState ->
-            val id = updates.lastOrNull()?.id?.let { it + 1 } ?: 0
-            val update = UpdateOfVisibleUiState(visibleUiState, id)
-            updates += update
         }
     }
 
@@ -132,10 +122,7 @@ fun AnimatedColorPreview(
                 UpdateRipple(
                     color = update.uiState.color.toCompose(),
                     onAnimationFinished = {
-                        animController.onUpdateAnimFinished(update.uiState)
-                        updates.remove(update).also { wasRemoved ->
-                            require(wasRemoved) { "finished update wasn't in the list of the ongoing updates" }
-                        }
+                        animController.onUpdateAnimFinished(update)
                         // don't invoke a callback if collapsing
                         if (animController.latestUiState !is UiState.Hidden && !scaleAnimatable.isRunning) {
                             onUiStateReached(update.uiState)
@@ -198,11 +185,6 @@ private fun UpdateRipple(
         onAnimationFinished()
     }
 }
-
-private data class UpdateOfVisibleUiState(
-    val uiState: UiState.Visible,
-    val id: Int,
-)
 
 @Preview(showBackground = true)
 @Composable
