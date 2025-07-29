@@ -14,7 +14,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,7 +25,7 @@ import io.github.mmolosay.thecolor.presentation.api.ColorInt
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.impl.toCompose
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.collectLatest
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimState as AnimState
@@ -73,8 +72,6 @@ fun AnimatedColorPreview(
     animController: ColorPreviewAnimController,
     onUiStateReached: (reached: UiState) -> Unit,
 ) {
-    val coroutineScope = rememberCoroutineScope()
-
     val mainUiState = animController.mainUiState
     val updatesOfVisibleUiState = animController.updatesOfVisibleUiState
 
@@ -89,7 +86,7 @@ fun AnimatedColorPreview(
         Animatable(initialValue = scaleTargetValue(initialVisibility))
     }
     LaunchedEffect(Unit) {
-        animController.flowOfVisibilityDest.collect { visibilityDestWithCause ->
+        animController.flowOfVisibilityDest.collectLatest collect@{ visibilityDestWithCause ->
             val (visibilityDest, cause) = visibilityDestWithCause
             val targetValue = scaleTargetValue(visibilityDest)
             if (scaleAnimatable.value == targetValue) {
@@ -101,14 +98,11 @@ fun AnimatedColorPreview(
             if (scaleAnimatable.isRunning && scaleAnimatable.targetValue == targetValue) {
                 return@collect // already animating to target state
             }
-            // TODO: remove coroutine
-            coroutineScope.launch {
-                scaleAnimatable.animateTo(
-                    targetValue = targetValue,
-                )
-                animController.onVisibilityAnimFinished(reached = visibilityDestWithCause)
-                onUiStateReached(cause)
-            }
+            scaleAnimatable.animateTo(
+                targetValue = targetValue,
+            )
+            animController.onVisibilityAnimFinished(reached = visibilityDestWithCause)
+            onUiStateReached(cause)
         }
     }
 
