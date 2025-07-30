@@ -9,10 +9,10 @@ import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.ColorDetails
 import io.github.mmolosay.thecolor.domain.model.ColorScheme
 import io.github.mmolosay.thecolor.domain.repository.ColorRepository
+import io.github.mmolosay.thecolor.domain.repository.ColorRepository.GetColorSchemeRequest
 import io.github.mmolosay.thecolor.domain.result.Result
 import io.github.mmolosay.thecolor.domain.result.ResultMapper
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
-import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase
 import javax.inject.Inject
 
 /**
@@ -38,7 +38,7 @@ class ColorRepositoryRemoteImpl @Inject constructor(
         return with(resultMapper) { kotlinResult.toDomainResult() }
     }
 
-    override suspend fun getColorScheme(request: GetColorSchemeUseCase.Request): Result<ColorScheme> {
+    override suspend fun getColorScheme(request: GetColorSchemeRequest): Result<ColorScheme> {
         val seedHex = request.seed.toDtoString()
         val kotlinResult = runCatching {
             api.getColorScheme(
