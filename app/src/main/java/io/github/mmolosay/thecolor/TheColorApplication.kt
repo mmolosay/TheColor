@@ -1,6 +1,7 @@
 package io.github.mmolosay.thecolor
 
 import android.app.Application
+import android.os.StrictMode
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
@@ -22,6 +23,7 @@ class TheColorApplication : Application(), ApplicationCoroutineScopeProvider {
         super.onCreate()
         initApplicationScope()
         initTimber()
+        initStrictMode()
     }
 
     private fun initApplicationScope() {
@@ -34,8 +36,17 @@ class TheColorApplication : Application(), ApplicationCoroutineScopeProvider {
     }
 
     private fun initTimber() {
-        if (BuildConfig.DEBUG) {
-            Timber.plant(TheColorTimberTree())
-        }
+        if (!BuildConfig.DEBUG) return
+        Timber.plant(TheColorTimberTree())
+    }
+
+    private fun initStrictMode() {
+        if (!BuildConfig.DEBUG) return
+        val threadPolicy = StrictMode.ThreadPolicy.Builder()
+            .detectAll()
+            .penaltyLog()
+            .penaltyDeath()
+            .build()
+        StrictMode.setThreadPolicy(threadPolicy)
     }
 }
