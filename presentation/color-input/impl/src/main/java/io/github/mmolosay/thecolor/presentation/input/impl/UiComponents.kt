@@ -180,26 +180,28 @@ internal object UiComponents {
 
     @Composable
     private fun TrailingButton(
-        data: TrailingButton,
+        data: TrailingButton?,
         iconContentDesc: String?,
     ) {
+        iconContentDesc ?: return
         // when uiData is Hidden, we want to have memoized Visible data for some time while "exit" animation is running
-        var visibleData by remember { mutableStateOf<TrailingButton.Visible?>(null) }
+        // TODO: migrate to retained()
+        // TODO: memoize whole composable content instead of just data?
+        var lastNotNullData by remember { mutableStateOf<TrailingButton?>(null) }
         val resizingAlignment = Alignment.Center
         AnimatedVisibility(
-            visible = data is TrailingButton.Visible,
+            visible = data != null,
             enter = fadeIn() + expandIn(expandFrom = resizingAlignment),
             exit = fadeOut() + shrinkOut(shrinkTowards = resizingAlignment),
         ) {
-            val lastVisible = visibleData ?: return@AnimatedVisibility
-            iconContentDesc ?: return@AnimatedVisibility
+            val lastNotNullData = lastNotNullData ?: return@AnimatedVisibility
             ClearIconButton(
-                onClick = lastVisible.onClick,
+                onClick = lastNotNullData.onClick,
                 iconContentDesc = iconContentDesc,
             )
         }
         LaunchedEffect(data) {
-            visibleData = data as? TrailingButton.Visible ?: return@LaunchedEffect
+            lastNotNullData = data.takeIf { it != null } ?: return@LaunchedEffect
         }
     }
 

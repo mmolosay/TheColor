@@ -3,14 +3,12 @@ package io.github.mmolosay.thecolor.presentation.input.impl
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
-import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.TrailingButton
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewModel
 import io.github.mmolosay.thecolor.presentation.input.impl.field.updateText
 import io.github.mmolosay.thecolor.presentation.input.impl.model.Update
-import io.kotest.matchers.should
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.types.beOfType
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
@@ -107,41 +105,41 @@ class TextFieldViewModelTest {
     }
 
     @Test
-    fun `trailing button is visible on initialization when text is non-empty`() {
+    fun `trailing button is present on initialization when text is non-empty`() {
         createSut()
 
         sut updateText Text("non-empty text")
 
-        data.trailingButton should beOfType<TrailingButton.Visible>()
+        data.trailingButton shouldNotBe null
     }
 
     @Test
-    fun `trailing button is hidden on initialization when text is empty`() {
+    fun `trailing button is absent on initialization when text is empty`() {
         createSut()
 
         sut updateText Text("")
 
-        data.trailingButton should beOfType<TrailingButton.Hidden>()
+        data.trailingButton shouldBe null
     }
 
     @Test
-    fun `trailing button is visible when text is changed from UI and text is non-empty`() {
+    fun `trailing button is present when text is changed from UI and text is non-empty`() {
         createSut()
         sut updateText Text("initial")
 
         data.onTextChange(Text("non-empty text"))
 
-        data.trailingButton should beOfType<TrailingButton.Visible>()
+        data.trailingButton shouldNotBe null
     }
 
     @Test
-    fun `trailing button is hidden when text is changed from UI and text is empty`() {
+    fun `trailing button is absent when text is changed from UI and text is empty`() {
         createSut()
         sut updateText Text("initial")
 
         data.onTextChange(Text(""))
 
-        data.trailingButton should beOfType<TrailingButton.Hidden>()
+        data.trailingButton shouldBe null
     }
 
     @Test
@@ -149,7 +147,7 @@ class TextFieldViewModelTest {
         createSut()
         sut updateText Text("initial non-empty text")
 
-        (data.trailingButton as TrailingButton.Visible).onClick()
+        data.trailingButton.shouldNotBeNull().onClick()
 
         data.text shouldBe Text("")
     }
@@ -159,7 +157,7 @@ class TextFieldViewModelTest {
         createSut()
         sut updateText Text("initial non-empty text")
 
-        (data.trailingButton as TrailingButton.Visible).onClick()
+        data.trailingButton.shouldNotBeNull().onClick()
 
         dataUpdate.causedByUser shouldBe true
     }

@@ -98,11 +98,11 @@ class TextFieldViewModel @AssistedInject constructor(
             trailingButton = trailingButton(text),
         )
 
-    private fun trailingButton(text: Text): TrailingButton {
+    private fun trailingButton(text: Text): TrailingButton? {
         val showTrailingButton = text.string.isNotEmpty()
         return when (showTrailingButton) {
-            true -> TrailingButton.Visible(onClick = { onTextChangeFromView(Text("")) })
-            false -> TrailingButton.Hidden
+            true -> TrailingButton(onClick = { onTextChangeFromView(Text("")) })
+            false -> null
         }
     }
 
