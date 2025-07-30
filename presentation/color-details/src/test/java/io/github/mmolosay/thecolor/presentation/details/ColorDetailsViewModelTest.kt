@@ -39,7 +39,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.api.extension.RegisterExtension
 
 /**
  * In most cases SUT ViewModel will use mocked instance of [CreateColorDetailsDataUseCase].
@@ -52,10 +52,14 @@ import org.junit.jupiter.api.extension.ExtendWith
  * and appropriate for tests that verify values.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-@ExtendWith(MainDispatcherExtension::class)
 class ColorDetailsViewModelTest {
 
     val testDispatcher = UnconfinedTestDispatcher()
+
+    @RegisterExtension
+    @Suppress("unused")
+    val mainDispatcherExtension = MainDispatcherExtension(testDispatcher)
+
     val commandProvider: ColorDetailsCommandProvider = mockk()
     val eventStore: ColorDetailsEventStore = mockk {
         coEvery { send(event = any()) } just runs

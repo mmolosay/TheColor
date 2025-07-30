@@ -32,17 +32,20 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.api.extension.RegisterExtension
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.SelectAllTextOnTextFieldFocus as DomainSelectAllTextOnTextFieldFocus
 
 @OptIn(ExperimentalCoroutinesApi::class)
-@ExtendWith(MainDispatcherExtension::class)
 class ColorInputHexViewModelTest {
 
     val testDispatcher = UnconfinedTestDispatcher()
+
+    @RegisterExtension
+    @Suppress("unused")
+    val mainDispatcherExtension = MainDispatcherExtension(testDispatcher)
 
     val mediator: ColorInputMediator = mockk {
         every { hexColorInputFlow } returns flowOf(ColorInput.Hex(""))
@@ -226,6 +229,7 @@ class ColorInputHexViewModelTest {
     companion object {
 
         @JvmStatic
+        @Suppress("SpellCheckingInspection")
         fun data() = listOf(
             // can't work with Text() directly because it's a value class and inlined in runtime
             /* #0  */ "" shouldBeFilteredTo "",

@@ -37,7 +37,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.api.extension.RegisterExtension
 import io.github.mmolosay.thecolor.domain.model.ColorScheme as DomainColorScheme
 
 /**
@@ -51,10 +51,13 @@ import io.github.mmolosay.thecolor.domain.model.ColorScheme as DomainColorScheme
  * and appropriate for tests that verify values.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-@ExtendWith(MainDispatcherExtension::class)
 class ColorSchemeViewModelTest {
 
     val testDispatcher = UnconfinedTestDispatcher()
+
+    @RegisterExtension
+    @Suppress("unused")
+    val mainDispatcherExtension = MainDispatcherExtension(testDispatcher)
 
     val commandProvider: ColorSchemeCommandProvider = mockk {
         every { commandFlow } returns emptyFlow()
@@ -132,7 +135,7 @@ class ColorSchemeViewModelTest {
         }
 
     @Test
-    fun `emission of 'fetch data' command cancells previous 'fetch data' job, so that repository is only accessed once`() =
+    fun `emission of 'fetch data' command cancels previous 'fetch data' job, so that repository is only accessed once`() =
         runTest(testDispatcher) {
             val commandFlow = MutableSharedFlow<ColorSchemeCommand>()
             every { commandProvider.commandFlow } returns commandFlow

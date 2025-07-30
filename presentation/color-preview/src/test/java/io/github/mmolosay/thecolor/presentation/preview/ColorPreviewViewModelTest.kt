@@ -17,13 +17,17 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.api.extension.RegisterExtension
 
 @OptIn(ExperimentalCoroutinesApi::class)
-@ExtendWith(MainDispatcherExtension::class)
 class ColorPreviewViewModelTest {
 
     val testDispatcher = UnconfinedTestDispatcher()
+
+    @RegisterExtension
+    @Suppress("unused")
+    val mainDispatcherExtension = MainDispatcherExtension(testDispatcher)
+
     val colorFlow = MutableSharedFlow<Color?>()
     val colorProcessedConfirmationChannelReal = Channel<Color?>(Channel.UNLIMITED)
     val colorProcessedConfirmationChannelMock: Channel<Color?> = mockk(relaxed = true)
