@@ -42,7 +42,7 @@ import io.github.mmolosay.thecolor.domain.model.UserPreferences.SmartBackspace a
 internal typealias FullDataRgb = FullData<ColorInputRgbData, ColorInput.Rgb>
 
 /**
- * Handles presentation logic of the 'RGB Color Preview' feature.
+ * Handles presentation logic of the 'RGB Color Input' feature.
  *
  * Unlike typical `ViewModel`s, it doesn't derive from Google's [ViewModel][androidx.lifecycle.ViewModel],
  * thus cannot be instantiated using [ViewModelProvider][androidx.lifecycle.ViewModelProvider].
