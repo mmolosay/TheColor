@@ -19,10 +19,12 @@ class TextFieldViewModelTestFactory(
     override fun create(
         coroutineScope: CoroutineScope,
         filterUserInput: (String) -> TextFieldData.Text,
+        allowTrailingButton: Boolean,
     ): TextFieldViewModel {
         return TextFieldViewModel(
             coroutineScope = coroutineScope,
             filterUserInput = filterUserInput,
+            allowTrailingButton = allowTrailingButton,
             userPreferencesRepository = userPreferencesRepository,
             defaultDispatcher = defaultDispatcher,
             uiDataUpdateDispatcher = uiDataUpdateDispatcher,

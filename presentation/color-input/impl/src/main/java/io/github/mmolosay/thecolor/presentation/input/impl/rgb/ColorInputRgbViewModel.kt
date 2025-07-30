@@ -217,6 +217,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         textFieldViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
             filterUserInput = ::filterUserInput,
+            allowTrailingButton = false,
         )
 
     @AssistedFactory

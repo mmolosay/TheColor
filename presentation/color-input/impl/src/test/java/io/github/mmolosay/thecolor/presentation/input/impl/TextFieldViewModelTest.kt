@@ -188,6 +188,7 @@ class TextFieldViewModelTest {
         TextFieldViewModel(
             coroutineScope = coroutineScope,
             filterUserInput = { Text(it) },
+            allowTrailingButton = true,
             userPreferencesRepository = userPreferencesRepository,
             defaultDispatcher = testDispatcher,
             uiDataUpdateDispatcher = testDispatcher,

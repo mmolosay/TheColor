@@ -33,6 +33,7 @@ import javax.inject.Named
 class TextFieldViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     @Assisted private val filterUserInput: (String) -> Text,
+    @Assisted private val allowTrailingButton: Boolean,
     private val userPreferencesRepository: UserPreferencesRepository,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
     @Named("uiDataUpdateDispatcher") private val uiDataUpdateDispatcher: CoroutineDispatcher,
@@ -99,6 +100,7 @@ class TextFieldViewModel @AssistedInject constructor(
         )
 
     private fun trailingButton(text: Text): TrailingButton? {
+        if (!allowTrailingButton) return null
         val showTrailingButton = text.string.isNotEmpty()
         return when (showTrailingButton) {
             true -> TrailingButton(onClick = { onTextChangeFromView(Text("")) })
@@ -122,6 +124,7 @@ class TextFieldViewModel @AssistedInject constructor(
         fun create(
             coroutineScope: CoroutineScope,
             filterUserInput: (String) -> Text,
+            allowTrailingButton: Boolean,
         ): TextFieldViewModel
     }
 }
