@@ -128,7 +128,6 @@ fun HomeScreen(
     val coroutineScope = rememberCoroutineScope()
 
     val strings = remember(context) { HomeUiStrings(context) }
-    val navEventFlow = viewModel.navEventFlow.filterNotNull()
     val selectedSwatchDetailsDialogController = remember(navBarAppearanceController) {
         navBarAppearanceController.branch("Selected Swatch Details Dialog")
     }
@@ -206,7 +205,7 @@ fun HomeScreen(
     HomeScreen(
         data = data,
         strings = strings,
-        navEventFlow = navEventFlow,
+        navEventFlow = viewModel.navEventFlow,
         colorInput = colorInput,
         colorPreview = colorPreview,
         colorCenter = colorCenter,
@@ -240,7 +239,7 @@ internal typealias ColorCenterComposable = @Composable () -> Unit
 private fun HomeScreen(
     data: HomeData,
     strings: HomeUiStrings,
-    navEventFlow: Flow<HomeNavEvent>,
+    navEventFlow: Flow<HomeNavEvent?>,
     colorInput: @Composable () -> Unit,
     colorPreview: ColorPreviewWithDependencies,
     colorCenter: ColorCenterComposable?,
@@ -269,6 +268,7 @@ private fun HomeScreen(
 
     LaunchedEffect(Unit) {
         navEventFlow.collect { event ->
+            if (event == null) return@collect
             when (event) {
                 is HomeNavEvent.GoToSettings -> {
                     focusManager.clearFocus()
