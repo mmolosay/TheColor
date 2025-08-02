@@ -19,9 +19,7 @@ class CreateColorDetailsDataUseCaseTest {
 
     @Test
     fun `creates correct data`() {
-        every { with(colorToColorInt) { any<Color>().toColorInt() } } returns io.github.mmolosay.thecolor.presentation.api.ColorInt(
-            0x123456
-        )
+        every { with(colorToColorInt) { any<Color>().toColorInt() } } returns ColorInt(0x123456)
         createSut()
 
         val details = ColorDetails()
@@ -94,6 +92,7 @@ class CreateColorDetailsDataUseCaseTest {
     }
 }
 
+@Suppress("TestFunctionName") // not a unit test
 private fun ColorDetails() =
     ColorDetails(
         color = Color.Hex(0x1A803F),

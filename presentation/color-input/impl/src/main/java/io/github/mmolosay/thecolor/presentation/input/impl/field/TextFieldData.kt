@@ -12,7 +12,7 @@ data class TextFieldData(
     val text: Text,
     val onTextChange: (Text) -> Unit,
     val filterUserInput: (String) -> Text,
-    val trailingButton: TrailingButton,
+    val trailingButton: TrailingButton?,
     val shouldSelectAllTextOnFocus: Boolean,
 ) {
     /**
@@ -29,8 +29,7 @@ data class TextFieldData(
     value class Text(val string: String)
 
     // "trailing" and "button" are very GUI-ish terms. I used them to make the code easier to understand
-    sealed interface TrailingButton {
-        data object Hidden : TrailingButton
-        data class Visible(val onClick: () -> Unit) : TrailingButton
-    }
+    data class TrailingButton(
+        val onClick: () -> Unit,
+    )
 }

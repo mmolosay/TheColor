@@ -107,9 +107,7 @@ private fun previewData() =
             text = Text(""),
             onTextChange = {},
             filterUserInput = { Text(it) },
-            trailingButton = TrailingButton.Visible(
-                onClick = {},
-            ),
+            trailingButton = TrailingButton(onClick = {}),
             shouldSelectAllTextOnFocus = false,
         ),
         submitColor = {},

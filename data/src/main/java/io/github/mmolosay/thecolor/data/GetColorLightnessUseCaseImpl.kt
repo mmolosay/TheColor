@@ -12,18 +12,6 @@ class GetColorLightnessUseCaseImpl @Inject constructor(
     private val colorMapper: ColorMapper,
 ) : GetColorLightnessUseCase {
 
-    @Deprecated(
-        message = "Use LAB's lightness over HSL's one because LAB is designed in alignment with human perception.",
-        replaceWith = ReplaceWith(expression = "labLightness()"),
-        level = DeprecationLevel.WARNING,
-    )
-    override fun Color.hslLightness(): Float {
-        val hex = with(colorConverter) { toHex() }
-        val hexString = with(colorMapper) { hex.toHexString() }
-        val hsl = SRGB(hex = hexString).toHSL()
-        return hsl.l
-    }
-
     override fun Color.labLightness(): Float {
         val hex = with(colorConverter) { toHex() }
         val hexString = with(colorMapper) { hex.toHexString() }

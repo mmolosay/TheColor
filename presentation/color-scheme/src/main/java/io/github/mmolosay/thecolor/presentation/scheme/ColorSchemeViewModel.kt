@@ -5,9 +5,10 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.ColorScheme.Mode
+import io.github.mmolosay.thecolor.domain.repository.ColorRepository
+import io.github.mmolosay.thecolor.domain.repository.ColorRepository.GetColorSchemeRequest
 import io.github.mmolosay.thecolor.domain.result.onFailure
 import io.github.mmolosay.thecolor.domain.result.onSuccess
-import io.github.mmolosay.thecolor.domain.usecase.GetColorSchemeUseCase
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
 import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.api.SimpleViewModel
@@ -46,7 +47,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     @Assisted private val commandProvider: ColorSchemeCommandProvider,
     @Assisted private val eventStore: ColorSchemeEventStore,
-    private val getColorScheme: GetColorSchemeUseCase,
+    private val colorRepository: ColorRepository,
     private val createData: CreateColorSchemeDataUseCase,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
@@ -91,7 +92,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
         _statefulDataFlow.updateState(State.Loading)
         fetchDataJob?.cancel()
         fetchDataJob = coroutineScope.launch(ioDispatcher) {
-            getColorScheme(request)
+            colorRepository.getColorScheme(request)
                 .onSuccess { scheme ->
                     lastDomainColorScheme = scheme
                     val data = createData(scheme = scheme, config = requestConfig)
@@ -177,8 +178,8 @@ class ColorSchemeViewModel @AssistedInject constructor(
             )
     }
 
-    private fun Config.toDomainRequest(seed: Color): GetColorSchemeUseCase.Request =
-        GetColorSchemeUseCase.Request(
+    private fun Config.toDomainRequest(seed: Color): GetColorSchemeRequest =
+        GetColorSchemeRequest(
             seed = seed,
             mode = this.mode,
             swatchCount = this.swatchCount.value,
@@ -208,7 +209,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
             state = State.Idle,
         )
 
-    /** [GetColorSchemeUseCase.Request] mapped to presentation layer model. */
+    /** [GetColorSchemeRequest] mapped to presentation layer model. */
     data class Config(
         val mode: Mode,
         val swatchCount: SwatchCount,

@@ -33,6 +33,7 @@ import javax.inject.Named
 class TextFieldViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     @Assisted private val filterUserInput: (String) -> Text,
+    @Assisted private val allowTrailingButton: Boolean,
     private val userPreferencesRepository: UserPreferencesRepository,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
     @Named("uiDataUpdateDispatcher") private val uiDataUpdateDispatcher: CoroutineDispatcher,
@@ -63,9 +64,9 @@ class TextFieldViewModel @AssistedInject constructor(
         coroutineScope.launch(defaultDispatcher) {
             /*
              * MutableStateFlow.update() is NOT fair. If we:
-             * 1. call update() that will return X
-             * 2. call update() that will return Y
-             * So may happen that second update() finishes first, and flow will emit [Y, X]
+             * 1. call update() that will set value to X
+             * 2. call update() that will set value to Y
+             * So may happen that the second update() finishes first, and flow will emit [Y, X]
              * instead of [X, Y], which is expected according to the order of calling update()s.
              * We need a mutex (which IS fair) to prevent other coroutines from entering update()
              * and thus potentially messing up the order of emissions.
@@ -98,11 +99,12 @@ class TextFieldViewModel @AssistedInject constructor(
             trailingButton = trailingButton(text),
         )
 
-    private fun trailingButton(text: Text): TrailingButton {
+    private fun trailingButton(text: Text): TrailingButton? {
+        if (!allowTrailingButton) return null
         val showTrailingButton = text.string.isNotEmpty()
         return when (showTrailingButton) {
-            true -> TrailingButton.Visible(onClick = { onTextChangeFromView(Text("")) })
-            false -> TrailingButton.Hidden
+            true -> TrailingButton(onClick = { onTextChangeFromView(Text("")) })
+            false -> null
         }
     }
 
@@ -122,6 +124,7 @@ class TextFieldViewModel @AssistedInject constructor(
         fun create(
             coroutineScope: CoroutineScope,
             filterUserInput: (String) -> Text,
+            allowTrailingButton: Boolean,
         ): TextFieldViewModel
     }
 }

@@ -34,17 +34,20 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.api.extension.RegisterExtension
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.SmartBackspace as DomainSmartBackspace
 
 @OptIn(ExperimentalCoroutinesApi::class)
-@ExtendWith(MainDispatcherExtension::class)
 class ColorInputRgbViewModelTest {
 
     val testDispatcher = UnconfinedTestDispatcher()
+
+    @RegisterExtension
+    @Suppress("unused")
+    val mainDispatcherExtension = MainDispatcherExtension(testDispatcher)
 
     val mediator: ColorInputMediator = mockk {
         every { rgbColorInputFlow } returns flowOf(ColorInput.Rgb("", "", ""))

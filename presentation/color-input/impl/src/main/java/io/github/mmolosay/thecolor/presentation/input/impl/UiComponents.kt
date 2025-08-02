@@ -23,10 +23,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
@@ -39,6 +35,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.TextFieldValue
+import io.github.mmolosay.thecolor.presentation.impl.retainedNotNull
 import io.github.mmolosay.thecolor.presentation.impl.thenIf
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.TrailingButton
@@ -180,26 +177,22 @@ internal object UiComponents {
 
     @Composable
     private fun TrailingButton(
-        data: TrailingButton,
+        data: TrailingButton?,
         iconContentDesc: String?,
     ) {
-        // when uiData is Hidden, we want to have memoized Visible data for some time while "exit" animation is running
-        var visibleData by remember { mutableStateOf<TrailingButton.Visible?>(null) }
+        iconContentDesc ?: return
         val resizingAlignment = Alignment.Center
         AnimatedVisibility(
-            visible = data is TrailingButton.Visible,
+            visible = data != null,
             enter = fadeIn() + expandIn(expandFrom = resizingAlignment),
             exit = fadeOut() + shrinkOut(shrinkTowards = resizingAlignment),
         ) {
-            val lastVisible = visibleData ?: return@AnimatedVisibility
-            iconContentDesc ?: return@AnimatedVisibility
+            // when 'data' becomes 'null', we want to have last not-null data memoized for some time while "exit" animation is running
+            val retainedData = retainedNotNull(data).value ?: return@AnimatedVisibility
             ClearIconButton(
-                onClick = lastVisible.onClick,
+                onClick = retainedData.onClick,
                 iconContentDesc = iconContentDesc,
             )
-        }
-        LaunchedEffect(data) {
-            visibleData = data as? TrailingButton.Visible ?: return@LaunchedEffect
         }
     }
 

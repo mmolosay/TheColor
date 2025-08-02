@@ -58,6 +58,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
     private val textFieldVm = textFieldViewModelFactory.create(
         coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
         filterUserInput = ::filterUserInput,
+        allowTrailingButton = true,
     )
 
     private val dataUpdateFlow = MutableStateFlow<Update<ColorInputHexData>?>(null)

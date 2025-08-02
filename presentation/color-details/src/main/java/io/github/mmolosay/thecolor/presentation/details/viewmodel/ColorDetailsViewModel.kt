@@ -4,9 +4,9 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.model.Color
+import io.github.mmolosay.thecolor.domain.repository.ColorRepository
 import io.github.mmolosay.thecolor.domain.result.onFailure
 import io.github.mmolosay.thecolor.domain.result.onSuccess
-import io.github.mmolosay.thecolor.domain.usecase.GetColorDetailsUseCase
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
 import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.api.SimpleViewModel
@@ -37,7 +37,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     @Assisted private val commandProvider: ColorDetailsCommandProvider,
     @Assisted private val eventStore: ColorDetailsEventStore,
-    private val getColorDetails: GetColorDetailsUseCase,
+    private val colorRepository: ColorRepository,
     private val createData: CreateColorDetailsDataUseCase,
     private val createSeedData: CreateSeedDataUseCase,
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
@@ -106,7 +106,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
 
             _dataStateFlow.value = DataState.Loading
             withContext(ioDispatcher) {
-                getColorDetails.invoke(color)
+                colorRepository.getColorDetails(color)
             }
                 .onSuccess { fetchedDomainDetails ->
                     proceed(fetchedDomainDetails)

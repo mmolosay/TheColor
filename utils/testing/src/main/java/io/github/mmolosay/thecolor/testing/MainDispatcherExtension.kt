@@ -13,15 +13,22 @@ import org.junit.jupiter.api.extension.ExtensionContext
 /**
  * [Dispatchers.Main] is hardcoded in some components (like `viewModelScope`).
  * Use this extension to replace it with a special [TestDispatcher].
- */
-/*
- * TODO: unlike TestWatcher and Rule from JUnit4, Extensions from JUnit 5 are instantiated
- *  by the test engine. It takes away the opportunity to specify a `testDispatcher` to be used.
+ *
+ * Example:
+ * ```
+ * class MySutTests {
+ *     @RegisterExtension
+ *     val mainDispatcherExtension = MainDispatcherExtension(testDispatcher = ...)
+ *
+ *     @Test
+ *     fun myTest() { ... }
+ * }
+ * ```
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-class MainDispatcherExtension : BeforeEachCallback, AfterEachCallback {
-
-    private val testDispatcher: TestDispatcher = UnconfinedTestDispatcher()
+class MainDispatcherExtension(
+    val testDispatcher: TestDispatcher = UnconfinedTestDispatcher(),
+) : BeforeEachCallback, AfterEachCallback {
 
     override fun beforeEach(context: ExtensionContext?) {
         Dispatchers.setMain(testDispatcher)
