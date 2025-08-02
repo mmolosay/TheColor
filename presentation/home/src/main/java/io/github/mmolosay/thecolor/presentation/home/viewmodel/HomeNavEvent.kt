@@ -1,13 +1,9 @@
 package io.github.mmolosay.thecolor.presentation.home.viewmodel
 
-import io.github.mmolosay.thecolor.presentation.api.ConsumableNavEvent
-
 /**
- * A family of navigation events that may occur in home View.
+ * A family of navigation events that may occur in 'Home' ViewModel.
  */
-sealed interface HomeNavEvent : ConsumableNavEvent {
+sealed interface HomeNavEvent {
 
-    data class GoToSettings(
-        override val onConsumed: () -> Unit,
-    ) : HomeNavEvent
+    data object GoToSettings : HomeNavEvent
 }
