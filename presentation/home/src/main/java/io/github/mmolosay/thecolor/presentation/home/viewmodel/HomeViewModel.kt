@@ -13,6 +13,7 @@ import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.domain.usecase.ColorFactory
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
 import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
+import io.github.mmolosay.thecolor.presentation.api.ImmediateEventRelay
 import io.github.mmolosay.thecolor.presentation.api.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommand
@@ -41,6 +42,7 @@ import io.github.mmolosay.thecolor.utils.receiveAllUntil
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -121,8 +123,8 @@ class HomeViewModel @Inject constructor(
             .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue)
     }
 
-    private val _navEventFlow = MutableStateFlow<HomeNavEvent?>(null)
-    val navEventFlow = _navEventFlow.asStateFlow()
+    private val navEventRelay = ImmediateEventRelay<HomeNavEvent>()
+    val navEventFlow = navEventRelay.eventFlow
 
     private val colorInputMediator: ColorInputMediator =
         colorInputMediatorFactory.create(
@@ -435,16 +437,16 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun setGoToSettingsNavEvent() {
+    private fun sendGoToSettingsNavEvent() {
         /*
          * Right now there's no logic in ViewModel that accompanies navigating to Settings.
          * In a real app, here would've been a logic for accepting / denying UI's navigation request
          * depending on the business logic. Here may also be sending data to analytics or logging.
          */
-        val event = HomeNavEvent.GoToSettings(
-            onConsumed = ::clearNavEvent,
-        )
-        _navEventFlow.value = event
+        viewModelScope.launch(Dispatchers.Main.immediate) {
+            val event = HomeNavEvent.GoToSettings
+            navEventRelay.send(event)
+        }
     }
 
     private fun clearProceedResult() {
@@ -459,10 +461,6 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun clearNavEvent() {
-        _navEventFlow.value = null
-    }
-
     private fun initialData(): HomeData {
         val canProceed = kotlin.run {
             val color = colorInputColorStore.colorFlow.value
@@ -473,7 +471,7 @@ class HomeViewModel @Inject constructor(
             proceedResult = null, // 'proceed' action wasn't invoked yet
             randomizeColor = ::randomizeColor,
             colorSchemeSelectedSwatchData = null, // no selected swatch initially
-            requestToGoToSettings = ::setGoToSettingsNavEvent,
+            requestToGoToSettings = ::sendGoToSettingsNavEvent,
         )
     }
 

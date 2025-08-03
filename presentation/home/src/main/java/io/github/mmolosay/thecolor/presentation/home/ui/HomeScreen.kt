@@ -106,6 +106,7 @@ import io.github.mmolosay.thecolor.utils.cache.DequeCache
 import io.github.mmolosay.thecolor.utils.cache.PruneOnSizeThreshold
 import io.github.mmolosay.thecolor.utils.doNothing
 import io.github.mmolosay.thecolor.utils.stabilize
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -116,6 +117,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 @Composable
@@ -239,7 +241,7 @@ internal typealias ColorCenterComposable = @Composable () -> Unit
 private fun HomeScreen(
     data: HomeData,
     strings: HomeUiStrings,
-    navEventFlow: Flow<HomeNavEvent?>,
+    navEventFlow: Flow<HomeNavEvent>,
     colorInput: @Composable () -> Unit,
     colorPreview: ColorPreviewWithDependencies,
     colorCenter: ColorCenterComposable?,
@@ -267,15 +269,15 @@ private fun HomeScreen(
     }
 
     LaunchedEffect(Unit) {
-        navEventFlow.collect { event ->
-            if (event == null) return@collect
-            when (event) {
-                is HomeNavEvent.GoToSettings -> {
-                    focusManager.clearFocus()
-                    navigateToSettings()
+        launch(Dispatchers.Main.immediate) {
+            navEventFlow.collect { event ->
+                when (event) {
+                    is HomeNavEvent.GoToSettings -> {
+                        focusManager.clearFocus()
+                        navigateToSettings()
+                    }
                 }
             }
-            event.onConsumed()
         }
     }
 }
