@@ -20,6 +20,7 @@ tasks.withType<Test> {
 }
 
 dependencies {
+    // Kotlin
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.coroutines.get()}")
 
     // Testing

@@ -48,10 +48,6 @@ dependencies {
     // Kotlin
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.coroutines.get()}")
 
-    // Jetpack
-    implementation("androidx.core:core-ktx:${libs.versions.androidx.core.coreKtx.get()}")
-    implementation("androidx.appcompat:appcompat:${libs.versions.androidx.appcompat.get()}")
-
     // Compose
     val composeBom = platform("androidx.compose:compose-bom:${libs.versions.compose.bom.get()}")
     implementation(composeBom)
