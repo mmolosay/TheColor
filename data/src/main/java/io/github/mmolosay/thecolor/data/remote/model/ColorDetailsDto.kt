@@ -3,7 +3,9 @@
 package io.github.mmolosay.thecolor.data.remote.model
 
 import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
+@JsonClass(generateAdapter = true)
 data class ColorDetailsDto(
     @Json(name = "hex") val hex: Hex,
     @Json(name = "rgb") val rgb: Rgb,
@@ -16,11 +18,13 @@ data class ColorDetailsDto(
     @Json(name = "contrast") val contrast: Contrast,
 ) {
 
+    @JsonClass(generateAdapter = true)
     data class Hex(
         @Json(name = "value") val valueWithNumberSign: String,
         @Json(name = "clean") val valueWithoutNumberSign: String,
     )
 
+    @JsonClass(generateAdapter = true)
     data class Rgb(
         @Json(name = "fraction") val normalized: NormalizedValues,
         @Json(name = "r") val r: Int,
@@ -29,6 +33,7 @@ data class ColorDetailsDto(
         @Json(name = "value") val cssFormula: String,
     ) {
 
+        @JsonClass(generateAdapter = true)
         data class NormalizedValues(
             @Json(name = "r") val r: Float,
             @Json(name = "g") val g: Float,
@@ -36,6 +41,7 @@ data class ColorDetailsDto(
         )
     }
 
+    @JsonClass(generateAdapter = true)
     data class Hsl(
         @Json(name = "fraction") val normalized: NormalizedValues,
         @Json(name = "h") val h: Int,
@@ -44,6 +50,7 @@ data class ColorDetailsDto(
         @Json(name = "value") val cssFormula: String,
     ) {
 
+        @JsonClass(generateAdapter = true)
         data class NormalizedValues(
             @Json(name = "h") val h: Float,
             @Json(name = "s") val s: Float,
@@ -51,6 +58,7 @@ data class ColorDetailsDto(
         )
     }
 
+    @JsonClass(generateAdapter = true)
     data class Hsv(
         @Json(name = "fraction") val normalized: NormalizedValues,
         @Json(name = "h") val h: Int,
@@ -59,6 +67,7 @@ data class ColorDetailsDto(
         @Json(name = "value") val cssFormula: String,
     ) {
 
+        @JsonClass(generateAdapter = true)
         data class NormalizedValues(
             @Json(name = "h") val h: Float,
             @Json(name = "s") val s: Float,
@@ -66,6 +75,7 @@ data class ColorDetailsDto(
         )
     }
 
+    @JsonClass(generateAdapter = true)
     data class Xyz(
         @Json(name = "fraction") val normalized: NormalizedValues,
         @Json(name = "X") val x: Int,
@@ -74,6 +84,7 @@ data class ColorDetailsDto(
         @Json(name = "value") val cssFormula: String,
     ) {
 
+        @JsonClass(generateAdapter = true)
         data class NormalizedValues(
             @Json(name = "X") val x: Float,
             @Json(name = "Y") val y: Float,
@@ -81,6 +92,7 @@ data class ColorDetailsDto(
         )
     }
 
+    @JsonClass(generateAdapter = true)
     data class Cmyk(
         @Json(name = "fraction") val normalized: NormalizedValues,
         @Json(name = "c") val c: Int?,
@@ -90,6 +102,7 @@ data class ColorDetailsDto(
         @Json(name = "value") val cssFormula: String,
     ) {
 
+        @JsonClass(generateAdapter = true)
         data class NormalizedValues(
             @Json(name = "c") val c: Float?,
             @Json(name = "m") val m: Float?,
@@ -98,6 +111,7 @@ data class ColorDetailsDto(
         )
     }
 
+    @JsonClass(generateAdapter = true)
     data class Name(
         @Json(name = "value") val colorName: String,
         @Json(name = "closest_named_hex") val hexValueWithNumberSignOfExactColor: String,
@@ -105,11 +119,13 @@ data class ColorDetailsDto(
         @Json(name = "distance") val distanceFromExact: Int,
     )
 
+    @JsonClass(generateAdapter = true)
     data class Image(
         @Json(name = "bare") val bareUrl: String,
         @Json(name = "named") val namedUrl: String,
     )
 
+    @JsonClass(generateAdapter = true)
     data class Contrast(
         @Json(name = "value") val hexValueWithNumberSignOfContrastColor: String,
     )

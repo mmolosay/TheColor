@@ -1,7 +1,6 @@
 package io.github.mmolosay.thecolor.main
 
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -62,7 +61,6 @@ object DiDataRemoteProvideModule {
     private fun makeMoshi(): Moshi =
         Moshi.Builder()
             .add(SchemeModeDtoAdapter())
-            .addLast(KotlinJsonAdapterFactory())
             .build()
 
     private fun makeHttpLoggingInterceptor() =

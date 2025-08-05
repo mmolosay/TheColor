@@ -1,12 +1,14 @@
 package io.github.mmolosay.thecolor.data.remote.model
 
 import com.squareup.moshi.FromJson
+import com.squareup.moshi.JsonClass
 import com.squareup.moshi.ToJson
 
 /**
  * @param value A String expected by server that represents a particular entry.
  */
 @Suppress("SpellCheckingInspection")
+@JsonClass(generateAdapter = false)
 enum class SchemeModeDto(val value: String) {
     Monochrome("monochrome"),
     MonochromeDark("monochrome-dark"),
