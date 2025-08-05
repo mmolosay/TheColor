@@ -27,6 +27,9 @@ android {
             languageVersion.set(JavaLanguageVersion.of(version))
         }
     }
+    kotlinOptions {
+        freeCompilerArgs += "-Xstring-concat=inline"
+    }
 }
 
 dependencies {

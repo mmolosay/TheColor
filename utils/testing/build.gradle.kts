@@ -9,6 +9,11 @@ java {
         languageVersion.set(JavaLanguageVersion.of(version))
     }
 }
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xstring-concat=inline")
+    }
+}
 
 dependencies {
     implementation("org.junit.jupiter:junit-jupiter-api:${libs.versions.junit.get()}")

@@ -9,6 +9,11 @@ java {
         languageVersion.set(JavaLanguageVersion.of(version))
     }
 }
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xstring-concat=inline")
+    }
+}
 
 tasks.withType<Test> {
     useJUnitPlatform()

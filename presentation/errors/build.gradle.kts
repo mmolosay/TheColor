@@ -29,6 +29,9 @@ android {
             languageVersion.set(JavaLanguageVersion.of(version))
         }
     }
+    kotlinOptions {
+        freeCompilerArgs += "-Xstring-concat=inline"
+    }
 }
 
 tasks.withType<Test> {
