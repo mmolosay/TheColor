@@ -14,6 +14,8 @@ android {
         applicationId = "io.github.mmolosay.thecolor"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
+        versionCode = 1
+        versionName = "1.0.0" // X.Y.Z; X = Major, Y = minor, Z = Patch level
     }
 
     buildTypes {
