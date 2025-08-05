@@ -15,9 +15,6 @@ android {
         minSdk = libs.versions.minSdk.get().toInt()
     }
     buildTypes {
-        release {
-            isMinifyEnabled = false
-        }
     }
 
     java {
