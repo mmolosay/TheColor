@@ -7,6 +7,7 @@ import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import kotlin.time.measureTime
 
+@Suppress("LocalVariableName") // uses structure-implying names like "child1_1"
 class NavBarAppearanceControllerTest {
 
     val sut: NavBarAppearanceController = RootNavBarAppearanceController()
@@ -41,7 +42,7 @@ class NavBarAppearanceControllerTest {
     }
 
     @Test
-    fun `peeling appearance when there are none doesn't emit anything from the flow (because stack doesn't change)`() {
+    fun `peeling appearance when there are none does not emit anything from the flow (because stack doesn't change)`() {
         sut.peel()
 
         sut.appearanceFlow.value shouldBe null
@@ -264,8 +265,8 @@ class NavBarAppearanceControllerTest {
             useLightTintForControls = false,
         )
         val child1 = sut.branch("home")
-        val child2 = sut.branch("settings")
-        val child1_1 = child1.branch("color center")
+        /* child2 */ sut.branch("settings")
+        /* child1_1 */ child1.branch("color center")
         val child1_1_1 = child1.branch("selected color scheme swatch details dialog")
 
         child1.push(appearance1)

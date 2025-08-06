@@ -1,5 +1,3 @@
-@file:Suppress("unused")
-
 package io.github.mmolosay.thecolor.data.remote.model
 
 import com.squareup.moshi.Json

@@ -132,7 +132,7 @@ private fun Preview() {
                     .weight(1f)
                     .clipCircle(
                         center = { size -> size.center },
-                        radius = RadiusProvider { size, minCoverRadius ->
+                        radius = { size, minCoverRadius ->
                             minCoverRadius * progressAnimatable.value
                         },
                     )

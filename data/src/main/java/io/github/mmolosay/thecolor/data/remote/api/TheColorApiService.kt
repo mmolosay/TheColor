@@ -12,7 +12,6 @@ import retrofit2.http.Query
  *
  * All optional URI parameters are set to default values.
  */
-@Suppress("unused")
 interface TheColorApiService {
 
     @GET("id")
