@@ -1,3 +1,5 @@
+# Ignore warnings "Version reference 'X' is not used in build scripts".
+
 [versions]
 # Gradle
 androidGradlePlugin = "8.10.1"
