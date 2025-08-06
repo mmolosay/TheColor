@@ -1,6 +1,6 @@
 [versions]
 # Gradle
-androidGradlePlugin = "8.7.3"
+androidGradlePlugin = "8.10.1"
 
 # Android
 compileSdk = "35"
