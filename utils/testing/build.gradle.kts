@@ -3,15 +3,16 @@ plugins {
     id("kotlin")
 }
 
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xstring-concat=inline")
+    }
+}
+
 java {
     toolchain {
         val version = libs.versions.java.get().toInt()
         languageVersion.set(JavaLanguageVersion.of(version))
-    }
-}
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.add("-Xstring-concat=inline")
     }
 }
 

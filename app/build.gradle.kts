@@ -37,15 +37,11 @@ android {
         compose = true
         buildConfig = true
     }
+}
 
-    java {
-        toolchain {
-            val version = libs.versions.java.get().toInt()
-            languageVersion.set(JavaLanguageVersion.of(version))
-        }
-    }
-    kotlinOptions {
-        freeCompilerArgs += "-Xstring-concat=inline"
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xstring-concat=inline")
     }
 }
 
