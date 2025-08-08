@@ -542,7 +542,7 @@ private fun previewData() =
         changes = ColorSchemeData.Changes.Present(applyChanges = {}),
     )
 
-@Suppress("SpellCheckingInspection")
+@Suppress("SpellCheckingInspection", "RedundantSuppression")
 private fun previewUiStrings() =
     ColorSchemeUiStrings(
         modeLabel = "Mode:",

@@ -15,19 +15,15 @@ android {
     }
 
     buildTypes {
-        release {
-            isMinifyEnabled = false
-        }
     }
     buildFeatures {
         compose = true
     }
+}
 
-    java {
-        toolchain {
-            val version = libs.versions.java.get().toInt()
-            languageVersion.set(JavaLanguageVersion.of(version))
-        }
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xstring-concat=inline")
     }
 }
 
@@ -47,10 +43,6 @@ dependencies {
     // Kotlin
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.coroutines.get()}")
     implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.7") // for Compose
-
-    // Jetpack
-    implementation("androidx.core:core-ktx:${libs.versions.androidx.core.coreKtx.get()}")
-    implementation("androidx.appcompat:appcompat:${libs.versions.androidx.appcompat.get()}")
 
     // Compose
     val composeBom = platform("androidx.compose:compose-bom:${libs.versions.compose.bom.get()}")

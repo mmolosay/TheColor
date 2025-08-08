@@ -10,19 +10,16 @@ android {
 
     defaultConfig {
         minSdk = libs.versions.minSdk.get().toInt()
+        consumerProguardFiles("consumer-proguard-rules.pro")
     }
 
     buildTypes {
-        release {
-            isMinifyEnabled = false
-        }
     }
+}
 
-    java {
-        toolchain {
-            val version = libs.versions.java.get().toInt()
-            languageVersion.set(JavaLanguageVersion.of(version))
-        }
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xstring-concat=inline")
     }
 }
 
@@ -43,7 +40,8 @@ dependencies {
 
     // Remote
     implementation("com.squareup.retrofit2:retrofit:${libs.versions.retrofit.library.get()}")
-    implementation("com.squareup.retrofit2:converter-moshi:${libs.versions.retrofit.moshi.get()}")
+    implementation("com.squareup.moshi:moshi:1.15.2")
+    ksp("com.squareup.moshi:moshi-kotlin-codegen:1.15.2")
 
     // Misc (preserve alphabetical order)
     implementation("com.github.ajalt.colormath:colormath:3.4.0")

@@ -3,13 +3,6 @@ plugins {
     id("kotlin")
 }
 
-java {
-    toolchain {
-        val version = libs.versions.java.get().toInt()
-        languageVersion.set(JavaLanguageVersion.of(version))
-    }
-}
-
 tasks.withType<Test> {
     useJUnitPlatform()
 }

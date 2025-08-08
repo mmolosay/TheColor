@@ -10,10 +10,11 @@ class FailureFactory @Inject constructor(
     private val httpFailureFactory: HttpFailureFactory,
 ) {
 
+    @Suppress("KotlinUnreachableCode") // invalid warning
     fun Throwable.asFailureOrNull(): Result.Failure? =
         null
             ?: with(httpFailureFactory) { asHttpFailureOrNull() }
-    // add other types in new line like this ^
+            // add other types in new line like this ^
 
 }
 

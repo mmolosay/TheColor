@@ -3,18 +3,12 @@ plugins {
     id("kotlin")
 }
 
-java {
-    toolchain {
-        val version = libs.versions.java.get().toInt()
-        languageVersion.set(JavaLanguageVersion.of(version))
-    }
-}
-
 tasks.withType<Test> {
     useJUnitPlatform()
 }
 
 dependencies {
+    // Kotlin
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.coroutines.get()}")
 
     // Testing

@@ -1,3 +1,5 @@
+import com.android.build.gradle.api.AndroidBasePlugin
+
 plugins {
     id("com.android.application") version libs.versions.androidGradlePlugin.get() apply false
     id("com.android.library") version libs.versions.androidGradlePlugin.get() apply false
@@ -17,4 +19,21 @@ buildscript {
 
 tasks.register<Delete>("clean").configure {
     delete(rootProject.layout.buildDirectory)
+}
+
+subprojects {
+    val configureJava: JavaPluginExtension.() -> Unit = {
+        toolchain {
+            val version = libs.versions.java.get().toInt()
+            languageVersion.set(JavaLanguageVersion.of(version))
+        }
+    }
+    // configure Java for Android modules
+    plugins.withType<AndroidBasePlugin> {
+        extensions.configure<JavaPluginExtension>(configureJava)
+    }
+    // configure java for Java/Kotlin modules
+    plugins.withType<JavaPlugin> {
+        extensions.configure<JavaPluginExtension>(configureJava)
+    }
 }
