@@ -82,11 +82,14 @@ internal object UiComponents {
             textStyle = LocalTextStyle.current.copy(fontFamily = FontFamily.SansSerif),
             label = { Label(text = strings.label) },
             placeholder = { Placeholder(text = strings.placeholder) },
-            trailingIcon = {
-                TrailingButton(
-                    data = data.trailingButton,
-                    iconContentDesc = strings.trailingIconContentDesc,
-                )
+            trailingIcon = kotlin.run {
+                val iconContentDesc = strings.trailingIconContentDesc ?: return@run null
+                {
+                    TrailingButton(
+                        data = data.trailingButton,
+                        iconContentDesc = iconContentDesc,
+                    )
+                }
             },
             prefix = if (strings.prefix != null)
                 ({ Prefix(text = strings.prefix) })
@@ -178,9 +181,8 @@ internal object UiComponents {
     @Composable
     private fun TrailingButton(
         data: TrailingButton?,
-        iconContentDesc: String?,
+        iconContentDesc: String,
     ) {
-        iconContentDesc ?: return
         val resizingAlignment = Alignment.Center
         AnimatedVisibility(
             visible = data != null,

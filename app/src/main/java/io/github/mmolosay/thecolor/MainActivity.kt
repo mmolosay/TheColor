@@ -105,19 +105,20 @@ class MainActivity : AppCompatActivity() {
     @Composable
     private fun Content() {
         val context = LocalContext.current
-        val areDynamicColorsEnabled = mainViewModel.dynamicUiColorsFlow
-            .collectAsStateWithLifecycle(initialValue = null).value
-            ?.enabled
-        // (Boolean && Boolean?) -> Boolean with fast route if first condition is false
-        val useDynamicColorSchemes =
-            (areDynamicColorsAvailable() && (areDynamicColorsEnabled ?: return))
-        val colorScheme = mainViewModel.appUiColorSchemeResolverFlow
-            .collectAsStateWithLifecycle(initialValue = null).value
-            ?.resolve(
-                brightness = systemBrightness(),
-                useDynamicColorSchemes = useDynamicColorSchemes,
-            )
-            ?: return
+        val colorScheme = kotlin.run {
+            val areDynamicColorsEnabled = mainViewModel.flowOfDynamicUiColors
+                .collectAsStateWithLifecycle(initialValue = null).value
+                ?.enabled
+            val useDynamicColorSchemes =
+                (areDynamicColorsAvailable() && (areDynamicColorsEnabled ?: false))
+            mainViewModel.flowOfAppUiColorSchemeResolver
+                .collectAsStateWithLifecycle(initialValue = null).value
+                ?.resolve(
+                    brightness = systemBrightness(),
+                    useDynamicColorSchemes = useDynamicColorSchemes,
+                )
+                ?: return
+        }
 
         LaunchedEffect(colorScheme) {
             enableEdgeToEdge(colorSchemeBrightness = colorScheme.brightness())
