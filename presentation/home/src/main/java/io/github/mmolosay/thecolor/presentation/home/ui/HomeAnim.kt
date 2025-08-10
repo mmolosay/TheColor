@@ -126,16 +126,15 @@ internal fun HomeAnimSequence(
 internal class HomeAnimController(
     currentState: HomeAnimState,
 ) {
-    var currentState: HomeAnimState = currentState
-        private set
+    val flowOfLastReachedState = MutableStateFlow(currentState)
+    val lastReachedState: HomeAnimState
+        get() = flowOfLastReachedState.value
 
     val flowOfDestState = MutableStateFlow(currentState)
-
     val destState: HomeAnimState
         get() = flowOfDestState.value
 
-    private val currentSegment: Segment
-        get() = Segment(start = currentState, dest = destState)
+    private var currentSegment = Segment(start = currentState, dest = currentState)
 
     private val pendingDests = mutableMapOf<AnimComponent, Any>() // type -> anim dest
 
@@ -146,6 +145,7 @@ internal class HomeAnimController(
 
     fun run(sequence: HomeAnimSequence) {
         require(sequence.first() == currentState) { "sequence must start from current state" }
+        require(sequence.first() == lastReachedState) { "sequence must start from the last reached state" }
         val adjustedSequence = normalizeSubmittedSequence(sequence)
         runningSequence = RunningSequence(adjustedSequence)
         setNextDestFromSequence()
@@ -192,6 +192,7 @@ internal class HomeAnimController(
         assert(reachedValue == destValue)
         assert(isExpectedToBeReached)
         currentState = applyToCurrentState(currentState)
+        flowOfLastReachedState.value = applyToCurrentState(lastReachedState)
         pendingDests.remove(component)
         checkIfDestIsReachedAndSetNext()
     }
@@ -215,6 +216,13 @@ internal class HomeAnimController(
                 newStates.add(index = 1, element = currentSegment.start)
             }
         }
+        // if current == (1, 2) && first == (2, 3), then make first == (1, 2) to finish current (1, 2)
+        kotlin.run {
+            val currentAndFirstAreContiguous = currentSegment.isContiguousWith(firstSegment)
+            if (currentAndFirstAreContiguous) {
+                newStates.add(index = 1, element = currentSegment.dest)
+            }
+        }
         return HomeAnimSequence(newStates)
     }
 
@@ -226,14 +234,17 @@ internal class HomeAnimController(
             this.runningSequence = null // sequence is finished
             return
         }
-        require(segmentToRun.start == currentState)
+        require(segmentToRun.start == lastReachedState)
         if (segmentToRun.dest != destState) {
             pendingDests.putAll(destState diffTo segmentToRun.dest)
+            // TODO: don't store pendingDests but calc them from currentSegment?
             pendingDests.putAll(destState diffTo segmentToRun.dest) // 'destState' may not have been reached yet, so "snap" to it and calc diff from it
+            currentSegment = Segment(start = destState, dest = segmentToRun.dest)
             flowOfDestState.value = segmentToRun.dest
             return
         }
         if (currentSegment == segmentToRun && pendingDests.isNotEmpty()) {
+        if (segmentToRun.dest == destState && pendingDests.isNotEmpty()) {
             return // identical segment is already running
         }
         if (segmentToRun.dest == destState || segmentToRun.isEmpty()) {
@@ -241,11 +252,12 @@ internal class HomeAnimController(
             setNextDestFromSequence()
             return
         }
+        error("None of the sequence advancing conditions were met")
     }
 
     private fun checkIfDestIsReachedAndSetNext() {
         if (!isRunning) return
-        if (currentState == destState && pendingDests.isEmpty()) {
+        if (lastReachedState == destState && pendingDests.isEmpty()) {
             requireNotNull(runningSequence).advance()
             setNextDestFromSequence()
         }
@@ -290,6 +302,9 @@ internal class HomeAnimController(
 
     private fun Segment.isEmpty(): Boolean =
         (start == dest)
+
+    private fun Segment.isContiguousWith(other: Segment): Boolean =
+        (this.dest == other.start)
 
     private enum class AnimComponent {
         ColorPreviewPosition,

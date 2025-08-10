@@ -190,7 +190,7 @@ fun HomeScreen(
         flowOfUiState.collect { uiState ->
             val animController = animController ?: return@collect
             val sequence = HomeAnimSequence(
-                from = animController.currentState,
+                from = animController.lastReachedState,
                 to = uiState.toAnimState(),
             )
             animController.run(sequence)
