@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.home.ui
 
+import androidx.compose.runtime.Stable
 import androidx.compose.ui.unit.dp
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorCenter
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPreview
@@ -121,6 +122,7 @@ internal fun HomeAnimSequence(
     return HomeAnimSequence(subsequence)
 }
 
+@Stable
 internal class HomeAnimController(
     currentState: HomeAnimState,
 ) {
