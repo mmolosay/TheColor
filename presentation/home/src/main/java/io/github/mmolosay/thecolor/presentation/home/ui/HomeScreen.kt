@@ -189,11 +189,11 @@ fun HomeScreen(
     LaunchedEffect(Unit) {
         flowOfUiState.collect { uiState ->
             val animController = animController ?: return@collect
-            val sequence = HomeAnimSequence(
-                from = animController.lastReachedState,
+            val destStates = makeDestStates(
+                from = animController.currentState,
                 to = uiState.toAnimState(),
             )
-            animController.run(sequence)
+            animController.run(destStates)
         }
     }
 

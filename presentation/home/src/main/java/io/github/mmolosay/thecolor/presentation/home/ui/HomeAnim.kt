@@ -4,6 +4,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.ui.unit.dp
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorCenter
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPreview
+import io.github.mmolosay.thecolor.utils.removeSubsequentDuplicates
 import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
@@ -65,7 +66,13 @@ internal fun HomeAnimState(
     }
 }
 
-internal class HomeAnimSequence(
+/**
+ * A sequence of [HomeAnimState]s that defines an animation to run.
+ *
+ * A valid sequence must consist of at least 2 states: start (current state) and at least
+ * one dest state to animate to.
+ */
+private class HomeAnimSequence(
     private val states: List<HomeAnimState>,
 ) : List<HomeAnimState> by states {
 
@@ -78,6 +85,10 @@ internal class HomeAnimSequence(
         states.toString()
 }
 
+/**
+ * The whole (full) sequence of the 'Home' animation.
+ * Any [HomeAnimSequence] is a sub-sequence of this one. Reverse order is allowed.
+ */
 private val FullForwardSequence: HomeAnimSequence = run {
     val states = buildList {
         // 0
@@ -100,41 +111,43 @@ private val FullForwardSequence: HomeAnimSequence = run {
     HomeAnimSequence(states)
 }
 
-internal fun HomeAnimSequence(
+/**
+ * Returns a list of dest states (key frames) that should be animated to when starting from
+ * the [from] state and finishing at the [to] state.
+ */
+internal fun makeDestStates(
     from: HomeAnimState,
     to: HomeAnimState,
-): HomeAnimSequence {
+): List<HomeAnimState> {
     require(from in FullForwardSequence)
     require(to in FullForwardSequence)
     val indexOfCurrent = FullForwardSequence.indexOf(from) // -1 is impossible due to 'contains()' check above
     val indexOfDest = FullForwardSequence.indexOf(to) // -1 is impossible due to 'contains()' check above
-    val subsequence = when {
+    return when {
         indexOfCurrent < indexOfDest ->
             FullForwardSequence.subList(indexOfCurrent, indexOfDest + 1)
         indexOfCurrent > indexOfDest ->
             FullForwardSequence.subList(indexOfDest, indexOfCurrent + 1).reversed()
         else -> {
             assert(indexOfCurrent == indexOfDest)
-            val state = FullForwardSequence[indexOfCurrent]
-            listOf(state, state)
+            assert(from == to)
+            listOf(to)
         }
     }
-    return HomeAnimSequence(subsequence)
 }
 
 @Stable
 internal class HomeAnimController(
     currentState: HomeAnimState,
 ) {
-    val flowOfLastReachedState = MutableStateFlow(currentState)
-    val lastReachedState: HomeAnimState
-        get() = flowOfLastReachedState.value
+    private var lastReachedState: HomeAnimState = currentState
 
     val flowOfDestState = MutableStateFlow(currentState)
     val destState: HomeAnimState
         get() = flowOfDestState.value
 
-    private var currentSegment = Segment(start = currentState, dest = currentState)
+    var currentSegment = Segment(start = currentState, dest = currentState)
+        private set
 
     private val pendingDests = mutableMapOf<AnimComponent, Any>() // type -> anim dest
 
@@ -193,6 +206,7 @@ internal class HomeAnimController(
         assert(isExpectedToBeReached)
         currentState = applyToCurrentState(currentState)
         flowOfLastReachedState.value = applyToCurrentState(lastReachedState)
+        lastReachedState = applyToCurrentState(lastReachedState)
         pendingDests.remove(component)
         checkIfDestIsReachedAndSetNext()
     }
@@ -202,27 +216,62 @@ internal class HomeAnimController(
      * We need to adjust (normalize) submitted, "raw" [sequence] according to the current state of
      * animation to make the [sequence] easy to execute in segments.
      */
-    private fun normalizeSubmittedSequence(sequence: HomeAnimSequence): HomeAnimSequence {
-        if (!isRunning) return sequence
-        assert(isRunning == true)
-        val newStates = sequence.toMutableList()
-        val firstSegment = Segment(start = sequence[0], dest = sequence[1])
-        // if current == (2, 3) && first == (2, 1), then make first == (2, 2) to reverse current (2, 3)
-        kotlin.run {
-            val currentAndFirstStartFromSameButFinishOnDiffStates =
-                (currentSegment.start == firstSegment.start) && (currentSegment.dest != firstSegment.dest)
-            if (currentAndFirstStartFromSameButFinishOnDiffStates && firstSegment.isEmpty().not()) {
-                // before animating to firstSegment.dest, animate back to firstSegment.start
-                newStates.add(index = 1, element = currentSegment.start)
+    private fun normalizeDestStatesToSequence(destStates: List<HomeAnimState>): HomeAnimSequence {
+        val newStates = destStates
+            .removeSubsequentDuplicates()
+            .toMutableList()
+        val containsSingleDest = (newStates.size == 1)
+        val firstDest = newStates.first()
+        val firstDestIsOngoing = (isRunning && firstDest == requireNotNull(runningSegment).dest)
+        val goesToDifferentDest = if (isRunning) {
+            val runningSegment = requireNotNull(runningSegment)
+            (runningSegment.start == firstDest)
+        } else {
+            false
+        }
+        when {
+            containsSingleDest -> {
+                newStates.add(index = 0, element = currentState)
+            }
+            firstDestIsOngoing -> {
+                newStates.add(index = 0, element = requireNotNull(runningSegment).start)
+            }
+            goesToDifferentDest -> {
+                newStates.add(index = 0, element = requireNotNull(runningSegment).dest)
             }
         }
-        // if current == (1, 2) && first == (2, 3), then make first == (1, 2) to finish current (1, 2)
-        kotlin.run {
-            val currentAndFirstAreContiguous = currentSegment.isContiguousWith(firstSegment)
-            if (currentAndFirstAreContiguous) {
-                newStates.add(index = 1, element = currentSegment.dest)
-            }
-        }
+        // if destStates == [1] and currentState == X, then make newStates == [X, 1]
+//        kotlin.run {
+//            val containsSingleDest = (newStates.size == 1)
+//            if (containsSingleDest) {
+//                newStates.add(index = 0, element = currentState)
+//            }
+//        }
+//        kotlin.run {
+//            val firstDestIsOngoing = (destStates.first() == )
+//            val firstSegmentIsNotAlreadyRunning = (newStates.segmentAt(0) != runningSegment)
+//            if (firstDestIsOngoing && firstSegmentIsNotAlreadyRunning) {
+//                newStates.add(index = 0, element = runningSegment.start)
+//            }
+//        }
+//        val firstSegment = Segment(start = sequence[0], dest = sequence[1])
+//        // if current == (2, 3) && first == (2, 1), then make first == (2, 2) to reverse current (2, 3)
+//        kotlin.run {
+//            val sameStartButDifferentDests =
+//                (currentSegment.start == firstSegment.start) && (currentSegment.dest != firstSegment.dest)
+//            if (sameStartButDifferentDests && firstSegment.isEmpty().not()) {
+//                // before animating to firstSegment.dest, animate back to firstSegment.start
+//                newStates.add(index = 1, element = currentSegment.start)
+//            }
+//        }
+//        // if current == (1, 2) && first == (2, 3), then make first == (1, 2) to finish current (1, 2)
+//        kotlin.run {
+//            val contiguous = currentSegment.isContiguousWith(firstSegment)
+//            val doNotFormALoop = (currentSegment.start != firstSegment.dest)
+//            if (contiguous && doNotFormALoop) {
+//                newStates.add(index = 0, element = currentSegment.start)
+//            }
+//        }
         return HomeAnimSequence(newStates)
     }
 
@@ -231,19 +280,20 @@ internal class HomeAnimController(
         val runningSequence = requireNotNull(runningSequence)
         val segmentToRun = runningSequence.segment()
         if (segmentToRun == null) {
+            this.currentSegment = Segment(start = destState, dest = destState)
+            this.runningSegment = null
             this.runningSequence = null // sequence is finished
             return
         }
-        require(segmentToRun.start == lastReachedState)
+//        require(segmentToRun.start == lastReachedState)
         if (segmentToRun.dest != destState) {
             pendingDests.putAll(destState diffTo segmentToRun.dest)
             // TODO: don't store pendingDests but calc them from currentSegment?
             pendingDests.putAll(destState diffTo segmentToRun.dest) // 'destState' may not have been reached yet, so "snap" to it and calc diff from it
-            currentSegment = Segment(start = destState, dest = segmentToRun.dest)
+            runningSegment = Segment(start = destState, dest = segmentToRun.dest)
             flowOfDestState.value = segmentToRun.dest
             return
         }
-        if (currentSegment == segmentToRun && pendingDests.isNotEmpty()) {
         if (segmentToRun.dest == destState && pendingDests.isNotEmpty()) {
             return // identical segment is already running
         }
