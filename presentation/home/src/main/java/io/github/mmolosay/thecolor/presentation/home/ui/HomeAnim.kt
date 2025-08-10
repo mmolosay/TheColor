@@ -229,6 +229,7 @@ internal class HomeAnimController(
         require(segmentToRun.start == currentState)
         if (segmentToRun.dest != destState) {
             pendingDests.putAll(destState diffTo segmentToRun.dest)
+            pendingDests.putAll(destState diffTo segmentToRun.dest) // 'destState' may not have been reached yet, so "snap" to it and calc diff from it
             flowOfDestState.value = segmentToRun.dest
             return
         }
@@ -252,7 +253,7 @@ internal class HomeAnimController(
 
     private infix fun HomeAnimState.diffTo(next: HomeAnimState): Map<AnimComponent, Any> {
         fun <T> componentDiff(value: (HomeAnimState) -> T): T? =
-            if (value(next) != value(this)) value(next) else null
+            value(next).takeIf { it != value(this) }
         return buildMap {
             componentDiff { it.colorPreviewPosition }?.let {
                 this[AnimComponent.ColorPreviewPosition] = it
