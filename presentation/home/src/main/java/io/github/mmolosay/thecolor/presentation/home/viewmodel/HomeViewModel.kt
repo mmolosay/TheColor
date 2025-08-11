@@ -25,6 +25,7 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.CanProce
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ColorSchemeSelectedSwatchData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModelDiModule.ChannelForColorPreview
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModelDiModule.GateForCollectColorCenterComponent
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModelDiModule.GateForDataUpdateGuard
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModelDiModule.GateForFlowOfColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
@@ -59,7 +60,6 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.flow.update
@@ -98,6 +98,7 @@ class HomeViewModel @Inject constructor(
     colorCenterComponentsStoreFactory: ColorCenterComponentsStore.Factory,
     @GateForFlowOfColorCenterViewModel gateForFlowOfColorCenterViewModel: SuspendGate,
     @GateForCollectColorCenterComponent private val gateForCollectColorCenterComponent: SuspendGate,
+    @GateForDataUpdateGuard private val gateForDataUpdateGuard: SuspendGate,
     private val createColorData: CreateColorDataUseCase,
     private val doesColorBelongToSession: DoesColorBelongToSessionUseCase,
     private val userPreferencesRepository: UserPreferencesRepository,
@@ -109,19 +110,9 @@ class HomeViewModel @Inject constructor(
     private val _dataFlow = MutableStateFlow(initialData())
     val dataFlow = _dataFlow.asStateFlow()
 
-    private val dataUpdateGuard = DataUpdateGuard()
-    val flowOfIsDataBeingUpdated: StateFlow<Boolean> = kotlin.run {
-        // mapping StateFlow to StateFlow involves boilerplate 'stateIn()':
-        // https://github.com/Kotlin/kotlinx.coroutines/issues/2631
-        fun value(numberOfOngoingUpdates: Int): Boolean =
-            (numberOfOngoingUpdates > 0)
-        val upstream = dataUpdateGuard.flowOfOngoingUpdates
-        val initialValue = value(upstream.value)
-        upstream
-            .map(::value)
-            .flowOn(defaultDispatcher)
-            .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue)
-    }
+    private val dataUpdateGuard = DataUpdateGuard(gate = gateForDataUpdateGuard)
+    val flowOfIsDataBeingUpdated: StateFlow<Boolean> =
+        dataUpdateGuard.flowOfIsDataBeingUpdated
 
     private val navEventRelay = ImmediateEventRelay<HomeNavEvent>()
     val navEventFlow = navEventRelay.eventFlow
@@ -570,6 +561,15 @@ internal object HomeViewModelDiModule {
     @Qualifier
     @Retention(AnnotationRetention.BINARY)
     annotation class GateForCollectColorCenterComponent
+
+    @Provides
+    @GateForDataUpdateGuard
+    fun provideGateForDataUpdateGuard(): SuspendGate =
+        OpenSuspendGate
+
+    @Qualifier
+    @Retention(AnnotationRetention.BINARY)
+    annotation class GateForDataUpdateGuard
 }
 
 /**
@@ -638,18 +638,31 @@ private class ColorInputOrchestrator {
  * running in parallel.
  * Finishing one won't falsely signal that all are done (as it would've been with a simple boolean).
  */
-private class DataUpdateGuard {
-    val flowOfOngoingUpdates = MutableStateFlow(0)
+private class DataUpdateGuard(
+    private val gate: SuspendGate,
+) {
 
-    inline fun withCounter(block: () -> Unit) {
-        flowOfOngoingUpdates.update { it + 1 }
+    private var numberOfOngoingUpdates = 0
+    val flowOfIsDataBeingUpdated = MutableStateFlow<Boolean>(value = isDataBeingUpdated())
+
+    suspend inline fun withCounter(block: () -> Unit) {
+        updateNumberOfOngoingUpdates { it + 1 }
         try {
             block()
         } finally {
-            flowOfOngoingUpdates.update { it - 1 }
-            assert(flowOfOngoingUpdates.value >= 0)
+            updateNumberOfOngoingUpdates { it - 1 }
+            assert(numberOfOngoingUpdates >= 0)
         }
     }
+
+    private suspend fun updateNumberOfOngoingUpdates(newNumber: (Int) -> Int) {
+        gate.awaitOpen()
+        numberOfOngoingUpdates = newNumber(numberOfOngoingUpdates)
+        flowOfIsDataBeingUpdated.value = isDataBeingUpdated()
+    }
+
+    private fun isDataBeingUpdated() =
+        numberOfOngoingUpdates > 0
 }
 
 /**

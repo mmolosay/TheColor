@@ -154,7 +154,7 @@ class HomeViewModelTest {
 
     lateinit var sut: HomeViewModel
 
-    @Test
+    @Test // ANCHOR:Label=0
     fun `given color from Color Input is not 'null', when SUT is created, then data has 'CanProceed Yes'`() {
         mockStoresWithEmptyFlows()
         every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
@@ -209,6 +209,38 @@ class HomeViewModelTest {
             }
 
             data.canProceed should beOfType<CanProceed.No>()
+        }
+
+    @Test
+    fun `when receiving a 'null' color from Color Input, then data is NOT updated until 'is data being updated' flag is set to 'true'`() =
+        runTest(testDispatcher) {
+            mockStoresWithEmptyFlows()
+            val initialColor = Color.Hex(0x0)
+            val colorInputColorFlow = MutableStateFlow<Color?>(initialColor)
+            every { colorInputColorStore.colorFlow } returns colorInputColorFlow
+            every { createColorData(color = any()) } returns mockk()
+            val gate = ClosableSuspendGate(closed = false)
+            createSut(
+                gateForDataUpdateGuard = gate,
+            )
+
+            data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke() // REFERENCE:Label=0
+            val data1 = data
+            data1.proceedResult shouldNotBe null // REFERENCE:Label=1
+
+            gate.close()
+            run emitFirstColorFromColorInput@{
+                val nullColor: Color? = null
+                colorInputColorFlow.emit(nullColor)
+                colorProcessedConfirmationChannelForColorPreviewReal.send(nullColor)
+            }
+            sut.flowOfIsDataBeingUpdated.value shouldBe false // hasn't updated due to closed gate
+            val data2 = data
+            data2.proceedResult shouldBe data1.proceedResult // hasn't updated yet
+
+            gate.open()
+            val data3 = data
+            data3.proceedResult shouldBe null // REFERENCE:Label=2
         }
 
     /**
@@ -332,7 +364,7 @@ class HomeViewModelTest {
         }
 
     @Test
-    fun `invoking 'proceed' action invokes 'proceed' method`() =
+    fun `given there is a not-null color in Color Input, when 'proceed' action is invoked, then 'proceed' is executed`() =
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
@@ -347,8 +379,8 @@ class HomeViewModelTest {
             }
         }
 
-    @Test
-    fun `invoking 'proceed' action updates 'proceedResult'`() {
+    @Test // ANCHOR:Label=1
+    fun `given there is a not-null color in Color Input, when 'proceed' action is invoked, then 'proceedResult' is updated`() {
         mockStoresWithEmptyFlows()
         every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
         val colorData: ProceedResult.Success.ColorData = mockk()
@@ -358,8 +390,9 @@ class HomeViewModelTest {
         // we know from other tests that it would be 'CanProceed.Yes'
         data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
 
-        val proceedResultAsSuccess = data.proceedResult.shouldBeInstanceOf<ProceedResult.Success>()
-        proceedResultAsSuccess.colorData shouldBe colorData
+        val proceedResult = data.proceedResult
+        proceedResult should beOfType<ProceedResult.Success>()
+        proceedResult.shouldBeInstanceOf<ProceedResult.Success>().colorData shouldBe colorData
     }
 
     /**
@@ -850,7 +883,7 @@ class HomeViewModelTest {
             }
         }
 
-    @Test
+    @Test // ANCHOR:Label=2
     fun `when receiving 'null' color from Color Input after 'proceed' was invoked, then 'proceedResult' is cleared`() =
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
@@ -1270,6 +1303,7 @@ class HomeViewModelTest {
         colorProcessedConfirmationChannelForColorPreview: Channel<Color?> = colorProcessedConfirmationChannelForColorPreviewReal,
         gateForFlowOfColorCenterViewModel: SuspendGate = OpenSuspendGate,
         gateForCollectColorCenterComponent: SuspendGate = OpenSuspendGate,
+        gateForDataUpdateGuard: SuspendGate = OpenSuspendGate,
     ) =
         HomeViewModel(
             colorInputMediatorFactory = { _ -> colorInputMediator },
@@ -1281,6 +1315,7 @@ class HomeViewModelTest {
             colorCenterComponentsStoreFactory = { _ -> colorCenterComponentsStore },
             gateForFlowOfColorCenterViewModel = gateForFlowOfColorCenterViewModel,
             gateForCollectColorCenterComponent = gateForCollectColorCenterComponent,
+            gateForDataUpdateGuard = gateForDataUpdateGuard,
             createColorData = createColorData,
             doesColorBelongToSession = doesColorBelongToSession,
             userPreferencesRepository = userPreferencesRepository,
