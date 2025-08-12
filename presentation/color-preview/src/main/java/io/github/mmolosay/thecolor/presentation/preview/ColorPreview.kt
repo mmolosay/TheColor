@@ -12,8 +12,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,8 +27,9 @@ import androidx.compose.ui.unit.dp
 import io.github.mmolosay.thecolor.presentation.api.ColorInt
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.impl.toCompose
+import io.github.mmolosay.thecolor.utils.doNothing
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimState as AnimState
@@ -75,6 +79,8 @@ fun AnimatedColorPreview(
     val mainUiState = animController.mainUiState
     val updatesOfVisibleUiState = animController.updatesOfVisibleUiState
 
+    var targetMainUiState by remember { mutableStateOf(animController.mainUiState) }
+
     fun scaleTargetValue(dest: AnimState.Visibility): Float =
         when (dest) {
             AnimState.Visibility.Collapsed -> 0f
@@ -86,7 +92,7 @@ fun AnimatedColorPreview(
         Animatable(initialValue = scaleTargetValue(initialVisibility))
     }
     LaunchedEffect(Unit) {
-        animController.flowOfVisibilityDest.collectLatest collect@{ visibilityDestWithCause ->
+        animController.flowOfVisibilityDest.collect collect@{ visibilityDestWithCause ->
             val (visibilityDest, cause) = visibilityDestWithCause
             val targetValue = scaleTargetValue(visibilityDest)
             if (scaleAnimatable.value == targetValue) {
@@ -98,11 +104,15 @@ fun AnimatedColorPreview(
             if (scaleAnimatable.isRunning && scaleAnimatable.targetValue == targetValue) {
                 return@collect // already animating to target state
             }
-            scaleAnimatable.animateTo(
-                targetValue = targetValue,
-            )
-            animController.onVisibilityAnimFinished(reached = visibilityDestWithCause)
-            onUiStateReached(cause)
+            targetMainUiState = cause
+            // run suspendable animation in a new coroutine to unblock collect() for the next emission
+            launch {
+                scaleAnimatable.animateTo(
+                    targetValue = targetValue,
+                )
+                animController.onVisibilityAnimFinished(reached = visibilityDestWithCause)
+                onUiStateReached(targetMainUiState)
+            }
         }
     }
 
@@ -119,9 +129,16 @@ fun AnimatedColorPreview(
                     color = update.uiState.color.toCompose(),
                     onAnimationFinished = {
                         animController.onUpdateAnimFinished(update)
-                        // don't invoke a callback if collapsing
-                        if (animController.latestUiState !is UiState.Hidden && !scaleAnimatable.isRunning) {
-                            onUiStateReached(update.uiState)
+                        val isMainExpanding = (scaleAnimatable.isRunning
+                                && animController.mainUiState is UiState.Visible
+                                && animController.latestUiState !is UiState.Hidden)
+                        val isMainCollapsing = (scaleAnimatable.isRunning
+                                && animController.mainUiState is UiState.Visible
+                                && animController.latestUiState is UiState.Hidden)
+                        when {
+                            isMainExpanding -> targetMainUiState = update.uiState // relies on "main" animation to report onUiStateReached() once it finishes
+                            isMainCollapsing -> doNothing() // don't invoke a callback if collapsing
+                            else -> onUiStateReached(update.uiState)
                         }
                     },
                 )
