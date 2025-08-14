@@ -6,6 +6,7 @@ import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorCente
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPreview
 import io.github.mmolosay.thecolor.utils.removeSubsequentDuplicates
 import kotlinx.coroutines.flow.MutableStateFlow
+import timber.log.Timber
 
 /**
  * State of UI animation of 'Home' View.
@@ -146,8 +147,7 @@ internal class HomeAnimController(
     val destState: HomeAnimState
         get() = flowOfDestState.value
 
-    var currentSegment = Segment(start = currentState, dest = currentState)
-        private set
+    private var runningSegment: Segment? = null
 
     private val pendingDests = mutableMapOf<AnimComponent, Any>() // type -> anim dest
 
@@ -156,11 +156,19 @@ internal class HomeAnimController(
     val isRunning: Boolean
         get() = (runningSequence != null)
 
-    fun run(sequence: HomeAnimSequence) {
-        require(sequence.first() == currentState) { "sequence must start from current state" }
-        require(sequence.first() == lastReachedState) { "sequence must start from the last reached state" }
-        val adjustedSequence = normalizeSubmittedSequence(sequence)
-        runningSequence = RunningSequence(adjustedSequence)
+    val currentState: HomeAnimState
+        get() = if (isRunning) requireNotNull(runningSegment).start else lastReachedState
+
+    /**
+     * Runs the specified animation.
+     * List if [destStates] defines the key frames that should be animated to.
+     */
+    fun run(destStates: List<HomeAnimState>) {
+        Timber.d("HomeAnimLog | run(), destStates = $destStates, lastReachedState = $lastReachedState, currentSegment = $runningSegment")
+        require(destStates.isNotEmpty()) { "Dest states must have at least one state" }
+        val sequence = normalizeDestStatesToSequence(destStates)
+        Timber.d("HomeAnimLog | sequence = $sequence")
+        runningSequence = RunningSequence(sequence)
         setNextDestFromSequence()
     }
 
@@ -204,8 +212,7 @@ internal class HomeAnimController(
         if (!isExpectedToBeReached) return
         assert(reachedValue == destValue)
         assert(isExpectedToBeReached)
-        currentState = applyToCurrentState(currentState)
-        flowOfLastReachedState.value = applyToCurrentState(lastReachedState)
+        Timber.d("HomeAnimLog | onValueReached(), reachedValue = $reachedValue, destValue = $destValue, component = $component")
         lastReachedState = applyToCurrentState(lastReachedState)
         pendingDests.remove(component)
         checkIfDestIsReachedAndSetNext()
@@ -220,15 +227,14 @@ internal class HomeAnimController(
         val newStates = destStates
             .removeSubsequentDuplicates()
             .toMutableList()
-        val containsSingleDest = (newStates.size == 1)
         val firstDest = newStates.first()
-        val firstDestIsOngoing = (isRunning && firstDest == requireNotNull(runningSegment).dest)
-        val goesToDifferentDest = if (isRunning) {
-            val runningSegment = requireNotNull(runningSegment)
-            (runningSegment.start == firstDest)
-        } else {
-            false
-        }
+        val containsSingleDest = (newStates.size == 1)
+        val firstDestIsOngoing = if (isRunning) {
+            (requireNotNull(runningSegment).dest == firstDest)
+        } else false
+        val goesBackToOngoingStart = if (isRunning) {
+            (requireNotNull(runningSegment).start == firstDest)
+        } else false
         when {
             containsSingleDest -> {
                 newStates.add(index = 0, element = currentState)
@@ -236,42 +242,10 @@ internal class HomeAnimController(
             firstDestIsOngoing -> {
                 newStates.add(index = 0, element = requireNotNull(runningSegment).start)
             }
-            goesToDifferentDest -> {
+            goesBackToOngoingStart -> {
                 newStates.add(index = 0, element = requireNotNull(runningSegment).dest)
             }
         }
-        // if destStates == [1] and currentState == X, then make newStates == [X, 1]
-//        kotlin.run {
-//            val containsSingleDest = (newStates.size == 1)
-//            if (containsSingleDest) {
-//                newStates.add(index = 0, element = currentState)
-//            }
-//        }
-//        kotlin.run {
-//            val firstDestIsOngoing = (destStates.first() == )
-//            val firstSegmentIsNotAlreadyRunning = (newStates.segmentAt(0) != runningSegment)
-//            if (firstDestIsOngoing && firstSegmentIsNotAlreadyRunning) {
-//                newStates.add(index = 0, element = runningSegment.start)
-//            }
-//        }
-//        val firstSegment = Segment(start = sequence[0], dest = sequence[1])
-//        // if current == (2, 3) && first == (2, 1), then make first == (2, 2) to reverse current (2, 3)
-//        kotlin.run {
-//            val sameStartButDifferentDests =
-//                (currentSegment.start == firstSegment.start) && (currentSegment.dest != firstSegment.dest)
-//            if (sameStartButDifferentDests && firstSegment.isEmpty().not()) {
-//                // before animating to firstSegment.dest, animate back to firstSegment.start
-//                newStates.add(index = 1, element = currentSegment.start)
-//            }
-//        }
-//        // if current == (1, 2) && first == (2, 3), then make first == (1, 2) to finish current (1, 2)
-//        kotlin.run {
-//            val contiguous = currentSegment.isContiguousWith(firstSegment)
-//            val doNotFormALoop = (currentSegment.start != firstSegment.dest)
-//            if (contiguous && doNotFormALoop) {
-//                newStates.add(index = 0, element = currentSegment.start)
-//            }
-//        }
         return HomeAnimSequence(newStates)
     }
 
@@ -280,14 +254,13 @@ internal class HomeAnimController(
         val runningSequence = requireNotNull(runningSequence)
         val segmentToRun = runningSequence.segment()
         if (segmentToRun == null) {
-            this.currentSegment = Segment(start = destState, dest = destState)
+            Timber.d("HomeAnimLog | sequence is finished")
             this.runningSegment = null
             this.runningSequence = null // sequence is finished
             return
         }
-//        require(segmentToRun.start == lastReachedState)
         if (segmentToRun.dest != destState) {
-            pendingDests.putAll(destState diffTo segmentToRun.dest)
+            Timber.d("HomeAnimLog | applying segment's dest: ${segmentToRun.dest}")
             // TODO: don't store pendingDests but calc them from currentSegment?
             pendingDests.putAll(destState diffTo segmentToRun.dest) // 'destState' may not have been reached yet, so "snap" to it and calc diff from it
             runningSegment = Segment(start = destState, dest = segmentToRun.dest)
@@ -295,9 +268,11 @@ internal class HomeAnimController(
             return
         }
         if (segmentToRun.dest == destState && pendingDests.isNotEmpty()) {
+            Timber.d("HomeAnimLog | identical segment is already running: $segmentToRun")
             return // identical segment is already running
         }
         if (segmentToRun.dest == destState || segmentToRun.isEmpty()) {
+            Timber.d("HomeAnimLog | skipping segment, its diff: ${segmentToRun.asDiff()}")
             runningSequence.advance()
             setNextDestFromSequence()
             return
@@ -355,6 +330,15 @@ internal class HomeAnimController(
 
     private fun Segment.isContiguousWith(other: Segment): Boolean =
         (this.dest == other.start)
+
+    private fun Segment.asDiff(): Map<AnimComponent, Any> =
+        start diffTo dest
+
+    private fun List<HomeAnimState>.segmentAt(index: Int): Segment? {
+        val start = this.getOrNull(index) ?: return null
+        val dest = this.getOrNull(index + 1) ?: return null
+        return Segment(start, dest)
+    }
 
     private enum class AnimComponent {
         ColorPreviewPosition,

@@ -24,7 +24,6 @@ import androidx.compose.ui.unit.dp
 import io.github.mmolosay.thecolor.presentation.api.ColorInt
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.impl.toCompose
-import io.github.mmolosay.thecolor.utils.doNothing
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
@@ -87,34 +86,35 @@ fun AnimatedColorPreview(
     }
     LaunchedEffect(Unit) {
         animController.flowOfVisibilityDest.collect collect@{ visibilityDestWithCause ->
-            val (visibilityDest, cause) = visibilityDestWithCause
+            val (visibilityDest) = visibilityDestWithCause
             val targetValue = scaleTargetValue(visibilityDest)
-            kotlin.run {
-                val isAlreadyInTargetState = (scaleAnimatable.value == targetValue)
-                if (isAlreadyInTargetState) {
-                    if (cause == animController.mainUiState) {
-                        onUiStateReached(cause)
-                    }
-                    return@collect // already in target state
-                }
+
+            val isAlreadyInTargetState = (scaleAnimatable.value == targetValue)
+            if (isAlreadyInTargetState) {
+                return@collect // already in target state
             }
-            kotlin.run {
-                val isAlreadyRunningTowardsTarget =
-                    (scaleAnimatable.isRunning && scaleAnimatable.targetValue == targetValue)
-                if (isAlreadyRunningTowardsTarget) {
-                    return@collect // already animating towards target state
-                }
+
+            val isAlreadyRunningTowardsTarget =
+                (scaleAnimatable.isRunning && scaleAnimatable.targetValue == targetValue)
+            if (isAlreadyRunningTowardsTarget) {
+                return@collect // already animating towards target state
             }
+
             // run suspendable animation in a new coroutine to unblock collect() for the next emission
             launch {
+                animController.onMainVisibilityAnimStarted(visibilityDestWithCause)
                 scaleAnimatable.animateTo(
                     targetValue = targetValue,
                 )
                 val latestCause = animController.flowOfVisibilityDest.value.cause
                 animController.onMainVisibilityAnimFinished(visibilityDest)
-                onUiStateReached(latestCause)
-                Timber.d("HomeAnimLog | flowOfVisibilityDest finished animation towards $latestCause")
+                Timber.d("HomeAnimLog | flowOfVisibilityDest finished animation towards $latestCause") // TODO: remove me
             }
+        }
+    }
+    LaunchedEffect(Unit) {
+        animController.flowOfStableReachedUiState.collect { uiState ->
+            onUiStateReached(uiState)
         }
     }
 
@@ -132,17 +132,6 @@ fun AnimatedColorPreview(
                     color = update.uiState.color.toCompose(),
                     onAnimationFinished = {
                         animController.onUpdateAnimFinished(update)
-                        val isMainExpanding = (scaleAnimatable.isRunning
-                                && animController.mainUiState is UiState.Visible
-                                && animController.latestUiState !is UiState.Hidden)
-                        val isMainCollapsing = (scaleAnimatable.isRunning
-                                && animController.mainUiState is UiState.Visible
-                                && animController.latestUiState is UiState.Hidden)
-                        when {
-                            isMainExpanding -> doNothing() // relies on "main" animation to report onUiStateReached() once it finishes
-                            isMainCollapsing -> doNothing() // don't invoke a callback if collapsing
-                            else -> onUiStateReached(update.uiState)
-                        }
                     },
                 )
             }
