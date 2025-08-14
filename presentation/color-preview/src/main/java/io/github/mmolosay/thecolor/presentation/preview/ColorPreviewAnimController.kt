@@ -29,7 +29,7 @@ interface ColorPreviewAnimController {
     val updatesOfVisibleUiState: List<UpdateOfVisibleUiState>
 
     fun onNewUiState(uiState: UiState)
-    /*internal*/ fun onVisibilityAnimFinished(reached: VisibilityWithCause)
+    /*internal*/ fun onMainVisibilityAnimFinished(reached: Visibility)
     /*internal*/ fun onUpdateAnimFinished(update: UpdateOfVisibleUiState)
 
     /** Couples [Visibility] with the [UiState] that [cause]d it. */

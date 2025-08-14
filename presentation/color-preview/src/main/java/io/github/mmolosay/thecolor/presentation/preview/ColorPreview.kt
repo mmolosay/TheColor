@@ -12,11 +12,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -76,10 +73,7 @@ fun AnimatedColorPreview(
     animController: ColorPreviewAnimController,
     onUiStateReached: (reached: UiState) -> Unit,
 ) {
-    val mainUiState = animController.mainUiState
     val updatesOfVisibleUiState = animController.updatesOfVisibleUiState
-
-    var targetMainUiState by remember { mutableStateOf(animController.mainUiState) }
 
     fun scaleTargetValue(dest: AnimState.Visibility): Float =
         when (dest) {
@@ -95,23 +89,31 @@ fun AnimatedColorPreview(
         animController.flowOfVisibilityDest.collect collect@{ visibilityDestWithCause ->
             val (visibilityDest, cause) = visibilityDestWithCause
             val targetValue = scaleTargetValue(visibilityDest)
-            if (scaleAnimatable.value == targetValue) {
-                if (cause == animController.mainUiState) {
-                    onUiStateReached(cause)
+            kotlin.run {
+                val isAlreadyInTargetState = (scaleAnimatable.value == targetValue)
+                if (isAlreadyInTargetState) {
+                    if (cause == animController.mainUiState) {
+                        onUiStateReached(cause)
+                    }
+                    return@collect // already in target state
                 }
-                return@collect // already in target state
             }
-            if (scaleAnimatable.isRunning && scaleAnimatable.targetValue == targetValue) {
-                return@collect // already animating to target state
+            kotlin.run {
+                val isAlreadyRunningTowardsTarget =
+                    (scaleAnimatable.isRunning && scaleAnimatable.targetValue == targetValue)
+                if (isAlreadyRunningTowardsTarget) {
+                    return@collect // already animating towards target state
+                }
             }
-            targetMainUiState = cause
             // run suspendable animation in a new coroutine to unblock collect() for the next emission
             launch {
                 scaleAnimatable.animateTo(
                     targetValue = targetValue,
                 )
-                animController.onVisibilityAnimFinished(reached = visibilityDestWithCause)
-                onUiStateReached(targetMainUiState)
+                val latestCause = animController.flowOfVisibilityDest.value.cause
+                animController.onMainVisibilityAnimFinished(visibilityDest)
+                onUiStateReached(latestCause)
+                Timber.d("HomeAnimLog | flowOfVisibilityDest finished animation towards $latestCause")
             }
         }
     }
@@ -119,6 +121,7 @@ fun AnimatedColorPreview(
     ColorPreviewBox(
         modifier = Modifier.scale(scaleAnimatable.value),
     ) {
+        val mainUiState = animController.mainUiState
         if (mainUiState is UiState.Visible) {
             MainPreview(color = mainUiState.color.toCompose())
         }
@@ -136,7 +139,7 @@ fun AnimatedColorPreview(
                                 && animController.mainUiState is UiState.Visible
                                 && animController.latestUiState is UiState.Hidden)
                         when {
-                            isMainExpanding -> targetMainUiState = update.uiState // relies on "main" animation to report onUiStateReached() once it finishes
+                            isMainExpanding -> doNothing() // relies on "main" animation to report onUiStateReached() once it finishes
                             isMainCollapsing -> doNothing() // don't invoke a callback if collapsing
                             else -> onUiStateReached(update.uiState)
                         }
