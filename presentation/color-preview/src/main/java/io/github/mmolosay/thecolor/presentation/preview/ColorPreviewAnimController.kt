@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController.AnimateVisibilityCommand
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController.UpdateOfVisibleUiState
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController.VisibilityWithCause
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimState.Visibility
@@ -25,23 +26,26 @@ interface ColorPreviewAnimController {
     val mainUiState: UiState
 
     // delivering values via Flow + collect() is quicker than via State + LaunchedEffect()
-    val flowOfVisibilityDest: StateFlow<VisibilityWithCause>
-    val visibilityDest: VisibilityWithCause
-        get() = flowOfVisibilityDest.value
+    val flowOfAnimateVisibilityCommand: StateFlow<AnimateVisibilityCommand>
+    val animateVisibilityCommand: AnimateVisibilityCommand
+        get() = flowOfAnimateVisibilityCommand.value
 
     val flowOfStableReachedUiState: Flow<UiState>
 
     val updatesOfVisibleUiState: List<UpdateOfVisibleUiState>
 
     fun onNewUiState(uiState: UiState)
-    /*internal*/ fun onMainVisibilityAnimStarted(dest: VisibilityWithCause)
-    /*internal*/ fun onMainVisibilityAnimFinished(reached: Visibility)
     /*internal*/ fun onUpdateAnimFinished(update: UpdateOfVisibleUiState)
 
-    /** Couples [Visibility] with the [UiState] that [cause]d it. */
     data class VisibilityWithCause(
         val value: Visibility,
         val cause: UiState,
+    )
+
+    data class AnimateVisibilityCommand(
+        val dest: VisibilityWithCause,
+        val onAnimStarted: () -> Unit,
+        val onAnimFinished: () -> Unit,
     )
 
     /** A `visible` [UiState] that arrived when the [mainUiState] was also `visible`. */
@@ -62,7 +66,8 @@ class ColorPreviewAnimControllerImpl(
 ) : ColorPreviewAnimController {
     override var mainUiState by mutableStateOf(uiState)
 
-    override val flowOfVisibilityDest = MutableStateFlow(value = uiState.toVisibilityWithCause())
+    override val flowOfAnimateVisibilityCommand =
+        MutableStateFlow(value = uiState.toVisibilityWithCause().toAnimateCommand())
     override val updatesOfVisibleUiState = mutableStateListOf<UpdateOfVisibleUiState>()
 
     override val flowOfStableReachedUiState = MutableSharedFlow<UiState>(
@@ -78,9 +83,10 @@ class ColorPreviewAnimControllerImpl(
     }
 
     override fun onNewUiState(uiState: UiState) {
-        val newVisibilityWithCause = uiState.toVisibilityWithCause()
-        val newVisibilityDest = newVisibilityWithCause.value
-        flowOfVisibilityDest.value = newVisibilityWithCause
+        val newCommand = uiState.toVisibilityWithCause().toAnimateCommand()
+        flowOfAnimateVisibilityCommand.value = newCommand
+
+        val newVisibilityDest = newCommand.dest.value
         if (isMainAnimRunning) {
             if (newVisibilityDest == Visibility.Expanded) {
                 uiState.addAsUpdateOfVisibleUiState()
@@ -99,11 +105,11 @@ class ColorPreviewAnimControllerImpl(
         }
     }
 
-    override fun onMainVisibilityAnimStarted(dest: VisibilityWithCause) {
+    private fun onMainVisibilityAnimStarted(dest: VisibilityWithCause) {
         ongoingMainAnimTarget = dest
     }
 
-    override fun onMainVisibilityAnimFinished(reached: Visibility) {
+    private fun onMainVisibilityAnimFinished(reached: Visibility) {
         val ongoing = ongoingMainAnimTarget
         if (ongoing == null) return // no animation was running
         if (ongoing.value != reached) return // was not expected to be reached
@@ -119,7 +125,7 @@ class ColorPreviewAnimControllerImpl(
                 }
             }
         }
-        this.mainUiState = visibilityDest.cause
+        this.mainUiState = animateVisibilityCommand.dest.cause
         this.ongoingMainAnimTarget = null
     }
 
@@ -147,5 +153,12 @@ class ColorPreviewAnimControllerImpl(
                 is UiState.Visible -> Visibility.Expanded
             },
             cause = this,
+        )
+
+    private fun VisibilityWithCause.toAnimateCommand() =
+        AnimateVisibilityCommand(
+            dest = this,
+            onAnimStarted = { onMainVisibilityAnimStarted(dest = this) },
+            onAnimFinished = { onMainVisibilityAnimFinished(reached = this.value) }
         )
 }

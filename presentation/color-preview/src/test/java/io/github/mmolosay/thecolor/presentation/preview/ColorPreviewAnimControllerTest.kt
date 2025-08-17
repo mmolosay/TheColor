@@ -27,7 +27,7 @@ class ColorPreviewAnimControllerTest {
         val newUiState = mockk<UiState.Visible>()
         sut.onNewUiState(newUiState)
 
-        sut.visibilityDest shouldBe VisibilityWithCause(
+        sut.animateVisibilityCommand.dest shouldBe VisibilityWithCause(
             value = Visibility.Expanded,
             cause = newUiState,
         )
@@ -50,12 +50,12 @@ class ColorPreviewAnimControllerTest {
 
         val visibleUiState = mockk<UiState.Visible>()
         sut.onNewUiState(visibleUiState)
-        sut.onMainVisibilityAnimStarted(dest = sut.visibilityDest)
+        sut.animateVisibilityCommand.onAnimStarted()
 
         val hiddenUiState = mockk<UiState.Hidden>()
         sut.onNewUiState(hiddenUiState)
 
-        sut.visibilityDest shouldBe VisibilityWithCause(
+        sut.animateVisibilityCommand.dest shouldBe VisibilityWithCause(
             value = Visibility.Collapsed,
             cause = hiddenUiState,
         )
@@ -67,7 +67,7 @@ class ColorPreviewAnimControllerTest {
 
         val visibleUiState1 = mockk<UiState.Visible>()
         sut.onNewUiState(visibleUiState1)
-        sut.onMainVisibilityAnimStarted(dest = sut.visibilityDest)
+        sut.animateVisibilityCommand.onAnimStarted()
         sut.updatesOfVisibleUiState shouldHaveSize 0
 
         val visibleUiState2 = mockk<UiState.Visible>()
@@ -82,7 +82,7 @@ class ColorPreviewAnimControllerTest {
 
         val hiddenUiState = mockk<UiState.Hidden>()
         sut.onNewUiState(hiddenUiState)
-        sut.onMainVisibilityAnimStarted(dest = sut.visibilityDest)
+        sut.animateVisibilityCommand.onAnimStarted()
         sut.updatesOfVisibleUiState shouldHaveSize 0
 
         val visibleUiState = mockk<UiState.Visible>()
@@ -107,8 +107,8 @@ class ColorPreviewAnimControllerTest {
 
             val visibleUiState = mockk<UiState.Visible>()
             sut.onNewUiState(visibleUiState)
-            sut.onMainVisibilityAnimStarted(dest = sut.visibilityDest)
-            sut.onMainVisibilityAnimFinished(reached = sut.visibilityDest.value)
+            sut.animateVisibilityCommand.onAnimStarted()
+            sut.animateVisibilityCommand.onAnimFinished()
 
             sut.flowOfStableReachedUiState.first() shouldBe visibleUiState
         }
@@ -120,8 +120,8 @@ class ColorPreviewAnimControllerTest {
 
             val hiddenUiState = mockk<UiState.Hidden>()
             sut.onNewUiState(hiddenUiState)
-            sut.onMainVisibilityAnimStarted(dest = sut.visibilityDest)
-            sut.onMainVisibilityAnimFinished(reached = sut.visibilityDest.value)
+            sut.animateVisibilityCommand.onAnimStarted()
+            sut.animateVisibilityCommand.onAnimFinished()
 
             sut.flowOfStableReachedUiState.first() shouldBe hiddenUiState
         }
@@ -164,7 +164,7 @@ class ColorPreviewAnimControllerTest {
 
             val visibleUiState = mockk<UiState.Visible>()
             sut.onNewUiState(visibleUiState)
-            sut.onMainVisibilityAnimStarted(dest = sut.visibilityDest) // started but never finished to keep running
+            sut.animateVisibilityCommand.onAnimStarted() // started but never finished to keep running
 
             val visibleUiStateUpdate = mockk<UiState.Visible>()
             sut.onNewUiState(visibleUiStateUpdate)
@@ -180,8 +180,8 @@ class ColorPreviewAnimControllerTest {
 
         val visibleUiState = mockk<UiState.Visible>()
         sut.onNewUiState(visibleUiState)
-        sut.onMainVisibilityAnimStarted(dest = sut.visibilityDest)
-        sut.onMainVisibilityAnimFinished(reached = sut.visibilityDest.value)
+        sut.animateVisibilityCommand.onAnimStarted()
+        sut.animateVisibilityCommand.onAnimFinished()
 
         sut.mainUiState shouldBe visibleUiState
     }
@@ -192,7 +192,7 @@ class ColorPreviewAnimControllerTest {
 
         val visibleUiState = mockk<UiState.Visible>()
         sut.onNewUiState(visibleUiState)
-        sut.onMainVisibilityAnimStarted(dest = sut.visibilityDest)
+        sut.animateVisibilityCommand.onAnimStarted()
 
         val visibleUiStateUpdate = mockk<UiState.Visible>()
         sut.onNewUiState(visibleUiStateUpdate)

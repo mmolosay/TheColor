@@ -81,12 +81,12 @@ fun AnimatedColorPreview(
         }
 
     val scaleAnimatable = remember {
-        val initialVisibility = animController.visibilityDest.value
+        val initialVisibility = animController.animateVisibilityCommand.dest.value
         Animatable(initialValue = scaleTargetValue(initialVisibility))
     }
     LaunchedEffect(Unit) {
-        animController.flowOfVisibilityDest.collect collect@{ visibilityDestWithCause ->
-            val (visibilityDest) = visibilityDestWithCause
+        animController.flowOfAnimateVisibilityCommand.collect collect@{ command ->
+            val visibilityDest = command.dest.value
             val targetValue = scaleTargetValue(visibilityDest)
 
             val isAlreadyInTargetState = (scaleAnimatable.value == targetValue)
@@ -102,13 +102,11 @@ fun AnimatedColorPreview(
 
             // run suspendable animation in a new coroutine to unblock collect() for the next emission
             launch {
-                animController.onMainVisibilityAnimStarted(visibilityDestWithCause)
+                command.onAnimStarted()
                 scaleAnimatable.animateTo(
                     targetValue = targetValue,
                 )
-                val latestCause = animController.flowOfVisibilityDest.value.cause
-                animController.onMainVisibilityAnimFinished(visibilityDest)
-                Timber.d("HomeAnimLog | flowOfVisibilityDest finished animation towards $latestCause") // TODO: remove me
+                command.onAnimFinished()
             }
         }
     }
