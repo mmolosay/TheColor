@@ -8,10 +8,7 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimControll
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController.UpdateOfVisibleUiState
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController.VisibilityWithCause
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimState.Visibility
-import io.github.mmolosay.thecolor.utils.requireEmit
-import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState as UiState
@@ -70,17 +67,12 @@ class ColorPreviewAnimControllerImpl(
         MutableStateFlow(value = uiState.toVisibilityWithCause().toAnimateCommand())
     override val updatesOfVisibleUiState = mutableStateListOf<UpdateOfVisibleUiState>()
 
-    override val flowOfStableReachedUiState = MutableSharedFlow<UiState>(
-        replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST,
-    )
+    override val flowOfStableReachedUiState =
+        MutableStateFlow<UiState>(uiState) // initial state is stable; MutableStateFlow may conflate rapid updates
 
     private var ongoingMainAnimTarget: VisibilityWithCause? = null
     private val isMainAnimRunning: Boolean
         get() = (ongoingMainAnimTarget != null)
-
-    init {
-        flowOfStableReachedUiState.requireEmit(uiState) // initial state is stable
-    }
 
     override fun onNewUiState(uiState: UiState) {
         val newCommand = uiState.toVisibilityWithCause().toAnimateCommand()
@@ -116,12 +108,12 @@ class ColorPreviewAnimControllerImpl(
         when (reached) {
             Visibility.Collapsed -> {
                 check(updatesOfVisibleUiState.isEmpty()) { "main can't collapse while there are updates ongoing" }
-                flowOfStableReachedUiState.requireEmit(ongoing.cause)
+                flowOfStableReachedUiState.value = ongoing.cause
             }
             Visibility.Expanded -> {
                 if (updatesOfVisibleUiState.isEmpty()) {
                     // only consider this UI state as stable if there's no updates ongoing
-                    flowOfStableReachedUiState.requireEmit(ongoing.cause)
+                    flowOfStableReachedUiState.value = ongoing.cause
                 }
             }
         }
@@ -135,7 +127,7 @@ class ColorPreviewAnimControllerImpl(
             require(wasRemoved) { "finished update wasn't in the list of the ongoing updates" }
         }
         if (updatesOfVisibleUiState.isEmpty() && !isMainAnimRunning) {
-            flowOfStableReachedUiState.requireEmit(update.uiState)
+            flowOfStableReachedUiState.value = update.uiState
         }
     }
 
