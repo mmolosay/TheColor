@@ -13,6 +13,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,6 +22,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.api.ColorInt
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.impl.toCompose
@@ -72,7 +74,7 @@ fun AnimatedColorPreview(
     animController: ColorPreviewAnimController,
     onUiStateReached: (reached: UiState) -> Unit,
 ) {
-    val updatesOfVisibleUiState = animController.updatesOfVisibleUiState
+    val updatesOfVisibleUiState = remember { mutableStateListOf<VisibleUiStateWithId>() }
 
     fun scaleTargetValue(dest: AnimState.Visibility): Float =
         when (dest) {
@@ -111,6 +113,13 @@ fun AnimatedColorPreview(
         }
     }
     LaunchedEffect(Unit) {
+        animController.flowOfUpdatesOfVisibleUiState.collect { uiState ->
+            val id = updatesOfVisibleUiState.lastOrNull()?.id?.let { it + 1 } ?: 0
+            val update = VisibleUiStateWithId(uiState, id)
+            updatesOfVisibleUiState += update
+        }
+    }
+    LaunchedEffect(Unit) {
         animController.flowOfStableReachedUiState.collect { uiState ->
             onUiStateReached(uiState)
         }
@@ -119,18 +128,18 @@ fun AnimatedColorPreview(
     ColorPreviewBox(
         modifier = Modifier.scale(scaleAnimatable.value),
     ) {
-        val mainUiState = animController.mainUiState
+        val mainUiState = animController.flowOfMainUiState.collectAsStateWithLifecycle().value
         if (mainUiState is UiState.Visible) {
             MainPreview(color = mainUiState.color.toCompose())
         }
         updatesOfVisibleUiState.forEach { update ->
             // https://medium.com/@android-world/understanding-the-key-function-in-jetpack-compose-34accc92d567
             key(update) {
+                val uiState = update.uiState
                 UpdateRipple(
-                    color = update.uiState.color.toCompose(),
-                    onAnimationFinished = {
-                        animController.onUpdateAnimFinished(update)
-                    },
+                    color = uiState.color.toCompose(),
+                    onAnimationStarted = { animController.onUpdateAnimStarted(uiState) },
+                    onAnimationFinished = { animController.onUpdateAnimFinished(uiState) },
                 )
             }
         }
@@ -165,6 +174,7 @@ private fun MainPreview(
 @Composable
 private fun UpdateRipple(
     color: Color,
+    onAnimationStarted: () -> Unit,
     onAnimationFinished: () -> Unit,
 ) {
     val scaleAnim = remember {
@@ -178,6 +188,7 @@ private fun UpdateRipple(
             .background(color),
     )
     LaunchedEffect(Unit) {
+        onAnimationStarted()
         scaleAnim.animateTo(
             targetValue = 1f,
             animationSpec = spring(
@@ -188,6 +199,17 @@ private fun UpdateRipple(
         onAnimationFinished()
     }
 }
+
+/**
+ * Couples [UiState.Visible] with [id].
+ * The [id] is needed to run animations of [ColorPreviewAnimController.flowOfUpdatesOfVisibleUiState]
+ * correctly. Without [id], the "key" for animation will be only [uiState]. If there are two same
+ * [UiState]s currently animating, without [id] animation will break.
+ **/
+private data class VisibleUiStateWithId(
+    val uiState: UiState.Visible,
+    val id: Int,
+)
 
 @Preview(showBackground = true)
 @Composable
