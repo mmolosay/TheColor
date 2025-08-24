@@ -1,6 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.preview
 
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController.AnimateVisibilityCommand
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController.AnimateVisibleUiStateUpdateCommand
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController.VisibilityWithCause
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimState.Visibility
 import io.github.mmolosay.thecolor.utils.requireEmit
@@ -22,15 +23,11 @@ interface ColorPreviewAnimController {
     val animateVisibilityCommand: AnimateVisibilityCommand
         get() = flowOfAnimateVisibilityCommand.value
 
-    val flowOfUpdatesOfVisibleUiState: SharedFlow<UiState.Visible>
+    val flowOfAnimateVisibleUiStateUpdateCommand: SharedFlow<AnimateVisibleUiStateUpdateCommand>
 
     val flowOfStableReachedUiState: Flow<UiState>
 
     fun onNewUiState(uiState: UiState)
-
-    // TODO: expose as part of some 'Command' object as for 'AnimateVisibilityCommand'
-    /*internal*/ fun onUpdateAnimStarted(update: UiState.Visible)
-    /*internal*/ fun onUpdateAnimFinished(update: UiState.Visible)
 
     data class VisibilityWithCause(
         val value: Visibility,
@@ -39,6 +36,12 @@ interface ColorPreviewAnimController {
 
     data class AnimateVisibilityCommand(
         val dest: VisibilityWithCause,
+        val onAnimStarted: () -> Unit,
+        val onAnimFinished: () -> Unit,
+    )
+
+    data class AnimateVisibleUiStateUpdateCommand(
+        val uiState: UiState.Visible,
         val onAnimStarted: () -> Unit,
         val onAnimFinished: () -> Unit,
     )
@@ -63,9 +66,10 @@ class ColorPreviewAnimControllerImpl(
     override val flowOfAnimateVisibilityCommand =
         MutableStateFlow(value = uiState.toVisibilityWithCause().toAnimateCommand())
 
-    override val flowOfUpdatesOfVisibleUiState = MutableSharedFlow<UiState.Visible>(
-        extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST,
-    )
+    override val flowOfAnimateVisibleUiStateUpdateCommand =
+        MutableSharedFlow<AnimateVisibleUiStateUpdateCommand>(
+            extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST,
+        )
     private val ongoingUpdatesOfVisibleUiState = mutableListOf<UiState.Visible>()
 
     override val flowOfStableReachedUiState =
@@ -98,6 +102,46 @@ class ColorPreviewAnimControllerImpl(
         }
     }
 
+    private fun UiState.emitAsUpdateOfVisibleUiState() {
+        require(this is UiState.Visible)
+        val command = AnimateVisibleUiStateUpdateCommand(
+            uiState = this,
+            onAnimStarted = { onUpdateAnimStarted(update = this) },
+            onAnimFinished = { onUpdateAnimFinished(update = this) },
+        )
+        flowOfAnimateVisibleUiStateUpdateCommand.requireEmit(command)
+    }
+
+    private fun onUpdateAnimStarted(update: UiState.Visible) {
+        ongoingUpdatesOfVisibleUiState += update
+    }
+
+    private fun onUpdateAnimFinished(update: UiState.Visible) {
+        mainUiState = update
+        ongoingUpdatesOfVisibleUiState.remove(update).also { wasRemoved ->
+            require(wasRemoved) { "finished update wasn't in the list of the ongoing updates" }
+        }
+        if (ongoingUpdatesOfVisibleUiState.isEmpty() && !isMainAnimRunning) {
+            flowOfStableReachedUiState.value = update
+        }
+    }
+
+    private fun UiState.toVisibilityWithCause() =
+        VisibilityWithCause(
+            value = when (this) {
+                is UiState.Hidden -> Visibility.Collapsed
+                is UiState.Visible -> Visibility.Expanded
+            },
+            cause = this,
+        )
+
+    private fun VisibilityWithCause.toAnimateCommand() =
+        AnimateVisibilityCommand(
+            dest = this,
+            onAnimStarted = { onMainVisibilityAnimStarted(dest = this) },
+            onAnimFinished = { onMainVisibilityAnimFinished(reached = this.value) }
+        )
+
     private fun onMainVisibilityAnimStarted(dest: VisibilityWithCause) {
         ongoingMainAnimTarget = dest
     }
@@ -121,39 +165,4 @@ class ColorPreviewAnimControllerImpl(
         this.mainUiState = animateVisibilityCommand.dest.cause
         this.ongoingMainAnimTarget = null
     }
-
-    override fun onUpdateAnimStarted(update: UiState.Visible) {
-        ongoingUpdatesOfVisibleUiState += update
-    }
-
-    override fun onUpdateAnimFinished(update: UiState.Visible) {
-        mainUiState = update
-        ongoingUpdatesOfVisibleUiState.remove(update).also { wasRemoved ->
-            require(wasRemoved) { "finished update wasn't in the list of the ongoing updates" }
-        }
-        if (ongoingUpdatesOfVisibleUiState.isEmpty() && !isMainAnimRunning) {
-            flowOfStableReachedUiState.value = update
-        }
-    }
-
-    private fun UiState.emitAsUpdateOfVisibleUiState() {
-        require(this is UiState.Visible)
-        flowOfUpdatesOfVisibleUiState.requireEmit(this)
-    }
-
-    private fun UiState.toVisibilityWithCause() =
-        VisibilityWithCause(
-            value = when (this) {
-                is UiState.Hidden -> Visibility.Collapsed
-                is UiState.Visible -> Visibility.Expanded
-            },
-            cause = this,
-        )
-
-    private fun VisibilityWithCause.toAnimateCommand() =
-        AnimateVisibilityCommand(
-            dest = this,
-            onAnimStarted = { onMainVisibilityAnimStarted(dest = this) },
-            onAnimFinished = { onMainVisibilityAnimFinished(reached = this.value) }
-        )
 }

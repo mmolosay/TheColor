@@ -26,6 +26,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.api.ColorInt
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.impl.toCompose
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController.AnimateVisibleUiStateUpdateCommand
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
@@ -74,7 +75,9 @@ fun AnimatedColorPreview(
     animController: ColorPreviewAnimController,
     onUiStateReached: (reached: UiState) -> Unit,
 ) {
-    val updatesOfVisibleUiState = remember { mutableStateListOf<VisibleUiStateWithId>() }
+    val updatesOfVisibleUiState = remember {
+        mutableStateListOf<AnimateVisibleUiStateUpdateCommandWithId>()
+    }
 
     fun scaleTargetValue(dest: AnimState.Visibility): Float =
         when (dest) {
@@ -113,9 +116,9 @@ fun AnimatedColorPreview(
         }
     }
     LaunchedEffect(Unit) {
-        animController.flowOfUpdatesOfVisibleUiState.collect { uiState ->
+        animController.flowOfAnimateVisibleUiStateUpdateCommand.collect { uiState ->
             val id = updatesOfVisibleUiState.lastOrNull()?.id?.let { it + 1 } ?: 0
-            val update = VisibleUiStateWithId(uiState, id)
+            val update = AnimateVisibleUiStateUpdateCommandWithId(uiState, id)
             updatesOfVisibleUiState += update
         }
     }
@@ -137,9 +140,9 @@ fun AnimatedColorPreview(
             key(update) {
                 val uiState = update.uiState
                 UpdateRipple(
-                    color = uiState.color.toCompose(),
-                    onAnimationStarted = { animController.onUpdateAnimStarted(uiState) },
-                    onAnimationFinished = { animController.onUpdateAnimFinished(uiState) },
+                    color = update.command.uiState.color.toCompose(),
+                    onAnimationStarted = update.command.onAnimStarted,
+                    onAnimationFinished = update.command.onAnimFinished,
                 )
             }
         }
@@ -201,13 +204,14 @@ private fun UpdateRipple(
 }
 
 /**
- * Couples [UiState.Visible] with [id].
- * The [id] is needed to run animations of [ColorPreviewAnimController.flowOfUpdatesOfVisibleUiState]
- * correctly. Without [id], the "key" for animation will be only [uiState]. If there are two same
- * [UiState]s currently animating, without [id] animation will break.
+ * Couples [AnimateVisibleUiStateUpdateCommand] with [id].
+ * The [id] is needed to run animations of [ColorPreviewAnimController.flowOfAnimateVisibleUiStateUpdateCommand] correctly.
+ * Without [id], the "key" for animation will be only [command] (it's [UiState] to be more precise).
+ * If there are two same [UiState]s currently animating, without [id] animation will break.
+ * See [androidx.compose.runtime.key] function usage in this file.
  **/
-private data class VisibleUiStateWithId(
-    val uiState: UiState.Visible,
+private data class AnimateVisibleUiStateUpdateCommandWithId(
+    val command: AnimateVisibleUiStateUpdateCommand,
     val id: Int,
 )
 

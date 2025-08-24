@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.preview
 
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController.AnimateVisibleUiStateUpdateCommand
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController.VisibilityWithCause
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimState.Visibility
 import io.kotest.matchers.collections.shouldHaveSize
@@ -39,17 +40,17 @@ class ColorPreviewAnimControllerTest {
     fun `given initial 'UiState Visible', when new 'UiState Visible' arrives, then an update of visible UI state is emitted`() =
         runTest(testDispatcher) {
             sut = ColorPreviewAnimControllerImpl(uiState = mockk<UiState.Visible>())
-            val emittedUpdates = mutableListOf<UiState.Visible>()
+            val emittedCommands = mutableListOf<AnimateVisibleUiStateUpdateCommand>()
             val collectionJob = launch {
-                sut.flowOfUpdatesOfVisibleUiState.toList(emittedUpdates)
+                sut.flowOfAnimateVisibleUiStateUpdateCommand.toList(emittedCommands)
             }
 
-            emittedUpdates shouldHaveSize 0
+            emittedCommands shouldHaveSize 0
 
             val newUiState = mockk<UiState.Visible>()
             sut.onNewUiState(newUiState)
 
-            emittedUpdates shouldHaveSize 1
+            emittedCommands shouldHaveSize 1
             collectionJob.cancel()
         }
 
@@ -74,20 +75,20 @@ class ColorPreviewAnimControllerTest {
     fun `given main anim 'Collapsed → Visible' is running, when new 'UiState Visible' arrives, then an update of visible UI state is emitted`() =
         runTest(testDispatcher) {
             sut = ColorPreviewAnimControllerImpl(uiState = mockk<UiState.Hidden>())
-            val emittedUpdates = mutableListOf<UiState.Visible>()
+            val emittedCommands = mutableListOf<AnimateVisibleUiStateUpdateCommand>()
             val collectionJob = launch {
-                sut.flowOfUpdatesOfVisibleUiState.toList(emittedUpdates)
+                sut.flowOfAnimateVisibleUiStateUpdateCommand.toList(emittedCommands)
             }
 
             val visibleUiState1 = mockk<UiState.Visible>()
             sut.onNewUiState(visibleUiState1)
             sut.animateVisibilityCommand.onAnimStarted()
-            emittedUpdates shouldHaveSize 0
+            emittedCommands shouldHaveSize 0
 
             val visibleUiState2 = mockk<UiState.Visible>()
             sut.onNewUiState(visibleUiState2)
 
-            emittedUpdates shouldHaveSize 1
+            emittedCommands shouldHaveSize 1
             collectionJob.cancel()
         }
 
@@ -95,20 +96,20 @@ class ColorPreviewAnimControllerTest {
     fun `given main anim 'Visible → Collapsed' is running, when new 'UiState Visible' arrives, then an update of visible UI state is emitted`() =
         runTest(testDispatcher) {
             sut = ColorPreviewAnimControllerImpl(uiState = mockk<UiState.Visible>())
-            val emittedUpdates = mutableListOf<UiState.Visible>()
+            val emittedCommands = mutableListOf<AnimateVisibleUiStateUpdateCommand>()
             val collectionJob = launch {
-                sut.flowOfUpdatesOfVisibleUiState.toList(emittedUpdates)
+                sut.flowOfAnimateVisibleUiStateUpdateCommand.toList(emittedCommands)
             }
 
             val hiddenUiState = mockk<UiState.Hidden>()
             sut.onNewUiState(hiddenUiState)
             sut.animateVisibilityCommand.onAnimStarted()
-            emittedUpdates shouldHaveSize 0
+            emittedCommands shouldHaveSize 0
 
             val visibleUiState = mockk<UiState.Visible>()
             sut.onNewUiState(visibleUiState)
 
-            emittedUpdates shouldHaveSize 1
+            emittedCommands shouldHaveSize 1
             collectionJob.cancel()
         }
 
@@ -151,17 +152,17 @@ class ColorPreviewAnimControllerTest {
     fun `when update anim has finished and main anim is not running, then reached UI state is reported as stable`() =
         runTest(testDispatcher) {
             sut = ColorPreviewAnimControllerImpl(uiState = mockk<UiState.Visible>())
-            val emittedUpdates = mutableListOf<UiState.Visible>()
+            val emittedCommands = mutableListOf<AnimateVisibleUiStateUpdateCommand>()
             val collectionJob = launch {
-                sut.flowOfUpdatesOfVisibleUiState.toList(emittedUpdates)
+                sut.flowOfAnimateVisibleUiStateUpdateCommand.toList(emittedCommands)
             }
 
             val visibleUiStateUpdate = mockk<UiState.Visible>()
             sut.onNewUiState(visibleUiStateUpdate)
-            emittedUpdates shouldHaveSize 1 // REFERENCE:Label=0
-            val update = emittedUpdates.single()
-            sut.onUpdateAnimStarted(update)
-            sut.onUpdateAnimFinished(update)
+            emittedCommands shouldHaveSize 1 // REFERENCE:Label=0
+            val command = emittedCommands.single()
+            command.onAnimStarted()
+            command.onAnimFinished()
 
             sut.flowOfStableReachedUiState.first() shouldBe visibleUiStateUpdate
             collectionJob.cancel()
@@ -171,22 +172,22 @@ class ColorPreviewAnimControllerTest {
     fun `given there are multiple ongoing updates, when one update anim has finished and main anim is not running, then reached UI state is NOT reported as stable`() =
         runTest(testDispatcher) {
             sut = ColorPreviewAnimControllerImpl(uiState = mockk<UiState.Visible>())
-            val emittedUpdates = mutableListOf<UiState.Visible>()
+            val emittedCommands = mutableListOf<AnimateVisibleUiStateUpdateCommand>()
             val collectionJob = launch {
-                sut.flowOfUpdatesOfVisibleUiState.toList(emittedUpdates)
+                sut.flowOfAnimateVisibleUiStateUpdateCommand.toList(emittedCommands)
             }
 
             val visibleUiStateUpdate1 = mockk<UiState.Visible>()
             sut.onNewUiState(visibleUiStateUpdate1)
-            emittedUpdates shouldHaveSize 1 // REFERENCE:Label=0
-            sut.onUpdateAnimStarted(update = emittedUpdates[0])
+            emittedCommands shouldHaveSize 1 // REFERENCE:Label=0
+            emittedCommands[0].onAnimStarted()
 
             val visibleUiStateUpdate2 = mockk<UiState.Visible>()
             sut.onNewUiState(visibleUiStateUpdate2)
-            emittedUpdates shouldHaveSize 2 // REFERENCE:Label=0
-            sut.onUpdateAnimStarted(update = emittedUpdates[1])
+            emittedCommands shouldHaveSize 2 // REFERENCE:Label=0
+            emittedCommands[1].onAnimStarted()
 
-            sut.onUpdateAnimFinished(update = emittedUpdates[0])
+            emittedCommands[0].onAnimFinished()
 
             sut.flowOfStableReachedUiState.first() shouldNotBe visibleUiStateUpdate2
             collectionJob.cancel()
@@ -196,9 +197,9 @@ class ColorPreviewAnimControllerTest {
     fun `when update anim has finished and main anim is running, then reached UI state is NOT reported as stable`() =
         runTest(testDispatcher) {
             sut = ColorPreviewAnimControllerImpl(uiState = mockk<UiState.Hidden>())
-            val emittedUpdates = mutableListOf<UiState.Visible>()
+            val emittedCommands = mutableListOf<AnimateVisibleUiStateUpdateCommand>()
             val collectionJob = launch {
-                sut.flowOfUpdatesOfVisibleUiState.toList(emittedUpdates)
+                sut.flowOfAnimateVisibleUiStateUpdateCommand.toList(emittedCommands)
             }
 
             val visibleUiState = mockk<UiState.Visible>()
@@ -207,10 +208,10 @@ class ColorPreviewAnimControllerTest {
 
             val visibleUiStateUpdate = mockk<UiState.Visible>()
             sut.onNewUiState(visibleUiStateUpdate)
-            emittedUpdates shouldHaveSize 1
-            val update = emittedUpdates.single()
-            sut.onUpdateAnimStarted(update)
-            sut.onUpdateAnimFinished(update)
+            emittedCommands shouldHaveSize 1
+            val command = emittedCommands.single()
+            command.onAnimStarted()
+            command.onAnimFinished()
 
             sut.flowOfStableReachedUiState.first() shouldNotBe visibleUiStateUpdate
             collectionJob.cancel()
@@ -232,9 +233,9 @@ class ColorPreviewAnimControllerTest {
     fun `when update anim has finished, then main UiState is updated`() =
         runTest(testDispatcher) {
             sut = ColorPreviewAnimControllerImpl(uiState = mockk<UiState.Hidden>())
-            val emittedUpdates = mutableListOf<UiState.Visible>()
+            val emittedCommands = mutableListOf<AnimateVisibleUiStateUpdateCommand>()
             val collectionJob = launch {
-                sut.flowOfUpdatesOfVisibleUiState.toList(emittedUpdates)
+                sut.flowOfAnimateVisibleUiStateUpdateCommand.toList(emittedCommands)
             }
 
             val visibleUiState = mockk<UiState.Visible>()
@@ -243,10 +244,10 @@ class ColorPreviewAnimControllerTest {
 
             val visibleUiStateUpdate = mockk<UiState.Visible>()
             sut.onNewUiState(visibleUiStateUpdate)
-            emittedUpdates shouldHaveSize 1
-            val update = emittedUpdates.single()
-            sut.onUpdateAnimStarted(update)
-            sut.onUpdateAnimFinished(update)
+            emittedCommands shouldHaveSize 1
+            val command = emittedCommands.single()
+            command.onAnimStarted()
+            command.onAnimFinished()
 
             sut.mainUiState shouldBe visibleUiStateUpdate
             collectionJob.cancel()
