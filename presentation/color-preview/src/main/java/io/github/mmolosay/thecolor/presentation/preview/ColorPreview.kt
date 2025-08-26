@@ -27,7 +27,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.api.ColorInt
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.impl.toCompose
-import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController.AnimateVisibleUiStateUpdateCommand
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
@@ -79,7 +78,7 @@ fun AnimatedColorPreview(
     val coroutineScope = rememberCoroutineScope()
 
     val updatesOfVisibleUiState = remember {
-        mutableStateListOf<AnimateVisibleUiStateUpdateCommandWithId>()
+        mutableStateListOf<UpdateOfVisibleUiStateWithId>()
     }
 
     fun scaleTargetValue(dest: AnimState.Visibility): Float =
@@ -95,9 +94,12 @@ fun AnimatedColorPreview(
 
     val view = remember {
         object : ColorPreviewAnimController.View {
-            override fun animateVisibility(command: ColorPreviewAnimController.AnimateVisibilityCommand) {
-                val visibilityDest = command.dest.visibility
-                val targetValue = scaleTargetValue(visibilityDest)
+            override fun animateVisibility(
+                dest: ColorPreviewAnimController.UiStateWithVisibility,
+                onAnimStarted: () -> Unit,
+                onAnimFinished: () -> Unit,
+            ) {
+                val targetValue = scaleTargetValue(dest.visibility)
 
                 val isAlreadyInTargetState = (scaleAnimatable.value == targetValue)
                 if (isAlreadyInTargetState) {
@@ -112,18 +114,22 @@ fun AnimatedColorPreview(
 
                 // no need to manually cancel previous animation: Animatable.animateTo() will handle this
                 coroutineScope.launch {
-                    command.onAnimStarted()
+                    onAnimStarted()
                     scaleAnimatable.animateTo(
                         targetValue = targetValue,
                         animationSpec = tween(3000), // TODO: rollback
                     )
-                    command.onAnimFinished()
+                    onAnimFinished()
                 }
             }
 
-            override fun animateUpdateOfVisibleUiState(command: AnimateVisibleUiStateUpdateCommand) {
+            override fun animateUpdateOfVisibleUiState(
+                uiState: UiState.Visible,
+                onAnimStarted: () -> Unit,
+                onAnimFinished: () -> Unit,
+            ) {
                 val id = updatesOfVisibleUiState.lastOrNull()?.id?.let { it + 1 } ?: 0
-                val update = AnimateVisibleUiStateUpdateCommandWithId(command, id)
+                val update = UpdateOfVisibleUiStateWithId(uiState, onAnimStarted, onAnimFinished, id)
                 updatesOfVisibleUiState += update
             }
         }
@@ -152,9 +158,9 @@ fun AnimatedColorPreview(
             // https://medium.com/@android-world/understanding-the-key-function-in-jetpack-compose-34accc92d567
             key(update) {
                 UpdateRipple(
-                    color = update.command.uiState.color.toCompose(),
-                    onAnimationStarted = update.command.onAnimStarted,
-                    onAnimationFinished = update.command.onAnimFinished,
+                    color = update.uiState.color.toCompose(),
+                    onAnimationStarted = update.onAnimStarted,
+                    onAnimationFinished = update.onAnimFinished,
                 )
             }
         }
@@ -217,14 +223,16 @@ private fun UpdateRipple(
 }
 
 /**
- * Couples [AnimateVisibleUiStateUpdateCommand] with [id].
- * The [id] is needed to run animations of [ColorPreviewAnimController.flowOfAnimateVisibleUiStateUpdateCommand] correctly.
- * Without [id], the "key" for animation will be only [command] (it's [UiState] to be more precise).
+ * Couples update of [UiState.Visible] with [id].
+ * The [id] is needed to run animations correctly.
+ * Without [id], the "key" for animation will be only [UiState].
  * If there are two same [UiState]s currently animating, without [id] animation will break.
  * See [androidx.compose.runtime.key] function usage in this file.
  **/
-private data class AnimateVisibleUiStateUpdateCommandWithId(
-    val command: AnimateVisibleUiStateUpdateCommand,
+private data class UpdateOfVisibleUiStateWithId(
+    val uiState: UiState.Visible,
+    val onAnimStarted: () -> Unit,
+    val onAnimFinished: () -> Unit,
     val id: Int,
 )
 
