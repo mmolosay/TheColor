@@ -8,6 +8,26 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState as U
 
 // "interface" for better visibility of exposed API
 // used 'abstract class' instead of 'interface' because 'internal' modifier is not supported for members of 'interface'.
+/**
+ * A controller that contains logic of 'Color Preview' animations.
+ *
+ * There are two types of API in this component: internal and public.
+ * Public API (such as [onNewUiState]) is used by a caller (component that created this controller).
+ * Internal API (such as [setView]) is used by a 'Color Preview' View.
+ *
+ * The common use case for this controller is following:
+ * 1. Parent of the 'Color Preview' View creates an instance of this controller.
+ * 2. Parent passes the instance of the controller to the 'Color Preview' View.
+ * 3. Parent starts emitting new [UiState]s to this controller via [onNewUiState].
+ * 4. 'Color Preview' View creates an instance of [View] and sets it via [setView].
+ * 5. Controller processes [UiState]s and calls corresponding methods of [View] to run animations on UI.
+ *
+ * Due to controller being created on the caller's side, the 'Color Preview' View may not be present
+ * right away to animate incoming [UiState]s. For this reason, the 'Color Preview' View should
+ * create an instance of [View] and set it to the controller using [setView].
+ * Until the [View] is set, all incoming updates of [UiState] won't be translated to the animations
+ * and will be applied straight away.
+ */
 abstract class ColorPreviewAnimController {
     internal abstract val flowOfUiState: StateFlow<UiStateWithVisibility>
     internal abstract val flowOfStableReachedUiState: StateFlow<UiState>
