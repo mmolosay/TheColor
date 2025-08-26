@@ -1,8 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.preview
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -11,10 +10,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -75,6 +76,8 @@ fun AnimatedColorPreview(
     animController: ColorPreviewAnimController,
     onUiStateReached: (reached: UiState) -> Unit,
 ) {
+    val coroutineScope = rememberCoroutineScope()
+
     val updatesOfVisibleUiState = remember {
         mutableStateListOf<AnimateVisibleUiStateUpdateCommandWithId>()
     }
@@ -86,40 +89,50 @@ fun AnimatedColorPreview(
         }
 
     val scaleAnimatable = remember {
-        val initialVisibility = animController.animateVisibilityCommand.dest.value
+        val initialVisibility = animController.mainVisibility.value
         Animatable(initialValue = scaleTargetValue(initialVisibility))
     }
-    LaunchedEffect(Unit) {
-        animController.flowOfAnimateVisibilityCommand.collect collect@{ command ->
-            val visibilityDest = command.dest.value
-            val targetValue = scaleTargetValue(visibilityDest)
 
-            val isAlreadyInTargetState = (scaleAnimatable.value == targetValue)
-            if (isAlreadyInTargetState) {
-                return@collect // already in target state
+    val view = remember {
+        object : ColorPreviewAnimController.View {
+            override fun animateMainVisibility(command: ColorPreviewAnimController.AnimateVisibilityCommand) {
+                val visibilityDest = command.dest.value
+                val targetValue = scaleTargetValue(visibilityDest)
+
+                val isAlreadyInTargetState = (scaleAnimatable.value == targetValue)
+                if (isAlreadyInTargetState) {
+                    return // already in target state
+                }
+
+                val isAlreadyRunningTowardsTarget =
+                    (scaleAnimatable.isRunning && scaleAnimatable.targetValue == targetValue)
+                if (isAlreadyRunningTowardsTarget) {
+                    return // already animating towards target state
+                }
+
+                // no need to manually cancel previous animation: Animatable.animateTo() will handle this
+                coroutineScope.launch {
+                    command.onAnimStarted()
+                    scaleAnimatable.animateTo(
+                        targetValue = targetValue,
+                        animationSpec = tween(3000), // TODO: rollback
+                    )
+                    command.onAnimFinished()
+                }
             }
 
-            val isAlreadyRunningTowardsTarget =
-                (scaleAnimatable.isRunning && scaleAnimatable.targetValue == targetValue)
-            if (isAlreadyRunningTowardsTarget) {
-                return@collect // already animating towards target state
-            }
-
-            // run suspendable animation in a new coroutine to unblock collect() for the next emission
-            launch {
-                command.onAnimStarted()
-                scaleAnimatable.animateTo(
-                    targetValue = targetValue,
-                )
-                command.onAnimFinished()
+            override fun animateVisibleUiStateUpdate(command: AnimateVisibleUiStateUpdateCommand) {
+                val id = updatesOfVisibleUiState.lastOrNull()?.id?.let { it + 1 } ?: 0
+                val update = AnimateVisibleUiStateUpdateCommandWithId(command, id)
+                updatesOfVisibleUiState += update
             }
         }
     }
-    LaunchedEffect(Unit) {
-        animController.flowOfAnimateVisibleUiStateUpdateCommand.collect { uiState ->
-            val id = updatesOfVisibleUiState.lastOrNull()?.id?.let { it + 1 } ?: 0
-            val update = AnimateVisibleUiStateUpdateCommandWithId(uiState, id)
-            updatesOfVisibleUiState += update
+
+    DisposableEffect(Unit) {
+        animController.view = view
+        onDispose {
+            animController.view = null
         }
     }
     LaunchedEffect(Unit) {
@@ -138,7 +151,6 @@ fun AnimatedColorPreview(
         updatesOfVisibleUiState.forEach { update ->
             // https://medium.com/@android-world/understanding-the-key-function-in-jetpack-compose-34accc92d567
             key(update) {
-                val uiState = update.uiState
                 UpdateRipple(
                     color = update.command.uiState.color.toCompose(),
                     onAnimationStarted = update.command.onAnimStarted,
@@ -194,10 +206,11 @@ private fun UpdateRipple(
         onAnimationStarted()
         scaleAnim.animateTo(
             targetValue = 1f,
-            animationSpec = spring(
-                stiffness = Spring.StiffnessMediumLow,
-                visibilityThreshold = Spring.DefaultDisplacementThreshold,
-            ),
+            animationSpec = tween(800), // TODO: rollback
+//            animationSpec = spring(
+//                stiffness = Spring.StiffnessMediumLow,
+//                visibilityThreshold = Spring.DefaultDisplacementThreshold,
+//            ),
         )
         onAnimationFinished()
     }
