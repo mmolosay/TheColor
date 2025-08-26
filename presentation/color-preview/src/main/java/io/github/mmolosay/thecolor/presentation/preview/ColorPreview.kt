@@ -136,9 +136,9 @@ fun AnimatedColorPreview(
     }
 
     DisposableEffect(Unit) {
-        animController.view = view
+        animController.setView(view)
         onDispose {
-            animController.view = null
+            animController.setView(null)
         }
     }
     LaunchedEffect(Unit) {

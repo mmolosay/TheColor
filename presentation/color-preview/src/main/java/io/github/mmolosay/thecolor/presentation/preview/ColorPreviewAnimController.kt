@@ -10,11 +10,10 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState as U
 
 // interface for better visibility of exposed API
 interface ColorPreviewAnimController {
-    /*internal*/ var view: View?
-
     val flowOfUiState: StateFlow<UiStateWithVisibility>
     val flowOfStableReachedUiState: StateFlow<UiState>
 
+    /*internal*/ fun setView(view: View?)
     fun onNewUiState(newUiState: UiState)
 
     interface View {
@@ -48,12 +47,11 @@ class ColorPreviewAnimControllerImpl(
     uiState: UiState,
 ) : ColorPreviewAnimController {
 
-    override var view: View? = null
+    private var view: View? = null
 
     override val flowOfUiState = MutableStateFlow(uiState.withVisibility())
     private var uiState by flowOfUiState.asDelegate()
-
-    private val ongoingUpdatesOfVisibleUiState = mutableListOf<UiState.Visible>()
+    private var lastUiState = this.uiState
 
     override val flowOfStableReachedUiState =
         MutableStateFlow<UiState>(uiState) // initial state is stable; MutableStateFlow may conflate rapid updates
@@ -62,6 +60,17 @@ class ColorPreviewAnimControllerImpl(
     private var ongoingVisibilityAnimTarget: UiStateWithVisibility? = null
     private val isVisibilityAnimRunning: Boolean
         get() = (ongoingVisibilityAnimTarget != null)
+
+    private val ongoingUpdatesOfVisibleUiState = mutableListOf<UiState.Visible>()
+
+    override fun setView(view: View?) {
+        if (this.view != view) kotlin.run clearOngoingAnimations@{
+            ongoingVisibilityAnimTarget = null
+            ongoingUpdatesOfVisibleUiState.clear()
+            uiState = lastUiState
+        }
+        this.view = view
+    }
 
     override fun onNewUiState(newUiState: UiState) {
         val newUiStateWithVisibility = newUiState.withVisibility()
@@ -90,6 +99,7 @@ class ColorPreviewAnimControllerImpl(
                 view.animateUpdateOfVisibleUiState(uiState = newUiState as UiState.Visible) // transitive assumption based on new Visibility dest being 'Expanded'
             }
         }
+        lastUiState = newUiStateWithVisibility
     }
 
     private fun View.animateVisibility(dest: UiStateWithVisibility) =
