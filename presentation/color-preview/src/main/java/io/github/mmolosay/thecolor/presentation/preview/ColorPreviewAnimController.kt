@@ -14,14 +14,14 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState as U
 interface ColorPreviewAnimController {
     /*internal*/ var view: View?
 
-    val flowOfMainUiState: StateFlow<UiStateWithVisibility>
+    val flowOfUiState: StateFlow<UiStateWithVisibility>
     val flowOfStableReachedUiState: StateFlow<UiState>
 
-    fun onNewUiState(uiState: UiState)
+    fun onNewUiState(newUiState: UiState)
 
     interface View {
-        fun animateMainVisibility(command: AnimateVisibilityCommand)
-        fun animateVisibleUiStateUpdate(command: AnimateVisibleUiStateUpdateCommand)
+        fun animateVisibility(command: AnimateVisibilityCommand)
+        fun animateUpdateOfVisibleUiState(command: AnimateVisibleUiStateUpdateCommand)
     }
 
     /** Couples [uiState] with [visibility] derived from it. */
@@ -55,8 +55,8 @@ class ColorPreviewAnimControllerImpl(
 
     override var view: View? = null
 
-    override val flowOfMainUiState = MutableStateFlow(uiState.withVisibility())
-    private var mainUiState by flowOfMainUiState.asDelegate()
+    override val flowOfUiState = MutableStateFlow(uiState.withVisibility())
+    private var uiState by flowOfUiState.asDelegate()
 
     private val ongoingUpdatesOfVisibleUiState = mutableListOf<UiState.Visible>()
 
@@ -64,36 +64,36 @@ class ColorPreviewAnimControllerImpl(
         MutableStateFlow<UiState>(uiState) // initial state is stable; MutableStateFlow may conflate rapid updates
     private var stableReachedUiState by flowOfStableReachedUiState.asDelegate()
 
-    private var ongoingMainAnimTarget: UiStateWithVisibility? = null
-    private val isMainAnimRunning: Boolean
-        get() = (ongoingMainAnimTarget != null)
+    private var ongoingVisibilityAnimTarget: UiStateWithVisibility? = null
+    private val isVisibilityAnimRunning: Boolean
+        get() = (ongoingVisibilityAnimTarget != null)
 
-    override fun onNewUiState(uiState: UiState) {
-        val uiStateWithVisibility = uiState.withVisibility()
+    override fun onNewUiState(newUiState: UiState) {
+        val uiStateWithVisibility = newUiState.withVisibility()
         if (view == null) {
-            mainUiState = uiStateWithVisibility
+            uiState = uiStateWithVisibility
             return // no view -> no animation -> immediate update
         }
 
         val view = requireNotNull(view)
         val command = uiStateWithVisibility.toAnimateCommand()
-        view.animateMainVisibility(command)
+        view.animateVisibility(command)
 
         val newVisibilityDest = command.dest.visibility
-        if (isMainAnimRunning) {
+        if (isVisibilityAnimRunning) {
             if (newVisibilityDest == Visibility.Expanded) {
-                uiState.emitAsUpdateOfVisibleUiState()
+                newUiState.emitAsUpdateOfVisibleUiState()
             }
         } else {
-            val mainCurrentVisibility = mainUiState.visibility
-            if (mainCurrentVisibility == Visibility.Collapsed) {
-                // set mainUiState so it's visible during animation
-                if (uiState is UiState.Visible) {
-                    mainUiState = uiStateWithVisibility
+            val currentVisibility = uiState.visibility
+            if (currentVisibility == Visibility.Collapsed) {
+                // set uiState so it's visible during animation
+                if (newUiState is UiState.Visible) {
+                    this@ColorPreviewAnimControllerImpl.uiState = uiStateWithVisibility
                 }
             }
-            if (mainCurrentVisibility == Visibility.Expanded && newVisibilityDest == Visibility.Expanded) {
-                uiState.emitAsUpdateOfVisibleUiState()
+            if (currentVisibility == Visibility.Expanded && newVisibilityDest == Visibility.Expanded) {
+                newUiState.emitAsUpdateOfVisibleUiState()
             }
         }
     }
@@ -106,7 +106,7 @@ class ColorPreviewAnimControllerImpl(
             onAnimFinished = { onUpdateAnimFinished(update = this) },
         )
         val view = requireNotNull(view)
-        view.animateVisibleUiStateUpdate(command)
+        view.animateUpdateOfVisibleUiState(command)
     }
 
     private fun onUpdateAnimStarted(update: UiState.Visible) {
@@ -114,11 +114,11 @@ class ColorPreviewAnimControllerImpl(
     }
 
     private fun onUpdateAnimFinished(update: UiState.Visible) {
-        mainUiState = update.withVisibility()
+        uiState = update.withVisibility()
         ongoingUpdatesOfVisibleUiState.remove(update).also { wasRemoved ->
             require(wasRemoved) { "finished update wasn't in the list of the ongoing updates" }
         }
-        if (ongoingUpdatesOfVisibleUiState.isEmpty() && !isMainAnimRunning) {
+        if (ongoingUpdatesOfVisibleUiState.isEmpty() && !isVisibilityAnimRunning) {
             stableReachedUiState = update
         }
     }
@@ -135,21 +135,21 @@ class ColorPreviewAnimControllerImpl(
     private fun UiStateWithVisibility.toAnimateCommand() =
         AnimateVisibilityCommand(
             dest = this,
-            onAnimStarted = { onMainVisibilityAnimStarted(dest = this) },
-            onAnimFinished = { onMainVisibilityAnimFinished(reached = this.visibility) }
+            onAnimStarted = { onVisibilityAnimStarted(dest = this) },
+            onAnimFinished = { onVisibilityAnimFinished(reached = this.visibility) }
         )
 
-    private fun onMainVisibilityAnimStarted(dest: UiStateWithVisibility) {
-        ongoingMainAnimTarget = dest
+    private fun onVisibilityAnimStarted(dest: UiStateWithVisibility) {
+        ongoingVisibilityAnimTarget = dest
     }
 
-    private fun onMainVisibilityAnimFinished(reached: Visibility) {
-        val ongoing = ongoingMainAnimTarget
+    private fun onVisibilityAnimFinished(reached: Visibility) {
+        val ongoing = ongoingVisibilityAnimTarget
         if (ongoing == null) return // no animation was running
         if (ongoing.visibility != reached) return // was not expected to be reached
         when (reached) {
             Visibility.Collapsed -> {
-                check(ongoingUpdatesOfVisibleUiState.isEmpty()) { "main can't collapse while there are updates ongoing" }
+                check(ongoingUpdatesOfVisibleUiState.isEmpty()) { "can't collapse while there are updates ongoing" }
                 stableReachedUiState = ongoing.uiState
             }
             Visibility.Expanded -> {
@@ -159,7 +159,7 @@ class ColorPreviewAnimControllerImpl(
                 }
             }
         }
-        this.mainUiState = UiStateWithVisibility(uiState = ongoing.uiState, visibility = reached)
-        this.ongoingMainAnimTarget = null
+        this.uiState = UiStateWithVisibility(uiState = ongoing.uiState, visibility = reached)
+        this.ongoingVisibilityAnimTarget = null
     }
 }

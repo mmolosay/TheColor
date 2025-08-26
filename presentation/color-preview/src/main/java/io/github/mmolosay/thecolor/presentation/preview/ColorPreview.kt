@@ -60,7 +60,7 @@ fun ColorPreview(
         is UiState.Hidden -> return // nothing to compose
         is UiState.Visible -> {
             ColorPreviewBox {
-                MainPreview(color = uiState.color.toCompose())
+                Preview(color = uiState.color.toCompose())
             }
         }
     }
@@ -89,13 +89,13 @@ fun AnimatedColorPreview(
         }
 
     val scaleAnimatable = remember {
-        val initialVisibility = animController.flowOfMainUiState.value.visibility
+        val initialVisibility = animController.flowOfUiState.value.visibility
         Animatable(initialValue = scaleTargetValue(initialVisibility))
     }
 
     val view = remember {
         object : ColorPreviewAnimController.View {
-            override fun animateMainVisibility(command: ColorPreviewAnimController.AnimateVisibilityCommand) {
+            override fun animateVisibility(command: ColorPreviewAnimController.AnimateVisibilityCommand) {
                 val visibilityDest = command.dest.visibility
                 val targetValue = scaleTargetValue(visibilityDest)
 
@@ -121,7 +121,7 @@ fun AnimatedColorPreview(
                 }
             }
 
-            override fun animateVisibleUiStateUpdate(command: AnimateVisibleUiStateUpdateCommand) {
+            override fun animateUpdateOfVisibleUiState(command: AnimateVisibleUiStateUpdateCommand) {
                 val id = updatesOfVisibleUiState.lastOrNull()?.id?.let { it + 1 } ?: 0
                 val update = AnimateVisibleUiStateUpdateCommandWithId(command, id)
                 updatesOfVisibleUiState += update
@@ -144,9 +144,9 @@ fun AnimatedColorPreview(
     ColorPreviewBox(
         modifier = Modifier.scale(scaleAnimatable.value),
     ) {
-        val mainUiState = animController.flowOfMainUiState.collectAsStateWithLifecycle().value
-        if (mainUiState is UiState.Visible) {
-            MainPreview(color = mainUiState.color.toCompose())
+        val uiState = animController.flowOfUiState.collectAsStateWithLifecycle().value.uiState
+        if (uiState is UiState.Visible) {
+            Preview(color = uiState.color.toCompose())
         }
         updatesOfVisibleUiState.forEach { update ->
             // https://medium.com/@android-world/understanding-the-key-function-in-jetpack-compose-34accc92d567
@@ -174,7 +174,7 @@ private fun ColorPreviewBox(
 }
 
 @Composable
-private fun MainPreview(
+private fun Preview(
     color: Color,
 ) {
     Surface(
