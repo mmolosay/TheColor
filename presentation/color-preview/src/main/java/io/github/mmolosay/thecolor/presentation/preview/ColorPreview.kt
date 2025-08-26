@@ -204,7 +204,7 @@ private data class UpdateOfVisibleUiStateWithId(
 private fun AnimatedPreview() {
     TheColorTheme {
         val animController = remember {
-            ColorPreviewAnimControllerImpl(uiState = UiState.Hidden)
+            ColorPreviewAnimController(uiState = UiState.Hidden)
         }
         AnimatedColorPreview(
             animController = animController,

@@ -37,7 +37,6 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController
-import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimControllerImpl
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState
 import io.github.mmolosay.thecolor.presentation.preview.toUiState
@@ -108,7 +107,7 @@ internal fun AnimatedColorPreview(
     }
     val animController by produceState<ColorPreviewAnimController?>(initialValue = null) {
         val uiState = flowOfAnimatedUiState.filterNotNull().first()
-        value = ColorPreviewAnimControllerImpl(uiState)
+        value = ColorPreviewAnimController(uiState)
     }
     LaunchedEffect(Unit) {
         flowOfAnimatedUiState.filterNotNull().collect { uiState ->

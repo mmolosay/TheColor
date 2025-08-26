@@ -1,22 +1,21 @@
 package io.github.mmolosay.thecolor.presentation.preview
 
-import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController.UiStateWithVisibility
-import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController.View
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimState.Visibility
 import io.github.mmolosay.thecolor.utils.asDelegate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState as UiState
 
-// interface for better visibility of exposed API
-interface ColorPreviewAnimController {
-    val flowOfUiState: StateFlow<UiStateWithVisibility>
-    val flowOfStableReachedUiState: StateFlow<UiState>
+// "interface" for better visibility of exposed API
+// used 'abstract class' instead of 'interface' because 'internal' modifier is not supported for members of 'interface'.
+abstract class ColorPreviewAnimController {
+    internal abstract val flowOfUiState: StateFlow<UiStateWithVisibility>
+    internal abstract val flowOfStableReachedUiState: StateFlow<UiState>
 
-    /*internal*/ fun setView(view: View?)
-    fun onNewUiState(newUiState: UiState)
+    internal abstract fun setView(view: View?)
+    abstract fun onNewUiState(newUiState: UiState)
 
-    interface View {
+    internal interface View {
         fun animateVisibility(
             dest: UiStateWithVisibility,
             onAnimStarted: () -> Unit,
@@ -31,7 +30,7 @@ interface ColorPreviewAnimController {
     }
 
     /** Couples [uiState] with [visibility] derived from it. */
-    data class UiStateWithVisibility(
+    internal data class UiStateWithVisibility(
         val uiState: UiState,
         val visibility: Visibility,
     )
@@ -43,9 +42,13 @@ object ColorPreviewAnimState {
     }
 }
 
-class ColorPreviewAnimControllerImpl(
+// constructor function to hide type of impl
+fun ColorPreviewAnimController(uiState: UiState): ColorPreviewAnimController =
+    ColorPreviewAnimControllerImpl(uiState)
+
+private class ColorPreviewAnimControllerImpl(
     uiState: UiState,
-) : ColorPreviewAnimController {
+) : ColorPreviewAnimController() {
 
     private var view: View? = null
 
