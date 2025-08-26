@@ -5,6 +5,7 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimControll
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController.View
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController.VisibilityWithCause
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimState.Visibility
+import io.github.mmolosay.thecolor.utils.asDelegate
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,13 +16,7 @@ interface ColorPreviewAnimController {
     /*internal*/ var view: View?
 
     val flowOfMainUiState: StateFlow<UiState>
-    val mainUiState: UiState
-        get() = flowOfMainUiState.value
-
     val flowOfMainVisibility: StateFlow<VisibilityWithCause>
-    val mainVisibility: VisibilityWithCause
-        get() = flowOfMainVisibility.value
-
     val flowOfStableReachedUiState: Flow<UiState>
 
     fun onNewUiState(uiState: UiState)
@@ -49,6 +44,12 @@ interface ColorPreviewAnimController {
     )
 }
 
+val ColorPreviewAnimController.mainUiState: UiState
+    get() = this.flowOfMainUiState.value
+
+val ColorPreviewAnimController.mainVisibility: VisibilityWithCause
+    get() = this.flowOfMainVisibility.value
+
 object ColorPreviewAnimState {
     enum class Visibility {
         Collapsed, Expanded;
@@ -58,14 +59,11 @@ object ColorPreviewAnimState {
 class ColorPreviewAnimControllerImpl(
     uiState: UiState,
 ) : ColorPreviewAnimController {
+
     override var view: View? = null
 
     override val flowOfMainUiState = MutableStateFlow<UiState>(uiState)
-    override var mainUiState: UiState
-        get() = super.mainUiState
-        set(value) {
-            flowOfMainUiState.value = value
-        }
+    private var mainUiState by flowOfMainUiState.asDelegate()
 
     override val flowOfMainVisibility = MutableStateFlow(uiState.toVisibilityWithCause())
 
