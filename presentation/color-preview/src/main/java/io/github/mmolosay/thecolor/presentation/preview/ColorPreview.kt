@@ -89,14 +89,14 @@ fun AnimatedColorPreview(
         }
 
     val scaleAnimatable = remember {
-        val initialVisibility = animController.mainVisibility.value
+        val initialVisibility = animController.flowOfMainUiState.value.visibility
         Animatable(initialValue = scaleTargetValue(initialVisibility))
     }
 
     val view = remember {
         object : ColorPreviewAnimController.View {
             override fun animateMainVisibility(command: ColorPreviewAnimController.AnimateVisibilityCommand) {
-                val visibilityDest = command.dest.value
+                val visibilityDest = command.dest.visibility
                 val targetValue = scaleTargetValue(visibilityDest)
 
                 val isAlreadyInTargetState = (scaleAnimatable.value == targetValue)
