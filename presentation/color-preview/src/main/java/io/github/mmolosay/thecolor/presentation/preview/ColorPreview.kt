@@ -4,7 +4,6 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -33,37 +32,6 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimState as AnimState
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState as UiState
-
-/**
- * Simple 'Color Preview' Composable.
- * Does not animate [data] changes.
- */
-@Composable
-fun ColorPreview(
-    data: ColorPreviewData,
-) {
-    ColorPreview(
-        uiState = data.toUiState(),
-    )
-}
-
-/**
- * Simple 'Color Preview' Composable.
- * Does not animate [uiState] changes.
- */
-@Composable
-fun ColorPreview(
-    uiState: UiState,
-) {
-    when (uiState) {
-        is UiState.Hidden -> return // nothing to compose
-        is UiState.Visible -> {
-            ColorPreviewBox {
-                Preview(color = uiState.color.toCompose())
-            }
-        }
-    }
-}
 
 /**
  * Animated 'Color Preview' Composable.
@@ -147,8 +115,11 @@ fun AnimatedColorPreview(
         }
     }
 
-    ColorPreviewBox(
-        modifier = Modifier.scale(scaleAnimatable.value),
+    Box(
+        modifier = Modifier
+            .scale(scaleAnimatable.value)
+            .size(48.dp),
+        contentAlignment = Alignment.Center,
     ) {
         val uiState = animController.flowOfUiState.collectAsStateWithLifecycle().value.uiState
         if (uiState is UiState.Visible) {
@@ -165,18 +136,6 @@ fun AnimatedColorPreview(
             }
         }
     }
-}
-
-@Composable
-private fun ColorPreviewBox(
-    modifier: Modifier = Modifier,
-    content: @Composable BoxScope.() -> Unit,
-) {
-    Box(
-        modifier = modifier.size(48.dp),
-        contentAlignment = Alignment.Center,
-        content = content,
-    )
 }
 
 @Composable
@@ -235,16 +194,6 @@ private data class UpdateOfVisibleUiStateWithId(
     val onAnimFinished: () -> Unit,
     val id: Int,
 )
-
-@Preview(showBackground = true)
-@Composable
-private fun NotAnimatedPreview() {
-    TheColorTheme {
-        ColorPreview(
-            uiState = UiState.Visible(color = ColorInt(0x13264D)),
-        )
-    }
-}
 
 /*
  * LaunchedEffect() in default, "static" preview may not always work.
