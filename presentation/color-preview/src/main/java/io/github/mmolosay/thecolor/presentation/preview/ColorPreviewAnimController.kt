@@ -112,12 +112,6 @@ private class ColorPreviewAnimControllerImpl(
                 view.animateUpdateOfVisibleUiState(uiState = newUiState as UiState.Visible) // transitive assumption based on new Visibility dest being 'Expanded'
             }
         } else {
-            if (currentVisibility == Visibility.Collapsed) {
-                // set uiState so it's visible during animation
-                if (newUiState is UiState.Visible) {
-                    uiState = newUiStateWithVisibility
-                }
-            }
             if (currentVisibility == Visibility.Expanded && newVisibilityDest == Visibility.Expanded) {
                 view.animateUpdateOfVisibleUiState(uiState = newUiState as UiState.Visible) // transitive assumption based on new Visibility dest being 'Expanded'
             }

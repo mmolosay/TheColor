@@ -12,10 +12,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,6 +51,12 @@ fun AnimatedColorPreview(
 ) {
     val coroutineScope = rememberCoroutineScope()
 
+    var uiState by remember { mutableStateOf(animController.flowOfUiState.value.uiState) }
+    LaunchedEffect(Unit) {
+        animController.flowOfUiState.collect { uiStateWithVisibility ->
+            uiState = uiStateWithVisibility.uiState
+        }
+    }
     val updatesOfVisibleUiState = remember {
         mutableStateListOf<UpdateOfVisibleUiStateWithId>()
     }
@@ -66,6 +75,7 @@ fun AnimatedColorPreview(
         val view = AnimControllerViewImpl(
             scaleTargetValue = ::scaleTargetValue,
             scaleAnimatable = scaleAnimatable,
+            updateUiState = { newUiState -> uiState = newUiState },
             updatesOfVisibleUiState = updatesOfVisibleUiState,
             coroutineScope = coroutineScope,
         )
@@ -86,7 +96,7 @@ fun AnimatedColorPreview(
             .size(48.dp),
         contentAlignment = Alignment.Center,
     ) {
-        val uiState = animController.flowOfUiState.collectAsStateWithLifecycle().value.uiState
+        val uiState = uiState
         if (uiState is UiState.Visible) {
             Preview(color = uiState.color.toCompose())
         }
@@ -155,6 +165,7 @@ private fun UpdateRipple(
 private class AnimControllerViewImpl(
     private val scaleTargetValue: (dest: AnimState.Visibility) -> Float,
     private val scaleAnimatable: Animatable<Float, AnimationVector1D>,
+    private val updateUiState: (UiState) -> Unit,
     private val updatesOfVisibleUiState: SnapshotStateList<UpdateOfVisibleUiStateWithId>,
     private val coroutineScope: CoroutineScope,
 ) : ColorPreviewAnimController.View {
@@ -179,6 +190,10 @@ private class AnimControllerViewImpl(
 
         // no need to manually cancel previous animation: Animatable.animateTo() will handle this
         coroutineScope.launch {
+            // set uiState to the dest uiState right away so that it's visible during animation
+            if (dest.visibility == AnimState.Visibility.Expanded) {
+                updateUiState(dest.uiState)
+            }
             onAnimStarted()
             scaleAnimatable.animateTo(
                 targetValue = targetValue,
