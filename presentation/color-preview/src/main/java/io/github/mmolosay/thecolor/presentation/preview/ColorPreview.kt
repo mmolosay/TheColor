@@ -1,6 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.preview
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -15,6 +16,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,6 +28,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.api.ColorInt
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.impl.toCompose
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
@@ -54,56 +57,18 @@ fun AnimatedColorPreview(
             AnimState.Visibility.Collapsed -> 0f
             AnimState.Visibility.Expanded -> 1f
         }
-
     val scaleAnimatable = remember {
         val initialVisibility = animController.flowOfUiState.value.visibility
         Animatable(initialValue = scaleTargetValue(initialVisibility))
     }
 
-    val view = remember {
-        object : ColorPreviewAnimController.View {
-            override fun animateVisibility(
-                dest: ColorPreviewAnimController.UiStateWithVisibility,
-                onAnimStarted: () -> Unit,
-                onAnimFinished: () -> Unit,
-            ) {
-                val targetValue = scaleTargetValue(dest.visibility)
-
-                val isAlreadyInTargetState = (scaleAnimatable.value == targetValue)
-                if (isAlreadyInTargetState) {
-                    return // already in target state
-                }
-
-                val isAlreadyRunningTowardsTarget =
-                    (scaleAnimatable.isRunning && scaleAnimatable.targetValue == targetValue)
-                if (isAlreadyRunningTowardsTarget) {
-                    return // already animating towards target state
-                }
-
-                // no need to manually cancel previous animation: Animatable.animateTo() will handle this
-                coroutineScope.launch {
-                    onAnimStarted()
-                    scaleAnimatable.animateTo(
-                        targetValue = targetValue,
-                        animationSpec = tween(3000), // TODO: rollback
-                    )
-                    onAnimFinished()
-                }
-            }
-
-            override fun animateUpdateOfVisibleUiState(
-                uiState: UiState.Visible,
-                onAnimStarted: () -> Unit,
-                onAnimFinished: () -> Unit,
-            ) {
-                val id = updatesOfVisibleUiState.lastOrNull()?.id?.let { it + 1 } ?: 0
-                val update = UpdateOfVisibleUiStateWithId(uiState, onAnimStarted, onAnimFinished, id)
-                updatesOfVisibleUiState += update
-            }
-        }
-    }
-
     DisposableEffect(Unit) {
+        val view = AnimControllerViewImpl(
+            scaleTargetValue = ::scaleTargetValue,
+            scaleAnimatable = scaleAnimatable,
+            updatesOfVisibleUiState = updatesOfVisibleUiState,
+            coroutineScope = coroutineScope,
+        )
         animController.setView(view)
         onDispose {
             animController.setView(null)
@@ -178,6 +143,59 @@ private fun UpdateRipple(
 //            ),
         )
         onAnimationFinished()
+    }
+}
+
+/**
+ * Implementation of [ColorPreviewAnimController.View] for [AnimatedColorPreview] Composable.
+ *
+ * Relies on Compose-specific mechanisms to propagate changes to UI, like [Animatable]
+ * and [SnapshotStateList].
+ */
+private class AnimControllerViewImpl(
+    private val scaleTargetValue: (dest: AnimState.Visibility) -> Float,
+    private val scaleAnimatable: Animatable<Float, AnimationVector1D>,
+    private val updatesOfVisibleUiState: SnapshotStateList<UpdateOfVisibleUiStateWithId>,
+    private val coroutineScope: CoroutineScope,
+) : ColorPreviewAnimController.View {
+
+    override fun animateVisibility(
+        dest: ColorPreviewAnimController.UiStateWithVisibility,
+        onAnimStarted: () -> Unit,
+        onAnimFinished: () -> Unit,
+    ) {
+        val targetValue = scaleTargetValue(dest.visibility)
+
+        val isAlreadyInTargetState = (scaleAnimatable.value == targetValue)
+        if (isAlreadyInTargetState) {
+            return // already in target state
+        }
+
+        val isAlreadyRunningTowardsTarget =
+            (scaleAnimatable.isRunning && scaleAnimatable.targetValue == targetValue)
+        if (isAlreadyRunningTowardsTarget) {
+            return // already animating towards target state
+        }
+
+        // no need to manually cancel previous animation: Animatable.animateTo() will handle this
+        coroutineScope.launch {
+            onAnimStarted()
+            scaleAnimatable.animateTo(
+                targetValue = targetValue,
+                animationSpec = tween(3000), // TODO: rollback
+            )
+            onAnimFinished()
+        }
+    }
+
+    override fun animateUpdateOfVisibleUiState(
+        uiState: UiState.Visible,
+        onAnimStarted: () -> Unit,
+        onAnimFinished: () -> Unit,
+    ) {
+        val id = updatesOfVisibleUiState.lastOrNull()?.id?.let { it + 1 } ?: 0
+        val update = UpdateOfVisibleUiStateWithId(uiState, onAnimStarted, onAnimFinished, id)
+        updatesOfVisibleUiState += update
     }
 }
 
