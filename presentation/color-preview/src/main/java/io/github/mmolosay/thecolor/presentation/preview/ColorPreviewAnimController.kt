@@ -26,11 +26,20 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState as U
  * Due to controller being created on the caller's side, the 'Color Preview' View may not be present
  * right away to animate incoming [UiState]s. For this reason, the 'Color Preview' View should
  * create an instance of [View] and set it to the controller using [setView].
- * Until the [View] is set, all incoming updates of [UiState] won't be translated to the animations
+ * Until the [View] is set, all incoming updates of [UiState] won't be translated to animations
  * and will be applied straight away.
  */
 abstract class ColorPreviewAnimController {
+
+    /**
+     * "Settled" [UiState]. Typically updated when some animation of [UiState] is finished.
+     */
     internal abstract val flowOfUiState: StateFlow<UiStateWithVisibility>
+
+    /**
+     * Emits [UiState] when it is reached (animation towards this [UiState] has finished) AND
+     * there are no more animations running at the moment (UI is "stable").
+     */
     internal abstract val flowOfStableReachedUiState: StateFlow<UiState>
 
     internal abstract fun setView(view: View?)
