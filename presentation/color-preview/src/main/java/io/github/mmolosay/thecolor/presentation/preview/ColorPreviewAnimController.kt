@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.preview
 
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController.UiStateWithVisibility
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimState.Visibility
 import io.github.mmolosay.thecolor.utils.asDelegate
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -55,6 +56,12 @@ abstract class ColorPreviewAnimController {
         val visibility: Visibility,
     )
 }
+
+internal val ColorPreviewAnimController.uiStateWithVisibility: UiStateWithVisibility
+    get() = this.flowOfUiState.value
+
+internal val ColorPreviewAnimController.lastStableReachedUiState: UiState
+    get() = this.flowOfStableReachedUiState.value
 
 object ColorPreviewAnimState {
     enum class Visibility {
