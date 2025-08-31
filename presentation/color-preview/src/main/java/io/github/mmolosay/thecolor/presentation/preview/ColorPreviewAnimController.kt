@@ -141,20 +141,12 @@ private class ColorPreviewAnimControllerImpl(
         val ongoing = ongoingVisibilityAnimTarget
         if (ongoing == null) return // no animation was running
         if (ongoing.visibility != reached.visibility) return // was not expected to be reached
-        when (reached.visibility) {
-            Visibility.Collapsed -> {
-                check(ongoingUpdatesOfVisibleUiState.isEmpty()) { "can't collapse while there are updates ongoing" }
-                stableReachedUiState = ongoing.uiState
-            }
-            Visibility.Expanded -> {
-                if (ongoingUpdatesOfVisibleUiState.isEmpty()) {
-                    // only consider this UI state as stable if there's no updates ongoing
-                    stableReachedUiState = ongoing.uiState
-                }
-            }
-        }
-        this.uiState = UiStateWithVisibility(uiState = ongoing.uiState, visibility = reached.visibility)
+
         this.ongoingVisibilityAnimTarget = null
+        this.uiState = UiStateWithVisibility(uiState = ongoing.uiState, visibility = reached.visibility)
+        if (isNoAnimRunning()) {
+            stableReachedUiState = ongoing.uiState
+        }
     }
 
     private fun View.animateUpdateOfVisibleUiState(uiState: UiState.Visible) =
@@ -173,9 +165,15 @@ private class ColorPreviewAnimControllerImpl(
         ongoingUpdatesOfVisibleUiState.remove(update).also { wasRemoved ->
             require(wasRemoved) { "finished update wasn't in the list of the ongoing updates" }
         }
-        if (ongoingUpdatesOfVisibleUiState.isEmpty() && !isVisibilityAnimRunning) {
+        if (isNoAnimRunning()) {
             stableReachedUiState = update
         }
+    }
+
+    private fun isNoAnimRunning(): Boolean {
+        val visibilityAnimIsNotRunning = !isVisibilityAnimRunning
+        val updatesOfVisibleUiStateAreNotRunning = ongoingUpdatesOfVisibleUiState.isEmpty()
+        return (visibilityAnimIsNotRunning && updatesOfVisibleUiStateAreNotRunning)
     }
 
     private fun UiState.withVisibility() =
