@@ -143,7 +143,7 @@ private class ColorPreviewAnimControllerImpl(
         if (ongoing.visibility != reached.visibility) return // was not expected to be reached
 
         this.ongoingVisibilityAnimTarget = null
-        this.uiState = UiStateWithVisibility(uiState = ongoing.uiState, visibility = reached.visibility)
+        this.uiState = ongoing // now it's reached
         if (isNoAnimRunning()) {
             stableReachedUiState = ongoing.uiState
         }
