@@ -86,13 +86,13 @@ private val FullForwardSequence: List<HomeAnimState> = run {
 }
 
 /**
- * Returns a list of dest states (key frames) that should be animated to when starting from
- * the [from] state and finishing at the [to] state.
+ * Returns a list of [HomeAnimState]s between [from] state and [to] state.
+ * Those states can be considered as "key frames" of the 'Home' animation.
  *
  * Resulting list contains [from], all intermediate states in between, and [to].
  * Contains only one state if [from] and [to] are identical.
  */
-internal fun makeDestStates(
+private fun homeAnimSequence(
     from: HomeAnimState,
     to: HomeAnimState,
 ): List<HomeAnimState> {
@@ -113,14 +113,26 @@ internal fun makeDestStates(
     }
 }
 
-internal fun makeDestStates(
-    ongoingStart: HomeAnimState,
-    ongoingDest: HomeAnimState,
+/**
+ * Creates list of dest states to animate from current state of [HomeAnimController]
+ * to [to] state.
+ * Returned list is meant to be submitted to [HomeAnimController.run].
+ */
+internal fun HomeAnimController.makeDestStates(
     to: HomeAnimState,
-): List<HomeAnimState> {
-    val destStates = makeDestStates(from = ongoingStart, to = to).toMutableList()
-    if (destStates.size > 1 && destStates[0] == ongoingStart && destStates[1] == ongoingDest) {
-        destStates.removeAt(index = 0)
+): List<HomeAnimState>? {
+    val state = this.state
+    val from = when (state) {
+        is HomeAnimController.State.Idle -> state.state
+        is HomeAnimController.State.Running -> state.segment.start
+    }
+    val sequence = homeAnimSequence(from = from, to = to)
+    val destStates = sequence.toMutableList()
+    if (sequence.size == 1 && state is HomeAnimController.State.Idle && state.state == sequence.single()) {
+        return null // single state in sequence which is already reached
+    }
+    if (sequence.size > 1 && state is HomeAnimController.State.Running && sequence[0] == state.segment.start && sequence[1] == state.segment.dest) {
+        destStates.removeAt(index = 0) // already running first segment of the sequence
     }
     return destStates
 }

@@ -189,20 +189,9 @@ fun HomeScreen(
     LaunchedEffect(Unit) {
         flowOfUiState.collect { uiState ->
             val animController = animController ?: return@collect
-            val finalDest = uiState.toAnimState()
-            val animControllerState = animController.state
-            val destStates = when (animControllerState) {
-                is HomeAnimController.State.Idle ->
-                    makeDestStates(
-                        from = animControllerState.state,
-                        to = finalDest,
-                    )
-                is HomeAnimController.State.Running ->
-                    makeDestStates(
-                        ongoingStart = animControllerState.segment.start,
-                        ongoingDest = animControllerState.segment.dest,
-                        to = finalDest,
-                    )
+            val destStates = animController.makeDestStates(to = uiState.toAnimState())
+            if (destStates != null) {
+                animController.run(destStates)
             }
             animController.run(destStates)
         }
