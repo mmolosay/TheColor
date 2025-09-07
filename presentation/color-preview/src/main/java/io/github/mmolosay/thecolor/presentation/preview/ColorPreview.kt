@@ -27,7 +27,6 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.api.ColorInt
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.impl.toCompose
@@ -51,7 +50,7 @@ fun AnimatedColorPreview(
 ) {
     val coroutineScope = rememberCoroutineScope()
 
-    var uiState by remember { mutableStateOf(animController.flowOfUiState.value.uiState) }
+    var uiState by remember { mutableStateOf(animController.uiStateWithVisibility.uiState) }
     LaunchedEffect(Unit) {
         animController.flowOfUiState.collect { uiStateWithVisibility ->
             uiState = uiStateWithVisibility.uiState
@@ -67,7 +66,7 @@ fun AnimatedColorPreview(
             AnimState.Visibility.Expanded -> 1f
         }
     val scaleAnimatable = remember {
-        val initialVisibility = animController.flowOfUiState.value.visibility
+        val initialVisibility = animController.uiStateWithVisibility.visibility
         Animatable(initialValue = scaleTargetValue(initialVisibility))
     }
 
@@ -191,7 +190,8 @@ private class AnimControllerViewImpl(
         // no need to manually cancel previous animation: Animatable.animateTo() will handle this
         coroutineScope.launch {
             // set uiState to the dest uiState right away so that it's visible during animation
-            if (dest.visibility == AnimState.Visibility.Expanded) {
+            val isCollapsed = (scaleAnimatable.value == 0f)
+            if (isCollapsed && dest.visibility == AnimState.Visibility.Expanded) {
                 updateUiState(dest.uiState)
             }
             onAnimStarted()
