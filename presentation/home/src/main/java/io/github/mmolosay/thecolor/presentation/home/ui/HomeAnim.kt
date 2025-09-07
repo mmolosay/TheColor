@@ -115,6 +115,9 @@ private val FullForwardSequence: HomeAnimSequence = run {
 /**
  * Returns a list of dest states (key frames) that should be animated to when starting from
  * the [from] state and finishing at the [to] state.
+ *
+ * Resulting list contains [from], all intermediate states in between, and [to].
+ * Contains only one state if [from] and [to] are identical.
  */
 internal fun makeDestStates(
     from: HomeAnimState,
@@ -137,6 +140,18 @@ internal fun makeDestStates(
     }
 }
 
+internal fun makeDestStates(
+    ongoingStart: HomeAnimState,
+    ongoingDest: HomeAnimState,
+    to: HomeAnimState,
+): List<HomeAnimState> {
+    val destStates = makeDestStates(from = ongoingStart, to = to).toMutableList()
+    if (destStates.size > 1 && destStates[0] == ongoingStart && destStates[1] == ongoingDest) {
+        destStates.removeAt(index = 0)
+    }
+    return destStates
+}
+
 @Stable
 internal class HomeAnimController(
     currentState: HomeAnimState,
@@ -147,7 +162,8 @@ internal class HomeAnimController(
     val destState: HomeAnimState
         get() = flowOfDestState.value
 
-    private var runningSegment: Segment? = null
+    var runningSegment: Segment? = null
+        private set
 
     private val pendingDests = mutableMapOf<AnimComponent, Any>() // type -> anim dest
 
@@ -320,7 +336,7 @@ internal class HomeAnimController(
         }
     }
 
-    private data class Segment(
+    data class Segment(
         val start: HomeAnimState,
         val dest: HomeAnimState,
     )
