@@ -33,21 +33,6 @@ internal data class HomeAnimState(
     }
 }
 
-private object HomeAnimStates {
-
-    val Collapsed = HomeAnimState(
-        colorPreviewPosition = ColorPreview.Position.NotDived,
-        colorPreviewVisibility = ColorPreview.Visibility.Hidden,
-        colorCenter = ColorCenter.Collapsed,
-    )
-
-    val Expanded = HomeAnimState(
-        colorPreviewPosition = ColorPreview.Position.Dived,
-        colorPreviewVisibility = ColorPreview.Visibility.Visible,
-        colorCenter = ColorCenter.Expanded,
-    )
-}
-
 /**
  * Infers appropriate (initial or target) [HomeAnimState] based on the specified state of 'Home' feature.
  */
@@ -93,8 +78,11 @@ private class HomeAnimSequence(
 private val FullForwardSequence: HomeAnimSequence = run {
     val states = buildList {
         // 0
-        HomeAnimStates.Collapsed
-            .also { add(it) }
+        HomeAnimState(
+            colorPreviewPosition = ColorPreview.Position.NotDived,
+            colorPreviewVisibility = ColorPreview.Visibility.Hidden,
+            colorCenter = ColorCenter.Collapsed,
+        ).also { add(it) }
         // 1
         last().copy(
             colorPreviewVisibility = ColorPreview.Visibility.Visible,
@@ -108,7 +96,12 @@ private val FullForwardSequence: HomeAnimSequence = run {
             colorCenter = ColorCenter.Expanded,
         ).also { add(it) }
     }
-    assert(states.last() == HomeAnimStates.Expanded)
+    val expectedLast = HomeAnimState(
+        colorPreviewPosition = ColorPreview.Position.Dived,
+        colorPreviewVisibility = ColorPreview.Visibility.Visible,
+        colorCenter = ColorCenter.Expanded,
+    )
+    assert(states.last() == expectedLast)
     HomeAnimSequence(states)
 }
 
