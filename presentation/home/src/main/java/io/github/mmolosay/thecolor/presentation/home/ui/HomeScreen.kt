@@ -190,18 +190,19 @@ fun HomeScreen(
         flowOfUiState.collect { uiState ->
             val animController = animController ?: return@collect
             val finalDest = uiState.toAnimState()
-            val destStates = if (animController.isRunning) {
-                val runningSegment = requireNotNull(animController.runningSegment)
-                makeDestStates(
-                    ongoingStart = runningSegment.start,
-                    ongoingDest = runningSegment.dest,
-                    to = finalDest,
-                )
-            } else {
-                makeDestStates(
-                    from = animController.currentState,
-                    to = finalDest,
-                )
+            val animControllerState = animController.state
+            val destStates = when (animControllerState) {
+                is HomeAnimController.State.Idle ->
+                    makeDestStates(
+                        from = animControllerState.state,
+                        to = finalDest,
+                    )
+                is HomeAnimController.State.Running ->
+                    makeDestStates(
+                        ongoingStart = animControllerState.segment.start,
+                        ongoingDest = animControllerState.segment.dest,
+                        to = finalDest,
+                    )
             }
             animController.run(destStates)
         }

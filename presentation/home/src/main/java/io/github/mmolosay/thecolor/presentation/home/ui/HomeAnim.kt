@@ -129,24 +129,17 @@ internal fun makeDestStates(
 internal class HomeAnimController(
     currentState: HomeAnimState,
 ) {
-    private var lastReachedState: HomeAnimState = currentState
 
     val flowOfDestState = MutableStateFlow(currentState)
     val destState: HomeAnimState
         get() = flowOfDestState.value
 
-    var runningSegment: Segment? = null
-        private set
-
-    private val pendingDests = mutableMapOf<AnimComponent, Any>() // type -> anim dest
-
     private var runningSequence: Sequence? = null
+    private val pendingDests = mutableMapOf<AnimComponent, Any>() // type -> anim dest
+    private var lastReachedState: HomeAnimState = currentState
 
-    val isRunning: Boolean
-        get() = (runningSequence != null)
-
-    val currentState: HomeAnimState
-        get() = if (isRunning) requireNotNull(runningSegment).start else lastReachedState
+    var state: State = State.Idle(state = currentState)
+        private set
 
     /**
      * Runs the specified animation.
@@ -155,7 +148,6 @@ internal class HomeAnimController(
     fun run(destStates: List<HomeAnimState>) {
         Timber.d("HomeAnimLog | run(), destStates = $destStates, lastReachedState = $lastReachedState, currentSegment = $runningSegment")
         require(destStates.isNotEmpty()) { "Dest states must have at least one state" }
-        Timber.d("HomeAnimLog | sequence = $sequence")
         runningSequence = Sequence(destStates)
         setNextDestFromSequence()
     }
@@ -207,17 +199,21 @@ internal class HomeAnimController(
     }
 
     private fun setNextDestFromSequence() {
-        if (!isRunning) return
         val runningSequence = requireNotNull(runningSequence)
         val nextDest = runningSequence.nextDest()
         if (nextDest == null) {
             this.runningSegment = null
             this.runningSequence = null // sequence is finished
+            this.runningSequence = null
+            this.state = State.Idle(state = lastReachedState)
             return
         }
         if (nextDest != destState) {
             pendingDests.putAll(destState diffTo nextDest) // 'destState' may not have been reached yet, so "snap" to it and calc diff from it
             runningSegment = Segment(start = destState, dest = nextDest)
+            val currentState = destState // 'destState' may not have been reached yet, so "snap" to it and calc diff from it
+            pendingDests.putAll(currentState diffTo nextDest)
+            this.state = State.Running(segment = Segment(start = currentState, dest = nextDest))
             flowOfDestState.value = nextDest
             return
         }
@@ -256,6 +252,17 @@ internal class HomeAnimController(
         }
     }
 
+    /** Exposed state of this animation controller. */
+    sealed interface State {
+        data class Idle(val state: HomeAnimState) : State
+        data class Running(val segment: Segment) : State
+    }
+
+    data class Segment(
+        val start: HomeAnimState,
+        val dest: HomeAnimState,
+    )
+
     private class Sequence(
         val destStates: List<HomeAnimState>,
     ) {
@@ -269,17 +276,15 @@ internal class HomeAnimController(
         }
     }
 
-    data class Segment(
-        val start: HomeAnimState,
-        val dest: HomeAnimState,
-    )
-
     private enum class AnimComponent {
         ColorPreviewPosition,
         ColorPreviewVisibility,
         ColorCenter,
     }
 }
+
+internal val HomeAnimController.isRunning: Boolean
+    get() = this.state is HomeAnimController.State.Running
 
 /**
  * 'Color Center's focal point is a point on the screen that is the center of the clipping circle

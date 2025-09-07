@@ -1,12 +1,16 @@
 package io.github.mmolosay.thecolor.presentation.home
 
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimController
+import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimController.State
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorCenter
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPreview
+import io.github.mmolosay.thecolor.presentation.home.ui.destState
+import io.github.mmolosay.thecolor.presentation.home.ui.isRunning
 import io.github.mmolosay.thecolor.utils.doNothing
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import org.junit.jupiter.api.Test
 
 internal class HomeAnimControllerTest {
@@ -22,7 +26,7 @@ internal class HomeAnimControllerTest {
         )
         val state2 = state1.copy(colorPreviewVisibility = ColorPreview.Visibility.Visible)
         sut = HomeAnimController(state1)
-        sut.currentState shouldBe state1
+        sut.state.shouldBeInstanceOf<State.Idle>().state shouldBe state1
         sut.isRunning shouldBe false // idling
 
         sut.run(destStates = listOf(state2))
@@ -42,7 +46,7 @@ internal class HomeAnimControllerTest {
         )
         val state2 = state1.copy(colorPreviewVisibility = ColorPreview.Visibility.Visible)
         sut = HomeAnimController(state1)
-        sut.currentState shouldBe state1
+        sut.state.shouldBeInstanceOf<State.Idle>().state shouldBe state1
         sut.isRunning shouldBe false // idling
 
         sut.run(destStates = listOf(state1, state2))
@@ -64,7 +68,7 @@ internal class HomeAnimControllerTest {
         val state3 = state2.copy(colorPreviewPosition = ColorPreview.Position.Dived)
         val state4 = state3.copy(colorCenter = ColorCenter.Expanded)
         sut = HomeAnimController(state1)
-        sut.currentState shouldBe state1
+        sut.state.shouldBeInstanceOf<State.Idle>().state shouldBe state1
         sut.isRunning shouldBe false // idling
 
         sut.run(destStates = listOf(state1, state2, state3, state4))
@@ -100,7 +104,7 @@ internal class HomeAnimControllerTest {
             colorCenter = ColorCenter.Collapsed,
         )
         sut = HomeAnimController(state1)
-        sut.currentState shouldBe state1
+        sut.state.shouldBeInstanceOf<State.Idle>().state shouldBe state1
         sut.isRunning shouldBe false // idling
 
         sut.run(destStates = listOf(state1, state1))
