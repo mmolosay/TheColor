@@ -150,7 +150,7 @@ internal class HomeAnimController(
 
     /**
      * Runs the specified animation.
-     * List if [destStates] defines the key frames that should be animated to.
+     * List of [destStates] defines the key frames that should be animated to.
      */
     fun run(destStates: List<HomeAnimState>) {
         Timber.d("HomeAnimLog | run(), destStates = $destStates, lastReachedState = $lastReachedState, currentSegment = $runningSegment")
