@@ -12,11 +12,19 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState as UiState
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ColorPreviewAnimControllerTest {
+
+    val testDispatcher = UnconfinedTestDispatcher()
 
     lateinit var sut: ColorPreviewAnimController
 
@@ -279,179 +287,254 @@ class ColorPreviewAnimControllerTest {
         }
     }
 
-    @Test
-    fun `when SUT is created with initial 'UiState Hidden', then it is reported as stable`() {
-        val initialState = mockk<UiState.Hidden>()
-        sut = ColorPreviewAnimController(uiState = initialState)
+    @Test // ANCHOR:Label=4
+    fun `when SUT is created with initial 'UiState Hidden', then it is reported as stable`() =
+        runTest(testDispatcher) {
+            val initialState = mockk<UiState.Hidden>()
+            sut = ColorPreviewAnimController(uiState = initialState)
 
-        sut.lastStableReachedUiState shouldBe initialState
-    }
-
-    @Test
-    fun `when visibility anim 'Collapsed → Visible' has finished, then reached UiState is reported as stable`() {
-        sut = ColorPreviewAnimController(uiState = mockk<UiState.Hidden>())
-        val view = mockk<View>(relaxed = true)
-        sut.setView(view)
-
-        val visibleUiState = mockk<UiState.Visible>()
-        sut.onNewUiState(visibleUiState)
-        val onAnimStarted = slot<() -> Unit>()
-        val onAnimFinished = slot<() -> Unit>()
-        // REFERENCE:Label=1
-        verify(exactly = 1) {
-            view.animateVisibility(
-                dest = UiStateWithVisibility(uiState = visibleUiState, visibility = Visibility.Expanded),
-                onAnimStarted = capture(onAnimStarted),
-                onAnimFinished = capture(onAnimFinished),
-            )
+            sut.flowOfStableReachedUiState.first() shouldBe initialState
         }
-        onAnimStarted.captured() // report that animation in UI has started
-        onAnimFinished.captured() // report that animation in UI has finished
-
-        sut.lastStableReachedUiState shouldBe visibleUiState
-    }
 
     @Test
-    fun `when visibility anim 'Visible → Collapsed' has finished, then reached UiState is reported as stable`() {
-        sut = ColorPreviewAnimController(uiState = mockk<UiState.Visible>())
-        val view = mockk<View>(relaxed = true)
-        sut.setView(view)
+    fun `when visibility anim 'Collapsed → Visible' has finished, then reached UiState is reported as stable`() =
+        runTest(testDispatcher) {
+            sut = ColorPreviewAnimController(uiState = mockk<UiState.Hidden>())
+            val view = mockk<View>(relaxed = true)
+            sut.setView(view)
 
-        val hiddenUiState = mockk<UiState.Hidden>()
-        sut.onNewUiState(hiddenUiState)
-        val onAnimStarted = slot<() -> Unit>()
-        val onAnimFinished = slot<() -> Unit>()
-        // REFERENCE:Label=2
-        verify(exactly = 1) {
-            view.animateVisibility(
-                dest = UiStateWithVisibility(uiState = hiddenUiState, visibility = Visibility.Collapsed),
-                onAnimStarted = capture(onAnimStarted),
-                onAnimFinished = capture(onAnimFinished),
-            )
+            val visibleUiState = mockk<UiState.Visible>()
+            sut.onNewUiState(visibleUiState)
+            val onAnimStarted = slot<() -> Unit>()
+            val onAnimFinished = slot<() -> Unit>()
+            // REFERENCE:Label=1
+            verify(exactly = 1) {
+                view.animateVisibility(
+                    dest = UiStateWithVisibility(
+                        uiState = visibleUiState,
+                        visibility = Visibility.Expanded
+                    ),
+                    onAnimStarted = capture(onAnimStarted),
+                    onAnimFinished = capture(onAnimFinished),
+                )
+            }
+            onAnimStarted.captured() // report that animation in UI has started
+            onAnimFinished.captured() // report that animation in UI has finished
+
+            sut.flowOfStableReachedUiState.first() shouldBe visibleUiState
         }
-        onAnimStarted.captured() // report that animation in UI has started
-        onAnimFinished.captured() // report that animation in UI has finished
-
-        sut.lastStableReachedUiState shouldBe hiddenUiState
-    }
 
     @Test
-    fun `when 'update of visible UiState' anim has finished and visibility anim is not running, then reached UiState is reported as stable`() {
-        sut = ColorPreviewAnimController(uiState = mockk<UiState.Hidden>())
-        val view = mockk<View>(relaxed = true)
-        sut.setView(view)
+    fun `when visibility anim 'Visible → Collapsed' has finished, then reached UiState is reported as stable`() =
+        runTest(testDispatcher) {
+            sut = ColorPreviewAnimController(uiState = mockk<UiState.Visible>())
+            val view = mockk<View>(relaxed = true)
+            sut.setView(view)
 
-        val visibleUiState1 = mockk<UiState.Visible>()
-        sut.onNewUiState(visibleUiState1)
-        val onVisibilityAnimStarted = slot<() -> Unit>()
-        val onVisibilityAnimFinished = slot<() -> Unit>()
-        // REFERENCE:Label=1
-        verify(exactly = 1) {
-            view.animateVisibility(
-                dest = UiStateWithVisibility(uiState = visibleUiState1, visibility = Visibility.Expanded),
-                onAnimStarted = capture(onVisibilityAnimStarted),
-                onAnimFinished = capture(onVisibilityAnimFinished),
-            )
+            val hiddenUiState = mockk<UiState.Hidden>()
+            sut.onNewUiState(hiddenUiState)
+            val onAnimStarted = slot<() -> Unit>()
+            val onAnimFinished = slot<() -> Unit>()
+            // REFERENCE:Label=2
+            verify(exactly = 1) {
+                view.animateVisibility(
+                    dest = UiStateWithVisibility(
+                        uiState = hiddenUiState,
+                        visibility = Visibility.Collapsed
+                    ),
+                    onAnimStarted = capture(onAnimStarted),
+                    onAnimFinished = capture(onAnimFinished),
+                )
+            }
+            onAnimStarted.captured() // report that animation in UI has started
+            onAnimFinished.captured() // report that animation in UI has finished
+
+            sut.flowOfStableReachedUiState.first() shouldBe hiddenUiState
         }
-        onVisibilityAnimStarted.captured() // report that animation in UI has started
-        doNothing() // don't report that it has finished yet
-
-        val visibleUiState2 = mockk<UiState.Visible>()
-        sut.onNewUiState(visibleUiState2)
-        val onUpdateOfVisibleUiStateAnimStarted = slot<() -> Unit>()
-        val onUpdateOfVisibleUiStateAnimFinished = slot<() -> Unit>()
-        // REFERENCE:Label=3
-        verify(exactly = 1) {
-            view.animateUpdateOfVisibleUiState(
-                uiState = visibleUiState2,
-                onAnimStarted = capture(onUpdateOfVisibleUiStateAnimStarted),
-                onAnimFinished = capture(onUpdateOfVisibleUiStateAnimFinished),
-            )
-        }
-        onUpdateOfVisibleUiStateAnimStarted.captured() // report that animation in UI has started
-        onVisibilityAnimFinished.captured() // now first visibility animation has finished
-        onUpdateOfVisibleUiStateAnimFinished.captured() // and now the second one has finished
-
-        sut.lastStableReachedUiState shouldBe visibleUiState2
-    }
 
     @Test
-    fun `given there are multiple ongoing 'update of visible UiState' anims, when one of them has finished and visibility anim is not running, then reached UiState is NOT reported as stable`() {
-        sut = ColorPreviewAnimController(uiState = mockk<UiState.Visible>())
-        val view = mockk<View>(relaxed = true)
-        sut.setView(view)
+    fun `when 'update of visible UiState' anim has finished and visibility anim is not running, then reached UiState is reported as stable`() =
+        runTest(testDispatcher) {
+            sut = ColorPreviewAnimController(uiState = mockk<UiState.Hidden>())
+            val view = mockk<View>(relaxed = true)
+            sut.setView(view)
 
-        val visibleUiState1 = mockk<UiState.Visible>()
-        sut.onNewUiState(visibleUiState1)
-        val onAnimStarted1 = slot<() -> Unit>()
-        val onAnimFinished1 = slot<() -> Unit>()
-        // REFERENCE:Label=0
-        verify(exactly = 1) {
-            view.animateUpdateOfVisibleUiState(
-                uiState = visibleUiState1,
-                onAnimStarted = capture(onAnimStarted1),
-                onAnimFinished = capture(onAnimFinished1),
-            )
+            val visibleUiState1 = mockk<UiState.Visible>()
+            sut.onNewUiState(visibleUiState1)
+            val onVisibilityAnimStarted = slot<() -> Unit>()
+            val onVisibilityAnimFinished = slot<() -> Unit>()
+            // REFERENCE:Label=1
+            verify(exactly = 1) {
+                view.animateVisibility(
+                    dest = UiStateWithVisibility(
+                        uiState = visibleUiState1,
+                        visibility = Visibility.Expanded
+                    ),
+                    onAnimStarted = capture(onVisibilityAnimStarted),
+                    onAnimFinished = capture(onVisibilityAnimFinished),
+                )
+            }
+            onVisibilityAnimStarted.captured() // report that animation in UI has started
+            doNothing() // don't report that it has finished yet
+
+            val visibleUiState2 = mockk<UiState.Visible>()
+            sut.onNewUiState(visibleUiState2)
+            val onUpdateOfVisibleUiStateAnimStarted = slot<() -> Unit>()
+            val onUpdateOfVisibleUiStateAnimFinished = slot<() -> Unit>()
+            // REFERENCE:Label=3
+            verify(exactly = 1) {
+                view.animateUpdateOfVisibleUiState(
+                    uiState = visibleUiState2,
+                    onAnimStarted = capture(onUpdateOfVisibleUiStateAnimStarted),
+                    onAnimFinished = capture(onUpdateOfVisibleUiStateAnimFinished),
+                )
+            }
+            onUpdateOfVisibleUiStateAnimStarted.captured() // report that animation in UI has started
+            onVisibilityAnimFinished.captured() // now first visibility animation has finished
+            onUpdateOfVisibleUiStateAnimFinished.captured() // and now the second one has finished
+
+            sut.flowOfStableReachedUiState.first() shouldBe visibleUiState2
         }
-        onAnimStarted1.captured() // report that animation in UI has started
-        doNothing() // don't report that it has finished yet
-
-        val visibleUiState2 = mockk<UiState.Visible>()
-        sut.onNewUiState(visibleUiState2)
-        val onAnimStarted2 = slot<() -> Unit>()
-        val onAnimFinished2 = slot<() -> Unit>()
-        // REFERENCE:Label=0
-        verify(exactly = 1) {
-            view.animateUpdateOfVisibleUiState(
-                uiState = visibleUiState2,
-                onAnimStarted = capture(onAnimStarted2),
-                onAnimFinished = capture(onAnimFinished2),
-            )
-        }
-        onAnimStarted2.captured() // report that animation in UI has started
-        onAnimFinished1.captured() // now first visibility animation has finished
-        doNothing() // but second one is still running
-
-        sut.lastStableReachedUiState shouldNotBe visibleUiState2
-    }
 
     @Test
-    fun `when 'update of visible UiState' anim has finished and visibility anim is running, then reached UiState is NOT reported as stable`() {
-        sut = ColorPreviewAnimController(uiState = mockk<UiState.Hidden>())
-        val view = mockk<View>(relaxed = true)
-        sut.setView(view)
+    fun `given there are multiple ongoing 'update of visible UiState' anims, when one of them has finished and visibility anim is not running, then reached UiState is NOT reported as stable`() =
+        runTest(testDispatcher) {
+            sut = ColorPreviewAnimController(uiState = mockk<UiState.Visible>())
+            val view = mockk<View>(relaxed = true)
+            sut.setView(view)
 
-        val visibleUiState1 = mockk<UiState.Visible>()
-        sut.onNewUiState(visibleUiState1)
-        val onAnimStarted1 = slot<() -> Unit>()
-        val onAnimFinished1 = slot<() -> Unit>()
-        // REFERENCE:Label=1
-        verify(exactly = 1) {
-            view.animateVisibility(
-                dest = UiStateWithVisibility(uiState = visibleUiState1, visibility = Visibility.Expanded),
-                onAnimStarted = capture(onAnimStarted1),
-                onAnimFinished = capture(onAnimFinished1),
-            )
+            val visibleUiState1 = mockk<UiState.Visible>()
+            sut.onNewUiState(visibleUiState1)
+            val onAnimStarted1 = slot<() -> Unit>()
+            val onAnimFinished1 = slot<() -> Unit>()
+            // REFERENCE:Label=0
+            verify(exactly = 1) {
+                view.animateUpdateOfVisibleUiState(
+                    uiState = visibleUiState1,
+                    onAnimStarted = capture(onAnimStarted1),
+                    onAnimFinished = capture(onAnimFinished1),
+                )
+            }
+            onAnimStarted1.captured() // report that animation in UI has started
+            doNothing() // don't report that it has finished yet
+
+            val visibleUiState2 = mockk<UiState.Visible>()
+            sut.onNewUiState(visibleUiState2)
+            val onAnimStarted2 = slot<() -> Unit>()
+            val onAnimFinished2 = slot<() -> Unit>()
+            // REFERENCE:Label=0
+            verify(exactly = 1) {
+                view.animateUpdateOfVisibleUiState(
+                    uiState = visibleUiState2,
+                    onAnimStarted = capture(onAnimStarted2),
+                    onAnimFinished = capture(onAnimFinished2),
+                )
+            }
+            onAnimStarted2.captured() // report that animation in UI has started
+            onAnimFinished1.captured() // now first visibility animation has finished
+            doNothing() // but second one is still running
+
+            sut.flowOfStableReachedUiState.first() shouldNotBe visibleUiState2
         }
-        onAnimStarted1.captured() // report that animation in UI has started
-        doNothing() // don't report that it has finished yet
 
-        val visibleUiState2 = mockk<UiState.Visible>()
-        sut.onNewUiState(visibleUiState2)
-        val onAnimStarted2 = slot<() -> Unit>()
-        val onAnimFinished2 = slot<() -> Unit>()
-        // REFERENCE:Label=0
-        verify(exactly = 1) {
-            view.animateUpdateOfVisibleUiState(
-                uiState = visibleUiState2,
-                onAnimStarted = capture(onAnimStarted2),
-                onAnimFinished = capture(onAnimFinished2),
-            )
+    @Test
+    fun `when 'update of visible UiState' anim has finished and visibility anim is running, then reached UiState is NOT reported as stable`() =
+        runTest(testDispatcher) {
+            sut = ColorPreviewAnimController(uiState = mockk<UiState.Hidden>())
+            val view = mockk<View>(relaxed = true)
+            sut.setView(view)
+
+            val visibleUiState1 = mockk<UiState.Visible>()
+            sut.onNewUiState(visibleUiState1)
+            val onAnimStarted1 = slot<() -> Unit>()
+            val onAnimFinished1 = slot<() -> Unit>()
+            // REFERENCE:Label=1
+            verify(exactly = 1) {
+                view.animateVisibility(
+                    dest = UiStateWithVisibility(
+                        uiState = visibleUiState1,
+                        visibility = Visibility.Expanded
+                    ),
+                    onAnimStarted = capture(onAnimStarted1),
+                    onAnimFinished = capture(onAnimFinished1),
+                )
+            }
+            onAnimStarted1.captured() // report that animation in UI has started
+            doNothing() // don't report that it has finished yet
+
+            val visibleUiState2 = mockk<UiState.Visible>()
+            sut.onNewUiState(visibleUiState2)
+            val onAnimStarted2 = slot<() -> Unit>()
+            val onAnimFinished2 = slot<() -> Unit>()
+            // REFERENCE:Label=0
+            verify(exactly = 1) {
+                view.animateUpdateOfVisibleUiState(
+                    uiState = visibleUiState2,
+                    onAnimStarted = capture(onAnimStarted2),
+                    onAnimFinished = capture(onAnimFinished2),
+                )
+            }
+            onAnimStarted2.captured() // report that animation in UI has started
+            onAnimFinished2.captured() // report that animation in UI has finished
+            doNothing() // but first one is still running
+
+            sut.flowOfStableReachedUiState.first() shouldNotBe visibleUiState2
         }
-        onAnimStarted2.captured() // report that animation in UI has started
-        onAnimFinished2.captured() // report that animation in UI has finished
-        doNothing() // but first one is still running
 
-        sut.lastStableReachedUiState shouldNotBe visibleUiState2
-    }
+    /**
+     * Tests that [ColorPreviewAnimController.flowOfStableReachedUiState] emits new value even
+     * if it's the same as the last emitted one.
+     * In other words, tests that the flow is not a [StateFlow].
+     */
+    @Test
+    fun `reached UiState is reported as stable even if it is the same as the last one`() =
+        runTest(testDispatcher) {
+            val initialHiddenUiState = UiState.Hidden // it's crucial to use real instance here so that the reference is the same
+            // REFERENCE:Label=4, will emit 'UiState.Hidden' on SUT creation
+            sut = ColorPreviewAnimController(uiState = initialHiddenUiState)
+            val view = mockk<View>(relaxed = true)
+            sut.setView(view)
+
+            val visibleUiState = mockk<UiState.Visible>()
+            sut.onNewUiState(visibleUiState)
+            val onAnimStarted1 = slot<() -> Unit>()
+            val onAnimFinished1 = slot<() -> Unit>()
+            // REFERENCE:Label=1
+            verify(exactly = 1) {
+                view.animateVisibility(
+                    dest = UiStateWithVisibility(uiState = visibleUiState, visibility = Visibility.Expanded),
+                    onAnimStarted = capture(onAnimStarted1),
+                    onAnimFinished = capture(onAnimFinished1),
+                )
+            }
+            onAnimStarted1.captured() // report that animation in UI has started
+            doNothing() // don't report that it has finished yet
+
+            val hiddenUiState = UiState.Hidden // it's crucial to use real instance here so that the reference is the same
+            sut.onNewUiState(hiddenUiState)
+            val onAnimStarted2 = slot<() -> Unit>()
+            val onAnimFinished2 = slot<() -> Unit>()
+            // REFERENCE:Label=2
+            verify(exactly = 1) {
+                view.animateVisibility(
+                    dest = UiStateWithVisibility(uiState = hiddenUiState, visibility = Visibility.Collapsed),
+                    onAnimStarted = capture(onAnimStarted2),
+                    onAnimFinished = capture(onAnimFinished2),
+                )
+            }
+
+            var emittedUiState: UiState? = null
+            launch {
+                emittedUiState = sut.flowOfStableReachedUiState
+                    .drop(1) // replayed value
+                    .first()
+            }
+
+            onAnimStarted2.captured() // report that animation in UI has started
+            onAnimFinished2.captured() // report that animation in UI has finished
+
+            // verifying that a new value was indeed emitted
+            emittedUiState shouldBe hiddenUiState
+            emittedUiState shouldNotBe null
+        }
 }

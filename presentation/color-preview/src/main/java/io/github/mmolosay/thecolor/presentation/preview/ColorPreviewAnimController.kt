@@ -3,7 +3,11 @@ package io.github.mmolosay.thecolor.presentation.preview
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController.UiStateWithVisibility
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimState.Visibility
 import io.github.mmolosay.thecolor.utils.asDelegate
+import io.github.mmolosay.thecolor.utils.requireEmit
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState as UiState
 
@@ -40,7 +44,7 @@ abstract class ColorPreviewAnimController {
      * Emits [UiState] when it is reached (animation towards this [UiState] has finished) AND
      * there are no more animations running at the moment (UI is "stable").
      */
-    internal abstract val flowOfStableReachedUiState: StateFlow<UiState>
+    internal abstract val flowOfStableReachedUiState: SharedFlow<UiState>
 
     internal abstract fun setView(view: View?)
     abstract fun onNewUiState(newUiState: UiState)
@@ -69,9 +73,6 @@ abstract class ColorPreviewAnimController {
 internal val ColorPreviewAnimController.uiStateWithVisibility: UiStateWithVisibility
     get() = this.flowOfUiState.value
 
-internal val ColorPreviewAnimController.lastStableReachedUiState: UiState
-    get() = this.flowOfStableReachedUiState.value
-
 object ColorPreviewAnimState {
     enum class Visibility {
         Collapsed, Expanded;
@@ -92,15 +93,19 @@ private class ColorPreviewAnimControllerImpl(
     private var uiState by flowOfUiState.asDelegate()
     private var lastUiState = this.uiState
 
-    override val flowOfStableReachedUiState =
-        MutableStateFlow<UiState>(uiState) // initial state is stable; MutableStateFlow may conflate rapid updates
-    private var stableReachedUiState by flowOfStableReachedUiState.asDelegate()
+    override val flowOfStableReachedUiState = MutableSharedFlow<UiState>(
+        replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
 
     private var ongoingVisibilityAnimTarget: UiStateWithVisibility? = null
     private val isVisibilityAnimRunning: Boolean
         get() = (ongoingVisibilityAnimTarget != null)
 
     private val ongoingUpdatesOfVisibleUiState = mutableListOf<UiState.Visible>()
+
+    init {
+        flowOfStableReachedUiState.requireEmit(uiState) // initial state is stable
+    }
 
     override fun setView(view: View?) {
         if (this.view != view) kotlin.run clearOngoingAnimations@{
@@ -154,7 +159,7 @@ private class ColorPreviewAnimControllerImpl(
         this.ongoingVisibilityAnimTarget = null
         this.uiState = ongoing // now it's reached
         if (isNoAnimRunning()) {
-            stableReachedUiState = ongoing.uiState
+            flowOfStableReachedUiState.requireEmit(ongoing.uiState)
         }
     }
 
@@ -175,7 +180,7 @@ private class ColorPreviewAnimControllerImpl(
             require(wasRemoved) { "finished update wasn't in the list of the ongoing updates" }
         }
         if (isNoAnimRunning()) {
-            stableReachedUiState = update
+            flowOfStableReachedUiState.requireEmit(update)
         }
     }
 
