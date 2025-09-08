@@ -141,17 +141,14 @@ internal fun HomeAnimController.makeDestStates(
 internal class HomeAnimController(
     currentState: HomeAnimState,
 ) {
-
     val flowOfDestState = MutableStateFlow(currentState)
-    val destState: HomeAnimState
-        get() = flowOfDestState.value
+
+    var state: State = State.Idle(state = currentState)
+        private set
 
     private var runningSequence: Sequence? = null
     private val pendingDests = mutableMapOf<AnimComponent, Any>() // type -> anim dest
     private var lastReachedState: HomeAnimState = currentState
-
-    var state: State = State.Idle(state = currentState)
-        private set
 
     /**
      * Runs the specified animation.
@@ -294,6 +291,9 @@ internal class HomeAnimController(
         ColorCenter,
     }
 }
+
+internal val HomeAnimController.destState: HomeAnimState
+    get() = this.flowOfDestState.value
 
 internal val HomeAnimController.isRunning: Boolean
     get() = this.state is HomeAnimController.State.Running
