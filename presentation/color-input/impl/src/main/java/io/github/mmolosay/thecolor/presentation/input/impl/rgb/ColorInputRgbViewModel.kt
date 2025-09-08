@@ -10,6 +10,7 @@ import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
+import io.github.mmolosay.thecolor.presentation.input.api.getColorOrNull
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputValidator
 import io.github.mmolosay.thecolor.presentation.input.impl.SharingStartedEagerlyAnd
@@ -197,7 +198,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     private fun onEachFullDataUpdate(update: Update<FullDataRgb>) {
         // don't synchronize this update with other Views to avoid update loop
         if (!update.causedByUser) return
-        val parsedColor = (update.payload.colorInputState as? ColorInputState.Valid)?.color
+        val parsedColor = update.payload.colorInputState.getColorOrNull()
         mediator.send(color = parsedColor, from = DomainColorInputType.Rgb)
     }
 
