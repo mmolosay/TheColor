@@ -110,9 +110,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
@@ -171,13 +171,31 @@ fun HomeScreen(
     }
 
     val flowOfUiState = remember {
-        val flowOfIsColorPreviewVisible = viewModel.colorPreviewViewModel.dataFlow
-            .filterNotNull()
-            .map { data -> isColorPreviewVisible(data) }
-        val flowOfIsColorCenterVisible = viewModel.dataFlow
-            .map { data -> isColorCenterVisible(data.proceedResult) }
-        combine(flowOfIsColorPreviewVisible, flowOfIsColorCenterVisible, ::HomeUiState)
-            .stabilize(viewModel.flowOfIsDataBeingUpdated)
+        val florOfColorPreviewData = viewModel.colorPreviewViewModel.dataFlow
+        val flowOfHomeData = viewModel.dataFlow
+        fun actualUiState(): HomeUiState? {
+            val isColorPreviewVisible = run {
+                val data = florOfColorPreviewData.value ?: return null
+                isColorPreviewVisible(data)
+            }
+            val isColorCenterVisible = run {
+                val data = flowOfHomeData.value
+                isColorCenterVisible(data.proceedResult)
+            }
+            return HomeUiState(isColorPreviewVisible, isColorCenterVisible)
+        }
+        val signal = Any()
+        combine(
+            florOfColorPreviewData,
+            flowOfHomeData,
+            transform = { _, _ -> signal }, // discard values and just emit "something has changed" signal
+        )
+            // impl of 'stabilize()' that takes actual value of the flow instead of last collected
+            .combineTransform(viewModel.flowOfIsDataBeingUpdated) { signal, isBeingUpdated ->
+                if (!isBeingUpdated) {
+                    actualUiState()?.let { emit(it) }
+                }
+            }
             .distinctUntilChanged()
             // make it hot to allow replaying last value when creating 'animController'
             .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
@@ -193,7 +211,6 @@ fun HomeScreen(
             if (destStates != null) {
                 animController.run(destStates)
             }
-            animController.run(destStates)
         }
     }
 
