@@ -69,7 +69,6 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -97,7 +96,6 @@ import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObser
 import io.github.mmolosay.thecolor.presentation.impl.TintedSurface
 import io.github.mmolosay.thecolor.presentation.impl.onlyBottom
 import io.github.mmolosay.thecolor.presentation.impl.toCompose
-import io.github.mmolosay.thecolor.presentation.impl.toDpSize
 import io.github.mmolosay.thecolor.presentation.impl.toLifecycleEventObserver
 import io.github.mmolosay.thecolor.presentation.impl.withoutBottom
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInput
@@ -310,7 +308,6 @@ private fun Home(
     navBarAppearanceController: NavBarAppearanceController,
     modifier: Modifier = Modifier,
 ) {
-    val density = LocalDensity.current
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
@@ -321,7 +318,6 @@ private fun Home(
         value = scrollState.viewportSize.takeUnless { it == 0 } // consider 0 size as unknown
     }
     val stateOfPosInRoot = remember { mutableStateOf<Offset?>(null) }
-    var size by remember { mutableStateOf<DpSize?>(null) }
 
     Column(
         modifier = modifier
@@ -329,7 +325,6 @@ private fun Home(
             .verticalScroll(state = scrollState)
             .onGloballyPositioned { coordinates ->
                 stateOfPosInRoot.value = coordinates.positionInRoot()
-                size = coordinates.size.toDpSize(density)
             },
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
