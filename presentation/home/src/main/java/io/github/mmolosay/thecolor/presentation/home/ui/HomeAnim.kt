@@ -33,23 +33,21 @@ internal data class HomeAnimState(
 }
 
 /**
- * Infers appropriate (initial or target) [HomeAnimState] based on the specified state of 'Home' feature.
+ * Infers appropriate [HomeAnimState] based on the specified state of 'Home' feature.
+ * Returns `null` if there's no [HomeAnimState] designed for a given state of `Home` feature.
  */
 @Suppress("KotlinConstantConditions")
 internal fun HomeAnimState(
     isColorPreviewVisible: Boolean,
     isColorCenterVisible: Boolean,
-): HomeAnimState {
-    if (!isColorPreviewVisible) {
-        assert(isColorCenterVisible == false) // transitive assumption according to impl of ViewModels
-        return FullForwardSequence[0]
+): HomeAnimState? =
+    when {
+        !isColorPreviewVisible && !isColorCenterVisible -> FullForwardSequence[0]
+        !isColorPreviewVisible && isColorCenterVisible -> null // invalid state
+        isColorPreviewVisible && !isColorCenterVisible -> FullForwardSequence[1]
+        isColorPreviewVisible && isColorCenterVisible -> FullForwardSequence[3]
+        else -> error("Unreachable branch") // did you forget to add some new cases?
     }
-    assert(isColorPreviewVisible == true)
-    return when (isColorCenterVisible) {
-        false -> FullForwardSequence[1]
-        true -> FullForwardSequence.last()
-    }
-}
 
 /**
  * The whole (full) sequence of the 'Home' animation.

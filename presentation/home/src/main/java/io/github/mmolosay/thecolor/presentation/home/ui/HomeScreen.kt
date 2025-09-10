@@ -200,12 +200,14 @@ fun HomeScreen(
     }
     val animController by produceState<HomeAnimController?>(initialValue = null) {
         val uiState = flowOfUiState.first()
-        value = HomeAnimController(uiState.toAnimState())
+        val animState = requireNotNull(uiState.toAnimState()) { "Invalid initial UI state" }
+        value = HomeAnimController(animState)
     }
     LaunchedEffect(Unit) {
         flowOfUiState.collect { uiState ->
             val animController = animController ?: return@collect
-            val destStates = animController.makeDestStates(to = uiState.toAnimState())
+            val to = uiState.toAnimState() ?: return@collect
+            val destStates = animController.makeDestStates(to = to)
             if (destStates != null) {
                 animController.run(destStates)
             }
@@ -243,7 +245,7 @@ private data class HomeUiState(
     val isColorCenterVisible: Boolean,
 )
 
-private fun HomeUiState.toAnimState(): HomeAnimState =
+private fun HomeUiState.toAnimState(): HomeAnimState? =
     HomeAnimState(
         isColorPreviewVisible = this.isColorPreviewVisible,
         isColorCenterVisible = this.isColorCenterVisible,
