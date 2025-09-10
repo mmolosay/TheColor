@@ -719,7 +719,9 @@ private class ColorCenterSessionStore {
     @Synchronized
     fun cancelAndClearSession() {
         val sessionState = this.sessionState
-        (sessionState as? SessionState.BeingBuilt)?.job?.cancel()
+        if (sessionState is SessionState.BeingBuilt) {
+            sessionState.job.cancel()
+        }
         this.sessionState = SessionState.NoSession
     }
 }
