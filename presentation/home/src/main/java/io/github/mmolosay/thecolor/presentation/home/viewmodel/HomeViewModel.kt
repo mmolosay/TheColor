@@ -229,8 +229,6 @@ class HomeViewModel @Inject constructor(
             viewModelScope.launch(defaultDispatcher) {
                 dataUpdateGuard.withCounter {
                     val color = colorInputState.color
-                    // even though new color from Color Input MAY belong to the ongoing session,
-                    // it's not produced from the "seed" of the ongoing session, thus logically it's a new one
                     onColorCenterSessionStarted(color)
                     proceed(color = color, colorRole = null)
                     componentsConsumerRegistry.suspendUntilAllConsumed()
@@ -357,8 +355,6 @@ class HomeViewModel @Inject constructor(
             val color = lastSearchedColorRepository.getLastSearchedColor() ?: return@launch
             dataUpdateGuard.withCounter {
                 sendColorToColorInput(color)
-                // even though last searched color MAY belong to the ongoing session,
-                // it's not produced from the "seed" of the ongoing session, thus logically it's a new one
                 onColorCenterSessionStarted(color)
                 proceed(color = color, colorRole = null)
                 componentsConsumerRegistry.suspendUntilAllConsumed()
@@ -416,8 +412,6 @@ class HomeViewModel @Inject constructor(
             dataUpdateGuard.withCounter {
                 sendColorToColorInput(color)
                 if (shouldProceed) {
-                    // even though new randomized color MAY belong to the ongoing session,
-                    // it's not produced from the "seed" of the ongoing session, thus logically it's a new one
                     onColorCenterSessionStarted(color)
                     proceed(color = color, colorRole = null)
                     componentsConsumerRegistry.suspendUntilAllConsumed()
