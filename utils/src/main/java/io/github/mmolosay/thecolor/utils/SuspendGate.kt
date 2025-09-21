@@ -36,7 +36,7 @@ object OpenSuspendGate : SuspendGate {
     override suspend fun awaitOpen() {}
 }
 
-fun ClosableSuspendGate(closed: Boolean): ClosableSuspendGate =
+fun ClosableSuspendGate(closed: Boolean = false): ClosableSuspendGate =
     ClosableSuspendGateImpl(closed)
 
 private class ClosableSuspendGateImpl(closed: Boolean) : ClosableSuspendGate {

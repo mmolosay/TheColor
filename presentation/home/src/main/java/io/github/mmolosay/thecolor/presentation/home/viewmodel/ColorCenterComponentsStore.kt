@@ -22,6 +22,7 @@ import javax.inject.Provider
  * and for creating new components.
  */
 /* private for HomeViewModel */
+// TODO: extract creation into a factory?
 class ColorCenterComponentsStore @AssistedInject constructor(
     @Assisted private val viewModelScope: CoroutineScope,
 
