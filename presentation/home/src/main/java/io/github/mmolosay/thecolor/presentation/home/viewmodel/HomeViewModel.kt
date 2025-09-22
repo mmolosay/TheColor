@@ -64,6 +64,8 @@ import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Qualifier
@@ -573,6 +575,7 @@ private class DataUpdateGuard(
 ) {
 
     private var numberOfOngoingUpdates = 0
+    private val mutexForNumberOfOngoingUpdates = Mutex()
     val flowOfIsDataBeingUpdated = MutableStateFlow<Boolean>(value = isDataBeingUpdated())
 
     suspend inline fun withCounter(block: () -> Unit) {
@@ -587,8 +590,10 @@ private class DataUpdateGuard(
 
     private suspend fun updateNumberOfOngoingUpdates(newNumber: (Int) -> Int) {
         gate.awaitOpen()
-        numberOfOngoingUpdates = newNumber(numberOfOngoingUpdates)
-        flowOfIsDataBeingUpdated.value = isDataBeingUpdated()
+        mutexForNumberOfOngoingUpdates.withLock {
+            numberOfOngoingUpdates = newNumber(numberOfOngoingUpdates)
+            flowOfIsDataBeingUpdated.update { isDataBeingUpdated() }
+        }
     }
 
     private fun isDataBeingUpdated() =
