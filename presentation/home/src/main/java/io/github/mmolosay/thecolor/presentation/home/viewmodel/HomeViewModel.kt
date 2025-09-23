@@ -207,7 +207,7 @@ class HomeViewModel @Inject constructor(
 
     private fun onEventFromColorInput(event: ColorInputEvent) {
         when (event) {
-            is ColorInputEvent.Submit -> {
+            is ColorInputEvent.Submitted -> {
                 val hasProceeded = onColorInputSubmitted(event.colorInputState)
                 event.onConsumed(wasAccepted = hasProceeded)
             }

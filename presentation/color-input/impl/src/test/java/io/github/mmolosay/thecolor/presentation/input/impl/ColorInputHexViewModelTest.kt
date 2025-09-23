@@ -181,14 +181,14 @@ class ColorInputHexViewModelTest {
         }
 
     @Test
-    fun `invoking 'submit color' sends 'Submit' event`() {
+    fun `invoking 'submit input' sends 'Submitted' event`() {
         coEvery { eventStore.send(event = any()) } just runs
         createSut()
 
-        data.submitColor()
+        data.submitInput()
 
         coVerify(exactly = 1) {
-            eventStore.send(event = any<ColorInputEvent.Submit>())
+            eventStore.send(event = any<ColorInputEvent.Submitted>())
         }
     }
 

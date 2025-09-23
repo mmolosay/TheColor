@@ -85,7 +85,7 @@ fun ColorInputHex(
             capitalization = KeyboardCapitalization.Characters,
         ),
         keyboardActions = KeyboardActions(
-            onDone = { data.submitColor() },
+            onDone = { data.submitInput() },
         ),
     )
 }
@@ -110,7 +110,7 @@ private fun previewData() =
             trailingButton = TrailingButton(onClick = {}),
             shouldSelectAllTextOnFocus = false,
         ),
-        submitColor = {},
+        submitInput = {},
     )
 
 private fun previewUiStrings() =

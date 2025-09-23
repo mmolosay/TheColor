@@ -9,7 +9,6 @@ import io.github.mmolosay.thecolor.presentation.api.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
 import io.github.mmolosay.thecolor.presentation.input.api.getColorOrNull
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputValidator
@@ -138,10 +137,10 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             }
             .let { Text(it) }
 
-    private fun sendSubmitEvent() {
+    private fun sendSubmittedEvent() {
         val data = requireNotNull(fullDataUpdateFlow.value?.payload)
         coroutineScope.launch(defaultDispatcher) {
-            val event = ColorInputEvent.Submit(
+            val event = ColorInputEvent.Submitted(
                 colorInput = data.colorInput,
                 colorInputState = data.colorInputState,
                 onConsumed = ::onSubmitEventConsumed,
@@ -170,7 +169,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                 rTextField = r.payload,
                 gTextField = g.payload,
                 bTextField = b.payload,
-                submitColor = ::sendSubmitEvent,
+                submitInput = ::sendSubmittedEvent,
                 isSmartBackspaceEnabled = smartBackspace.enabled,
             )
         }

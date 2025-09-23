@@ -199,7 +199,7 @@ private fun previewHexData() =
             trailingButton = TextFieldData.TrailingButton(onClick = {}),
             shouldSelectAllTextOnFocus = false,
         ),
-        submitColor = {},
+        submitInput = {},
     )
 
 private fun previewHexUiStrings() =
@@ -235,7 +235,7 @@ private fun previewRgbData() =
             trailingButton = null,
             shouldSelectAllTextOnFocus = false,
         ),
-        submitColor = {},
+        submitInput = {},
         isSmartBackspaceEnabled = true,
     )
 
