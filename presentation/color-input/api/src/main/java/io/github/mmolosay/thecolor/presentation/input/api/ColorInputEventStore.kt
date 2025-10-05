@@ -35,7 +35,7 @@ sealed interface ColorInputEvent {
     data class Submitted(
         val colorInput: ColorInput,
         val colorInputState: ColorInputState,
-        val onConsumed: OnConsumedAction,
+        val onConsumed: OnConsumedAction, // TODO: refactor to perform an action after event has been processed via a command towards Color Input, not a callback
     ) : ColorInputEvent {
 
         fun interface OnConsumedAction {
