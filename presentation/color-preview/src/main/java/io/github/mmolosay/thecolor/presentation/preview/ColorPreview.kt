@@ -209,7 +209,15 @@ private class AnimControllerViewImpl(
         onAnimFinished: () -> Unit,
     ) {
         val id = updatesOfVisibleUiState.lastOrNull()?.id?.let { it + 1 } ?: 0
-        val update = UpdateOfVisibleUiStateWithId(uiState, onAnimStarted, onAnimFinished, id)
+        val update = UpdateOfVisibleUiStateWithId(
+            uiState = uiState,
+            onAnimStarted = onAnimStarted,
+            onAnimFinished = {
+                updatesOfVisibleUiState.removeAll { it.id == id }
+                onAnimFinished()
+            },
+            id = id,
+        )
         updatesOfVisibleUiState += update
     }
 }
