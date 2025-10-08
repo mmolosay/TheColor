@@ -2,7 +2,8 @@ package io.github.mmolosay.thecolor.presentation.preview
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -145,11 +146,10 @@ private fun UpdateRipple(
         onAnimationStarted()
         scaleAnim.animateTo(
             targetValue = 1f,
-            animationSpec = tween(800), // TODO: rollback
-//            animationSpec = spring(
-//                stiffness = Spring.StiffnessMediumLow,
-//                visibilityThreshold = Spring.DefaultDisplacementThreshold,
-//            ),
+            animationSpec = spring(
+                stiffness = Spring.StiffnessLow,
+                visibilityThreshold = Spring.DefaultDisplacementThreshold,
+            ),
         )
         onAnimationFinished()
     }
@@ -197,7 +197,7 @@ private class AnimControllerViewImpl(
             onAnimStarted()
             scaleAnimatable.animateTo(
                 targetValue = targetValue,
-                animationSpec = tween(3000), // TODO: rollback
+                animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
             )
             onAnimFinished()
         }
