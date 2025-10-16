@@ -22,7 +22,6 @@ fun ColorDetailsCrossfade(
     )
     transition.Crossfade(
         animationSpec = animationSpec,
-        contentKey = { it::class }, // don't animate when 'DataState' type stays the same
         content = colorDetails,
     )
 }
