@@ -252,7 +252,7 @@ private fun HomeUiState.toAnimState(): HomeAnimState? =
     )
 
 // syntactic sugar that makes nullable types easier to read
-internal typealias ColorCenterComposable = @Composable () -> Unit
+private typealias ColorCenterComposable = @Composable () -> Unit
 
 @Composable
 private fun HomeScreen(
