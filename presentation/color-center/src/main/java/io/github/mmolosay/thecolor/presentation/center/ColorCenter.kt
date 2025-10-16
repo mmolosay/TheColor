@@ -73,7 +73,7 @@ fun ColorCenter(
             val dataState = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
             val transition = updateTransition(
                 targetState = dataState,
-                label = "color scheme cross-fade",
+                label = "Color Scheme cross-fade",
             )
             // there's no 'ColorSchemeCrossfade()' as for Color Details yet.
             // unlike Color Details, Color Scheme is only used in one place, here.
