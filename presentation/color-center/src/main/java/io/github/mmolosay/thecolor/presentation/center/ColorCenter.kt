@@ -79,7 +79,7 @@ fun ColorCenter(
             // unlike Color Details, Color Scheme is only used in one place, here.
             transition.Crossfade(
                 animationSpec = crossfadeSpec,
-                contentKey = { it::class }, // don't animate when 'DataState' type stays the same
+                contentKey = { it::class }, // don't animate when 'DataState' type stays the same but only its values change
             ) { state ->
                 ColorScheme(
                     dataState = state,
