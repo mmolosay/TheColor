@@ -104,7 +104,7 @@ fun ColorInputRgb(
             strings = strings.bTextField,
             imeAction = ImeAction.Done,
             keyboardActions = KeyboardActions(
-                onDone = { data.submitColor() },
+                onDone = { data.submitInput() },
             ),
             hasPreviousComponent = true, // for B previous is G
             enableSmartBackspace = isSmartBackspaceEnabled,
@@ -210,7 +210,7 @@ private fun previewData() =
             trailingButton = null,
             shouldSelectAllTextOnFocus = false,
         ),
-        submitColor = {},
+        submitInput = {},
         isSmartBackspaceEnabled = true,
     )
 

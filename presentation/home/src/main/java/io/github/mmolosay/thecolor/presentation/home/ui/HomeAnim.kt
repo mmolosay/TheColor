@@ -1,9 +1,11 @@
 package io.github.mmolosay.thecolor.presentation.home.ui
 
+import androidx.compose.runtime.Stable
 import androidx.compose.ui.unit.dp
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorCenter
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPreview
 import kotlinx.coroutines.flow.MutableStateFlow
+import timber.log.Timber
 
 /**
  * State of UI animation of 'Home' View.
@@ -30,58 +32,35 @@ internal data class HomeAnimState(
     }
 }
 
-private object HomeAnimStates {
-
-    val Collapsed = HomeAnimState(
-        colorPreviewPosition = ColorPreview.Position.NotDived,
-        colorPreviewVisibility = ColorPreview.Visibility.Hidden,
-        colorCenter = ColorCenter.Collapsed,
-    )
-
-    val Expanded = HomeAnimState(
-        colorPreviewPosition = ColorPreview.Position.Dived,
-        colorPreviewVisibility = ColorPreview.Visibility.Visible,
-        colorCenter = ColorCenter.Expanded,
-    )
-}
-
 /**
- * Infers appropriate (initial or target) [HomeAnimState] based on the specified state of 'Home' feature.
+ * Infers appropriate [HomeAnimState] based on the specified state of 'Home' feature.
+ * Returns `null` if there's no [HomeAnimState] designed for a given state of `Home` feature.
  */
 @Suppress("KotlinConstantConditions")
 internal fun HomeAnimState(
     isColorPreviewVisible: Boolean,
     isColorCenterVisible: Boolean,
-): HomeAnimState {
-    if (!isColorPreviewVisible) {
-        assert(isColorCenterVisible == false) // transitive assumption according to impl of ViewModels
-        return FullForwardSequence[0]
-    }
-    assert(isColorPreviewVisible == true)
-    return when (isColorCenterVisible) {
-        false -> FullForwardSequence[1]
-        true -> FullForwardSequence.last()
-    }
-}
-
-internal class HomeAnimSequence(
-    private val states: List<HomeAnimState>,
-) : List<HomeAnimState> by states {
-
-    init {
-        require(states.size >= 2) { "Sequence must have at least 2 states: start and finish" }
+): HomeAnimState? =
+    when {
+        !isColorPreviewVisible && !isColorCenterVisible -> FullForwardSequence[0]
+        !isColorPreviewVisible && isColorCenterVisible -> null // invalid state
+        isColorPreviewVisible && !isColorCenterVisible -> FullForwardSequence[1]
+        isColorPreviewVisible && isColorCenterVisible -> FullForwardSequence[3]
+        else -> error("Unreachable branch") // did you forget to add some new cases?
     }
 
-    // inheritance 'by' delegate doesn't inherit methods of 'Any'
-    override fun toString(): String =
-        states.toString()
-}
-
-private val FullForwardSequence: HomeAnimSequence = run {
+/**
+ * The whole (full) sequence of the 'Home' animation.
+ * Any list of dest states is a sub-sequence of this one. Reverse order is allowed.
+ */
+private val FullForwardSequence: List<HomeAnimState> = run {
     val states = buildList {
         // 0
-        HomeAnimStates.Collapsed
-            .also { add(it) }
+        HomeAnimState(
+            colorPreviewPosition = ColorPreview.Position.NotDived,
+            colorPreviewVisibility = ColorPreview.Visibility.Hidden,
+            colorCenter = ColorCenter.Collapsed,
+        ).also { add(it) }
         // 1
         last().copy(
             colorPreviewVisibility = ColorPreview.Visibility.Visible,
@@ -95,57 +74,91 @@ private val FullForwardSequence: HomeAnimSequence = run {
             colorCenter = ColorCenter.Expanded,
         ).also { add(it) }
     }
-    assert(states.last() == HomeAnimStates.Expanded)
-    HomeAnimSequence(states)
+    val expectedLast = HomeAnimState(
+        colorPreviewPosition = ColorPreview.Position.Dived,
+        colorPreviewVisibility = ColorPreview.Visibility.Visible,
+        colorCenter = ColorCenter.Expanded,
+    )
+    assert(states.last() == expectedLast)
+    return@run states
 }
 
-internal fun HomeAnimSequence(
+/**
+ * Returns a list of [HomeAnimState]s between [from] state and [to] state.
+ * Those states can be considered as "key frames" of the 'Home' animation.
+ *
+ * Resulting list contains [from], all intermediate states in between, and [to].
+ * Contains only one state if [from] and [to] are identical.
+ */
+private fun homeAnimSequence(
     from: HomeAnimState,
     to: HomeAnimState,
-): HomeAnimSequence {
+): List<HomeAnimState> {
     require(from in FullForwardSequence)
     require(to in FullForwardSequence)
     val indexOfCurrent = FullForwardSequence.indexOf(from) // -1 is impossible due to 'contains()' check above
     val indexOfDest = FullForwardSequence.indexOf(to) // -1 is impossible due to 'contains()' check above
-    val subsequence = when {
+    return when {
         indexOfCurrent < indexOfDest ->
             FullForwardSequence.subList(indexOfCurrent, indexOfDest + 1)
         indexOfCurrent > indexOfDest ->
             FullForwardSequence.subList(indexOfDest, indexOfCurrent + 1).reversed()
         else -> {
             assert(indexOfCurrent == indexOfDest)
-            val state = FullForwardSequence[indexOfCurrent]
-            listOf(state, state)
+            assert(from == to)
+            listOf(to)
         }
     }
-    return HomeAnimSequence(subsequence)
 }
 
+/**
+ * Creates list of dest states to animate from current state of [HomeAnimController]
+ * to [to] state.
+ * Returned list is meant to be submitted to [HomeAnimController.run].
+ */
+internal fun HomeAnimController.makeDestStates(
+    to: HomeAnimState,
+): List<HomeAnimState>? {
+    val state = this.state
+    val from = when (state) {
+        is HomeAnimController.State.Idle -> state.state
+        is HomeAnimController.State.Running -> state.segment.start
+    }
+    val sequence = homeAnimSequence(from = from, to = to)
+    val destStates = sequence.toMutableList()
+    if (sequence.size == 1 && state is HomeAnimController.State.Idle && state.state == sequence.single()) {
+        return null // single state in sequence which is already reached
+    }
+    if (sequence.size > 1 && state is HomeAnimController.State.Running && sequence[0] == state.segment.start && sequence[1] == state.segment.dest) {
+        destStates.removeAt(index = 0) // already running first segment of the sequence
+    }
+    return destStates
+}
+
+@Stable
 internal class HomeAnimController(
     currentState: HomeAnimState,
 ) {
-    var currentState: HomeAnimState = currentState
-        private set
-
     val flowOfDestState = MutableStateFlow(currentState)
 
-    val destState: HomeAnimState
-        get() = flowOfDestState.value
+    var state: State = State.Idle(state = currentState)
+        private set
 
-    private val currentSegment: Segment
-        get() = Segment(start = currentState, dest = destState)
-
+    private var runningSequence: Sequence? = null
     private val pendingDests = mutableMapOf<AnimComponent, Any>() // type -> anim dest
+    private var lastReachedState: HomeAnimState = currentState
 
-    private var runningSequence: RunningSequence? = null
-
-    val isRunning: Boolean
-        get() = (runningSequence != null)
-
-    fun run(sequence: HomeAnimSequence) {
-        require(sequence.first() == currentState) { "sequence must start from current state" }
-        val adjustedSequence = normalizeSubmittedSequence(sequence)
-        runningSequence = RunningSequence(adjustedSequence)
+    /**
+     * Runs the specified animation.
+     * List of [destStates] defines the key frames that should be animated to.
+     */
+    fun run(destStates: List<HomeAnimState>) {
+        Timber.d("HomeAnimLog | run(), state = $state")
+        Timber.d("HomeAnimLog | run(), destStates = $destStates")
+        Timber.d("HomeAnimLog | run(), lastReachedState = $lastReachedState")
+        require(destStates.isNotEmpty()) { "Dest states must have at least one state" }
+        runningSequence = Sequence(destStates)
+        Timber.d("HomeAnimLog | new runningSequence = $runningSequence")
         setNextDestFromSequence()
     }
 
@@ -189,60 +202,45 @@ internal class HomeAnimController(
         if (!isExpectedToBeReached) return
         assert(reachedValue == destValue)
         assert(isExpectedToBeReached)
-        currentState = applyToCurrentState(currentState)
+        Timber.d("HomeAnimLog | onValueReached(), reachedValue = $reachedValue, destValue = $destValue, component = $component")
+        lastReachedState = applyToCurrentState(lastReachedState)
         pendingDests.remove(component)
         checkIfDestIsReachedAndSetNext()
     }
 
-    /**
-     * Same sequence may have different meanings depending on the current state of animation.
-     * We need to adjust (normalize) submitted, "raw" [sequence] according to the current state of
-     * animation to make the [sequence] easy to execute in segments.
-     */
-    private fun normalizeSubmittedSequence(sequence: HomeAnimSequence): HomeAnimSequence {
-        if (!isRunning) return sequence
-        assert(isRunning == true)
-        val newStates = sequence.toMutableList()
-        val firstSegment = Segment(start = sequence[0], dest = sequence[1])
-        // if current == (2, 3) && first == (2, 1), then make first == (2, 2) to reverse current (2, 3)
-        kotlin.run {
-            val currentAndFirstStartFromSameButFinishOnDiffStates =
-                (currentSegment.start == firstSegment.start) && (currentSegment.dest != firstSegment.dest)
-            if (currentAndFirstStartFromSameButFinishOnDiffStates && firstSegment.isEmpty().not()) {
-                // before animating to firstSegment.dest, animate back to firstSegment.start
-                newStates.add(index = 1, element = currentSegment.start)
-            }
-        }
-        return HomeAnimSequence(newStates)
-    }
-
     private fun setNextDestFromSequence() {
-        if (!isRunning) return
         val runningSequence = requireNotNull(runningSequence)
-        val segmentToRun = runningSequence.segment()
-        if (segmentToRun == null) {
-            this.runningSequence = null // sequence is finished
+        val nextDest = runningSequence.nextDest()
+        if (nextDest == null) {
+            Timber.d("HomeAnimLog | sequence is finished")
+            this.runningSequence = null
+            this.state = State.Idle(state = lastReachedState)
             return
         }
-        require(segmentToRun.start == currentState)
-        if (segmentToRun.dest != destState) {
-            pendingDests.putAll(destState diffTo segmentToRun.dest)
-            flowOfDestState.value = segmentToRun.dest
+        if (nextDest != destState) {
+            Timber.d("HomeAnimLog | applying new dest: $nextDest")
+            val currentState = destState // 'destState' may not have been reached yet, so "snap" to it and calc diff from it
+            pendingDests.putAll(currentState diffTo nextDest)
+            this.state = State.Running(segment = Segment(start = currentState, dest = nextDest))
+            flowOfDestState.value = nextDest
             return
         }
-        if (currentSegment == segmentToRun && pendingDests.isNotEmpty()) {
+        if (nextDest == destState && pendingDests.isNotEmpty()) {
+            Timber.d("HomeAnimLog | already running towards $nextDest, skipping")
             return // identical segment is already running
         }
-        if (segmentToRun.dest == destState || segmentToRun.isEmpty()) {
+        if (nextDest == destState) {
+            Timber.d("HomeAnimLog | skipping segment")
             runningSequence.advance()
             setNextDestFromSequence()
             return
         }
+        error("The sequence advancing condition was not met")
     }
 
     private fun checkIfDestIsReachedAndSetNext() {
         if (!isRunning) return
-        if (currentState == destState && pendingDests.isEmpty()) {
+        if (lastReachedState == destState && pendingDests.isEmpty()) {
             requireNotNull(runningSequence).advance()
             setNextDestFromSequence()
         }
@@ -250,7 +248,7 @@ internal class HomeAnimController(
 
     private infix fun HomeAnimState.diffTo(next: HomeAnimState): Map<AnimComponent, Any> {
         fun <T> componentDiff(value: (HomeAnimState) -> T): T? =
-            if (value(next) != value(this)) value(next) else null
+            value(next).takeIf { it != value(this) }
         return buildMap {
             componentDiff { it.colorPreviewPosition }?.let {
                 this[AnimComponent.ColorPreviewPosition] = it
@@ -264,29 +262,29 @@ internal class HomeAnimController(
         }
     }
 
-    private class RunningSequence(
-        val sequence: HomeAnimSequence,
-    ) {
-        private var index: Int = 0
-
-        fun segment(): Segment? {
-            val currentState = sequence.getOrNull(index) ?: return null
-            val nextState = sequence.getOrNull(index + 1) ?: return null
-            return Segment(start = currentState, dest = nextState)
-        }
-
-        fun advance() {
-            index++
-        }
+    /** Exposed state of this animation controller. */
+    sealed interface State {
+        data class Idle(val state: HomeAnimState) : State
+        data class Running(val segment: Segment) : State
     }
 
-    private data class Segment(
+    data class Segment(
         val start: HomeAnimState,
         val dest: HomeAnimState,
     )
 
-    private fun Segment.isEmpty(): Boolean =
-        (start == dest)
+    private class Sequence(
+        val destStates: List<HomeAnimState>,
+    ) {
+        private var indexOfNext = 0
+
+        fun nextDest(): HomeAnimState? =
+            destStates.getOrElse(index = indexOfNext) { return null }
+
+        fun advance() {
+            indexOfNext++
+        }
+    }
 
     private enum class AnimComponent {
         ColorPreviewPosition,
@@ -294,6 +292,12 @@ internal class HomeAnimController(
         ColorCenter,
     }
 }
+
+internal val HomeAnimController.destState: HomeAnimState
+    get() = this.flowOfDestState.value
+
+internal val HomeAnimController.isRunning: Boolean
+    get() = this.state is HomeAnimController.State.Running
 
 /**
  * 'Color Center's focal point is a point on the screen that is the center of the clipping circle

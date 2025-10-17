@@ -8,7 +8,7 @@ import io.github.mmolosay.thecolor.presentation.api.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
+import io.github.mmolosay.thecolor.presentation.input.api.getColorOrNull
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputValidator
 import io.github.mmolosay.thecolor.presentation.input.impl.SharingStartedEagerlyAnd
@@ -124,7 +124,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
     private fun sendSubmitEvent() {
         val data = requireNotNull(fullDataUpdateFlow.value?.payload)
         coroutineScope.launch(defaultDispatcher) {
-            val event = ColorInputEvent.Submit(
+            val event = ColorInputEvent.Submitted(
                 colorInput = data.colorInput,
                 colorInputState = data.colorInputState,
                 onConsumed = ::onSubmitEventConsumed,
@@ -145,7 +145,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
         } else {
             ColorInputHexData(
                 textField = textFieldUpdate.payload,
-                submitColor = ::sendSubmitEvent,
+                submitInput = ::sendSubmitEvent,
             )
         }
         return Update(payload = newData, causedByUser = textFieldUpdate.causedByUser)
@@ -168,7 +168,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
     private fun onEachFullDataUpdate(update: Update<FullDataHex>) {
         // don't synchronize this update with other Views to avoid update loop
         if (!update.causedByUser) return
-        val parsedColor = (update.payload.colorInputState as? ColorInputState.Valid)?.color
+        val parsedColor = update.payload.colorInputState.getColorOrNull()
         mediator.send(color = parsedColor, from = DomainColorInputType.Hex)
     }
 

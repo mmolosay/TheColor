@@ -32,7 +32,7 @@ import kotlinx.coroutines.flow.collectLatest
  */
 @Composable
 internal fun AnimatedColorCenter(
-    colorCenter: ColorCenterComposable?,
+    colorCenter: (@Composable () -> Unit)?,
     flowOfAnimDest: StateFlow<HomeAnimState.ColorCenter>,
     onReached: (reached: HomeAnimState.ColorCenter) -> Unit,
     containerScrollState: ScrollState,

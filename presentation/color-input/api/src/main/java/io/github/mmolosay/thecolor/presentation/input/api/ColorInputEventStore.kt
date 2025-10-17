@@ -32,10 +32,10 @@ sealed interface ColorInputEvent {
      * Submit current color for a further processing outside of Color Input scope.
      * Component that intercepts and processes this event should call [onConsumed] afterwards.
      * */
-    data class Submit(
+    data class Submitted(
         val colorInput: ColorInput,
         val colorInputState: ColorInputState,
-        val onConsumed: OnConsumedAction,
+        val onConsumed: OnConsumedAction, // TODO: refactor to perform an action after event has been processed via a command towards Color Input, not a callback
     ) : ColorInputEvent {
 
         fun interface OnConsumedAction {

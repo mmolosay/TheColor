@@ -69,7 +69,6 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -97,7 +96,6 @@ import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObser
 import io.github.mmolosay.thecolor.presentation.impl.TintedSurface
 import io.github.mmolosay.thecolor.presentation.impl.onlyBottom
 import io.github.mmolosay.thecolor.presentation.impl.toCompose
-import io.github.mmolosay.thecolor.presentation.impl.toDpSize
 import io.github.mmolosay.thecolor.presentation.impl.toLifecycleEventObserver
 import io.github.mmolosay.thecolor.presentation.impl.withoutBottom
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInput
@@ -110,9 +108,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
@@ -171,29 +169,48 @@ fun HomeScreen(
     }
 
     val flowOfUiState = remember {
-        val flowOfIsColorPreviewVisible = viewModel.colorPreviewViewModel.dataFlow
-            .filterNotNull()
-            .map { data -> isColorPreviewVisible(data) }
-        val flowOfIsColorCenterVisible = viewModel.dataFlow
-            .map { data -> isColorCenterVisible(data.proceedResult) }
-        combine(flowOfIsColorPreviewVisible, flowOfIsColorCenterVisible, ::HomeUiState)
-            .stabilize(viewModel.flowOfIsDataBeingUpdated)
+        val florOfColorPreviewData = viewModel.colorPreviewViewModel.dataFlow
+        val flowOfHomeData = viewModel.dataFlow
+        fun actualUiState(): HomeUiState? {
+            val isColorPreviewVisible = run {
+                val data = florOfColorPreviewData.value ?: return null
+                isColorPreviewVisible(data)
+            }
+            val isColorCenterVisible = run {
+                val data = flowOfHomeData.value
+                isColorCenterVisible(data.proceedResult)
+            }
+            return HomeUiState(isColorPreviewVisible, isColorCenterVisible)
+        }
+        val signal = Any()
+        combine(
+            florOfColorPreviewData,
+            flowOfHomeData,
+            transform = { _, _ -> signal }, // discard values and just emit "something has changed" signal
+        )
+            // impl of 'stabilize()' that takes actual value of the flow instead of last collected
+            .combineTransform(viewModel.flowOfIsDataBeingUpdated) { signal, isBeingUpdated ->
+                if (!isBeingUpdated) {
+                    actualUiState()?.let { emit(it) }
+                }
+            }
             .distinctUntilChanged()
             // make it hot to allow replaying last value when creating 'animController'
             .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
     }
     val animController by produceState<HomeAnimController?>(initialValue = null) {
         val uiState = flowOfUiState.first()
-        value = HomeAnimController(uiState.toAnimState())
+        val animState = requireNotNull(uiState.toAnimState()) { "Invalid initial UI state" }
+        value = HomeAnimController(animState)
     }
     LaunchedEffect(Unit) {
         flowOfUiState.collect { uiState ->
             val animController = animController ?: return@collect
-            val sequence = HomeAnimSequence(
-                from = animController.currentState,
-                to = uiState.toAnimState(),
-            )
-            animController.run(sequence)
+            val to = uiState.toAnimState() ?: return@collect
+            val destStates = animController.makeDestStates(to = to)
+            if (destStates != null) {
+                animController.run(destStates)
+            }
         }
     }
 
@@ -228,14 +245,14 @@ private data class HomeUiState(
     val isColorCenterVisible: Boolean,
 )
 
-private fun HomeUiState.toAnimState(): HomeAnimState =
+private fun HomeUiState.toAnimState(): HomeAnimState? =
     HomeAnimState(
         isColorPreviewVisible = this.isColorPreviewVisible,
         isColorCenterVisible = this.isColorCenterVisible,
     )
 
 // syntactic sugar that makes nullable types easier to read
-internal typealias ColorCenterComposable = @Composable () -> Unit
+private typealias ColorCenterComposable = @Composable () -> Unit
 
 @Composable
 private fun HomeScreen(
@@ -293,7 +310,6 @@ private fun Home(
     navBarAppearanceController: NavBarAppearanceController,
     modifier: Modifier = Modifier,
 ) {
-    val density = LocalDensity.current
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
@@ -304,7 +320,6 @@ private fun Home(
         value = scrollState.viewportSize.takeUnless { it == 0 } // consider 0 size as unknown
     }
     val stateOfPosInRoot = remember { mutableStateOf<Offset?>(null) }
-    var size by remember { mutableStateOf<DpSize?>(null) }
 
     Column(
         modifier = modifier
@@ -312,7 +327,6 @@ private fun Home(
             .verticalScroll(state = scrollState)
             .onGloballyPositioned { coordinates ->
                 stateOfPosInRoot.value = coordinates.positionInRoot()
-                size = coordinates.size.toDpSize(density)
             },
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {

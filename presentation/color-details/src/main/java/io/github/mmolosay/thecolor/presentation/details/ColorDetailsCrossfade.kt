@@ -2,9 +2,9 @@ package io.github.mmolosay.thecolor.presentation.details
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.FiniteAnimationSpec
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.runtime.Composable
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel.DataState
@@ -13,7 +13,7 @@ import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsVi
 @Composable
 fun ColorDetailsCrossfade(
     actualDataState: DataState,
-    animationSpec: FiniteAnimationSpec<Float> = defaultAnimationSpec(),
+    animationSpec: FiniteAnimationSpec<Float> = ColorDetailsCrossfadeDefaults.animationSpec(),
     colorDetails: @Composable (dataState: DataState) -> Unit,
 ) {
     val transition = updateTransition(
@@ -22,13 +22,14 @@ fun ColorDetailsCrossfade(
     )
     transition.Crossfade(
         animationSpec = animationSpec,
-        contentKey = { it::class }, // don't animate when 'DataState' type stays the same
         content = colorDetails,
     )
 }
 
-private fun defaultAnimationSpec(): FiniteAnimationSpec<Float> =
-    tween(
-        durationMillis = 500,
-        easing = FastOutSlowInEasing,
-    )
+object ColorDetailsCrossfadeDefaults {
+
+    fun animationSpec(): FiniteAnimationSpec<Float> =
+        spring(
+            stiffness = Spring.StiffnessMediumLow,
+        )
+}

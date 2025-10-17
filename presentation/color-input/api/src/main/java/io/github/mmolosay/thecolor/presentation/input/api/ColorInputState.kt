@@ -14,3 +14,6 @@ sealed interface ColorInputState {
         val isCompleteFromUserPerspective: Boolean,
     ) : ColorInputState
 }
+
+fun ColorInputState.getColorOrNull(): Color? =
+    if (this is ColorInputState.Valid) this.color else null

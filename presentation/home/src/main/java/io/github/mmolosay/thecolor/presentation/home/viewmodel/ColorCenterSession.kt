@@ -36,10 +36,11 @@ class DoesColorBelongToSessionUseCase @Inject constructor(
     private val colorComparator: ColorComparator,
 ) {
     // syntactic sugar
-    infix fun Color.doesBelongTo(session: ColorCenterSession): Boolean =
+    infix fun Color?.doesBelongTo(session: ColorCenterSession): Boolean =
         invoke(color = this, session = session)
 
-    operator fun invoke(color: Color, session: ColorCenterSession): Boolean {
+    operator fun invoke(color: Color?, session: ColorCenterSession): Boolean {
+        if (color == null) return false // allowed colors do not contain null
         val allAllowedColors = session.allColors()
         return allAllowedColors.any { allowedColor ->
             with(colorComparator) { color isSameAs allowedColor }
