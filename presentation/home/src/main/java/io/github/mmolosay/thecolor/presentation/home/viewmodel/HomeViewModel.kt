@@ -511,7 +511,7 @@ class HomeViewModel @Inject constructor(
         val sessionState = ccSessionStore.sessionState
         return when (sessionState) {
             is SessionState.NoSession -> false // no session -> nothing to belong to
-            is SessionState.BeingBuilt -> (sessionState.seed == color)
+            is SessionState.BeingBuilt -> (sessionState.seed == color) // TODO: this condition is a transitive assumption from 'DoesColorBelongToSessionUseCase'. Remove? Throw error if the SessionState is BeingBuilt?
             is SessionState.Ongoing -> with(doesColorBelongToSession) { color doesBelongTo sessionState.session }
         }
     }

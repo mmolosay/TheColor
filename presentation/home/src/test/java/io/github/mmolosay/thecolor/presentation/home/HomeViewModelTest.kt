@@ -18,6 +18,7 @@ import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorRole
 import io.github.mmolosay.thecolor.presentation.home.HomeViewModelTest.MyMatchers.match
 import io.github.mmolosay.thecolor.presentation.home.HomeViewModelTest.MyMatchers.matchAny
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterComponents
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterComponentsFactory
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterComponentsStore
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterSession
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.CreateColorDataUseCase
@@ -123,16 +124,28 @@ class HomeViewModelTest {
     }
 
     val colorCenterViewModel: ColorCenterViewModel = mockk(relaxed = true)
-    val colorCenterComponentsStore = ColorCenterComponentsStore(
-        viewModelScope = CoroutineScope(testDispatcher),
-        colorDetailsCommandStoreProvider = colorDetailsCommandStoreProvider,
-        colorDetailsEventStoreProvider = colorDetailsEventStoreProvider,
-        colorDetailsViewModelFactory = { _, _, _ -> colorDetailsViewModel },
-        colorSchemeCommandStoreProvider = colorSchemeCommandStoreProvider,
-        colorSchemeEventStoreProvider = colorSchemeEventStoreProvider,
-        colorSchemeViewModelFactory = { _, _, _ -> colorSchemeViewModel },
-        colorCenterViewModelFactory = { _, _, _ -> colorCenterViewModel },
-    )
+    lateinit var colorCenterComponentsStore: ColorCenterComponentsStore
+    val colorCenterComponentsStoreFactory = object : ColorCenterComponentsStore.Factory {
+        override fun create(
+            viewModelScope: CoroutineScope,
+        ): ColorCenterComponentsStore {
+            val factory = ColorCenterComponentsFactory(
+                colorDetailsCommandStoreProvider = colorDetailsCommandStoreProvider,
+                colorDetailsEventStoreProvider = colorDetailsEventStoreProvider,
+                colorDetailsViewModelFactory = { _, _, _ -> colorDetailsViewModel },
+                colorSchemeCommandStoreProvider = colorSchemeCommandStoreProvider,
+                colorSchemeEventStoreProvider = colorSchemeEventStoreProvider,
+                colorSchemeViewModelFactory = { _, _, _ -> colorSchemeViewModel },
+                colorCenterViewModelFactory = { _, _, _ -> colorCenterViewModel },
+            )
+            return ColorCenterComponentsStore(
+                viewModelScope = viewModelScope,
+                factory = factory,
+            ).also {
+                colorCenterComponentsStore = it
+            }
+        }
+    }
 
     val createColorData: CreateColorDataUseCase = mockk()
 
@@ -1344,7 +1357,7 @@ class HomeViewModelTest {
             colorInputEventStore = colorInputEventStore,
             colorProcessedConfirmationChannelForColorPreview = colorProcessedConfirmationChannelForColorPreview,
             colorPreviewViewModelFactory = { _, _, _ -> mockk(relaxed = true) },
-            colorCenterComponentsStoreFactory = { _ -> colorCenterComponentsStore },
+            colorCenterComponentsStoreFactory = colorCenterComponentsStoreFactory,
             gateForFlowOfColorCenterViewModel = gateForFlowOfColorCenterViewModel,
             gateForCollectColorCenterComponent = gateForCollectColorCenterComponent,
             gateForDataUpdateGuard = gateForDataUpdateGuard,
