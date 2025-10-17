@@ -938,38 +938,6 @@ class HomeViewModelTest {
             data.proceedResult shouldBe null
         }
 
-//    @Test
-//    // TODO: name me
-//    fun `when 'proceed' is invoked `() =
-//        runTest(testDispatcher) {
-//            mockStoresWithEmptyFlows()
-//            val initialColor = Color.Hex(0x0)
-//            val colorInputColorFlow = MutableStateFlow<Color?>(initialColor)
-//            every { colorInputColorStore.colorFlow } returns colorInputColorFlow
-//            val colorDetailsEventFlow = MutableSharedFlow<ColorDetailsEvent>()
-//            every { colorDetailsEventStore.eventFlow } returns colorDetailsEventFlow
-//            every { createColorData(color = any()) } returns mockk()
-//            createSut()
-//
-//            run proceedWithInitialColor@{
-//                // we know from other tests that it would be 'CanProceed.Yes'
-//                data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed()
-//            }
-//            run emitConfirmationFromColorPreview@{
-//                colorProcessedConfirmationChannelForColorPreviewReal.send(initialColor)
-//            }
-//            run emitDataFetchedEvent@{
-//                val domainDetails: DomainColorDetails = mockk(relaxed = true) {
-//                    every { color } returns initialColor
-//                    every { exact } returns mockk {
-//                        every { color } returns Color.Hex(0x1)
-//                    }
-//                }
-//                val event = ColorDetailsEvent.DataFetched(domainDetails)
-//                colorDetailsEventFlow.emit(event)
-//            }
-//        }
-
     @Test
     fun `when 'proceed' is invoked and Color Input is cleared before 'DataFetched' event arrives, then no exception is thrown`() =
         runTest(testDispatcher) {
