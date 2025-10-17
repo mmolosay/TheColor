@@ -27,6 +27,7 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.CanProceed
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel.SuspendGates
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModelDiModule
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.components
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
@@ -1326,9 +1327,11 @@ class HomeViewModelTest {
             colorProcessedConfirmationChannelForColorPreview = colorProcessedConfirmationChannelForColorPreview,
             colorPreviewViewModelFactory = { _, _, _ -> mockk(relaxed = true) },
             colorCenterComponentsStoreFactory = colorCenterComponentsStoreFactory,
-            gateForFlowOfColorCenterViewModel = gateForFlowOfColorCenterViewModel,
-            gateForCollectColorCenterComponent = gateForCollectColorCenterComponent,
-            gateForDataUpdateGuard = gateForDataUpdateGuard,
+            gates = SuspendGates(
+                gateForFlowOfColorCenterViewModel = gateForFlowOfColorCenterViewModel,
+                gateForCollectColorCenterComponent = gateForCollectColorCenterComponent,
+                gateForDataUpdateGuard = gateForDataUpdateGuard,
+            ),
             createColorData = createColorData,
             doesColorBelongToSession = doesColorBelongToSession,
             userPreferencesRepository = userPreferencesRepository,
