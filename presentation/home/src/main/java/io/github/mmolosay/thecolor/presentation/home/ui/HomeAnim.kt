@@ -153,9 +153,12 @@ internal class HomeAnimController(
      * List of [destStates] defines the key frames that should be animated to.
      */
     fun run(destStates: List<HomeAnimState>) {
-        Timber.d("HomeAnimLog | run(), destStates = $destStates, lastReachedState = $lastReachedState, currentSegment = $runningSegment")
+        Timber.d("HomeAnimLog | run(), state = $state")
+        Timber.d("HomeAnimLog | run(), destStates = $destStates")
+        Timber.d("HomeAnimLog | run(), lastReachedState = $lastReachedState")
         require(destStates.isNotEmpty()) { "Dest states must have at least one state" }
         runningSequence = Sequence(destStates)
+        Timber.d("HomeAnimLog | new runningSequence = $runningSequence")
         setNextDestFromSequence()
     }
 
@@ -209,15 +212,13 @@ internal class HomeAnimController(
         val runningSequence = requireNotNull(runningSequence)
         val nextDest = runningSequence.nextDest()
         if (nextDest == null) {
-            this.runningSegment = null
-            this.runningSequence = null // sequence is finished
+            Timber.d("HomeAnimLog | sequence is finished")
             this.runningSequence = null
             this.state = State.Idle(state = lastReachedState)
             return
         }
         if (nextDest != destState) {
-            pendingDests.putAll(destState diffTo nextDest) // 'destState' may not have been reached yet, so "snap" to it and calc diff from it
-            runningSegment = Segment(start = destState, dest = nextDest)
+            Timber.d("HomeAnimLog | applying new dest: $nextDest")
             val currentState = destState // 'destState' may not have been reached yet, so "snap" to it and calc diff from it
             pendingDests.putAll(currentState diffTo nextDest)
             this.state = State.Running(segment = Segment(start = currentState, dest = nextDest))
@@ -225,9 +226,11 @@ internal class HomeAnimController(
             return
         }
         if (nextDest == destState && pendingDests.isNotEmpty()) {
+            Timber.d("HomeAnimLog | already running towards $nextDest, skipping")
             return // identical segment is already running
         }
         if (nextDest == destState) {
+            Timber.d("HomeAnimLog | skipping segment")
             runningSequence.advance()
             setNextDestFromSequence()
             return
