@@ -261,7 +261,6 @@ class HomeViewModel @Inject constructor(
             }
         }
 
-    // TODO: test me after refactoring
     private fun onEventFromColorDetailsOfColorCenter(event: ColorDetailsEvent) {
         when (event) {
             is ColorDetailsEvent.ColorSelected ->
