@@ -8,7 +8,7 @@ import javax.inject.Inject
 import io.github.mmolosay.thecolor.domain.model.ColorDetails as DomainColorDetails
 
 /**
- * Storage that holds a [Flow] of [ColorDetailsCommand]s for a Color Details to handle.
+ * Storage that holds a [Flow] of [ColorDetailsCommand]s for a 'Color Details' to handle.
  */
 class ColorDetailsCommandStore @Inject constructor() : ColorDetailsCommandProvider {
 
@@ -25,7 +25,7 @@ interface ColorDetailsCommandProvider {
     val commandFlow: Flow<ColorDetailsCommand>
 }
 
-/** A command issued towards Color Details feature to be handled by it. */
+/** A command issued towards 'Color Details' feature to be handled by it. */
 sealed interface ColorDetailsCommand {
 
     /** Request to obtain data using specified parameters. */
