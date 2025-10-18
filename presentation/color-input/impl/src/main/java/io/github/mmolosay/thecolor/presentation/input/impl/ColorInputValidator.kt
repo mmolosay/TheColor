@@ -2,14 +2,14 @@ package io.github.mmolosay.thecolor.presentation.input.impl
 
 import io.github.mmolosay.thecolor.domain.usecase.ColorFactory
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputValidationResult
 import io.github.mmolosay.thecolor.presentation.input.api.isInFullForm
 import io.github.mmolosay.thecolor.presentation.input.api.isInShortForm
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Validates given [ColorInput] and returns the result as [ColorInputState].
+ * Validates given [ColorInput] and returns the result as [ColorInputValidationResult].
  */
 @Singleton
 class ColorInputValidator @Inject constructor(
@@ -17,15 +17,15 @@ class ColorInputValidator @Inject constructor(
     private val colorFactory: ColorFactory,
 ) {
 
-    fun ColorInput.validate(): ColorInputState {
+    fun ColorInput.validate(): ColorInputValidationResult {
         val isEmpty = this.isEmpty()
         val isCompleteFromUserPerspective = this.isCompleteFromUserPerspective()
-        fun invalidState() = ColorInputState.Invalid(isEmpty, isCompleteFromUserPerspective)
-        if (isEmpty || !isCompleteFromUserPerspective) return invalidState()
+        fun invalidResult() = ColorInputValidationResult.Invalid(isEmpty, isCompleteFromUserPerspective)
+        if (isEmpty || !isCompleteFromUserPerspective) return invalidResult()
 
         val prototype = with(colorInputMapper) { toPrototype() }
-        val color = colorFactory.from(prototype) ?: return invalidState()
-        return ColorInputState.Valid(color)
+        val color = colorFactory.from(prototype) ?: return invalidResult()
+        return ColorInputValidationResult.Valid(color)
     }
 }
 

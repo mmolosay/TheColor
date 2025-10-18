@@ -3,7 +3,7 @@ package io.github.mmolosay.thecolor.presentation.input.impl
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputValidationResult
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewModel
@@ -70,7 +70,7 @@ class ColorInputHexViewModelTest {
     )
 
     val colorInputValidator: ColorInputValidator = mockk {
-        every { any<ColorInput>().validate() } returns mockk<ColorInputState.Invalid>()
+        every { any<ColorInput>().validate() } returns mockk<ColorInputValidationResult.Invalid>()
     }
 
     lateinit var sut: ColorInputHexViewModel
@@ -125,7 +125,7 @@ class ColorInputHexViewModelTest {
             val colorInput = ColorInput.Hex("1F")
             every {
                 with(colorInputValidator) { colorInput.validate() }
-            } returns mockk<ColorInputState.Invalid>()
+            } returns mockk<ColorInputValidationResult.Invalid>()
             createSut()
             val collectionJob = launch {
                 sut.dataStateFlow.collect() // subscriber to activate the flow
@@ -149,7 +149,7 @@ class ColorInputHexViewModelTest {
             every { mediator.hexColorInputFlow } returns hexColorInputFlow
             every {
                 with(colorInputValidator) { ColorInput.Hex("1F").validate() }
-            } returns mockk<ColorInputState.Invalid>()
+            } returns mockk<ColorInputValidationResult.Invalid>()
             createSut()
             val collectionJob = launch {
                 sut.dataStateFlow.collect() // subscriber to activate the flow
@@ -168,7 +168,7 @@ class ColorInputHexViewModelTest {
             every { mediator.hexColorInputFlow } returns hexColorInputFlow
             every {
                 with(colorInputValidator) { ColorInput.Hex("1F").validate() }
-            } returns mockk<ColorInputState.Invalid>()
+            } returns mockk<ColorInputValidationResult.Invalid>()
             createSut()
             val collectionJob = launch {
                 sut.dataStateFlow.collect() // subscriber to activate the flow
@@ -185,13 +185,13 @@ class ColorInputHexViewModelTest {
 
     @Test
     fun `given 'submit action' returns 'true', when invoking 'submit input', then 'submission result' is emitted`() {
-        every { submitAction.invoke(colorInput = any(), colorInputState = any()) } returns true
+        every { submitAction.invoke(colorInput = any(), validationResult = any()) } returns true
         createSut()
 
         data.submitInput()
 
         coVerify(exactly = 1) {
-            submitAction.invoke(colorInput = any(), colorInputState = any())
+            submitAction.invoke(colorInput = any(), validationResult = any())
         }
         val submissionResult = sut.colorSubmissionResultFlow.value
         submissionResult shouldNotBe null

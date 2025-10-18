@@ -142,7 +142,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         val data = requireNotNull(fullDataUpdateFlow.value?.payload)
         val wasAccepted = submitAction.invoke(
             colorInput = data.colorInput,
-            colorInputState = data.colorInputState,
+            validationResult = data.colorInputValidationResult,
         )
         val result = ColorSubmissionResult(
             wasAccepted = wasAccepted,
@@ -187,11 +187,11 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             g = coreData.gTextField.text.string,
             b = coreData.bTextField.text.string,
         )
-        val inputState = with(colorInputValidator) { colorInput.validate() }
+        val validationResult = with(colorInputValidator) { colorInput.validate() }
         val fullData = FullDataRgb(
             coreData = coreData,
             colorInput = colorInput,
-            colorInputState = inputState,
+            colorInputValidationResult = validationResult,
         )
         return Update(payload = fullData, causedByUser = coreDataUpdate.causedByUser)
     }
@@ -199,7 +199,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     private fun onEachFullDataUpdate(update: Update<FullDataRgb>) {
         // don't synchronize this update with other Views to avoid update loop
         if (!update.causedByUser) return
-        val parsedColor = update.payload.colorInputState.getColorOrNull()
+        val parsedColor = update.payload.colorInputValidationResult.getColorOrNull()
         mediator.send(color = parsedColor, from = DomainColorInputType.Rgb)
     }
 

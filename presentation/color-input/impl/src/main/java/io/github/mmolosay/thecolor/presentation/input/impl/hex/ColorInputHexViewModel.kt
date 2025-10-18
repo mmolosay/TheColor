@@ -126,7 +126,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
         val data = requireNotNull(fullDataUpdateFlow.value?.payload)
         val wasAccepted = submitAction.invoke(
             colorInput = data.colorInput,
-            colorInputState = data.colorInputState,
+            validationResult = data.colorInputValidationResult,
         )
         val result = ColorSubmissionResult(
             wasAccepted = wasAccepted,
@@ -158,11 +158,11 @@ class ColorInputHexViewModel @AssistedInject constructor(
     ): Update<FullDataHex>? {
         val coreData = coreDataUpdate?.payload ?: return null
         val colorInput = ColorInput.Hex(string = coreData.textField.text.string)
-        val inputState = with(colorInputValidator) { colorInput.validate() }
+        val validationResult = with(colorInputValidator) { colorInput.validate() }
         val fullData = FullData(
             coreData = coreData,
             colorInput = colorInput,
-            colorInputState = inputState,
+            colorInputValidationResult = validationResult,
         )
         return Update(payload = fullData, causedByUser = coreDataUpdate.causedByUser)
     }
@@ -170,7 +170,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
     private fun onEachFullDataUpdate(update: Update<FullDataHex>) {
         // don't synchronize this update with other Views to avoid update loop
         if (!update.causedByUser) return
-        val parsedColor = update.payload.colorInputState.getColorOrNull()
+        val parsedColor = update.payload.colorInputValidationResult.getColorOrNull()
         mediator.send(color = parsedColor, from = DomainColorInputType.Hex)
     }
 

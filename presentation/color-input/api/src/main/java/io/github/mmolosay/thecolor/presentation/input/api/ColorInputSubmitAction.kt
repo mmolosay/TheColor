@@ -13,6 +13,6 @@ fun interface ColorInputSubmitAction {
      */
     operator fun invoke(
         colorInput: ColorInput,
-        colorInputState: ColorInputState,
+        validationResult: ColorInputValidationResult,
     ): Boolean
 }

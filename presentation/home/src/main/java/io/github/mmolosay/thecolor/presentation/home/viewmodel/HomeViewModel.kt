@@ -27,7 +27,7 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModelDiMo
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputValidationResult
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputViewModel
@@ -471,13 +471,13 @@ class HomeViewModel @Inject constructor(
     private inner class ColorInputSubmitActionImpl : ColorInputSubmitAction {
         override fun invoke(
             colorInput: ColorInput,
-            colorInputState: ColorInputState,
+            validationResult: ColorInputValidationResult,
         ): Boolean {
-            when (colorInputState) {
-                is ColorInputState.Valid -> {
+            when (validationResult) {
+                is ColorInputValidationResult.Valid -> {
                     viewModelScope.launch(defaultDispatcher) {
                         dataUpdateGuard.withCounter {
-                            val color = colorInputState.color
+                            val color = validationResult.color
                             proceedInNewColorCenterSession(color, colorRole = null)
                             componentsConsumerRegistry.suspendUntilAllConsumed()
                         }
@@ -486,7 +486,7 @@ class HomeViewModel @Inject constructor(
                     }
                     return true
                 }
-                is ColorInputState.Invalid -> {
+                is ColorInputValidationResult.Invalid -> {
                     _dataFlow.update {
                         val result = HomeData.ProceedResult.InvalidSubmittedColor(
                             discard = ::clearProceedResult,
