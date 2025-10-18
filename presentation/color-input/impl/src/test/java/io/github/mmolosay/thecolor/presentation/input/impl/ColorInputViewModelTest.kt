@@ -79,8 +79,9 @@ class ColorInputViewModelTest {
             coroutineScope = CoroutineScope(context = testDispatcher),
             eventStore = mockk(),
             mediator = mediator,
-            hexViewModelFactory = { _, _, _ -> mockk() },
-            rgbViewModelFactory = { _, _, _ -> mockk() },
+            submitAction = mockk(),
+            hexViewModelFactory = { _, _, _, _ -> mockk() },
+            rgbViewModelFactory = { _, _, _, _ -> mockk() },
             userPreferencesRepository = userPreferencesRepository,
             defaultDispatcher = testDispatcher,
         ).also {

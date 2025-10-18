@@ -4,9 +4,9 @@ import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.SelectAllTextOnTextFieldFocus
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewModel
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
@@ -16,6 +16,7 @@ import io.github.mmolosay.thecolor.testing.MainDispatcherExtension
 import io.kotest.assertions.withClue
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -55,6 +56,8 @@ class ColorInputRgbViewModelTest {
     }
 
     val eventStore: ColorInputEventStore = mockk()
+
+    val submitAction: ColorInputSubmitAction = mockk()
 
     val userPreferencesRepository: UserPreferencesRepository = mockk {
         every { flowOfSelectAllTextOnTextFieldFocus() } returns kotlin.run {
@@ -200,15 +203,18 @@ class ColorInputRgbViewModelTest {
         }
 
     @Test
-    fun `invoking 'submit input' sends 'Submitted' event`() {
-        coEvery { eventStore.send(event = any()) } just runs
+    fun `given 'submit action' returns 'true', when invoking 'submit input', then 'submission result' is emitted`() {
+        every { submitAction.invoke(colorInput = any(), colorInputState = any()) } returns true
         createSut()
 
         data.submitInput()
 
         coVerify(exactly = 1) {
-            eventStore.send(event = any<ColorInputEvent.Submitted>())
+            submitAction.invoke(colorInput = any(), colorInputState = any())
         }
+        val submissionResult = sut.colorSubmissionResultFlow.value
+        submissionResult shouldNotBe null
+        submissionResult?.wasAccepted shouldBe true
     }
 
     @Test
@@ -246,6 +252,7 @@ class ColorInputRgbViewModelTest {
             coroutineScope = CoroutineScope(testDispatcher),
             mediator = mediator,
             eventStore = eventStore,
+            submitAction = submitAction,
             textFieldViewModelFactory = textFieldViewModelFactory,
             colorInputValidator = colorInputValidator,
             userPreferencesRepository = userPreferencesRepository,

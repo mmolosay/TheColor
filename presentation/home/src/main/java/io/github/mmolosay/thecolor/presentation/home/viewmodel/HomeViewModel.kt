@@ -24,10 +24,11 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterSessio
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.CanProceed
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ColorSchemeSelectedSwatchData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModelDiModule.ChannelForColorPreview
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputViewModel
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
@@ -118,8 +119,9 @@ class HomeViewModel @Inject constructor(
     val colorInputViewModel: ColorInputViewModel =
         colorInputViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
-            colorInputEventStore = colorInputEventStore,
-            colorInputMediator = colorInputMediator,
+            eventStore = colorInputEventStore,
+            mediator = colorInputMediator,
+            submitAction = ColorInputSubmitActionImpl(),
         )
 
     val colorPreviewViewModel: ColorPreviewViewModel =
@@ -136,7 +138,7 @@ class HomeViewModel @Inject constructor(
     private val componentsConsumerRegistry = ColorCenterComponentsConsumerRegistry()
 
     val colorCenterViewModelFlow: StateFlow<ColorCenterViewModel?> = kotlin.run {
-        var lastConsumedComponents: ColorCenterComponents? = null
+        var lastConsumedComponents: ColorCenterComponents? = null // TODO: may write-read pair be severed by another pair?
         val componentsConsumedConfirmationChannel = kotlin.run {
             val consumerId = ConsumerId("colorCenterViewModelFlow")
             componentsConsumerRegistry.register(consumerId)
@@ -144,7 +146,7 @@ class HomeViewModel @Inject constructor(
         colorCenterComponentsStore.componentsFlow
             .transformLatest { components ->
                 gates.gateForFlowOfColorCenterViewModel.awaitOpen()
-                lastConsumedComponents = components
+                lastConsumedComponents = components // TODO: write
                 emit(components?.colorCenterViewModel)
             }
             .flowOn(defaultDispatcher)
@@ -152,7 +154,7 @@ class HomeViewModel @Inject constructor(
             .also { flow ->
                 viewModelScope.launch(defaultDispatcher) {
                     flow.collectLatest {
-                        componentsConsumedConfirmationChannel.send(lastConsumedComponents)
+                        componentsConsumedConfirmationChannel.send(lastConsumedComponents) // TODO: read
                     }
                 }
             }
@@ -163,7 +165,6 @@ class HomeViewModel @Inject constructor(
 
     init {
         collectColorsFromColorInput()
-        collectEventsFromColorInput()
         collectColorCenterComponents()
         maybeProceedWithLastSearchedColor()
     }
@@ -188,46 +189,6 @@ class HomeViewModel @Inject constructor(
                 flowOfProcessedColorsFromColorInput.emit(color)
                 colorProcessedConfirmationChannelForColorPreview.receiveAllUntil(color)
             }
-        }
-    }
-
-    private fun collectEventsFromColorInput() =
-        viewModelScope.launch(defaultDispatcher) {
-            colorInputEventStore.eventFlow
-                .collect(::onEventFromColorInput)
-        }
-
-    private fun onEventFromColorInput(event: ColorInputEvent) {
-        when (event) {
-            is ColorInputEvent.Submitted -> {
-                val hasProceeded = onColorInputSubmitted(event.colorInputState)
-                event.onConsumed(wasAccepted = hasProceeded)
-            }
-        }
-    }
-
-    private fun onColorInputSubmitted(
-        colorInputState: ColorInputState,
-    ): Boolean {
-        if (colorInputState is ColorInputState.Valid) {
-            viewModelScope.launch(defaultDispatcher) {
-                dataUpdateGuard.withCounter {
-                    val color = colorInputState.color
-                    proceedInNewColorCenterSession(color, colorRole = null)
-                    componentsConsumerRegistry.suspendUntilAllConsumed()
-                }
-            }.also { job ->
-                job.setToJobWithProceed()
-            }
-            return true
-        } else {
-            _dataFlow.update {
-                val result = HomeData.ProceedResult.InvalidSubmittedColor(
-                    discard = ::clearProceedResult,
-                )
-                it.copy(proceedResult = result)
-            }
-            return false
         }
     }
 
@@ -504,6 +465,37 @@ class HomeViewModel @Inject constructor(
             is SessionState.NoSession -> false // no session -> nothing to belong to
             is SessionState.BeingBuilt -> (sessionState.seed == color) // TODO: this condition is a transitive assumption from 'DoesColorBelongToSessionUseCase'. Remove? Throw error if the SessionState is BeingBuilt?
             is SessionState.Ongoing -> with(doesColorBelongToSession) { color doesBelongTo sessionState.session }
+        }
+    }
+
+    private inner class ColorInputSubmitActionImpl : ColorInputSubmitAction {
+        override fun invoke(
+            colorInput: ColorInput,
+            colorInputState: ColorInputState,
+        ): Boolean {
+            when (colorInputState) {
+                is ColorInputState.Valid -> {
+                    viewModelScope.launch(defaultDispatcher) {
+                        dataUpdateGuard.withCounter {
+                            val color = colorInputState.color
+                            proceedInNewColorCenterSession(color, colorRole = null)
+                            componentsConsumerRegistry.suspendUntilAllConsumed()
+                        }
+                    }.also { job ->
+                        job.setToJobWithProceed()
+                    }
+                    return true
+                }
+                is ColorInputState.Invalid -> {
+                    _dataFlow.update {
+                        val result = HomeData.ProceedResult.InvalidSubmittedColor(
+                            discard = ::clearProceedResult,
+                        )
+                        it.copy(proceedResult = result)
+                    }
+                    return false
+                }
+            }
         }
     }
 

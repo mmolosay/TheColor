@@ -34,7 +34,9 @@ import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator
+import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputViewModel
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommand
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommandStore
@@ -61,7 +63,6 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.spyk
-import io.mockk.verify
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
@@ -94,6 +95,19 @@ class HomeViewModelTest {
     val colorInputMediator: ColorInputMediator = mockk(relaxed = true)
     val colorInputColorStore: ColorInputColorStore = spyk() // for actual impl of 'wouldEmitIfSet()'
     val colorInputEventStore: ColorInputEventStore = mockk()
+    val colorInputViewModel: ColorInputViewModel = mockk(relaxed = true)
+    lateinit var colorInputSubmitAction: ColorInputSubmitAction
+    val colorInputViewModelFactory = object : ColorInputViewModel.Factory {
+        override fun create(
+            coroutineScope: CoroutineScope,
+            eventStore: ColorInputEventStore,
+            mediator: ColorInputMediator,
+            submitAction: ColorInputSubmitAction,
+        ): ColorInputViewModel {
+            colorInputSubmitAction = submitAction
+            return colorInputViewModel
+        }
+    }
 
     val colorProcessedConfirmationChannelForColorPreviewReal: Channel<Color?> =
         HomeViewModelDiModule.provideColorProcessedConfirmationChannelForColorPreview()
@@ -415,13 +429,13 @@ class HomeViewModelTest {
      * 2. there's some color in [ColorInputColorStore]
      *
      * WHEN
-     * [ColorInputEvent.Submitted] with valid color is sent
+     * [colorInputSubmitAction] is invoked with [ColorInputState.Valid]
      *
      * THEN
      * [HomeViewModel.proceed] is invoked.
      */
     @Test
-    fun `when receiving a 'Submitted' event from Color Input with 'Valid' color input state, then 'proceed' method is invoked`() =
+    fun `when 'submit action' of Color Input is invoked with 'Valid' color input state, then 'proceed' method is invoked`() =
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
@@ -430,12 +444,10 @@ class HomeViewModelTest {
             every { createColorData(color = any()) } returns mockk()
             createSut()
 
-            val event = ColorInputEvent.Submitted(
+            colorInputSubmitAction.invoke(
                 colorInput = mockk(),
                 colorInputState = ColorInputState.Valid(color = mockk()),
-                onConsumed = {},
             )
-            colorInputEventFlow.emit(event)
 
             coVerify {
                 proceed(colorMatcher = matchAny(), colorRoleMatcher = matchAny())
@@ -448,13 +460,13 @@ class HomeViewModelTest {
      * 2. there's some color in [ColorInputColorStore]
      *
      * WHEN
-     * [ColorInputEvent.Submitted] with valid color is sent
+     * [colorInputSubmitAction] is invoked with [ColorInputState.Valid]
      *
      * THEN
      * [data] is updated with [ProceedResult.Success].
      */
     @Test
-    fun `when receiving a 'Submitted' event from Color Input with 'Valid' color input state, then 'proceed' action is invoked, thus 'proceedResult' is set to 'Success'`() =
+    fun `when 'submit action' of Color Input is invoked with 'Valid' color input state, then 'proceed' action is invoked, thus 'proceedResult' is set to 'Success'`() =
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
@@ -464,12 +476,10 @@ class HomeViewModelTest {
             every { createColorData(color = any()) } returns colorData
             createSut()
 
-            val event = ColorInputEvent.Submitted(
+            colorInputSubmitAction.invoke(
                 colorInput = mockk(),
                 colorInputState = ColorInputState.Valid(color = mockk()),
-                onConsumed = {},
             )
-            colorInputEventFlow.emit(event)
 
             val proceedResultAsSuccess =
                 data.proceedResult.shouldBeInstanceOf<ProceedResult.Success>()
@@ -482,13 +492,13 @@ class HomeViewModelTest {
      * 2. there's some color in [ColorInputColorStore]
      *
      * WHEN
-     * [ColorInputEvent.Submitted] with invalid color is sent
+     * [colorInputSubmitAction] is invoked with [ColorInputState.Invalid]
      *
      * THEN
      * [data] is updated with [ProceedResult.InvalidSubmittedColor].
      */
-    @Test
-    fun `when receiving a 'Submitted' event from Color Input with 'Invalid' color input state, then 'proceed' action is not invoked, thus 'proceedResult' is set to 'InvalidSubmittedColor'`() =
+    @Test // ANCHOR:Label=3
+    fun `when 'submit action' of Color Input is invoked with 'Invalid' color input state, then 'proceed' action is not invoked, thus 'proceedResult' is set to 'InvalidSubmittedColor'`() =
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
@@ -498,12 +508,10 @@ class HomeViewModelTest {
             every { createColorData(color = any()) } returns colorData
             createSut()
 
-            val event = ColorInputEvent.Submitted(
+            colorInputSubmitAction.invoke(
                 colorInput = mockk(),
                 colorInputState = mockk<ColorInputState.Invalid>(),
-                onConsumed = {},
             )
-            colorInputEventFlow.emit(event)
 
             data.proceedResult should beOfType<ProceedResult.InvalidSubmittedColor>()
         }
@@ -514,13 +522,13 @@ class HomeViewModelTest {
      * 2. there's some color in [ColorInputColorStore]
      *
      * WHEN
-     * [ColorInputEvent.Submitted] with valid color is sent
+     * [colorInputSubmitAction] is invoked with [ColorInputState.Valid]
      *
      * THEN
-     * [ColorInputEvent.Submitted.onConsumed] is invoked with `true` value for `wasAccepted` parameter.
+     * [colorInputSubmitAction] returns `true`.
      */
     @Test
-    fun `when receiving a 'Submitted' event from Color Input with 'Valid' color input state, then submission is reported as accepted`() =
+    fun `when 'submit action' of Color Input is invoked with 'Valid' color input state, then submission is reported as accepted`() =
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
@@ -530,16 +538,12 @@ class HomeViewModelTest {
             every { createColorData(color = any()) } returns colorData
             createSut()
 
-            val event = ColorInputEvent.Submitted(
+            val wasAccepted = colorInputSubmitAction.invoke(
                 colorInput = mockk(),
                 colorInputState = ColorInputState.Valid(color = mockk()),
-                onConsumed = mockk(relaxed = true),
             )
-            colorInputEventFlow.emit(event)
 
-            verify {
-                event.onConsumed.invoke(wasAccepted = true)
-            }
+            wasAccepted shouldBe true
         }
 
     /**
@@ -548,13 +552,13 @@ class HomeViewModelTest {
      * 2. there's some color in [ColorInputColorStore]
      *
      * WHEN
-     * [ColorInputEvent.Submitted] with invalid color is sent
+     * [colorInputSubmitAction] is invoked with [ColorInputState.Invalid]
      *
      * THEN
-     * [ColorInputEvent.Submitted.onConsumed] is invoked with `false` value for `wasAccepted` parameter.
+     * [colorInputSubmitAction] returns `false`.
      */
     @Test
-    fun `when receiving a 'Submitted' event from Color Input with 'Invalid' color input state, then submission is reported as not accepted`() =
+    fun `when 'submit action' of Color Input is invoked with 'Invalid' color input state, then submission is reported as not accepted`() =
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
@@ -564,22 +568,19 @@ class HomeViewModelTest {
             every { createColorData(color = any()) } returns colorData
             createSut()
 
-            val event = ColorInputEvent.Submitted(
+            val wasAccepted = colorInputSubmitAction.invoke(
                 colorInput = mockk(),
                 colorInputState = mockk<ColorInputState.Invalid>(),
-                onConsumed = mockk(relaxed = true),
             )
-            colorInputEventFlow.emit(event)
 
-            verify {
-                event.onConsumed.invoke(wasAccepted = false)
-            }
+            wasAccepted shouldBe false
         }
 
     /**
      * GIVEN
      * 1. [sut] is created
-     * 2. [sut] has [data] with [ProceedResult.InvalidSubmittedColor]
+     * 2. there's some color in [ColorInputColorStore]
+     * 3. [sut] has [data] with [ProceedResult.InvalidSubmittedColor]
      *
      * WHEN
      * [ProceedResult.InvalidSubmittedColor.discard] is invoked
@@ -597,14 +598,13 @@ class HomeViewModelTest {
             val colorData: ProceedResult.Success.ColorData = mockk()
             every { createColorData(color = any()) } returns colorData
             createSut()
-            val event = ColorInputEvent.Submitted(
+            colorInputSubmitAction.invoke(
                 colorInput = mockk(),
                 colorInputState = mockk<ColorInputState.Invalid>(),
-                onConsumed = {},
             )
-            colorInputEventFlow.emit(event)
 
             // we know from other tests that it would be 'InvalidSubmittedColor'
+            // REFERENCE:Label=3
             data.proceedResult.shouldBeInstanceOf<ProceedResult.InvalidSubmittedColor>().discard.invoke()
 
             data.proceedResult shouldBe null
@@ -1321,7 +1321,7 @@ class HomeViewModelTest {
     ) =
         HomeViewModel(
             colorInputMediatorFactory = { _ -> colorInputMediator },
-            colorInputViewModelFactory = { _, _, _ -> mockk(relaxed = true) },
+            colorInputViewModelFactory = colorInputViewModelFactory,
             colorInputColorStore = colorInputColorStore,
             colorInputEventStore = colorInputEventStore,
             colorProcessedConfirmationChannelForColorPreview = colorProcessedConfirmationChannelForColorPreview,

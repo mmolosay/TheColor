@@ -7,8 +7,8 @@ import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.api.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.api.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.api.getColorOrNull
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputValidator
@@ -53,6 +53,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     @Assisted private val mediator: ColorInputMediator,
     @Assisted private val eventStore: ColorInputEventStore,
+    @Assisted private val submitAction: ColorInputSubmitAction,
     private val textFieldViewModelFactory: TextFieldViewModel.Factory,
     private val colorInputValidator: ColorInputValidator,
     private val userPreferencesRepository: UserPreferencesRepository,
@@ -137,16 +138,17 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             }
             .let { Text(it) }
 
-    private fun sendSubmittedEvent() {
+    private fun submitInput() {
         val data = requireNotNull(fullDataUpdateFlow.value?.payload)
-        coroutineScope.launch(defaultDispatcher) {
-            val event = ColorInputEvent.Submitted(
-                colorInput = data.colorInput,
-                colorInputState = data.colorInputState,
-                onConsumed = ::onSubmitEventConsumed,
-            )
-            eventStore.send(event)
-        }
+        val wasAccepted = submitAction.invoke(
+            colorInput = data.colorInput,
+            colorInputState = data.colorInputState,
+        )
+        val result = ColorSubmissionResult(
+            wasAccepted = wasAccepted,
+            discard = ::clearColorSubmissionResult,
+        )
+        _colorSubmissionResultFlow.value = result
     }
 
     private fun makeDataUpdate(
@@ -169,7 +171,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                 rTextField = r.payload,
                 gTextField = g.payload,
                 bTextField = b.payload,
-                submitInput = ::sendSubmittedEvent,
+                submitInput = ::submitInput,
                 isSmartBackspaceEnabled = smartBackspace.enabled,
             )
         }
@@ -201,14 +203,6 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         mediator.send(color = parsedColor, from = DomainColorInputType.Rgb)
     }
 
-    private fun onSubmitEventConsumed(wasAccepted: Boolean) {
-        val result = ColorSubmissionResult(
-            wasAccepted = wasAccepted,
-            discard = ::clearColorSubmissionResult,
-        )
-        _colorSubmissionResultFlow.value = result
-    }
-
     private fun clearColorSubmissionResult() {
         _colorSubmissionResultFlow.value = null
     }
@@ -226,6 +220,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             coroutineScope: CoroutineScope,
             mediator: ColorInputMediator,
             eventStore: ColorInputEventStore,
+            submitAction: ColorInputSubmitAction,
         ): ColorInputRgbViewModel
     }
 
