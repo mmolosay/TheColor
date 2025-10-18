@@ -20,19 +20,6 @@ class ColorInputColorStore @Inject constructor() : ColorInputColorProvider {
     fun set(color: Color?) {
         _colorFlow.value = color
     }
-
-    /**
-     * Determines whether [colorFlow] would emit [color] if it's [set] to it.
-     *
-     * Due to mutable [_colorFlow] being a [StateFlow], a strong equality-based conflation is applied
-     * to values, thus [colorFlow] will emit [color] only if the present value is not [Any.equals]
-     * to the specified [color].
-     */
-    fun wouldEmitIfSet(color: Color?): Boolean {
-        val currentColor = colorFlow.value
-        val isColorEqualToCurrentColor = (color == currentColor)
-        return !isColorEqualToCurrentColor
-    }
 }
 
 /** Read-only provider. */
