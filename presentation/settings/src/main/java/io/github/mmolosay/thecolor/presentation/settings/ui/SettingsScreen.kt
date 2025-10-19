@@ -202,18 +202,6 @@ fun Settings(
             )
             if (showSelectionDialog) {
                 val windowInsets = BottomSheetDefaults.windowInsets
-                /*
-                 * TODO: ModalBottomSheet invisible icons in dark status bar
-                 *  https://issuetracker.google.com/issues/362539765
-                 *  Fixed in androidx.compose.material3:material3:1.4.0-alpha03
-                 *  (version at the moment of writing is 1.3.1)
-                 */
-                /*
-                 * TODO: ModalBottomSheet adds light scrim to 3-button navigation bar
-                 *  https://issuetracker.google.com/issues/374013416
-                 *  Supposedly fixed in androidx.compose.material3:material3:1.4.0-alpha03
-                 *  (version at the moment of writing is 1.3.1)
-                 */
                 ModalBottomSheet(
                     onDismissRequest = { showSelectionDialog = false },
                     contentWindowInsets = { windowInsets.withoutBottom() },
@@ -246,18 +234,6 @@ fun Settings(
             )
             if (showSelectionDialog) {
                 val windowInsets = BottomSheetDefaults.windowInsets
-                /*
-                 * TODO: ModalBottomSheet invisible icons in dark status bar
-                 *  https://issuetracker.google.com/issues/362539765
-                 *  Fixed in androidx.compose.material3:material3:1.4.0-alpha03
-                 *  (version at the moment of writing is 1.3.1)
-                 */
-                /*
-                 * TODO: ModalBottomSheet adds light scrim to 3-button navigation bar
-                 *  https://issuetracker.google.com/issues/374013416
-                 *  Supposedly fixed in androidx.compose.material3:material3:1.4.0-alpha03
-                 *  (version at the moment of writing is 1.3.1)
-                 */
                 ModalBottomSheet(
                     onDismissRequest = { showSelectionDialog = false },
                     contentWindowInsets = { windowInsets.withoutBottom() },
