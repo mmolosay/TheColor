@@ -169,11 +169,11 @@ fun HomeScreen(
     }
 
     val flowOfUiState = remember {
-        val florOfColorPreviewData = viewModel.colorPreviewViewModel.dataFlow
+        val flowOfColorPreviewData = viewModel.colorPreviewViewModel.dataFlow
         val flowOfHomeData = viewModel.dataFlow
         fun actualUiState(): HomeUiState? {
             val isColorPreviewVisible = run {
-                val data = florOfColorPreviewData.value ?: return null
+                val data = flowOfColorPreviewData.value ?: return null
                 isColorPreviewVisible(data)
             }
             val isColorCenterVisible = run {
@@ -184,7 +184,7 @@ fun HomeScreen(
         }
         val signal = Any()
         combine(
-            florOfColorPreviewData,
+            flowOfColorPreviewData,
             flowOfHomeData,
             transform = { _, _ -> signal }, // discard values and just emit "something has changed" signal
         )
