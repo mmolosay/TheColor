@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.mmolosay.thecolor.domain.model.ColorDetails
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
@@ -120,42 +121,42 @@ fun ColorCenter(
     modifier: Modifier = Modifier,
 ) {
     val density = LocalDensity.current
-    val pages: ImmutableList<@Composable () -> Unit> = remember {
-        persistentListOf(
-            {
-                Page(
-                    content = colorDetails,
-                    changePageButton = {
-                        ChangePageButton(
-                            text = strings.detailsPageChangePageButtonText,
-                            onClick = { data.changePage(1) },
-                            icon = ImageVector.vectorResource(DesignR.drawable.ic_keyboard_arrow_right),
-                            iconPlacement = IconPlacement.Trailing,
-                        )
-                    },
-                )
-            },
-            {
-                Page(
-                    content = colorScheme,
-                    changePageButton = {
-                        ChangePageButton(
-                            text = strings.schemePageChangePageButtonText,
-                            onClick = { data.changePage(0) },
-                            icon = ImageVector.vectorResource(DesignR.drawable.ic_keyboard_arrow_left),
-                            iconPlacement = IconPlacement.Leading,
-                        )
-                    },
-                )
-            },
-        )
-    }
     val pagerState = rememberPagerState(
-        pageCount = { pages.size },
+        pageCount = { 2 },
     )
     var userScrollEnabled by remember { mutableStateOf(true) }
     var minHeight by remember { mutableStateOf<Int?>(null) }
     val minHeightDp = with(density) { minHeight?.toDp() }
+
+    @Composable
+    fun ColorDetailsPage() {
+        Page(
+            content = colorDetails,
+            changePageButton = {
+                ChangePageButton(
+                    text = strings.detailsPageChangePageButtonText,
+                    onClick = { data.changePage(1) },
+                    icon = ImageVector.vectorResource(DesignR.drawable.ic_keyboard_arrow_right),
+                    iconPlacement = IconPlacement.Trailing,
+                )
+            },
+        )
+    }
+
+    @Composable
+    fun ColorSchemePage() {
+        Page(
+            content = colorScheme,
+            changePageButton = {
+                ChangePageButton(
+                    text = strings.schemePageChangePageButtonText,
+                    onClick = { data.changePage(0) },
+                    icon = ImageVector.vectorResource(DesignR.drawable.ic_keyboard_arrow_left),
+                    iconPlacement = IconPlacement.Leading,
+                )
+            },
+        )
+    }
 
     HorizontalPager(
         state = pagerState,
@@ -168,13 +169,16 @@ fun ColorCenter(
         verticalAlignment = Alignment.Top,
         userScrollEnabled = userScrollEnabled,
         key = { index -> index }, // list of pages doesn't change
-    ) { i ->
-        val page = pages[i]
+    ) { pageIndex ->
         Box(
             modifier = Modifier.sizeIn(minHeight = minHeightDp ?: Dp.Unspecified),
             propagateMinConstraints = true, // propagate min height also to page content
         ) {
-            page()
+            when (pageIndex) {
+                0 -> ColorDetailsPage()
+                1 -> ColorSchemePage()
+                else -> error("Unexpected page index. Have you forgotten to increase 'pageCount'?")
+            }
         }
     }
 
