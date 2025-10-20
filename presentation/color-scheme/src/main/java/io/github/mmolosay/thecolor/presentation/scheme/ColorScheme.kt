@@ -60,7 +60,6 @@ import androidx.compose.ui.unit.dp
 import io.github.mmolosay.thecolor.presentation.api.ColorInt
 import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
-import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
@@ -72,6 +71,7 @@ import io.github.mmolosay.thecolor.presentation.impl.toCompose
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.DataState
 import io.github.mmolosay.thecolor.utils.doNothing
 import io.github.mmolosay.thecolor.domain.model.ColorScheme as DomainColorScheme
+import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 @Composable
 fun ColorScheme(
@@ -316,15 +316,13 @@ private fun SectionTitle(
 ) {
     val labelColor = colorsOnTintedSurface.accent
     val valueColor = colorsOnTintedSurface.muted
-    val text = remember(label, value) {
-        buildAnnotatedString {
-            withStyle(SpanStyle(color = labelColor)) {
-                append(label)
-            }
-            append(' ')
-            withStyle(SpanStyle(color = valueColor)) {
-                append(value)
-            }
+    val text = buildAnnotatedString {
+        withStyle(SpanStyle(color = labelColor)) {
+            append(label)
+        }
+        append(' ')
+        withStyle(SpanStyle(color = valueColor)) {
+            append(value)
         }
     }
     Text(
