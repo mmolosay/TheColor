@@ -14,9 +14,6 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,13 +24,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.mmolosay.thecolor.domain.model.ColorDetails
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
@@ -43,6 +45,7 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorScheme
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlin.math.max
+import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -118,42 +121,42 @@ fun ColorCenter(
     modifier: Modifier = Modifier,
 ) {
     val density = LocalDensity.current
-    val pages: ImmutableList<@Composable () -> Unit> = remember {
-        persistentListOf(
-            {
-                Page(
-                    content = colorDetails,
-                    changePageButton = {
-                        ChangePageButton(
-                            text = strings.detailsPageChangePageButtonText,
-                            onClick = { data.changePage(1) },
-                            icon = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                            iconPlacement = IconPlacement.Trailing,
-                        )
-                    },
-                )
-            },
-            {
-                Page(
-                    content = colorScheme,
-                    changePageButton = {
-                        ChangePageButton(
-                            text = strings.schemePageChangePageButtonText,
-                            onClick = { data.changePage(0) },
-                            icon = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
-                            iconPlacement = IconPlacement.Leading,
-                        )
-                    },
-                )
-            },
-        )
-    }
     val pagerState = rememberPagerState(
-        pageCount = { pages.size },
+        pageCount = { 2 },
     )
     var userScrollEnabled by remember { mutableStateOf(true) }
     var minHeight by remember { mutableStateOf<Int?>(null) }
     val minHeightDp = with(density) { minHeight?.toDp() }
+
+    @Composable
+    fun ColorDetailsPage() {
+        Page(
+            content = colorDetails,
+            changePageButton = {
+                ChangePageButton(
+                    text = strings.detailsPageChangePageButtonText,
+                    onClick = { data.changePage(1) },
+                    icon = ImageVector.vectorResource(DesignR.drawable.ic_keyboard_arrow_right),
+                    iconPlacement = IconPlacement.Trailing,
+                )
+            },
+        )
+    }
+
+    @Composable
+    fun ColorSchemePage() {
+        Page(
+            content = colorScheme,
+            changePageButton = {
+                ChangePageButton(
+                    text = strings.schemePageChangePageButtonText,
+                    onClick = { data.changePage(0) },
+                    icon = ImageVector.vectorResource(DesignR.drawable.ic_keyboard_arrow_left),
+                    iconPlacement = IconPlacement.Leading,
+                )
+            },
+        )
+    }
 
     HorizontalPager(
         state = pagerState,
@@ -166,13 +169,16 @@ fun ColorCenter(
         verticalAlignment = Alignment.Top,
         userScrollEnabled = userScrollEnabled,
         key = { index -> index }, // list of pages doesn't change
-    ) { i ->
-        val page = pages[i]
+    ) { pageIndex ->
         Box(
             modifier = Modifier.sizeIn(minHeight = minHeightDp ?: Dp.Unspecified),
             propagateMinConstraints = true, // propagate min height also to page content
         ) {
-            page()
+            when (pageIndex) {
+                0 -> ColorDetailsPage()
+                1 -> ColorSchemePage()
+                else -> error("Unexpected page index. Have you forgotten to increase 'pageCount'?")
+            }
         }
     }
 

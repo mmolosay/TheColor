@@ -8,7 +8,7 @@ import javax.inject.Inject
 import io.github.mmolosay.thecolor.domain.model.ColorDetails as DomainColorDetails
 
 /**
- * Storage that holds a [Flow] of [ColorDetailsEvent]s from a Color Details feature.
+ * Storage that holds a [Flow] of [ColorDetailsEvent]s from a 'Color Details' feature.
  */
 class ColorDetailsEventStore @Inject constructor() : ColorDetailsEventProvider {
 
@@ -25,7 +25,7 @@ interface ColorDetailsEventProvider {
     val eventFlow: Flow<ColorDetailsEvent>
 }
 
-/** An event that originates in Color Details feature and is broadcast to outside. */
+/** An event that originates in 'Color Details' feature and is broadcast to outside. */
 sealed interface ColorDetailsEvent {
 
     /** A successfully fetched [domainDetails] that is about to be used. */
@@ -33,7 +33,7 @@ sealed interface ColorDetailsEvent {
         val domainDetails: DomainColorDetails,
     ) : ColorDetailsEvent
 
-    /** A [color] has been selected in Color Details feature. */
+    /** A [color] has been selected in 'Color Details' feature. */
     data class ColorSelected(
         val color: Color,
         val colorRole: ColorRole,

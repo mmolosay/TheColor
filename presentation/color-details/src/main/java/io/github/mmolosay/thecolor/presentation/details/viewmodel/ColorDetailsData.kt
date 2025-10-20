@@ -57,7 +57,7 @@ data class ColorDetailsData(
 
     /**
      * When [ExactMatch.No.goToExactColor] is invoked and "exact" color is shown,
-     * you can use [goToInitialColor] to restore Color Details state to initial color from
+     * you can use [goToInitialColor] to restore 'Color Details' state to initial color from
      * where the "exact" color was clicked.
      */
     data class InitialColorData(

@@ -25,8 +25,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -48,9 +46,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
@@ -71,6 +71,7 @@ import io.github.mmolosay.thecolor.presentation.impl.toCompose
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.DataState
 import io.github.mmolosay.thecolor.utils.doNothing
 import io.github.mmolosay.thecolor.domain.model.ColorScheme as DomainColorScheme
+import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 @Composable
 fun ColorScheme(
@@ -315,15 +316,13 @@ private fun SectionTitle(
 ) {
     val labelColor = colorsOnTintedSurface.accent
     val valueColor = colorsOnTintedSurface.muted
-    val text = remember(label, value) {
-        buildAnnotatedString {
-            withStyle(SpanStyle(color = labelColor)) {
-                append(label)
-            }
-            append(' ')
-            withStyle(SpanStyle(color = valueColor)) {
-                append(value)
-            }
+    val text = buildAnnotatedString {
+        withStyle(SpanStyle(color = labelColor)) {
+            append(label)
+        }
+        append(' ')
+        withStyle(SpanStyle(color = valueColor)) {
+            append(value)
         }
     }
     Text(
@@ -415,7 +414,7 @@ private fun ApplyChangesButton(
             border = border,
         ) {
             Icon(
-                imageVector = Icons.Rounded.Check,
+                imageVector = ImageVector.vectorResource(DesignR.drawable.ic_check),
                 contentDescription = null, // described by text above
                 modifier = Modifier.size(16.dp),
             )

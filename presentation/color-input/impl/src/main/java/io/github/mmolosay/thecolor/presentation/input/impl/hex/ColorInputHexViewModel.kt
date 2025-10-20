@@ -6,8 +6,8 @@ import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.presentation.api.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.api.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.api.getColorOrNull
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputValidator
@@ -49,6 +49,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     @Assisted private val mediator: ColorInputMediator,
     @Assisted private val eventStore: ColorInputEventStore,
+    @Assisted private val submitAction: ColorInputSubmitAction,
     textFieldViewModelFactory: TextFieldViewModel.Factory,
     private val colorInputValidator: ColorInputValidator,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
@@ -121,16 +122,17 @@ class ColorInputHexViewModel @AssistedInject constructor(
             .take(MAX_SYMBOLS_IN_HEX_COLOR)
             .let { Text(it) }
 
-    private fun sendSubmitEvent() {
+    private fun submitInput() {
         val data = requireNotNull(fullDataUpdateFlow.value?.payload)
-        coroutineScope.launch(defaultDispatcher) {
-            val event = ColorInputEvent.Submitted(
-                colorInput = data.colorInput,
-                colorInputState = data.colorInputState,
-                onConsumed = ::onSubmitEventConsumed,
-            )
-            eventStore.send(event)
-        }
+        val wasAccepted = submitAction.invoke(
+            colorInput = data.colorInput,
+            validationResult = data.colorInputValidationResult,
+        )
+        val result = ColorSubmissionResult(
+            wasAccepted = wasAccepted,
+            discard = ::clearColorSubmissionResult,
+        )
+        _colorSubmissionResultFlow.value = result
     }
 
     private fun makeDataUpdate(
@@ -145,7 +147,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
         } else {
             ColorInputHexData(
                 textField = textFieldUpdate.payload,
-                submitInput = ::sendSubmitEvent,
+                submitInput = ::submitInput,
             )
         }
         return Update(payload = newData, causedByUser = textFieldUpdate.causedByUser)
@@ -156,11 +158,11 @@ class ColorInputHexViewModel @AssistedInject constructor(
     ): Update<FullDataHex>? {
         val coreData = coreDataUpdate?.payload ?: return null
         val colorInput = ColorInput.Hex(string = coreData.textField.text.string)
-        val inputState = with(colorInputValidator) { colorInput.validate() }
+        val validationResult = with(colorInputValidator) { colorInput.validate() }
         val fullData = FullData(
             coreData = coreData,
             colorInput = colorInput,
-            colorInputState = inputState,
+            colorInputValidationResult = validationResult,
         )
         return Update(payload = fullData, causedByUser = coreDataUpdate.causedByUser)
     }
@@ -168,16 +170,8 @@ class ColorInputHexViewModel @AssistedInject constructor(
     private fun onEachFullDataUpdate(update: Update<FullDataHex>) {
         // don't synchronize this update with other Views to avoid update loop
         if (!update.causedByUser) return
-        val parsedColor = update.payload.colorInputState.getColorOrNull()
+        val parsedColor = update.payload.colorInputValidationResult.getColorOrNull()
         mediator.send(color = parsedColor, from = DomainColorInputType.Hex)
-    }
-
-    private fun onSubmitEventConsumed(wasAccepted: Boolean) {
-        val result = ColorSubmissionResult(
-            wasAccepted = wasAccepted,
-            discard = ::clearColorSubmissionResult,
-        )
-        _colorSubmissionResultFlow.value = result
     }
 
     private fun clearColorSubmissionResult() {
@@ -190,6 +184,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
             coroutineScope: CoroutineScope,
             mediator: ColorInputMediator,
             eventStore: ColorInputEventStore,
+            submitAction: ColorInputSubmitAction,
         ): ColorInputHexViewModel
     }
 

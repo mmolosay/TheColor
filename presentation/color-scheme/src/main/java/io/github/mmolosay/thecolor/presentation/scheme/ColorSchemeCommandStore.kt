@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import javax.inject.Inject
 
 /**
- * Storage that holds a [Flow] of [ColorSchemeCommand]s for a Color Scheme to handle.
+ * Storage that holds a [Flow] of [ColorSchemeCommand]s for a 'Color Scheme' to handle.
  */
 class ColorSchemeCommandStore @Inject constructor() : ColorSchemeCommandProvider {
 
@@ -24,7 +24,7 @@ interface ColorSchemeCommandProvider {
     val commandFlow: Flow<ColorSchemeCommand>
 }
 
-/** A command issued towards Color Scheme feature to be handled by it. */
+/** A command issued towards 'Color Scheme' feature to be handled by it. */
 sealed interface ColorSchemeCommand {
 
     /** Request to obtain data using specified parameters. */

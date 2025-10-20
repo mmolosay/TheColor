@@ -25,9 +25,6 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Casino
-import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
@@ -59,6 +56,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.layout.positionInRoot
@@ -66,6 +64,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
@@ -117,6 +116,7 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlin.random.Random
+import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 @Composable
 fun HomeScreen(
@@ -169,11 +169,11 @@ fun HomeScreen(
     }
 
     val flowOfUiState = remember {
-        val florOfColorPreviewData = viewModel.colorPreviewViewModel.dataFlow
+        val flowOfColorPreviewData = viewModel.colorPreviewViewModel.dataFlow
         val flowOfHomeData = viewModel.dataFlow
         fun actualUiState(): HomeUiState? {
             val isColorPreviewVisible = run {
-                val data = florOfColorPreviewData.value ?: return null
+                val data = flowOfColorPreviewData.value ?: return null
                 isColorPreviewVisible(data)
             }
             val isColorCenterVisible = run {
@@ -184,7 +184,7 @@ fun HomeScreen(
         }
         val signal = Any()
         combine(
-            florOfColorPreviewData,
+            flowOfColorPreviewData,
             flowOfHomeData,
             transform = { _, _ -> signal }, // discard values and just emit "something has changed" signal
         )
@@ -516,7 +516,7 @@ private fun RandomizeColorButton(
             modifier = Modifier
                 .size(20.dp)
                 .rotate(animatedRotation),
-            imageVector = Icons.Outlined.Casino,
+            imageVector = ImageVector.vectorResource(DesignR.drawable.ic_dice),
             contentDescription = iconContentDesc,
         )
     }
@@ -623,7 +623,7 @@ private fun TopBar(
         actions = {
             IconButton(onClick = debouncedOnSettingsClick) {
                 Icon(
-                    imageVector = Icons.Rounded.Settings,
+                    imageVector = ImageVector.vectorResource(DesignR.drawable.ic_settings),
                     contentDescription = settingsIconContentDesc,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

@@ -7,6 +7,7 @@ import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.api.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.api.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexViewModel
 import io.github.mmolosay.thecolor.presentation.input.impl.rgb.ColorInputRgbViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -31,6 +32,7 @@ class ColorInputViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     @Assisted eventStore: ColorInputEventStore,
     @Assisted mediator: ColorInputMediator,
+    @Assisted submitAction: ColorInputSubmitAction,
     hexViewModelFactory: ColorInputHexViewModel.Factory,
     rgbViewModelFactory: ColorInputRgbViewModel.Factory,
     private val userPreferencesRepository: UserPreferencesRepository,
@@ -45,6 +47,7 @@ class ColorInputViewModel @AssistedInject constructor(
             coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
             mediator = mediator,
             eventStore = eventStore,
+            submitAction = submitAction,
         )
 
     val rgbViewModel: ColorInputRgbViewModel =
@@ -52,6 +55,7 @@ class ColorInputViewModel @AssistedInject constructor(
             coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
             mediator = mediator,
             eventStore = eventStore,
+            submitAction = submitAction,
         )
 
     init {
@@ -100,8 +104,9 @@ class ColorInputViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            colorInputEventStore: ColorInputEventStore,
-            colorInputMediator: ColorInputMediator,
+            eventStore: ColorInputEventStore,
+            mediator: ColorInputMediator,
+            submitAction: ColorInputSubmitAction,
         ): ColorInputViewModel
     }
 }

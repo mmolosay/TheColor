@@ -14,6 +14,7 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import javax.inject.Inject
 import javax.inject.Provider
 
 /**
@@ -22,10 +23,44 @@ import javax.inject.Provider
  * and for creating new components.
  */
 /* private for HomeViewModel */
-// TODO: extract creation into a factory?
 class ColorCenterComponentsStore @AssistedInject constructor(
     @Assisted private val viewModelScope: CoroutineScope,
+    private val factory: ColorCenterComponentsFactory,
+) {
 
+    private val _componentsFlow = MutableStateFlow<ColorCenterComponents?>(null)
+    val componentsFlow = _componentsFlow.asStateFlow()
+
+    @Synchronized
+    fun createNewComponents() {
+        disposeComponents() // dispose of current components if there are any
+        val components = factory.create()
+        _componentsFlow.value = components
+    }
+
+    @Synchronized
+    fun disposeComponents() {
+        val components = components ?: return
+        components.colorCenterViewModel.dispose() // will also dispose of its child ViewModels
+        _componentsFlow.value = null
+    }
+
+    private fun ColorCenterComponentsFactory.create(): ColorCenterComponents =
+        this.create(viewModelScope)
+
+    @AssistedFactory
+    fun interface Factory {
+        fun create(
+            viewModelScope: CoroutineScope,
+        ): ColorCenterComponentsStore
+    }
+}
+
+val ColorCenterComponentsStore.components: ColorCenterComponents?
+    get() = this.componentsFlow.value
+
+/* private for ColorCenterComponentsStore */
+class ColorCenterComponentsFactory @Inject constructor(
     private val colorDetailsCommandStoreProvider: Provider<ColorDetailsCommandStore>,
     private val colorDetailsEventStoreProvider: Provider<ColorDetailsEventStore>,
     private val colorDetailsViewModelFactory: ColorDetailsViewModel.Factory,
@@ -37,24 +72,7 @@ class ColorCenterComponentsStore @AssistedInject constructor(
     private val colorCenterViewModelFactory: ColorCenterViewModel.Factory,
 ) {
 
-    private val _componentsFlow = MutableStateFlow<ColorCenterComponents?>(null)
-    val componentsFlow = _componentsFlow.asStateFlow()
-
-    @Synchronized
-    fun createNewComponents() {
-        disposeComponents() // dispose of current components if there are any
-        val components = ColorCenterComponents()
-        _componentsFlow.value = components
-    }
-
-    @Synchronized
-    fun disposeComponents() {
-        val components = components ?: return
-        components.colorCenterViewModel.dispose() // will also dispose of its child ViewModels
-        _componentsFlow.value = null
-    }
-
-    private fun ColorCenterComponents(): ColorCenterComponents {
+    fun create(viewModelScope: CoroutineScope): ColorCenterComponents {
         val colorCenterViewModelCoroutineScope = ViewModelCoroutineScope(parent = viewModelScope)
         val colorDetailsCommandStore = colorDetailsCommandStoreProvider.get()
         val colorDetailsEventStore = colorDetailsEventStoreProvider.get()
@@ -96,17 +114,7 @@ class ColorCenterComponentsStore @AssistedInject constructor(
             selectedSwatchColorDetailsEventStore = selectedSwatchColorDetailsEventStore,
         )
     }
-
-    @AssistedFactory
-    fun interface Factory {
-        fun create(
-            viewModelScope: CoroutineScope,
-        ): ColorCenterComponentsStore
-    }
 }
-
-val ColorCenterComponentsStore.components: ColorCenterComponents?
-    get() = this.componentsFlow.value
 
 /**
  * A [ColorCenterViewModel] with the dependencies that it needs to be created via factory.

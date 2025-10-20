@@ -1,13 +1,14 @@
 package io.github.mmolosay.thecolor.presentation.settings.ui
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.RestartAlt
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import io.github.mmolosay.thecolor.presentation.settings.SettingsUiStrings
+import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 @Composable
 internal fun ResetPreferencesToDefaultAlertDialog(
@@ -31,7 +32,7 @@ internal fun ResetPreferencesToDefaultAlertDialog(
         onDismissRequest = onDismissRequest,
         icon = {
             Icon(
-                imageVector = Icons.Outlined.RestartAlt,
+                imageVector = ImageVector.vectorResource(DesignR.drawable.ic_restart_alt),
                 contentDescription = null, // purely decorative
             )
         },

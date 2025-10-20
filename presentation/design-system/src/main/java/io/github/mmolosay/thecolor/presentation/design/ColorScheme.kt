@@ -101,6 +101,18 @@ private val jungleColorScheme: MaterialColorScheme by lazy {
         surfaceContainerHighest = Color(0xFFE0E4DA),
         surfaceContainerLow = Color(0xFFF2F5EB),
         surfaceContainerLowest = Color(0xFFFFFFFF),
+        primaryFixed = Color(0xFF3C6838), // same as 'primary'
+        primaryFixedDim = Color.Unspecified,
+        onPrimaryFixed = Color(0xFFFFFFFF), // same as 'onPrimary'
+        onPrimaryFixedVariant = Color.Unspecified,
+        secondaryFixed = Color(0xFF53634E), // same as 'secondary'
+        secondaryFixedDim = Color.Unspecified,
+        onSecondaryFixed = Color(0xFFFFFFFF), // same as 'onSecondary'
+        onSecondaryFixedVariant = Color.Unspecified,
+        tertiaryFixed = Color(0xFF38656A), // same as 'tertiary'
+        tertiaryFixedDim = Color.Unspecified,
+        onTertiaryFixed = Color(0xFFFFFFFF), // same as 'onTertiary'
+        onTertiaryFixedVariant = Color.Unspecified,
     )
 }
 
@@ -142,6 +154,18 @@ private val midnightColorScheme: MaterialColorScheme by lazy {
         surfaceContainerHighest = Color(0xFF32353A),
         surfaceContainerLow = Color(0xFF181C20),
         surfaceContainerLowest = Color(0xFF0B0E12),
+        primaryFixed = Color(0xFF9CCBFB), // same as 'primary'
+        primaryFixedDim = Color.Unspecified,
+        onPrimaryFixed = Color(0xFF003354), // same as 'onPrimary'
+        onPrimaryFixedVariant = Color.Unspecified,
+        secondaryFixed = Color(0xFFB9C8DA), // same as 'secondary'
+        secondaryFixedDim = Color.Unspecified,
+        onSecondaryFixed = Color(0xFF243240), // same as 'onSecondary'
+        onSecondaryFixedVariant = Color.Unspecified,
+        tertiaryFixed = Color(0xFFD4BEE6), // same as 'tertiary'
+        tertiaryFixedDim = Color.Unspecified,
+        onTertiaryFixed = Color(0xFF392A49), // same as 'onTertiary'
+        onTertiaryFixedVariant = Color.Unspecified,
     )
 }
 
@@ -214,5 +238,17 @@ private fun lerp(
         surfaceContainerHighest = lerp { surfaceContainerHighest },
         surfaceContainerLow = lerp { surfaceContainerLow },
         surfaceContainerLowest = lerp { surfaceContainerLowest },
+        primaryFixed = lerp { primaryFixed },
+        primaryFixedDim = lerp { primaryFixedDim },
+        onPrimaryFixed = lerp { onPrimaryFixed },
+        onPrimaryFixedVariant = lerp { onPrimaryFixedVariant },
+        secondaryFixed = lerp { secondaryFixed },
+        secondaryFixedDim = lerp { secondaryFixedDim },
+        onSecondaryFixed = lerp { onSecondaryFixed },
+        onSecondaryFixedVariant = lerp { onSecondaryFixedVariant },
+        tertiaryFixed = lerp { tertiaryFixed },
+        tertiaryFixedDim = lerp { tertiaryFixedDim },
+        onTertiaryFixed = lerp { onTertiaryFixed },
+        onTertiaryFixedVariant = lerp { onTertiaryFixedVariant },
     )
 }

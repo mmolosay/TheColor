@@ -10,9 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.RestartAlt
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -30,8 +27,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -51,6 +50,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorScheme as DomainUiColorScheme
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeSet as DomainUiColorSchemeSet
+import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 @Composable
 fun SettingsScreen(
@@ -154,7 +154,7 @@ private fun TopBar(
                 onClick = debouncedNavigateBack,
             ) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                    imageVector = ImageVector.vectorResource(DesignR.drawable.ic_arrow_back),
                     contentDescription = strings.topBarGoBackIconDesc,
                 )
             }
@@ -164,12 +164,12 @@ private fun TopBar(
                 onClick = onResetPreferencesToDefaultClick,
             ) {
                 Icon(
-                    imageVector = Icons.Rounded.RestartAlt,
+                    imageVector = ImageVector.vectorResource(DesignR.drawable.ic_restart_alt),
                     contentDescription = strings.topBarResetPreferencesToDefaultIconDesc,
                 )
             }
         },
-        colors = TopAppBarDefaults.largeTopAppBarColors(),
+        colors = TopAppBarDefaults.topAppBarColors(),
         scrollBehavior = scrollBehavior,
     )
 }
@@ -202,18 +202,6 @@ fun Settings(
             )
             if (showSelectionDialog) {
                 val windowInsets = BottomSheetDefaults.windowInsets
-                /*
-                 * TODO: ModalBottomSheet invisible icons in dark status bar
-                 *  https://issuetracker.google.com/issues/362539765
-                 *  Fixed in androidx.compose.material3:material3:1.4.0-alpha03
-                 *  (version at the moment of writing is 1.3.1)
-                 */
-                /*
-                 * TODO: ModalBottomSheet adds light scrim to 3-button navigation bar
-                 *  https://issuetracker.google.com/issues/374013416
-                 *  Supposedly fixed in androidx.compose.material3:material3:1.4.0-alpha03
-                 *  (version at the moment of writing is 1.3.1)
-                 */
                 ModalBottomSheet(
                     onDismissRequest = { showSelectionDialog = false },
                     contentWindowInsets = { windowInsets.withoutBottom() },
@@ -246,18 +234,6 @@ fun Settings(
             )
             if (showSelectionDialog) {
                 val windowInsets = BottomSheetDefaults.windowInsets
-                /*
-                 * TODO: ModalBottomSheet invisible icons in dark status bar
-                 *  https://issuetracker.google.com/issues/362539765
-                 *  Fixed in androidx.compose.material3:material3:1.4.0-alpha03
-                 *  (version at the moment of writing is 1.3.1)
-                 */
-                /*
-                 * TODO: ModalBottomSheet adds light scrim to 3-button navigation bar
-                 *  https://issuetracker.google.com/issues/374013416
-                 *  Supposedly fixed in androidx.compose.material3:material3:1.4.0-alpha03
-                 *  (version at the moment of writing is 1.3.1)
-                 */
                 ModalBottomSheet(
                     onDismissRequest = { showSelectionDialog = false },
                     contentWindowInsets = { windowInsets.withoutBottom() },

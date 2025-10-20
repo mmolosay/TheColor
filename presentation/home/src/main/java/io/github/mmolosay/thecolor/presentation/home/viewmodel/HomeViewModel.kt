@@ -24,13 +24,11 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterSessio
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.CanProceed
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ColorSchemeSelectedSwatchData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModelDiModule.ChannelForColorPreview
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModelDiModule.GateForCollectColorCenterComponent
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModelDiModule.GateForDataUpdateGuard
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModelDiModule.GateForFlowOfColorCenterViewModel
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputValidationResult
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputViewModel
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
@@ -81,9 +79,6 @@ import javax.inject.Singleton
  * @param colorProcessedConfirmationChannelForColorPreview is passed to [ColorPreviewViewModel]
  * and is used to get notified when it has processed new color emitted from the color flow.
  * See [ColorPreviewViewModel] for details.
- *
- * @param gateForFlowOfColorCenterViewModel is used in unit tests to simulate a possible
- * delay when processing values from the upstream flow due to non-deterministic CPU scheduling.
  */
 @HiltViewModel
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -95,9 +90,7 @@ class HomeViewModel @Inject constructor(
     @ChannelForColorPreview private val colorProcessedConfirmationChannelForColorPreview: Channel<Color?>,
     colorPreviewViewModelFactory: ColorPreviewViewModel.Factory,
     colorCenterComponentsStoreFactory: ColorCenterComponentsStore.Factory,
-    @GateForFlowOfColorCenterViewModel gateForFlowOfColorCenterViewModel: SuspendGate,
-    @GateForCollectColorCenterComponent private val gateForCollectColorCenterComponent: SuspendGate,
-    @GateForDataUpdateGuard private val gateForDataUpdateGuard: SuspendGate,
+    private val gates: SuspendGates,
     private val createColorData: CreateColorDataUseCase,
     private val doesColorBelongToSession: DoesColorBelongToSessionUseCase,
     private val userPreferencesRepository: UserPreferencesRepository,
@@ -109,7 +102,7 @@ class HomeViewModel @Inject constructor(
     private val _dataFlow = MutableStateFlow(initialData())
     val dataFlow = _dataFlow.asStateFlow()
 
-    private val dataUpdateGuard = DataUpdateGuard(gate = gateForDataUpdateGuard)
+    private val dataUpdateGuard = DataUpdateGuard(gate = gates.gateForDataUpdateGuard)
     val flowOfIsDataBeingUpdated: StateFlow<Boolean> =
         dataUpdateGuard.flowOfIsDataBeingUpdated
 
@@ -126,8 +119,9 @@ class HomeViewModel @Inject constructor(
     val colorInputViewModel: ColorInputViewModel =
         colorInputViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
-            colorInputEventStore = colorInputEventStore,
-            colorInputMediator = colorInputMediator,
+            eventStore = colorInputEventStore,
+            mediator = colorInputMediator,
+            submitAction = ColorInputSubmitActionImpl(),
         )
 
     val colorPreviewViewModel: ColorPreviewViewModel =
@@ -144,23 +138,31 @@ class HomeViewModel @Inject constructor(
     private val componentsConsumerRegistry = ColorCenterComponentsConsumerRegistry()
 
     val colorCenterViewModelFlow: StateFlow<ColorCenterViewModel?> = kotlin.run {
-        var lastConsumedComponents: ColorCenterComponents? = null
+        val consumedComponents = mutableListOf<ColorCenterComponents?>()
+        val consumedComponentsMutex = Mutex()
         val componentsConsumedConfirmationChannel = kotlin.run {
             val consumerId = ConsumerId("colorCenterViewModelFlow")
             componentsConsumerRegistry.register(consumerId)
         }
         colorCenterComponentsStore.componentsFlow
             .transformLatest { components ->
-                gateForFlowOfColorCenterViewModel.awaitOpen()
-                lastConsumedComponents = components
+                gates.gateForFlowOfColorCenterViewModel.awaitOpen()
+                consumedComponentsMutex.withLock {
+                    consumedComponents += components
+                }
                 emit(components?.colorCenterViewModel)
             }
             .flowOn(defaultDispatcher)
             .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = null)
             .also { flow ->
                 viewModelScope.launch(defaultDispatcher) {
-                    flow.collectLatest {
-                        componentsConsumedConfirmationChannel.send(lastConsumedComponents)
+                    flow.collect {
+                        consumedComponentsMutex.withLock {
+                            consumedComponents.forEach { components ->
+                                componentsConsumedConfirmationChannel.send(components)
+                            }
+                            consumedComponents.clear()
+                        }
                     }
                 }
             }
@@ -171,7 +173,6 @@ class HomeViewModel @Inject constructor(
 
     init {
         collectColorsFromColorInput()
-        collectEventsFromColorInput()
         collectColorCenterComponents()
         maybeProceedWithLastSearchedColor()
     }
@@ -199,46 +200,6 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun collectEventsFromColorInput() =
-        viewModelScope.launch(defaultDispatcher) {
-            colorInputEventStore.eventFlow
-                .collect(::onEventFromColorInput)
-        }
-
-    private fun onEventFromColorInput(event: ColorInputEvent) {
-        when (event) {
-            is ColorInputEvent.Submitted -> {
-                val hasProceeded = onColorInputSubmitted(event.colorInputState)
-                event.onConsumed(wasAccepted = hasProceeded)
-            }
-        }
-    }
-
-    private fun onColorInputSubmitted(
-        colorInputState: ColorInputState,
-    ): Boolean {
-        if (colorInputState is ColorInputState.Valid) {
-            viewModelScope.launch(defaultDispatcher) {
-                dataUpdateGuard.withCounter {
-                    val color = colorInputState.color
-                    proceedInNewColorCenterSession(color, colorRole = null)
-                    componentsConsumerRegistry.suspendUntilAllConsumed()
-                }
-            }.also { job ->
-                job.setToJobWithProceed()
-            }
-            return true
-        } else {
-            _dataFlow.update {
-                val result = HomeData.ProceedResult.InvalidSubmittedColor(
-                    discard = ::clearProceedResult,
-                )
-                it.copy(proceedResult = result)
-            }
-            return false
-        }
-    }
-
     private fun collectColorCenterComponents() =
         viewModelScope.launch(defaultDispatcher) {
             val componentsConsumedConfirmationChannel = kotlin.run {
@@ -262,14 +223,13 @@ class HomeViewModel @Inject constructor(
                         }
                     }
                     launch {
-                        gateForCollectColorCenterComponent.awaitOpen()
+                        gates.gateForCollectColorCenterComponent.awaitOpen()
                         componentsConsumedConfirmationChannel.send(components)
                     }
                 }
             }
         }
 
-    // TODO: test me after refactoring
     private fun onEventFromColorDetailsOfColorCenter(event: ColorDetailsEvent) {
         when (event) {
             is ColorDetailsEvent.ColorSelected ->
@@ -511,10 +471,48 @@ class HomeViewModel @Inject constructor(
         val sessionState = ccSessionStore.sessionState
         return when (sessionState) {
             is SessionState.NoSession -> false // no session -> nothing to belong to
-            is SessionState.BeingBuilt -> (sessionState.seed == color)
+            is SessionState.BeingBuilt -> (sessionState.seed == color) // started this session
             is SessionState.Ongoing -> with(doesColorBelongToSession) { color doesBelongTo sessionState.session }
         }
     }
+
+    private inner class ColorInputSubmitActionImpl : ColorInputSubmitAction {
+        override fun invoke(
+            colorInput: ColorInput,
+            validationResult: ColorInputValidationResult,
+        ): Boolean {
+            when (validationResult) {
+                is ColorInputValidationResult.Valid -> {
+                    viewModelScope.launch(defaultDispatcher) {
+                        dataUpdateGuard.withCounter {
+                            val color = validationResult.color
+                            proceedInNewColorCenterSession(color, colorRole = null)
+                            componentsConsumerRegistry.suspendUntilAllConsumed()
+                        }
+                    }.also { job ->
+                        job.setToJobWithProceed()
+                    }
+                    return true
+                }
+                is ColorInputValidationResult.Invalid -> {
+                    _dataFlow.update {
+                        val result = HomeData.ProceedResult.InvalidSubmittedColor(
+                            discard = ::clearProceedResult,
+                        )
+                        it.copy(proceedResult = result)
+                    }
+                    return false
+                }
+            }
+        }
+    }
+
+    /** A collection of [SuspendGate]s for [HomeViewModel]. */
+    data class SuspendGates(
+        val gateForFlowOfColorCenterViewModel: SuspendGate,
+        val gateForCollectColorCenterComponent: SuspendGate,
+        val gateForDataUpdateGuard: SuspendGate,
+    )
 }
 
 @Module
@@ -531,31 +529,12 @@ internal object HomeViewModelDiModule {
     annotation class ChannelForColorPreview
 
     @Provides
-    @GateForFlowOfColorCenterViewModel
-    fun provideGateForFlowOfColorCenterViewModel(): SuspendGate =
-        OpenSuspendGate
-
-    @Qualifier
-    @Retention(AnnotationRetention.BINARY)
-    annotation class GateForFlowOfColorCenterViewModel
-
-    @Provides
-    @GateForCollectColorCenterComponent
-    fun provideGateForCollectColorCenterComponent(): SuspendGate =
-        OpenSuspendGate
-
-    @Qualifier
-    @Retention(AnnotationRetention.BINARY)
-    annotation class GateForCollectColorCenterComponent
-
-    @Provides
-    @GateForDataUpdateGuard
-    fun provideGateForDataUpdateGuard(): SuspendGate =
-        OpenSuspendGate
-
-    @Qualifier
-    @Retention(AnnotationRetention.BINARY)
-    annotation class GateForDataUpdateGuard
+    fun provideSuspendGates(): HomeViewModel.SuspendGates =
+        HomeViewModel.SuspendGates(
+            gateForFlowOfColorCenterViewModel = OpenSuspendGate,
+            gateForCollectColorCenterComponent = OpenSuspendGate,
+            gateForDataUpdateGuard = OpenSuspendGate,
+        )
 }
 
 /**

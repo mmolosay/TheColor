@@ -4,7 +4,7 @@ import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.ColorPrototype
 import io.github.mmolosay.thecolor.domain.usecase.ColorFactory
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputValidationResult
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
@@ -23,9 +23,9 @@ class ColorInputValidatorTest {
 
     @ParameterizedTest
     @MethodSource("data")
-    fun `validating given 'ColorInput' produces expected 'ColorInputState'`(
+    fun `validating given 'ColorInput' produces expected 'ColorInputValidationResult'`(
         givenColorInput: ColorInput,
-        expectedColorInputState: ColorInputState,
+        expectedColorInputValidationResult: ColorInputValidationResult,
         sutDependencies: SutDependencies?,
     ) {
         if (sutDependencies != null) {
@@ -37,9 +37,9 @@ class ColorInputValidatorTest {
             } returns sutDependencies.parsedColorFromColorFactory
         }
 
-        val resultState = with(sut) { givenColorInput.validate() }
+        val validationResult = with(sut) { givenColorInput.validate() }
 
-        resultState shouldBe expectedColorInputState
+        validationResult shouldBe expectedColorInputValidationResult
     }
 
     data class SutDependencies(
@@ -54,7 +54,7 @@ class ColorInputValidatorTest {
             /* #0 */
             TestCase(
                 givenColorInput = ColorInput.Hex(""),
-                expectedColorInputState = ColorInputState.Invalid(
+                expectedColorInputValidationResult = ColorInputValidationResult.Invalid(
                     isEmpty = true,
                     isCompleteFromUserPerspective = false,
                 ),
@@ -62,7 +62,7 @@ class ColorInputValidatorTest {
             /* #1 */
             TestCase(
                 givenColorInput = ColorInput.Hex("0"),
-                expectedColorInputState = ColorInputState.Invalid(
+                expectedColorInputValidationResult = ColorInputValidationResult.Invalid(
                     isEmpty = false,
                     isCompleteFromUserPerspective = false,
                 ),
@@ -70,7 +70,7 @@ class ColorInputValidatorTest {
             /* #2 */
             TestCase(
                 givenColorInput = ColorInput.Hex("01"),
-                expectedColorInputState = ColorInputState.Invalid(
+                expectedColorInputValidationResult = ColorInputValidationResult.Invalid(
                     isEmpty = false,
                     isCompleteFromUserPerspective = false,
                 ),
@@ -81,7 +81,7 @@ class ColorInputValidatorTest {
                 val parsedColorFromColorFactory: Color = mockk()
                 TestCase(
                     givenColorInput = ColorInput.Hex("012"),
-                    expectedColorInputState = ColorInputState.Valid(color = parsedColorFromColorFactory),
+                    expectedColorInputValidationResult = ColorInputValidationResult.Valid(color = parsedColorFromColorFactory),
                     sutDependencies = SutDependencies(
                         prototypeFromColorInputMapper,
                         parsedColorFromColorFactory,
@@ -94,7 +94,7 @@ class ColorInputValidatorTest {
                 val parsedColorFromColorFactory: Color? = null
                 TestCase(
                     givenColorInput = ColorInput.Hex("012xxx"),
-                    expectedColorInputState = ColorInputState.Invalid(
+                    expectedColorInputValidationResult = ColorInputValidationResult.Invalid(
                         isEmpty = false,
                         isCompleteFromUserPerspective = true,
                     ),
@@ -110,7 +110,7 @@ class ColorInputValidatorTest {
                 val parsedColorFromColorFactory: Color = mockk()
                 TestCase(
                     givenColorInput = ColorInput.Hex("012345"),
-                    expectedColorInputState = ColorInputState.Valid(color = parsedColorFromColorFactory),
+                    expectedColorInputValidationResult = ColorInputValidationResult.Valid(color = parsedColorFromColorFactory),
                     sutDependencies = SutDependencies(
                         prototypeFromColorInputMapper,
                         parsedColorFromColorFactory,
@@ -121,11 +121,11 @@ class ColorInputValidatorTest {
 
         data class TestCase(
             val givenColorInput: ColorInput,
-            val expectedColorInputState: ColorInputState,
+            val expectedColorInputValidationResult: ColorInputValidationResult,
             val sutDependencies: SutDependencies? = null,
         )
 
         fun TestCase.asArrayOfAnys(): Array<Any?> =
-            arrayOf(givenColorInput, expectedColorInputState, sutDependencies)
+            arrayOf(givenColorInput, expectedColorInputValidationResult, sutDependencies)
     }
 }

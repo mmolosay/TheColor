@@ -1,7 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.input.impl.model
 
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputValidationResult
 
 /**
  * Couples a [coreData] data which is exposed from ViewModel with various values that are
@@ -11,5 +11,5 @@ import io.github.mmolosay.thecolor.presentation.input.api.ColorInputState
 internal data class FullData<CoreData, ColorInputSpace : ColorInput>(
     val coreData: CoreData,
     val colorInput: ColorInputSpace,
-    val colorInputState: ColorInputState,
+    val colorInputValidationResult: ColorInputValidationResult,
 )
