@@ -138,7 +138,8 @@ class HomeViewModel @Inject constructor(
     private val componentsConsumerRegistry = ColorCenterComponentsConsumerRegistry()
 
     val colorCenterViewModelFlow: StateFlow<ColorCenterViewModel?> = kotlin.run {
-        var lastConsumedComponents: ColorCenterComponents? = null // TODO: may write-read pair be severed by another pair?
+        val consumedComponents = mutableListOf<ColorCenterComponents?>()
+        val consumedComponentsMutex = Mutex()
         val componentsConsumedConfirmationChannel = kotlin.run {
             val consumerId = ConsumerId("colorCenterViewModelFlow")
             componentsConsumerRegistry.register(consumerId)
@@ -146,15 +147,22 @@ class HomeViewModel @Inject constructor(
         colorCenterComponentsStore.componentsFlow
             .transformLatest { components ->
                 gates.gateForFlowOfColorCenterViewModel.awaitOpen()
-                lastConsumedComponents = components // TODO: write
+                consumedComponentsMutex.withLock {
+                    consumedComponents += components
+                }
                 emit(components?.colorCenterViewModel)
             }
             .flowOn(defaultDispatcher)
             .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = null)
             .also { flow ->
                 viewModelScope.launch(defaultDispatcher) {
-                    flow.collectLatest {
-                        componentsConsumedConfirmationChannel.send(lastConsumedComponents) // TODO: read
+                    flow.collect {
+                        consumedComponentsMutex.withLock {
+                            consumedComponents.forEach { components ->
+                                componentsConsumedConfirmationChannel.send(components)
+                            }
+                            consumedComponents.clear()
+                        }
                     }
                 }
             }
