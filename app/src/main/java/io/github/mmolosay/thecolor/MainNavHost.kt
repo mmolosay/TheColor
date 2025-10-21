@@ -9,6 +9,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearanceController
+import io.github.mmolosay.thecolor.presentation.devoptions.DevOptionsScreen
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeScreen
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.settings.SettingsViewModel
@@ -31,6 +32,10 @@ internal fun MainNavHost(
             rootNavBarAppearanceController = rootNavBarAppearanceController,
         )
         settings(
+            mainNavController = navController,
+        )
+
+        devOptions(
             mainNavController = navController,
         )
     }
@@ -61,6 +66,18 @@ private fun NavGraphBuilder.settings(
         val settingsViewModel: SettingsViewModel = hiltViewModel()
         SettingsScreen(
             viewModel = settingsViewModel,
+            navigateBack = mainNavController::popBackStack,
+            navigateToDevOptions = {
+                mainNavController.navigate(route = AppNavDest.DevOptions.route)
+            },
+        )
+    }
+
+private fun NavGraphBuilder.devOptions(
+    mainNavController: NavController,
+) =
+    composable(route = AppNavDest.DevOptions.route) {
+        DevOptionsScreen(
             navigateBack = mainNavController::popBackStack,
         )
     }

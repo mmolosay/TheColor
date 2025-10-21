@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="dev_options_top_bar_title">Developer options</string>
+    <string name="dev_options_top_bar_go_back_icon_desc">Go back</string>
+
+</resources>

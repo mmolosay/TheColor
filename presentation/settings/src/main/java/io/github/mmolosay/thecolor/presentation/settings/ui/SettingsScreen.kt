@@ -56,11 +56,13 @@ import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 fun SettingsScreen(
     viewModel: SettingsViewModel,
     navigateBack: () -> Unit,
+    navigateToDevOptions: () -> Unit,
 ) {
     val dataState by viewModel.dataStateFlow.collectAsStateWithLifecycle()
     SettingsScreen(
         dataState = dataState,
         navigateBack = navigateBack,
+        navigateToDevOptions = navigateToDevOptions,
     )
 }
 
@@ -68,6 +70,7 @@ fun SettingsScreen(
 fun SettingsScreen(
     dataState: DataState,
     navigateBack: () -> Unit,
+    navigateToDevOptions: () -> Unit,
 ) {
     when (dataState) {
         is DataState.Loading -> {
@@ -79,7 +82,8 @@ fun SettingsScreen(
         is DataState.Ready -> {
             SettingsScreen(
                 data = dataState.data,
-                navigateBack = navigateBack
+                navigateBack = navigateBack,
+                navigateToDevOptions = navigateToDevOptions,
             )
         }
     }
@@ -90,6 +94,7 @@ fun SettingsScreen(
 fun SettingsScreen(
     data: SettingsData,
     navigateBack: () -> Unit,
+    navigateToDevOptions: () -> Unit,
 ) {
     val strings = SettingsUiStrings(LocalContext.current)
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -127,6 +132,7 @@ fun SettingsScreen(
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
             data = data,
             strings = strings,
+            navigateToDevOptions = navigateToDevOptions,
         )
     }
 }
@@ -179,6 +185,7 @@ private fun TopBar(
 fun Settings(
     data: SettingsData,
     strings: SettingsUiStrings,
+    navigateToDevOptions: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -300,7 +307,7 @@ fun Settings(
             item("dev options") {
                 DevOptions(
                     title = strings.itemDevOptionsTitle,
-                    onClick = { /* TODO: open dev options screen */ },
+                    onClick = navigateToDevOptions,
                 )
             }
         }
@@ -367,6 +374,7 @@ private fun Preview() {
         SettingsScreen(
             data = previewData(),
             navigateBack = {},
+            navigateToDevOptions = {},
         )
     }
 }

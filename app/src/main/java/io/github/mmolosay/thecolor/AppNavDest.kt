@@ -17,4 +17,5 @@ package io.github.mmolosay.thecolor
 enum class AppNavDest(val route: String) {
     Home("home"),
     Settings("settings"),
+    DevOptions("dev-options"),
 }
