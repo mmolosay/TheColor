@@ -296,6 +296,16 @@ fun Settings(
             )
         }
 
+        if (data.isDevOptionsEnabled) {
+            item("dev options") {
+                DevOptions(
+                    title = strings.itemDevOptionsTitle,
+                    onClick = { /* TODO: open dev options screen */ },
+                )
+            }
+        }
+
+        // keep this item very last
         item("spacer for navigation bar") {
             val windowInsets = WindowInsets.systemBars.onlyBottom()
             // visually the spacer will seem bigger due to spacing Arrangement of LazyColumn()
@@ -390,4 +400,6 @@ private fun previewData() =
 
         isAutoProceedWithRandomizedColorsEnabled = true,
         changeAutoProceedWithRandomizedColorsEnablement = {},
+
+        isDevOptionsEnabled = true,
     )

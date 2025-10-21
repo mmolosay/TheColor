@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.asSingletonSet
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
+import io.github.mmolosay.thecolor.domain.usecase.IsDevOptionsEnabledUseCase
 import io.github.mmolosay.thecolor.domain.usecase.ResetUserPreferencesToDefaultUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
@@ -29,6 +30,7 @@ import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeSet
 class SettingsViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
     private val resetUserPreferencesToDefault: ResetUserPreferencesToDefaultUseCase,
+    private val isDevOptionsEnabled: IsDevOptionsEnabledUseCase,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -155,6 +157,8 @@ class SettingsViewModel @Inject constructor(
 
             isAutoProceedWithRandomizedColorsEnabled = autoProceedWithRandomizedColors.enabled,
             changeAutoProceedWithRandomizedColorsEnablement = ::updateAutoProceedWithRandomizedColorsEnablement,
+
+            isDevOptionsEnabled = isDevOptionsEnabled(),
         )
     }
 

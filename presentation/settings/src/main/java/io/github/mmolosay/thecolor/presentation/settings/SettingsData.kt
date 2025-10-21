@@ -30,4 +30,6 @@ data class SettingsData(
 
     val isAutoProceedWithRandomizedColorsEnabled: Boolean,
     val changeAutoProceedWithRandomizedColorsEnablement: (Boolean) -> Unit,
+
+    val isDevOptionsEnabled: Boolean,
 )

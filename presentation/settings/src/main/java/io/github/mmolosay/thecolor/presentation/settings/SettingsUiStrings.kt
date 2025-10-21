@@ -38,6 +38,7 @@ data class SettingsUiStrings(
     val itemSelectAllTextOnTextFieldFocusDesc: String,
     val itemAutoProceedWithRandomizedColorsTitle: String,
     val itemAutoProceedWithRandomizedColorsDesc: String,
+    val itemDevOptionsTitle: String,
 )
 
 fun SettingsUiStrings(context: Context) =
@@ -71,4 +72,5 @@ fun SettingsUiStrings(context: Context) =
         itemSelectAllTextOnTextFieldFocusDesc = context.getString(R.string.settings_item_select_all_text_on_text_field_focus_desc),
         itemAutoProceedWithRandomizedColorsTitle = context.getString(R.string.settings_item_auto_proceed_with_randomized_colors_title),
         itemAutoProceedWithRandomizedColorsDesc = context.getString(R.string.settings_item_auto_proceed_with_randomized_colors_desc),
+        itemDevOptionsTitle = context.getString(R.string.settings_item_dev_options_title),
     )
