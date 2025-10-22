@@ -12,11 +12,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.ContentPadding
+import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.Description
+import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.Title
+import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.ValueSpacing
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.settings.ui.ItemUiComponents.Description
-import io.github.mmolosay.thecolor.presentation.settings.ui.ItemUiComponents.Title
-import io.github.mmolosay.thecolor.presentation.settings.ui.UiComponents.DefaultItemContentPadding
-import io.github.mmolosay.thecolor.presentation.settings.ui.UiComponents.DefaultItemValueSpacing
 
 @Composable
 internal fun DynamicUiColors(
@@ -29,7 +29,7 @@ internal fun DynamicUiColors(
     Surface {
         Row(
             modifier = modifier
-                .padding(DefaultItemContentPadding)
+                .padding(ContentPadding)
                 .fillMaxWidth(),
         ) {
             Column(
@@ -39,7 +39,7 @@ internal fun DynamicUiColors(
                 Description(text = description)
             }
 
-            Spacer(modifier = Modifier.width(DefaultItemValueSpacing))
+            Spacer(modifier = Modifier.width(ValueSpacing))
             Switch(
                 modifier = Modifier.align(Alignment.CenterVertically),
                 checked = checked,

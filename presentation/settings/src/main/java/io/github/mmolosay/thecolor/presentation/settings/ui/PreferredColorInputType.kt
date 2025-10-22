@@ -18,13 +18,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.AnimatedTextValue
+import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.ContentPadding
+import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.Description
+import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.TextValue
+import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.Title
+import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.ValueSpacing
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.settings.ui.ItemUiComponents.AnimatedTextValue
-import io.github.mmolosay.thecolor.presentation.settings.ui.ItemUiComponents.Description
-import io.github.mmolosay.thecolor.presentation.settings.ui.ItemUiComponents.TextValue
-import io.github.mmolosay.thecolor.presentation.settings.ui.ItemUiComponents.Title
-import io.github.mmolosay.thecolor.presentation.settings.ui.UiComponents.DefaultItemContentPadding
-import io.github.mmolosay.thecolor.presentation.settings.ui.UiComponents.DefaultItemValueSpacing
 
 @Composable
 internal fun PreferredColorInputType(
@@ -39,7 +39,7 @@ internal fun PreferredColorInputType(
     ) {
         Row(
             modifier = modifier
-                .padding(DefaultItemContentPadding)
+                .padding(ContentPadding)
                 .fillMaxWidth(),
         ) {
             Column(
@@ -49,7 +49,7 @@ internal fun PreferredColorInputType(
                 Description(text = description)
             }
 
-            Spacer(modifier = Modifier.width(DefaultItemValueSpacing))
+            Spacer(modifier = Modifier.width(ValueSpacing))
             Box(
                 modifier = Modifier.align(Alignment.CenterVertically),
             ) {
