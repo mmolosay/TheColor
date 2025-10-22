@@ -38,6 +38,7 @@ dependencies {
     implementation(project(":utils"))
     implementation(project(":presentation:common:api"))
     implementation(project(":presentation:common:impl"))
+    implementation(project(":presentation:common:settings"))
     implementation(project(":presentation:design-system"))
 
     // Kotlin

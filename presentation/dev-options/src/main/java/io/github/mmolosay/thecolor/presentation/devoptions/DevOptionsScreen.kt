@@ -1,6 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.devoptions
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -52,7 +53,7 @@ fun DevOptionsScreen(
                 // consuming 'contentPadding' as window insets isn't needed here
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
 //            data = data,
-//            strings = strings,
+            strings = strings,
         )
     }
 }
@@ -103,14 +104,20 @@ private fun TopBar(
 
 @Composable
 fun DevOptions(
+    strings: DevOptionsUiStrings,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
-        modifier = modifier,
+        modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp), // TODO: same style as on Settings screen. Extract into a reusable component?
     ) {
         item("predictable random colors") {
-            Text("lol fr fr ibuprofen")
+            PredictableRandomColors(
+                title = strings.itemPredictableRandomColorsTitle,
+                description = strings.itemPredictableRandomColorsDesc,
+                value = "",
+                onClick = {},
+            )
         }
     }
 }
