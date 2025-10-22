@@ -1,6 +1,7 @@
-package io.github.mmolosay.thecolor.presentation.devoptions
+package io.github.mmolosay.thecolor.presentation.devoptions.ui
 
 import android.content.Context
+import io.github.mmolosay.thecolor.presentation.devoptions.R
 
 /**
  * Strings that are pre-defined in UI and don't come from ViewModel.

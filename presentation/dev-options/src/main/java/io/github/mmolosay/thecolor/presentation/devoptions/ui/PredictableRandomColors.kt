@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.devoptions
+package io.github.mmolosay.thecolor.presentation.devoptions.ui
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
