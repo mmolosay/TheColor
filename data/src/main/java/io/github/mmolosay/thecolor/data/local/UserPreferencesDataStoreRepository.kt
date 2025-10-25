@@ -324,7 +324,7 @@ private object ColorInputTypeMapper {
     init {
         val registeredTypes = valueToDtoStringMap.keys
         val allTypes = ColorInputType.entries.toSet()
-        check(registeredTypes == allTypes) { "You forgot to register new type" }
+        check(registeredTypes == allTypes) { "You forgot to register a new type" }
     }
 
     fun String.toColorInputType(): ColorInputType =
@@ -352,7 +352,7 @@ private object UiColorSchemeMapper {
     init {
         val registeredTypes = valueToDtoStringMap.keys
         val allTypes = UiColorScheme.entries.toSet()
-        check(registeredTypes == allTypes) { "You forgot to register new type" }
+        check(registeredTypes == allTypes) { "You forgot to register a new type" }
     }
 
     fun String.toUiColorScheme(): UiColorScheme =
