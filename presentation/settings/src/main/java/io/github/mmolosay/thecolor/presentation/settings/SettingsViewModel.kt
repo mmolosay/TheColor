@@ -36,7 +36,7 @@ class SettingsViewModel @Inject constructor(
 
     val dataStateFlow: StateFlow<DataState> =
         combine(
-            listOf(
+            flows = listOf(
                 userPreferencesRepository.flowOfColorInputType(),
                 userPreferencesRepository.flowOfAppUiColorSchemeSet(),
                 userPreferencesRepository.flowOfDynamicUiColors(),
