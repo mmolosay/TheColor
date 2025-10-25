@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import io.github.mmolosay.thecolor.data.local.utils.setOrRemoveValue
 import io.github.mmolosay.thecolor.domain.model.ColorInputType
 import io.github.mmolosay.thecolor.domain.model.UserPreferences
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.AutoProceedWithRandomizedColors
@@ -88,15 +89,10 @@ class UserPreferencesDataStoreRepository @Inject constructor(
 
     override suspend fun setColorInputType(value: ColorInputType?) {
         withContext(ioDispatcher) {
-            val dtoValue = with(ColorInputTypeMapper) { value?.toDtoString() }
-            val key = DataStoreKeys.ColorInputType
-            dataStore.edit { preferences ->
-                if (dtoValue != null) {
-                    preferences[key] = dtoValue
-                } else {
-                    preferences.remove(key)
-                }
-            }
+            dataStore.setOrRemoveValue(
+                key = DataStoreKeys.ColorInputType,
+                value = with(ColorInputTypeMapper) { value?.toDtoString() },
+            )
         }
     }
 
@@ -158,14 +154,10 @@ class UserPreferencesDataStoreRepository @Inject constructor(
 
     override suspend fun setDynamicUiColors(value: DynamicUiColors?) {
         withContext(ioDispatcher) {
-            dataStore.edit { preferences ->
-                val key = DataStoreKeys.DynamicUiColors
-                if (value != null) {
-                    preferences[key] = value.enabled
-                } else {
-                    preferences.remove(key)
-                }
-            }
+            dataStore.setOrRemoveValue(
+                key = DataStoreKeys.DynamicUiColors,
+                value = value?.enabled,
+            )
         }
     }
 
@@ -185,14 +177,10 @@ class UserPreferencesDataStoreRepository @Inject constructor(
 
     override suspend fun setResumeFromLastSearchedColorOnStartup(value: ResumeFromLastSearchedColorOnStartup?) {
         withContext(ioDispatcher) {
-            dataStore.edit { preferences ->
-                val key = DataStoreKeys.ShouldResumeFromLastSearchedColorOnStartup
-                if (value != null) {
-                    preferences[key] = value.enabled
-                } else {
-                    preferences.remove(key)
-                }
-            }
+            dataStore.setOrRemoveValue(
+                key = DataStoreKeys.ShouldResumeFromLastSearchedColorOnStartup,
+                value = value?.enabled,
+            )
         }
     }
 
@@ -212,14 +200,10 @@ class UserPreferencesDataStoreRepository @Inject constructor(
 
     override suspend fun setSmartBackspace(value: SmartBackspace?) {
         withContext(ioDispatcher) {
-            dataStore.edit { preferences ->
-                val key = DataStoreKeys.SmartBackspace
-                if (value != null) {
-                    preferences[key] = value.enabled
-                } else {
-                    preferences.remove(key)
-                }
-            }
+            dataStore.setOrRemoveValue(
+                key = DataStoreKeys.SmartBackspace,
+                value = value?.enabled,
+            )
         }
     }
 
@@ -239,14 +223,10 @@ class UserPreferencesDataStoreRepository @Inject constructor(
 
     override suspend fun setSelectAllTextOnTextFieldFocus(value: SelectAllTextOnTextFieldFocus?) {
         withContext(ioDispatcher) {
-            val key = DataStoreKeys.SelectAllTextOnTextFieldFocus
-            dataStore.edit { preferences ->
-                if (value != null) {
-                    preferences[key] = value.enabled
-                } else {
-                    preferences.remove(key)
-                }
-            }
+            dataStore.setOrRemoveValue(
+                key = DataStoreKeys.SelectAllTextOnTextFieldFocus,
+                value = value?.enabled,
+            )
         }
     }
 
@@ -266,14 +246,10 @@ class UserPreferencesDataStoreRepository @Inject constructor(
 
     override suspend fun setAutoProceedWithRandomizedColors(value: AutoProceedWithRandomizedColors?) {
         withContext(ioDispatcher) {
-            dataStore.edit { preferences ->
-                val key = DataStoreKeys.AutoProceedWithRandomizedColors
-                if (value != null) {
-                    preferences[key] = value.enabled
-                } else {
-                    preferences.remove(key)
-                }
-            }
+            dataStore.setOrRemoveValue(
+                value = value?.enabled,
+                key = DataStoreKeys.AutoProceedWithRandomizedColors,
+            )
         }
     }
 
