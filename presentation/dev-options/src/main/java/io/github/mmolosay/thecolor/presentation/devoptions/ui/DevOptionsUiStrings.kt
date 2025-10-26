@@ -12,6 +12,7 @@ import io.github.mmolosay.thecolor.presentation.devoptions.R
 data class DevOptionsUiStrings(
     val topBarTitle: String,
     val topBarGoBackIconDesc: String,
+
     val itemPredictableRandomColorsTitle: String,
     val itemPredictableRandomColorsDesc: String,
     val itemPredictableRandomColorsValueRandom: String,
@@ -25,6 +26,7 @@ fun DevOptionsUiStrings(context: Context) =
     DevOptionsUiStrings(
         topBarTitle = context.getString(R.string.dev_options_top_bar_title),
         topBarGoBackIconDesc = context.getString(R.string.dev_options_top_bar_go_back_icon_desc),
+
         itemPredictableRandomColorsTitle = context.getString(R.string.dev_options_item_predictable_random_colors_title),
         itemPredictableRandomColorsDesc = context.getString(R.string.dev_options_item_predictable_random_colors_desc),
         itemPredictableRandomColorsValueRandom = context.getString(R.string.dev_options_item_predictable_random_colors_value_random),
