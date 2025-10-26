@@ -7,7 +7,7 @@ import io.github.mmolosay.thecolor.domain.repository.LastSearchedColorRepository
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.domain.usecase.ColorComparator
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
-import io.github.mmolosay.thecolor.domain.usecase.ColorFactory
+import io.github.mmolosay.thecolor.domain.usecase.GetPredictableRandomColorUseCase
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommand
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommandStore
@@ -178,7 +178,7 @@ class HomeViewModelTest {
     val lastSearchedColorRepository: LastSearchedColorRepository = mockk {
         coEvery { setLastSearchedColor(color = any()) } just runs
     }
-    val colorFactory: ColorFactory = mockk()
+    val getPredictableRandomColor: GetPredictableRandomColorUseCase = mockk()
 
     lateinit var sut: HomeViewModel
 
@@ -1275,7 +1275,7 @@ class HomeViewModelTest {
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             val randomColor: Color.Hex = mockk()
-            every { colorFactory.random() } returns randomColor
+            every { getPredictableRandomColor() } returns randomColor
             val featureValue = DomainAutoProceedWithRandomizedColors(enabled = false)
             every { userPreferencesRepository.flowOfAutoProceedWithRandomizedColors() } returns MutableStateFlow(featureValue)
             createSut()
@@ -1294,7 +1294,7 @@ class HomeViewModelTest {
             val colorInputColorFlow = MutableStateFlow<Color?>(null)
             every { colorInputColorStore.colorFlow } returns colorInputColorFlow
             val randomColor: Color.Hex = mockk()
-            every { colorFactory.random() } returns randomColor
+            every { getPredictableRandomColor() } returns randomColor
             val featureValue = DomainAutoProceedWithRandomizedColors(enabled = true)
             every { userPreferencesRepository.flowOfAutoProceedWithRandomizedColors() } returns MutableStateFlow(featureValue)
             every { createColorData(color = any()) } returns mockk()
@@ -1336,7 +1336,7 @@ class HomeViewModelTest {
             doesColorBelongToSession = doesColorBelongToSession,
             userPreferencesRepository = userPreferencesRepository,
             lastSearchedColorRepository = lastSearchedColorRepository,
-            colorFactory = colorFactory,
+            getPredictableRandomColor = getPredictableRandomColor,
             defaultDispatcher = testDispatcher,
         ).also {
             sut = it

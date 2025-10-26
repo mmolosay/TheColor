@@ -10,7 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.repository.LastSearchedColorRepository
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
-import io.github.mmolosay.thecolor.domain.usecase.ColorFactory
+import io.github.mmolosay.thecolor.domain.usecase.GetPredictableRandomColorUseCase
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
 import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.api.ImmediateEventRelay
@@ -27,8 +27,8 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModelDiMo
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputValidationResult
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputSubmitAction
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputValidationResult
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputViewModel
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
@@ -95,7 +95,7 @@ class HomeViewModel @Inject constructor(
     private val doesColorBelongToSession: DoesColorBelongToSessionUseCase,
     private val userPreferencesRepository: UserPreferencesRepository,
     private val lastSearchedColorRepository: LastSearchedColorRepository,
-    private val colorFactory: ColorFactory,
+    private val getPredictableRandomColor: GetPredictableRandomColorUseCase,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -362,7 +362,7 @@ class HomeViewModel @Inject constructor(
 
     private fun randomizeColor() {
         viewModelScope.launch(defaultDispatcher) {
-            val color = colorFactory.random()
+            val color = getPredictableRandomColor()
             val shouldProceed = userPreferencesRepository
                 .flowOfAutoProceedWithRandomizedColors()
                 .first().enabled
