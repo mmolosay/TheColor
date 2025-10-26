@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.common.settings
+package io.github.mmolosay.thecolor.presentation.impl.settings
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedContentScope
@@ -49,20 +49,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.AnimatedTextValue
-import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.ContentPadding
-import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.DefaultLabel
-import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.Description
-import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.TextValue
-import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.Title
-import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.ValueSpacing
-import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.animatedAttentionBadge
+import io.github.mmolosay.thecolor.presentation.impl.settings.SettingsItemUiComponents.AnimatedTextValue
+import io.github.mmolosay.thecolor.presentation.impl.settings.SettingsItemUiComponents.ContentPadding
+import io.github.mmolosay.thecolor.presentation.impl.settings.SettingsItemUiComponents.DefaultLabel
+import io.github.mmolosay.thecolor.presentation.impl.settings.SettingsItemUiComponents.Description
+import io.github.mmolosay.thecolor.presentation.impl.settings.SettingsItemUiComponents.TextValue
+import io.github.mmolosay.thecolor.presentation.impl.settings.SettingsItemUiComponents.Title
+import io.github.mmolosay.thecolor.presentation.impl.settings.SettingsItemUiComponents.ValueSpacing
+import io.github.mmolosay.thecolor.presentation.impl.settings.SettingsItemUiComponents.animatedAttentionBadge
 import io.github.mmolosay.thecolor.presentation.design.ColorScheme
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.utils.doNothing
 
 /**
  * Common UI components for an individual item in a list of settings.
+ * For instance, an item on 'Settings' screen.
+ *
+ * At the moment of writing this, there are 'Settings' feature and 'Developer Options' feature.
+ * Both of them are presented on UI as screens with a list of items (individual settings).
  */
 object SettingsItemUiComponents {
 
@@ -124,11 +128,11 @@ object SettingsItemUiComponents {
             targetState = targetValue,
             transitionSpec = {
                 fun <T> animationSpec() = tween<T>(durationMillis = 400)
-                val enter = kotlin.run {
+                val enter = run {
                     val slideIn = slideInVertically(animationSpec()) { height -> -height }
                     slideIn + fadeIn(animationSpec())
                 }
-                val exit = kotlin.run {
+                val exit = run {
                     val slideOut = slideOutVertically(animationSpec()) { height -> height }
                     slideOut + fadeOut(animationSpec())
                 }

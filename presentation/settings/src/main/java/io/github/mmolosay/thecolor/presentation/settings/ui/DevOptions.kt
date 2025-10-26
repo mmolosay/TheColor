@@ -7,8 +7,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.ContentPadding
-import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.Title
+import io.github.mmolosay.thecolor.presentation.impl.settings.SettingsItemUiComponents.ContentPadding
+import io.github.mmolosay.thecolor.presentation.impl.settings.SettingsItemUiComponents.Title
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 
 @Composable
