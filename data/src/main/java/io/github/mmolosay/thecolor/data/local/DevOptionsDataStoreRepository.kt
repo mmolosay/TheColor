@@ -30,13 +30,10 @@ class DevOptionsDataStoreRepository @Inject constructor(
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
 ) : DevOptionsRepository {
 
-    private val flowOfPredictableRandomColors: StateFlow<PredictableRandomColors> =
+    override val flowOfPredictableRandomColors: StateFlow<PredictableRandomColors> =
         dataStore.data
             .map { it.getPredictableRandomColors() }
             .stateEagerlyInAppScope(initialValue = DefaultDevOptions.PredictableRandomColors)
-
-    override fun flowOfPredictableRandomColors(): StateFlow<PredictableRandomColors> =
-        flowOfPredictableRandomColors
 
     private fun Preferences.getPredictableRandomColors(): PredictableRandomColors {
         val dtoValue = this[DataStoreKeys.PredictableRandomColors]

@@ -35,7 +35,7 @@ class GetPredictableRandomColorUseCase @Inject constructor(
     }
 
     operator fun invoke(): Color {
-        val strategy = devOptionsRepository.flowOfPredictableRandomColors().value
+        val strategy = devOptionsRepository.flowOfPredictableRandomColors.value
         return when (strategy) {
             PredictableRandomColors.Random -> colorFactory.random()
             PredictableRandomColors.CyclingRgb -> cyclingRgb.next()

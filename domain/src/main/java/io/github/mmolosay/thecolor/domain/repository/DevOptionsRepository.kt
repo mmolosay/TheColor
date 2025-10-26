@@ -4,6 +4,6 @@ import io.github.mmolosay.thecolor.domain.model.DevOptions.PredictableRandomColo
 import kotlinx.coroutines.flow.StateFlow
 
 interface DevOptionsRepository {
-    fun flowOfPredictableRandomColors(): StateFlow<PredictableRandomColors>
+    val flowOfPredictableRandomColors: StateFlow<PredictableRandomColors>
     suspend fun setPredictableRandomColors(value: PredictableRandomColors?)
 }

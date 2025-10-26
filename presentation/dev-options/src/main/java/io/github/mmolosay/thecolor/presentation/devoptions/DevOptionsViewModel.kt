@@ -28,7 +28,7 @@ class DevOptionsViewModel @Inject constructor(
     val dataStateFlow: StateFlow<DataState> =
         combine(
             flows = listOf(
-                devOptionsRepository.flowOfPredictableRandomColors(),
+                devOptionsRepository.flowOfPredictableRandomColors,
             ),
             transform = ::createData,
         )
