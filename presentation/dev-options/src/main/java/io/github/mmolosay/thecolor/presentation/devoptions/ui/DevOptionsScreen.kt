@@ -36,8 +36,8 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.devoptions.DevOptionsData
 import io.github.mmolosay.thecolor.presentation.devoptions.DevOptionsViewModel
 import io.github.mmolosay.thecolor.presentation.devoptions.DevOptionsViewModel.DataState
-import io.github.mmolosay.thecolor.presentation.impl.onlyBottom
-import io.github.mmolosay.thecolor.presentation.impl.withoutBottom
+import io.github.mmolosay.thecolor.presentation.impl.compose.onlyBottom
+import io.github.mmolosay.thecolor.presentation.impl.compose.withoutBottom
 import kotlin.time.Duration.Companion.milliseconds
 import io.github.mmolosay.thecolor.domain.model.DevOptions.PredictableRandomColors as DomainPredictableRandomColors
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR

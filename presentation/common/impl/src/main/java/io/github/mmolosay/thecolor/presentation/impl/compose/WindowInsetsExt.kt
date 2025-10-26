@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.impl
+package io.github.mmolosay.thecolor.presentation.impl.compose
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides

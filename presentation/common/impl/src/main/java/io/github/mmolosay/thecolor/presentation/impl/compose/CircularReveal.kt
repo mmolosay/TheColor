@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.impl
+package io.github.mmolosay.thecolor.presentation.impl.compose
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.core.Animatable

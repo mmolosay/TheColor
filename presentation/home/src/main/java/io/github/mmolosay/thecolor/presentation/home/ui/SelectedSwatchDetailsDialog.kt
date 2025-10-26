@@ -34,10 +34,10 @@ import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsVi
 import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver
 import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent.EnteringForeground
 import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent.LeavingForeground
-import io.github.mmolosay.thecolor.presentation.impl.TintedSurface
-import io.github.mmolosay.thecolor.presentation.impl.onlyBottom
+import io.github.mmolosay.thecolor.presentation.impl.compose.TintedSurface
+import io.github.mmolosay.thecolor.presentation.impl.compose.onlyBottom
 import io.github.mmolosay.thecolor.presentation.impl.toLifecycleEventObserver
-import io.github.mmolosay.thecolor.presentation.impl.withoutBottom
+import io.github.mmolosay.thecolor.presentation.impl.compose.withoutBottom
 import io.github.mmolosay.thecolor.utils.doNothing
 
 @Composable
