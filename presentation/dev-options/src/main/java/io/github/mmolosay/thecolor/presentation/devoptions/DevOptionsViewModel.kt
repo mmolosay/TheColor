@@ -3,6 +3,7 @@ package io.github.mmolosay.thecolor.presentation.devoptions
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.mmolosay.thecolor.domain.repository.DefaultDevOptions
 import io.github.mmolosay.thecolor.domain.repository.DevOptionsRepository
 import io.github.mmolosay.thecolor.domain.usecase.ResetDevOptionsToDefaultUseCase
 import kotlinx.coroutines.CoroutineDispatcher
@@ -68,6 +69,7 @@ class DevOptionsViewModel @Inject constructor(
             resetValuesToDefault = ::resetValuesToDefault,
 
             predictableRandomColors = predictableRandomColors,
+            defaultPredictableRandomColors = DefaultDevOptions.PredictableRandomColors,
             changePredictableRandomColors = ::updatePredictableRandomColors,
         )
     }

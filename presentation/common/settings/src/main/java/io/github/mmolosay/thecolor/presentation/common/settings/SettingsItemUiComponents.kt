@@ -27,8 +27,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.AnimatedTextValue
 import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.ContentPadding
@@ -36,6 +43,7 @@ import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiCo
 import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.TextValue
 import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.Title
 import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.ValueSpacing
+import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.attentionBadge
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 
 /**
@@ -116,6 +124,31 @@ object SettingsItemUiComponents {
             label = "animated content of text value",
             content = content,
         )
+
+    val AttentionBadgeWidth = 4.dp
+    val AttentionBadgeColor: Color
+        @Composable get() = MaterialTheme.colorScheme.error
+
+    /*
+     * In new versions of Compose, it is now OK to mark Modifier factory functions with @Composable if it's required:
+     * https://developer.android.com/develop/ui/compose/custom-modifiers#create-custom
+     */
+    @Composable
+    fun Modifier.attentionBadge(
+        width: Dp = AttentionBadgeWidth,
+        color: Color = AttentionBadgeColor,
+    ): Modifier {
+        val density = LocalDensity.current
+        val widthPx = with(density) { width.toPx() }
+        return drawBehind {
+            drawRoundRect(
+                color = color,
+                topLeft = Offset.Zero - Offset(x = widthPx, y = 0f),
+                size = Size(width = widthPx * 2, height = this.size.height),
+                cornerRadius = CornerRadius(widthPx),
+            )
+        }
+    }
 }
 
 @Preview
@@ -131,6 +164,7 @@ private fun Preview() {
         ) {
             Row(
                 modifier = Modifier
+                    .attentionBadge()
                     .padding(ContentPadding)
                     .fillMaxWidth(),
             ) {

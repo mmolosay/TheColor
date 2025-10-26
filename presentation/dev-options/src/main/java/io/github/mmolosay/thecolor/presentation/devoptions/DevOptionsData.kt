@@ -9,5 +9,6 @@ data class DevOptionsData(
     val resetValuesToDefault: () -> Unit,
 
     val predictableRandomColors: DomainPredictableRandomColors, // it's OK to use some domain models (like enums) in presentation layer
+    val defaultPredictableRandomColors: DomainPredictableRandomColors,
     val changePredictableRandomColors: (DomainPredictableRandomColors) -> Unit,
 )

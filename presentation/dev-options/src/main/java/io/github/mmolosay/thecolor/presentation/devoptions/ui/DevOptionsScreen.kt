@@ -189,6 +189,7 @@ fun DevOptions(
                 title = strings.itemPredictableRandomColorsTitle,
                 description = strings.itemPredictableRandomColorsDesc,
                 value = data.predictableRandomColors.toShortUiString(strings),
+                showAttentionBadge = (data.predictableRandomColors != data.defaultPredictableRandomColors),
                 onClick = { showSelectionDialog = true },
             )
             if (showSelectionDialog) {
@@ -244,5 +245,6 @@ private fun previewData() =
         resetValuesToDefault = {},
 
         predictableRandomColors = DomainPredictableRandomColors.CyclingLightDark,
+        defaultPredictableRandomColors = DomainPredictableRandomColors.Random,
         changePredictableRandomColors = {},
     )

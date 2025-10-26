@@ -24,13 +24,16 @@ import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiCo
 import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.TextValue
 import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.Title
 import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.ValueSpacing
+import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.attentionBadge
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
+import io.github.mmolosay.thecolor.presentation.impl.thenIf
 
 @Composable
 internal fun PredictableRandomColors(
     title: String,
     description: String,
     value: String,
+    showAttentionBadge: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -39,6 +42,9 @@ internal fun PredictableRandomColors(
     ) {
         Row(
             modifier = modifier
+                .thenIf(showAttentionBadge) {
+                    attentionBadge()
+                }
                 .padding(ContentPadding)
                 .fillMaxWidth(),
         ) {
@@ -120,6 +126,7 @@ private fun PredictableRandomColorsPreview() {
             title = "Predictable random colors",
             description = "Change the strategy of how random colors are produced.",
             value = "Random",
+            showAttentionBadge = true,
             onClick = {},
         )
     }
