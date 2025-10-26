@@ -22,7 +22,6 @@ import javax.inject.Singleton
 /**
  * Implementation of [DevOptionsRepository] powered by DataStore library.
  */
-// TODO: manually instantiate this class via @Provides method to avoid unnecessary instantiation on app startup in builds where dev options are not enabled
 @Singleton
 class DevOptionsDataStoreRepository @Inject constructor(
     @Named("DevOptions") private val dataStore: DataStore<Preferences>,
