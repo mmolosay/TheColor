@@ -28,7 +28,7 @@ class TextFieldViewModelTest {
     val coroutineScope = CoroutineScope(testDispatcher)
 
     val userPreferencesRepository: UserPreferencesRepository = mockk {
-        every { flowOfSelectAllTextOnTextFieldFocus() } returns kotlin.run {
+        every { flowOfSelectAllTextOnTextFieldFocus } returns kotlin.run {
             val value = DomainSelectAllTextOnTextFieldFocus(enabled = false)
             flowOf(value)
         }
@@ -56,7 +56,7 @@ class TextFieldViewModelTest {
     fun `data is never initialized when text is changed but 'select all text on text field focus' preference wasn't obtained`() {
         val flowOfSelectAllTextOnTextFieldFocus =
             MutableSharedFlow<DomainSelectAllTextOnTextFieldFocus>() // initially empty
-        every { userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus() } returns
+        every { userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus } returns
                 flowOfSelectAllTextOnTextFieldFocus
         createSut()
 
@@ -167,7 +167,7 @@ class TextFieldViewModelTest {
         runTest(testDispatcher) {
             val flowOfSelectAllTextOnTextFieldFocus =
                 MutableSharedFlow<DomainSelectAllTextOnTextFieldFocus>() // initially empty
-            every { userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus() } returns
+            every { userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus } returns
                     flowOfSelectAllTextOnTextFieldFocus
             createSut()
             sut updateText Text("initial")

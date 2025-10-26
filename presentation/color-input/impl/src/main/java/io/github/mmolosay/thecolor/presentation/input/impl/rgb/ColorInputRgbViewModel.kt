@@ -108,7 +108,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                 rTextFieldVm.dataUpdatesFlow,
                 gTextFieldVm.dataUpdatesFlow,
                 bTextFieldVm.dataUpdatesFlow,
-                userPreferencesRepository.flowOfSmartBackspace(),
+                userPreferencesRepository.flowOfSmartBackspace,
                 ::makeDataUpdate,
             )
                 .collect(dataUpdateFlow)

@@ -293,7 +293,7 @@ class HomeViewModel @Inject constructor(
     private fun maybeProceedWithLastSearchedColor() {
         viewModelScope.launch(defaultDispatcher) {
             val resumeFromLastSearchedColorOnStartup = userPreferencesRepository
-                .flowOfResumeFromLastSearchedColorOnStartup()
+                .flowOfResumeFromLastSearchedColorOnStartup
                 .first()
             val enabled = resumeFromLastSearchedColorOnStartup.enabled
             if (!enabled) return@launch
@@ -364,7 +364,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch(defaultDispatcher) {
             val color = getPredictableRandomColor()
             val shouldProceed = userPreferencesRepository
-                .flowOfAutoProceedWithRandomizedColors()
+                .flowOfAutoProceedWithRandomizedColors
                 .first().enabled
             if (shouldProceed) {
                 dataUpdateGuard.withCounter {

@@ -58,7 +58,7 @@ class ColorInputHexViewModelTest {
     val submitAction: ColorInputSubmitAction = mockk()
 
     val userPreferencesRepository: UserPreferencesRepository = mockk {
-        every { flowOfSelectAllTextOnTextFieldFocus() } returns kotlin.run {
+        every { flowOfSelectAllTextOnTextFieldFocus } returns kotlin.run {
             val value = DomainSelectAllTextOnTextFieldFocus(enabled = false)
             flowOf(value)
         }

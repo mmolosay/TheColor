@@ -60,11 +60,11 @@ class ColorInputRgbViewModelTest {
     val submitAction: ColorInputSubmitAction = mockk()
 
     val userPreferencesRepository: UserPreferencesRepository = mockk {
-        every { flowOfSelectAllTextOnTextFieldFocus() } returns kotlin.run {
+        every { flowOfSelectAllTextOnTextFieldFocus } returns kotlin.run {
             val value = SelectAllTextOnTextFieldFocus(enabled = false)
             flowOf(value)
         }
-        every { flowOfSmartBackspace() } returns kotlin.run {
+        every { flowOfSmartBackspace } returns kotlin.run {
             val value = DomainSmartBackspace(enabled = false)
             flowOf(value)
         }
@@ -114,7 +114,7 @@ class ColorInputRgbViewModelTest {
     fun `state becomes Ready when 'smart backspace' value is emitted`() =
         runTest(testDispatcher) {
             val flowOfSmartBackspace = MutableSharedFlow<DomainSmartBackspace>()
-            every { userPreferencesRepository.flowOfSmartBackspace() } returns flowOfSmartBackspace
+            every { userPreferencesRepository.flowOfSmartBackspace } returns flowOfSmartBackspace
             createSut()
             dataState should beOfType<DataState.BeingInitialized>() // confirm that isn't 'Ready' yet
 
@@ -222,7 +222,7 @@ class ColorInputRgbViewModelTest {
         runTest(testDispatcher) {
             val flowOfSmartBackspace =
                 MutableStateFlow(value = DomainSmartBackspace(enabled = false))
-            every { userPreferencesRepository.flowOfSmartBackspace() } returns flowOfSmartBackspace
+            every { userPreferencesRepository.flowOfSmartBackspace } returns flowOfSmartBackspace
             createSut()
             data.isSmartBackspaceEnabled shouldBe false
 

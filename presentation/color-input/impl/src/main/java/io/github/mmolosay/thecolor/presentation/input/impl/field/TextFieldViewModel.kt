@@ -49,7 +49,7 @@ class TextFieldViewModel @AssistedInject constructor(
 
     private fun collectSelectAllTextOnTextFieldFocusPreference() {
         coroutineScope.launch(defaultDispatcher) {
-            userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus().collect { preference ->
+            userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus.collect { preference ->
                 _dataUpdatesFlow.update { update ->
                     if (update == null) return@update null
                     update.map {
@@ -115,7 +115,7 @@ class TextFieldViewModel @AssistedInject constructor(
             filterUserInput = filterUserInput,
             trailingButton = trailingButton(text),
             shouldSelectAllTextOnFocus = userPreferencesRepository
-                .flowOfSelectAllTextOnTextFieldFocus()
+                .flowOfSelectAllTextOnTextFieldFocus
                 .first().enabled,
         )
 

@@ -37,13 +37,13 @@ class SettingsViewModel @Inject constructor(
     val dataStateFlow: StateFlow<DataState> =
         combine(
             flows = listOf(
-                userPreferencesRepository.flowOfColorInputType(),
-                userPreferencesRepository.flowOfAppUiColorSchemeSet(),
-                userPreferencesRepository.flowOfDynamicUiColors(),
-                userPreferencesRepository.flowOfResumeFromLastSearchedColorOnStartup(),
-                userPreferencesRepository.flowOfSmartBackspace(),
-                userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus(),
-                userPreferencesRepository.flowOfAutoProceedWithRandomizedColors(),
+                userPreferencesRepository.flowOfColorInputType,
+                userPreferencesRepository.flowOfAppUiColorSchemeSet,
+                userPreferencesRepository.flowOfDynamicUiColors,
+                userPreferencesRepository.flowOfResumeFromLastSearchedColorOnStartup,
+                userPreferencesRepository.flowOfSmartBackspace,
+                userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus,
+                userPreferencesRepository.flowOfAutoProceedWithRandomizedColors,
             ),
             transform = ::createData,
         )

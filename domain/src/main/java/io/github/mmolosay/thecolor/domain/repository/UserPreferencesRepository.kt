@@ -10,24 +10,24 @@ import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeSet
 import kotlinx.coroutines.flow.Flow
 
 interface UserPreferencesRepository {
-    fun flowOfColorInputType(): Flow<ColorInputType>
+    val flowOfColorInputType: Flow<ColorInputType>
     suspend fun setColorInputType(value: ColorInputType?)
 
-    fun flowOfAppUiColorSchemeSet(): Flow<UiColorSchemeSet>
+    val flowOfAppUiColorSchemeSet: Flow<UiColorSchemeSet>
     suspend fun setAppUiColorSchemeSet(value: UiColorSchemeSet?)
 
-    fun flowOfDynamicUiColors(): Flow<DynamicUiColors>
+    val flowOfDynamicUiColors: Flow<DynamicUiColors>
     suspend fun setDynamicUiColors(value: DynamicUiColors?)
 
-    fun flowOfResumeFromLastSearchedColorOnStartup(): Flow<ResumeFromLastSearchedColorOnStartup>
+    val flowOfResumeFromLastSearchedColorOnStartup: Flow<ResumeFromLastSearchedColorOnStartup>
     suspend fun setResumeFromLastSearchedColorOnStartup(value: ResumeFromLastSearchedColorOnStartup?)
 
-    fun flowOfSmartBackspace(): Flow<SmartBackspace>
+    val flowOfSmartBackspace: Flow<SmartBackspace>
     suspend fun setSmartBackspace(value: SmartBackspace?)
 
-    fun flowOfSelectAllTextOnTextFieldFocus(): Flow<SelectAllTextOnTextFieldFocus>
+    val flowOfSelectAllTextOnTextFieldFocus: Flow<SelectAllTextOnTextFieldFocus>
     suspend fun setSelectAllTextOnTextFieldFocus(value: SelectAllTextOnTextFieldFocus?)
 
-    fun flowOfAutoProceedWithRandomizedColors(): Flow<AutoProceedWithRandomizedColors>
+    val flowOfAutoProceedWithRandomizedColors: Flow<AutoProceedWithRandomizedColors>
     suspend fun setAutoProceedWithRandomizedColors(value: AutoProceedWithRandomizedColors?)
 }

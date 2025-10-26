@@ -17,10 +17,10 @@ class MainViewModel @Inject constructor(
 
     val flowOfAppUiColorSchemeResolver: Flow<ColorSchemeResolver> =
         userPreferencesRepository
-            .flowOfAppUiColorSchemeSet()
+            .flowOfAppUiColorSchemeSet
             .map { it.toPresentation() }
 
     val flowOfDynamicUiColors: Flow<DomainDynamicUiColors> =
         userPreferencesRepository
-            .flowOfDynamicUiColors()
+            .flowOfDynamicUiColors
 }

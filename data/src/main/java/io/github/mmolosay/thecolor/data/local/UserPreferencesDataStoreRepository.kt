@@ -40,43 +40,11 @@ class UserPreferencesDataStoreRepository @Inject constructor(
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
 ) : UserPreferencesRepository {
 
-    private val stateFlowOfColorInputType: StateFlow<ColorInputType?> =
+    override val flowOfColorInputType: Flow<ColorInputType> =
         dataStore.data
             .map { it.getColorInputType() }
             .stateEagerlyInAppScope()
-
-    private val stateFlowOfAppUiColorSchemeSet: StateFlow<UiColorSchemeSet?> =
-        dataStore.data
-            .map { it.getAppUiColorSchemeSet() }
-            .stateEagerlyInAppScope()
-
-    private val stateFlowOfDynamicUiColors: StateFlow<DynamicUiColors?> =
-        dataStore.data
-            .map { it.getDynamicUiColors() }
-            .stateEagerlyInAppScope()
-
-    private val stateFlowOfResumeFromLastSearchedColorOnStartup: StateFlow<ResumeFromLastSearchedColorOnStartup?> =
-        dataStore.data
-            .map { it.getResumeFromLastSearchedColorOnStartup() }
-            .stateEagerlyInAppScope()
-
-    private val stateFlowOfSmartBackspace: StateFlow<SmartBackspace?> =
-        dataStore.data
-            .map { it.getSmartBackspace() }
-            .stateEagerlyInAppScope()
-
-    private val stateFlowOfSelectAllTextOnTextFieldFocus: StateFlow<SelectAllTextOnTextFieldFocus?> =
-        dataStore.data
-            .map { it.getSelectAllTextOnTextFieldFocus() }
-            .stateEagerlyInAppScope()
-
-    private val stateFlowOfAutoProceedWithRandomizedColors: StateFlow<AutoProceedWithRandomizedColors?> =
-        dataStore.data
-            .map { it.getAutoProceedWithRandomizedColors() }
-            .stateEagerlyInAppScope()
-
-    override fun flowOfColorInputType(): Flow<ColorInputType> =
-        stateFlowOfColorInputType.filterNotNull()
+            .filterNotNull()
 
     private fun Preferences.getColorInputType(): ColorInputType {
         val dtoValue = this[DataStoreKeys.ColorInputType]
@@ -96,8 +64,11 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         }
     }
 
-    override fun flowOfAppUiColorSchemeSet(): Flow<UiColorSchemeSet> =
-        stateFlowOfAppUiColorSchemeSet.filterNotNull()
+    override val flowOfAppUiColorSchemeSet: Flow<UiColorSchemeSet> =
+        dataStore.data
+            .map { it.getAppUiColorSchemeSet() }
+            .stateEagerlyInAppScope()
+            .filterNotNull()
 
     private fun Preferences.getAppUiColorSchemeSet(): UiColorSchemeSet {
         fun defaultValue() = DefaultUserPreferences.AppUiColorSchemeSet
@@ -140,8 +111,11 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         }
     }
 
-    override fun flowOfDynamicUiColors(): Flow<DynamicUiColors> =
-        stateFlowOfDynamicUiColors.filterNotNull()
+    override val flowOfDynamicUiColors: Flow<DynamicUiColors> =
+        dataStore.data
+            .map { it.getDynamicUiColors() }
+            .stateEagerlyInAppScope()
+            .filterNotNull()
 
     private fun Preferences.getDynamicUiColors(): DynamicUiColors {
         val dtoValue = this[DataStoreKeys.DynamicUiColors]
@@ -161,8 +135,11 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         }
     }
 
-    override fun flowOfResumeFromLastSearchedColorOnStartup(): Flow<ResumeFromLastSearchedColorOnStartup> =
-        stateFlowOfResumeFromLastSearchedColorOnStartup.filterNotNull()
+    override val flowOfResumeFromLastSearchedColorOnStartup: Flow<ResumeFromLastSearchedColorOnStartup> =
+        dataStore.data
+            .map { it.getResumeFromLastSearchedColorOnStartup() }
+            .stateEagerlyInAppScope()
+            .filterNotNull()
 
     private fun Preferences.getResumeFromLastSearchedColorOnStartup(): ResumeFromLastSearchedColorOnStartup {
         val dtoValue = this[DataStoreKeys.ShouldResumeFromLastSearchedColorOnStartup]
@@ -184,8 +161,11 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         }
     }
 
-    override fun flowOfSmartBackspace(): Flow<SmartBackspace> =
-        stateFlowOfSmartBackspace.filterNotNull()
+    override val flowOfSmartBackspace: Flow<SmartBackspace> =
+        dataStore.data
+            .map { it.getSmartBackspace() }
+            .stateEagerlyInAppScope()
+            .filterNotNull()
 
     private fun Preferences.getSmartBackspace(): SmartBackspace {
         val dtoValue = this[DataStoreKeys.SmartBackspace]
@@ -207,8 +187,11 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         }
     }
 
-    override fun flowOfSelectAllTextOnTextFieldFocus(): Flow<SelectAllTextOnTextFieldFocus> =
-        stateFlowOfSelectAllTextOnTextFieldFocus.filterNotNull()
+    override val flowOfSelectAllTextOnTextFieldFocus: Flow<SelectAllTextOnTextFieldFocus> =
+        dataStore.data
+            .map { it.getSelectAllTextOnTextFieldFocus() }
+            .stateEagerlyInAppScope()
+            .filterNotNull()
 
     private fun Preferences.getSelectAllTextOnTextFieldFocus(): SelectAllTextOnTextFieldFocus {
         val dtoValue = this[DataStoreKeys.SelectAllTextOnTextFieldFocus]
@@ -230,8 +213,11 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         }
     }
 
-    override fun flowOfAutoProceedWithRandomizedColors(): Flow<AutoProceedWithRandomizedColors> =
-        stateFlowOfAutoProceedWithRandomizedColors.filterNotNull()
+    override val flowOfAutoProceedWithRandomizedColors: Flow<AutoProceedWithRandomizedColors> =
+        dataStore.data
+            .map { it.getAutoProceedWithRandomizedColors() }
+            .stateEagerlyInAppScope()
+            .filterNotNull()
 
     private fun Preferences.getAutoProceedWithRandomizedColors(): AutoProceedWithRandomizedColors {
         val dtoValue = this[DataStoreKeys.AutoProceedWithRandomizedColors]

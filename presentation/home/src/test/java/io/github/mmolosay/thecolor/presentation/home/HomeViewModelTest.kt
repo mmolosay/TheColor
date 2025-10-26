@@ -173,7 +173,7 @@ class HomeViewModelTest {
 
     val userPreferencesRepository: UserPreferencesRepository = mockk {
         val disabled = ResumeFromLastSearchedColorOnStartup(enabled = false)
-        every { flowOfResumeFromLastSearchedColorOnStartup() } returns flowOf(disabled)
+        every { flowOfResumeFromLastSearchedColorOnStartup } returns flowOf(disabled)
     }
     val lastSearchedColorRepository: LastSearchedColorRepository = mockk {
         coEvery { setLastSearchedColor(color = any()) } just runs
@@ -1191,7 +1191,7 @@ class HomeViewModelTest {
     fun `when 'resume from last searched color on app startup' is enabled, then 'proceed' action is invoked for this color, thus 'proceedResult' is set to 'Success'`() =
         runTest(testDispatcher) {
             every {
-                userPreferencesRepository.flowOfResumeFromLastSearchedColorOnStartup()
+                userPreferencesRepository.flowOfResumeFromLastSearchedColorOnStartup
             } returns kotlin.run {
                 val enabled = ResumeFromLastSearchedColorOnStartup(enabled = true)
                 flowOf(enabled)
@@ -1277,7 +1277,7 @@ class HomeViewModelTest {
             val randomColor: Color.Hex = mockk()
             every { getPredictableRandomColor() } returns randomColor
             val featureValue = DomainAutoProceedWithRandomizedColors(enabled = false)
-            every { userPreferencesRepository.flowOfAutoProceedWithRandomizedColors() } returns MutableStateFlow(featureValue)
+            every { userPreferencesRepository.flowOfAutoProceedWithRandomizedColors } returns MutableStateFlow(featureValue)
             createSut()
 
             data.randomizeColor()
@@ -1296,7 +1296,7 @@ class HomeViewModelTest {
             val randomColor: Color.Hex = mockk()
             every { getPredictableRandomColor() } returns randomColor
             val featureValue = DomainAutoProceedWithRandomizedColors(enabled = true)
-            every { userPreferencesRepository.flowOfAutoProceedWithRandomizedColors() } returns MutableStateFlow(featureValue)
+            every { userPreferencesRepository.flowOfAutoProceedWithRandomizedColors } returns MutableStateFlow(featureValue)
             every { createColorData(color = any()) } returns mockk()
             createSut()
 

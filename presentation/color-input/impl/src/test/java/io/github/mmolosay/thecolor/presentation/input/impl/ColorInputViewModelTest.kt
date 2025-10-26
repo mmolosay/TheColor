@@ -32,7 +32,7 @@ class ColorInputViewModelTest {
     @Test
     fun `initial data is set on initialization`() {
         every {
-            userPreferencesRepository.flowOfColorInputType()
+            userPreferencesRepository.flowOfColorInputType
         } returns flowOf(DomainColorInputType.Hex)
 
         createSut()
@@ -43,7 +43,7 @@ class ColorInputViewModelTest {
     @Test
     fun `preferred input type is an initially selected one`() {
         every {
-            userPreferencesRepository.flowOfColorInputType()
+            userPreferencesRepository.flowOfColorInputType
         } returns flowOf(DomainColorInputType.Rgb)
 
         createSut()
@@ -54,7 +54,7 @@ class ColorInputViewModelTest {
     @Test
     fun `preferred input type is first in the ordered list of input types`() {
         every {
-            userPreferencesRepository.flowOfColorInputType()
+            userPreferencesRepository.flowOfColorInputType
         } returns flowOf(DomainColorInputType.Rgb)
 
         createSut()
@@ -65,7 +65,7 @@ class ColorInputViewModelTest {
     @Test
     fun `changing input type to RGB updates data with RGB view type`() {
         every {
-            userPreferencesRepository.flowOfColorInputType()
+            userPreferencesRepository.flowOfColorInputType
         } returns flowOf(DomainColorInputType.Hex)
         createSut()
 
