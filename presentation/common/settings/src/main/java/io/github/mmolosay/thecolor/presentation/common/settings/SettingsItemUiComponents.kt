@@ -3,6 +3,10 @@ package io.github.mmolosay.thecolor.presentation.common.settings
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -32,6 +36,8 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -43,7 +49,8 @@ import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiCo
 import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.TextValue
 import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.Title
 import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.ValueSpacing
-import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.attentionBadge
+import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.animatedAttentionBadge
+import io.github.mmolosay.thecolor.presentation.design.ColorScheme
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 
 /**
@@ -128,11 +135,13 @@ object SettingsItemUiComponents {
     val AttentionBadgeWidth = 4.dp
     val AttentionBadgeColor: Color
         @Composable get() = MaterialTheme.colorScheme.error
+    val AttentionBadgeAnimationSpec = spring<Float>(stiffness = Spring.StiffnessMediumLow)
 
     /*
      * In new versions of Compose, it is now OK to mark Modifier factory functions with @Composable if it's required:
      * https://developer.android.com/develop/ui/compose/custom-modifiers#create-custom
      */
+    @Suppress("unused")
     @Composable
     fun Modifier.attentionBadge(
         width: Dp = AttentionBadgeWidth,
@@ -141,51 +150,98 @@ object SettingsItemUiComponents {
         val density = LocalDensity.current
         val widthPx = with(density) { width.toPx() }
         return drawBehind {
-            drawRoundRect(
-                color = color,
-                topLeft = Offset.Zero - Offset(x = widthPx, y = 0f),
-                size = Size(width = widthPx * 2, height = this.size.height),
-                cornerRadius = CornerRadius(widthPx),
-            )
+            drawAttentionBadge(widthPx, color)
         }
+    }
+
+    @Composable
+    fun Modifier.animatedAttentionBadge(
+        show: Boolean,
+        width: Dp = AttentionBadgeWidth,
+        color: Color = AttentionBadgeColor,
+        animationSpec: AnimationSpec<Float> = AttentionBadgeAnimationSpec,
+    ): Modifier {
+        val density = LocalDensity.current
+        val animProgress by animateFloatAsState(
+            targetValue = if (show) 1f else 0f,
+            animationSpec = animationSpec,
+            label = "attention badge",
+        )
+        val widthPx = with(density) { width.toPx() }
+        return drawBehind {
+            val translation = (widthPx * animProgress) - widthPx
+            translate(left = translation) {
+                drawAttentionBadge(widthPx, color)
+            }
+        }
+    }
+
+    private fun DrawScope.drawAttentionBadge(
+        width: Float,
+        color: Color,
+    ) {
+        drawRoundRect(
+            color = color,
+            topLeft = Offset.Zero - Offset(x = width, y = 0f),
+            size = Size(width = width * 2, height = this.size.height),
+            cornerRadius = CornerRadius(width),
+        )
     }
 }
 
 @Preview
 @Composable
-private fun Preview() {
-    TheColorTheme {
-        val values = listOf("First value", "Second", "Third (3rd) value")
-        var indexOfNextValue by remember { mutableIntStateOf(0) }
-        val value = values[indexOfNextValue]
+private fun Preview_Light() {
+    TheColorTheme(
+        colorScheme = ColorScheme.Light,
+    ) {
+        PreviewContent()
+    }
+}
 
-        Surface(
-            onClick = { indexOfNextValue = (indexOfNextValue + 1) % values.size },
+@Preview
+@Composable
+private fun Preview_Dark() {
+    TheColorTheme(
+        colorScheme = ColorScheme.Dark,
+    ) {
+        PreviewContent()
+    }
+}
+
+@Composable
+private fun PreviewContent() {
+    val values = listOf("First value", "Second", "Third (3rd) value")
+    var indexOfNextValue by remember { mutableIntStateOf(0) }
+    val value = values[indexOfNextValue]
+    val showAttentionBadge = (value != values.first())
+
+    Surface(
+        onClick = { indexOfNextValue = (indexOfNextValue + 1) % values.size },
+    ) {
+        Row(
+            modifier = Modifier
+                .animatedAttentionBadge(show = showAttentionBadge)
+                .padding(ContentPadding)
+                .fillMaxWidth(),
         ) {
-            Row(
-                modifier = Modifier
-                    .attentionBadge()
-                    .padding(ContentPadding)
-                    .fillMaxWidth(),
+            Column(
+                modifier = Modifier.weight(1f),
             ) {
-                Column(
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Title(text = "Title of the item")
-                    Description(text = "Verbose description of the item. May span for multiple lines.")
-                }
+                Title(text = "Title of the item")
+                Description(text = "Verbose description of the item. May span for multiple lines.")
+            }
 
-                Spacer(modifier = Modifier.width(ValueSpacing))
-                Box(
-                    modifier = Modifier.align(Alignment.CenterVertically),
-                ) {
-                    AnimatedTextValue(
-                        targetValue = value,
-                    ) { targetValue ->
-                        TextValue(
-                            text = targetValue,
-                        )
-                    }
+            Spacer(modifier = Modifier.width(ValueSpacing))
+            Box(
+                modifier = Modifier.align(Alignment.CenterVertically),
+            ) {
+                AnimatedTextValue(
+                    targetValue = value,
+                ) { targetValue ->
+                    TextValue(
+                        text = targetValue,
+                    )
                 }
             }
         }

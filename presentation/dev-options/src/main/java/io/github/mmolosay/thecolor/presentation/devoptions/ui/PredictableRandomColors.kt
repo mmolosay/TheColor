@@ -24,9 +24,8 @@ import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiCo
 import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.TextValue
 import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.Title
 import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.ValueSpacing
-import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.attentionBadge
+import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.animatedAttentionBadge
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.impl.thenIf
 
 @Composable
 internal fun PredictableRandomColors(
@@ -42,9 +41,7 @@ internal fun PredictableRandomColors(
     ) {
         Row(
             modifier = modifier
-                .thenIf(showAttentionBadge) {
-                    attentionBadge()
-                }
+                .animatedAttentionBadge(show = showAttentionBadge)
                 .padding(ContentPadding)
                 .fillMaxWidth(),
         ) {
