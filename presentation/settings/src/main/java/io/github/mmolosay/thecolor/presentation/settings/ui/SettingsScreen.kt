@@ -97,14 +97,14 @@ fun SettingsScreen(
 ) {
     val strings = SettingsUiStrings(LocalContext.current)
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     var showResetPreferencesToDefaultDialog by remember { mutableStateOf(false) }
-    val dismissResetPreferencesToDefaultDialog: () -> Unit = {
+    fun dismissResetPreferencesToDefaultDialog() {
         showResetPreferencesToDefaultDialog = false
     }
-
     if (showResetPreferencesToDefaultDialog) {
         ResetPreferencesToDefaultAlertDialog(
-            onDismissRequest = dismissResetPreferencesToDefaultDialog,
+            onDismissRequest = ::dismissResetPreferencesToDefaultDialog,
             strings = strings,
             onConfirmClick = {
                 data.resetPreferencesToDefault()
