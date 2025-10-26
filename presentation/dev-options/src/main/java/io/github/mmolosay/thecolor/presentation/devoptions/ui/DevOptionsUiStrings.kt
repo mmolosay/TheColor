@@ -12,6 +12,12 @@ import io.github.mmolosay.thecolor.presentation.devoptions.R
 data class DevOptionsUiStrings(
     val topBarTitle: String,
     val topBarGoBackIconDesc: String,
+    val topBarResetValuesToDefaultIconDesc: String,
+
+    val resetValuesToDefaultDialogTitle: String,
+    val resetValuesToDefaultDialogText: String,
+    val resetValuesToDefaultDialogDismissButtonText: String,
+    val resetValuesToDefaultDialogConfirmButtonText: String,
 
     val itemPredictableRandomColorsTitle: String,
     val itemPredictableRandomColorsDesc: String,
@@ -26,6 +32,12 @@ fun DevOptionsUiStrings(context: Context) =
     DevOptionsUiStrings(
         topBarTitle = context.getString(R.string.dev_options_top_bar_title),
         topBarGoBackIconDesc = context.getString(R.string.dev_options_top_bar_go_back_icon_desc),
+        topBarResetValuesToDefaultIconDesc = context.getString(R.string.dev_options_top_bar_reset_values_to_default_icon_desc),
+
+        resetValuesToDefaultDialogTitle = context.getString(R.string.dev_options_reset_values_to_default_dialog_title),
+        resetValuesToDefaultDialogText = context.getString(R.string.dev_options_reset_values_to_default_dialog_text),
+        resetValuesToDefaultDialogDismissButtonText = context.getString(R.string.dev_options_reset_values_to_default_dialog_dismiss_button_text),
+        resetValuesToDefaultDialogConfirmButtonText = context.getString(R.string.dev_options_reset_values_to_default_dialog_confirm_button_text),
 
         itemPredictableRandomColorsTitle = context.getString(R.string.dev_options_item_predictable_random_colors_title),
         itemPredictableRandomColorsDesc = context.getString(R.string.dev_options_item_predictable_random_colors_desc),

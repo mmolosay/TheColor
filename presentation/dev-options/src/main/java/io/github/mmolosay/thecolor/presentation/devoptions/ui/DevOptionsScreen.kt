@@ -84,13 +84,28 @@ fun DevOptionsScreen(
     val strings = DevOptionsUiStrings(LocalContext.current)
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
+    var showResetValuesToDefaultDialog by remember { mutableStateOf(false) }
+    fun dismissResetValuesToDefaultDialog() {
+        showResetValuesToDefaultDialog = false
+    }
+    if (showResetValuesToDefaultDialog) {
+        ResetValuesToDefaultAlertDialog(
+            onDismissRequest = ::dismissResetValuesToDefaultDialog,
+            strings = strings,
+            onConfirmClick = {
+                data.resetValuesToDefault()
+                dismissResetValuesToDefaultDialog()
+            },
+        )
+    }
+
     Scaffold(
         topBar = {
             TopBar(
                 strings = strings,
                 scrollBehavior = scrollBehavior,
                 navigateBack = navigateBack,
-//                onResetPreferencesToDefaultClick = { showResetPreferencesToDefaultDialog = true },
+                onResetValuesToDefaultClick = { showResetValuesToDefaultDialog = true },
             )
         },
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets.withoutBottom(),
@@ -112,7 +127,7 @@ private fun TopBar(
     strings: DevOptionsUiStrings,
     scrollBehavior: TopAppBarScrollBehavior,
     navigateBack: () -> Unit,
-//    onResetPreferencesToDefaultClick: () -> Unit, // TODO: implement resetting all dev options
+    onResetValuesToDefaultClick: () -> Unit,
 ) {
     val debouncedNavigateBack = remember(navigateBack) {
         debounced(
@@ -135,16 +150,16 @@ private fun TopBar(
                 )
             }
         },
-//        actions = {
-//            IconButton(
-//                onClick = onResetPreferencesToDefaultClick,
-//            ) {
-//                Icon(
-//                    imageVector = ImageVector.vectorResource(DesignR.drawable.ic_restart_alt),
-//                    contentDescription = strings.topBarResetPreferencesToDefaultIconDesc,
-//                )
-//            }
-//        },
+        actions = {
+            IconButton(
+                onClick = onResetValuesToDefaultClick,
+            ) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(DesignR.drawable.ic_restart_alt),
+                    contentDescription = strings.topBarResetValuesToDefaultIconDesc,
+                )
+            }
+        },
         colors = TopAppBarDefaults.topAppBarColors(),
         scrollBehavior = scrollBehavior,
     )
@@ -226,6 +241,8 @@ private fun Preview() {
 
 private fun previewData() =
     DevOptionsData(
+        resetValuesToDefault = {},
+
         predictableRandomColors = DomainPredictableRandomColors.CyclingLightDark,
         changePredictableRandomColors = {},
     )

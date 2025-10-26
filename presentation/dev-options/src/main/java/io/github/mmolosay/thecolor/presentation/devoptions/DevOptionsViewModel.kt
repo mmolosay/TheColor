@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.repository.DevOptionsRepository
+import io.github.mmolosay.thecolor.domain.usecase.ResetDevOptionsToDefaultUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -19,6 +20,7 @@ import io.github.mmolosay.thecolor.domain.model.DevOptions.PredictableRandomColo
 @HiltViewModel
 class DevOptionsViewModel @Inject constructor(
     private val devOptionsRepository: DevOptionsRepository,
+    private val resetDevOptionsToDefault: ResetDevOptionsToDefaultUseCase,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -36,6 +38,12 @@ class DevOptionsViewModel @Inject constructor(
                 started = SharingStarted.WhileSubscribed(5000),
                 initialValue = DataState.Loading,
             )
+
+    private fun resetValuesToDefault() {
+        viewModelScope.launch(defaultDispatcher) {
+            resetDevOptionsToDefault()
+        }
+    }
 
     private fun updatePredictableRandomColors(value: DomainPredictableRandomColors) {
         viewModelScope.launch(defaultDispatcher) {
@@ -57,6 +65,8 @@ class DevOptionsViewModel @Inject constructor(
         predictableRandomColors: DomainPredictableRandomColors,
     ): DevOptionsData {
         return DevOptionsData(
+            resetValuesToDefault = ::resetValuesToDefault,
+
             predictableRandomColors = predictableRandomColors,
             changePredictableRandomColors = ::updatePredictableRandomColors,
         )
