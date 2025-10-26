@@ -173,7 +173,7 @@ class HomeViewModelTest {
 
     val userPreferencesRepository: UserPreferencesRepository = mockk {
         val disabled = ResumeFromLastSearchedColorOnStartup(enabled = false)
-        every { flowOfResumeFromLastSearchedColorOnStartup } returns flowOf(disabled)
+        every { flowOfResumeFromLastSearchedColorOnStartup } returns MutableStateFlow(disabled)
     }
     val lastSearchedColorRepository: LastSearchedColorRepository = mockk {
         coEvery { setLastSearchedColor(color = any()) } just runs
@@ -1194,7 +1194,7 @@ class HomeViewModelTest {
                 userPreferencesRepository.flowOfResumeFromLastSearchedColorOnStartup
             } returns kotlin.run {
                 val enabled = ResumeFromLastSearchedColorOnStartup(enabled = true)
-                flowOf(enabled)
+                MutableStateFlow(enabled)
             }
             val lastSearchedColor: Color = Color.Hex(0x1A803F)
             coEvery { lastSearchedColorRepository.getLastSearchedColor() } returns lastSearchedColor

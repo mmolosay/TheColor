@@ -55,6 +55,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
@@ -294,7 +295,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch(defaultDispatcher) {
             val resumeFromLastSearchedColorOnStartup = userPreferencesRepository
                 .flowOfResumeFromLastSearchedColorOnStartup
-                .first()
+                .filterNotNull().first()
             val enabled = resumeFromLastSearchedColorOnStartup.enabled
             if (!enabled) return@launch
             val color = lastSearchedColorRepository.getLastSearchedColor() ?: return@launch
@@ -365,7 +366,8 @@ class HomeViewModel @Inject constructor(
             val color = getPredictableRandomColor()
             val shouldProceed = userPreferencesRepository
                 .flowOfAutoProceedWithRandomizedColors
-                .first().enabled
+                .filterNotNull().first()
+                .enabled
             if (shouldProceed) {
                 dataUpdateGuard.withCounter {
                     proceedInNewColorCenterSession(color, colorRole = null)

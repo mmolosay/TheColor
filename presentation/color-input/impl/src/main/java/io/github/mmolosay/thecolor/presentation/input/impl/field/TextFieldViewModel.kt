@@ -3,6 +3,7 @@ package io.github.mmolosay.thecolor.presentation.input.impl.field
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import io.github.mmolosay.thecolor.domain.repository.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.api.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
@@ -14,7 +15,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -49,14 +50,17 @@ class TextFieldViewModel @AssistedInject constructor(
 
     private fun collectSelectAllTextOnTextFieldFocusPreference() {
         coroutineScope.launch(defaultDispatcher) {
-            userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus.collect { preference ->
-                _dataUpdatesFlow.update { update ->
-                    if (update == null) return@update null
-                    update.map {
-                        it.copy(shouldSelectAllTextOnFocus = preference.enabled)
+            userPreferencesRepository
+                .flowOfSelectAllTextOnTextFieldFocus
+                .filterNotNull()
+                .collect { preference ->
+                    _dataUpdatesFlow.update { update ->
+                        if (update == null) return@update null
+                        update.map {
+                            it.copy(shouldSelectAllTextOnFocus = preference.enabled)
+                        }
                     }
                 }
-            }
         }
     }
 
@@ -76,9 +80,7 @@ class TextFieldViewModel @AssistedInject constructor(
                     _dataUpdatesFlow.update {
                         val text = update.payload
                         val newData = if (it == null) {
-                            withContext(defaultDispatcher) {
-                                makeInitialData(text)
-                            }
+                            makeInitialData(text)
                         } else {
                             val oldData = it.payload
                             oldData.smartCopy(text)
@@ -108,7 +110,7 @@ class TextFieldViewModel @AssistedInject constructor(
         }
     }
 
-    private suspend fun makeInitialData(text: Text) =
+    private fun makeInitialData(text: Text) =
         TextFieldData(
             text = text,
             onTextChange = ::onTextChangeFromView,
@@ -116,7 +118,9 @@ class TextFieldViewModel @AssistedInject constructor(
             trailingButton = trailingButton(text),
             shouldSelectAllTextOnFocus = userPreferencesRepository
                 .flowOfSelectAllTextOnTextFieldFocus
-                .first().enabled,
+                .value
+                .let { it ?: DefaultUserPreferences.SelectAllTextOnTextFieldFocus }
+                .enabled,
         )
 
     @AssistedFactory

@@ -11,6 +11,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -44,7 +45,9 @@ class SettingsViewModel @Inject constructor(
                 userPreferencesRepository.flowOfSmartBackspace,
                 userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus,
                 userPreferencesRepository.flowOfAutoProceedWithRandomizedColors,
-            ),
+            ).map { flow ->
+                flow.filterNotNull() // await for all flows to initialize and emit stored values
+            },
             transform = ::createData,
         )
             .map { data -> DataState.Ready(data) }
@@ -117,7 +120,7 @@ class SettingsViewModel @Inject constructor(
             preferredColorInputType = iterator.next() as DomainColorInputType,
             appUiColorSchemeSet = iterator.next() as DomainUiColorSchemeSet,
             dynamicUiColors = iterator.next() as DomainDynamicUiColors,
-            shouldResumeFromLastSearchedColorOnStartup = iterator.next()as DomainShouldResumeFromLastSearchedColorOnStartup,
+            shouldResumeFromLastSearchedColorOnStartup = iterator.next() as DomainShouldResumeFromLastSearchedColorOnStartup,
             smartBackspace = iterator.next() as DomainSmartBackspace,
             selectAllTextOnTextFieldFocus = iterator.next() as DomainSelectAllTextOnTextFieldFocus,
             autoProceedWithRandomizedColors = iterator.next() as DomainAutoProceedWithRandomizedColors,

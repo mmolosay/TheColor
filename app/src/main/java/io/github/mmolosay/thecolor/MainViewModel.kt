@@ -6,6 +6,7 @@ import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.design.ColorSchemeResolver
 import io.github.mmolosay.thecolor.presentation.design.toPresentation
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.DynamicUiColors as DomainDynamicUiColors
@@ -18,9 +19,11 @@ class MainViewModel @Inject constructor(
     val flowOfAppUiColorSchemeResolver: Flow<ColorSchemeResolver> =
         userPreferencesRepository
             .flowOfAppUiColorSchemeSet
+            .filterNotNull()
             .map { it.toPresentation() }
 
     val flowOfDynamicUiColors: Flow<DomainDynamicUiColors> =
         userPreferencesRepository
             .flowOfDynamicUiColors
+            .filterNotNull()
 }

@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.input.impl
 
+import io.github.mmolosay.thecolor.domain.repository.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
@@ -13,8 +14,7 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
@@ -30,7 +30,7 @@ class TextFieldViewModelTest {
     val userPreferencesRepository: UserPreferencesRepository = mockk {
         every { flowOfSelectAllTextOnTextFieldFocus } returns kotlin.run {
             val value = DomainSelectAllTextOnTextFieldFocus(enabled = false)
-            flowOf(value)
+            MutableStateFlow(value)
         }
     }
 
@@ -53,16 +53,14 @@ class TextFieldViewModelTest {
     }
 
     @Test
-    fun `data is never initialized when text is changed but 'select all text on text field focus' preference wasn't obtained`() {
-        val flowOfSelectAllTextOnTextFieldFocus =
-            MutableSharedFlow<DomainSelectAllTextOnTextFieldFocus>() // initially empty
+    fun `data is initialized when text is changed but 'select all text on text field focus' preference is 'null'`() {
         every { userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus } returns
-                flowOfSelectAllTextOnTextFieldFocus
+                MutableStateFlow(null)
         createSut()
 
         sut updateText Text("initial")
 
-        sut.dataUpdatesFlow.value shouldBe null
+        sut.dataUpdatesFlow.value shouldNotBe null
     }
 
     @Test
@@ -166,11 +164,12 @@ class TextFieldViewModelTest {
     fun `emissions of 'select all text on text field focus' preference are reflected in the data`() =
         runTest(testDispatcher) {
             val flowOfSelectAllTextOnTextFieldFocus =
-                MutableSharedFlow<DomainSelectAllTextOnTextFieldFocus>() // initially empty
+                MutableStateFlow<DomainSelectAllTextOnTextFieldFocus?>(null) // initially empty
             every { userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus } returns
                     flowOfSelectAllTextOnTextFieldFocus
             createSut()
             sut updateText Text("initial")
+            data.shouldSelectAllTextOnFocus shouldBe DefaultUserPreferences.SelectAllTextOnTextFieldFocus.enabled
 
             kotlin.run {
                 val value = DomainSelectAllTextOnTextFieldFocus(enabled = false)

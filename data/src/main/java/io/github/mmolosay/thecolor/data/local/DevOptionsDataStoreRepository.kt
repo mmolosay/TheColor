@@ -53,7 +53,6 @@ class DevOptionsDataStoreRepository @Inject constructor(
         }
     }
 
-    // TODO: use the same approach with not-null initial value in UserPreferencesDataStoreRepository
     private fun <T> Flow<T>.stateEagerlyInAppScope(
         initialValue: T,
     ): StateFlow<T> =

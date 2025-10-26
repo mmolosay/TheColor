@@ -3,6 +3,7 @@ package io.github.mmolosay.thecolor.presentation.input.impl.rgb
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import io.github.mmolosay.thecolor.domain.repository.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.api.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.api.ViewModelCoroutineScope
@@ -108,7 +109,8 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                 rTextFieldVm.dataUpdatesFlow,
                 gTextFieldVm.dataUpdatesFlow,
                 bTextFieldVm.dataUpdatesFlow,
-                userPreferencesRepository.flowOfSmartBackspace,
+                userPreferencesRepository.flowOfSmartBackspace
+                    .map { it ?: DefaultUserPreferences.SmartBackspace },
                 ::makeDataUpdate,
             )
                 .collect(dataUpdateFlow)
