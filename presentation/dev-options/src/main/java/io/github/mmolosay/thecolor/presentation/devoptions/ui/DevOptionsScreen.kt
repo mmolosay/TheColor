@@ -181,7 +181,9 @@ fun DevOptions(
             val options = DomainPredictableRandomColors.entries.map { predictableRandomColors ->
                 PredictableRandomColorsOption(
                     name = predictableRandomColors.toVerboseUiString(strings),
-                    isSelected = (data.predictableRandomColors == predictableRandomColors),
+                    isDefault = (predictableRandomColors == data.defaultPredictableRandomColors),
+                    defaultLabel = strings.itemValueLabelDefault,
+                    isSelected = (predictableRandomColors == data.predictableRandomColors),
                     onSelect = { data.changePredictableRandomColors(predictableRandomColors) },
                 )
             }

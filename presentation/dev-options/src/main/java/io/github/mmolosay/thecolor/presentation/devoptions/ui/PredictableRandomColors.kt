@@ -20,6 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.AnimatedTextValue
 import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.ContentPadding
+import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.DefaultLabel
 import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.Description
 import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.TextValue
 import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.Title
@@ -96,7 +97,19 @@ private fun Option(
             .padding(horizontal = 32.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = option.name)
+        Row {
+            Text(
+                modifier = Modifier.alignByBaseline(),
+                text = option.name,
+            )
+            if (option.isDefault) {
+                Spacer(Modifier.width(8.dp))
+                DefaultLabel(
+                    modifier = Modifier.alignByBaseline(),
+                    text = option.defaultLabel,
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.weight(1f))
         RadioButton(
@@ -108,6 +121,8 @@ private fun Option(
 
 internal data class PredictableRandomColorsOption(
     val name: String,
+    val isDefault: Boolean,
+    val defaultLabel: String,
     val isSelected: Boolean,
     val onSelect: () -> Unit,
 )
@@ -136,19 +151,26 @@ private fun PredictableRandomColorsPreview() {
 @Composable
 private fun PredictableRandomColorsOptionSelectionPreview() {
     TheColorTheme {
+        val defaultLabel = "Default"
         val options = listOf(
             PredictableRandomColorsOption(
                 name = "Random",
+                isDefault = true,
+                defaultLabel = defaultLabel,
                 isSelected = true,
                 onSelect = {},
             ),
             PredictableRandomColorsOption(
                 name = "Cycling [Red, Green, Blue]",
+                isDefault = false,
+                defaultLabel = defaultLabel,
                 isSelected = false,
                 onSelect = {},
             ),
             PredictableRandomColorsOption(
                 name = "Cycling [Light, Dark]",
+                isDefault = false,
+                defaultLabel = defaultLabel,
                 isSelected = false,
                 onSelect = {},
             ),
