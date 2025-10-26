@@ -2,6 +2,8 @@ package io.github.mmolosay.thecolor.data.local
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import dagger.Lazy
+import io.github.mmolosay.thecolor.domain.usecase.IsDevOptionsEnabledUseCase
 import io.github.mmolosay.thecolor.domain.usecase.TouchLocalDatabaseUseCase
 import kotlinx.coroutines.flow.first
 import timber.log.Timber
@@ -14,7 +16,9 @@ import kotlin.time.measureTime
  */
 class TouchLocalDatabaseUseCaseImpl @Inject constructor(
     @Named("UserPreferences") private val userPreferences: DataStore<Preferences>,
+    @Named("DevOptions") private val devOptionsFactory: Lazy<DataStore<Preferences>>,
     @Named("MiscValues") private val miscValues: DataStore<Preferences>,
+    private val isDevOptionsEnabled: IsDevOptionsEnabledUseCase,
 ) : TouchLocalDatabaseUseCase {
 
     override suspend fun invoke() {
@@ -26,6 +30,13 @@ class TouchLocalDatabaseUseCaseImpl @Inject constructor(
             Timber.i("Touching \'User Preferences\' DB took $elapsed.")
         }
         // second and subsequent accesses to DataStore don't seem to be as effective as the first one
+        if (isDevOptionsEnabled()) {
+            val elapsed = measureTime {
+                val dataStore = devOptionsFactory.get()
+                dataStore.data.first()
+            }
+            Timber.i("Touching \'Dev Options\' DB took $elapsed.")
+        }
         kotlin.run {
             val elapsed = measureTime {
                 miscValues.data.first()

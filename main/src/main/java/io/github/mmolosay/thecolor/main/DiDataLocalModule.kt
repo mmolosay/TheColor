@@ -10,10 +10,12 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.migration.DisableInstallInCheck
+import io.github.mmolosay.thecolor.data.local.DevOptionsDataStoreRepository
 import io.github.mmolosay.thecolor.data.local.LastSearchedColorDataStoreRepository
 import io.github.mmolosay.thecolor.data.local.ResetUserPreferenceToDefaultUseCaseImpl
 import io.github.mmolosay.thecolor.data.local.TouchLocalDatabaseUseCaseImpl
 import io.github.mmolosay.thecolor.data.local.UserPreferencesDataStoreRepository
+import io.github.mmolosay.thecolor.domain.repository.DevOptionsRepository
 import io.github.mmolosay.thecolor.domain.repository.LastSearchedColorRepository
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.domain.usecase.ResetUserPreferencesToDefaultUseCase
@@ -46,6 +48,16 @@ object DiDataLocalProvideModule {
         )
 
     @Provides
+    @Named("DevOptions")
+    @Singleton
+    fun provideDevOptionsDataStore(
+        @ApplicationContext context: Context,
+    ): DataStore<Preferences> =
+        PreferenceDataStoreFactory.create(
+            produceFile = { context.preferencesDataStoreFile("dev_options") }
+        )
+
+    @Provides
     @Named("MiscValues")
     @Singleton
     fun provideMiscValuesDataStore(
@@ -62,6 +74,9 @@ interface DiDataLocalBindModule {
 
     @Binds
     fun bindUserPreferencesRepository(impl: UserPreferencesDataStoreRepository): UserPreferencesRepository
+
+    @Binds
+    fun bindDevOptionsRepository(impl: DevOptionsDataStoreRepository): DevOptionsRepository
 
     @Binds
     fun bindLastSearchedColorRepository(impl: LastSearchedColorDataStoreRepository): LastSearchedColorRepository
