@@ -6,7 +6,7 @@ import androidx.compose.ui.Modifier
  * Adds specified [modifier] to the receiver [Modifier] chain if [condition] is `true`.
  * Else, returns the receiver [Modifier] without changes.
  */
-fun Modifier.thenIf(
+inline fun Modifier.thenIf(
     condition: Boolean,
     modifier: Modifier.() -> Modifier,
 ): Modifier =
