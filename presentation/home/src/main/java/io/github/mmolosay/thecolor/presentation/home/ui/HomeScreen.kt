@@ -75,11 +75,11 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.debounce.debounced
-import io.github.mmolosay.thecolor.presentation.api.ColorInt
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearance
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearanceController
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.RootNavBarAppearanceController
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.navBarAppearance
+import io.github.mmolosay.thecolor.presentation.impl.colorint.ColorInt
+import io.github.mmolosay.thecolor.presentation.impl.navbar.NavBarAppearance
+import io.github.mmolosay.thecolor.presentation.impl.navbar.NavBarAppearanceController
+import io.github.mmolosay.thecolor.presentation.impl.navbar.RootNavBarAppearanceController
+import io.github.mmolosay.thecolor.presentation.impl.navbar.navBarAppearance
 import io.github.mmolosay.thecolor.presentation.center.ColorCenter
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterShape
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
@@ -94,7 +94,7 @@ import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObser
 import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent
 import io.github.mmolosay.thecolor.presentation.impl.compose.TintedSurface
 import io.github.mmolosay.thecolor.presentation.impl.compose.onlyBottom
-import io.github.mmolosay.thecolor.presentation.impl.toCompose
+import io.github.mmolosay.thecolor.presentation.impl.colorint.toCompose
 import io.github.mmolosay.thecolor.presentation.impl.toLifecycleEventObserver
 import io.github.mmolosay.thecolor.presentation.impl.compose.withoutBottom
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInput

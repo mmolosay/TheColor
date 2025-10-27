@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.api.nav.bar
+package io.github.mmolosay.thecolor.presentation.impl.navbar
 
 /**
  * Platform-agnostic model of navigation bar's appearance.

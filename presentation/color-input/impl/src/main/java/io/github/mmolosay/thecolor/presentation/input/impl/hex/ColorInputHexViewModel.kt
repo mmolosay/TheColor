@@ -3,8 +3,8 @@ package io.github.mmolosay.thecolor.presentation.input.impl.hex
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.presentation.api.SimpleViewModel
-import io.github.mmolosay.thecolor.presentation.api.ViewModelCoroutineScope
+import io.github.mmolosay.thecolor.presentation.impl.viewmodel.SimpleViewModel
+import io.github.mmolosay.thecolor.presentation.impl.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputSubmitAction

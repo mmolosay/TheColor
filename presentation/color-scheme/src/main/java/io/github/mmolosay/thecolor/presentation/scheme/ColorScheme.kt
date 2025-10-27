@@ -57,7 +57,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import io.github.mmolosay.thecolor.presentation.api.ColorInt
+import io.github.mmolosay.thecolor.presentation.impl.colorint.ColorInt
 import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
@@ -67,7 +67,7 @@ import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.errors.ErrorMessageWithButton
 import io.github.mmolosay.thecolor.presentation.errors.message
 import io.github.mmolosay.thecolor.presentation.errors.rememberDefaultErrorsUiStrings
-import io.github.mmolosay.thecolor.presentation.impl.toCompose
+import io.github.mmolosay.thecolor.presentation.impl.colorint.toCompose
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.DataState
 import io.github.mmolosay.thecolor.utils.doNothing
 import io.github.mmolosay.thecolor.domain.model.ColorScheme as DomainColorScheme

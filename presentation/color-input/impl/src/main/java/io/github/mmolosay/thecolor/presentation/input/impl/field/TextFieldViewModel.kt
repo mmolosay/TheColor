@@ -5,7 +5,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.repository.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
-import io.github.mmolosay.thecolor.presentation.api.SimpleViewModel
+import io.github.mmolosay.thecolor.presentation.impl.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.TrailingButton
 import io.github.mmolosay.thecolor.presentation.input.impl.model.Update

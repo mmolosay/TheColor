@@ -18,10 +18,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import io.github.mmolosay.thecolor.presentation.api.ColorInt
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearance
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearanceController
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.navBarAppearance
+import io.github.mmolosay.thecolor.presentation.impl.colorint.ColorInt
+import io.github.mmolosay.thecolor.presentation.impl.navbar.NavBarAppearance
+import io.github.mmolosay.thecolor.presentation.impl.navbar.NavBarAppearanceController
+import io.github.mmolosay.thecolor.presentation.impl.navbar.navBarAppearance
 import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface

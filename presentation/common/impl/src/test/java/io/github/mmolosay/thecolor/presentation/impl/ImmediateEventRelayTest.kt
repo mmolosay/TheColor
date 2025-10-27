@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.api
+package io.github.mmolosay.thecolor.presentation.impl
 
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers

@@ -5,7 +5,7 @@ import io.github.mmolosay.thecolor.domain.model.ColorDetails
 import io.github.mmolosay.thecolor.domain.repository.ColorRepository
 import io.github.mmolosay.thecolor.domain.result.HttpFailure
 import io.github.mmolosay.thecolor.domain.result.Result
-import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
+import io.github.mmolosay.thecolor.presentation.impl.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommand
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommandProvider
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData
@@ -17,6 +17,7 @@ import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsVi
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorRole
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.CreateColorDetailsDataUseCase
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.CreateSeedDataUseCase
+import io.github.mmolosay.thecolor.presentation.impl.colorint.ColorInt
 import io.github.mmolosay.thecolor.testing.MainDispatcherExtension
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
@@ -303,7 +304,7 @@ class ColorDetailsViewModelTest {
     fun `emission of 'fetch data' command with color type 'exact' results in present initial color data with correct color value`() =
         runTest(testDispatcher) {
             val initialColor = Color.Hex(0x1A803F)
-            val initialColorInt = io.github.mmolosay.thecolor.presentation.api.ColorInt(0x1A803F)
+            val initialColorInt = ColorInt(0x1A803F)
             val exactColor = Color.Hex(0x123456)
             val commandFlow = MutableSharedFlow<ColorDetailsCommand>()
             every { commandProvider.commandFlow } returns commandFlow
@@ -344,7 +345,7 @@ class ColorDetailsViewModelTest {
     fun `invoking 'go to initial color' sends appropriate event to color details event store`() =
         runTest(testDispatcher) {
             val initialColor = Color.Hex(0x1A803F)
-            val initialColorInt = io.github.mmolosay.thecolor.presentation.api.ColorInt(0x1A803F)
+            val initialColorInt = ColorInt(0x1A803F)
             val exactColor = Color.Hex(0x123456)
             val commandFlow = MutableSharedFlow<ColorDetailsCommand>()
             every { commandProvider.commandFlow } returns commandFlow

@@ -28,9 +28,9 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import io.github.mmolosay.thecolor.presentation.api.ColorInt
+import io.github.mmolosay.thecolor.presentation.impl.colorint.ColorInt
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.impl.toCompose
+import io.github.mmolosay.thecolor.presentation.impl.colorint.toCompose
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

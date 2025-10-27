@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.home
 
-import io.github.mmolosay.thecolor.presentation.api.ColorInt
+import io.github.mmolosay.thecolor.presentation.impl.colorint.ColorInt
 import io.github.mmolosay.thecolor.presentation.home.ui.FlowOfAnimatedUiState
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import io.kotest.matchers.shouldBe

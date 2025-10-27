@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.api
+package io.github.mmolosay.thecolor.presentation.impl
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel

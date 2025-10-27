@@ -8,8 +8,8 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
 import io.github.mmolosay.thecolor.domain.model.Color
-import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
-import io.github.mmolosay.thecolor.presentation.api.SimpleViewModel
+import io.github.mmolosay.thecolor.presentation.impl.colorint.ColorToColorIntUseCase
+import io.github.mmolosay.thecolor.presentation.impl.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModelDiModule.GateForDataFlow
 import io.github.mmolosay.thecolor.utils.OpenSuspendGate
 import io.github.mmolosay.thecolor.utils.SuspendGate

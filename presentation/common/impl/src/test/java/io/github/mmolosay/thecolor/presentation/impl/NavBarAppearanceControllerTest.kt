@@ -1,8 +1,8 @@
-package io.github.mmolosay.thecolor.presentation.api
+package io.github.mmolosay.thecolor.presentation.impl
 
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.navBarAppearance
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearanceController
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.RootNavBarAppearanceController
+import io.github.mmolosay.thecolor.presentation.impl.navbar.NavBarAppearanceController
+import io.github.mmolosay.thecolor.presentation.impl.navbar.RootNavBarAppearanceController
+import io.github.mmolosay.thecolor.presentation.impl.navbar.navBarAppearance
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import kotlin.time.measureTime

@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.api
+package io.github.mmolosay.thecolor.presentation.impl.viewmodel
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel

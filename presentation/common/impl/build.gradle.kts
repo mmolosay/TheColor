@@ -35,7 +35,6 @@ tasks.withType<Test> {
 dependencies {
     implementation(project(":domain"))
     implementation(project(":utils"))
-    implementation(project(":presentation:common:api"))
     implementation(project(":presentation:design-system"))
 
     // Compose

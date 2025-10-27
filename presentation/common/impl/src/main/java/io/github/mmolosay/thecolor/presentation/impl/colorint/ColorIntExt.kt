@@ -1,6 +1,5 @@
-package io.github.mmolosay.thecolor.presentation.impl
+package io.github.mmolosay.thecolor.presentation.impl.colorint
 
-import io.github.mmolosay.thecolor.presentation.api.ColorInt
 import android.graphics.Color as AndroidColor
 import androidx.annotation.ColorInt as AndroidColorInt
 import androidx.compose.ui.graphics.Color as ComposeColor

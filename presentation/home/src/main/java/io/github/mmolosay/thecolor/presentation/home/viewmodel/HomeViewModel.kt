@@ -12,9 +12,9 @@ import io.github.mmolosay.thecolor.domain.repository.LastSearchedColorRepository
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.domain.usecase.GetPredictableRandomColorUseCase
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
-import io.github.mmolosay.thecolor.presentation.api.ColorToColorIntUseCase
-import io.github.mmolosay.thecolor.presentation.api.ImmediateEventRelay
-import io.github.mmolosay.thecolor.presentation.api.ViewModelCoroutineScope
+import io.github.mmolosay.thecolor.presentation.impl.colorint.ColorToColorIntUseCase
+import io.github.mmolosay.thecolor.presentation.impl.ImmediateEventRelay
+import io.github.mmolosay.thecolor.presentation.impl.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommand
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEvent
