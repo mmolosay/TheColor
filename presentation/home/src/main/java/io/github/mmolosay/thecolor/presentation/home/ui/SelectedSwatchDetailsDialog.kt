@@ -18,10 +18,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import io.github.mmolosay.thecolor.presentation.impl.colorint.ColorInt
-import io.github.mmolosay.thecolor.presentation.impl.navbar.NavBarAppearance
-import io.github.mmolosay.thecolor.presentation.impl.navbar.NavBarAppearanceController
-import io.github.mmolosay.thecolor.presentation.impl.navbar.navBarAppearance
+import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
+import io.github.mmolosay.thecolor.presentation.common.navbar.NavBarAppearance
+import io.github.mmolosay.thecolor.presentation.common.navbar.NavBarAppearanceController
+import io.github.mmolosay.thecolor.presentation.common.navbar.navBarAppearance
 import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
@@ -31,13 +31,13 @@ import io.github.mmolosay.thecolor.presentation.details.ColorDetailsOnTintedSurf
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsSeedData
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
-import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver
-import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent.EnteringForeground
-import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent.LeavingForeground
-import io.github.mmolosay.thecolor.presentation.impl.compose.TintedSurface
-import io.github.mmolosay.thecolor.presentation.impl.compose.onlyBottom
-import io.github.mmolosay.thecolor.presentation.impl.toLifecycleEventObserver
-import io.github.mmolosay.thecolor.presentation.impl.compose.withoutBottom
+import io.github.mmolosay.thecolor.presentation.common.ExtendedLifecycleEventObserver
+import io.github.mmolosay.thecolor.presentation.common.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent.EnteringForeground
+import io.github.mmolosay.thecolor.presentation.common.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent.LeavingForeground
+import io.github.mmolosay.thecolor.presentation.common.compose.TintedSurface
+import io.github.mmolosay.thecolor.presentation.common.compose.onlyBottom
+import io.github.mmolosay.thecolor.presentation.common.toLifecycleEventObserver
+import io.github.mmolosay.thecolor.presentation.common.compose.withoutBottom
 import io.github.mmolosay.thecolor.utils.doNothing
 
 @Composable

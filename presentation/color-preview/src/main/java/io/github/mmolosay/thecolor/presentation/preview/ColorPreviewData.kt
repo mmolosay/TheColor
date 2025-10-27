@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.preview
 
-import io.github.mmolosay.thecolor.presentation.impl.colorint.ColorInt
+import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
 
 /**
  * Platform-agnostic data provided by ViewModel to 'Color Preview' View.

@@ -5,7 +5,7 @@ import io.github.mmolosay.thecolor.domain.model.ColorDetails
 import io.github.mmolosay.thecolor.domain.repository.ColorRepository
 import io.github.mmolosay.thecolor.domain.result.HttpFailure
 import io.github.mmolosay.thecolor.domain.result.Result
-import io.github.mmolosay.thecolor.presentation.impl.colorint.ColorToColorIntUseCase
+import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommand
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommandProvider
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData
@@ -17,7 +17,7 @@ import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsVi
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorRole
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.CreateColorDetailsDataUseCase
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.CreateSeedDataUseCase
-import io.github.mmolosay.thecolor.presentation.impl.colorint.ColorInt
+import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
 import io.github.mmolosay.thecolor.testing.MainDispatcherExtension
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should

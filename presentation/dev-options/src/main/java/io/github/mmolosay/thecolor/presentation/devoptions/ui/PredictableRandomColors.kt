@@ -18,14 +18,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import io.github.mmolosay.thecolor.presentation.impl.settings.SettingsItemUiComponents.AnimatedTextValue
-import io.github.mmolosay.thecolor.presentation.impl.settings.SettingsItemUiComponents.ContentPadding
-import io.github.mmolosay.thecolor.presentation.impl.settings.SettingsItemUiComponents.DefaultLabel
-import io.github.mmolosay.thecolor.presentation.impl.settings.SettingsItemUiComponents.Description
-import io.github.mmolosay.thecolor.presentation.impl.settings.SettingsItemUiComponents.TextValue
-import io.github.mmolosay.thecolor.presentation.impl.settings.SettingsItemUiComponents.Title
-import io.github.mmolosay.thecolor.presentation.impl.settings.SettingsItemUiComponents.ValueSpacing
-import io.github.mmolosay.thecolor.presentation.impl.settings.SettingsItemUiComponents.animatedAttentionBadge
+import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.AnimatedTextValue
+import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.ContentPadding
+import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.DefaultLabel
+import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.Description
+import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.TextValue
+import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.Title
+import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.ValueSpacing
+import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.animatedAttentionBadge
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 
 @Composable

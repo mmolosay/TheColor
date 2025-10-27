@@ -1,12 +1,12 @@
 package io.github.mmolosay.thecolor.presentation.details
 
 import androidx.compose.ui.graphics.Color
-import io.github.mmolosay.thecolor.presentation.impl.colorint.ColorInt
+import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
 import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsSeedData
-import io.github.mmolosay.thecolor.presentation.impl.colorint.toCompose
+import io.github.mmolosay.thecolor.presentation.common.colorint.toCompose
 
 /**
  * Same approach as [ButtonDefaults][androidx.compose.material3.ButtonDefaults].

@@ -30,7 +30,7 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
-import io.github.mmolosay.thecolor.presentation.impl.compose.clipFullyRounded
+import io.github.mmolosay.thecolor.presentation.common.compose.clipFullyRounded
 
 /**
  * Structurally repeats contents and arrangement of [ColorScheme].

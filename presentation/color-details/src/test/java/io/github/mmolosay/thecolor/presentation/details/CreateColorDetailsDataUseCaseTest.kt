@@ -2,8 +2,8 @@ package io.github.mmolosay.thecolor.presentation.details
 
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.ColorDetails
-import io.github.mmolosay.thecolor.presentation.impl.colorint.ColorInt
-import io.github.mmolosay.thecolor.presentation.impl.colorint.ColorToColorIntUseCase
+import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
+import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.CreateColorDetailsDataUseCase
 import io.kotest.matchers.shouldBe

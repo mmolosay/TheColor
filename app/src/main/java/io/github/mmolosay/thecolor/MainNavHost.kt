@@ -8,7 +8,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import io.github.mmolosay.thecolor.presentation.impl.navbar.NavBarAppearanceController
+import io.github.mmolosay.thecolor.presentation.common.navbar.NavBarAppearanceController
 import io.github.mmolosay.thecolor.presentation.devoptions.DevOptionsViewModel
 import io.github.mmolosay.thecolor.presentation.devoptions.ui.DevOptionsScreen
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeScreen

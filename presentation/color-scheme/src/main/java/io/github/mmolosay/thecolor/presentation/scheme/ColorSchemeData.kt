@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.scheme
 
-import io.github.mmolosay.thecolor.presentation.impl.colorint.ColorInt
+import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
 import io.github.mmolosay.thecolor.domain.model.ColorScheme.Mode as DomainMode
 
 /**

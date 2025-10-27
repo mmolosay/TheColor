@@ -9,8 +9,8 @@ import io.github.mmolosay.thecolor.domain.repository.ColorRepository.GetColorSch
 import io.github.mmolosay.thecolor.domain.result.HttpFailure
 import io.github.mmolosay.thecolor.domain.result.Result
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
-import io.github.mmolosay.thecolor.presentation.impl.colorint.ColorInt
-import io.github.mmolosay.thecolor.presentation.impl.colorint.ColorToColorIntUseCase
+import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
+import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Changes
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.SwatchCount
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.DataState

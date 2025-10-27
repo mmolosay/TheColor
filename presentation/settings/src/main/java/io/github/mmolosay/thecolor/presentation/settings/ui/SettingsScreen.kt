@@ -40,8 +40,8 @@ import io.github.mmolosay.thecolor.domain.model.UserPreferences.isSingleton
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.single
 import io.github.mmolosay.thecolor.presentation.design.Material3DynamicColorsAvailability.areDynamicColorsAvailable
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.impl.compose.onlyBottom
-import io.github.mmolosay.thecolor.presentation.impl.compose.withoutBottom
+import io.github.mmolosay.thecolor.presentation.common.compose.onlyBottom
+import io.github.mmolosay.thecolor.presentation.common.compose.withoutBottom
 import io.github.mmolosay.thecolor.presentation.settings.SettingsData
 import io.github.mmolosay.thecolor.presentation.settings.SettingsViewModel
 import io.github.mmolosay.thecolor.presentation.settings.SettingsViewModel.DataState
