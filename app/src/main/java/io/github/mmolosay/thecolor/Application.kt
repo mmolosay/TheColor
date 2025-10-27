@@ -11,7 +11,7 @@ import io.github.mmolosay.thecolor.presentation.common.navbar.isComplete
 import io.github.mmolosay.thecolor.presentation.common.navbar.navBarAppearance
 import io.github.mmolosay.thecolor.presentation.design.LocalDefaultNavigationBarColor
 import io.github.mmolosay.thecolor.presentation.design.LocalDefaultShouldUseLightTintForNavBarControls
-import io.github.mmolosay.thecolor.presentation.common.changeNavigationBar
+import io.github.mmolosay.thecolor.presentation.common.navbar.changeNavigationBar
 
 /**
  * A root of the entire application's UI.

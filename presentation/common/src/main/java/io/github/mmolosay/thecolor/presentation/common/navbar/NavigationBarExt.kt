@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.common
+package io.github.mmolosay.thecolor.presentation.common.navbar
 
 import android.app.Activity
 import android.content.Context
