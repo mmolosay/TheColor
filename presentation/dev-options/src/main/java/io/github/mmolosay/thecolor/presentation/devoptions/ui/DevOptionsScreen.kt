@@ -32,12 +32,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.debounce.debounced
+import io.github.mmolosay.thecolor.presentation.common.compose.onlyBottom
+import io.github.mmolosay.thecolor.presentation.common.compose.withoutBottom
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.devoptions.DevOptionsData
 import io.github.mmolosay.thecolor.presentation.devoptions.DevOptionsViewModel
 import io.github.mmolosay.thecolor.presentation.devoptions.DevOptionsViewModel.DataState
-import io.github.mmolosay.thecolor.presentation.common.compose.onlyBottom
-import io.github.mmolosay.thecolor.presentation.common.compose.withoutBottom
 import kotlin.time.Duration.Companion.milliseconds
 import io.github.mmolosay.thecolor.domain.model.DevOptions.PredictableRandomColors as DomainPredictableRandomColors
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
@@ -180,9 +180,8 @@ fun DevOptions(
             var showSelectionDialog by remember { mutableStateOf(false) }
             val options = DomainPredictableRandomColors.entries.map { predictableRandomColors ->
                 PredictableRandomColorsOption(
-                    name = predictableRandomColors.toVerboseUiString(strings),
+                    text = predictableRandomColors.toVerboseUiString(strings),
                     isDefault = (predictableRandomColors == data.defaultPredictableRandomColors),
-                    defaultLabel = strings.itemValueLabelDefault,
                     isSelected = (predictableRandomColors == data.predictableRandomColors),
                     onSelect = { data.changePredictableRandomColors(predictableRandomColors) },
                 )

@@ -19,8 +19,6 @@ data class DevOptionsUiStrings(
     val resetValuesToDefaultDialogDismissButtonText: String,
     val resetValuesToDefaultDialogConfirmButtonText: String,
 
-    val itemValueLabelDefault: String,
-
     val itemPredictableRandomColorsTitle: String,
     val itemPredictableRandomColorsDesc: String,
     val itemPredictableRandomColorsValueRandom: String,
@@ -40,8 +38,6 @@ fun DevOptionsUiStrings(context: Context) =
         resetValuesToDefaultDialogText = context.getString(R.string.dev_options_reset_values_to_default_dialog_text),
         resetValuesToDefaultDialogDismissButtonText = context.getString(R.string.dev_options_reset_values_to_default_dialog_dismiss_button_text),
         resetValuesToDefaultDialogConfirmButtonText = context.getString(R.string.dev_options_reset_values_to_default_dialog_confirm_button_text),
-
-        itemValueLabelDefault = context.getString(R.string.dev_options_item_value_label_default),
 
         itemPredictableRandomColorsTitle = context.getString(R.string.dev_options_item_predictable_random_colors_title),
         itemPredictableRandomColorsDesc = context.getString(R.string.dev_options_item_predictable_random_colors_desc),

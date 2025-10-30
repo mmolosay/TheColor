@@ -13,7 +13,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -22,11 +21,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -44,14 +39,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.AnimatedTextValue
 import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.ContentPadding
-import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.DefaultLabel
 import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.Description
 import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.TextValue
 import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.Title
@@ -59,7 +52,6 @@ import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiCo
 import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.animatedAttentionBadge
 import io.github.mmolosay.thecolor.presentation.design.ColorScheme
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.utils.doNothing
 
 /**
  * Common UI components for an individual item in a list of settings.
@@ -144,26 +136,6 @@ object SettingsItemUiComponents {
             content = content,
         )
 
-    @Composable
-    fun DefaultLabel(
-        text: String,
-        modifier: Modifier = Modifier,
-    ) {
-        Box(
-            modifier = modifier
-                .background(
-                    color = MaterialTheme.colorScheme.secondaryContainer,
-                    shape = RoundedCornerShape(percent = 100),
-                )
-                .padding(horizontal = 6.dp, vertical = 2.dp),
-        ) {
-            Text(
-                text = text,
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                style = MaterialTheme.typography.labelMedium,
-            )
-        }
-    }
 
     val AttentionBadgeWidth = 4.dp
     val AttentionBadgeColor: Color
@@ -242,6 +214,10 @@ private fun Preview_Dark() {
     }
 }
 
+/*
+ * Launch preview in interactive mode and click on the item to see animation
+ * of the attention badge.
+ */
 @Composable
 private fun PreviewContent() {
     val values = listOf("First value", "Second", "Third (3rd) value")
@@ -277,89 +253,6 @@ private fun PreviewContent() {
                     )
                 }
             }
-        }
-    }
-}
-
-@Preview
-@Composable
-private fun Preview_Selection_Light() {
-    TheColorTheme(
-        colorScheme = ColorScheme.Light,
-    ) {
-        SelectionContent()
-    }
-}
-
-@Preview
-@Composable
-private fun Preview_Selection_Dark() {
-    TheColorTheme(
-        colorScheme = ColorScheme.Dark,
-    ) {
-        SelectionContent()
-    }
-}
-
-@Composable
-private fun SelectionContent() {
-    @Composable
-    fun Option(
-        value: String,
-        showDefaultLabel: Boolean,
-        isSelected: Boolean,
-    ) {
-        Row(
-            modifier = Modifier
-                .selectable(
-                    selected = isSelected,
-                    onClick = ::doNothing,
-                    role = Role.RadioButton,
-                )
-                .padding(horizontal = 32.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Row {
-                Text(
-                    modifier = Modifier.alignByBaseline(),
-                    text = value,
-                )
-                if (showDefaultLabel) {
-                    Spacer(Modifier.width(8.dp))
-                    DefaultLabel(
-                        modifier = Modifier.alignByBaseline(),
-                        text = "Default",
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
-            RadioButton(
-                selected = isSelected,
-                onClick = ::doNothing,
-            )
-        }
-    }
-
-    Surface {
-        Column(
-            modifier = Modifier.selectableGroup(),
-        ) {
-            Option(
-                value = "First value",
-                showDefaultLabel = true,
-                isSelected = false,
-            )
-            Option(
-                value = "Second",
-                showDefaultLabel = false,
-                isSelected = true,
-            )
-            Option(
-                value = "Third (3rd) value",
-                showDefaultLabel = false,
-                isSelected = false,
-            )
         }
     }
 }

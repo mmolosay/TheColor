@@ -195,7 +195,7 @@ fun Settings(
             var showSelectionDialog by remember { mutableStateOf(false) }
             val options = DomainColorInputType.entries.map { colorInputType ->
                 ColorInputTypeOption(
-                    name = colorInputType.toUiString(strings),
+                    text = colorInputType.toUiString(strings),
                     isSelected = (data.preferredColorInputType == colorInputType),
                     onSelect = { data.changePreferredColorInputType(colorInputType) },
                 )
@@ -227,7 +227,7 @@ fun Settings(
             var showSelectionDialog by remember { mutableStateOf(false) }
             val options = data.supportedAppUiColorSchemeSets.map { mode ->
                 AppUiColorSchemeOption(
-                    name = mode.toVerboseUiString(strings),
+                    text = mode.toVerboseUiString(strings),
                     isSelected = (data.appUiColorSchemeSet == mode),
                     onSelect = { data.changeAppUiColorSchemeSet(mode) },
                 )

@@ -7,23 +7,20 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.AnimatedTextValue
 import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.ContentPadding
 import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.Description
 import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.TextValue
 import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.Title
 import io.github.mmolosay.thecolor.presentation.common.settings.SettingsItemUiComponents.ValueSpacing
+import io.github.mmolosay.thecolor.presentation.common.settings.SettingsOptionUiComponents.ContentText
+import io.github.mmolosay.thecolor.presentation.common.settings.SettingsOptionUiComponents.OptionLayout
+import io.github.mmolosay.thecolor.presentation.common.settings.SettingsOptionUiComponents.OptionsListLayout
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 
 @Composable
@@ -70,8 +67,8 @@ internal fun AppUiColorSchemeSelection(
     options: List<AppUiColorSchemeOption>,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier.selectableGroup(),
+    OptionsListLayout(
+        modifier = modifier,
     ) {
         options.forEach { option ->
             Option(option)
@@ -83,28 +80,18 @@ internal fun AppUiColorSchemeSelection(
 private fun Option(
     option: AppUiColorSchemeOption,
 ) {
-    Row(
-        modifier = Modifier
-            .selectable(
-                selected = option.isSelected,
-                onClick = option.onSelect,
-                role = Role.RadioButton,
-            )
-            .padding(horizontal = 32.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    OptionLayout(
+        isSelected = option.isSelected,
+        onSelect = option.onSelect,
     ) {
-        Text(text = option.name)
-
-        Spacer(modifier = Modifier.weight(1f))
-        RadioButton(
-            selected = option.isSelected,
-            onClick = option.onSelect,
+        ContentText(
+            text = option.text,
         )
     }
 }
 
 internal data class AppUiColorSchemeOption(
-    val name: String,
+    val text: String,
     val isSelected: Boolean,
     val onSelect: () -> Unit,
 )
@@ -134,17 +121,17 @@ private fun AppUiColorSchemeSelectionPreview() {
     TheColorTheme {
         val options = listOf(
             AppUiColorSchemeOption(
-                name = "Light",
+                text = "Light",
                 isSelected = true,
                 onSelect = {},
             ),
             AppUiColorSchemeOption(
-                name = "Dark",
+                text = "Dark",
                 isSelected = false,
                 onSelect = {},
             ),
             AppUiColorSchemeOption(
-                name = "Auto (follows system)",
+                text = "Auto (follows system)",
                 isSelected = false,
                 onSelect = {},
             ),
