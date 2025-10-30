@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,10 +37,10 @@ import io.github.mmolosay.debounce.debounced
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.asSingletonSet
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.isSingleton
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.single
-import io.github.mmolosay.thecolor.presentation.design.Material3DynamicColorsAvailability.areDynamicColorsAvailable
-import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.common.compose.onlyBottom
 import io.github.mmolosay.thecolor.presentation.common.compose.withoutBottom
+import io.github.mmolosay.thecolor.presentation.design.Material3DynamicColorsAvailability.areDynamicColorsAvailable
+import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.settings.SettingsData
 import io.github.mmolosay.thecolor.presentation.settings.SettingsViewModel
 import io.github.mmolosay.thecolor.presentation.settings.SettingsViewModel.DataState
@@ -207,16 +206,10 @@ fun Settings(
                 onClick = { showSelectionDialog = true },
             )
             if (showSelectionDialog) {
-                val windowInsets = BottomSheetDefaults.windowInsets
                 ModalBottomSheet(
                     onDismissRequest = { showSelectionDialog = false },
-                    contentWindowInsets = { windowInsets.withoutBottom() },
                 ) {
-                    val bottomWindowInsets = windowInsets.onlyBottom()
                     PreferredColorInputTypeSelection(
-                        modifier = Modifier
-                            .padding(bottomWindowInsets.asPaddingValues())
-                            .consumeWindowInsets(bottomWindowInsets),
                         options = options,
                     )
                 }
@@ -239,16 +232,10 @@ fun Settings(
                 onClick = { showSelectionDialog = true },
             )
             if (showSelectionDialog) {
-                val windowInsets = BottomSheetDefaults.windowInsets
                 ModalBottomSheet(
                     onDismissRequest = { showSelectionDialog = false },
-                    contentWindowInsets = { windowInsets.withoutBottom() },
                 ) {
-                    val bottomWindowInsets = windowInsets.onlyBottom()
                     AppUiColorSchemeSelection(
-                        modifier = Modifier
-                            .padding(bottomWindowInsets.asPaddingValues())
-                            .consumeWindowInsets(bottomWindowInsets),
                         options = options,
                     )
                 }

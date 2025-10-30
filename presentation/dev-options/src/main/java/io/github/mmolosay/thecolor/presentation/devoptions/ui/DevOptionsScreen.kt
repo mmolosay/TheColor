@@ -2,12 +2,9 @@ package io.github.mmolosay.thecolor.presentation.devoptions.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,7 +29,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.debounce.debounced
-import io.github.mmolosay.thecolor.presentation.common.compose.onlyBottom
 import io.github.mmolosay.thecolor.presentation.common.compose.withoutBottom
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.devoptions.DevOptionsData
@@ -194,16 +190,10 @@ fun DevOptions(
                 onClick = { showSelectionDialog = true },
             )
             if (showSelectionDialog) {
-                val windowInsets = BottomSheetDefaults.windowInsets
                 ModalBottomSheet(
                     onDismissRequest = { showSelectionDialog = false },
-                    contentWindowInsets = { windowInsets.withoutBottom() },
                 ) {
-                    val bottomWindowInsets = windowInsets.onlyBottom()
                     PredictableRandomColorsOptionSelection(
-                        modifier = Modifier
-                            .padding(bottomWindowInsets.asPaddingValues())
-                            .consumeWindowInsets(bottomWindowInsets),
                         options = options,
                     )
                 }
