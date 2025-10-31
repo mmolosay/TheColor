@@ -13,7 +13,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -114,9 +113,11 @@ object SettingsItemUiComponents {
     @Composable
     fun AnimatedTextValue(
         targetValue: String,
+        modifier: Modifier = Modifier,
         content: @Composable AnimatedContentScope.(targetState: String) -> Unit,
     ) =
         AnimatedContent(
+            modifier = modifier,
             targetState = targetValue,
             transitionSpec = {
                 fun <T> animationSpec() = tween<T>(durationMillis = 400)
@@ -242,16 +243,13 @@ private fun PreviewContent() {
             }
 
             Spacer(modifier = Modifier.width(ValueSpacing))
-            Box(
+            AnimatedTextValue(
                 modifier = Modifier.align(Alignment.CenterVertically),
-            ) {
-                AnimatedTextValue(
-                    targetValue = value,
-                ) { targetValue ->
-                    TextValue(
-                        text = targetValue,
-                    )
-                }
+                targetValue = value,
+            ) { targetValue ->
+                TextValue(
+                    text = targetValue,
+                )
             }
         }
     }

@@ -1,6 +1,5 @@
 package io.github.mmolosay.thecolor.presentation.settings.ui
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -47,16 +46,13 @@ internal fun AppUiColorScheme(
             }
 
             Spacer(modifier = Modifier.width(ValueSpacing))
-            Box(
+            AnimatedTextValue(
                 modifier = Modifier.align(Alignment.CenterVertically),
-            ) {
-                AnimatedTextValue(
-                    targetValue = value,
-                ) { targetValue ->
-                    TextValue(
-                        text = targetValue,
-                    )
-                }
+                targetValue = value,
+            ) { targetValue ->
+                TextValue(
+                    text = targetValue,
+                )
             }
         }
     }
