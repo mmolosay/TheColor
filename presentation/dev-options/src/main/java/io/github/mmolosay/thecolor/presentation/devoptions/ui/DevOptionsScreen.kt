@@ -2,6 +2,8 @@ package io.github.mmolosay.thecolor.presentation.devoptions.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -29,6 +31,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.debounce.debounced
+import io.github.mmolosay.thecolor.presentation.common.compose.onlyBottom
 import io.github.mmolosay.thecolor.presentation.common.compose.withoutBottom
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.devoptions.DevOptionsData
@@ -113,6 +116,8 @@ fun DevOptionsScreen(
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
             data = data,
             strings = strings,
+            extraContentPadding = ScaffoldDefaults.contentWindowInsets.onlyBottom()
+                .asPaddingValues(),
         )
     }
 }
@@ -167,9 +172,11 @@ fun DevOptions(
     data: DevOptionsData,
     strings: DevOptionsUiStrings,
     modifier: Modifier = Modifier,
+    extraContentPadding: PaddingValues = PaddingValues.Zero,
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
+        contentPadding = extraContentPadding,
         verticalArrangement = Arrangement.spacedBy(12.dp), // TODO: same style as on Settings screen. Extract into a reusable component?
     ) {
         item("predictable random colors") {
