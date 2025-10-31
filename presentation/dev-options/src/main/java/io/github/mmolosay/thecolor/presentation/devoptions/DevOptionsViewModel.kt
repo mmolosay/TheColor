@@ -3,6 +3,7 @@ package io.github.mmolosay.thecolor.presentation.devoptions
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.mmolosay.thecolor.domain.repository.BuildInfoRepository
 import io.github.mmolosay.thecolor.domain.repository.DefaultDevOptions
 import io.github.mmolosay.thecolor.domain.repository.DevOptionsRepository
 import io.github.mmolosay.thecolor.domain.usecase.ResetDevOptionsToDefaultUseCase
@@ -21,6 +22,7 @@ import io.github.mmolosay.thecolor.domain.model.DevOptions.PredictableRandomColo
 @HiltViewModel
 class DevOptionsViewModel @Inject constructor(
     private val devOptionsRepository: DevOptionsRepository,
+    private val buildInfoRepository: BuildInfoRepository,
     private val resetDevOptionsToDefault: ResetDevOptionsToDefaultUseCase,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
@@ -39,6 +41,14 @@ class DevOptionsViewModel @Inject constructor(
                 started = SharingStarted.WhileSubscribed(5000),
                 initialValue = DataState.Loading,
             )
+
+    private val buildInfo by lazy {
+        DevOptionsData.BuildInfo(
+            appBuildType = buildInfoRepository.getAppBuildType(),
+            appVersionName = buildInfoRepository.getAppBuildVersionName(),
+            appVersionCode = buildInfoRepository.getAppBuildVersionCode(),
+        )
+    }
 
     private fun resetValuesToDefault() {
         viewModelScope.launch(defaultDispatcher) {
@@ -71,6 +81,8 @@ class DevOptionsViewModel @Inject constructor(
             predictableRandomColors = predictableRandomColors,
             defaultPredictableRandomColors = DefaultDevOptions.PredictableRandomColors,
             changePredictableRandomColors = ::updatePredictableRandomColors,
+
+            buildInfo = buildInfo,
         )
     }
 

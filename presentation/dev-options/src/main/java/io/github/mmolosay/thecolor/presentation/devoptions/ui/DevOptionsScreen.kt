@@ -38,6 +38,7 @@ import io.github.mmolosay.thecolor.presentation.devoptions.DevOptionsData
 import io.github.mmolosay.thecolor.presentation.devoptions.DevOptionsViewModel
 import io.github.mmolosay.thecolor.presentation.devoptions.DevOptionsViewModel.DataState
 import kotlin.time.Duration.Companion.milliseconds
+import io.github.mmolosay.thecolor.domain.model.BuildType as DomainBuildType
 import io.github.mmolosay.thecolor.domain.model.DevOptions.PredictableRandomColors as DomainPredictableRandomColors
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
@@ -206,6 +207,20 @@ fun DevOptions(
                 }
             }
         }
+
+        // keep this item very last
+        item("build info") {
+            fun makeInfoProperty(name: String, value: Any?) =
+                "$name: ${value ?: "<null>"}"
+            BuildInfo(
+                title = strings.itemBuildInfoTitle,
+                info = listOf(
+                    makeInfoProperty(name = strings.itemBuildInfoAppBuildTypeLabel, value = data.buildInfo.appBuildType),
+                    makeInfoProperty(name = strings.itemBuildInfoAppVersionNameLabel, value = data.buildInfo.appVersionName),
+                    makeInfoProperty(name = strings.itemBuildInfoAppVersionCodeLabel, value = data.buildInfo.appVersionCode),
+                ).joinToString(separator = "\n"),
+            )
+        }
     }
 }
 
@@ -245,4 +260,10 @@ private fun previewData() =
         predictableRandomColors = DomainPredictableRandomColors.CyclingLightDark,
         defaultPredictableRandomColors = DomainPredictableRandomColors.Random,
         changePredictableRandomColors = {},
+
+        buildInfo = DevOptionsData.BuildInfo(
+            appBuildType = DomainBuildType.Debug,
+            appVersionName = "1",
+            appVersionCode = 1,
+        ),
     )

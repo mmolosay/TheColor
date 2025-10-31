@@ -18,4 +18,9 @@
     <string name="dev_options_item_predictable_random_colors_value_cycling_light_dark_short">Light Dark</string>
     <string name="dev_options_item_predictable_random_colors_value_cycling_light_dark_verbose">Cycling [Light, Dark]</string>
 
+    <string name="dev_options_item_build_info_title">Build info</string>
+    <string name="dev_options_item_build_info_app_build_type_label">Build type</string>
+    <string name="dev_options_item_build_info_app_version_name_label">Version name</string>
+    <string name="dev_options_item_build_info_app_version_code_label">Version code</string>
+
 </resources>

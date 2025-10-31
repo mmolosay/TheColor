@@ -26,6 +26,11 @@ data class DevOptionsUiStrings(
     val itemPredictableRandomColorsValueCyclingRgbVerbose: String,
     val itemPredictableRandomColorsValueCyclingLightDarkShort: String,
     val itemPredictableRandomColorsValueCyclingLightDarkVerbose: String,
+
+    val itemBuildInfoTitle: String,
+    val itemBuildInfoAppBuildTypeLabel: String,
+    val itemBuildInfoAppVersionNameLabel: String,
+    val itemBuildInfoAppVersionCodeLabel: String,
 )
 
 fun DevOptionsUiStrings(context: Context) =
@@ -46,4 +51,9 @@ fun DevOptionsUiStrings(context: Context) =
         itemPredictableRandomColorsValueCyclingRgbVerbose = context.getString(R.string.dev_options_item_predictable_random_colors_value_cycling_rgb_verbose),
         itemPredictableRandomColorsValueCyclingLightDarkShort = context.getString(R.string.dev_options_item_predictable_random_colors_value_cycling_light_dark_short),
         itemPredictableRandomColorsValueCyclingLightDarkVerbose = context.getString(R.string.dev_options_item_predictable_random_colors_value_cycling_light_dark_verbose),
+
+        itemBuildInfoTitle = context.getString(R.string.dev_options_item_build_info_title),
+        itemBuildInfoAppBuildTypeLabel = context.getString(R.string.dev_options_item_build_info_app_build_type_label),
+        itemBuildInfoAppVersionNameLabel = context.getString(R.string.dev_options_item_build_info_app_version_name_label),
+        itemBuildInfoAppVersionCodeLabel = context.getString(R.string.dev_options_item_build_info_app_version_code_label),
     )

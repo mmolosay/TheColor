@@ -10,12 +10,14 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.migration.DisableInstallInCheck
+import io.github.mmolosay.thecolor.data.local.BuildInfoRepositoryImpl
 import io.github.mmolosay.thecolor.data.local.DevOptionsDataStoreRepository
 import io.github.mmolosay.thecolor.data.local.LastSearchedColorDataStoreRepository
 import io.github.mmolosay.thecolor.data.local.ResetDevOptionsToDefaultUseCaseImpl
 import io.github.mmolosay.thecolor.data.local.ResetUserPreferenceToDefaultUseCaseImpl
 import io.github.mmolosay.thecolor.data.local.TouchLocalDatabaseUseCaseImpl
 import io.github.mmolosay.thecolor.data.local.UserPreferencesDataStoreRepository
+import io.github.mmolosay.thecolor.domain.repository.BuildInfoRepository
 import io.github.mmolosay.thecolor.domain.repository.DevOptionsRepository
 import io.github.mmolosay.thecolor.domain.repository.LastSearchedColorRepository
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
@@ -91,4 +93,7 @@ interface DiDataLocalBindModule {
 
     @Binds
     fun bindResetDevOptionsToDefaultUseCase(impl: ResetDevOptionsToDefaultUseCaseImpl): ResetDevOptionsToDefaultUseCase
+
+    @Binds
+    fun bindBuildInfoRepository(impl: BuildInfoRepositoryImpl): BuildInfoRepository
 }
