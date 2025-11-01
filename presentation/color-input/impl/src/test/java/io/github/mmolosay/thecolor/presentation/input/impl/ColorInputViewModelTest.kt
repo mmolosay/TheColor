@@ -9,7 +9,7 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -32,8 +32,8 @@ class ColorInputViewModelTest {
     @Test
     fun `initial data is set on initialization`() {
         every {
-            userPreferencesRepository.flowOfColorInputType()
-        } returns flowOf(DomainColorInputType.Hex)
+            userPreferencesRepository.flowOfColorInputType
+        } returns MutableStateFlow(DomainColorInputType.Hex)
 
         createSut()
 
@@ -43,8 +43,8 @@ class ColorInputViewModelTest {
     @Test
     fun `preferred input type is an initially selected one`() {
         every {
-            userPreferencesRepository.flowOfColorInputType()
-        } returns flowOf(DomainColorInputType.Rgb)
+            userPreferencesRepository.flowOfColorInputType
+        } returns MutableStateFlow(DomainColorInputType.Rgb)
 
         createSut()
 
@@ -54,8 +54,8 @@ class ColorInputViewModelTest {
     @Test
     fun `preferred input type is first in the ordered list of input types`() {
         every {
-            userPreferencesRepository.flowOfColorInputType()
-        } returns flowOf(DomainColorInputType.Rgb)
+            userPreferencesRepository.flowOfColorInputType
+        } returns MutableStateFlow(DomainColorInputType.Rgb)
 
         createSut()
 
@@ -65,8 +65,8 @@ class ColorInputViewModelTest {
     @Test
     fun `changing input type to RGB updates data with RGB view type`() {
         every {
-            userPreferencesRepository.flowOfColorInputType()
-        } returns flowOf(DomainColorInputType.Hex)
+            userPreferencesRepository.flowOfColorInputType
+        } returns MutableStateFlow(DomainColorInputType.Hex)
         createSut()
 
         data.onInputTypeChange(DomainColorInputType.Rgb)

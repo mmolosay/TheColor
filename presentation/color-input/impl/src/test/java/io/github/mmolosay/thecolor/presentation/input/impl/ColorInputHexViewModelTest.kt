@@ -26,6 +26,7 @@ import io.mockk.runs
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
@@ -58,9 +59,9 @@ class ColorInputHexViewModelTest {
     val submitAction: ColorInputSubmitAction = mockk()
 
     val userPreferencesRepository: UserPreferencesRepository = mockk {
-        every { flowOfSelectAllTextOnTextFieldFocus() } returns kotlin.run {
+        every { flowOfSelectAllTextOnTextFieldFocus } returns kotlin.run {
             val value = DomainSelectAllTextOnTextFieldFocus(enabled = false)
-            flowOf(value)
+            MutableStateFlow(value)
         }
     }
     val textFieldViewModelFactory: TextFieldViewModel.Factory = TextFieldViewModelTestFactory(

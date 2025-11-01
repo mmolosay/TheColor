@@ -35,8 +35,8 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.TextFieldValue
-import io.github.mmolosay.thecolor.presentation.impl.retainedNotNull
-import io.github.mmolosay.thecolor.presentation.impl.thenIf
+import io.github.mmolosay.thecolor.presentation.common.compose.retainedNotNull
+import io.github.mmolosay.thecolor.presentation.common.compose.thenIf
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.TrailingButton
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiStrings

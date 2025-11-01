@@ -36,8 +36,7 @@ dependencies {
     // Modules
     implementation(project(":domain"))
     implementation(project(":utils"))
-    implementation(project(":presentation:common:api"))
-    implementation(project(":presentation:common:impl"))
+    implementation(project(":presentation:common"))
     implementation(project(":presentation:design-system"))
     implementation(project(":presentation:color-details"))
     implementation(project(":presentation:color-scheme"))

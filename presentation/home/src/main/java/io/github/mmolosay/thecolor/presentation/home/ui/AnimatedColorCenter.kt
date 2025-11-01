@@ -18,12 +18,12 @@ import androidx.compose.ui.geometry.center
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalDensity
-import io.github.mmolosay.thecolor.presentation.impl.CircularReveal
-import io.github.mmolosay.thecolor.presentation.impl.RadiusProvider
-import io.github.mmolosay.thecolor.presentation.impl.calcVisibleHeightInScrollableContainer
-import io.github.mmolosay.thecolor.presentation.impl.clipCircle
-import io.github.mmolosay.thecolor.presentation.impl.retainedNotNull
-import io.github.mmolosay.thecolor.presentation.impl.thenIf
+import io.github.mmolosay.thecolor.presentation.common.compose.CircularReveal
+import io.github.mmolosay.thecolor.presentation.common.compose.RadiusProvider
+import io.github.mmolosay.thecolor.presentation.common.compose.calcVisibleHeightInScrollableContainer
+import io.github.mmolosay.thecolor.presentation.common.compose.clipCircle
+import io.github.mmolosay.thecolor.presentation.common.compose.retainedNotNull
+import io.github.mmolosay.thecolor.presentation.common.compose.thenIf
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 

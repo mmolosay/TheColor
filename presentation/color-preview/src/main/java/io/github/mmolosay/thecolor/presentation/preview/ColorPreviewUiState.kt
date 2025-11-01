@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.preview
 
-import io.github.mmolosay.thecolor.presentation.api.ColorInt
+import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
 
 /**
  * Describes how 'Color Preview' View is displayed in UI.

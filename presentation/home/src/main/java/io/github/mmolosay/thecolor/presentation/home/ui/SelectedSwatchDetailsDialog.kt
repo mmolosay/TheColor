@@ -1,8 +1,5 @@
 package io.github.mmolosay.thecolor.presentation.home.ui
 
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -18,10 +15,15 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import io.github.mmolosay.thecolor.presentation.api.ColorInt
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearance
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.NavBarAppearanceController
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.navBarAppearance
+import io.github.mmolosay.thecolor.presentation.common.ExtendedLifecycleEventObserver
+import io.github.mmolosay.thecolor.presentation.common.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent.EnteringForeground
+import io.github.mmolosay.thecolor.presentation.common.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent.LeavingForeground
+import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
+import io.github.mmolosay.thecolor.presentation.common.compose.TintedSurface
+import io.github.mmolosay.thecolor.presentation.common.navbar.NavBarAppearance
+import io.github.mmolosay.thecolor.presentation.common.navbar.NavBarAppearanceController
+import io.github.mmolosay.thecolor.presentation.common.navbar.navBarAppearance
+import io.github.mmolosay.thecolor.presentation.common.toLifecycleEventObserver
 import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
@@ -31,13 +33,6 @@ import io.github.mmolosay.thecolor.presentation.details.ColorDetailsOnTintedSurf
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsSeedData
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
-import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver
-import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent.EnteringForeground
-import io.github.mmolosay.thecolor.presentation.impl.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent.LeavingForeground
-import io.github.mmolosay.thecolor.presentation.impl.TintedSurface
-import io.github.mmolosay.thecolor.presentation.impl.onlyBottom
-import io.github.mmolosay.thecolor.presentation.impl.toLifecycleEventObserver
-import io.github.mmolosay.thecolor.presentation.impl.withoutBottom
 import io.github.mmolosay.thecolor.utils.doNothing
 
 @Composable
@@ -64,7 +59,6 @@ internal fun SelectedSwatchDetailsDialog(
 ) {
     val surfaceColor = ColorDetailsOnTintedSurfaceDefaults.surfaceColor(seedData)
     val colorsOnTintedSurface = ColorDetailsOnTintedSurfaceDefaults.colorsOnTintedSurface(seedData)
-    val windowInsets = BottomSheetDefaults.windowInsets
 
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
@@ -76,13 +70,11 @@ internal fun SelectedSwatchDetailsDialog(
                 color = colorsOnTintedSurface.muted,
             )
         },
-        contentWindowInsets = { windowInsets.withoutBottom() },
     ) {
         Content(
             surfaceColor = Color.Unspecified, // already has a background due to ModalBottomSheet's 'containerColor'
             colorsOnTintedSurface = colorsOnTintedSurface,
             colorDetailsDataState = colorDetailsDataState,
-            windowInsets = windowInsets.onlyBottom(),
         )
     }
 
@@ -106,7 +98,6 @@ private fun Content(
     surfaceColor: Color,
     colorsOnTintedSurface: ColorsOnTintedSurface,
     colorDetailsDataState: ColorDetailsViewModel.DataState,
-    windowInsets: WindowInsets,
 ) {
     TintedSurface(
         surfaceColor = surfaceColor,
@@ -118,9 +109,7 @@ private fun Content(
             ColorDetails(
                 dataState = state,
                 modifier = Modifier
-                    .padding(bottom = 24.dp) // just looks better this way
-                    .padding(windowInsets.asPaddingValues())
-                    .consumeWindowInsets(windowInsets),
+                    .padding(bottom = 24.dp), // just looks better this way
             )
         }
     }
@@ -175,7 +164,6 @@ private fun Preview() {
                     initialColorData = null,
                 )
             ),
-            windowInsets = BottomSheetDefaults.windowInsets,
         )
     }
 }

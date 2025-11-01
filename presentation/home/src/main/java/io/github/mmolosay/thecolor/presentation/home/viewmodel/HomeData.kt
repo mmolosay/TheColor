@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.home.viewmodel
 
-import io.github.mmolosay.thecolor.presentation.api.ColorInt
+import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
 
 /**

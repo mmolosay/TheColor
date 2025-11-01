@@ -4,8 +4,8 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
-import io.github.mmolosay.thecolor.presentation.api.SimpleViewModel
-import io.github.mmolosay.thecolor.presentation.api.ViewModelCoroutineScope
+import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
+import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexViewModel
@@ -14,6 +14,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -75,7 +76,8 @@ class ColorInputViewModel @AssistedInject constructor(
     }
 
     private suspend fun initialData(): ColorInputData {
-        val preferredInputType = userPreferencesRepository.flowOfColorInputType().first()
+        val preferredInputType = userPreferencesRepository.flowOfColorInputType
+            .filterNotNull().first()
         // make list of all input types with the preferred one being first
         val orderedViewTypes = run {
             val allInputTypes = DomainColorInputType.entries

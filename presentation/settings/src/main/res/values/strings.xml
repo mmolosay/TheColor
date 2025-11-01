@@ -39,4 +39,6 @@
     <string name="settings_item_auto_proceed_with_randomized_colors_title">Auto proceed with randomized colors</string>
     <string name="settings_item_auto_proceed_with_randomized_colors_desc">Randomizing a color will automatically show Color Center.</string>
 
+    <string name="settings_item_dev_options_title">Developer options</string>
+
 </resources>

@@ -1,0 +1,24 @@
+package io.github.mmolosay.thecolor.presentation.devoptions
+
+import io.github.mmolosay.thecolor.domain.model.BuildType as DomainBuildType
+import io.github.mmolosay.thecolor.domain.model.DevOptions.PredictableRandomColors as DomainPredictableRandomColors
+
+/**
+ * Platform-agnostic data provided by ViewModel to 'Developer Options' View.
+ */
+data class DevOptionsData(
+    val resetValuesToDefault: () -> Unit,
+
+    val predictableRandomColors: DomainPredictableRandomColors, // it's OK to use some domain models (like enums) in presentation layer
+    val defaultPredictableRandomColors: DomainPredictableRandomColors,
+    val changePredictableRandomColors: (DomainPredictableRandomColors) -> Unit,
+
+    val buildInfo: BuildInfo,
+) {
+
+    data class BuildInfo(
+        val appBuildType: DomainBuildType,
+        val appVersionName: String?,
+        val appVersionCode: Long,
+    )
+}

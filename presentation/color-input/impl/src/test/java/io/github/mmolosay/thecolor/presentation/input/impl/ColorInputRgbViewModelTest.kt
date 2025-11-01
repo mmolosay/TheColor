@@ -60,13 +60,13 @@ class ColorInputRgbViewModelTest {
     val submitAction: ColorInputSubmitAction = mockk()
 
     val userPreferencesRepository: UserPreferencesRepository = mockk {
-        every { flowOfSelectAllTextOnTextFieldFocus() } returns kotlin.run {
+        every { flowOfSelectAllTextOnTextFieldFocus } returns kotlin.run {
             val value = SelectAllTextOnTextFieldFocus(enabled = false)
-            flowOf(value)
+            MutableStateFlow(value)
         }
-        every { flowOfSmartBackspace() } returns kotlin.run {
+        every { flowOfSmartBackspace } returns kotlin.run {
             val value = DomainSmartBackspace(enabled = false)
-            flowOf(value)
+            MutableStateFlow(value)
         }
     }
     val textFieldViewModelFactory: TextFieldViewModel.Factory = TextFieldViewModelTestFactory(
@@ -111,15 +111,12 @@ class ColorInputRgbViewModelTest {
         }
 
     @Test
-    fun `state becomes Ready when 'smart backspace' value is emitted`() =
+    fun `state becomes Ready when 'null' initial value from 'smart backspace' is emitted`() =
         runTest(testDispatcher) {
-            val flowOfSmartBackspace = MutableSharedFlow<DomainSmartBackspace>()
-            every { userPreferencesRepository.flowOfSmartBackspace() } returns flowOfSmartBackspace
-            createSut()
-            dataState should beOfType<DataState.BeingInitialized>() // confirm that isn't 'Ready' yet
+            val flowOfSmartBackspace = MutableStateFlow<DomainSmartBackspace?>(null)
+            every { userPreferencesRepository.flowOfSmartBackspace } returns flowOfSmartBackspace
 
-            val value = DomainSmartBackspace(enabled = true) // value of 'enabled' doesn't matter
-            flowOfSmartBackspace.emit(value)
+            createSut()
 
             dataState should beOfType<DataState.Ready<*>>()
         }
@@ -222,7 +219,7 @@ class ColorInputRgbViewModelTest {
         runTest(testDispatcher) {
             val flowOfSmartBackspace =
                 MutableStateFlow(value = DomainSmartBackspace(enabled = false))
-            every { userPreferencesRepository.flowOfSmartBackspace() } returns flowOfSmartBackspace
+            every { userPreferencesRepository.flowOfSmartBackspace } returns flowOfSmartBackspace
             createSut()
             data.isSmartBackspaceEnabled shouldBe false
 

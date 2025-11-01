@@ -7,7 +7,7 @@ import io.github.mmolosay.thecolor.domain.repository.LastSearchedColorRepository
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.domain.usecase.ColorComparator
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
-import io.github.mmolosay.thecolor.domain.usecase.ColorFactory
+import io.github.mmolosay.thecolor.domain.usecase.GetPredictableRandomColorUseCase
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommand
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommandStore
@@ -173,12 +173,12 @@ class HomeViewModelTest {
 
     val userPreferencesRepository: UserPreferencesRepository = mockk {
         val disabled = ResumeFromLastSearchedColorOnStartup(enabled = false)
-        every { flowOfResumeFromLastSearchedColorOnStartup() } returns flowOf(disabled)
+        every { flowOfResumeFromLastSearchedColorOnStartup } returns MutableStateFlow(disabled)
     }
     val lastSearchedColorRepository: LastSearchedColorRepository = mockk {
         coEvery { setLastSearchedColor(color = any()) } just runs
     }
-    val colorFactory: ColorFactory = mockk()
+    val getPredictableRandomColor: GetPredictableRandomColorUseCase = mockk()
 
     lateinit var sut: HomeViewModel
 
@@ -1191,10 +1191,10 @@ class HomeViewModelTest {
     fun `when 'resume from last searched color on app startup' is enabled, then 'proceed' action is invoked for this color, thus 'proceedResult' is set to 'Success'`() =
         runTest(testDispatcher) {
             every {
-                userPreferencesRepository.flowOfResumeFromLastSearchedColorOnStartup()
+                userPreferencesRepository.flowOfResumeFromLastSearchedColorOnStartup
             } returns kotlin.run {
                 val enabled = ResumeFromLastSearchedColorOnStartup(enabled = true)
-                flowOf(enabled)
+                MutableStateFlow(enabled)
             }
             val lastSearchedColor: Color = Color.Hex(0x1A803F)
             coEvery { lastSearchedColorRepository.getLastSearchedColor() } returns lastSearchedColor
@@ -1275,9 +1275,9 @@ class HomeViewModelTest {
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             val randomColor: Color.Hex = mockk()
-            every { colorFactory.random() } returns randomColor
+            every { getPredictableRandomColor() } returns randomColor
             val featureValue = DomainAutoProceedWithRandomizedColors(enabled = false)
-            every { userPreferencesRepository.flowOfAutoProceedWithRandomizedColors() } returns MutableStateFlow(featureValue)
+            every { userPreferencesRepository.flowOfAutoProceedWithRandomizedColors } returns MutableStateFlow(featureValue)
             createSut()
 
             data.randomizeColor()
@@ -1294,9 +1294,9 @@ class HomeViewModelTest {
             val colorInputColorFlow = MutableStateFlow<Color?>(null)
             every { colorInputColorStore.colorFlow } returns colorInputColorFlow
             val randomColor: Color.Hex = mockk()
-            every { colorFactory.random() } returns randomColor
+            every { getPredictableRandomColor() } returns randomColor
             val featureValue = DomainAutoProceedWithRandomizedColors(enabled = true)
-            every { userPreferencesRepository.flowOfAutoProceedWithRandomizedColors() } returns MutableStateFlow(featureValue)
+            every { userPreferencesRepository.flowOfAutoProceedWithRandomizedColors } returns MutableStateFlow(featureValue)
             every { createColorData(color = any()) } returns mockk()
             createSut()
 
@@ -1336,7 +1336,7 @@ class HomeViewModelTest {
             doesColorBelongToSession = doesColorBelongToSession,
             userPreferencesRepository = userPreferencesRepository,
             lastSearchedColorRepository = lastSearchedColorRepository,
-            colorFactory = colorFactory,
+            getPredictableRandomColor = getPredictableRandomColor,
             defaultDispatcher = testDispatcher,
         ).also {
             sut = it

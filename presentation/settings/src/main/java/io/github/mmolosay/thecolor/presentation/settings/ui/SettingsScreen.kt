@@ -2,15 +2,11 @@ package io.github.mmolosay.thecolor.presentation.settings.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,12 +34,11 @@ import io.github.mmolosay.debounce.debounced
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.asSingletonSet
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.isSingleton
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.single
+import io.github.mmolosay.thecolor.presentation.common.compose.onlyBottom
+import io.github.mmolosay.thecolor.presentation.common.compose.withoutBottom
 import io.github.mmolosay.thecolor.presentation.design.Material3DynamicColorsAvailability.areDynamicColorsAvailable
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.impl.onlyBottom
-import io.github.mmolosay.thecolor.presentation.impl.withoutBottom
 import io.github.mmolosay.thecolor.presentation.settings.SettingsData
-import io.github.mmolosay.thecolor.presentation.settings.SettingsUiStrings
 import io.github.mmolosay.thecolor.presentation.settings.SettingsViewModel
 import io.github.mmolosay.thecolor.presentation.settings.SettingsViewModel.DataState
 import kotlin.time.Duration.Companion.milliseconds
@@ -56,11 +51,13 @@ import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 fun SettingsScreen(
     viewModel: SettingsViewModel,
     navigateBack: () -> Unit,
+    navigateToDevOptions: () -> Unit,
 ) {
     val dataState by viewModel.dataStateFlow.collectAsStateWithLifecycle()
     SettingsScreen(
         dataState = dataState,
         navigateBack = navigateBack,
+        navigateToDevOptions = navigateToDevOptions,
     )
 }
 
@@ -68,6 +65,7 @@ fun SettingsScreen(
 fun SettingsScreen(
     dataState: DataState,
     navigateBack: () -> Unit,
+    navigateToDevOptions: () -> Unit,
 ) {
     when (dataState) {
         is DataState.Loading -> {
@@ -79,7 +77,8 @@ fun SettingsScreen(
         is DataState.Ready -> {
             SettingsScreen(
                 data = dataState.data,
-                navigateBack = navigateBack
+                navigateBack = navigateBack,
+                navigateToDevOptions = navigateToDevOptions,
             )
         }
     }
@@ -90,17 +89,18 @@ fun SettingsScreen(
 fun SettingsScreen(
     data: SettingsData,
     navigateBack: () -> Unit,
+    navigateToDevOptions: () -> Unit,
 ) {
     val strings = SettingsUiStrings(LocalContext.current)
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     var showResetPreferencesToDefaultDialog by remember { mutableStateOf(false) }
-    val dismissResetPreferencesToDefaultDialog: () -> Unit = {
+    fun dismissResetPreferencesToDefaultDialog() {
         showResetPreferencesToDefaultDialog = false
     }
-
     if (showResetPreferencesToDefaultDialog) {
         ResetPreferencesToDefaultAlertDialog(
-            onDismissRequest = dismissResetPreferencesToDefaultDialog,
+            onDismissRequest = ::dismissResetPreferencesToDefaultDialog,
             strings = strings,
             onConfirmClick = {
                 data.resetPreferencesToDefault()
@@ -127,6 +127,9 @@ fun SettingsScreen(
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
             data = data,
             strings = strings,
+            navigateToDevOptions = navigateToDevOptions,
+            extraContentPadding = ScaffoldDefaults.contentWindowInsets.onlyBottom()
+                .asPaddingValues(),
         )
     }
 }
@@ -179,17 +182,20 @@ private fun TopBar(
 fun Settings(
     data: SettingsData,
     strings: SettingsUiStrings,
+    navigateToDevOptions: () -> Unit,
     modifier: Modifier = Modifier,
+    extraContentPadding: PaddingValues = PaddingValues.Zero,
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
+        contentPadding = extraContentPadding,
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item("preferred color input type") {
             var showSelectionDialog by remember { mutableStateOf(false) }
             val options = DomainColorInputType.entries.map { colorInputType ->
                 ColorInputTypeOption(
-                    name = colorInputType.toUiString(strings),
+                    text = colorInputType.toUiString(strings),
                     isSelected = (data.preferredColorInputType == colorInputType),
                     onSelect = { data.changePreferredColorInputType(colorInputType) },
                 )
@@ -201,16 +207,10 @@ fun Settings(
                 onClick = { showSelectionDialog = true },
             )
             if (showSelectionDialog) {
-                val windowInsets = BottomSheetDefaults.windowInsets
                 ModalBottomSheet(
                     onDismissRequest = { showSelectionDialog = false },
-                    contentWindowInsets = { windowInsets.withoutBottom() },
                 ) {
-                    val bottomWindowInsets = windowInsets.onlyBottom()
                     PreferredColorInputTypeSelection(
-                        modifier = Modifier
-                            .padding(bottomWindowInsets.asPaddingValues())
-                            .consumeWindowInsets(bottomWindowInsets),
                         options = options,
                     )
                 }
@@ -221,7 +221,7 @@ fun Settings(
             var showSelectionDialog by remember { mutableStateOf(false) }
             val options = data.supportedAppUiColorSchemeSets.map { mode ->
                 AppUiColorSchemeOption(
-                    name = mode.toVerboseUiString(strings),
+                    text = mode.toVerboseUiString(strings),
                     isSelected = (data.appUiColorSchemeSet == mode),
                     onSelect = { data.changeAppUiColorSchemeSet(mode) },
                 )
@@ -233,16 +233,10 @@ fun Settings(
                 onClick = { showSelectionDialog = true },
             )
             if (showSelectionDialog) {
-                val windowInsets = BottomSheetDefaults.windowInsets
                 ModalBottomSheet(
                     onDismissRequest = { showSelectionDialog = false },
-                    contentWindowInsets = { windowInsets.withoutBottom() },
                 ) {
-                    val bottomWindowInsets = windowInsets.onlyBottom()
                     AppUiColorSchemeSelection(
-                        modifier = Modifier
-                            .padding(bottomWindowInsets.asPaddingValues())
-                            .consumeWindowInsets(bottomWindowInsets),
                         options = options,
                     )
                 }
@@ -296,14 +290,14 @@ fun Settings(
             )
         }
 
-        item("spacer for navigation bar") {
-            val windowInsets = WindowInsets.systemBars.onlyBottom()
-            // visually the spacer will seem bigger due to spacing Arrangement of LazyColumn()
-            Spacer(
-                modifier = Modifier
-                    .padding(windowInsets.asPaddingValues())
-                    .consumeWindowInsets(windowInsets)
-            )
+        // keep this item very last
+        if (data.isDevOptionsEnabled) {
+            item("dev options") {
+                DevOptions(
+                    title = strings.itemDevOptionsTitle,
+                    onClick = navigateToDevOptions,
+                )
+            }
         }
     }
 }
@@ -357,6 +351,7 @@ private fun Preview() {
         SettingsScreen(
             data = previewData(),
             navigateBack = {},
+            navigateToDevOptions = {},
         )
     }
 }
@@ -390,4 +385,6 @@ private fun previewData() =
 
         isAutoProceedWithRandomizedColorsEnabled = true,
         changeAutoProceedWithRandomizedColorsEnablement = {},
+
+        isDevOptionsEnabled = true,
     )

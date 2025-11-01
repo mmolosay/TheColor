@@ -5,13 +5,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalView
 import androidx.navigation.compose.rememberNavController
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.RootNavBarAppearanceController
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.addFrom
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.isComplete
-import io.github.mmolosay.thecolor.presentation.api.nav.bar.navBarAppearance
+import io.github.mmolosay.thecolor.presentation.common.navbar.RootNavBarAppearanceController
+import io.github.mmolosay.thecolor.presentation.common.navbar.addFrom
+import io.github.mmolosay.thecolor.presentation.common.navbar.isComplete
+import io.github.mmolosay.thecolor.presentation.common.navbar.navBarAppearance
 import io.github.mmolosay.thecolor.presentation.design.LocalDefaultNavigationBarColor
 import io.github.mmolosay.thecolor.presentation.design.LocalDefaultShouldUseLightTintForNavBarControls
-import io.github.mmolosay.thecolor.presentation.impl.changeNavigationBar
+import io.github.mmolosay.thecolor.presentation.common.navbar.changeNavigationBar
 
 /**
  * A root of the entire application's UI.

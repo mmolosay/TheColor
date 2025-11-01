@@ -43,6 +43,9 @@ dependencies {
     implementation("com.squareup.moshi:moshi:1.15.2")
     ksp("com.squareup.moshi:moshi-kotlin-codegen:1.15.2")
 
+    // Hilt
+    implementation("com.google.dagger:hilt-android:${libs.versions.hilt.get()}") // for Dagger's Lazy<T>
+
     // Misc (preserve alphabetical order)
     implementation("com.github.ajalt.colormath:colormath:3.4.0")
     implementation("com.jakewharton.timber:timber:${libs.versions.jakewhartonTimber.get()}")

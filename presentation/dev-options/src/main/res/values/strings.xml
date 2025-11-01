@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="dev_options_top_bar_title">Developer options</string>
+    <string name="dev_options_top_bar_go_back_icon_desc">Go back</string>
+    <string name="dev_options_top_bar_reset_values_to_default_icon_desc">Reset values to default</string>
+
+    <string name="dev_options_reset_values_to_default_dialog_title">Reset values?</string>
+    <string name="dev_options_reset_values_to_default_dialog_text">This will reset all values of Developer Options back to their default production settings.</string>
+    <string name="dev_options_reset_values_to_default_dialog_dismiss_button_text">Cancel</string>
+    <string name="dev_options_reset_values_to_default_dialog_confirm_button_text">Reset values</string>
+
+    <string name="dev_options_item_predictable_random_colors_title">Predictable random colors</string>
+    <string name="dev_options_item_predictable_random_colors_desc">Change the strategy of how random colors are produced.</string>
+    <string name="dev_options_item_predictable_random_colors_value_random">Random</string>
+    <string name="dev_options_item_predictable_random_colors_value_cycling_rgb_short">RGB</string>
+    <string name="dev_options_item_predictable_random_colors_value_cycling_rgb_verbose">Cycling [Red, Green, Blue]</string>
+    <string name="dev_options_item_predictable_random_colors_value_cycling_light_dark_short">Light Dark</string>
+    <string name="dev_options_item_predictable_random_colors_value_cycling_light_dark_verbose">Cycling [Light, Dark]</string>
+
+    <string name="dev_options_item_build_info_title">Build info</string>
+    <string name="dev_options_item_build_info_app_build_type_label">Build type</string>
+    <string name="dev_options_item_build_info_app_version_name_label">Version name</string>
+    <string name="dev_options_item_build_info_app_version_code_label">Version code</string>
+
+</resources>

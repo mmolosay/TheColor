@@ -5,11 +5,13 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.asSingletonSet
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
+import io.github.mmolosay.thecolor.domain.usecase.IsDevOptionsEnabledUseCase
 import io.github.mmolosay.thecolor.domain.usecase.ResetUserPreferencesToDefaultUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -29,20 +31,23 @@ import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeSet
 class SettingsViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
     private val resetUserPreferencesToDefault: ResetUserPreferencesToDefaultUseCase,
+    private val isDevOptionsEnabled: IsDevOptionsEnabledUseCase,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     val dataStateFlow: StateFlow<DataState> =
         combine(
-            listOf(
-                userPreferencesRepository.flowOfColorInputType(),
-                userPreferencesRepository.flowOfAppUiColorSchemeSet(),
-                userPreferencesRepository.flowOfDynamicUiColors(),
-                userPreferencesRepository.flowOfResumeFromLastSearchedColorOnStartup(),
-                userPreferencesRepository.flowOfSmartBackspace(),
-                userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus(),
-                userPreferencesRepository.flowOfAutoProceedWithRandomizedColors(),
-            ),
+            flows = listOf(
+                userPreferencesRepository.flowOfColorInputType,
+                userPreferencesRepository.flowOfAppUiColorSchemeSet,
+                userPreferencesRepository.flowOfDynamicUiColors,
+                userPreferencesRepository.flowOfResumeFromLastSearchedColorOnStartup,
+                userPreferencesRepository.flowOfSmartBackspace,
+                userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus,
+                userPreferencesRepository.flowOfAutoProceedWithRandomizedColors,
+            ).map { flow ->
+                flow.filterNotNull() // await for all flows to initialize and emit stored values
+            },
             transform = ::createData,
         )
             .map { data -> DataState.Ready(data) }
@@ -115,7 +120,7 @@ class SettingsViewModel @Inject constructor(
             preferredColorInputType = iterator.next() as DomainColorInputType,
             appUiColorSchemeSet = iterator.next() as DomainUiColorSchemeSet,
             dynamicUiColors = iterator.next() as DomainDynamicUiColors,
-            shouldResumeFromLastSearchedColorOnStartup = iterator.next()as DomainShouldResumeFromLastSearchedColorOnStartup,
+            shouldResumeFromLastSearchedColorOnStartup = iterator.next() as DomainShouldResumeFromLastSearchedColorOnStartup,
             smartBackspace = iterator.next() as DomainSmartBackspace,
             selectAllTextOnTextFieldFocus = iterator.next() as DomainSelectAllTextOnTextFieldFocus,
             autoProceedWithRandomizedColors = iterator.next() as DomainAutoProceedWithRandomizedColors,
@@ -155,6 +160,8 @@ class SettingsViewModel @Inject constructor(
 
             isAutoProceedWithRandomizedColorsEnabled = autoProceedWithRandomizedColors.enabled,
             changeAutoProceedWithRandomizedColorsEnablement = ::updateAutoProceedWithRandomizedColorsEnablement,
+
+            isDevOptionsEnabled = isDevOptionsEnabled(),
         )
     }
 
