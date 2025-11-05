@@ -1,7 +1,7 @@
 package io.github.mmolosay.thecolor.domain.model
 
 /**
- * A collection of models that represent options of "developer options" feature.
+ * A collection of models that represent options of "Developer Options" feature.
  */
 object DevOptions {
 

@@ -1,5 +1,8 @@
 package io.github.mmolosay.thecolor.presentation.scheme
 
+import android.text.Annotation
+import android.text.SpannableStringBuilder
+import android.text.Spanned
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.spring
@@ -52,12 +55,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.text.bold
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
+import io.github.mmolosay.thecolor.presentation.common.colorint.toCompose
+import io.github.mmolosay.thecolor.presentation.common.format
+import io.github.mmolosay.thecolor.presentation.common.toAnnotatedString
 import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
@@ -67,7 +72,6 @@ import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.errors.ErrorMessageWithButton
 import io.github.mmolosay.thecolor.presentation.errors.message
 import io.github.mmolosay.thecolor.presentation.errors.rememberDefaultErrorsUiStrings
-import io.github.mmolosay.thecolor.presentation.common.colorint.toCompose
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.DataState
 import io.github.mmolosay.thecolor.utils.doNothing
 import io.github.mmolosay.thecolor.domain.model.ColorScheme as DomainColorScheme
@@ -196,9 +200,10 @@ private fun ModeSection(
     data: ColorSchemeData,
     strings: ColorSchemeUiStrings,
 ) {
+    val activeMode = data.activeMode.name(strings)
+    val title = strings.modeTitle.format(activeMode)
     SectionTitle(
-        label = strings.modeLabel,
-        value = data.activeMode.name(strings),
+        text = title,
     )
     Spacer(modifier = Modifier.height(4.dp))
     Modes(
@@ -261,9 +266,10 @@ private fun SwatchCountSection(
     data: ColorSchemeData,
     strings: ColorSchemeUiStrings,
 ) {
+    val activeSwatchCount = data.activeSwatchCount.stringValue()
+    val title = strings.swatchCountTitle.format(activeSwatchCount)
     SectionTitle(
-        label = strings.swatchCountLabel,
-        value = data.activeSwatchCount.stringValue(),
+        text = title,
     )
     Spacer(modifier = Modifier.height(4.dp))
     SwatchCountItems(
@@ -311,18 +317,15 @@ private fun ColorSchemeData.SwatchCount.stringValue(): String =
 
 @Composable
 private fun SectionTitle(
-    label: String,
-    value: String,
+    text: Spanned,
 ) {
-    val labelColor = colorsOnTintedSurface.accent
-    val valueColor = colorsOnTintedSurface.muted
-    val text = buildAnnotatedString {
-        withStyle(SpanStyle(color = labelColor)) {
-            append(label)
-        }
-        append(' ')
-        withStyle(SpanStyle(color = valueColor)) {
-            append(value)
+    // intentional name shadowing, Compose's Text() won't work with Spanned anyway
+    val text = text.toAnnotatedString<Annotation> { annotation ->
+        check(annotation.key == "type") { "unexpected annotation key" }
+        when (annotation.value) {
+            "label" -> SpanStyle(color = colorsOnTintedSurface.accent)
+            "value" -> SpanStyle(color = colorsOnTintedSurface.muted)
+            else -> error("unexpected annotation value")
         }
     }
     Text(
@@ -544,7 +547,12 @@ private fun previewData() =
 @Suppress("SpellCheckingInspection", "RedundantSuppression")
 private fun previewUiStrings() =
     ColorSchemeUiStrings(
-        modeLabel = "Mode:",
+        modeTitle = SpannableStringBuilder().apply {
+            // TODO: replace bolds with plausible annotations
+            bold { append("Mode:") }
+            append(" ")
+            bold { append("%1\$s") }
+        },
         modeMonochromeName = "monochrome",
         modeMonochromeDarkName = "monochrome-dark",
         modeMonochromeLightName = "monochrome-light",
@@ -553,6 +561,11 @@ private fun previewUiStrings() =
         modeAnalogicComplementName = "analogic-complement",
         modeTriadName = "triad",
         modeQuadName = "quad",
-        swatchCountLabel = "Swatch count:",
+        swatchCountTitle = SpannableStringBuilder().apply {
+            // TODO: replace bolds with plausible annotations
+            bold { append("Swatch count:") }
+            append(" ")
+            bold { append("%1\$s") }
+        },
         applyChangesButtonText = "Apply changes",
     )

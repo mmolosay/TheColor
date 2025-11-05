@@ -4,6 +4,7 @@ plugins {
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
     id("org.jetbrains.kotlin.plugin.compose")
+    id("tech.apter.junit5.jupiter.robolectric-extension-gradle-plugin")
 }
 
 android {
@@ -68,4 +69,5 @@ dependencies {
     testImplementation("io.mockk:mockk:${libs.versions.mockk.get()}")
     testImplementation("io.kotest:kotest-assertions-core:${libs.versions.kotestAssertions.get()}")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:${libs.versions.coroutines.get()}")
+    testImplementation("org.robolectric:robolectric:${libs.versions.robolectric.get()}")
 }
