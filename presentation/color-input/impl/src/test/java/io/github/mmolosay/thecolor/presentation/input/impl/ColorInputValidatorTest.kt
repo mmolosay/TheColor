@@ -50,7 +50,7 @@ class ColorInputValidatorTest {
     companion object {
 
         @JvmStatic
-        fun data() = listOf(
+        fun data(): Array<Array<Any?>> = listOf(
             /* #0 */
             TestCase(
                 givenColorInput = ColorInput.Hex(""),
@@ -58,7 +58,7 @@ class ColorInputValidatorTest {
                     isEmpty = true,
                     isCompleteFromUserPerspective = false,
                 ),
-            ).asArrayOfAnys(),
+            ),
             /* #1 */
             TestCase(
                 givenColorInput = ColorInput.Hex("0"),
@@ -66,7 +66,7 @@ class ColorInputValidatorTest {
                     isEmpty = false,
                     isCompleteFromUserPerspective = false,
                 ),
-            ).asArrayOfAnys(),
+            ),
             /* #2 */
             TestCase(
                 givenColorInput = ColorInput.Hex("01"),
@@ -74,7 +74,7 @@ class ColorInputValidatorTest {
                     isEmpty = false,
                     isCompleteFromUserPerspective = false,
                 ),
-            ).asArrayOfAnys(),
+            ),
             /* #3 */
             run {
                 val prototypeFromColorInputMapper: ColorPrototype = mockk()
@@ -86,7 +86,7 @@ class ColorInputValidatorTest {
                         prototypeFromColorInputMapper,
                         parsedColorFromColorFactory,
                     ),
-                ).asArrayOfAnys()
+                )
             },
             /* #4 */
             run {
@@ -102,7 +102,7 @@ class ColorInputValidatorTest {
                         prototypeFromColorInputMapper,
                         parsedColorFromColorFactory,
                     ),
-                ).asArrayOfAnys()
+                )
             },
             /* #5 */
             run {
@@ -115,9 +115,11 @@ class ColorInputValidatorTest {
                         prototypeFromColorInputMapper,
                         parsedColorFromColorFactory,
                     ),
-                ).asArrayOfAnys()
+                )
             },
         )
+            .map { it.asArrayOfAnys() }
+            .toTypedArray()
 
         data class TestCase(
             val givenColorInput: ColorInput,
