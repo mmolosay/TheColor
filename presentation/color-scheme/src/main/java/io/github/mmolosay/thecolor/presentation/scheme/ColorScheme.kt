@@ -58,7 +58,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.core.text.bold
+import io.github.mmolosay.thecolor.presentation.common.annotation
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
 import io.github.mmolosay.thecolor.presentation.common.colorint.toCompose
 import io.github.mmolosay.thecolor.presentation.common.format
@@ -321,10 +321,10 @@ private fun SectionTitle(
 ) {
     // intentional name shadowing, Compose's Text() won't work with Spanned anyway
     val text = text.toAnnotatedString<Annotation> { annotation ->
-        check(annotation.key == "type") { "unexpected annotation key" }
+        check(annotation.key == SectionTitleAnnotationKey) { "unexpected annotation key" }
         when (annotation.value) {
-            "label" -> SpanStyle(color = colorsOnTintedSurface.accent)
-            "value" -> SpanStyle(color = colorsOnTintedSurface.muted)
+            SectionTitleAnnotationValueForLabel -> SpanStyle(color = colorsOnTintedSurface.accent)
+            SectionTitleAnnotationValueForValue -> SpanStyle(color = colorsOnTintedSurface.muted)
             else -> error("unexpected annotation value")
         }
     }
@@ -464,6 +464,11 @@ private fun Error(
 private fun rememberContentColors(useLight: Boolean): ColorsOnTintedSurface =
     remember(useLight) { if (useLight) colorsOnDarkSurface() else colorsOnLightSurface() }
 
+// must match values of spans in strings.xml
+private const val SectionTitleAnnotationKey = "type"
+private const val SectionTitleAnnotationValueForLabel = "label"
+private const val SectionTitleAnnotationValueForValue = "value"
+
 @Preview(showBackground = true)
 @Composable
 private fun PreviewLight() {
@@ -545,14 +550,16 @@ private fun previewData() =
     )
 
 @Suppress("SpellCheckingInspection", "RedundantSuppression")
-private fun previewUiStrings() =
-    ColorSchemeUiStrings(
-        modeTitle = SpannableStringBuilder().apply {
-            // TODO: replace bolds with plausible annotations
-            bold { append("Mode:") }
+private fun previewUiStrings(): ColorSchemeUiStrings {
+    fun sectionTitle(label: String, value: String): Spanned =
+        SpannableStringBuilder().apply {
+            val key = SectionTitleAnnotationKey
+            annotation(key = key, value = SectionTitleAnnotationValueForLabel) { append(label) }
             append(" ")
-            bold { append("%1\$s") }
-        },
+            annotation(key = key, value = SectionTitleAnnotationValueForValue) { append(value) }
+        }
+    return ColorSchemeUiStrings(
+        modeTitle = sectionTitle(label = "Mode:", value = "%1\$s"),
         modeMonochromeName = "monochrome",
         modeMonochromeDarkName = "monochrome-dark",
         modeMonochromeLightName = "monochrome-light",
@@ -561,11 +568,7 @@ private fun previewUiStrings() =
         modeAnalogicComplementName = "analogic-complement",
         modeTriadName = "triad",
         modeQuadName = "quad",
-        swatchCountTitle = SpannableStringBuilder().apply {
-            // TODO: replace bolds with plausible annotations
-            bold { append("Swatch count:") }
-            append(" ")
-            bold { append("%1\$s") }
-        },
+        swatchCountTitle = sectionTitle(label = "Swatch count:", value = "%1\$s"),
         applyChangesButtonText = "Apply changes",
     )
+}
