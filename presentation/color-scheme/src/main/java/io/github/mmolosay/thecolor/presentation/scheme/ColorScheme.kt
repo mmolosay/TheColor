@@ -57,7 +57,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
@@ -78,6 +77,7 @@ import androidx.compose.ui.zIndex
 import io.github.mmolosay.thecolor.presentation.common.annotation
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
 import io.github.mmolosay.thecolor.presentation.common.colorint.toCompose
+import io.github.mmolosay.thecolor.presentation.common.compose.drawIf
 import io.github.mmolosay.thecolor.presentation.common.format
 import io.github.mmolosay.thecolor.presentation.common.toAnnotatedString
 import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
@@ -262,10 +262,6 @@ private fun calcContentPadding(
     return PaddingValues(horizontal = with(density) { horizontalPadding.toDp() })
 }
 
-private fun Modifier.drawIf(shouldDraw: Boolean): Modifier =
-    this.drawWithContent {
-        if (shouldDraw) drawContent()
-    }
 
 // TODO: remove me
 private fun Modifier.drawCenterItemPointer(): Modifier =
