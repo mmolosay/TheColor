@@ -107,9 +107,9 @@ internal fun ListOfSwatches(
     }
 }
 
-private const val SwatchMinScale = 0.8f
-private const val SwatchMaxScale = 1f
-private val SwatchSpacing = run {
+internal const val SwatchMinScale = 0.8f
+internal const val SwatchMaxScale = 1f
+internal val SwatchSpacing = run {
     val spaceBetweenAdjacentMinScaledSwatches = SwatchSize * (SwatchMaxScale - SwatchMinScale)
     val halfOfMinScaledSwatchOffset = (SwatchSize * SwatchMinScale) / 2f
     -(spaceBetweenAdjacentMinScaledSwatches + halfOfMinScaledSwatchOffset)
