@@ -16,15 +16,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 
-// prefer using 'colorsOnTintedSurface' to get and 'ProvideColorsOnTintedSurface' to set
-val LocalColorsOnTintedSurface = compositionLocalOf<ColorsOnTintedSurface> {
+// defined as 'private' to enforce usage of higher-level APIs, like 'colorsOnTintedSurface' and 'ProvideColorsOnTintedSurface'
+private val LocalColorsOnTintedSurface = compositionLocalOf<ColorsOnTintedSurface> {
     error("CompositionLocal \"LocalColorsOnTintedSurface\" doesn't have value by default.")
 }
 
 val colorsOnTintedSurface: ColorsOnTintedSurface
     @Composable
     @ReadOnlyComposable
-    inline get() = LocalColorsOnTintedSurface.current
+    get() = LocalColorsOnTintedSurface.current
 
 @Composable
 fun ProvideColorsOnTintedSurface(
