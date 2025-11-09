@@ -179,8 +179,8 @@ private fun Swatches(
     HorizontalPager(
         modifier = Modifier
             .drawIf(isReadyToBeDrawn)
-            .fillMaxWidth()
-            .edgeToEdge(parentTotalHorizontalPadding = 32.dp),
+            .edgeToEdge(parentTotalHorizontalPadding = 32.dp)
+            .fillMaxWidth(),
 //            .drawCenterItemPointer() // TODO: remove me
         state = pagerState,
         contentPadding = calculatedContentPadding ?: PaddingValues(0.dp),
