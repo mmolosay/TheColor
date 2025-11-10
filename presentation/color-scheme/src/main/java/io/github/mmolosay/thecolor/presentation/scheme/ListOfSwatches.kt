@@ -17,6 +17,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
@@ -43,26 +44,27 @@ internal fun ListOfSwatches(
         initialPage = 0,
         pageCount = { swatches.size },
     )
-    val calculatedContentPadding = run {
+    val contentPadding = run {
         // 'rememberPagerState()' employs 'rememberSaveable()', which allows to recall last value on "first" composition
         val lastSettledPage = remember { pagerState.settledPage }
         val padding by calcContentPadding(pagerState)
-        if (padding != null) { // assuming it can go from null to not-null only once
-            LaunchedEffect(Unit) {
-                pagerState.scrollToPage(page = lastSettledPage)
-            }
+        // for some reason, may run twice for the same padding; I suspect the issue lies within how 'derivedStateOf()' works
+        LaunchedEffect(padding) {
+            if (padding == null) return@LaunchedEffect
+            pagerState.scrollToPage(page = lastSettledPage)
+            println("PRIVET, LaunchedEffect scrolled to page $lastSettledPage")
         }
         return@run padding
     }
-    val isReadyToBeDrawn = (calculatedContentPadding != null)
+    val isReadyToBeDrawn = (contentPadding != null)
     HorizontalPager(
         modifier = Modifier
-            .drawIf(isReadyToBeDrawn)
             .edgeToEdge(parentTotalHorizontalPadding = 32.dp)
+            .drawIf(isReadyToBeDrawn)
             .fillMaxWidth(),
-//            .drawCenterItemPointer() // TODO: remove me
+//            .drawCenterItemPointer(), // TODO: remove me
         state = pagerState,
-        contentPadding = calculatedContentPadding ?: PaddingValues(0.dp),
+        contentPadding = contentPadding ?: PaddingValues(0.dp),
         pageSize = PageSize.Fixed(pageSize = SwatchSize),
         pageSpacing = SwatchSpacing,
         flingBehavior = PagerDefaults.flingBehavior(
@@ -118,11 +120,12 @@ internal val SwatchSpacing = run {
 @Composable
 private fun calcContentPadding(pagerState: PagerState): State<PaddingValues?> {
     val density = LocalDensity.current
+    // PagerState.layoutInfo is a @FrequentlyChangingValue (not annotated but it is, just like in LazyListState)
     return remember {
-        // PagerState.layoutInfo is a @FrequentlyChangingValue (not annotated but it is, just like in LazyListState)
-        derivedStateOf {
-            val viewportSize = pagerState.layoutInfo.viewportSize
-            val orientation = pagerState.layoutInfo.orientation
+        derivedStateOf(structuralEqualityPolicy()) {
+            val layoutInfo = pagerState.layoutInfo
+            val viewportSize = layoutInfo.viewportSize
+            val orientation = layoutInfo.orientation
             calcContentPadding(
                 density = density,
                 viewportSize = viewportSize,
