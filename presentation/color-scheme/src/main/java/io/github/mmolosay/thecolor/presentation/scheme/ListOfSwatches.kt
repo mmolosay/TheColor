@@ -44,6 +44,9 @@ internal fun ListOfSwatches(
         initialPage = 0,
         pageCount = { swatches.size },
     )
+    LaunchedEffect(swatches) {
+        pagerState.scrollToPage(page = 0)
+    }
     val contentPadding = run {
         // 'rememberPagerState()' employs 'rememberSaveable()', which allows to recall last value on "first" composition
         val lastSettledPage = remember { pagerState.settledPage }
@@ -52,7 +55,6 @@ internal fun ListOfSwatches(
         LaunchedEffect(padding) {
             if (padding == null) return@LaunchedEffect
             pagerState.scrollToPage(page = lastSettledPage)
-            println("PRIVET, LaunchedEffect scrolled to page $lastSettledPage")
         }
         return@run padding
     }
