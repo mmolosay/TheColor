@@ -32,6 +32,9 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import io.github.mmolosay.thecolor.presentation.common.compose.drawIf
+import io.github.mmolosay.thecolor.presentation.common.compose.rememberSnapshotFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.math.absoluteValue
@@ -46,26 +49,26 @@ internal fun ListOfSwatches(
         initialPage = 0,
         pageCount = { swatches.size },
     )
+
     val pagerScrollMutex = remember { Mutex() } // multiple calls to 'scrollToPage()' simultaneously doesn't work as fair FIFO by default
     suspend fun PagerState.scrollToPageFairly(page: Int) =
         pagerScrollMutex.withLock {
             this.scrollToPage(page)
         }
+
+    val contentPadding by calcContentPadding(pagerState)
+    val isReadyToBeDrawn = (contentPadding != null)
+    val flowOfIsReadyToBeDrawn = rememberSnapshotFlow(isReadyToBeDrawn)
+
     LaunchedEffect(swatches) {
         pagerState.scrollToPageFairly(page = 0)
     }
-    val contentPadding = run {
-        // 'rememberPagerState()' employs 'rememberSaveable()', which allows to recall last value on "first" composition
-        val lastSettledPage = remember { pagerState.settledPage }
-        val padding by calcContentPadding(pagerState)
-        // for some reason, may run twice for the same padding; I suspect the issue lies within how 'derivedStateOf()' works
-        LaunchedEffect(padding) {
-            if (padding == null) return@LaunchedEffect
-            pagerState.scrollToPageFairly(page = lastSettledPage)
-        }
-        return@run padding
+    // 'rememberPagerState()' employs 'rememberSaveable()', which allows to recall last value on "first" composition
+    val recalledLastSettledPage = remember { pagerState.settledPage }
+    LaunchedEffect(Unit) {
+        flowOfIsReadyToBeDrawn.first { isReadyToBeDrawn -> isReadyToBeDrawn } // skip until first 'isReadyToBeDrawn' == 'true'
+        pagerState.scrollToPageFairly(page = recalledLastSettledPage)
     }
-    val isReadyToBeDrawn = (contentPadding != null)
     HorizontalPager(
         modifier = Modifier
             .edgeToEdge(parentTotalHorizontalPadding = 32.dp)
