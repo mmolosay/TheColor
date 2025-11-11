@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import io.github.mmolosay.thecolor.presentation.common.compose.drawIf
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
@@ -116,8 +117,10 @@ internal fun AnimatedColorPreview(
     }
 
     if (animController != null) {
+        val isReadyToBeDrawn = (offsetAnimatable != null)
         Box(
             modifier = Modifier
+                .drawIf(isReadyToBeDrawn)
                 .onGloballyPositioned { coordinates ->
                     size = coordinates.size
                 }
@@ -128,11 +131,8 @@ internal fun AnimatedColorPreview(
                     val ownPosInRoot = coordinates.positionInRoot()
                     posInContainer = ownPosInRoot - containerPosInRoot
                 }
-                .run applyDiveAnimOffset@{
-                    val animatable = offsetAnimatable
-                    if (animatable != null) {
-                        offset { IntOffset(x = 0, y = animatable.value) }
-                    } else this
+                .offset {
+                    IntOffset(x = 0, y = offsetAnimatable?.value ?: 0)
                 },
         ) {
             colorPreview.composable.invoke(

@@ -11,22 +11,16 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -46,11 +40,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.vectorResource
@@ -58,9 +50,8 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.core.text.bold
+import io.github.mmolosay.thecolor.presentation.common.annotation
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
-import io.github.mmolosay.thecolor.presentation.common.colorint.toCompose
 import io.github.mmolosay.thecolor.presentation.common.format
 import io.github.mmolosay.thecolor.presentation.common.toAnnotatedString
 import io.github.mmolosay.thecolor.presentation.design.ColorsOnTintedSurface
@@ -110,7 +101,7 @@ fun ColorScheme(
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
     ) {
-        Swatches(
+        ListOfSwatches(
             swatches = data.swatches,
             onSwatchClick = data.onSwatchSelect,
         )
@@ -135,65 +126,6 @@ fun ColorScheme(
         )
     }
 }
-
-@Composable
-private fun Swatches(
-    swatches: List<ColorSchemeData.Swatch>,
-    onSwatchClick: (indexOfSwatch: Int) -> Unit,
-) {
-    val scrollState = rememberScrollState()
-    Box(
-        modifier = Modifier
-            .edgeToEdge(parentTotalHorizontalPadding = 32.dp)
-            .fillMaxWidth()
-            .horizontalScroll(
-                state = scrollState,
-            ),
-        contentAlignment = Alignment.Center,
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 48.dp), // equivalent of content padding in LazyList
-            horizontalArrangement = Arrangement.spacedBy((-32).dp),
-        ) {
-            swatches.forEachIndexed { index, swatch ->
-                Swatch(
-                    swatch = swatch,
-                    onClick = { onSwatchClick(index) },
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun Swatch(
-    swatch: ColorSchemeData.Swatch,
-    onClick: () -> Unit,
-) {
-    val colors = rememberContentColors(useLight = swatch.isDark) // light content on dark and vice versa
-    ProvideColorsOnTintedSurface(colors) { // provides correct ripple
-        Box(
-            modifier = Modifier
-                .size(64.dp)
-                .clip(CircleShape)
-                .background(swatch.color.toCompose())
-                .clickable(onClick = onClick),
-        )
-    }
-}
-
-private fun Modifier.edgeToEdge(
-    parentTotalHorizontalPadding: Dp,
-): Modifier =
-    layout { measurable, constraints ->
-        val expandedConstraints = constraints.copy(
-            maxWidth = constraints.maxWidth + parentTotalHorizontalPadding.roundToPx(),
-        )
-        val placeable = measurable.measure(expandedConstraints)
-        layout(placeable.width, placeable.height) {
-            placeable.placeRelative(x = 0, y = 0)
-        }
-    }
 
 @Composable
 private fun ModeSection(
@@ -321,10 +253,10 @@ private fun SectionTitle(
 ) {
     // intentional name shadowing, Compose's Text() won't work with Spanned anyway
     val text = text.toAnnotatedString<Annotation> { annotation ->
-        check(annotation.key == "type") { "unexpected annotation key" }
+        check(annotation.key == SectionTitleAnnotationKey) { "unexpected annotation key" }
         when (annotation.value) {
-            "label" -> SpanStyle(color = colorsOnTintedSurface.accent)
-            "value" -> SpanStyle(color = colorsOnTintedSurface.muted)
+            SectionTitleAnnotationValueForLabel -> SpanStyle(color = colorsOnTintedSurface.accent)
+            SectionTitleAnnotationValueForValue -> SpanStyle(color = colorsOnTintedSurface.muted)
             else -> error("unexpected annotation value")
         }
     }
@@ -461,8 +393,15 @@ private fun Error(
 }
 
 @Composable
-private fun rememberContentColors(useLight: Boolean): ColorsOnTintedSurface =
-    remember(useLight) { if (useLight) colorsOnDarkSurface() else colorsOnLightSurface() }
+internal fun rememberContentColors(useLight: Boolean): ColorsOnTintedSurface =
+    remember(useLight) {
+        if (useLight) colorsOnDarkSurface() else colorsOnLightSurface()
+    }
+
+// must match values of spans in strings.xml
+private const val SectionTitleAnnotationKey = "type"
+private const val SectionTitleAnnotationValueForLabel = "label"
+private const val SectionTitleAnnotationValueForValue = "value"
 
 @Preview(showBackground = true)
 @Composable
@@ -545,14 +484,16 @@ private fun previewData() =
     )
 
 @Suppress("SpellCheckingInspection", "RedundantSuppression")
-private fun previewUiStrings() =
-    ColorSchemeUiStrings(
-        modeTitle = SpannableStringBuilder().apply {
-            // TODO: replace bolds with plausible annotations
-            bold { append("Mode:") }
+private fun previewUiStrings(): ColorSchemeUiStrings {
+    fun sectionTitle(label: String, value: String): Spanned =
+        SpannableStringBuilder().apply {
+            val key = SectionTitleAnnotationKey
+            annotation(key = key, value = SectionTitleAnnotationValueForLabel) { append(label) }
             append(" ")
-            bold { append("%1\$s") }
-        },
+            annotation(key = key, value = SectionTitleAnnotationValueForValue) { append(value) }
+        }
+    return ColorSchemeUiStrings(
+        modeTitle = sectionTitle(label = "Mode:", value = "%1\$s"),
         modeMonochromeName = "monochrome",
         modeMonochromeDarkName = "monochrome-dark",
         modeMonochromeLightName = "monochrome-light",
@@ -561,11 +502,7 @@ private fun previewUiStrings() =
         modeAnalogicComplementName = "analogic-complement",
         modeTriadName = "triad",
         modeQuadName = "quad",
-        swatchCountTitle = SpannableStringBuilder().apply {
-            // TODO: replace bolds with plausible annotations
-            bold { append("Swatch count:") }
-            append(" ")
-            bold { append("%1\$s") }
-        },
+        swatchCountTitle = sectionTitle(label = "Swatch count:", value = "%1\$s"),
         applyChangesButtonText = "Apply changes",
     )
+}

@@ -20,17 +20,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.valentinilk.shimmer.shimmer
+import io.github.mmolosay.thecolor.presentation.common.compose.clipFullyRounded
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
-import io.github.mmolosay.thecolor.presentation.common.compose.clipFullyRounded
 
 /**
  * Structurally repeats contents and arrangement of [ColorScheme].
@@ -59,20 +60,24 @@ private fun Swatches() {
         modifier = Modifier.graphicsLayer(alpha = fillAlpha),
     ) {
         Row(
-            horizontalArrangement = Arrangement.spacedBy((-32).dp),
+            horizontalArrangement = Arrangement.spacedBy(SwatchSpacing),
         ) {
-            repeat(times = 5) {
-                Swatch()
+            repeat(times = 7) {
+                Swatch(
+                    modifier = Modifier.scale(SwatchMinScale),
+                )
             }
         }
     }
 }
 
 @Composable
-private fun Swatch() =
+private fun Swatch(
+    modifier: Modifier = Modifier,
+) =
     Box(
-        modifier = Modifier
-            .size(64.dp)
+        modifier = modifier
+            .size(SwatchSize)
             .clip(CircleShape)
             .background(colorsOnTintedSurface.accent),
     )
@@ -84,7 +89,7 @@ private fun ModeSection() {
     ) {
         Box(
             modifier = Modifier
-                .height(20.dp)
+                .height(14.dp)
                 .width(100.dp)
                 .clipFullyRounded()
                 .background(fill)
@@ -121,7 +126,7 @@ private fun Modes() {
 private fun ModeChip(modifier: Modifier) {
     Box(
         modifier = modifier
-            .height(30.dp)
+            .height(32.dp)
             .clipFullyRounded()
             .background(fill)
     )
