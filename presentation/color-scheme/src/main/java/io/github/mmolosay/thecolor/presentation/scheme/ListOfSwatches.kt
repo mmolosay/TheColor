@@ -32,6 +32,8 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import io.github.mmolosay.thecolor.presentation.common.compose.drawIf
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlin.math.absoluteValue
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -44,8 +46,13 @@ internal fun ListOfSwatches(
         initialPage = 0,
         pageCount = { swatches.size },
     )
+    val pagerScrollMutex = remember { Mutex() } // multiple calls to 'scrollToPage()' simultaneously doesn't work as fair FIFO by default
+    suspend fun PagerState.scrollToPageFairly(page: Int) =
+        pagerScrollMutex.withLock {
+            this.scrollToPage(page)
+        }
     LaunchedEffect(swatches) {
-        pagerState.scrollToPage(page = 0)
+        pagerState.scrollToPageFairly(page = 0)
     }
     val contentPadding = run {
         // 'rememberPagerState()' employs 'rememberSaveable()', which allows to recall last value on "first" composition
@@ -54,7 +61,7 @@ internal fun ListOfSwatches(
         // for some reason, may run twice for the same padding; I suspect the issue lies within how 'derivedStateOf()' works
         LaunchedEffect(padding) {
             if (padding == null) return@LaunchedEffect
-            pagerState.scrollToPage(page = lastSettledPage)
+            pagerState.scrollToPageFairly(page = lastSettledPage)
         }
         return@run padding
     }
