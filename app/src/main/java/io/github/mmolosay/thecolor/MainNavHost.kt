@@ -8,6 +8,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import io.github.mmolosay.thecolor.presentation.acknowledgements.AcknowledgementsScreen
 import io.github.mmolosay.thecolor.presentation.common.navbar.NavBarAppearanceController
 import io.github.mmolosay.thecolor.presentation.devoptions.DevOptionsViewModel
 import io.github.mmolosay.thecolor.presentation.devoptions.ui.DevOptionsScreen
@@ -35,8 +36,10 @@ internal fun MainNavHost(
         settings(
             mainNavController = navController,
         )
-
         devOptions(
+            mainNavController = navController,
+        )
+        acknowledgements(
             mainNavController = navController,
         )
     }
@@ -71,6 +74,9 @@ private fun NavGraphBuilder.settings(
             navigateToDevOptions = {
                 mainNavController.navigate(route = AppNavDest.DevOptions.route)
             },
+            navigateToAcknowledgements = {
+                mainNavController.navigate(route = AppNavDest.Acknowledgements.route)
+            },
         )
     }
 
@@ -81,6 +87,15 @@ private fun NavGraphBuilder.devOptions(
         val devOptionsViewModel: DevOptionsViewModel = hiltViewModel()
         DevOptionsScreen(
             viewModel = devOptionsViewModel,
+            navigateBack = mainNavController::popBackStack,
+        )
+    }
+
+private fun NavGraphBuilder.acknowledgements(
+    mainNavController: NavController,
+) =
+    composable(route = AppNavDest.Acknowledgements.route) {
+        AcknowledgementsScreen(
             navigateBack = mainNavController::popBackStack,
         )
     }

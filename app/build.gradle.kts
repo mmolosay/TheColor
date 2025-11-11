@@ -56,6 +56,7 @@ dependencies {
     implementation(project(":presentation:home"))
     implementation(project(":presentation:settings"))
     implementation(project(":presentation:dev-options"))
+    implementation(project(":presentation:acknowledgements"))
 
     // Jetpack
     implementation("androidx.appcompat:appcompat:${libs.versions.androidx.appcompat.get()}")

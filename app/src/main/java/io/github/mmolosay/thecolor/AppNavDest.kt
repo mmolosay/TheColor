@@ -18,4 +18,5 @@ enum class AppNavDest(val route: String) {
     Home("home"),
     Settings("settings"),
     DevOptions("dev-options"),
+    Acknowledgements("acknowledgements"),
 }
