@@ -80,6 +80,7 @@ internal fun ListOfSwatches(
             state = pagerState,
             pagerSnapDistance = PagerSnapDistance.atMost(pages = swatches.size),
         ),
+        userScrollEnabled = isReadyToBeDrawn,
         snapPosition = SnapPosition.Center,
     ) { pageIndex ->
         val swatch = swatches[pageIndex]
