@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import io.github.mmolosay.thecolor.presentation.common.compose.drawIf
 import io.github.mmolosay.thecolor.presentation.common.compose.rememberSnapshotFlow
-import kotlinx.coroutines.flow.MutableStateFlow
+import io.github.mmolosay.thecolor.utils.DebugOnly
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -74,7 +74,6 @@ internal fun ListOfSwatches(
             .edgeToEdge(parentTotalHorizontalPadding = 32.dp)
             .drawIf(isReadyToBeDrawn)
             .fillMaxWidth(),
-//            .drawCenterItemPointer(), // TODO: remove me
         state = pagerState,
         contentPadding = contentPadding ?: PaddingValues(0.dp),
         pageSize = PageSize.Fixed(pageSize = SwatchSize),
@@ -178,7 +177,12 @@ private fun Modifier.edgeToEdge(
         }
     }
 
-// TODO: remove me
+/**
+ * Draws a circle to make it visually easier to locate a swatch in the center.
+ * Applied to the [ListOfSwatches].
+ */
+@DebugOnly
+@Suppress("unused")
 private fun Modifier.drawCenterItemPointer(): Modifier =
     this.drawBehind {
         val itemRadius = SwatchSize / 2
