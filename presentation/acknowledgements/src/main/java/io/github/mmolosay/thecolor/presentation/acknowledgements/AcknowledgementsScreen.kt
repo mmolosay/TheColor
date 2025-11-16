@@ -1,8 +1,12 @@
 package io.github.mmolosay.thecolor.presentation.acknowledgements
 
+import android.widget.Toast
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,6 +31,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.mikepenz.aboutlibraries.Libs
 import com.mikepenz.aboutlibraries.entity.Library
 import com.mikepenz.aboutlibraries.ui.compose.LibraryDefaults
 import com.mikepenz.aboutlibraries.ui.compose.android.produceLibraries
@@ -41,9 +46,14 @@ import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 fun AcknowledgementsScreen(
     navigateBack: () -> Unit,
 ) {
+    val context = LocalContext.current
     val libraries by produceLibraries()
     val strings = AcknowledgementsUiStrings(LocalContext.current)
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
+    var licensesDialogState by remember {
+        mutableStateOf<LicensesDialogState>(LicensesDialogState.Hidden)
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -55,45 +65,65 @@ fun AcknowledgementsScreen(
             )
         },
     ) { padding ->
-        val showAuthor = true
-        var licensesDialogState by remember {
-            mutableStateOf<LicensesDialogState>(LicensesDialogState.Hidden)
-        }
-        LibrariesContainer(
-            modifier = Modifier
-                .nestedScroll(scrollBehavior.nestedScrollConnection),
+        Acknowledgements(
+            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             libraries = libraries,
             contentPadding = padding,
-            showAuthor = showAuthor,
-            textStyles = LibraryDefaults.libraryTextStyles(
-                nameTextStyle = MaterialTheme.typography.titleMedium,
-                authorTextStyle = MaterialTheme.typography.bodyMedium.copy(
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                ),
-                licensesTextStyle = MaterialTheme.typography.bodyMedium,
-                fundingTextStyle = MaterialTheme.typography.bodyMedium,
-            ),
             onLibraryClick = { library ->
-                licensesDialogState = LicensesDialogState.Visible(library)
-            },
-            author = { author ->
-                if (showAuthor && author.isNotBlank()) {
-                    Author(text = author)
+                val text = library.htmlReadyLicenseContent
+                    .takeIf { it.isNotBlank() }
+                    ?.let { AnnotatedString.fromHtml(it) }
+                if (text != null) {
+                    licensesDialogState = LicensesDialogState.Visible(text)
+                } else {
+                    Toast
+                        .makeText(context, strings.noLicensesFoundToastMessage, Toast.LENGTH_SHORT)
+                        .show()
                 }
             },
         )
-
-        licensesDialogState.let { dialogState ->
-            if (dialogState !is LicensesDialogState.Visible) return@let
-            LicensesDialog(
-                library = dialogState.library,
-                onDismissRequest = {
-                    @Suppress("AssignedValueIsNeverRead") // false warning
-                    licensesDialogState = LicensesDialogState.Hidden
-                },
-            )
-        }
     }
+
+    licensesDialogState.let { dialogState ->
+        if (dialogState !is LicensesDialogState.Visible) return@let
+        LicensesDialog(
+            text = dialogState.text,
+            onDismissRequest = {
+                @Suppress("AssignedValueIsNeverRead") // false warning
+                licensesDialogState = LicensesDialogState.Hidden
+            },
+        )
+    }
+}
+
+@Composable
+private fun Acknowledgements(
+    modifier: Modifier,
+    libraries: Libs?,
+    contentPadding: PaddingValues,
+    onLibraryClick: (Library) -> Unit,
+) {
+    val showAuthor = true
+    LibrariesContainer(
+        modifier = modifier,
+        libraries = libraries,
+        contentPadding = contentPadding,
+        showAuthor = showAuthor,
+        textStyles = LibraryDefaults.libraryTextStyles(
+            nameTextStyle = MaterialTheme.typography.titleMedium,
+            authorTextStyle = MaterialTheme.typography.bodyMedium.copy(
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            ),
+            licensesTextStyle = MaterialTheme.typography.bodyMedium,
+            fundingTextStyle = MaterialTheme.typography.bodyMedium,
+        ),
+        onLibraryClick = onLibraryClick,
+        author = { author ->
+            if (showAuthor && author.isNotBlank()) {
+                Author(text = author)
+            }
+        },
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -130,25 +160,21 @@ private fun TopBar(
 
 private sealed interface LicensesDialogState {
     data object Hidden : LicensesDialogState
-    data class Visible(val library: Library) : LicensesDialogState
+    data class Visible(val text: AnnotatedString) : LicensesDialogState
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LicensesDialog(
-    library: Library,
+    text: AnnotatedString,
     onDismissRequest: () -> Unit,
 ) {
-    val text = remember(library) {
-        library.htmlReadyLicenseContent
-            .takeIf { it.isNotEmpty() }
-            ?.let { AnnotatedString.fromHtml(it) }
-    } ?: return
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
     ) {
         Text(
             modifier = Modifier
+                .verticalScroll(state = rememberScrollState())
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
             text = text,

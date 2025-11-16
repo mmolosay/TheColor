@@ -11,10 +11,14 @@ import android.content.Context
 data class AcknowledgementsUiStrings(
     val topBarTitle: String,
     val topBarGoBackIconDesc: String,
+
+    val noLicensesFoundToastMessage: String,
 )
 
 fun AcknowledgementsUiStrings(context: Context) =
     AcknowledgementsUiStrings(
         topBarTitle = context.getString(R.string.acknowledgements_top_bar_title),
         topBarGoBackIconDesc = context.getString(R.string.acknowledgements_top_bar_go_back_icon_desc),
+
+        noLicensesFoundToastMessage = context.getString(R.string.acknowledgements_no_licenses_found_toast_msg),
     )
