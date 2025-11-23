@@ -8,7 +8,7 @@ package io.github.mmolosay.thecolor.presentation.input.api
 fun interface ColorInputSubmitAction {
 
     /**
-     * @returns `true` if the submitted [colorInput] was accepted and user will pause their
+     * @return `true` if the submitted [colorInput] was accepted and user will pause their
      * interaction with 'Color Input' for some time. Otherwise `false`.
      */
     operator fun invoke(
