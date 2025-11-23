@@ -13,7 +13,6 @@ import io.github.mmolosay.thecolor.presentation.input.api.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.api.getColorOrNull
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputValidator
-import io.github.mmolosay.thecolor.presentation.input.impl.SharingStartedEagerlyAnd
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewModel
@@ -24,11 +23,12 @@ import io.github.mmolosay.thecolor.presentation.input.impl.model.FullData
 import io.github.mmolosay.thecolor.presentation.input.impl.model.Update
 import io.github.mmolosay.thecolor.presentation.input.impl.model.asDataState
 import io.github.mmolosay.thecolor.presentation.input.impl.model.causedByUser
+import io.github.mmolosay.thecolor.presentation.input.impl.plus
 import io.github.mmolosay.thecolor.utils.onEachNotNull
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -75,7 +75,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             .onEachNotNull(::onEachFullDataUpdate)
             .stateIn(
                 scope = coroutineScope,
-                started = SharingStartedEagerlyAnd(WhileSubscribed(5000)),
+                started = SharingStarted.Eagerly + SharingStarted.WhileSubscribed(5000), // start eagerly to pre-compute first value before UI starts collecting
                 initialValue = null,
             )
 
@@ -86,7 +86,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             .flowOn(defaultDispatcher)
             .stateIn(
                 scope = coroutineScope,
-                started = SharingStartedEagerlyAnd(WhileSubscribed(5000)),
+                started = SharingStarted.Eagerly + SharingStarted.WhileSubscribed(5000), // start eagerly to pre-compute first value before UI starts collecting
                 initialValue = DataState.BeingInitialized,
             )
 
