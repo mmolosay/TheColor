@@ -52,12 +52,14 @@ fun SettingsScreen(
     viewModel: SettingsViewModel,
     navigateBack: () -> Unit,
     navigateToDevOptions: () -> Unit,
+    navigateToAcknowledgements: () -> Unit,
 ) {
     val dataState by viewModel.dataStateFlow.collectAsStateWithLifecycle()
     SettingsScreen(
         dataState = dataState,
         navigateBack = navigateBack,
         navigateToDevOptions = navigateToDevOptions,
+        navigateToAcknowledgements = navigateToAcknowledgements,
     )
 }
 
@@ -66,6 +68,7 @@ fun SettingsScreen(
     dataState: DataState,
     navigateBack: () -> Unit,
     navigateToDevOptions: () -> Unit,
+    navigateToAcknowledgements: () -> Unit,
 ) {
     when (dataState) {
         is DataState.Loading -> {
@@ -79,6 +82,7 @@ fun SettingsScreen(
                 data = dataState.data,
                 navigateBack = navigateBack,
                 navigateToDevOptions = navigateToDevOptions,
+                navigateToAcknowledgements = navigateToAcknowledgements,
             )
         }
     }
@@ -90,6 +94,7 @@ fun SettingsScreen(
     data: SettingsData,
     navigateBack: () -> Unit,
     navigateToDevOptions: () -> Unit,
+    navigateToAcknowledgements: () -> Unit,
 ) {
     val strings = SettingsUiStrings(LocalContext.current)
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -128,6 +133,7 @@ fun SettingsScreen(
             data = data,
             strings = strings,
             navigateToDevOptions = navigateToDevOptions,
+            navigateToAcknowledgements = navigateToAcknowledgements,
             extraContentPadding = ScaffoldDefaults.contentWindowInsets.onlyBottom()
                 .asPaddingValues(),
         )
@@ -183,6 +189,7 @@ fun Settings(
     data: SettingsData,
     strings: SettingsUiStrings,
     navigateToDevOptions: () -> Unit,
+    navigateToAcknowledgements: () -> Unit,
     modifier: Modifier = Modifier,
     extraContentPadding: PaddingValues = PaddingValues.Zero,
 ) {
@@ -290,6 +297,13 @@ fun Settings(
             )
         }
 
+        item("acknowledgements") {
+            Acknowledgements(
+                title = "Acknowledgements",
+                onClick = navigateToAcknowledgements,
+            )
+        }
+
         // keep this item very last
         if (data.isDevOptionsEnabled) {
             item("dev options") {
@@ -352,6 +366,7 @@ private fun Preview() {
             data = previewData(),
             navigateBack = {},
             navigateToDevOptions = {},
+            navigateToAcknowledgements = {},
         )
     }
 }

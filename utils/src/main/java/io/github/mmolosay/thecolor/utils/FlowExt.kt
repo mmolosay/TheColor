@@ -43,6 +43,8 @@ inline fun <T, R> StateFlow<T>.mapDistinctly(
  * Performs [tryEmit()][MutableSharedFlow.tryEmit] with assertion that the [value]
  * was indeed emitted.
  * See [MutableSharedFlow.tryEmit] for more details.
+ *
+ * For [Channel][kotlinx.coroutines.channels.Channel] variation see [SendChannel.requireSend()][kotlinx.coroutines.channels.SendChannel.requireSend].
  */
 fun <T> MutableSharedFlow<T>.requireEmit(value: T) {
     val wasEmitted = this.tryEmit(value)

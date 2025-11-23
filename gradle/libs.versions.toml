@@ -5,7 +5,7 @@
 androidGradlePlugin = "8.10.1"
 
 # Android
-compileSdk = "35"
+compileSdk = "36"
 targetSdk = "35"
 minSdk = "24"
 
@@ -44,6 +44,7 @@ robolectric = "4.16"
 robolectricJunit5Ext = "0.9.0"
 
 # Misc (preserve alphabetical order)
+aboutLibraries = "13.1.0"
 arrow-optics-lib = "2.1.0"
 arrow-optics-ksp-plugin = "2.1.0"
 jakewhartonTimber = "5.0.1"

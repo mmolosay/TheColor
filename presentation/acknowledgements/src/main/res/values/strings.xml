@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="acknowledgements_top_bar_title">Acknowledgements</string>
+    <string name="acknowledgements_top_bar_go_back_icon_desc">Go back</string>
+
+    <string name="acknowledgements_no_licenses_found_toast_msg">No licenses found for this library</string>
+
+</resources>
