@@ -1,7 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.input.api
 
 /**
- * Data, that was entered by user via UI of color input View.
+ * Data that was entered by the user via a 'Color Input' View.
  * Does not contain `null`s because any text field's text is at least an empty string.
  */
 sealed interface ColorInput {
