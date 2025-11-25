@@ -3,6 +3,7 @@ package io.github.mmolosay.thecolor.presentation.input.impl.rgb
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import io.github.mmolosay.thecolor.domain.model.ColorConstants
 import io.github.mmolosay.thecolor.domain.repository.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
@@ -10,6 +11,7 @@ import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCorout
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputSubmitAction
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputValidationResult
 import io.github.mmolosay.thecolor.presentation.input.api.getColorOrNull
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputValidator
@@ -19,12 +21,9 @@ import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewMo
 import io.github.mmolosay.thecolor.presentation.input.impl.field.updateText
 import io.github.mmolosay.thecolor.presentation.input.impl.model.ColorSubmissionResult
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
-import io.github.mmolosay.thecolor.presentation.input.impl.model.FullData
 import io.github.mmolosay.thecolor.presentation.input.impl.model.Update
 import io.github.mmolosay.thecolor.presentation.input.impl.model.asDataState
-import io.github.mmolosay.thecolor.presentation.input.impl.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.impl.plus
-import io.github.mmolosay.thecolor.utils.onEachNotNull
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,15 +31,14 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Named
 import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.SmartBackspace as DomainSmartBackspace
-
-internal typealias FullDataRgb = FullData<ColorInputRgbData, ColorInput.Rgb>
 
 /**
  * Handles presentation logic of the 'RGB Color Input' feature.
@@ -66,23 +64,40 @@ class ColorInputRgbViewModel @AssistedInject internal constructor(
     private val gTextFieldVm = createTextFieldViewModel()
     private val bTextFieldVm = createTextFieldViewModel()
 
-    private val dataUpdateFlow = MutableStateFlow<Update<ColorInputRgbData>?>(null)
-
-    private val fullDataUpdateFlow: StateFlow<Update<FullDataRgb>?> =
-        dataUpdateFlow
-            .map(::makeFullDataUpdate)
-            .flowOn(defaultDispatcher)
-            .onEachNotNull(::onEachFullDataUpdate)
-            .stateIn(
-                scope = coroutineScope,
-                started = SharingStarted.Eagerly + SharingStarted.WhileSubscribed(5000), // start eagerly to pre-compute first value before UI starts collecting
-                initialValue = null,
-            )
-
     val dataStateFlow: StateFlow<DataState<ColorInputRgbData>> =
-        fullDataUpdateFlow
-            .map { update -> update?.payload?.coreData }
-            .map { colorInputRgbData -> colorInputRgbData.asDataState() }
+        combine(
+            rTextFieldVm.dataUpdatesFlow.filterNotNull(),
+            gTextFieldVm.dataUpdatesFlow.filterNotNull(),
+            bTextFieldVm.dataUpdatesFlow.filterNotNull(),
+            userPreferencesRepository.flowOfSmartBackspace.map { it ?: DefaultUserPreferences.SmartBackspace },
+        ) { rUpdate, gUpdate, bUpdate, smartBackspace ->
+            val colorInput = ColorInput.Rgb(
+                r = rUpdate.payload.text.string,
+                g = gUpdate.payload.text.string,
+                b = bUpdate.payload.text.string,
+            )
+            val validationResult = with(colorInputValidator) { colorInput.validate() }
+            val fullData = FullData(
+                rTextField = rUpdate.payload,
+                gTextField = gUpdate.payload,
+                bTextField = bUpdate.payload,
+                submitInput = { submitInput(colorInput, validationResult) },
+                isSmartBackspaceEnabled = smartBackspace.enabled,
+                colorInput = colorInput,
+                colorInputValidationResult = validationResult,
+            )
+            val anyCausedByUser = listOf(rUpdate, gUpdate, bUpdate).any { it.causedByUser }
+            Update(payload = fullData, causedByUser = anyCausedByUser)
+        }
+            .onEach { fullDataUpdate ->
+                // don't synchronize this update with other Views to avoid update loop
+                if (!fullDataUpdate.causedByUser) return@onEach
+                val parsedColor = fullDataUpdate.payload.colorInputValidationResult.getColorOrNull()
+                mediator.send(color = parsedColor, from = DomainColorInputType.Rgb)
+            }
+            .map { fullDataUpdate -> fullDataUpdate.payload }
+            .map { fullData -> fullData.reduce() }
+            .map { data -> data.asDataState() }
             .flowOn(defaultDispatcher)
             .stateIn(
                 scope = coroutineScope,
@@ -94,27 +109,7 @@ class ColorInputRgbViewModel @AssistedInject internal constructor(
     val colorSubmissionResultFlow = _colorSubmissionResultFlow.asStateFlow()
 
     init {
-        collectTextFieldUpdates()
         collectMediatorUpdates()
-    }
-
-    /**
-     * Transforms emissions of [TextFieldViewModel]s into updates of [ColorInputRgbData].
-     * Collects results in [dataUpdateFlow].
-     * This allows having [MutableStateFlow] that derives from another flow.
-     */
-    private fun collectTextFieldUpdates() {
-        coroutineScope.launch(defaultDispatcher) {
-            combine(
-                rTextFieldVm.dataUpdatesFlow,
-                gTextFieldVm.dataUpdatesFlow,
-                bTextFieldVm.dataUpdatesFlow,
-                userPreferencesRepository.flowOfSmartBackspace
-                    .map { it ?: DefaultUserPreferences.SmartBackspace },
-                ::makeDataUpdate,
-            )
-                .collect(dataUpdateFlow)
-        }
     }
 
     private fun collectMediatorUpdates() {
@@ -130,79 +125,33 @@ class ColorInputRgbViewModel @AssistedInject internal constructor(
     private fun filterUserInput(input: String): Text =
         input
             .filter { it.isDigit() }
-            .take(MAX_SYMBOLS_IN_RGB_COMPONENT)
+            .take(3) // rgb component can be up to 3 digits long
             .let { string ->
                 if (string.isEmpty()) return@let ""
-                var int = string.toIntOrNull() ?: MIN_RGB_COMPONENT_VALUE // remove leading zeros
-                while (int > MAX_RGB_COMPONENT_VALUE) // reduce int from right until it's in range
+                val rgbComponentMinValue = ColorConstants.RgbColorComponentIntRange.first
+                val rgbComponentMaxValue = ColorConstants.RgbColorComponentIntRange.last
+                var int = string.toIntOrNull() ?: rgbComponentMinValue // remove leading zeros
+                // reduce int from right until it's in range
+                while (int > rgbComponentMaxValue) {
                     int /= 10
+                }
                 int.toString()
             }
             .let { Text(it) }
 
-    private fun submitInput() {
-        val data = requireNotNull(fullDataUpdateFlow.value?.payload)
+    private fun submitInput(
+        colorInput: ColorInput.Rgb,
+        validationResult: ColorInputValidationResult,
+    ) {
         val wasAccepted = submitAction.invoke(
-            colorInput = data.colorInput,
-            validationResult = data.colorInputValidationResult,
+            colorInput = colorInput,
+            validationResult = validationResult,
         )
         val result = ColorSubmissionResult(
             wasAccepted = wasAccepted,
             discard = ::clearColorSubmissionResult,
         )
         _colorSubmissionResultFlow.value = result
-    }
-
-    private fun makeDataUpdate(
-        r: Update<TextFieldData>?,
-        g: Update<TextFieldData>?,
-        b: Update<TextFieldData>?,
-        smartBackspace: DomainSmartBackspace,
-    ): Update<ColorInputRgbData>? {
-        if (r == null || g == null || b == null) return null
-        val currentData = dataUpdateFlow.value?.payload
-        val newData = if (currentData != null) {
-            currentData.copy(
-                rTextField = r.payload,
-                gTextField = g.payload,
-                bTextField = b.payload,
-                isSmartBackspaceEnabled = smartBackspace.enabled,
-            )
-        } else {
-            ColorInputRgbData(
-                rTextField = r.payload,
-                gTextField = g.payload,
-                bTextField = b.payload,
-                submitInput = ::submitInput,
-                isSmartBackspaceEnabled = smartBackspace.enabled,
-            )
-        }
-        return newData causedByUser listOf(r, g, b).any { it.causedByUser }
-    }
-
-    private fun makeFullDataUpdate(
-        coreDataUpdate: Update<ColorInputRgbData>?,
-    ): Update<FullDataRgb>? {
-        val coreData = coreDataUpdate?.payload ?: return null
-        val colorInput = ColorInput.Rgb(
-            r = coreData.rTextField.text.string,
-            g = coreData.gTextField.text.string,
-            b = coreData.bTextField.text.string,
-        )
-        val validationResult = with(colorInputValidator) { colorInput.validate() }
-        val fullData = FullDataRgb(
-            coreData = coreData,
-            colorInput = colorInput,
-            colorInputValidationResult = validationResult,
-        )
-        return Update(payload = fullData, causedByUser = coreDataUpdate.causedByUser)
-    }
-
-    private fun onEachFullDataUpdate(update: Update<FullDataRgb>) {
-        // don't synchronize this update with other Views to avoid update loop
-        if (!update.causedByUser) return
-        val parsedColor = update.payload.colorInputValidationResult.getColorOrNull()
-        mediator.send(color = parsedColor, from = DomainColorInputType.Rgb)
     }
 
     private fun clearColorSubmissionResult() {
@@ -225,10 +174,33 @@ class ColorInputRgbViewModel @AssistedInject internal constructor(
             submitAction: ColorInputSubmitAction,
         ): ColorInputRgbViewModel
     }
-
-    private companion object {
-        const val MAX_SYMBOLS_IN_RGB_COMPONENT = 3
-        const val MIN_RGB_COMPONENT_VALUE = 0
-        const val MAX_RGB_COMPONENT_VALUE = 255
-    }
 }
+
+/**
+ * Couples data which is exposed from the ViewModel with various values that are related to it:
+ * derived from the exposed data, or used to produce it.
+ *
+ * @param colorInput contains data from all of the text fields.
+ * @param colorInputValidationResult is a result of [colorInput] validation.
+ */
+private data class FullData(
+    val rTextField: TextFieldData,
+    val gTextField: TextFieldData,
+    val bTextField: TextFieldData,
+    val submitInput: () -> Unit,
+    val isSmartBackspaceEnabled: Boolean,
+    val colorInput: ColorInput.Rgb,
+    val colorInputValidationResult: ColorInputValidationResult,
+)
+
+/**
+ * Reduces [FullData] to the [ColorInputRgbData] which is exposed from the ViewModel.
+ */
+private fun FullData.reduce(): ColorInputRgbData =
+    ColorInputRgbData(
+        rTextField = rTextField,
+        gTextField = gTextField,
+        bTextField = bTextField,
+        submitInput = submitInput,
+        isSmartBackspaceEnabled = isSmartBackspaceEnabled,
+    )
