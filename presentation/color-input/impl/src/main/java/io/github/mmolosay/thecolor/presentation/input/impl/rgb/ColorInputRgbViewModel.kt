@@ -22,7 +22,6 @@ import io.github.mmolosay.thecolor.presentation.input.impl.field.updateText
 import io.github.mmolosay.thecolor.presentation.input.impl.model.ColorSubmissionResult
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.impl.model.Update
-import io.github.mmolosay.thecolor.presentation.input.impl.model.asDataState
 import io.github.mmolosay.thecolor.presentation.input.impl.plus
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -97,7 +96,7 @@ class ColorInputRgbViewModel @AssistedInject internal constructor(
             }
             .map { fullDataUpdate -> fullDataUpdate.payload }
             .map { fullData -> fullData.reduce() }
-            .map { data -> data.asDataState() }
+            .map { data -> DataState(data) }
             .flowOn(defaultDispatcher)
             .stateIn(
                 scope = coroutineScope,

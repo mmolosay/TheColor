@@ -5,8 +5,8 @@ sealed interface DataState<out T> {
     data class Ready<T>(val data: T) : DataState<T>
 }
 
-internal fun <T> T?.asDataState(): DataState<T> =
+internal fun <T> DataState(data: T?): DataState<T> =
     when {
-        this == null -> DataState.BeingInitialized
-        else -> DataState.Ready(data = this)
+        data == null -> DataState.BeingInitialized
+        else -> DataState.Ready(data)
     }
