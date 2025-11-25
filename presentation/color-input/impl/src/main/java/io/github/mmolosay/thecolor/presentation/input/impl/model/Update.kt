@@ -6,7 +6,7 @@ package io.github.mmolosay.thecolor.presentation.input.impl.model
  * @param payload new data to be set.
  * @param causedByUser whether this [Update] is caused by changes in View made by user or not.
  */
-data class Update<T>(
+internal data class Update<T>(
     val payload: T,
     val causedByUser: Boolean,
 )

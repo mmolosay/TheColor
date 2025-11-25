@@ -42,7 +42,7 @@ import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInp
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.SmartBackspace as DomainSmartBackspace
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ColorInputRgbViewModelTest {
+internal class ColorInputRgbViewModelTest {
 
     val testDispatcher = UnconfinedTestDispatcher()
 

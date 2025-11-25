@@ -45,7 +45,7 @@ internal typealias FullDataHex = FullData<ColorInputHexData, ColorInput.Hex>
  *
  * Instead, it can be created within "simple" `ViewModel` or Google's `ViewModel`.
  */
-class ColorInputHexViewModel @AssistedInject constructor(
+class ColorInputHexViewModel @AssistedInject internal constructor(
     @Assisted coroutineScope: CoroutineScope,
     @Assisted private val mediator: ColorInputMediator,
     @Assisted private val eventStore: ColorInputEventStore,

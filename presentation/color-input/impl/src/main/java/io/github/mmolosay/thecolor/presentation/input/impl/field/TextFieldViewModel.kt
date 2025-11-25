@@ -31,7 +31,7 @@ import javax.inject.Named
  *
  * Instead, it can be created within "simple" `ViewModel` or Google's `ViewModel`.
  */
-class TextFieldViewModel @AssistedInject constructor(
+internal class TextFieldViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     @Assisted private val filterUserInput: (String) -> Text,
     @Assisted private val allowTrailingButton: Boolean,
@@ -136,7 +136,7 @@ class TextFieldViewModel @AssistedInject constructor(
 /**
  * Update text when it comes not from UI or user input.
  */
-infix fun TextFieldViewModel.updateText(text: Text) {
+internal infix fun TextFieldViewModel.updateText(text: Text) {
     val update = text causedByUser false
     this.updateText(update)
 }

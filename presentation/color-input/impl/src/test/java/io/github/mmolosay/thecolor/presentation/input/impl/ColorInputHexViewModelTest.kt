@@ -41,7 +41,7 @@ import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInp
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.SelectAllTextOnTextFieldFocus as DomainSelectAllTextOnTextFieldFocus
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ColorInputHexViewModelTest {
+internal class ColorInputHexViewModelTest {
 
     val testDispatcher = UnconfinedTestDispatcher()
 
