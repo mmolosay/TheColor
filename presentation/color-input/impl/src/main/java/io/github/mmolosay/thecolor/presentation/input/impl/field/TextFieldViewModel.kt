@@ -3,6 +3,7 @@ package io.github.mmolosay.thecolor.presentation.input.impl.field
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import io.github.mmolosay.thecolor.domain.model.UserPreferences
 import io.github.mmolosay.thecolor.domain.repository.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
@@ -10,7 +11,6 @@ import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.T
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.TrailingButton
 import io.github.mmolosay.thecolor.presentation.input.impl.model.Update
 import io.github.mmolosay.thecolor.presentation.input.impl.model.causedByUser
-import io.github.mmolosay.thecolor.presentation.input.impl.model.map
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,6 +41,7 @@ internal class TextFieldViewModel @AssistedInject constructor(
 ) : SimpleViewModel(coroutineScope) {
 
     private val dataUpdateMutex = Mutex()
+
     private val _dataUpdatesFlow = MutableStateFlow<Update<TextFieldData>?>(null)
     val dataUpdatesFlow = _dataUpdatesFlow.asStateFlow()
 
@@ -49,18 +50,17 @@ internal class TextFieldViewModel @AssistedInject constructor(
     }
 
     private fun collectSelectAllTextOnTextFieldFocusPreference() {
+        fun updateData(preference: UserPreferences.SelectAllTextOnTextFieldFocus) {
+            _dataUpdatesFlow.update { update ->
+                if (update == null) return@update null
+                val newData = update.payload.copy(shouldSelectAllTextOnFocus = preference.enabled)
+                Update(payload = newData, causedByUser = update.causedByUser)
+            }
+        }
         coroutineScope.launch(defaultDispatcher) {
-            userPreferencesRepository
-                .flowOfSelectAllTextOnTextFieldFocus
+            userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus
                 .filterNotNull()
-                .collect { preference ->
-                    _dataUpdatesFlow.update { update ->
-                        if (update == null) return@update null
-                        update.map {
-                            it.copy(shouldSelectAllTextOnFocus = preference.enabled)
-                        }
-                    }
-                }
+                .collect(::updateData)
         }
     }
 
@@ -85,27 +85,24 @@ internal class TextFieldViewModel @AssistedInject constructor(
                             val oldData = it.payload
                             oldData.smartCopy(text)
                         }
-                        newData causedByUser update.causedByUser
+                        Update(payload = newData, causedByUser = update.causedByUser)
                     }
                 }
             }
         }
     }
 
-    private fun onTextChangeFromView(text: Text) =
-        updateText(text causedByUser true)
-
     private fun TextFieldData.smartCopy(text: Text) =
-        copy(
+        this.copy(
             text = text,
-            trailingButton = trailingButton(text),
+            trailingButton = ClearTextTrailingButton(text),
         )
 
-    private fun trailingButton(text: Text): TrailingButton? {
+    private fun ClearTextTrailingButton(text: Text): TrailingButton? {
         if (!allowTrailingButton) return null
         val showTrailingButton = text.string.isNotEmpty()
         return when (showTrailingButton) {
-            true -> TrailingButton(onClick = { onTextChangeFromView(Text("")) })
+            true -> TrailingButton(onClick = { updateTextByUser(Text("")) })
             false -> null
         }
     }
@@ -113,13 +110,12 @@ internal class TextFieldViewModel @AssistedInject constructor(
     private fun makeInitialData(text: Text) =
         TextFieldData(
             text = text,
-            onTextChange = ::onTextChangeFromView,
+            onTextChange = ::updateTextByUser, // the client of this ViewModel is a View, all text changes come from View (user)
             filterUserInput = filterUserInput,
-            trailingButton = trailingButton(text),
+            trailingButton = ClearTextTrailingButton(text),
             shouldSelectAllTextOnFocus = userPreferencesRepository
                 .flowOfSelectAllTextOnTextFieldFocus
-                .value
-                .let { it ?: DefaultUserPreferences.SelectAllTextOnTextFieldFocus }
+                .value.let { it ?: DefaultUserPreferences.SelectAllTextOnTextFieldFocus }
                 .enabled,
         )
 
@@ -140,3 +136,6 @@ internal infix fun TextFieldViewModel.updateText(text: Text) {
     val update = text causedByUser false
     this.updateText(update)
 }
+
+private fun TextFieldViewModel.updateTextByUser(text: Text) =
+    updateText(text causedByUser true)

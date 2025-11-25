@@ -14,14 +14,3 @@ internal data class Update<T>(
 /** Syntactic sugar for creating [Update]. */
 internal infix fun <T> T.causedByUser(causedByUser: Boolean) =
     Update(payload = this, causedByUser = causedByUser)
-
-/**
- * Maps data of receiver to different type.
- */
-internal inline fun <T, R> Update<T>.map(
-    transform: (T) -> R,
-) =
-    Update(
-        payload = transform(this.payload),
-        causedByUser = causedByUser,
-    )
