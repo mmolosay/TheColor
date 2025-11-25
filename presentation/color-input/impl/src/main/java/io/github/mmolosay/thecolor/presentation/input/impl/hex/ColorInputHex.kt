@@ -24,7 +24,6 @@ import io.github.mmolosay.thecolor.presentation.input.impl.UiComponents.ProcessC
 import io.github.mmolosay.thecolor.presentation.input.impl.UiComponents.TextField
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
-import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.TrailingButton
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiStrings
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
 
@@ -107,7 +106,7 @@ private fun previewData() =
             text = Text(""),
             onTextChange = {},
             filterUserInput = { Text(it) },
-            trailingButton = TrailingButton(onClick = {}),
+            clearText = TextFieldData.NoOpClearTextFeature,
             shouldSelectAllTextOnFocus = false,
         ),
         submitInput = {},

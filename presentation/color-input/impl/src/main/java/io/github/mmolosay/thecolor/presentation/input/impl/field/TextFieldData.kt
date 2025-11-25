@@ -7,12 +7,15 @@ package io.github.mmolosay.thecolor.presentation.input.impl.field
  * It should receive a result of [filterUserInput] or other [Text] that is presentation-ready.
  *
  * @param filterUserInput filters text from user input and returns processed text to be displayed.
+ *
+ * @param clearText a feature that allows to clear current [text] (input). Nullability of this field
+ * implies whether the feature is enabled (present) or not for this particular 'Text Field'.
  */
 data class TextFieldData(
     val text: Text,
     val onTextChange: (Text) -> Unit,
     val filterUserInput: (String) -> Text,
-    val trailingButton: TrailingButton?,
+    val clearText: ClearTextFeature?,
     val shouldSelectAllTextOnFocus: Boolean,
 ) {
     /**
@@ -28,8 +31,16 @@ data class TextFieldData(
     @JvmInline
     value class Text(val string: String)
 
-    // "trailing" and "button" are very GUI-ish terms. I used them to make the code easier to understand
-    data class TrailingButton(
-        val onClick: () -> Unit,
-    )
+    /**
+     * Specifies the details of how the "clear text" feature should work.
+     */
+    interface ClearTextFeature {
+        operator fun invoke()
+        fun willBeIdempotent(): Boolean
+    }
+
+    data object NoOpClearTextFeature : ClearTextFeature {
+        override fun invoke() {}
+        override fun willBeIdempotent(): Boolean = false
+    }
 }

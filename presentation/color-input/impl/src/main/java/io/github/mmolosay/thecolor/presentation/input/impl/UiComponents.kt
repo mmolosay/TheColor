@@ -35,10 +35,9 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.TextFieldValue
-import io.github.mmolosay.thecolor.presentation.common.compose.retainedNotNull
 import io.github.mmolosay.thecolor.presentation.common.compose.thenIf
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData
-import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.TrailingButton
+import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.ClearTextFeature
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiStrings
 import io.github.mmolosay.thecolor.presentation.input.impl.model.ColorSubmissionResult
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
@@ -83,14 +82,11 @@ internal object UiComponents {
             textStyle = LocalTextStyle.current.copy(fontFamily = FontFamily.SansSerif),
             label = { Label(text = strings.label) },
             placeholder = { Placeholder(text = strings.placeholder) },
-            trailingIcon = kotlin.run {
-                val iconContentDesc = strings.trailingIconContentDesc ?: return@run null
-                {
-                    TrailingButton(
-                        data = data.trailingButton,
-                        iconContentDesc = iconContentDesc,
-                    )
-                }
+            trailingIcon = icon@{
+                TrailingButton(
+                    feature = data.clearText ?: return@icon,
+                    iconContentDesc = strings.trailingIconContentDesc ?: return@icon,
+                )
             },
             prefix = if (strings.prefix != null)
                 ({ Prefix(text = strings.prefix) })
@@ -181,19 +177,17 @@ internal object UiComponents {
 
     @Composable
     private fun TrailingButton(
-        data: TrailingButton?,
+        feature: ClearTextFeature,
         iconContentDesc: String,
     ) {
         val resizingAlignment = Alignment.Center
         AnimatedVisibility(
-            visible = data != null,
+            visible = !feature.willBeIdempotent(),
             enter = fadeIn() + expandIn(expandFrom = resizingAlignment),
             exit = fadeOut() + shrinkOut(shrinkTowards = resizingAlignment),
         ) {
-            // when 'data' becomes 'null', we want to have last not-null data memoized for some time while "exit" animation is running
-            val retainedData = retainedNotNull(data).value ?: return@AnimatedVisibility
             ClearIconButton(
-                onClick = retainedData.onClick,
+                onClick = feature::invoke,
                 iconContentDesc = iconContentDesc,
             )
         }

@@ -103,59 +103,77 @@ internal class TextFieldViewModelTest {
     }
 
     @Test
-    fun `trailing button is present on initialization when text is non-empty`() {
-        createSut()
-
-        sut updateText Text("non-empty text")
-
-        data.trailingButton shouldNotBe null
-    }
-
-    @Test
-    fun `trailing button is absent on initialization when text is empty`() {
+    fun `'clear text' feature is enabled on initialization when text is empty`() {
         createSut()
 
         sut updateText Text("")
 
-        data.trailingButton shouldBe null
+        data.clearText shouldNotBe null
     }
 
     @Test
-    fun `trailing button is present when text is changed from UI and text is non-empty`() {
+    fun `'clear text' feature is enabled on initialization when text is non-empty`() {
+        createSut()
+
+        sut updateText Text("non-empty text")
+
+        data.clearText shouldNotBe null
+    }
+
+    @Test
+    fun `'clear text' feature is idempotent on initialization when text is empty`() {
+        createSut()
+
+        sut updateText Text("")
+
+        data.clearText.shouldNotBeNull().willBeIdempotent() shouldBe true
+    }
+
+    @Test
+    fun `'clear text' feature is not idempotent on initialization when text is not empty`() {
+        createSut()
+
+        sut updateText Text("non-empty text")
+
+        data.clearText.shouldNotBeNull().willBeIdempotent() shouldBe false
+    }
+
+    @Test
+    fun `'clear text' feature is not idempotent when text is changed from UI and text is non-empty`() {
         createSut()
         sut updateText Text("initial")
 
         data.onTextChange(Text("non-empty text"))
 
-        data.trailingButton shouldNotBe null
+        data.clearText.shouldNotBeNull().willBeIdempotent() shouldBe false
     }
 
     @Test
-    fun `trailing button is absent when text is changed from UI and text is empty`() {
+    fun `'clear text' feature is idempotent when text is changed from UI and text is empty`() {
         createSut()
         sut updateText Text("initial")
 
         data.onTextChange(Text(""))
 
-        data.trailingButton shouldBe null
+        data.clearText.shouldNotBeNull().willBeIdempotent() shouldBe true
     }
 
     @Test
-    fun `text is cleared on trailing button click`() {
+    fun `text is cleared when 'clear text' feature is invoked`() {
         createSut()
         sut updateText Text("initial non-empty text")
 
-        data.trailingButton.shouldNotBeNull().onClick()
+        data.clearText.shouldNotBeNull().invoke()
 
         data.text shouldBe Text("")
     }
 
     @Test
-    fun `data update is caused by user when trailing button is clicked`() {
+    fun `data update is caused by user when 'clear text' feature is invoked`() {
         createSut()
         sut updateText Text("initial non-empty text")
 
-        data.trailingButton.shouldNotBeNull().onClick()
+        data.clearText.shouldNotBeNull().invoke()
 
         dataUpdate.causedByUser shouldBe true
     }
@@ -187,7 +205,7 @@ internal class TextFieldViewModelTest {
         TextFieldViewModel(
             coroutineScope = coroutineScope,
             filterUserInput = { Text(it) },
-            allowTrailingButton = true,
+            enableClearTextFeature = true,
             userPreferencesRepository = userPreferencesRepository,
             defaultDispatcher = testDispatcher,
             uiDataUpdateDispatcher = testDispatcher,

@@ -7,8 +7,8 @@ import io.github.mmolosay.thecolor.domain.model.UserPreferences
 import io.github.mmolosay.thecolor.domain.repository.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
+import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.ClearTextFeature
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
-import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.TrailingButton
 import io.github.mmolosay.thecolor.presentation.input.impl.model.Update
 import io.github.mmolosay.thecolor.presentation.input.impl.model.causedByUser
 import kotlinx.coroutines.CoroutineDispatcher
@@ -34,7 +34,7 @@ import javax.inject.Named
 internal class TextFieldViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     @Assisted private val filterUserInput: (String) -> Text,
-    @Assisted private val allowTrailingButton: Boolean,
+    @Assisted private val enableClearTextFeature: Boolean,
     private val userPreferencesRepository: UserPreferencesRepository,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
     @Named("uiDataUpdateDispatcher") private val uiDataUpdateDispatcher: CoroutineDispatcher,
@@ -95,15 +95,16 @@ internal class TextFieldViewModel @AssistedInject constructor(
     private fun TextFieldData.smartCopy(text: Text) =
         this.copy(
             text = text,
-            trailingButton = ClearTextTrailingButton(text),
+            clearText = clearTextFeatureOrNull(text),
         )
 
-    private fun ClearTextTrailingButton(text: Text): TrailingButton? {
-        if (!allowTrailingButton) return null
-        val showTrailingButton = text.string.isNotEmpty()
-        return when (showTrailingButton) {
-            true -> TrailingButton(onClick = { updateTextByUser(Text("")) })
-            false -> null
+    private fun clearTextFeatureOrNull(text: Text): ClearTextFeature? {
+        if (!enableClearTextFeature) return null
+        return object : ClearTextFeature {
+            override fun invoke() =
+                updateTextByUser(Text(""))
+            override fun willBeIdempotent(): Boolean =
+                text.string.isEmpty()
         }
     }
 
@@ -112,7 +113,7 @@ internal class TextFieldViewModel @AssistedInject constructor(
             text = text,
             onTextChange = ::updateTextByUser, // the client of this ViewModel is a View, all text changes come from View (user)
             filterUserInput = filterUserInput,
-            trailingButton = ClearTextTrailingButton(text),
+            clearText = clearTextFeatureOrNull(text),
             shouldSelectAllTextOnFocus = userPreferencesRepository
                 .flowOfSelectAllTextOnTextFieldFocus
                 .value.let { it ?: DefaultUserPreferences.SelectAllTextOnTextFieldFocus }
@@ -124,7 +125,7 @@ internal class TextFieldViewModel @AssistedInject constructor(
         fun create(
             coroutineScope: CoroutineScope,
             filterUserInput: (String) -> Text,
-            allowTrailingButton: Boolean,
+            enableClearTextFeature: Boolean,
         ): TextFieldViewModel
     }
 }
