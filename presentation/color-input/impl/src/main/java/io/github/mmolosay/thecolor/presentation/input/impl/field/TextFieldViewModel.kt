@@ -101,10 +101,10 @@ internal class TextFieldViewModel @AssistedInject constructor(
     private fun clearTextFeatureOrNull(text: Text): ClearTextFeature? {
         if (!enableClearTextFeature) return null
         return object : ClearTextFeature {
+            override val willBeIdempotent: Boolean =
+                text.string.isEmpty()
             override fun invoke() =
                 updateTextByUser(Text(""))
-            override fun willBeIdempotent(): Boolean =
-                text.string.isEmpty()
         }
     }
 

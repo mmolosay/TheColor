@@ -155,7 +155,7 @@ internal class TextFieldViewModelTest {
         sut updateText Text("")
 
         // REFERENCE:Label=0
-        data.clearText.shouldNotBeNull().willBeIdempotent() shouldBe true
+        data.clearText.shouldNotBeNull().willBeIdempotent shouldBe true
     }
 
     @Test
@@ -167,7 +167,7 @@ internal class TextFieldViewModelTest {
         sut updateText Text("non-empty text")
 
         // REFERENCE:Label=1
-        data.clearText.shouldNotBeNull().willBeIdempotent() shouldBe false
+        data.clearText.shouldNotBeNull().willBeIdempotent shouldBe false
     }
 
     @Test
@@ -180,7 +180,7 @@ internal class TextFieldViewModelTest {
         data.onTextChange(Text(""))
 
         // REFERENCE:Label=0
-        data.clearText.shouldNotBeNull().willBeIdempotent() shouldBe true
+        data.clearText.shouldNotBeNull().willBeIdempotent shouldBe true
     }
 
     @Test
@@ -193,7 +193,7 @@ internal class TextFieldViewModelTest {
         data.onTextChange(Text("non-empty text"))
 
         // REFERENCE:Label=1
-        data.clearText.shouldNotBeNull().willBeIdempotent() shouldBe false
+        data.clearText.shouldNotBeNull().willBeIdempotent shouldBe false
     }
 
     @Test

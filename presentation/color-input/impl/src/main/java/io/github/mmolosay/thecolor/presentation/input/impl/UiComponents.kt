@@ -185,7 +185,7 @@ internal object UiComponents {
         val updatedFeature by rememberUpdatedState(feature)
         val resizingAlignment = Alignment.Center
         AnimatedVisibility(
-            visible = !feature.willBeIdempotent(),
+            visible = !feature.willBeIdempotent,
             enter = fadeIn() + expandIn(expandFrom = resizingAlignment),
             exit = fadeOut() + shrinkOut(shrinkTowards = resizingAlignment),
         ) {

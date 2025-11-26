@@ -35,12 +35,12 @@ data class TextFieldData(
      * Specifies the details of how the "clear text" feature should work.
      */
     interface ClearTextFeature {
+        val willBeIdempotent: Boolean
         operator fun invoke()
-        fun willBeIdempotent(): Boolean
     }
 
     data object NoOpClearTextFeature : ClearTextFeature {
+        override val willBeIdempotent = false
         override fun invoke() {}
-        override fun willBeIdempotent(): Boolean = false
     }
 }
