@@ -102,67 +102,108 @@ internal class TextFieldViewModelTest {
         dataUpdate.causedByUser shouldBe true
     }
 
-    @Test
-    fun `'clear text' feature is enabled on initialization when text is empty`() {
-        createSut()
+    @Test // ANCHOR:Label=0
+    fun `given that 'clear text' feature is enabled, when SUT is created with empty text, then 'clear text' feature is present`() {
+        createSut(
+            enableClearTextFeature = true
+        )
 
         sut updateText Text("")
 
         data.clearText shouldNotBe null
     }
 
-    @Test
-    fun `'clear text' feature is enabled on initialization when text is non-empty`() {
-        createSut()
+    @Test // ANCHOR:Label=1
+    fun `given that 'clear text' feature is enabled, when SUT is created with non-empty text, then 'clear text' feature is present`() {
+        createSut(
+            enableClearTextFeature = true
+        )
 
         sut updateText Text("non-empty text")
 
         data.clearText shouldNotBe null
+    }
+
+    @Test
+    fun `given that 'clear text' feature is disabled, when SUT is created with empty text, then 'clear text' feature is absent`() {
+        createSut(
+            enableClearTextFeature = false
+        )
+
+        sut updateText Text("")
+
+        data.clearText shouldBe null
+    }
+
+    @Test
+    fun `given that 'clear text' feature is disabled, when SUT is created with non-empty text, then 'clear text' feature is absent`() {
+        createSut(
+            enableClearTextFeature = false
+        )
+
+        sut updateText Text("non-empty text")
+
+        data.clearText shouldBe null
     }
 
     @Test
     fun `'clear text' feature is idempotent on initialization when text is empty`() {
-        createSut()
+        createSut(
+            enableClearTextFeature = true
+        )
 
         sut updateText Text("")
 
+        // REFERENCE:Label=0
         data.clearText.shouldNotBeNull().willBeIdempotent() shouldBe true
     }
 
     @Test
-    fun `'clear text' feature is not idempotent on initialization when text is not empty`() {
-        createSut()
+    fun `'clear text' feature is not idempotent on initialization when text is non-empty`() {
+        createSut(
+            enableClearTextFeature = true
+        )
 
         sut updateText Text("non-empty text")
 
-        data.clearText.shouldNotBeNull().willBeIdempotent() shouldBe false
-    }
-
-    @Test
-    fun `'clear text' feature is not idempotent when text is changed from UI and text is non-empty`() {
-        createSut()
-        sut updateText Text("initial")
-
-        data.onTextChange(Text("non-empty text"))
-
+        // REFERENCE:Label=1
         data.clearText.shouldNotBeNull().willBeIdempotent() shouldBe false
     }
 
     @Test
     fun `'clear text' feature is idempotent when text is changed from UI and text is empty`() {
-        createSut()
+        createSut(
+            enableClearTextFeature = true
+        )
         sut updateText Text("initial")
 
         data.onTextChange(Text(""))
 
+        // REFERENCE:Label=0
         data.clearText.shouldNotBeNull().willBeIdempotent() shouldBe true
     }
 
     @Test
+    fun `'clear text' feature is not idempotent when text is changed from UI and text is non-empty`() {
+        createSut(
+            enableClearTextFeature = true
+        )
+        sut updateText Text("initial")
+
+        data.onTextChange(Text("non-empty text"))
+
+        // REFERENCE:Label=1
+        data.clearText.shouldNotBeNull().willBeIdempotent() shouldBe false
+    }
+
+    @Test
     fun `text is cleared when 'clear text' feature is invoked`() {
-        createSut()
+        createSut(
+            enableClearTextFeature = true
+        )
         sut updateText Text("initial non-empty text")
 
+        // REFERENCE:Label=1
         data.clearText.shouldNotBeNull().invoke()
 
         data.text shouldBe Text("")
@@ -170,9 +211,12 @@ internal class TextFieldViewModelTest {
 
     @Test
     fun `data update is caused by user when 'clear text' feature is invoked`() {
-        createSut()
+        createSut(
+            enableClearTextFeature = true
+        )
         sut updateText Text("initial non-empty text")
 
+        // REFERENCE:Label=1
         data.clearText.shouldNotBeNull().invoke()
 
         dataUpdate.causedByUser shouldBe true
@@ -201,11 +245,13 @@ internal class TextFieldViewModelTest {
             data.shouldSelectAllTextOnFocus shouldBe true
         }
 
-    fun createSut() =
+    fun createSut(
+        enableClearTextFeature: Boolean = true,
+    ) =
         TextFieldViewModel(
             coroutineScope = coroutineScope,
             filterUserInput = { Text(it) },
-            enableClearTextFeature = true,
+            enableClearTextFeature = enableClearTextFeature,
             userPreferencesRepository = userPreferencesRepository,
             defaultDispatcher = testDispatcher,
             uiDataUpdateDispatcher = testDispatcher,
