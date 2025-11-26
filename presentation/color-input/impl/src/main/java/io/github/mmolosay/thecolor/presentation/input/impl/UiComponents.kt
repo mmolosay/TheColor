@@ -21,6 +21,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
@@ -180,31 +182,21 @@ internal object UiComponents {
         feature: ClearTextFeature,
         iconContentDesc: String,
     ) {
+        val updatedFeature by rememberUpdatedState(feature)
         val resizingAlignment = Alignment.Center
         AnimatedVisibility(
             visible = !feature.willBeIdempotent(),
             enter = fadeIn() + expandIn(expandFrom = resizingAlignment),
             exit = fadeOut() + shrinkOut(shrinkTowards = resizingAlignment),
         ) {
-            ClearIconButton(
-                onClick = feature::invoke,
-                iconContentDesc = iconContentDesc,
-            )
-        }
-    }
-
-    @Composable
-    private fun ClearIconButton(
-        onClick: () -> Unit,
-        iconContentDesc: String,
-    ) {
-        IconButton(
-            onClick = onClick,
-        ) {
-            Icon(
-                imageVector = ImageVector.vectorResource(DesignR.drawable.ic_cross),
-                contentDescription = iconContentDesc,
-            )
+            IconButton(
+                onClick = { updatedFeature.invoke() }, // skip recomposition by creating a lambda that captures the same State object instead of changing feature
+            ) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(DesignR.drawable.ic_cross),
+                    contentDescription = iconContentDesc,
+                )
+            }
         }
     }
 
