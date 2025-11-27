@@ -133,10 +133,8 @@ internal class TextFieldViewModel @AssistedInject constructor(
 /**
  * Update text when it comes not from UI or user input.
  */
-internal infix fun TextFieldViewModel.updateText(text: Text) {
-    val update = text causedByUser false
-    this.updateText(update)
-}
+internal infix fun TextFieldViewModel.updateText(text: Text) =
+    updateText(text causedByUser false)
 
 private fun TextFieldViewModel.updateTextByUser(text: Text) =
     updateText(text causedByUser true)
