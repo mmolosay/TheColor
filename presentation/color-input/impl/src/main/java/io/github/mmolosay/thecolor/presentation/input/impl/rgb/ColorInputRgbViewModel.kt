@@ -30,7 +30,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -65,9 +64,9 @@ class ColorInputRgbViewModel @AssistedInject internal constructor(
 
     val dataStateFlow: StateFlow<DataState<ColorInputRgbData>> =
         combine(
-            rTextFieldVm.dataUpdatesFlow.filterNotNull(),
-            gTextFieldVm.dataUpdatesFlow.filterNotNull(),
-            bTextFieldVm.dataUpdatesFlow.filterNotNull(),
+            rTextFieldVm.dataUpdatesFlow,
+            gTextFieldVm.dataUpdatesFlow,
+            bTextFieldVm.dataUpdatesFlow,
             userPreferencesRepository.flowOfSmartBackspace.map { it ?: DefaultUserPreferences.SmartBackspace },
         ) { rUpdate, gUpdate, bUpdate, smartBackspace ->
             val colorInput = ColorInput.Rgb(

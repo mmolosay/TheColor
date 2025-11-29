@@ -37,36 +37,31 @@ internal class TextFieldViewModelTest {
     lateinit var sut: TextFieldViewModel
 
     @Test
-    fun `SUT is created with 'null' data`() {
-        createSut()
+    fun `initial data has the initial text`() {
+        createSut(
+            initialText = "initial",
+        )
 
-        sut.dataUpdatesFlow.value shouldBe null
+        data.text shouldBe Text("initial")
     }
 
     @Test
-    fun `data is initialized when text is changed`() {
-        createSut()
-
-        sut updateText Text("initial")
-
-        sut.dataUpdatesFlow.value shouldNotBe null
-    }
-
-    @Test
-    fun `data is initialized when text is changed but 'select all text on text field focus' preference is 'null'`() {
+    fun `initial data has the initial text even if 'select all text on text field focus' preference is 'null'`() {
         every { userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus } returns
                 MutableStateFlow(null)
-        createSut()
 
-        sut updateText Text("initial")
+        createSut(
+            initialText = "initial"
+        )
 
-        sut.dataUpdatesFlow.value shouldNotBe null
+        data.text shouldBe Text("initial")
     }
 
     @Test
-    fun `text is updated when test is changed`() {
-        createSut()
-        sut updateText Text("initial")
+    fun `text is updated when text is changed programmatically`() {
+        createSut(
+            initialText = "initial"
+        )
 
         sut updateText Text("new")
 
@@ -74,18 +69,21 @@ internal class TextFieldViewModelTest {
     }
 
     @Test
-    fun `data update is not caused by user when text is changed`() {
-        createSut()
+    fun `data update is not 'caused by user' when text is changed programmatically`() {
+        createSut(
+            initialText = "initial",
+        )
 
-        sut updateText Text("initial")
+        sut updateText Text("new")
 
         dataUpdate.causedByUser shouldBe false
     }
 
     @Test
-    fun `text is updated when text is changed from UI`() {
-        createSut()
-        sut updateText Text("initial")
+    fun `text is updated when text is changed from View`() {
+        createSut(
+            initialText = "initial",
+        )
 
         data.onTextChange(Text("new"))
 
@@ -93,9 +91,10 @@ internal class TextFieldViewModelTest {
     }
 
     @Test
-    fun `data update is caused by user when text is changed from UI`() {
-        createSut()
-        sut updateText Text("initial")
+    fun `data update is 'caused by user' when text is changed from View`() {
+        createSut(
+            initialText = "initial",
+        )
 
         data.onTextChange(Text("new"))
 
@@ -105,10 +104,9 @@ internal class TextFieldViewModelTest {
     @Test // ANCHOR:Label=0
     fun `given that 'clear text' feature is enabled, when SUT is created with empty text, then 'clear text' feature is present`() {
         createSut(
-            enableClearTextFeature = true
+            initialText = "",
+            enableClearTextFeature = true,
         )
-
-        sut updateText Text("")
 
         data.clearText shouldNotBe null
     }
@@ -116,10 +114,9 @@ internal class TextFieldViewModelTest {
     @Test // ANCHOR:Label=1
     fun `given that 'clear text' feature is enabled, when SUT is created with non-empty text, then 'clear text' feature is present`() {
         createSut(
-            enableClearTextFeature = true
+            initialText = "non-empty text",
+            enableClearTextFeature = true,
         )
-
-        sut updateText Text("non-empty text")
 
         data.clearText shouldNotBe null
     }
@@ -127,10 +124,9 @@ internal class TextFieldViewModelTest {
     @Test
     fun `given that 'clear text' feature is disabled, when SUT is created with empty text, then 'clear text' feature is absent`() {
         createSut(
-            enableClearTextFeature = false
+            initialText = "",
+            enableClearTextFeature = false,
         )
-
-        sut updateText Text("")
 
         data.clearText shouldBe null
     }
@@ -138,7 +134,8 @@ internal class TextFieldViewModelTest {
     @Test
     fun `given that 'clear text' feature is disabled, when SUT is created with non-empty text, then 'clear text' feature is absent`() {
         createSut(
-            enableClearTextFeature = false
+            initialText = "non-empty text",
+            enableClearTextFeature = false,
         )
 
         sut updateText Text("non-empty text")
@@ -149,10 +146,9 @@ internal class TextFieldViewModelTest {
     @Test
     fun `'clear text' feature is idempotent on initialization when text is empty`() {
         createSut(
-            enableClearTextFeature = true
+            initialText = "",
+            enableClearTextFeature = true,
         )
-
-        sut updateText Text("")
 
         // REFERENCE:Label=0
         data.clearText.shouldNotBeNull().willBeIdempotent shouldBe true
@@ -161,21 +157,20 @@ internal class TextFieldViewModelTest {
     @Test
     fun `'clear text' feature is not idempotent on initialization when text is non-empty`() {
         createSut(
-            enableClearTextFeature = true
+            initialText = "non-empty text",
+            enableClearTextFeature = true,
         )
-
-        sut updateText Text("non-empty text")
 
         // REFERENCE:Label=1
         data.clearText.shouldNotBeNull().willBeIdempotent shouldBe false
     }
 
     @Test
-    fun `'clear text' feature is idempotent when text is changed from UI and text is empty`() {
+    fun `'clear text' feature is idempotent when text is changed from View and text is empty`() {
         createSut(
-            enableClearTextFeature = true
+            initialText = "initial non-empty text",
+            enableClearTextFeature = true,
         )
-        sut updateText Text("initial")
 
         data.onTextChange(Text(""))
 
@@ -184,11 +179,11 @@ internal class TextFieldViewModelTest {
     }
 
     @Test
-    fun `'clear text' feature is not idempotent when text is changed from UI and text is non-empty`() {
+    fun `'clear text' feature is not idempotent when text is changed from View and text is non-empty`() {
         createSut(
-            enableClearTextFeature = true
+            initialText = "",
+            enableClearTextFeature = true,
         )
-        sut updateText Text("initial")
 
         data.onTextChange(Text("non-empty text"))
 
@@ -199,9 +194,9 @@ internal class TextFieldViewModelTest {
     @Test
     fun `text is cleared when 'clear text' feature is invoked`() {
         createSut(
-            enableClearTextFeature = true
+            initialText = "initial non-empty text",
+            enableClearTextFeature = true,
         )
-        sut updateText Text("initial non-empty text")
 
         // REFERENCE:Label=1
         data.clearText.shouldNotBeNull().invoke()
@@ -210,11 +205,11 @@ internal class TextFieldViewModelTest {
     }
 
     @Test
-    fun `data update is caused by user when 'clear text' feature is invoked`() {
+    fun `data update is 'caused by user' when 'clear text' feature is invoked`() {
         createSut(
-            enableClearTextFeature = true
+            initialText = "initial non-empty text",
+            enableClearTextFeature = true,
         )
-        sut updateText Text("initial non-empty text")
 
         // REFERENCE:Label=1
         data.clearText.shouldNotBeNull().invoke()
@@ -246,9 +241,11 @@ internal class TextFieldViewModelTest {
         }
 
     fun createSut(
+        initialText: String = "",
         enableClearTextFeature: Boolean = true,
     ) =
         TextFieldViewModel(
+            initialText = initialText,
             coroutineScope = coroutineScope,
             filterUserInput = { Text(it) },
             enableClearTextFeature = enableClearTextFeature,
@@ -260,7 +257,7 @@ internal class TextFieldViewModelTest {
         }
 
     val dataUpdate: Update<TextFieldData>
-        get() = requireNotNull(sut.dataUpdatesFlow.value)
+        get() = sut.dataUpdatesFlow.value
 
     val data: TextFieldData
         get() = dataUpdate.payload

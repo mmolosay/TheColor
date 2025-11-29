@@ -1,7 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.input.impl
 
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
-import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData
+import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -17,11 +17,13 @@ internal class TextFieldViewModelTestFactory(
 ) : TextFieldViewModel.Factory {
 
     override fun create(
+        initialText: String,
         coroutineScope: CoroutineScope,
-        filterUserInput: (String) -> TextFieldData.Text,
+        filterUserInput: (String) -> Text,
         enableClearTextFeature: Boolean,
     ): TextFieldViewModel {
         return TextFieldViewModel(
+            initialText = initialText,
             coroutineScope = coroutineScope,
             filterUserInput = filterUserInput,
             enableClearTextFeature = enableClearTextFeature,

@@ -32,6 +32,7 @@ import javax.inject.Named
  * Instead, it can be created within "simple" `ViewModel` or Google's `ViewModel`.
  */
 internal class TextFieldViewModel @AssistedInject constructor(
+    @Assisted initialText: String,
     @Assisted coroutineScope: CoroutineScope,
     @Assisted private val filterUserInput: (String) -> Text,
     @Assisted private val enableClearTextFeature: Boolean,
@@ -42,7 +43,11 @@ internal class TextFieldViewModel @AssistedInject constructor(
 
     private val dataUpdateMutex = Mutex()
 
-    private val _dataUpdatesFlow = MutableStateFlow<Update<TextFieldData>?>(null)
+    private val _dataUpdatesFlow: MutableStateFlow<Update<TextFieldData>> = kotlin.run {
+        val data = makeInitialData(Text(initialText))
+        val update = data causedByUser false // coerce initial Update to be caused by not a user
+        MutableStateFlow(update)
+    }
     val dataUpdatesFlow = _dataUpdatesFlow.asStateFlow()
 
     init {
@@ -52,7 +57,6 @@ internal class TextFieldViewModel @AssistedInject constructor(
     private fun collectSelectAllTextOnTextFieldFocusPreference() {
         fun updateData(preference: UserPreferences.SelectAllTextOnTextFieldFocus) {
             _dataUpdatesFlow.update { update ->
-                if (update == null) return@update null
                 val newData = update.payload.copy(shouldSelectAllTextOnFocus = preference.enabled)
                 Update(payload = newData, causedByUser = update.causedByUser)
             }
@@ -79,12 +83,8 @@ internal class TextFieldViewModel @AssistedInject constructor(
                 withContext(uiDataUpdateDispatcher) {
                     _dataUpdatesFlow.update {
                         val text = update.payload
-                        val newData = if (it == null) {
-                            makeInitialData(text)
-                        } else {
-                            val oldData = it.payload
-                            oldData.smartCopy(text)
-                        }
+                        val oldData = it.payload
+                        val newData = oldData.smartCopy(text)
                         Update(payload = newData, causedByUser = update.causedByUser)
                     }
                 }
@@ -122,7 +122,19 @@ internal class TextFieldViewModel @AssistedInject constructor(
 
     @AssistedFactory
     interface Factory {
+
+        /**
+         * @param initialText declared type is a [String], but it is intended to be a [Text].
+         * At the moment, Dagger doesn't deal with name mangling correctly, which occurs due to
+         * the [Text] being a `value class`.
+         * https://github.com/google/dagger/issues/4613
+         * https://kotlinlang.org/docs/inline-classes.html#mangling
+         * Taking this into account, the `ViewModel` will treat the [initialText] as [Text] and
+         * won't process it in any way, as it would've done for a raw user input [String].
+         * See [TextFieldData.filterUserInput].
+         */
         fun create(
+            initialText: String = "",
             coroutineScope: CoroutineScope,
             filterUserInput: (String) -> Text,
             enableClearTextFeature: Boolean,

@@ -5,8 +5,8 @@ import io.github.mmolosay.thecolor.domain.model.UserPreferences.SelectAllTextOnT
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputValidationResult
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputSubmitAction
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputValidationResult
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewModel
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
@@ -82,17 +82,18 @@ internal class ColorInputRgbViewModelTest {
     lateinit var sut: ColorInputRgbViewModel
 
     @Test
-    fun `SUT is created with state 'BeingInitialized' if mediator RGB flow has no value yet`() {
+    fun `state becomes Ready short after SUT is created even if mediator RGB flow has no value yet`() {
         every { mediator.rgbColorInputFlow } returns emptyFlow()
 
         createSut()
 
-        dataState should beOfType<DataState.BeingInitialized>()
+        dataState should beOfType<DataState.Ready<*>>()
     }
 
     @Test
-    fun `SUT is created with state 'Ready' if mediator RGB flow has value already`() {
+    fun `state becomes Ready short after SUT is created even if mediator RGB flow has value already`() {
         every { mediator.rgbColorInputFlow } returns flowOf(ColorInput.Rgb("", "", ""))
+
         createSut()
 
         dataState should beOfType<DataState.Ready<*>>()

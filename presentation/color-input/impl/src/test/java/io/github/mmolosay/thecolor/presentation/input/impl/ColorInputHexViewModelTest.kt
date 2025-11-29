@@ -3,8 +3,8 @@ package io.github.mmolosay.thecolor.presentation.input.impl
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputValidationResult
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputSubmitAction
+import io.github.mmolosay.thecolor.presentation.input.api.ColorInputValidationResult
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewModel
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexData
@@ -77,16 +77,16 @@ internal class ColorInputHexViewModelTest {
     lateinit var sut: ColorInputHexViewModel
 
     @Test
-    fun `SUT is created with state BeingInitialized if mediator HEX flow has no value yet`() {
+    fun `state becomes Ready short after SUT is created even if mediator HEX flow has no value yet`() {
         every { mediator.hexColorInputFlow } returns emptyFlow()
 
         createSut()
 
-        dataState should beOfType<DataState.BeingInitialized>()
+        dataState should beOfType<DataState.Ready<*>>()
     }
 
     @Test
-    fun `SUT is created with state Ready if mediator HEX flow has value already`() {
+    fun `state becomes Ready short after SUT is created even if mediator HEX flow has value already`() {
         every { mediator.hexColorInputFlow } returns flowOf(ColorInput.Hex(""))
 
         createSut()
