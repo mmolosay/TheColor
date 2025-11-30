@@ -10,8 +10,10 @@ import io.github.mmolosay.thecolor.presentation.input.impl.model.WithSource
  *
  * @param filterUserInput filters text from user input and returns processed text to be displayed.
  *
- * @param clearText a feature that allows to clear current [text] (input). Nullability of this field
+ * @param clearText a feature that allows to clear the current [text] (input). Nullability of this field
  * implies whether the feature is enabled (present) or not for this particular 'Text Field'.
+ * If the invocation of this feature causes the [text] to change, then the new [text] will have
+ * [WithSource.causedByUser] equal to `true`, because this model is intended to be used by View (thus "caused by user").
  */
 data class TextFieldData(
     val text: WithSource<Text>,
