@@ -28,6 +28,7 @@ import io.github.mmolosay.thecolor.presentation.input.UiComponents.ProcessColorS
 import io.github.mmolosay.thecolor.presentation.input.UiComponents.onBackspace
 import io.github.mmolosay.thecolor.presentation.input.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextField
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldUiStrings
@@ -144,7 +145,7 @@ private fun ComponentAdvancedTextField(
 }
 
 /**
- * A wrapper for [UiComponents.TextField] that just manages [TextFieldValue].
+ * A wrapper for a [TextField] that just manages [TextFieldValue].
  */
 @Composable
 private fun ComponentBasicTextField(
@@ -162,7 +163,7 @@ private fun ComponentBasicTextField(
         )
         mutableStateOf(value)
     }
-    UiComponents.TextField(
+    TextField(
         modifier = modifier,
         data = data,
         strings = strings,

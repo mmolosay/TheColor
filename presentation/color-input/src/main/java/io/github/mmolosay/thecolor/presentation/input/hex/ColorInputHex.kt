@@ -23,6 +23,7 @@ import io.github.mmolosay.thecolor.presentation.input.UiComponents.DataStateCros
 import io.github.mmolosay.thecolor.presentation.input.UiComponents.ProcessColorSubmissionResultAsSideEffect
 import io.github.mmolosay.thecolor.presentation.input.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextField
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldUiStrings
@@ -71,7 +72,7 @@ fun ColorInputHex(
         mutableStateOf(value)
     }
 
-    UiComponents.TextField(
+    TextField(
         modifier = Modifier
             .defaultMinSize(minWidth = 180.dp)
             .fillMaxWidth(0.5f),
