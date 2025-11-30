@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "io.github.mmolosay.thecolor.presentation.home"
+    namespace = "io.github.mmolosay.thecolor.presentation.input"
     compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
@@ -38,12 +38,6 @@ dependencies {
     implementation(project(":utils"))
     implementation(project(":presentation:common"))
     implementation(project(":presentation:design-system"))
-    implementation(project(":presentation:color-input"))
-    implementation(project(":presentation:color-preview"))
-    implementation(project(":presentation:color-center"))
-    implementation(project(":presentation:color-details"))
-    implementation(project(":presentation:color-scheme"))
-    implementation(project(":presentation:settings"))
 
     // Kotlin
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.coroutines.get()}")
@@ -70,7 +64,7 @@ dependencies {
 
     // Misc (preserve alphabetical order)
     implementation("com.jakewharton.timber:timber:${libs.versions.jakewhartonTimber.get()}")
-    implementation("io.github.mmolosay:debounce:${libs.versions.mmolosayDebounce.get()}")
+    implementation("com.valentinilk.shimmer:compose-shimmer:${libs.versions.valentinilkShimmer.get()}")
 
     // Testing
     testImplementation(project(":utils:testing"))

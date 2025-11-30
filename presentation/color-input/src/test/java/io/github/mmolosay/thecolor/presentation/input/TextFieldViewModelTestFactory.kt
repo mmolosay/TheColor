@@ -1,0 +1,35 @@
+package io.github.mmolosay.thecolor.presentation.input
+
+import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldViewModel
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+
+/**
+ * An implementation of [TextFieldViewModel.Factory] that employs external parameters passed in
+ * [create] and internal parameters passed to a constructor to create a real [TextFieldViewModel].
+ */
+class TextFieldViewModelTestFactory(
+    val userPreferencesRepository: UserPreferencesRepository,
+    val defaultDispatcher: CoroutineDispatcher,
+    val uiDataUpdateDispatcher: CoroutineDispatcher,
+) : TextFieldViewModel.Factory {
+
+    override fun create(
+        initialText: String,
+        coroutineScope: CoroutineScope,
+        filterUserInput: (String) -> Text,
+        enableClearTextFeature: Boolean,
+    ): TextFieldViewModel {
+        return TextFieldViewModel(
+            initialText = initialText,
+            coroutineScope = coroutineScope,
+            filterUserInput = filterUserInput,
+            enableClearTextFeature = enableClearTextFeature,
+            userPreferencesRepository = userPreferencesRepository,
+            defaultDispatcher = defaultDispatcher,
+            uiDataUpdateDispatcher = uiDataUpdateDispatcher,
+        )
+    }
+}
