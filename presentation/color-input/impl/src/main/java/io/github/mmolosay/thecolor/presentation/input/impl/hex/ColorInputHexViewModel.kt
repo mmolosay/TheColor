@@ -18,7 +18,7 @@ import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewMo
 import io.github.mmolosay.thecolor.presentation.input.impl.field.updateText
 import io.github.mmolosay.thecolor.presentation.input.impl.model.ColorSubmissionResult
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
-import io.github.mmolosay.thecolor.presentation.input.impl.model.Update
+import io.github.mmolosay.thecolor.presentation.input.impl.model.WithSource
 import io.github.mmolosay.thecolor.presentation.input.impl.plus
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -60,9 +60,9 @@ class ColorInputHexViewModel @AssistedInject internal constructor(
     )
 
     val dataStateFlow: StateFlow<DataState<ColorInputHexData>> =
-        textFieldVm.dataUpdatesFlow
-            .map { textFieldUpdate ->
-                val textField = textFieldUpdate.payload
+        textFieldVm.dataFlow
+            .map { textFieldWithSource ->
+                val textField = textFieldWithSource.data
                 val colorInput = ColorInput.Hex(string = textField.text.string)
                 val validationResult = with(colorInputValidator) { colorInput.validate() }
                 val fullData = FullData(
@@ -71,15 +71,15 @@ class ColorInputHexViewModel @AssistedInject internal constructor(
                     colorInput = colorInput,
                     colorInputValidationResult = validationResult,
                 )
-                Update(payload = fullData, causedByUser = textFieldUpdate.causedByUser)
+                WithSource(data = fullData, causedByUser = textFieldWithSource.causedByUser)
             }
-            .onEach { fullDataUpdate ->
-                // don't synchronize this update with other Views to avoid update loop
-                if (!fullDataUpdate.causedByUser) return@onEach
-                val parsedColor = fullDataUpdate.payload.colorInputValidationResult.getColorOrNull()
+            .onEach { fullDataWithSource ->
+                // don't synchronize this data with other Views to avoid update loop
+                if (!fullDataWithSource.causedByUser) return@onEach
+                val parsedColor = fullDataWithSource.data.colorInputValidationResult.getColorOrNull()
                 mediator.send(color = parsedColor, from = DomainColorInputType.Hex)
             }
-            .map { fullDataUpdate -> fullDataUpdate.payload }
+            .map { fullDataWithSource -> fullDataWithSource.data }
             .map { fullData -> fullData.reduce() }
             .map { data -> DataState(data) }
             .flowOn(defaultDispatcher)

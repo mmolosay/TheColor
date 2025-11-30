@@ -9,7 +9,7 @@ import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.ClearTextFeature
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
-import io.github.mmolosay.thecolor.presentation.input.impl.model.Update
+import io.github.mmolosay.thecolor.presentation.input.impl.model.WithSource
 import io.github.mmolosay.thecolor.presentation.input.impl.model.causedByUser
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -43,12 +43,12 @@ internal class TextFieldViewModel @AssistedInject constructor(
 
     private val dataUpdateMutex = Mutex()
 
-    private val _dataUpdatesFlow: MutableStateFlow<Update<TextFieldData>> = kotlin.run {
+    private val _dataFlow: MutableStateFlow<WithSource<TextFieldData>> = kotlin.run {
         val data = makeInitialData(Text(initialText))
-        val update = data causedByUser false // coerce initial Update to be caused by not a user
-        MutableStateFlow(update)
+        val dataWithSource = data causedByUser false // coerce initial data to be caused by not a user
+        MutableStateFlow(dataWithSource)
     }
-    val dataUpdatesFlow = _dataUpdatesFlow.asStateFlow()
+    val dataFlow = _dataFlow.asStateFlow()
 
     init {
         collectSelectAllTextOnTextFieldFocusPreference()
@@ -56,9 +56,9 @@ internal class TextFieldViewModel @AssistedInject constructor(
 
     private fun collectSelectAllTextOnTextFieldFocusPreference() {
         fun updateData(preference: UserPreferences.SelectAllTextOnTextFieldFocus) {
-            _dataUpdatesFlow.update { update ->
-                val newData = update.payload.copy(shouldSelectAllTextOnFocus = preference.enabled)
-                Update(payload = newData, causedByUser = update.causedByUser)
+            _dataFlow.update { dataWithSource ->
+                val newData = dataWithSource.data.copy(shouldSelectAllTextOnFocus = preference.enabled)
+                WithSource(data = newData, causedByUser = dataWithSource.causedByUser)
             }
         }
         coroutineScope.launch(defaultDispatcher) {
@@ -68,12 +68,12 @@ internal class TextFieldViewModel @AssistedInject constructor(
         }
     }
 
-    fun updateText(update: Update<Text>) {
+    fun updateText(textWithSource: WithSource<Text>) {
         coroutineScope.launch(defaultDispatcher) {
             /*
              * MutableStateFlow.update() is NOT fair. If we:
-             * 1. call update() that will set value to X
-             * 2. call update() that will set value to Y
+             * 1. call MutableStateFlow.update() that will set value to X
+             * 2. call MutableStateFlow.update() that will set value to Y
              * So may happen that the second update() finishes first, and flow will emit [Y, X]
              * instead of [X, Y], which is expected according to the order of calling update()s.
              * We need a mutex (which IS fair) to prevent other coroutines from entering update()
@@ -81,11 +81,11 @@ internal class TextFieldViewModel @AssistedInject constructor(
              */
             dataUpdateMutex.withLock {
                 withContext(uiDataUpdateDispatcher) {
-                    _dataUpdatesFlow.update {
-                        val text = update.payload
-                        val oldData = it.payload
+                    _dataFlow.update {
+                        val text = textWithSource.data
+                        val oldData = it.data
                         val newData = oldData.smartCopy(text)
-                        Update(payload = newData, causedByUser = update.causedByUser)
+                        WithSource(data = newData, causedByUser = textWithSource.causedByUser)
                     }
                 }
             }

@@ -6,7 +6,7 @@ import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewModel
 import io.github.mmolosay.thecolor.presentation.input.impl.field.updateText
-import io.github.mmolosay.thecolor.presentation.input.impl.model.Update
+import io.github.mmolosay.thecolor.presentation.input.impl.model.WithSource
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -76,7 +76,7 @@ internal class TextFieldViewModelTest {
 
         sut updateText Text("new")
 
-        dataUpdate.causedByUser shouldBe false
+        dataWithSource.causedByUser shouldBe false
     }
 
     @Test
@@ -98,7 +98,7 @@ internal class TextFieldViewModelTest {
 
         data.onTextChange(Text("new"))
 
-        dataUpdate.causedByUser shouldBe true
+        dataWithSource.causedByUser shouldBe true
     }
 
     @Test // ANCHOR:Label=0
@@ -214,7 +214,7 @@ internal class TextFieldViewModelTest {
         // REFERENCE:Label=1
         data.clearText.shouldNotBeNull().invoke()
 
-        dataUpdate.causedByUser shouldBe true
+        dataWithSource.causedByUser shouldBe true
     }
 
     @Test
@@ -256,9 +256,9 @@ internal class TextFieldViewModelTest {
             sut = it
         }
 
-    val dataUpdate: Update<TextFieldData>
-        get() = sut.dataUpdatesFlow.value
+    val dataWithSource: WithSource<TextFieldData>
+        get() = sut.dataFlow.value
 
     val data: TextFieldData
-        get() = dataUpdate.payload
+        get() = dataWithSource.data
 }
