@@ -46,7 +46,7 @@ import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInp
  *
  * Instead, it can be created within "simple" `ViewModel` or Google's `ViewModel`.
  */
-class ColorInputRgbViewModel @AssistedInject internal constructor(
+class ColorInputRgbViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     @Assisted private val mediator: ColorInputMediator,
     @Assisted private val eventStore: ColorInputEventStore,

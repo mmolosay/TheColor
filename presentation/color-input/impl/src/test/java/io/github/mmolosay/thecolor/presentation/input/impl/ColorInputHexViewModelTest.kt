@@ -41,7 +41,7 @@ import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInp
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.SelectAllTextOnTextFieldFocus as DomainSelectAllTextOnTextFieldFocus
 
 @OptIn(ExperimentalCoroutinesApi::class)
-internal class ColorInputHexViewModelTest {
+class ColorInputHexViewModelTest {
 
     val testDispatcher = UnconfinedTestDispatcher()
 
@@ -158,7 +158,7 @@ internal class ColorInputHexViewModelTest {
 
             hexColorInputFlow.emit(ColorInput.Hex("1F"))
 
-            data.textField.text.string shouldBe "1F"
+            data.textField.text.data.string shouldBe "1F"
             collectionJob.cancel()
         }
 

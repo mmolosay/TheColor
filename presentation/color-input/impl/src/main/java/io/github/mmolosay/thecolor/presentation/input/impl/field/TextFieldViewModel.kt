@@ -31,7 +31,7 @@ import javax.inject.Named
  *
  * Instead, it can be created within "simple" `ViewModel` or Google's `ViewModel`.
  */
-internal class TextFieldViewModel @AssistedInject constructor(
+class TextFieldViewModel @AssistedInject constructor(
     @Assisted initialText: String,
     @Assisted coroutineScope: CoroutineScope,
     @Assisted private val filterUserInput: (String) -> Text,

@@ -20,7 +20,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.SelectAllTextOnTextFieldFocus as DomainSelectAllTextOnTextFieldFocus
 
-internal class TextFieldViewModelTest {
+class TextFieldViewModelTest {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val testDispatcher = UnconfinedTestDispatcher()
