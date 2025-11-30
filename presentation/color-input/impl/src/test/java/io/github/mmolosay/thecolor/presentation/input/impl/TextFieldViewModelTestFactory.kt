@@ -1,8 +1,8 @@
 package io.github.mmolosay.thecolor.presentation.input.impl
 
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
-import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
-import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewModel
+import io.github.mmolosay.thecolor.presentation.input.impl.textfield.TextFieldData.Text
+import io.github.mmolosay.thecolor.presentation.input.impl.textfield.TextFieldViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 

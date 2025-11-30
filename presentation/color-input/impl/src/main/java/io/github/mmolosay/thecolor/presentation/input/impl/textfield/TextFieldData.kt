@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.input.impl.field
+package io.github.mmolosay.thecolor.presentation.input.impl.textfield
 
 import io.github.mmolosay.thecolor.presentation.input.impl.model.WithSource
 

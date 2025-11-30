@@ -38,11 +38,11 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.TextFieldValue
 import io.github.mmolosay.thecolor.presentation.common.compose.thenIf
-import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData
-import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.ClearTextFeature
-import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiStrings
 import io.github.mmolosay.thecolor.presentation.input.impl.model.ColorSubmissionResult
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
+import io.github.mmolosay.thecolor.presentation.input.impl.textfield.TextFieldData
+import io.github.mmolosay.thecolor.presentation.input.impl.textfield.TextFieldData.ClearTextFeature
+import io.github.mmolosay.thecolor.presentation.input.impl.textfield.TextFieldUiStrings
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 /**

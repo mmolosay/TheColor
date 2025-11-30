@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.input.impl.field
+package io.github.mmolosay.thecolor.presentation.input.impl.textfield
 
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -7,10 +7,10 @@ import io.github.mmolosay.thecolor.domain.model.UserPreferences
 import io.github.mmolosay.thecolor.domain.repository.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
-import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.ClearTextFeature
-import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.model.WithSource
 import io.github.mmolosay.thecolor.presentation.input.impl.model.causedByUser
+import io.github.mmolosay.thecolor.presentation.input.impl.textfield.TextFieldData.ClearTextFeature
+import io.github.mmolosay.thecolor.presentation.input.impl.textfield.TextFieldData.Text
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow

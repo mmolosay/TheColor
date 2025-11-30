@@ -2,7 +2,7 @@ package io.github.mmolosay.thecolor.presentation.input.impl.hex
 
 import android.content.Context
 import io.github.mmolosay.thecolor.presentation.input.impl.R
-import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiStrings
+import io.github.mmolosay.thecolor.presentation.input.impl.textfield.TextFieldUiStrings
 
 /**
  * Strings that are pre-defined in UI and don't come from ViewModel.

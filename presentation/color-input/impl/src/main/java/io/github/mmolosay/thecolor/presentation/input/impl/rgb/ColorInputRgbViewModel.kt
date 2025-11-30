@@ -15,13 +15,13 @@ import io.github.mmolosay.thecolor.presentation.input.api.ColorInputValidationRe
 import io.github.mmolosay.thecolor.presentation.input.api.getColorOrNull
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputValidator
-import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData
-import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
-import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewModel
-import io.github.mmolosay.thecolor.presentation.input.impl.field.updateText
 import io.github.mmolosay.thecolor.presentation.input.impl.model.ColorSubmissionResult
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.impl.plus
+import io.github.mmolosay.thecolor.presentation.input.impl.textfield.TextFieldData
+import io.github.mmolosay.thecolor.presentation.input.impl.textfield.TextFieldData.Text
+import io.github.mmolosay.thecolor.presentation.input.impl.textfield.TextFieldViewModel
+import io.github.mmolosay.thecolor.presentation.input.impl.textfield.updateText
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow

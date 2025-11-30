@@ -7,11 +7,11 @@ import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.api.ColorInputValidationResult
-import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
-import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewModel
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.impl.rgb.ColorInputRgbData
 import io.github.mmolosay.thecolor.presentation.input.impl.rgb.ColorInputRgbViewModel
+import io.github.mmolosay.thecolor.presentation.input.impl.textfield.TextFieldData.Text
+import io.github.mmolosay.thecolor.presentation.input.impl.textfield.TextFieldViewModel
 import io.github.mmolosay.thecolor.testing.MainDispatcherExtension
 import io.kotest.assertions.withClue
 import io.kotest.matchers.should

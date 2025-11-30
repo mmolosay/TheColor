@@ -2,10 +2,10 @@ package io.github.mmolosay.thecolor.presentation.input.impl
 
 import io.github.mmolosay.thecolor.domain.repository.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
-import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData
-import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
-import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewModel
-import io.github.mmolosay.thecolor.presentation.input.impl.field.updateText
+import io.github.mmolosay.thecolor.presentation.input.impl.textfield.TextFieldData
+import io.github.mmolosay.thecolor.presentation.input.impl.textfield.TextFieldData.Text
+import io.github.mmolosay.thecolor.presentation.input.impl.textfield.TextFieldViewModel
+import io.github.mmolosay.thecolor.presentation.input.impl.textfield.updateText
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe

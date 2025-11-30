@@ -22,11 +22,11 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.input.impl.UiComponents.DataStateCrossfade
 import io.github.mmolosay.thecolor.presentation.input.impl.UiComponents.ProcessColorSubmissionResultAsSideEffect
 import io.github.mmolosay.thecolor.presentation.input.impl.UiComponents.TextField
-import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData
-import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
-import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiStrings
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.impl.model.causedByUser
+import io.github.mmolosay.thecolor.presentation.input.impl.textfield.TextFieldData
+import io.github.mmolosay.thecolor.presentation.input.impl.textfield.TextFieldData.Text
+import io.github.mmolosay.thecolor.presentation.input.impl.textfield.TextFieldUiStrings
 
 @Composable
 fun ColorInputHex(

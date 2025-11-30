@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.input.impl.field
+package io.github.mmolosay.thecolor.presentation.input.impl.textfield
 
 /**
  * Strings that are pre-defined in UI and don't come from ViewModel.

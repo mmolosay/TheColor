@@ -27,8 +27,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputViewModel.DataState
-import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData
-import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiStrings
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHex
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexData
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexUiStrings
@@ -36,6 +34,8 @@ import io.github.mmolosay.thecolor.presentation.input.impl.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.impl.rgb.ColorInputRgb
 import io.github.mmolosay.thecolor.presentation.input.impl.rgb.ColorInputRgbData
 import io.github.mmolosay.thecolor.presentation.input.impl.rgb.ColorInputRgbUiStrings
+import io.github.mmolosay.thecolor.presentation.input.impl.textfield.TextFieldData
+import io.github.mmolosay.thecolor.presentation.input.impl.textfield.TextFieldUiStrings
 import io.github.mmolosay.thecolor.utils.doNothing
 import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
 
