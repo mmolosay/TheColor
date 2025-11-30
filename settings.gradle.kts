@@ -28,7 +28,6 @@ include(":presentation:design-system")
 include(":presentation:errors")
 
 include(":presentation:home")
-include(":presentation:color-input:api")
 include(":presentation:color-input:impl")
 include(":presentation:color-details")
 include(":presentation:color-scheme")

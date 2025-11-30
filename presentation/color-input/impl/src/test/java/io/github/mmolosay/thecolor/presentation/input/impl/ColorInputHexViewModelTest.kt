@@ -1,12 +1,11 @@
 package io.github.mmolosay.thecolor.presentation.input.impl
 
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputSubmitAction
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputValidationResult
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexData
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexViewModel
+import io.github.mmolosay.thecolor.presentation.input.impl.model.ColorInput
+import io.github.mmolosay.thecolor.presentation.input.impl.model.ColorInputSubmitAction
+import io.github.mmolosay.thecolor.presentation.input.impl.model.ColorInputValidationResult
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.impl.textfield.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.textfield.TextFieldViewModel

@@ -30,13 +30,13 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel.SuspendGates
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModelDiModule
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.components
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputValidationResult
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputSubmitAction
+import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputColorStore
+import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputEvent
+import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputViewModel
+import io.github.mmolosay.thecolor.presentation.input.impl.model.ColorInputSubmitAction
+import io.github.mmolosay.thecolor.presentation.input.impl.model.ColorInputValidationResult
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommand
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommandStore
@@ -70,7 +70,6 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch

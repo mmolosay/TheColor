@@ -1,9 +1,9 @@
-package io.github.mmolosay.thecolor.presentation.input.api
+package io.github.mmolosay.thecolor.presentation.input.impl.model
 
 import io.github.mmolosay.thecolor.domain.model.Color
 
 /**
- * Depicts a result of validation / parsing of some [ColorInput].
+ * Depicts a result of validation / parsing of some [ColorInput][io.github.mmolosay.thecolor.presentation.input.impl.model.ColorInput].
  */
 sealed interface ColorInputValidationResult {
 

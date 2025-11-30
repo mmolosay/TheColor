@@ -3,8 +3,8 @@ package io.github.mmolosay.thecolor.presentation.input.impl
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.ColorPrototype
 import io.github.mmolosay.thecolor.domain.usecase.ColorFactory
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputValidationResult
+import io.github.mmolosay.thecolor.presentation.input.impl.model.ColorInput
+import io.github.mmolosay.thecolor.presentation.input.impl.model.ColorInputValidationResult
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk

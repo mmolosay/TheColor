@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.input.api
+package io.github.mmolosay.thecolor.presentation.input.impl.model
 
 /**
  * An action executed when user submits a color (or whatever they input).

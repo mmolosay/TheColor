@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.input.api
+package io.github.mmolosay.thecolor.presentation.input.impl
 
 import io.github.mmolosay.thecolor.domain.model.Color
 import kotlinx.coroutines.flow.MutableStateFlow
