@@ -43,10 +43,10 @@ class TextFieldViewModel @AssistedInject constructor(
 
     private val dataUpdateMutex = Mutex()
 
-    private val _dataFlow: MutableStateFlow<WithSource<TextFieldData>> = kotlin.run {
-        val data = makeInitialData(Text(initialText))
-        val dataWithSource = data causedByUser false // coerce initial data to be caused by not a user
-        MutableStateFlow(dataWithSource)
+    private val _dataFlow: MutableStateFlow<TextFieldData> = kotlin.run {
+        val textWithSource = Text(initialText) causedByUser false // coerce initial data to be caused by not a user
+        val data = makeInitialData(textWithSource)
+        MutableStateFlow(data)
     }
     val dataFlow = _dataFlow.asStateFlow()
 
@@ -56,9 +56,8 @@ class TextFieldViewModel @AssistedInject constructor(
 
     private fun collectSelectAllTextOnTextFieldFocusPreference() {
         fun updateData(preference: UserPreferences.SelectAllTextOnTextFieldFocus) {
-            _dataFlow.update { dataWithSource ->
-                val newData = dataWithSource.data.copy(shouldSelectAllTextOnFocus = preference.enabled)
-                WithSource(data = newData, causedByUser = dataWithSource.causedByUser)
+            _dataFlow.update {
+                it.copy(shouldSelectAllTextOnFocus = preference.enabled)
             }
         }
         coroutineScope.launch(defaultDispatcher) {
@@ -82,20 +81,17 @@ class TextFieldViewModel @AssistedInject constructor(
             dataUpdateMutex.withLock {
                 withContext(uiDataUpdateDispatcher) {
                     _dataFlow.update {
-                        val text = textWithSource.data
-                        val oldData = it.data
-                        val newData = oldData.smartCopy(text)
-                        WithSource(data = newData, causedByUser = textWithSource.causedByUser)
+                        it.smartCopy(textWithSource)
                     }
                 }
             }
         }
     }
 
-    private fun TextFieldData.smartCopy(text: Text) =
+    private fun TextFieldData.smartCopy(text: WithSource<Text>) =
         this.copy(
             text = text,
-            clearText = clearTextFeatureOrNull(text),
+            clearText = clearTextFeatureOrNull(text = text.data),
         )
 
     private fun clearTextFeatureOrNull(text: Text): ClearTextFeature? {
@@ -108,12 +104,12 @@ class TextFieldViewModel @AssistedInject constructor(
         }
     }
 
-    private fun makeInitialData(text: Text) =
+    private fun makeInitialData(text: WithSource<Text>) =
         TextFieldData(
             text = text,
             onTextChange = ::updateTextByUser, // the client of this ViewModel is a View, all text changes come from View (user)
             filterUserInput = filterUserInput,
-            clearText = clearTextFeatureOrNull(text),
+            clearText = clearTextFeatureOrNull(text = text.data),
             shouldSelectAllTextOnFocus = userPreferencesRepository
                 .flowOfSelectAllTextOnTextFieldFocus
                 .value.let { it ?: DefaultUserPreferences.SelectAllTextOnTextFieldFocus }

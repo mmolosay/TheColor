@@ -31,6 +31,7 @@ import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiStrings
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
+import io.github.mmolosay.thecolor.presentation.input.impl.model.causedByUser
 
 @Composable
 fun ColorInputRgb(
@@ -130,7 +131,7 @@ private fun ComponentAdvancedTextField(
         modifier = modifier
             .thenIf(enableSmartBackspace) {
                 onBackspace {
-                    val text = data.text.string
+                    val text = data.text.data.string
                     if (text.isEmpty() && hasPreviousComponent) {
                         focusManager.moveFocus(FocusDirection.Previous)
                     }
@@ -155,7 +156,7 @@ private fun ComponentBasicTextField(
     keyboardActions: KeyboardActions = KeyboardActions(),
 ) {
     var value by remember {
-        val text = data.text.string
+        val text = data.text.data.string
         val value = TextFieldValue(
             text = text,
             selection = TextRange(index = text.length), // cursor at the end of the text
@@ -190,21 +191,21 @@ private fun Preview() {
 private fun previewData() =
     ColorInputRgbData(
         rTextField = TextFieldData(
-            text = Text("12"),
+            text = Text("12") causedByUser false,
             onTextChange = {},
             filterUserInput = { Text(it) },
             clearText = null,
             shouldSelectAllTextOnFocus = false,
         ),
         gTextField = TextFieldData(
-            text = Text(""),
+            text = Text("") causedByUser false,
             onTextChange = {},
             filterUserInput = { Text(it) },
             clearText = null,
             shouldSelectAllTextOnFocus = false,
         ),
         bTextField = TextFieldData(
-            text = Text("255"),
+            text = Text("255") causedByUser false,
             onTextChange = {},
             filterUserInput = { Text(it) },
             clearText = null,

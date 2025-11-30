@@ -21,7 +21,6 @@ import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewMo
 import io.github.mmolosay.thecolor.presentation.input.impl.field.updateText
 import io.github.mmolosay.thecolor.presentation.input.impl.model.ColorSubmissionResult
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
-import io.github.mmolosay.thecolor.presentation.input.impl.model.WithSource
 import io.github.mmolosay.thecolor.presentation.input.impl.plus
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -68,32 +67,32 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             gTextFieldVm.dataFlow,
             bTextFieldVm.dataFlow,
             userPreferencesRepository.flowOfSmartBackspace.map { it ?: DefaultUserPreferences.SmartBackspace },
-        ) { rWithSource, gWithSource, bWithSource, smartBackspace ->
+        ) { r, g, b, smartBackspace ->
             val colorInput = ColorInput.Rgb(
-                r = rWithSource.data.text.string,
-                g = gWithSource.data.text.string,
-                b = bWithSource.data.text.string,
+                r = r.text.data.string,
+                g = g.text.data.string,
+                b = b.text.data.string,
             )
             val validationResult = with(colorInputValidator) { colorInput.validate() }
-            val fullData = FullData(
-                rTextField = rWithSource.data,
-                gTextField = gWithSource.data,
-                bTextField = bWithSource.data,
+            FullData(
+                rTextField = r,
+                gTextField = g,
+                bTextField = b,
                 submitInput = { submitInput(colorInput, validationResult) },
                 isSmartBackspaceEnabled = smartBackspace.enabled,
                 colorInput = colorInput,
                 colorInputValidationResult = validationResult,
             )
-            val anyCausedByUser = listOf(rWithSource, gWithSource, bWithSource).any { it.causedByUser }
-            WithSource(data = fullData, causedByUser = anyCausedByUser)
         }
-            .onEach { fullDataWithSource ->
+            .onEach { fullData ->
                 // don't synchronize this data with other Views to avoid update loop
-                if (!fullDataWithSource.causedByUser) return@onEach
-                val parsedColor = fullDataWithSource.data.colorInputValidationResult.getColorOrNull()
+                val isAnyCausedByUser =
+                    listOf(fullData.rTextField, fullData.gTextField, fullData.bTextField)
+                        .any { it.text.causedByUser }
+                if (!isAnyCausedByUser) return@onEach // none caused by user
+                val parsedColor = fullData.colorInputValidationResult.getColorOrNull()
                 mediator.send(color = parsedColor, from = DomainColorInputType.Rgb)
             }
-            .map { fullDataWithSource -> fullDataWithSource.data }
             .map { fullData -> fullData.reduce() }
             .map { data -> DataState(data) }
             .flowOn(defaultDispatcher)

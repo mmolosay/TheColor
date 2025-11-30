@@ -26,6 +26,7 @@ import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiStrings
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
+import io.github.mmolosay.thecolor.presentation.input.impl.model.causedByUser
 
 @Composable
 fun ColorInputHex(
@@ -63,7 +64,7 @@ fun ColorInputHex(
     strings: ColorInputHexUiStrings,
 ) {
     var value by remember {
-        val text = data.textField.text.string
+        val text = data.textField.text.data.string
         val value = TextFieldValue(
             text = text,
             selection = TextRange(index = text.length), // cursor at the end of the text
@@ -103,7 +104,7 @@ private fun Preview() {
 private fun previewData() =
     ColorInputHexData(
         textField = TextFieldData(
-            text = Text(""),
+            text = Text("") causedByUser false,
             onTextChange = {},
             filterUserInput = { Text(it) },
             clearText = TextFieldData.NoOpClearTextFeature,

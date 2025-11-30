@@ -1,5 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.input.impl.field
 
+import io.github.mmolosay.thecolor.presentation.input.impl.model.WithSource
+
 /**
  * Platform-agnostic data provided by ViewModel to 'Text Field' View.
  *
@@ -12,7 +14,7 @@ package io.github.mmolosay.thecolor.presentation.input.impl.field
  * implies whether the feature is enabled (present) or not for this particular 'Text Field'.
  */
 data class TextFieldData(
-    val text: Text,
+    val text: WithSource<Text>,
     val onTextChange: (Text) -> Unit,
     val filterUserInput: (String) -> Text,
     val clearText: ClearTextFeature?,

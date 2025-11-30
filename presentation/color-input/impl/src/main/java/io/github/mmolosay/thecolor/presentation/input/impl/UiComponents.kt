@@ -99,20 +99,21 @@ internal object UiComponents {
         )
         // for when text is cleared with trailing button or set programmatically
         LaunchedEffect(data.text) {
-            val old = value
-            val newText = data.text.string
+            @Suppress("UnnecessaryVariable")
+            val oldValue = value
+            val newText = data.text.data.string
             val newSelection = kotlin.run {
-                val hadSelectionAtTheEnd = (old.selection.end == old.text.length)
-                val isNewTextLongerThanOld = (newText.length > old.text.length)
+                val hadSelectionAtTheEnd = (oldValue.selection.end == oldValue.text.length)
+                val isNewTextLongerThanOld = (newText.length > oldValue.text.length)
                 // if it was "123|" become "123456|" instead of "123|456"
                 if (hadSelectionAtTheEnd && isNewTextLongerThanOld) {
                     TextRange(index = newText.length)
                 } else {
-                    old.selection
+                    oldValue.selection
                 }
             }
-            val new = old.copy(text = newText, selection = newSelection)
-            onValueChange(new)
+            val newValue = oldValue.copy(text = newText, selection = newSelection)
+            onValueChange(newValue)
         }
     }
 

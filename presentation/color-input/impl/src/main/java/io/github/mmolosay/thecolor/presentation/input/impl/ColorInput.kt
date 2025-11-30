@@ -32,6 +32,7 @@ import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldUiStri
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHex
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexData
 import io.github.mmolosay.thecolor.presentation.input.impl.hex.ColorInputHexUiStrings
+import io.github.mmolosay.thecolor.presentation.input.impl.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.impl.rgb.ColorInputRgb
 import io.github.mmolosay.thecolor.presentation.input.impl.rgb.ColorInputRgbData
 import io.github.mmolosay.thecolor.presentation.input.impl.rgb.ColorInputRgbUiStrings
@@ -193,7 +194,7 @@ private fun previewUiStrings() =
 private fun previewHexData() =
     ColorInputHexData(
         textField = TextFieldData(
-            text = TextFieldData.Text(""),
+            text = TextFieldData.Text("") causedByUser false,
             onTextChange = {},
             filterUserInput = { TextFieldData.Text(it) },
             clearText = TextFieldData.NoOpClearTextFeature,
@@ -215,21 +216,21 @@ private fun previewHexUiStrings() =
 private fun previewRgbData() =
     ColorInputRgbData(
         rTextField = TextFieldData(
-            text = TextFieldData.Text(""),
+            text = TextFieldData.Text("") causedByUser false,
             onTextChange = {},
             filterUserInput = { TextFieldData.Text(it) },
             clearText = null,
             shouldSelectAllTextOnFocus = false,
         ),
         gTextField = TextFieldData(
-            text = TextFieldData.Text(""),
+            text = TextFieldData.Text("") causedByUser false,
             onTextChange = {},
             filterUserInput = { TextFieldData.Text(it) },
             clearText = null,
             shouldSelectAllTextOnFocus = false,
         ),
         bTextField = TextFieldData(
-            text = TextFieldData.Text(""),
+            text = TextFieldData.Text("") causedByUser false,
             onTextChange = {},
             filterUserInput = { TextFieldData.Text(it) },
             clearText = null,

@@ -18,7 +18,6 @@ import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewMo
 import io.github.mmolosay.thecolor.presentation.input.impl.field.updateText
 import io.github.mmolosay.thecolor.presentation.input.impl.model.ColorSubmissionResult
 import io.github.mmolosay.thecolor.presentation.input.impl.model.DataState
-import io.github.mmolosay.thecolor.presentation.input.impl.model.WithSource
 import io.github.mmolosay.thecolor.presentation.input.impl.plus
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -61,25 +60,22 @@ class ColorInputHexViewModel @AssistedInject constructor(
 
     val dataStateFlow: StateFlow<DataState<ColorInputHexData>> =
         textFieldVm.dataFlow
-            .map { textFieldWithSource ->
-                val textField = textFieldWithSource.data
-                val colorInput = ColorInput.Hex(string = textField.text.string)
+            .map { textField ->
+                val colorInput = ColorInput.Hex(string = textField.text.data.string)
                 val validationResult = with(colorInputValidator) { colorInput.validate() }
-                val fullData = FullData(
+                FullData(
                     textField = textField,
                     submitInput = { submitInput(colorInput, validationResult) },
                     colorInput = colorInput,
                     colorInputValidationResult = validationResult,
                 )
-                WithSource(data = fullData, causedByUser = textFieldWithSource.causedByUser)
             }
-            .onEach { fullDataWithSource ->
+            .onEach { fullData ->
                 // don't synchronize this data with other Views to avoid update loop
-                if (!fullDataWithSource.causedByUser) return@onEach
-                val parsedColor = fullDataWithSource.data.colorInputValidationResult.getColorOrNull()
+                if (!fullData.textField.text.causedByUser) return@onEach
+                val parsedColor = fullData.colorInputValidationResult.getColorOrNull()
                 mediator.send(color = parsedColor, from = DomainColorInputType.Hex)
             }
-            .map { fullDataWithSource -> fullDataWithSource.data }
             .map { fullData -> fullData.reduce() }
             .map { data -> DataState(data) }
             .flowOn(defaultDispatcher)

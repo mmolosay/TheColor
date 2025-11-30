@@ -6,7 +6,6 @@ import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.impl.field.TextFieldViewModel
 import io.github.mmolosay.thecolor.presentation.input.impl.field.updateText
-import io.github.mmolosay.thecolor.presentation.input.impl.model.WithSource
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -42,7 +41,7 @@ class TextFieldViewModelTest {
             initialText = "initial",
         )
 
-        data.text shouldBe Text("initial")
+        data.text.data shouldBe Text("initial")
     }
 
     @Test
@@ -54,7 +53,7 @@ class TextFieldViewModelTest {
             initialText = "initial"
         )
 
-        data.text shouldBe Text("initial")
+        data.text.data shouldBe Text("initial")
     }
 
     @Test
@@ -65,18 +64,18 @@ class TextFieldViewModelTest {
 
         sut updateText Text("new")
 
-        data.text shouldBe Text("new")
+        data.text.data shouldBe Text("new")
     }
 
     @Test
-    fun `data update is not 'caused by user' when text is changed programmatically`() {
+    fun `updated text is not 'caused by user' when text is changed programmatically`() {
         createSut(
             initialText = "initial",
         )
 
         sut updateText Text("new")
 
-        dataWithSource.causedByUser shouldBe false
+        data.text.causedByUser shouldBe false
     }
 
     @Test
@@ -87,18 +86,18 @@ class TextFieldViewModelTest {
 
         data.onTextChange(Text("new"))
 
-        data.text shouldBe Text("new")
+        data.text.data shouldBe Text("new")
     }
 
     @Test
-    fun `data update is 'caused by user' when text is changed from View`() {
+    fun `updated text is 'caused by user' when text is changed from View`() {
         createSut(
             initialText = "initial",
         )
 
         data.onTextChange(Text("new"))
 
-        dataWithSource.causedByUser shouldBe true
+        data.text.causedByUser shouldBe true
     }
 
     @Test // ANCHOR:Label=0
@@ -201,11 +200,11 @@ class TextFieldViewModelTest {
         // REFERENCE:Label=1
         data.clearText.shouldNotBeNull().invoke()
 
-        data.text shouldBe Text("")
+        data.text.data shouldBe Text("")
     }
 
     @Test
-    fun `data update is 'caused by user' when 'clear text' feature is invoked`() {
+    fun `updated text is 'caused by user' when 'clear text' feature is invoked`() {
         createSut(
             initialText = "initial non-empty text",
             enableClearTextFeature = true,
@@ -214,7 +213,7 @@ class TextFieldViewModelTest {
         // REFERENCE:Label=1
         data.clearText.shouldNotBeNull().invoke()
 
-        dataWithSource.causedByUser shouldBe true
+        data.text.causedByUser shouldBe true
     }
 
     @Test
@@ -256,9 +255,6 @@ class TextFieldViewModelTest {
             sut = it
         }
 
-    val dataWithSource: WithSource<TextFieldData>
-        get() = sut.dataFlow.value
-
     val data: TextFieldData
-        get() = dataWithSource.data
+        get() = sut.dataFlow.value
 }
