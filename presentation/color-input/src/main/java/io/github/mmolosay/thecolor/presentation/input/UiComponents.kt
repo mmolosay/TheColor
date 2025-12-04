@@ -16,6 +16,7 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import io.github.mmolosay.thecolor.presentation.input.model.ColorSubmissionResult
 import io.github.mmolosay.thecolor.presentation.input.model.DataState
+import kotlinx.coroutines.flow.StateFlow
 
 /**
  * Reusable UI components for 'Color Input' Views.
@@ -44,17 +45,19 @@ internal object UiComponents {
     }
 
     @Composable
-    fun ProcessColorSubmissionResultAsSideEffect(
-        result: ColorSubmissionResult?,
+    fun CollectColorSubmissionResultAsSideEffect(
+        resultFlow: StateFlow<ColorSubmissionResult?>,
     ) {
         val keyboardController = LocalSoftwareKeyboardController.current
-        LaunchedEffect(result) {
-            result ?: return@LaunchedEffect
-            // color input was rejected, thus user will probably want to correct it and needs keyboard
-            if (result.wasAccepted.not()) return@LaunchedEffect
-            // color input was accepted, thus user probably won't change it and doesn't need keyboard
-            keyboardController?.hide()
-            result.discard()
+        LaunchedEffect(resultFlow) {
+            resultFlow.collect { result ->
+                if (result == null) return@collect
+                // color input was rejected, thus user will probably want to correct it and needs keyboard
+                if (result.wasAccepted.not()) return@collect
+                // color input was accepted, thus user probably won't change it and doesn't need keyboard
+                keyboardController?.hide()
+                result.discard()
+            }
         }
     }
 

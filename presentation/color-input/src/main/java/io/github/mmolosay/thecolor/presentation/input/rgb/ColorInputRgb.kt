@@ -23,8 +23,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.common.compose.thenIf
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
+import io.github.mmolosay.thecolor.presentation.input.UiComponents.CollectColorSubmissionResultAsSideEffect
 import io.github.mmolosay.thecolor.presentation.input.UiComponents.DataStateCrossfade
-import io.github.mmolosay.thecolor.presentation.input.UiComponents.ProcessColorSubmissionResultAsSideEffect
 import io.github.mmolosay.thecolor.presentation.input.UiComponents.onBackspace
 import io.github.mmolosay.thecolor.presentation.input.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
@@ -40,8 +40,6 @@ fun ColorInputRgb(
     val context = LocalContext.current
     val strings = remember(context) { ColorInputRgbUiStrings(context) }
     val dataState = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
-    val colorSubmissionResult =
-        viewModel.colorSubmissionResultFlow.collectAsStateWithLifecycle().value
 
     DataStateCrossfade(
         actualDataState = dataState,
@@ -58,8 +56,8 @@ fun ColorInputRgb(
         }
     }
 
-    ProcessColorSubmissionResultAsSideEffect(
-        result = colorSubmissionResult,
+    CollectColorSubmissionResultAsSideEffect(
+        resultFlow = viewModel.colorSubmissionResultFlow,
     )
 }
 
