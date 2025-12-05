@@ -6,6 +6,7 @@ import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.model.ColorConstants
 import io.github.mmolosay.thecolor.domain.repository.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
+import io.github.mmolosay.thecolor.presentation.common.ImmediateEventRelay
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.ColorInputEventStore
@@ -23,10 +24,8 @@ import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldViewMod
 import io.github.mmolosay.thecolor.presentation.input.textfield.updateText
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -101,8 +100,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                 initialValue = DataState.BeingInitialized,
             )
 
-    private val _colorSubmissionResultFlow = MutableStateFlow<ColorSubmissionResult?>(null)
-    val colorSubmissionResultFlow = _colorSubmissionResultFlow.asStateFlow()
+    val colorSubmissionResultRelay = ImmediateEventRelay<ColorSubmissionResult>()
 
     init {
         collectMediatorUpdates()
@@ -143,15 +141,10 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             colorInput = colorInput,
             validationResult = validationResult,
         )
-        val result = ColorSubmissionResult(
-            wasAccepted = wasAccepted,
-            discard = ::clearColorSubmissionResult,
-        )
-        _colorSubmissionResultFlow.value = result
-    }
-
-    private fun clearColorSubmissionResult() {
-        _colorSubmissionResultFlow.value = null
+        val result = ColorSubmissionResult(wasAccepted)
+        coroutineScope.launch {
+            colorSubmissionResultRelay.send(result)
+        }
     }
 
     private fun createTextFieldViewModel(): TextFieldViewModel =

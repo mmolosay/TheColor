@@ -1,10 +1,8 @@
 package io.github.mmolosay.thecolor.presentation.input.model
 
 /**
- * Result of submitting color to process outside of Color Input scope.
- * Use [discard()][discard] to notify ViewModel that UI has conveyed this event to user and no longer needed.
+ * Result of submitting a color to be processed outside of the 'Color Input' scope.
  */
 data class ColorSubmissionResult(
     val wasAccepted: Boolean,
-    val discard: () -> Unit,
 )

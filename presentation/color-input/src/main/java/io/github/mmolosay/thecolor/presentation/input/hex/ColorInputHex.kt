@@ -52,7 +52,7 @@ fun ColorInputHex(
     }
 
     CollectColorSubmissionResultAsSideEffect(
-        resultFlow = viewModel.colorSubmissionResultFlow,
+        resultFlow = viewModel.colorSubmissionResultRelay.eventFlow,
     )
 }
 
