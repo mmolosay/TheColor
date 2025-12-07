@@ -57,7 +57,7 @@ fun ColorInputRgb(
     }
 
     CollectColorSubmissionResultAsSideEffect(
-        resultFlow = viewModel.colorSubmissionResultRelay.eventFlow,
+        resultFlow = viewModel.colorSubmissionResultFlow,
     )
 }
 

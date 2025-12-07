@@ -15,7 +15,6 @@ import io.github.mmolosay.thecolor.testing.MainDispatcherExtension
 import io.kotest.assertions.withClue
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -29,6 +28,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -200,19 +200,19 @@ class ColorInputRgbViewModelTest {
         }
 
     @Test
-    fun `given 'submit action' returns 'true', when invoking 'submit input', then 'submission result' is emitted`() {
-        every { submitAction.invoke(colorInput = any(), validationResult = any()) } returns true
-        createSut()
+    fun `given 'submit action' returns 'true', when invoking 'submit input', then 'submission result' is emitted`() =
+        runTest(testDispatcher) {
+            every { submitAction.invoke(colorInput = any(), validationResult = any()) } returns true
+            createSut()
 
-        data.submitInput()
+            data.submitInput()
 
-        coVerify(exactly = 1) {
-            submitAction.invoke(colorInput = any(), validationResult = any())
+            coVerify(exactly = 1) {
+                submitAction.invoke(colorInput = any(), validationResult = any())
+            }
+            val submissionResult = sut.colorSubmissionResultFlow.first()
+            submissionResult.wasAccepted shouldBe true
         }
-        val submissionResult = sut.colorSubmissionResultFlow.value
-        submissionResult shouldNotBe null
-        submissionResult?.wasAccepted shouldBe true
-    }
 
     @Test
     fun `emission of 'Smart Backspace' updates data accordingly`() =

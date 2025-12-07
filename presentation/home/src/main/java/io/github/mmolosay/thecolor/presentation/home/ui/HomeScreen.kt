@@ -103,7 +103,6 @@ import io.github.mmolosay.thecolor.utils.cache.DequeCache
 import io.github.mmolosay.thecolor.utils.cache.PruneOnSizeThreshold
 import io.github.mmolosay.thecolor.utils.doNothing
 import io.github.mmolosay.thecolor.utils.stabilize
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -114,7 +113,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import kotlin.random.Random
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
@@ -286,13 +284,11 @@ private fun HomeScreen(
     }
 
     LaunchedEffect(Unit) {
-        launch(Dispatchers.Main.immediate) {
-            navEventFlow.collect { event ->
-                when (event) {
-                    is HomeNavEvent.GoToSettings -> {
-                        focusManager.clearFocus()
-                        navigateToSettings()
-                    }
+        navEventFlow.collect { event ->
+            when (event) {
+                is HomeNavEvent.GoToSettings -> {
+                    focusManager.clearFocus()
+                    navigateToSettings()
                 }
             }
         }

@@ -13,7 +13,7 @@ import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.domain.usecase.GetPredictableRandomColorUseCase
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
-import io.github.mmolosay.thecolor.presentation.common.ImmediateEventRelay
+import io.github.mmolosay.thecolor.presentation.common.ImmediateRelay
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommand
@@ -107,8 +107,8 @@ class HomeViewModel @Inject constructor(
     val flowOfIsDataBeingUpdated: StateFlow<Boolean> =
         dataUpdateGuard.flowOfIsDataBeingUpdated
 
-    private val navEventRelay = ImmediateEventRelay<HomeNavEvent>()
-    val navEventFlow = navEventRelay.eventFlow
+    private val navEventRelay = ImmediateRelay<HomeNavEvent>()
+    val navEventFlow = navEventRelay.flowForView
 
     private val colorInputMediator: ColorInputMediator =
         colorInputMediatorFactory.create(

@@ -3,7 +3,7 @@ package io.github.mmolosay.thecolor.presentation.input.hex
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.presentation.common.ImmediateEventRelay
+import io.github.mmolosay.thecolor.presentation.common.ImmediateRelay
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.ColorInputEventStore
@@ -83,7 +83,8 @@ class ColorInputHexViewModel @AssistedInject constructor(
                 initialValue = DataState.BeingInitialized,
             )
 
-    val colorSubmissionResultRelay = ImmediateEventRelay<ColorSubmissionResult>()
+    private val colorSubmissionResultRelay = ImmediateRelay<ColorSubmissionResult>()
+    val colorSubmissionResultFlow = colorSubmissionResultRelay.flowForView
 
     init {
         collectMediatorUpdates()
