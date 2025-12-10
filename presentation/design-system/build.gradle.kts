@@ -19,12 +19,6 @@ android {
     }
 }
 
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.add("-Xstring-concat=inline")
-    }
-}
-
 dependencies {
     // Modules
     implementation(project(":domain"))
