@@ -17,10 +17,6 @@ android {
     }
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
-}
-
 @Suppress("SpellCheckingInspection")
 dependencies {
     implementation(project(":domain"))

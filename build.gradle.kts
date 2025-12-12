@@ -27,6 +27,7 @@ tasks.register<Delete>("clean").configure {
 subprojects {
     configureJavaForAllPlugins()
     configureKotlinForAllPlugins()
+    configureJUnit()
 }
 
 /**
@@ -60,5 +61,11 @@ private fun Project.configureKotlinForAllPlugins() {
                 "-Xannotation-default-target=param-property", // https://youtrack.jetbrains.com/issue/KT-73255
             )
         }
+    }
+}
+
+private fun Project.configureJUnit() {
+    tasks.withType<Test>().configureEach {
+        useJUnitPlatform()
     }
 }
