@@ -78,14 +78,14 @@ class ColorInputViewModel @AssistedInject constructor(
         val preferredInputType = userPreferencesRepository.flowOfColorInputType
             .filterNotNull().first()
         // make list of all input types with the preferred one being first
-        val orderedViewTypes = run {
+        val orderedInputTypes = run {
             val allInputTypes = DomainColorInputType.entries
             val allInputTypesWithoutPreferredOne = allInputTypes.filter { it != preferredInputType }
             listOf(preferredInputType) + allInputTypesWithoutPreferredOne
         }
         return ColorInputData(
             selectedInputType = preferredInputType,
-            orderedInputTypes = orderedViewTypes,
+            orderedInputTypes = orderedInputTypes,
             onInputTypeChange = ::onInputTypeChange,
         )
     }
