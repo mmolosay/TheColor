@@ -30,13 +30,11 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel.SuspendGates
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModelDiModule
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.components
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEvent
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputValidationResult
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputSubmitAction
-import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator
-import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputViewModel
+import io.github.mmolosay.thecolor.presentation.input.ColorInputColorStore
+import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
+import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupViewModel
+import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
+import io.github.mmolosay.thecolor.presentation.input.model.ColorInputValidationResult
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommand
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommandStore
@@ -70,7 +68,6 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
@@ -94,18 +91,16 @@ class HomeViewModelTest {
 
     val colorInputMediator: ColorInputMediator = mockk(relaxed = true)
     val colorInputColorStore: ColorInputColorStore = spyk() // for actual impl of 'wouldEmitIfSet()'
-    val colorInputEventStore: ColorInputEventStore = mockk()
-    val colorInputViewModel: ColorInputViewModel = mockk(relaxed = true)
+    val colorInputGroupViewModel: ColorInputGroupViewModel = mockk(relaxed = true)
     lateinit var colorInputSubmitAction: ColorInputSubmitAction
-    val colorInputViewModelFactory = object : ColorInputViewModel.Factory {
+    val colorInputGroupViewModelFactory = object : ColorInputGroupViewModel.Factory {
         override fun create(
             coroutineScope: CoroutineScope,
-            eventStore: ColorInputEventStore,
             mediator: ColorInputMediator,
             submitAction: ColorInputSubmitAction,
-        ): ColorInputViewModel {
+        ): ColorInputGroupViewModel {
             colorInputSubmitAction = submitAction
-            return colorInputViewModel
+            return colorInputGroupViewModel
         }
     }
 
@@ -439,8 +434,6 @@ class HomeViewModelTest {
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
-            val colorInputEventFlow = MutableSharedFlow<ColorInputEvent>()
-            every { colorInputEventStore.eventFlow } returns colorInputEventFlow
             every { createColorData(color = any()) } returns mockk()
             createSut()
 
@@ -470,8 +463,6 @@ class HomeViewModelTest {
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
-            val colorInputEventFlow = MutableSharedFlow<ColorInputEvent>()
-            every { colorInputEventStore.eventFlow } returns colorInputEventFlow
             val colorData: ProceedResult.Success.ColorData = mockk()
             every { createColorData(color = any()) } returns colorData
             createSut()
@@ -502,8 +493,6 @@ class HomeViewModelTest {
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
-            val colorInputEventFlow = MutableSharedFlow<ColorInputEvent>()
-            every { colorInputEventStore.eventFlow } returns colorInputEventFlow
             val colorData: ProceedResult.Success.ColorData = mockk()
             every { createColorData(color = any()) } returns colorData
             createSut()
@@ -532,8 +521,6 @@ class HomeViewModelTest {
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
-            val colorInputEventFlow = MutableSharedFlow<ColorInputEvent>()
-            every { colorInputEventStore.eventFlow } returns colorInputEventFlow
             val colorData: ProceedResult.Success.ColorData = mockk()
             every { createColorData(color = any()) } returns colorData
             createSut()
@@ -562,8 +549,6 @@ class HomeViewModelTest {
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
-            val colorInputEventFlow = MutableSharedFlow<ColorInputEvent>()
-            every { colorInputEventStore.eventFlow } returns colorInputEventFlow
             val colorData: ProceedResult.Success.ColorData = mockk()
             every { createColorData(color = any()) } returns colorData
             createSut()
@@ -593,8 +578,6 @@ class HomeViewModelTest {
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             every { colorInputColorStore.colorFlow } returns MutableStateFlow(value = mockk<Color>())
-            val colorInputEventFlow = MutableSharedFlow<ColorInputEvent>()
-            every { colorInputEventStore.eventFlow } returns colorInputEventFlow
             val colorData: ProceedResult.Success.ColorData = mockk()
             every { createColorData(color = any()) } returns colorData
             createSut()
@@ -1321,9 +1304,8 @@ class HomeViewModelTest {
     ) =
         HomeViewModel(
             colorInputMediatorFactory = { _ -> colorInputMediator },
-            colorInputViewModelFactory = colorInputViewModelFactory,
+            colorInputGroupViewModelFactory = colorInputGroupViewModelFactory,
             colorInputColorStore = colorInputColorStore,
-            colorInputEventStore = colorInputEventStore,
             colorProcessedConfirmationChannelForColorPreview = colorProcessedConfirmationChannelForColorPreview,
             colorPreviewViewModelFactory = { _, _, _ -> mockk(relaxed = true) },
             colorCenterComponentsStoreFactory = colorCenterComponentsStoreFactory,
@@ -1347,7 +1329,6 @@ class HomeViewModelTest {
 
     fun mockStoresWithEmptyFlows() {
         every { colorInputColorStore.colorFlow } returns MutableStateFlow(null)
-        every { colorInputEventStore.eventFlow } returns emptyFlow()
         every { colorDetailsEventStore.eventFlow } returns MutableSharedFlow()
         every { colorSchemeEventStore.eventFlow } returns emptyFlow()
     }

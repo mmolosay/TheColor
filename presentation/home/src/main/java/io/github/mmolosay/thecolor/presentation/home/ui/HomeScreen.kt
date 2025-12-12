@@ -75,13 +75,20 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.debounce.debounced
+import io.github.mmolosay.thecolor.presentation.center.ColorCenter
+import io.github.mmolosay.thecolor.presentation.center.ColorCenterShape
+import io.github.mmolosay.thecolor.presentation.common.ExtendedLifecycleEventObserver
+import io.github.mmolosay.thecolor.presentation.common.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
+import io.github.mmolosay.thecolor.presentation.common.colorint.toCompose
+import io.github.mmolosay.thecolor.presentation.common.compose.TintedSurface
+import io.github.mmolosay.thecolor.presentation.common.compose.onlyBottom
+import io.github.mmolosay.thecolor.presentation.common.compose.withoutBottom
 import io.github.mmolosay.thecolor.presentation.common.navbar.NavBarAppearance
 import io.github.mmolosay.thecolor.presentation.common.navbar.NavBarAppearanceController
 import io.github.mmolosay.thecolor.presentation.common.navbar.RootNavBarAppearanceController
 import io.github.mmolosay.thecolor.presentation.common.navbar.navBarAppearance
-import io.github.mmolosay.thecolor.presentation.center.ColorCenter
-import io.github.mmolosay.thecolor.presentation.center.ColorCenterShape
+import io.github.mmolosay.thecolor.presentation.common.toLifecycleEventObserver
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.animate
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
@@ -90,20 +97,12 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeNavEvent
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
-import io.github.mmolosay.thecolor.presentation.common.ExtendedLifecycleEventObserver
-import io.github.mmolosay.thecolor.presentation.common.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent
-import io.github.mmolosay.thecolor.presentation.common.compose.TintedSurface
-import io.github.mmolosay.thecolor.presentation.common.compose.onlyBottom
-import io.github.mmolosay.thecolor.presentation.common.colorint.toCompose
-import io.github.mmolosay.thecolor.presentation.common.toLifecycleEventObserver
-import io.github.mmolosay.thecolor.presentation.common.compose.withoutBottom
-import io.github.mmolosay.thecolor.presentation.input.impl.ColorInput
+import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroup
 import io.github.mmolosay.thecolor.presentation.preview.AnimatedColorPreview
 import io.github.mmolosay.thecolor.utils.cache.DequeCache
 import io.github.mmolosay.thecolor.utils.cache.PruneOnSizeThreshold
 import io.github.mmolosay.thecolor.utils.doNothing
 import io.github.mmolosay.thecolor.utils.stabilize
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -114,7 +113,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import kotlin.random.Random
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
@@ -132,8 +130,8 @@ fun HomeScreen(
         navBarAppearanceController.branch("Selected Swatch Details Dialog")
     }
     val colorInput: @Composable () -> Unit = {
-        ColorInput(
-            viewModel = viewModel.colorInputViewModel,
+        ColorInputGroup(
+            viewModel = viewModel.colorInputGroupViewModel,
         )
     }
     val colorPreview: ColorPreviewWithDependencies = remember {
@@ -286,13 +284,11 @@ private fun HomeScreen(
     }
 
     LaunchedEffect(Unit) {
-        launch(Dispatchers.Main.immediate) {
-            navEventFlow.collect { event ->
-                when (event) {
-                    is HomeNavEvent.GoToSettings -> {
-                        focusManager.clearFocus()
-                        navigateToSettings()
-                    }
+        navEventFlow.collect { event ->
+            when (event) {
+                is HomeNavEvent.GoToSettings -> {
+                    focusManager.clearFocus()
+                    navigateToSettings()
                 }
             }
         }

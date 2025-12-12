@@ -21,16 +21,6 @@ android {
     }
 }
 
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.add("-Xstring-concat=inline")
-    }
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
-}
-
 @Suppress("SpellCheckingInspection")
 dependencies {
     // Modules

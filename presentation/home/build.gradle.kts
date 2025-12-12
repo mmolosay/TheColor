@@ -21,16 +21,6 @@ android {
     }
 }
 
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.add("-Xstring-concat=inline")
-    }
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
-}
-
 @Suppress("SpellCheckingInspection")
 dependencies {
     // Modules
@@ -38,8 +28,7 @@ dependencies {
     implementation(project(":utils"))
     implementation(project(":presentation:common"))
     implementation(project(":presentation:design-system"))
-    implementation(project(":presentation:color-input:api"))
-    implementation(project(":presentation:color-input:impl"))
+    implementation(project(":presentation:color-input"))
     implementation(project(":presentation:color-preview"))
     implementation(project(":presentation:color-center"))
     implementation(project(":presentation:color-details"))

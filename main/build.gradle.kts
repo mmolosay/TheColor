@@ -18,12 +18,6 @@ android {
     }
 }
 
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.add("-Xstring-concat=inline")
-    }
-}
-
 @Suppress("SpellCheckingInspection")
 dependencies {
     implementation(project(":domain"))

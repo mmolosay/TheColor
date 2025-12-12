@@ -2,7 +2,7 @@
 
 [versions]
 # Gradle
-androidGradlePlugin = "8.10.1"
+androidGradlePlugin = "8.13.1"
 
 # Android
 compileSdk = "36"
@@ -10,8 +10,8 @@ targetSdk = "35"
 minSdk = "24"
 
 # Kotlin
-kotlin = "2.1.20"
-ksp = "2.1.20-2.0.1"
+kotlin = "2.2.21"
+ksp = "2.3.3"
 java = "18"
 coroutines = "1.9.0"
 
@@ -25,7 +25,7 @@ compose-bom = "2025.10.00" # https://developer.android.com/jetpack/compose/bom/b
 # see: https://developer.android.com/develop/ui/compose/compiler
 
 # Dagger & Hilt
-hilt = "2.54"
+hilt = "2.57.2"
 hiltNavigationCompose = "1.2.0"
 
 # Remote

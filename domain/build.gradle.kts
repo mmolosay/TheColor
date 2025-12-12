@@ -3,10 +3,6 @@ plugins {
     id("kotlin")
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
-}
-
 dependencies {
     implementation(project(":utils"))
 

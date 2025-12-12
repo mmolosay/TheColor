@@ -12,10 +12,10 @@ import io.github.mmolosay.thecolor.domain.repository.LastSearchedColorRepository
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.domain.usecase.GetPredictableRandomColorUseCase
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
-import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
-import io.github.mmolosay.thecolor.presentation.common.ImmediateEventRelay
-import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
+import io.github.mmolosay.thecolor.presentation.common.ImmediateRelay
+import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
+import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommand
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEvent
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorRole
@@ -24,13 +24,12 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterSessio
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.CanProceed
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ColorSchemeSelectedSwatchData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModelDiModule.ChannelForColorPreview
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInput
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputColorStore
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputEventStore
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputSubmitAction
-import io.github.mmolosay.thecolor.presentation.input.api.ColorInputValidationResult
-import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputMediator
-import io.github.mmolosay.thecolor.presentation.input.impl.ColorInputViewModel
+import io.github.mmolosay.thecolor.presentation.input.ColorInputColorStore
+import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
+import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupViewModel
+import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
+import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
+import io.github.mmolosay.thecolor.presentation.input.model.ColorInputValidationResult
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommand
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
@@ -85,9 +84,8 @@ import javax.inject.Singleton
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModel @Inject constructor(
     colorInputMediatorFactory: ColorInputMediator.Factory,
-    colorInputViewModelFactory: ColorInputViewModel.Factory,
+    colorInputGroupViewModelFactory: ColorInputGroupViewModel.Factory,
     private val colorInputColorStore: ColorInputColorStore,
-    private val colorInputEventStore: ColorInputEventStore,
     @ChannelForColorPreview private val colorProcessedConfirmationChannelForColorPreview: Channel<Color?>,
     colorPreviewViewModelFactory: ColorPreviewViewModel.Factory,
     colorCenterComponentsStoreFactory: ColorCenterComponentsStore.Factory,
@@ -107,8 +105,8 @@ class HomeViewModel @Inject constructor(
     val flowOfIsDataBeingUpdated: StateFlow<Boolean> =
         dataUpdateGuard.flowOfIsDataBeingUpdated
 
-    private val navEventRelay = ImmediateEventRelay<HomeNavEvent>()
-    val navEventFlow = navEventRelay.eventFlow
+    private val navEventRelay = ImmediateRelay<HomeNavEvent>()
+    val navEventFlow = navEventRelay.flowForView
 
     private val colorInputMediator: ColorInputMediator =
         colorInputMediatorFactory.create(
@@ -117,10 +115,9 @@ class HomeViewModel @Inject constructor(
     private val flowOfProcessedColorsFromColorInput =
         MutableStateFlow<Color?>(colorInputColorStore.colorFlow.value)
 
-    val colorInputViewModel: ColorInputViewModel =
-        colorInputViewModelFactory.create(
+    val colorInputGroupViewModel: ColorInputGroupViewModel =
+        colorInputGroupViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
-            eventStore = colorInputEventStore,
             mediator = colorInputMediator,
             submitAction = ColorInputSubmitActionImpl(),
         )
