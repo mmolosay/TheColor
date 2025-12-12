@@ -155,6 +155,13 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             enableClearTextFeature = false,
         )
 
+    override fun dispose() {
+        super.dispose()
+        rTextFieldVm.dispose()
+        gTextFieldVm.dispose()
+        bTextFieldVm.dispose()
+    }
+
     @AssistedFactory
     fun interface Factory {
         fun create(

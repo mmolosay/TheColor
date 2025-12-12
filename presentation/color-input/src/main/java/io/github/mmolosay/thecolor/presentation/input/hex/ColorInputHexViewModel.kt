@@ -119,6 +119,11 @@ class ColorInputHexViewModel @AssistedInject constructor(
         }
     }
 
+    override fun dispose() {
+        super.dispose()
+        textFieldVm.dispose()
+    }
+
     @AssistedFactory
     fun interface Factory {
         fun create(
