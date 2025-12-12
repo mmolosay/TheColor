@@ -1,7 +1,9 @@
 package io.github.mmolosay.thecolor.presentation.input
 
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
-import io.github.mmolosay.thecolor.presentation.input.ColorInputViewModel.DataState
+import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupData
+import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupViewModel
+import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupViewModel.DataState
 import io.github.mmolosay.thecolor.testing.MainDispatcherExtension
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -16,7 +18,7 @@ import org.junit.jupiter.api.extension.RegisterExtension
 import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ColorInputViewModelTest {
+class ColorInputGroupViewModelTest {
 
     val testDispatcher = UnconfinedTestDispatcher()
 
@@ -27,7 +29,7 @@ class ColorInputViewModelTest {
     val mediator: ColorInputMediator = mockk()
     val userPreferencesRepository: UserPreferencesRepository = mockk()
 
-    lateinit var sut: ColorInputViewModel
+    lateinit var sut: ColorInputGroupViewModel
 
     @Test
     fun `initial data is set on initialization`() {
@@ -75,7 +77,7 @@ class ColorInputViewModelTest {
     }
 
     fun createSut() =
-        ColorInputViewModel(
+        ColorInputGroupViewModel(
             coroutineScope = CoroutineScope(context = testDispatcher),
             eventStore = mockk(),
             mediator = mediator,
@@ -88,6 +90,6 @@ class ColorInputViewModelTest {
             sut = it
         }
 
-    val data: ColorInputData
+    val data: ColorInputGroupData
         get() = sut.dataStateFlow.value.shouldBeInstanceOf<DataState.Ready>().data
 }

@@ -1,5 +1,6 @@
-package io.github.mmolosay.thecolor.presentation.input
+package io.github.mmolosay.thecolor.presentation.input.group
 
+import android.content.res.Configuration
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,6 +16,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -26,7 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.input.ColorInputViewModel.DataState
+import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupViewModel.DataState
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHex
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexData
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexUiStrings
@@ -40,11 +42,11 @@ import io.github.mmolosay.thecolor.utils.doNothing
 import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
 
 @Composable
-fun ColorInput(
-    viewModel: ColorInputViewModel,
+fun ColorInputGroup(
+    viewModel: ColorInputGroupViewModel,
 ) {
     val context = LocalContext.current
-    val strings = remember(context) { ColorInputUiStrings(context) }
+    val strings = remember(context) { ColorInputGroupUiStrings(context) }
     val dataState = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
     when (dataState) {
         is DataState.Loading -> {
@@ -52,7 +54,7 @@ fun ColorInput(
             doNothing()
         }
         is DataState.Ready -> {
-            ColorInput(
+            ColorInputGroup(
                 data = dataState.data,
                 strings = strings,
                 hexInput = {
@@ -67,9 +69,9 @@ fun ColorInput(
 }
 
 @Composable
-fun ColorInput(
-    data: ColorInputData,
-    strings: ColorInputUiStrings,
+fun ColorInputGroup(
+    data: ColorInputGroupData,
+    strings: ColorInputGroupUiStrings,
     hexInput: @Composable () -> Unit,
     rgbInput: @Composable () -> Unit,
 ) {
@@ -104,8 +106,8 @@ fun ColorInput(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun InputSelector(
-    data: ColorInputData,
-    strings: ColorInputUiStrings,
+    data: ColorInputGroupData,
+    strings: ColorInputGroupUiStrings,
 ) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -146,37 +148,40 @@ private fun ChipLabel(text: String) {
     )
 }
 
-private fun DomainColorInputType.label(strings: ColorInputUiStrings): String =
+private fun DomainColorInputType.label(strings: ColorInputGroupUiStrings): String =
     when (this) {
         DomainColorInputType.Hex -> strings.hexLabel
         DomainColorInputType.Rgb -> strings.rgbLabel
     }
 
-@Preview(showBackground = true)
+@Preview(uiMode = Configuration.UI_MODE_TYPE_NORMAL)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL)
 @Composable
 private fun Preview() {
     TheColorTheme {
-        ColorInput(
-            data = previewData(),
-            strings = previewUiStrings(),
-            hexInput = {
-                ColorInputHex(
-                    data = previewHexData(),
-                    strings = previewHexUiStrings(),
-                )
-            },
-            rgbInput = {
-                ColorInputRgb(
-                    data = previewRgbData(),
-                    strings = previewRgbUiStrings(),
-                )
-            },
-        )
+        Surface {
+            ColorInputGroup(
+                data = previewData(),
+                strings = previewUiStrings(),
+                hexInput = {
+                    ColorInputHex(
+                        data = previewHexData(),
+                        strings = previewHexUiStrings(),
+                    )
+                },
+                rgbInput = {
+                    ColorInputRgb(
+                        data = previewRgbData(),
+                        strings = previewRgbUiStrings(),
+                    )
+                },
+            )
+        }
     }
 }
 
 private fun previewData() =
-    ColorInputData(
+    ColorInputGroupData(
         selectedInputType = DomainColorInputType.Hex,
         orderedInputTypes = listOf(
             DomainColorInputType.Hex,
@@ -186,7 +191,7 @@ private fun previewData() =
     )
 
 private fun previewUiStrings() =
-    ColorInputUiStrings(
+    ColorInputGroupUiStrings(
         hexLabel = "HEX",
         rgbLabel = "RGB",
     )

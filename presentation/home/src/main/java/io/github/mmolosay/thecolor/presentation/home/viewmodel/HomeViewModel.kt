@@ -27,7 +27,7 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModelDiMo
 import io.github.mmolosay.thecolor.presentation.input.ColorInputColorStore
 import io.github.mmolosay.thecolor.presentation.input.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
-import io.github.mmolosay.thecolor.presentation.input.ColorInputViewModel
+import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputValidationResult
@@ -85,7 +85,7 @@ import javax.inject.Singleton
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModel @Inject constructor(
     colorInputMediatorFactory: ColorInputMediator.Factory,
-    colorInputViewModelFactory: ColorInputViewModel.Factory,
+    colorInputGroupViewModelFactory: ColorInputGroupViewModel.Factory,
     private val colorInputColorStore: ColorInputColorStore,
     private val colorInputEventStore: ColorInputEventStore,
     @ChannelForColorPreview private val colorProcessedConfirmationChannelForColorPreview: Channel<Color?>,
@@ -117,8 +117,8 @@ class HomeViewModel @Inject constructor(
     private val flowOfProcessedColorsFromColorInput =
         MutableStateFlow<Color?>(colorInputColorStore.colorFlow.value)
 
-    val colorInputViewModel: ColorInputViewModel =
-        colorInputViewModelFactory.create(
+    val colorInputGroupViewModel: ColorInputGroupViewModel =
+        colorInputGroupViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
             eventStore = colorInputEventStore,
             mediator = colorInputMediator,

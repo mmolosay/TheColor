@@ -1,6 +1,7 @@
-package io.github.mmolosay.thecolor.presentation.input
+package io.github.mmolosay.thecolor.presentation.input.group
 
 import android.content.Context
+import io.github.mmolosay.thecolor.presentation.input.R
 
 /**
  * Strings that are pre-defined in UI and don't come from ViewModel.
@@ -8,13 +9,13 @@ import android.content.Context
  * This object is created by View, since string resources are tied to platform-specific
  * components (like Context), which should be avoided in ViewModels.
  */
-data class ColorInputUiStrings(
+data class ColorInputGroupUiStrings(
     val hexLabel: String,
     val rgbLabel: String,
 )
 
-fun ColorInputUiStrings(context: Context) =
-    ColorInputUiStrings(
+fun ColorInputGroupUiStrings(context: Context) =
+    ColorInputGroupUiStrings(
         hexLabel = context.getString(R.string.color_input_tab_hex),
         rgbLabel = context.getString(R.string.color_input_tab_rgb),
     )

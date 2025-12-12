@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.input
+package io.github.mmolosay.thecolor.presentation.input.group
 
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -6,6 +6,8 @@ import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
+import io.github.mmolosay.thecolor.presentation.input.ColorInputEventStore
+import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbViewModel
@@ -21,14 +23,14 @@ import javax.inject.Named
 import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
 
 /**
- * Handles presentation logic of the 'Color Input' feature.
+ * Handles presentation logic of the 'Color Input Group' feature.
  *
  * Unlike typical `ViewModel`s, it doesn't derive from Google's [ViewModel][androidx.lifecycle.ViewModel],
  * thus cannot be instantiated using [ViewModelProvider][androidx.lifecycle.ViewModelProvider].
  *
  * Instead, it can be created within "simple" `ViewModel` or Google's `ViewModel`.
  */
-class ColorInputViewModel @AssistedInject constructor(
+class ColorInputGroupViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     @Assisted eventStore: ColorInputEventStore,
     @Assisted mediator: ColorInputMediator,
@@ -74,7 +76,7 @@ class ColorInputViewModel @AssistedInject constructor(
         }
     }
 
-    private suspend fun initialData(): ColorInputData {
+    private suspend fun initialData(): ColorInputGroupData {
         val preferredInputType = userPreferencesRepository.flowOfColorInputType
             .filterNotNull().first()
         // make list of all input types with the preferred one being first
@@ -83,7 +85,7 @@ class ColorInputViewModel @AssistedInject constructor(
             val allInputTypesWithoutPreferredOne = allInputTypes.filter { it != preferredInputType }
             listOf(preferredInputType) + allInputTypesWithoutPreferredOne
         }
-        return ColorInputData(
+        return ColorInputGroupData(
             selectedInputType = preferredInputType,
             orderedInputTypes = orderedInputTypes,
             onInputTypeChange = ::onInputTypeChange,
@@ -98,7 +100,7 @@ class ColorInputViewModel @AssistedInject constructor(
 
     interface DataState {
         data object Loading : DataState
-        data class Ready(val data: ColorInputData) : DataState
+        data class Ready(val data: ColorInputGroupData) : DataState
     }
 
     @AssistedFactory
@@ -108,6 +110,6 @@ class ColorInputViewModel @AssistedInject constructor(
             eventStore: ColorInputEventStore,
             mediator: ColorInputMediator,
             submitAction: ColorInputSubmitAction,
-        ): ColorInputViewModel
+        ): ColorInputGroupViewModel
     }
 }

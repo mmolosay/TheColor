@@ -97,7 +97,7 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeNavEvent
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
-import io.github.mmolosay.thecolor.presentation.input.ColorInput
+import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroup
 import io.github.mmolosay.thecolor.presentation.preview.AnimatedColorPreview
 import io.github.mmolosay.thecolor.utils.cache.DequeCache
 import io.github.mmolosay.thecolor.utils.cache.PruneOnSizeThreshold
@@ -130,8 +130,8 @@ fun HomeScreen(
         navBarAppearanceController.branch("Selected Swatch Details Dialog")
     }
     val colorInput: @Composable () -> Unit = {
-        ColorInput(
-            viewModel = viewModel.colorInputViewModel,
+        ColorInputGroup(
+            viewModel = viewModel.colorInputGroupViewModel,
         )
     }
     val colorPreview: ColorPreviewWithDependencies = remember {
