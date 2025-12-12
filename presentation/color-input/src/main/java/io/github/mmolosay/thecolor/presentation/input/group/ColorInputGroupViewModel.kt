@@ -6,7 +6,6 @@ import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
-import io.github.mmolosay.thecolor.presentation.input.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
@@ -32,7 +31,6 @@ import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInp
  */
 class ColorInputGroupViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted eventStore: ColorInputEventStore,
     @Assisted mediator: ColorInputMediator,
     @Assisted submitAction: ColorInputSubmitAction,
     hexViewModelFactory: ColorInputHexViewModel.Factory,
@@ -48,7 +46,6 @@ class ColorInputGroupViewModel @AssistedInject constructor(
         hexViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
             mediator = mediator,
-            eventStore = eventStore,
             submitAction = submitAction,
         )
 
@@ -56,7 +53,6 @@ class ColorInputGroupViewModel @AssistedInject constructor(
         rgbViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
             mediator = mediator,
-            eventStore = eventStore,
             submitAction = submitAction,
         )
 
@@ -107,7 +103,6 @@ class ColorInputGroupViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            eventStore: ColorInputEventStore,
             mediator: ColorInputMediator,
             submitAction: ColorInputSubmitAction,
         ): ColorInputGroupViewModel

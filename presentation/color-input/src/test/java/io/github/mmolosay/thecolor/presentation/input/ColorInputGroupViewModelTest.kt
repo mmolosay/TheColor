@@ -79,11 +79,10 @@ class ColorInputGroupViewModelTest {
     fun createSut() =
         ColorInputGroupViewModel(
             coroutineScope = CoroutineScope(context = testDispatcher),
-            eventStore = mockk(),
             mediator = mediator,
             submitAction = mockk(),
-            hexViewModelFactory = { _, _, _, _ -> mockk() },
-            rgbViewModelFactory = { _, _, _, _ -> mockk() },
+            hexViewModelFactory = { _, _, _ -> mockk() },
+            rgbViewModelFactory = { _, _, _ -> mockk() },
             userPreferencesRepository = userPreferencesRepository,
             defaultDispatcher = testDispatcher,
         ).also {

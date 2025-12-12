@@ -53,8 +53,6 @@ class ColorInputHexViewModelTest {
         coEvery { send(color = any(), from = DomainColorInputType.Hex) } just runs
     }
 
-    val eventStore: ColorInputEventStore = mockk()
-
     val submitAction: ColorInputSubmitAction = mockk()
 
     val userPreferencesRepository: UserPreferencesRepository = mockk {
@@ -217,7 +215,6 @@ class ColorInputHexViewModelTest {
         ColorInputHexViewModel(
             coroutineScope = CoroutineScope(context = testDispatcher),
             mediator = mediator,
-            eventStore = eventStore,
             submitAction = submitAction,
             textFieldViewModelFactory = textFieldViewModelFactory,
             colorInputValidator = colorInputValidator,

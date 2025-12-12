@@ -9,7 +9,6 @@ import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.common.ImmediateRelay
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
-import io.github.mmolosay.thecolor.presentation.input.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.ColorInputValidator
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
@@ -46,7 +45,6 @@ import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInp
 class ColorInputRgbViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     @Assisted private val mediator: ColorInputMediator,
-    @Assisted private val eventStore: ColorInputEventStore,
     @Assisted private val submitAction: ColorInputSubmitAction,
     private val textFieldViewModelFactory: TextFieldViewModel.Factory,
     private val colorInputValidator: ColorInputValidator,
@@ -167,7 +165,6 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         fun create(
             coroutineScope: CoroutineScope,
             mediator: ColorInputMediator,
-            eventStore: ColorInputEventStore,
             submitAction: ColorInputSubmitAction,
         ): ColorInputRgbViewModel
     }

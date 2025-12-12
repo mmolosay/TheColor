@@ -54,8 +54,6 @@ class ColorInputRgbViewModelTest {
         coEvery { send(color = any(), from = DomainColorInputType.Rgb) } just runs
     }
 
-    val eventStore: ColorInputEventStore = mockk()
-
     val submitAction: ColorInputSubmitAction = mockk()
 
     val userPreferencesRepository: UserPreferencesRepository = mockk {
@@ -248,7 +246,6 @@ class ColorInputRgbViewModelTest {
         ColorInputRgbViewModel(
             coroutineScope = CoroutineScope(testDispatcher),
             mediator = mediator,
-            eventStore = eventStore,
             submitAction = submitAction,
             textFieldViewModelFactory = textFieldViewModelFactory,
             colorInputValidator = colorInputValidator,

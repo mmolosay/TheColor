@@ -25,7 +25,6 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.CanProce
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ColorSchemeSelectedSwatchData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModelDiModule.ChannelForColorPreview
 import io.github.mmolosay.thecolor.presentation.input.ColorInputColorStore
-import io.github.mmolosay.thecolor.presentation.input.ColorInputEventStore
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
@@ -87,7 +86,6 @@ class HomeViewModel @Inject constructor(
     colorInputMediatorFactory: ColorInputMediator.Factory,
     colorInputGroupViewModelFactory: ColorInputGroupViewModel.Factory,
     private val colorInputColorStore: ColorInputColorStore,
-    private val colorInputEventStore: ColorInputEventStore,
     @ChannelForColorPreview private val colorProcessedConfirmationChannelForColorPreview: Channel<Color?>,
     colorPreviewViewModelFactory: ColorPreviewViewModel.Factory,
     colorCenterComponentsStoreFactory: ColorCenterComponentsStore.Factory,
@@ -120,7 +118,6 @@ class HomeViewModel @Inject constructor(
     val colorInputGroupViewModel: ColorInputGroupViewModel =
         colorInputGroupViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
-            eventStore = colorInputEventStore,
             mediator = colorInputMediator,
             submitAction = ColorInputSubmitActionImpl(),
         )
