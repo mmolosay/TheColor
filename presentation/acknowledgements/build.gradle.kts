@@ -1,25 +1,10 @@
 plugins {
-    id("com.android.library")
-    id("kotlin-android")
-    id("com.google.devtools.ksp")
-    id("com.google.dagger.hilt.android")
-    id("org.jetbrains.kotlin.plugin.compose")
+    id("thecolor-android-library-convention")
     id("com.mikepenz.aboutlibraries.plugin.android")
 }
 
 android {
     namespace = "io.github.mmolosay.thecolor.presentation.acknowledgements"
-    compileSdk = libs.versions.compileSdk.get().toInt()
-
-    defaultConfig {
-        minSdk = libs.versions.minSdk.get().toInt()
-    }
-
-    buildTypes {
-    }
-    buildFeatures {
-        compose = true
-    }
 }
 
 @Suppress("SpellCheckingInspection")
