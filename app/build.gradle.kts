@@ -1,9 +1,8 @@
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    id("com.google.devtools.ksp")
-    id("com.google.dagger.hilt.android")
-    id("org.jetbrains.kotlin.plugin.compose")
+    id("thecolor.hilt")
+    id("thecolor.compose")
 }
 
 android {
@@ -34,7 +33,6 @@ android {
         }
     }
     buildFeatures {
-        compose = true
         buildConfig = true
     }
 }
@@ -57,23 +55,13 @@ dependencies {
     implementation("androidx.core:core-splashscreen:1.0.1")
 
     // Compose
-    val composeBom = platform("androidx.compose:compose-bom:${libs.versions.compose.bom.get()}")
-    implementation(composeBom)
-    androidTestImplementation(composeBom)
-
     implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    debugImplementation("androidx.compose.ui:ui-tooling")
     implementation("androidx.activity:activity-compose:1.8.2")
     implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:${libs.versions.androidx.lifecycle.get()}")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:${libs.versions.androidx.lifecycle.get()}")
     implementation("androidx.lifecycle:lifecycle-process:${libs.versions.androidx.lifecycle.get()}")
     implementation("androidx.hilt:hilt-navigation-compose:${libs.versions.hiltNavigationCompose.get()}")
-
-    // Hilt
-    implementation("com.google.dagger:hilt-android:${libs.versions.hilt.get()}")
-    ksp("com.google.dagger:hilt-android-compiler:${libs.versions.hilt.get()}")
 
     // Misc (preserve alphabetical order)
     implementation("com.jakewharton.timber:timber:${libs.versions.jakewhartonTimber.get()}")

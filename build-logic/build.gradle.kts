@@ -17,3 +17,31 @@ dependencies {
     implementation("com.google.dagger:hilt-android-gradle-plugin:${libs.versions.hilt.get()}") // "com.google.dagger.hilt.android"
     implementation("org.jetbrains.kotlin:compose-compiler-gradle-plugin:${libs.versions.kotlin.get()}") // "org.jetbrains.kotlin.plugin.compose"
 }
+
+tasks {
+    validatePlugins {
+        enableStricterValidation = true
+        failOnWarning = true
+    }
+}
+
+gradlePlugin {
+    plugins {
+        register("TheColorJvmLibrary") {
+            id = "thecolor.jvm.library"
+            implementationClass = "TheColorJvmLibraryConventionPlugin"
+        }
+        register("TheColorAndroidLibrary") {
+            id = "thecolor.android.library"
+            implementationClass = "TheColorAndroidLibraryConventionPlugin"
+        }
+        register("TheColorCompose") {
+            id = "thecolor.compose"
+            implementationClass = "TheColorComposeConventionPlugin"
+        }
+        register("TheColorHilt") {
+            id = "thecolor.hilt"
+            implementationClass = "TheColorHiltConventionPlugin"
+        }
+    }
+}

@@ -1,19 +1,12 @@
 plugins {
-    id("com.android.library")
-    id("kotlin-android")
-    id("com.google.devtools.ksp")
+    id("thecolor.android.library")
+    id("thecolor.hilt")
 }
 
 android {
     namespace = "io.github.mmolosay.thecolor.data"
-    compileSdk = libs.versions.compileSdk.get().toInt()
-
     defaultConfig {
-        minSdk = libs.versions.minSdk.get().toInt()
         consumerProguardFiles("consumer-proguard-rules.pro")
-    }
-
-    buildTypes {
     }
 }
 
@@ -32,9 +25,6 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:${libs.versions.retrofit.library.get()}")
     implementation("com.squareup.moshi:moshi:1.15.2")
     ksp("com.squareup.moshi:moshi-kotlin-codegen:1.15.2")
-
-    // Hilt
-    implementation("com.google.dagger:hilt-android:${libs.versions.hilt.get()}") // for Dagger's Lazy<T>
 
     // Misc (preserve alphabetical order)
     implementation("com.github.ajalt.colormath:colormath:3.4.0")
