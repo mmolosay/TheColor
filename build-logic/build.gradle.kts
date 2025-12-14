@@ -27,9 +27,17 @@ tasks {
 
 gradlePlugin {
     plugins {
+        register("TheColorCommon") {
+            id = "thecolor.common"
+            implementationClass = "TheColorCommonConventionPlugin"
+        }
         register("TheColorJvmLibrary") {
             id = "thecolor.jvm.library"
             implementationClass = "TheColorJvmLibraryConventionPlugin"
+        }
+        register("TheColorAndroidApplication") {
+            id = "thecolor.android.application"
+            implementationClass = "TheColorAndroidApplicationConventionPlugin"
         }
         register("TheColorAndroidLibrary") {
             id = "thecolor.android.library"

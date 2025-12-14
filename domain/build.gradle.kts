@@ -1,5 +1,6 @@
 plugins {
     id("thecolor.jvm.library")
+    id("thecolor.common")
 }
 
 dependencies {

@@ -7,9 +7,10 @@ internal fun Project.libs(): VersionCatalog =
     this.extensions.getByType<VersionCatalogsExtension>().named("libs")
 
 internal val VersionCatalog.compileSdk: Int
-    get() = this.findVersion("compileSdk").get()
-        .toString().toInt()
+    get() = this.findVersion("compileSdk").get().toString().toInt()
 
 internal val VersionCatalog.minSdk: Int
-    get() = this.findVersion("minSdk").get()
-        .toString().toInt()
+    get() = this.findVersion("minSdk").get().toString().toInt()
+
+internal val VersionCatalog.java: Int
+    get() = this.findVersion("java").get().toString().toInt()

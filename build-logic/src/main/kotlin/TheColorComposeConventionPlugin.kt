@@ -12,7 +12,11 @@ class TheColorComposeConventionPlugin : Plugin<Project> {
         target.apply(plugin = "org.jetbrains.kotlin.plugin.compose")
 
         val androidExtension = requireNotNull(target.extensions.findAndroidExtension())
-        target.configureAndroidCompose(androidExtension)
+        androidExtension.apply {
+            buildFeatures {
+                compose = true
+            }
+        }
 
         target.dependencies {
             val bom = "androidx.compose:compose-bom:${libs.findVersion("compose.bom").get()}"

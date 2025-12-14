@@ -1,5 +1,6 @@
 plugins {
     id("thecolor.android.library")
+    id("thecolor.common")
     id("thecolor.hilt")
     id("thecolor.compose")
     id("tech.apter.junit5.jupiter.robolectric-extension-gradle-plugin")
