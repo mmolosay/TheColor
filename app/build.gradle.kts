@@ -1,5 +1,6 @@
 plugins {
     id("thecolor.android.application")
+    id("thecolor.kotlin.android")
     id("thecolor.common")
     id("thecolor.hilt")
     id("thecolor.compose")

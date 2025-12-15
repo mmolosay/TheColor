@@ -31,9 +31,13 @@ gradlePlugin {
             id = "thecolor.common"
             implementationClass = "TheColorCommonConventionPlugin"
         }
-        register("TheColorJvmLibrary") {
-            id = "thecolor.jvm.library"
-            implementationClass = "TheColorJvmLibraryConventionPlugin"
+        register("TheColorKotlinJvm") {
+            id = "thecolor.kotlin.jvm"
+            implementationClass = "TheColorKotlinJvmConventionPlugin"
+        }
+        register("TheColorKotlinAndroid") {
+            id = "thecolor.kotlin.android"
+            implementationClass = "TheColorKotlinAndroidConventionPlugin"
         }
         register("TheColorAndroidApplication") {
             id = "thecolor.android.application"

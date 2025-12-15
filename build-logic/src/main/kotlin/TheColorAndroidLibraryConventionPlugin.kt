@@ -10,7 +10,6 @@ class TheColorAndroidLibraryConventionPlugin : Plugin<Project> {
         val libs = target.libs()
 
         target.apply(plugin = "com.android.library")
-        target.apply(plugin = "org.jetbrains.kotlin.android")
 
         target.extensions.configure<AndroidLibraryExtension> {
             compileSdk = libs.compileSdk

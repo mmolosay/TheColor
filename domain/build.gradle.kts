@@ -1,5 +1,6 @@
 plugins {
-    id("thecolor.jvm.library")
+    id("java-library")
+    id("thecolor.kotlin.jvm")
     id("thecolor.common")
 }
 
