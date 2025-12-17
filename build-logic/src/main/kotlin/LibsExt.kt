@@ -12,5 +12,8 @@ internal val VersionCatalog.compileSdk: Int
 internal val VersionCatalog.minSdk: Int
     get() = this.findVersion("minSdk").get().toString().toInt()
 
+internal val VersionCatalog.targetSdk: Int
+    get() = this.findVersion("targetSdk").get().toString().toInt()
+
 internal val VersionCatalog.java: Int
     get() = this.findVersion("java").get().toString().toInt()
