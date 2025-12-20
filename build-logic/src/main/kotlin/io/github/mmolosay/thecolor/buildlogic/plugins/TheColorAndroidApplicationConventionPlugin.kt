@@ -25,14 +25,25 @@ class TheColorAndroidApplicationConventionPlugin : Plugin<Project> {
             }
             buildTypes {
                 release {
+                    isDebuggable = false
                     isMinifyEnabled = true
                     isShrinkResources = true
                 }
                 debug {
+                    isDebuggable = true
                     isMinifyEnabled = false
                     isShrinkResources = false
                     applicationIdSuffix = ".debug"
-                    versionNameSuffix = "-debug" // the final version name will looks like "1.0.7-debug"
+                    versionNameSuffix = "-debug" // e.g. "1.0.7-debug"
+                }
+                create("qa") {
+                    isDebuggable = false
+                    signingConfig = signingConfigs.getByName("debug")
+                    matchingFallbacks += listOf("release")
+                    isMinifyEnabled = false
+                    isShrinkResources = false
+                    applicationIdSuffix = ".qa"
+                    versionNameSuffix = "-qa" // e.g. "1.0.7-qa"
                 }
             }
         }
