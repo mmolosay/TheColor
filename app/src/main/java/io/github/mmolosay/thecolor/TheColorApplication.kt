@@ -6,6 +6,7 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import dagger.hilt.android.HiltAndroidApp
+import io.github.mmolosay.thecolor.domain.usecase.feature.AreLogsEnabledUseCase
 import io.github.mmolosay.thecolor.domain.usecase.feature.IsStrictModeEnabledUseCase
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -22,12 +23,15 @@ class TheColorApplication : Application(), ApplicationCoroutineScopeProvider {
         CoroutineScope(SupervisorJob() + Dispatchers.Default + CoroutineName("Application CoroutineScope"))
 
     @Inject
+    lateinit var areLogsEnabled: AreLogsEnabledUseCase
+
+    @Inject
     lateinit var isStrictModeEnabled: IsStrictModeEnabledUseCase
 
     override fun onCreate() {
         super.onCreate()
         initApplicationScope()
-        initTimber()
+        maybeInitTimber()
         maybeInitStrictMode()
     }
 
@@ -40,9 +44,10 @@ class TheColorApplication : Application(), ApplicationCoroutineScopeProvider {
         ProcessLifecycleOwner.get().lifecycle.addObserver(observer)
     }
 
-    private fun initTimber() {
-        if (!BuildConfig.DEBUG) return
-        Timber.plant(TheColorTimberTree())
+    private fun maybeInitTimber() {
+        if (areLogsEnabled()) {
+            Timber.plant(TheColorTimberTree())
+        }
     }
 
     private fun maybeInitStrictMode() {
