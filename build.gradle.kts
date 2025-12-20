@@ -1,6 +1,3 @@
-import com.android.build.gradle.api.AndroidBasePlugin
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
-
 plugins {
     id("com.android.application") version libs.versions.androidGradlePlugin.get() apply false
     id("com.android.library") version libs.versions.androidGradlePlugin.get() apply false
@@ -25,43 +22,7 @@ tasks.register<Delete>("clean").configure {
 }
 
 subprojects {
-    configureJavaForAllPlugins()
-    configureKotlinForAllPlugins()
     configureJUnit()
-}
-
-/**
- * Configures Java for all plugins that use it.
- */
-private fun Project.configureJavaForAllPlugins() {
-    fun JavaPluginExtension.configure() {
-        toolchain {
-            val version = libs.versions.java.get().toInt()
-            languageVersion.set(JavaLanguageVersion.of(version))
-        }
-    }
-    // configure Java for Android modules: applications and libraries
-    plugins.withType<AndroidBasePlugin> {
-        extensions.configure<JavaPluginExtension> { configure() }
-    }
-    // configure java for pure Java/Kotlin modules
-    plugins.withType<JavaPlugin> {
-        extensions.configure<JavaPluginExtension> { configure() }
-    }
-}
-
-/**
- * Configures Kotlin for all plugins that use it.
- */
-private fun Project.configureKotlinForAllPlugins() {
-    tasks.withType<KotlinCompilationTask<*>>().configureEach {
-        compilerOptions {
-            freeCompilerArgs.addAll(
-                "-Xstring-concat=inline", // https://github.com/Kotlin/kotlinx.serialization/issues/2145
-                "-Xannotation-default-target=param-property", // https://youtrack.jetbrains.com/issue/KT-73255
-            )
-        }
-    }
 }
 
 private fun Project.configureJUnit() {

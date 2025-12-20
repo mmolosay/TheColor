@@ -1,13 +1,7 @@
 plugins {
     id("java-library")
-    id("kotlin")
-}
-
-java {
-    toolchain {
-        val version = libs.versions.java.get().toInt()
-        languageVersion.set(JavaLanguageVersion.of(version))
-    }
+    id("thecolor.kotlin.jvm")
+    id("thecolor.common")
 }
 
 dependencies {

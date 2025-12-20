@@ -1,21 +1,12 @@
-@file:Suppress("UnstableApiUsage")
-
 plugins {
-    id("com.android.library")
-    id("org.jetbrains.kotlin.android")
-    id("com.google.devtools.ksp")
-    id("com.google.dagger.hilt.android")
+    id("thecolor.android.library")
+    id("thecolor.kotlin.android")
+    id("thecolor.common")
+    id("thecolor.hilt")
 }
 
 android {
     namespace = "io.github.mmolosay.thecolor.main"
-    compileSdk = libs.versions.compileSdk.get().toInt()
-
-    defaultConfig {
-        minSdk = libs.versions.minSdk.get().toInt()
-    }
-    buildTypes {
-    }
 }
 
 @Suppress("SpellCheckingInspection")
@@ -30,8 +21,4 @@ dependencies {
 
     // Data Local
     implementation("androidx.datastore:datastore-preferences:${libs.versions.dataStore.preferences.get()}")
-
-    // Hilt
-    implementation("com.google.dagger:hilt-android:${libs.versions.hilt.get()}")
-    ksp("com.google.dagger:hilt-compiler:${libs.versions.hilt.get()}")
 }

@@ -1,24 +1,13 @@
 plugins {
-    id("com.android.library")
-    id("kotlin-android")
-    id("com.google.devtools.ksp")
-    id("com.google.dagger.hilt.android")
-    id("org.jetbrains.kotlin.plugin.compose")
+    id("thecolor.android.library")
+    id("thecolor.kotlin.android")
+    id("thecolor.common")
+    id("thecolor.hilt")
+    id("thecolor.compose")
 }
 
 android {
     namespace = "io.github.mmolosay.thecolor.presentation.errors"
-    compileSdk = libs.versions.compileSdk.get().toInt()
-
-    defaultConfig {
-        minSdk = libs.versions.minSdk.get().toInt()
-    }
-
-    buildTypes {
-    }
-    buildFeatures {
-        compose = true
-    }
 }
 
 @Suppress("SpellCheckingInspection")
@@ -33,13 +22,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.7") // for Compose
 
     // Compose
-    val composeBom = platform("androidx.compose:compose-bom:${libs.versions.compose.bom.get()}")
-    implementation(composeBom)
-    androidTestImplementation(composeBom)
-
     implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    debugImplementation("androidx.compose.ui:ui-tooling")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:${libs.versions.androidx.lifecycle.get()}")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:${libs.versions.androidx.lifecycle.get()}")
     implementation("androidx.hilt:hilt-navigation-compose:${libs.versions.hiltNavigationCompose.get()}")
@@ -47,10 +30,6 @@ dependencies {
     // Lifecycle
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:${libs.versions.androidx.lifecycle.get()}")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:${libs.versions.androidx.lifecycle.get()}")
-
-    // Hilt
-    implementation("com.google.dagger:hilt-android:${libs.versions.hilt.get()}")
-    ksp("com.google.dagger:hilt-compiler:${libs.versions.hilt.get()}")
 
     // Testing
     testImplementation(project(":utils:testing"))
