@@ -1,6 +1,7 @@
-package io.github.mmolosay.thecolor.domain.usecase
+package io.github.mmolosay.thecolor.domain.usecase.feature
 
 import io.github.mmolosay.thecolor.domain.model.BuildType
+import io.github.mmolosay.thecolor.domain.usecase.GetAppBuildTypeUseCase
 import javax.inject.Inject
 
 class IsDevOptionsEnabledUseCase @Inject constructor(

@@ -6,12 +6,14 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import dagger.hilt.android.HiltAndroidApp
+import io.github.mmolosay.thecolor.domain.usecase.feature.IsStrictModeEnabledUseCase
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import timber.log.Timber
+import javax.inject.Inject
 
 @HiltAndroidApp
 class TheColorApplication : Application(), ApplicationCoroutineScopeProvider {
@@ -19,11 +21,14 @@ class TheColorApplication : Application(), ApplicationCoroutineScopeProvider {
     override val applicationScope: CoroutineScope =
         CoroutineScope(SupervisorJob() + Dispatchers.Default + CoroutineName("Application CoroutineScope"))
 
+    @Inject
+    lateinit var isStrictModeEnabled: IsStrictModeEnabledUseCase
+
     override fun onCreate() {
         super.onCreate()
         initApplicationScope()
         initTimber()
-        initStrictMode()
+        maybeInitStrictMode()
     }
 
     private fun initApplicationScope() {
@@ -40,13 +45,14 @@ class TheColorApplication : Application(), ApplicationCoroutineScopeProvider {
         Timber.plant(TheColorTimberTree())
     }
 
-    private fun initStrictMode() {
-        if (!BuildConfig.DEBUG) return
-        val threadPolicy = StrictMode.ThreadPolicy.Builder()
-            .detectAll()
-            .penaltyLog()
-            .penaltyDeath()
-            .build()
-        StrictMode.setThreadPolicy(threadPolicy)
+    private fun maybeInitStrictMode() {
+        if (isStrictModeEnabled()) {
+            val threadPolicy = StrictMode.ThreadPolicy.Builder()
+                .detectAll()
+                .penaltyLog()
+                .penaltyDeath()
+                .build()
+            StrictMode.setThreadPolicy(threadPolicy)
+        }
     }
 }
