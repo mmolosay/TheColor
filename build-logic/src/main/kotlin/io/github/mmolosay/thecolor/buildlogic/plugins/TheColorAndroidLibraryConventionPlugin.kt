@@ -1,3 +1,8 @@
+package io.github.mmolosay.thecolor.buildlogic.plugins
+
+import io.github.mmolosay.thecolor.buildlogic.compileSdk
+import io.github.mmolosay.thecolor.buildlogic.libs
+import io.github.mmolosay.thecolor.buildlogic.minSdk
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.apply

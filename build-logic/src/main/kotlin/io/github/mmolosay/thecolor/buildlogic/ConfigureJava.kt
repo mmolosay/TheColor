@@ -1,3 +1,5 @@
+package io.github.mmolosay.thecolor.buildlogic
+
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginExtension

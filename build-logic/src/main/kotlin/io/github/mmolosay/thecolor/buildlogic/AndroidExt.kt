@@ -1,3 +1,5 @@
+package io.github.mmolosay.thecolor.buildlogic
+
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.kotlin.dsl.findByType
 import com.android.build.api.dsl.ApplicationExtension as AndroidApplicationExtension

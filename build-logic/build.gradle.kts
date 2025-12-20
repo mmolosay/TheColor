@@ -29,31 +29,31 @@ gradlePlugin {
     plugins {
         register("TheColorCommon") {
             id = "thecolor.common"
-            implementationClass = "TheColorCommonConventionPlugin"
+            implementationClass = "io.github.mmolosay.thecolor.buildlogic.plugins.TheColorCommonConventionPlugin"
         }
         register("TheColorKotlinJvm") {
             id = "thecolor.kotlin.jvm"
-            implementationClass = "TheColorKotlinJvmConventionPlugin"
+            implementationClass = "io.github.mmolosay.thecolor.buildlogic.plugins.TheColorKotlinJvmConventionPlugin"
         }
         register("TheColorKotlinAndroid") {
             id = "thecolor.kotlin.android"
-            implementationClass = "TheColorKotlinAndroidConventionPlugin"
+            implementationClass = "io.github.mmolosay.thecolor.buildlogic.plugins.TheColorKotlinAndroidConventionPlugin"
         }
         register("TheColorAndroidApplication") {
             id = "thecolor.android.application"
-            implementationClass = "TheColorAndroidApplicationConventionPlugin"
+            implementationClass = "io.github.mmolosay.thecolor.buildlogic.plugins.TheColorAndroidApplicationConventionPlugin"
         }
         register("TheColorAndroidLibrary") {
             id = "thecolor.android.library"
-            implementationClass = "TheColorAndroidLibraryConventionPlugin"
+            implementationClass = "io.github.mmolosay.thecolor.buildlogic.plugins.TheColorAndroidLibraryConventionPlugin"
         }
         register("TheColorCompose") {
             id = "thecolor.compose"
-            implementationClass = "TheColorComposeConventionPlugin"
+            implementationClass = "io.github.mmolosay.thecolor.buildlogic.plugins.TheColorComposeConventionPlugin"
         }
         register("TheColorHilt") {
             id = "thecolor.hilt"
-            implementationClass = "TheColorHiltConventionPlugin"
+            implementationClass = "io.github.mmolosay.thecolor.buildlogic.plugins.TheColorHiltConventionPlugin"
         }
     }
 }
