@@ -9,7 +9,7 @@ class IsDevOptionsEnabledUseCase @Inject constructor(
 ) {
 
     operator fun invoke(): Boolean {
-        val buildTypesWhereEnabled = listOf(BuildType.Debug)
+        val buildTypesWhereEnabled = listOf(BuildType.Debug, BuildType.QA)
         return (getBuildType() in buildTypesWhereEnabled)
     }
 }
