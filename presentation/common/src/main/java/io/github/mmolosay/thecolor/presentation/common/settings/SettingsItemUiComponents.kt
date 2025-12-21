@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -88,9 +89,36 @@ object SettingsItemUiComponents {
         text: String,
         modifier: Modifier = Modifier,
     ) {
+        DescriptionImpl(
+            text = text,
+            modifier = modifier,
+        )
+    }
+
+    @Composable
+    fun Description(
+        text: AnnotatedString,
+        modifier: Modifier = Modifier,
+    ) {
+        DescriptionImpl(
+            text = text,
+            modifier = modifier,
+        )
+    }
+
+    @Composable
+    private fun DescriptionImpl(
+        text: Any, // either a 'String' or an 'AnnotatedString'
+        modifier: Modifier,
+    ) {
+        val annotatedString = when (text) {
+            is String -> AnnotatedString(text)
+            is AnnotatedString -> text
+            else -> throw IllegalArgumentException()
+        }
         Text(
             modifier = modifier,
-            text = text,
+            text = annotatedString,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             style = MaterialTheme.typography.bodyMedium,
         )

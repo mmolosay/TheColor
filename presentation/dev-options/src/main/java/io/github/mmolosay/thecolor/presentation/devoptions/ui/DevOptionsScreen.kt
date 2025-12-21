@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.devoptions.ui
 
+import android.text.Annotation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -27,12 +28,14 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.debounce.debounced
 import io.github.mmolosay.thecolor.presentation.common.compose.onlyBottom
 import io.github.mmolosay.thecolor.presentation.common.compose.withoutBottom
+import io.github.mmolosay.thecolor.presentation.common.toAnnotatedString
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.devoptions.DevOptionsData
 import io.github.mmolosay.thecolor.presentation.devoptions.DevOptionsViewModel
@@ -185,7 +188,7 @@ fun DevOptions(
             val options = DomainPredictableRandomColors.entries.map { predictableRandomColors ->
                 PredictableRandomColorsOption(
                     text = predictableRandomColors.toVerboseUiString(strings),
-                    isDefault = (predictableRandomColors == data.defaultPredictableRandomColors),
+                    isDefault = (predictableRandomColors == data.predictableRandomColorsByDefault),
                     isSelected = (predictableRandomColors == data.predictableRandomColors),
                     onSelect = { data.changePredictableRandomColors(predictableRandomColors) },
                 )
@@ -194,7 +197,7 @@ fun DevOptions(
                 title = strings.itemPredictableRandomColorsTitle,
                 description = strings.itemPredictableRandomColorsDesc,
                 value = data.predictableRandomColors.toShortUiString(strings),
-                showAttentionBadge = (data.predictableRandomColors != data.defaultPredictableRandomColors),
+                showAttentionBadge = (data.predictableRandomColors != data.predictableRandomColorsByDefault),
                 onClick = { showSelectionDialog = true },
             )
             if (showSelectionDialog) {
@@ -206,6 +209,22 @@ fun DevOptions(
                     )
                 }
             }
+        }
+
+        item("strict mode") {
+            val description = remember {
+                strings.itemStrictModeDesc.toAnnotatedString<Annotation> { annotation ->
+                    check(annotation.key == "link")
+                    LinkAnnotation.Url(url = annotation.value)
+                }
+            }
+            StrictMode(
+                title = strings.itemStrictModeTitle,
+                description = description,
+                checked = data.isStrictModeEnabled,
+                onCheckedChange = data.changeStrictModeEnablement,
+                showAttentionBadge = (data.isStrictModeEnabled != data.isStrictModeEnabledByDefault),
+            )
         }
 
         // keep this item very last
@@ -258,8 +277,12 @@ private fun previewData() =
         resetValuesToDefault = {},
 
         predictableRandomColors = DomainPredictableRandomColors.CyclingLightDark,
-        defaultPredictableRandomColors = DomainPredictableRandomColors.Random,
+        predictableRandomColorsByDefault = DomainPredictableRandomColors.Random,
         changePredictableRandomColors = {},
+
+        isStrictModeEnabled = true,
+        isStrictModeEnabledByDefault = false,
+        changeStrictModeEnablement = {},
 
         buildInfo = DevOptionsData.BuildInfo(
             appBuildType = DomainBuildType.Debug,
