@@ -5,8 +5,9 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import io.github.mmolosay.thecolor.data.local.utils.setOrRemoveValue
 import io.github.mmolosay.thecolor.domain.model.DevOptions.PredictableRandomColors
-import io.github.mmolosay.thecolor.domain.repository.DefaultDevOptions
 import io.github.mmolosay.thecolor.domain.repository.DevOptionsRepository
+import io.github.mmolosay.thecolor.domain.repository.DevOptionsRepository.DataState
+import io.github.mmolosay.thecolor.domain.repository.IllegalStoredValue
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -29,17 +30,20 @@ class DevOptionsDataStoreRepository @Inject constructor(
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
 ) : DevOptionsRepository {
 
-    override val flowOfPredictableRandomColors: StateFlow<PredictableRandomColors> =
+    override val flowOfPredictableRandomColors: StateFlow<DataState<PredictableRandomColors>> =
         dataStore.data
             .map { it.getPredictableRandomColors() }
-            .stateEagerlyInAppScope(initialValue = DefaultDevOptions.PredictableRandomColors)
+            .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
 
-    private fun Preferences.getPredictableRandomColors(): PredictableRandomColors {
-        val dtoValue = this[DataStoreKeys.PredictableRandomColors]
-        return if (dtoValue != null) {
-            with(PredictableRandomColorsMapper) { dtoValue.toPredictableRandomColors() }
+    private fun Preferences.getPredictableRandomColors(): DataState<PredictableRandomColors> {
+        val key = DataStoreKeys.PredictableRandomColors
+        if (key !in this) return DataState.NoValueStored
+        val dtoValue = this[key]
+        if (dtoValue != null) {
+            val value = with(PredictableRandomColorsMapper) { dtoValue.toPredictableRandomColors() }
+            return DataState.HasValueStored(value)
         } else {
-            DefaultDevOptions.PredictableRandomColors
+            throw IllegalStoredValue<PredictableRandomColors>(value = dtoValue) // 'dtoValue' is null here
         }
     }
 
