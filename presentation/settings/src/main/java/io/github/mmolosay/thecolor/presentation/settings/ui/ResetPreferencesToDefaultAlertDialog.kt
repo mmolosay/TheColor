@@ -31,7 +31,7 @@ internal fun ResetPreferencesToDefaultAlertDialog(
         onDismissRequest = onDismissRequest,
         icon = {
             Icon(
-                imageVector = ImageVector.vectorResource(DesignR.drawable.ic_restart_alt),
+                imageVector = ImageVector.vectorResource(DesignR.drawable.ic_reset_settings),
                 contentDescription = null, // purely decorative
             )
         },
