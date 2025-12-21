@@ -22,6 +22,7 @@ import io.github.mmolosay.thecolor.domain.model.DevOptions.PredictableRandomColo
 @HiltViewModel
 class DevOptionsViewModel @Inject constructor(
     private val devOptionsRepository: DevOptionsRepository,
+    private val defaultDevOptions: DefaultDevOptions,
     private val buildInfoRepository: BuildInfoRepository,
     private val resetDevOptionsToDefault: ResetDevOptionsToDefaultUseCase,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
@@ -79,7 +80,7 @@ class DevOptionsViewModel @Inject constructor(
             resetValuesToDefault = ::resetValuesToDefault,
 
             predictableRandomColors = predictableRandomColors,
-            defaultPredictableRandomColors = DefaultDevOptions.PredictableRandomColors,
+            defaultPredictableRandomColors = defaultDevOptions.predictableRandomColors,
             changePredictableRandomColors = ::updatePredictableRandomColors,
 
             buildInfo = buildInfo,

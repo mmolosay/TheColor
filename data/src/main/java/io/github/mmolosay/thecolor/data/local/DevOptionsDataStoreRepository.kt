@@ -2,9 +2,11 @@ package io.github.mmolosay.thecolor.data.local
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import io.github.mmolosay.thecolor.data.local.utils.setOrRemoveValue
 import io.github.mmolosay.thecolor.domain.model.DevOptions.PredictableRandomColors
+import io.github.mmolosay.thecolor.domain.model.DevOptions.StrictMode
 import io.github.mmolosay.thecolor.domain.repository.DevOptionsRepository
 import io.github.mmolosay.thecolor.domain.repository.DevOptionsRepository.DataState
 import io.github.mmolosay.thecolor.domain.repository.IllegalStoredValue
@@ -56,6 +58,32 @@ class DevOptionsDataStoreRepository @Inject constructor(
         }
     }
 
+    override val flowOfStrictMode: StateFlow<DataState<StrictMode>> =
+        dataStore.data
+            .map { it.getStrictMode() }
+            .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
+
+    private fun Preferences.getStrictMode(): DataState<StrictMode> {
+        val key = DataStoreKeys.StrictMode
+        if (key !in this) return DataState.NoValueStored
+        val dtoValue = this[key]
+        if (dtoValue != null) {
+            val value = StrictMode(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
+            return DataState.HasValueStored(value)
+        } else {
+            throw IllegalStoredValue<StrictMode>(value = dtoValue)
+        }
+    }
+
+    override suspend fun setStrictMode(value: StrictMode?) {
+        withContext(ioDispatcher) {
+            dataStore.setOrRemoveValue(
+                key = DataStoreKeys.StrictMode,
+                value = value?.enabled,
+            )
+        }
+    }
+
     private fun <T> Flow<T>.stateEagerlyInAppScope(
         initialValue: T,
     ): StateFlow<T> =
@@ -68,6 +96,7 @@ class DevOptionsDataStoreRepository @Inject constructor(
 
     private object DataStoreKeys {
         val PredictableRandomColors = stringPreferencesKey("predictable_random_colors")
+        val StrictMode = booleanPreferencesKey("strict_mode")
     }
 }
 

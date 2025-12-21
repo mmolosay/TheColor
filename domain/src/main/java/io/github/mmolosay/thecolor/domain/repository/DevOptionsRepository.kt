@@ -1,9 +1,12 @@
 package io.github.mmolosay.thecolor.domain.repository
 
 import io.github.mmolosay.thecolor.domain.model.DevOptions.PredictableRandomColors
+import io.github.mmolosay.thecolor.domain.model.DevOptions.StrictMode
 import io.github.mmolosay.thecolor.domain.repository.DevOptionsRepository.DataState
 import io.github.mmolosay.thecolor.domain.repository.DevOptionsRepository.IllegalStoredValue
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filter
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -11,6 +14,9 @@ import kotlin.contracts.contract
 interface DevOptionsRepository {
     val flowOfPredictableRandomColors: StateFlow<DataState<PredictableRandomColors>>
     suspend fun setPredictableRandomColors(value: PredictableRandomColors?)
+
+    val flowOfStrictMode: StateFlow<DataState<StrictMode>>
+    suspend fun setStrictMode(value: StrictMode?)
 
     sealed interface DataState<out T> {
         data object BeingInitialized : DataState<Nothing>
@@ -36,6 +42,9 @@ inline fun <T> DataState<T>.valueOrElse(
         is DataState.HasValueStored -> this.value
     }
 }
+
+fun <T> Flow<DataState<T>>.filterOutBeingInitialized(): Flow<DataState<T>> =
+    this.filter { it !is DataState.BeingInitialized }
 
 // syntactic sugar
 inline fun <reified T> IllegalStoredValue(value: Any?) =

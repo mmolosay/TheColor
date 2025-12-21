@@ -16,6 +16,7 @@ import javax.inject.Singleton
 class GetPredictableRandomColorUseCase @Inject constructor(
     private val colorFactory: ColorFactory,
     private val devOptionsRepository: DevOptionsRepository,
+    private val defaultDevOptions: DefaultDevOptions,
 ) {
 
     private val cyclingRgb by lazy {
@@ -38,7 +39,7 @@ class GetPredictableRandomColorUseCase @Inject constructor(
 
     operator fun invoke(): Color {
         val strategy = devOptionsRepository.flowOfPredictableRandomColors.value
-            .valueOrElse { DefaultDevOptions.PredictableRandomColors }
+            .valueOrElse { defaultDevOptions.predictableRandomColors }
         return when (strategy) {
             PredictableRandomColors.Random -> colorFactory.random()
             PredictableRandomColors.CyclingRgb -> cyclingRgb.next()

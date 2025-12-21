@@ -11,5 +11,6 @@ class ResetDevOptionsToDefaultUseCaseImpl @Inject constructor(
     override suspend fun invoke() {
         // updating values sequentially vs concurrently take about the same time ~68ms
         devOptionsRepository.setPredictableRandomColors(null)
+        devOptionsRepository.setStrictMode(null)
     }
 }
