@@ -13,7 +13,13 @@ import io.github.mmolosay.thecolor.presentation.devoptions.R
 data class DevOptionsUiStrings(
     val topBarTitle: String,
     val topBarGoBackIconDesc: String,
+    val topBarRestartAppIconDesc: String,
     val topBarResetValuesToDefaultIconDesc: String,
+
+    val restartAppDialogTitle: String,
+    val restartAppDialogText: String,
+    val restartAppDialogDismissButtonText: String,
+    val restartAppDialogConfirmButtonText: String,
 
     val resetValuesToDefaultDialogTitle: String,
     val resetValuesToDefaultDialogText: String,
@@ -41,7 +47,13 @@ fun DevOptionsUiStrings(context: Context) =
     DevOptionsUiStrings(
         topBarTitle = context.getString(R.string.dev_options_top_bar_title),
         topBarGoBackIconDesc = context.getString(R.string.dev_options_top_bar_go_back_icon_desc),
+        topBarRestartAppIconDesc = context.getString(R.string.dev_options_top_bar_restart_app_icon_desc),
         topBarResetValuesToDefaultIconDesc = context.getString(R.string.dev_options_top_bar_reset_values_to_default_icon_desc),
+
+        restartAppDialogTitle = context.getString(R.string.dev_options_restart_app_dialog_title),
+        restartAppDialogText = context.getString(R.string.dev_options_restart_app_dialog_text),
+        restartAppDialogDismissButtonText = context.getString(R.string.dev_options_restart_app_dialog_dismiss_button_text),
+        restartAppDialogConfirmButtonText = context.getString(R.string.dev_options_restart_app_dialog_confirm_button_text),
 
         resetValuesToDefaultDialogTitle = context.getString(R.string.dev_options_reset_values_to_default_dialog_title),
         resetValuesToDefaultDialogText = context.getString(R.string.dev_options_reset_values_to_default_dialog_text),

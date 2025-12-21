@@ -32,6 +32,7 @@ import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.jakewharton.processphoenix.ProcessPhoenix
 import io.github.mmolosay.debounce.debounced
 import io.github.mmolosay.thecolor.presentation.common.compose.onlyBottom
 import io.github.mmolosay.thecolor.presentation.common.compose.withoutBottom
@@ -84,6 +85,7 @@ fun DevOptionsScreen(
     data: DevOptionsData,
     navigateBack: () -> Unit,
 ) {
+    val context = LocalContext.current
     val strings = DevOptionsUiStrings(LocalContext.current)
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
@@ -93,11 +95,25 @@ fun DevOptionsScreen(
     }
     if (showResetValuesToDefaultDialog) {
         ResetValuesToDefaultAlertDialog(
-            onDismissRequest = ::dismissResetValuesToDefaultDialog,
             strings = strings,
+            onDismissRequest = ::dismissResetValuesToDefaultDialog,
             onConfirmClick = {
                 data.resetValuesToDefault()
                 dismissResetValuesToDefaultDialog()
+            },
+        )
+    }
+
+    var showRestartAppDialog by remember { mutableStateOf(false) }
+    fun dismissRestartAppDialog() {
+        showRestartAppDialog = false
+    }
+    if (showRestartAppDialog) {
+        RestartAppAlertDialog(
+            strings = strings,
+            onDismissRequest = ::dismissRestartAppDialog,
+            onConfirmClick = {
+                ProcessPhoenix.triggerRebirth(context)
             },
         )
     }
@@ -108,6 +124,7 @@ fun DevOptionsScreen(
                 strings = strings,
                 scrollBehavior = scrollBehavior,
                 navigateBack = navigateBack,
+                onRestartAppClick = { showRestartAppDialog = true },
                 onResetValuesToDefaultClick = { showResetValuesToDefaultDialog = true },
             )
         },
@@ -132,6 +149,7 @@ private fun TopBar(
     strings: DevOptionsUiStrings,
     scrollBehavior: TopAppBarScrollBehavior,
     navigateBack: () -> Unit,
+    onRestartAppClick: () -> Unit,
     onResetValuesToDefaultClick: () -> Unit,
 ) {
     val debouncedNavigateBack = remember(navigateBack) {
@@ -156,6 +174,14 @@ private fun TopBar(
             }
         },
         actions = {
+            IconButton(
+                onClick = onRestartAppClick,
+            ) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(DesignR.drawable.ic_restart_alt),
+                    contentDescription = strings.topBarRestartAppIconDesc,
+                )
+            }
             IconButton(
                 onClick = onResetValuesToDefaultClick,
             ) {
