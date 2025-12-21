@@ -67,7 +67,7 @@ class TheColorApplication : Application(), ApplicationCoroutineScopeProvider {
                 .first().valueOrElse { defaultDevOptions.strictMode }
                 .enabled
             if (enabled) {
-                withContext(Dispatchers.Main) { // Strict mode must be applied to the main thread
+                withContext(Dispatchers.Main) { // StrictMode must be applied to the main thread
                     check(Looper.getMainLooper().isCurrentThread)
                     val threadPolicy = StrictMode.ThreadPolicy.Builder()
                         .detectAll()

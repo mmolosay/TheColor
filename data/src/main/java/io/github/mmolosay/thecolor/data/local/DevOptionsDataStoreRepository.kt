@@ -71,7 +71,7 @@ class DevOptionsDataStoreRepository @Inject constructor(
             val value = StrictMode(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
             return DataState.HasValueStored(value)
         } else {
-            throw IllegalStoredValue<StrictMode>(value = dtoValue)
+            throw IllegalStoredValue<StrictMode>(value = dtoValue) // 'dtoValue' is null here
         }
     }
 
