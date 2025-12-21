@@ -89,33 +89,29 @@ fun DevOptionsScreen(
     val strings = DevOptionsUiStrings(LocalContext.current)
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
-    var showResetValuesToDefaultDialog by remember { mutableStateOf(false) }
-    fun dismissResetValuesToDefaultDialog() {
-        showResetValuesToDefaultDialog = false
-    }
-    if (showResetValuesToDefaultDialog) {
-        ResetValuesToDefaultAlertDialog(
-            strings = strings,
-            onDismissRequest = ::dismissResetValuesToDefaultDialog,
-            onConfirmClick = {
-                data.resetValuesToDefault()
-                dismissResetValuesToDefaultDialog()
-            },
-        )
-    }
-
-    var showRestartAppDialog by remember { mutableStateOf(false) }
-    fun dismissRestartAppDialog() {
-        showRestartAppDialog = false
-    }
-    if (showRestartAppDialog) {
-        RestartAppAlertDialog(
-            strings = strings,
-            onDismissRequest = ::dismissRestartAppDialog,
-            onConfirmClick = {
-                ProcessPhoenix.triggerRebirth(context)
-            },
-        )
+    var dialogToShow: Dialog? by remember { mutableStateOf(null) }
+    fun clearDialogToShow() { dialogToShow = null }
+    dialogToShow?.let { dialog ->
+        when (dialog) {
+            Dialog.RestartApp ->
+                RestartAppAlertDialog(
+                    strings = strings,
+                    onDismissRequest = ::clearDialogToShow,
+                    onConfirmClick = {
+                        ProcessPhoenix.triggerRebirth(context)
+                        // assuming the app will be restarted, no need to dismiss the dialogue here
+                    },
+                )
+            Dialog.ResetValuesToDefault ->
+                ResetValuesToDefaultAlertDialog(
+                    strings = strings,
+                    onDismissRequest = ::clearDialogToShow,
+                    onConfirmClick = {
+                        data.resetValuesToDefault()
+                        clearDialogToShow()
+                    },
+                )
+        }
     }
 
     Scaffold(
@@ -124,8 +120,8 @@ fun DevOptionsScreen(
                 strings = strings,
                 scrollBehavior = scrollBehavior,
                 navigateBack = navigateBack,
-                onRestartAppClick = { showRestartAppDialog = true },
-                onResetValuesToDefaultClick = { showResetValuesToDefaultDialog = true },
+                onRestartAppClick = { dialogToShow = Dialog.RestartApp },
+                onResetValuesToDefaultClick = { dialogToShow = Dialog.ResetValuesToDefault },
             )
         },
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets.withoutBottom(),
@@ -141,6 +137,14 @@ fun DevOptionsScreen(
                 .asPaddingValues(),
         )
     }
+}
+
+/**
+ * An enumeration of the dialogs that are local (private) to the 'Developer Options' screen.
+ */
+private enum class Dialog {
+    RestartApp,
+    ResetValuesToDefault,
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
