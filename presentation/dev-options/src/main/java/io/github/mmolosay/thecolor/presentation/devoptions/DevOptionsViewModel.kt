@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.repository.BuildInfoRepository
 import io.github.mmolosay.thecolor.domain.repository.DefaultDevOptions
 import io.github.mmolosay.thecolor.domain.repository.DevOptionsRepository
+import io.github.mmolosay.thecolor.domain.repository.valueOrElse
 import io.github.mmolosay.thecolor.domain.usecase.ResetDevOptionsToDefaultUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
@@ -18,10 +19,12 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Named
 import io.github.mmolosay.thecolor.domain.model.DevOptions.PredictableRandomColors as DomainPredictableRandomColors
+import io.github.mmolosay.thecolor.domain.model.DevOptions.StrictMode as DomainStrictMode
 
 @HiltViewModel
 class DevOptionsViewModel @Inject constructor(
     private val devOptionsRepository: DevOptionsRepository,
+    private val defaultDevOptions: DefaultDevOptions,
     private val buildInfoRepository: BuildInfoRepository,
     private val resetDevOptionsToDefault: ResetDevOptionsToDefaultUseCase,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
@@ -31,6 +34,7 @@ class DevOptionsViewModel @Inject constructor(
         combine(
             flows = listOf(
                 devOptionsRepository.flowOfPredictableRandomColors,
+                devOptionsRepository.flowOfStrictMode,
             ),
             transform = ::createData,
         )
@@ -62,25 +66,43 @@ class DevOptionsViewModel @Inject constructor(
         }
     }
 
+    private fun updateStrictModeEnablement(value: Boolean) {
+        viewModelScope.launch(defaultDispatcher) {
+            val domainModel = DomainStrictMode(enabled = value)
+            devOptionsRepository.setStrictMode(domainModel)
+        }
+    }
+
     // that's the only way to combine() more than 5 flows of different types
+    @Suppress("UNCHECKED_CAST")
     private fun createData(
-        devOptions: Array<Any>,
+        devOptions: Array<DevOptionsRepository.DataState<Any>>,
     ): DevOptionsData {
         val iterator = devOptions.iterator()
         return createData(
-            predictableRandomColors = iterator.next() as DomainPredictableRandomColors,
+            predictableRandomColors = iterator.next()
+                .let { it as DevOptionsRepository.DataState<DomainPredictableRandomColors> }
+                .valueOrElse { defaultDevOptions.predictableRandomColors },
+            strictMode = iterator.next()
+                .let { it as DevOptionsRepository.DataState<DomainStrictMode> }
+                .valueOrElse { defaultDevOptions.strictMode },
         )
     }
 
     private fun createData(
         predictableRandomColors: DomainPredictableRandomColors,
+        strictMode: DomainStrictMode,
     ): DevOptionsData {
         return DevOptionsData(
             resetValuesToDefault = ::resetValuesToDefault,
 
             predictableRandomColors = predictableRandomColors,
-            defaultPredictableRandomColors = DefaultDevOptions.PredictableRandomColors,
+            predictableRandomColorsByDefault = defaultDevOptions.predictableRandomColors,
             changePredictableRandomColors = ::updatePredictableRandomColors,
+
+            isStrictModeEnabled = strictMode.enabled,
+            isStrictModeEnabledByDefault = defaultDevOptions.strictMode.enabled,
+            changeStrictModeEnablement = ::updateStrictModeEnablement,
 
             buildInfo = buildInfo,
         )

@@ -10,4 +10,9 @@ object DevOptions {
         CyclingRgb,
         CyclingLightDark,
     }
+
+    @JvmInline
+    value class StrictMode(
+        val enabled: Boolean,
+    )
 }

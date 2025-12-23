@@ -173,7 +173,7 @@ private fun TopBar(
                 onClick = onResetPreferencesToDefaultClick,
             ) {
                 Icon(
-                    imageVector = ImageVector.vectorResource(DesignR.drawable.ic_restart_alt),
+                    imageVector = ImageVector.vectorResource(DesignR.drawable.ic_reset_settings),
                     contentDescription = strings.topBarResetPreferencesToDefaultIconDesc,
                 )
             }

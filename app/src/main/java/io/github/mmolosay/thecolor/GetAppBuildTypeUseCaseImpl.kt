@@ -16,6 +16,7 @@ class GetAppBuildTypeUseCaseImpl @Inject constructor() : GetAppBuildTypeUseCase 
         return when (buildTypeName) {
             "release" -> BuildType.Release
             "debug" -> BuildType.Debug
+            "qa" -> BuildType.QA
             else -> error("Unsupported build type: $buildTypeName")
         }
     }

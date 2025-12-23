@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.settings.ui
+package io.github.mmolosay.thecolor.presentation.devoptions.ui
 
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -10,8 +10,8 @@ import androidx.compose.ui.res.vectorResource
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 @Composable
-internal fun ResetPreferencesToDefaultAlertDialog(
-    strings: SettingsUiStrings,
+internal fun RestartAppAlertDialog(
+    strings: DevOptionsUiStrings,
     onConfirmClick: () -> Unit,
     onDismissRequest: () -> Unit,
 ) {
@@ -31,26 +31,26 @@ internal fun ResetPreferencesToDefaultAlertDialog(
         onDismissRequest = onDismissRequest,
         icon = {
             Icon(
-                imageVector = ImageVector.vectorResource(DesignR.drawable.ic_reset_settings),
+                imageVector = ImageVector.vectorResource(DesignR.drawable.ic_restart_alt),
                 contentDescription = null, // purely decorative
             )
         },
         title = {
-            Text(text = strings.resetPreferencesToDefaultDialogTitle)
+            Text(text = strings.restartAppDialogTitle)
         },
         text = {
-            Text(text = strings.resetPreferencesToDefaultDialogText)
+            Text(text = strings.restartAppDialogText)
         },
         dismissButton = {
             Button(
                 onClick = onDismissRequest,
-                text = strings.resetPreferencesToDefaultDialogDismissButtonText,
+                text = strings.restartAppDialogDismissButtonText,
             )
         },
         confirmButton = {
             Button(
                 onClick = onConfirmClick,
-                text = strings.resetPreferencesToDefaultDialogConfirmButtonText,
+                text = strings.restartAppDialogConfirmButtonText,
             )
         },
     )

@@ -2,11 +2,14 @@ package io.github.mmolosay.thecolor.data.local
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import io.github.mmolosay.thecolor.data.local.utils.setOrRemoveValue
 import io.github.mmolosay.thecolor.domain.model.DevOptions.PredictableRandomColors
-import io.github.mmolosay.thecolor.domain.repository.DefaultDevOptions
+import io.github.mmolosay.thecolor.domain.model.DevOptions.StrictMode
 import io.github.mmolosay.thecolor.domain.repository.DevOptionsRepository
+import io.github.mmolosay.thecolor.domain.repository.DevOptionsRepository.DataState
+import io.github.mmolosay.thecolor.domain.repository.IllegalStoredValue
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -29,17 +32,20 @@ class DevOptionsDataStoreRepository @Inject constructor(
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
 ) : DevOptionsRepository {
 
-    override val flowOfPredictableRandomColors: StateFlow<PredictableRandomColors> =
+    override val flowOfPredictableRandomColors: StateFlow<DataState<PredictableRandomColors>> =
         dataStore.data
             .map { it.getPredictableRandomColors() }
-            .stateEagerlyInAppScope(initialValue = DefaultDevOptions.PredictableRandomColors)
+            .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
 
-    private fun Preferences.getPredictableRandomColors(): PredictableRandomColors {
-        val dtoValue = this[DataStoreKeys.PredictableRandomColors]
-        return if (dtoValue != null) {
-            with(PredictableRandomColorsMapper) { dtoValue.toPredictableRandomColors() }
+    private fun Preferences.getPredictableRandomColors(): DataState<PredictableRandomColors> {
+        val key = DataStoreKeys.PredictableRandomColors
+        if (key !in this) return DataState.NoValueStored
+        val dtoValue = this[key]
+        if (dtoValue != null) {
+            val value = with(PredictableRandomColorsMapper) { dtoValue.toPredictableRandomColors() }
+            return DataState.HasValueStored(value)
         } else {
-            DefaultDevOptions.PredictableRandomColors
+            throw IllegalStoredValue<PredictableRandomColors>(value = dtoValue) // 'dtoValue' is null here
         }
     }
 
@@ -48,6 +54,32 @@ class DevOptionsDataStoreRepository @Inject constructor(
             dataStore.setOrRemoveValue(
                 key = DataStoreKeys.PredictableRandomColors,
                 value = with(PredictableRandomColorsMapper) { value?.toDtoString() },
+            )
+        }
+    }
+
+    override val flowOfStrictMode: StateFlow<DataState<StrictMode>> =
+        dataStore.data
+            .map { it.getStrictMode() }
+            .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
+
+    private fun Preferences.getStrictMode(): DataState<StrictMode> {
+        val key = DataStoreKeys.StrictMode
+        if (key !in this) return DataState.NoValueStored
+        val dtoValue = this[key]
+        if (dtoValue != null) {
+            val value = StrictMode(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
+            return DataState.HasValueStored(value)
+        } else {
+            throw IllegalStoredValue<StrictMode>(value = dtoValue) // 'dtoValue' is null here
+        }
+    }
+
+    override suspend fun setStrictMode(value: StrictMode?) {
+        withContext(ioDispatcher) {
+            dataStore.setOrRemoveValue(
+                key = DataStoreKeys.StrictMode,
+                value = value?.enabled,
             )
         }
     }
@@ -64,6 +96,7 @@ class DevOptionsDataStoreRepository @Inject constructor(
 
     private object DataStoreKeys {
         val PredictableRandomColors = stringPreferencesKey("predictable_random_colors")
+        val StrictMode = booleanPreferencesKey("strict_mode")
     }
 }
 

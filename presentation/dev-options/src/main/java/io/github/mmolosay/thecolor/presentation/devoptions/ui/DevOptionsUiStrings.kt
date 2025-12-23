@@ -1,6 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.devoptions.ui
 
 import android.content.Context
+import android.text.Spanned
 import io.github.mmolosay.thecolor.presentation.devoptions.R
 
 /**
@@ -12,7 +13,13 @@ import io.github.mmolosay.thecolor.presentation.devoptions.R
 data class DevOptionsUiStrings(
     val topBarTitle: String,
     val topBarGoBackIconDesc: String,
+    val topBarRestartAppIconDesc: String,
     val topBarResetValuesToDefaultIconDesc: String,
+
+    val restartAppDialogTitle: String,
+    val restartAppDialogText: String,
+    val restartAppDialogDismissButtonText: String,
+    val restartAppDialogConfirmButtonText: String,
 
     val resetValuesToDefaultDialogTitle: String,
     val resetValuesToDefaultDialogText: String,
@@ -27,6 +34,9 @@ data class DevOptionsUiStrings(
     val itemPredictableRandomColorsValueCyclingLightDarkShort: String,
     val itemPredictableRandomColorsValueCyclingLightDarkVerbose: String,
 
+    val itemStrictModeTitle: String,
+    val itemStrictModeDesc: Spanned,
+
     val itemBuildInfoTitle: String,
     val itemBuildInfoAppBuildTypeLabel: String,
     val itemBuildInfoAppVersionNameLabel: String,
@@ -37,7 +47,13 @@ fun DevOptionsUiStrings(context: Context) =
     DevOptionsUiStrings(
         topBarTitle = context.getString(R.string.dev_options_top_bar_title),
         topBarGoBackIconDesc = context.getString(R.string.dev_options_top_bar_go_back_icon_desc),
+        topBarRestartAppIconDesc = context.getString(R.string.dev_options_top_bar_restart_app_icon_desc),
         topBarResetValuesToDefaultIconDesc = context.getString(R.string.dev_options_top_bar_reset_values_to_default_icon_desc),
+
+        restartAppDialogTitle = context.getString(R.string.dev_options_restart_app_dialog_title),
+        restartAppDialogText = context.getString(R.string.dev_options_restart_app_dialog_text),
+        restartAppDialogDismissButtonText = context.getString(R.string.dev_options_restart_app_dialog_dismiss_button_text),
+        restartAppDialogConfirmButtonText = context.getString(R.string.dev_options_restart_app_dialog_confirm_button_text),
 
         resetValuesToDefaultDialogTitle = context.getString(R.string.dev_options_reset_values_to_default_dialog_title),
         resetValuesToDefaultDialogText = context.getString(R.string.dev_options_reset_values_to_default_dialog_text),
@@ -51,6 +67,9 @@ fun DevOptionsUiStrings(context: Context) =
         itemPredictableRandomColorsValueCyclingRgbVerbose = context.getString(R.string.dev_options_item_predictable_random_colors_value_cycling_rgb_verbose),
         itemPredictableRandomColorsValueCyclingLightDarkShort = context.getString(R.string.dev_options_item_predictable_random_colors_value_cycling_light_dark_short),
         itemPredictableRandomColorsValueCyclingLightDarkVerbose = context.getString(R.string.dev_options_item_predictable_random_colors_value_cycling_light_dark_verbose),
+
+        itemStrictModeTitle = context.getString(R.string.dev_options_item_strict_mode_title),
+        itemStrictModeDesc = context.getText(R.string.dev_options_item_strict_mode_desc) as Spanned,
 
         itemBuildInfoTitle = context.getString(R.string.dev_options_item_build_info_title),
         itemBuildInfoAppBuildTypeLabel = context.getString(R.string.dev_options_item_build_info_app_build_type_label),

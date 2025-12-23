@@ -32,6 +32,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:${libs.versions.androidx.lifecycle.get()}")
 
     // Misc (preserve alphabetical order)
+    implementation("com.jakewharton:process-phoenix:3.0.0")
     implementation("io.github.mmolosay:debounce:${libs.versions.mmolosayDebounce.get()}")
 
     // Testing

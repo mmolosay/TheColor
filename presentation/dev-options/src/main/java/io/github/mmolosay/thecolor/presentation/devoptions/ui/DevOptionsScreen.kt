@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.devoptions.ui
 
+import android.text.Annotation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -27,12 +28,15 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.jakewharton.processphoenix.ProcessPhoenix
 import io.github.mmolosay.debounce.debounced
 import io.github.mmolosay.thecolor.presentation.common.compose.onlyBottom
 import io.github.mmolosay.thecolor.presentation.common.compose.withoutBottom
+import io.github.mmolosay.thecolor.presentation.common.toAnnotatedString
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.devoptions.DevOptionsData
 import io.github.mmolosay.thecolor.presentation.devoptions.DevOptionsViewModel
@@ -81,22 +85,33 @@ fun DevOptionsScreen(
     data: DevOptionsData,
     navigateBack: () -> Unit,
 ) {
+    val context = LocalContext.current
     val strings = DevOptionsUiStrings(LocalContext.current)
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
-    var showResetValuesToDefaultDialog by remember { mutableStateOf(false) }
-    fun dismissResetValuesToDefaultDialog() {
-        showResetValuesToDefaultDialog = false
-    }
-    if (showResetValuesToDefaultDialog) {
-        ResetValuesToDefaultAlertDialog(
-            onDismissRequest = ::dismissResetValuesToDefaultDialog,
-            strings = strings,
-            onConfirmClick = {
-                data.resetValuesToDefault()
-                dismissResetValuesToDefaultDialog()
-            },
-        )
+    var dialogToShow: Dialog? by remember { mutableStateOf(null) }
+    fun clearDialogToShow() { dialogToShow = null }
+    dialogToShow?.let { dialog ->
+        when (dialog) {
+            Dialog.RestartApp ->
+                RestartAppAlertDialog(
+                    strings = strings,
+                    onDismissRequest = ::clearDialogToShow,
+                    onConfirmClick = {
+                        ProcessPhoenix.triggerRebirth(context)
+                        // assuming the app will be restarted, no need to dismiss the dialogue here
+                    },
+                )
+            Dialog.ResetValuesToDefault ->
+                ResetValuesToDefaultAlertDialog(
+                    strings = strings,
+                    onDismissRequest = ::clearDialogToShow,
+                    onConfirmClick = {
+                        data.resetValuesToDefault()
+                        clearDialogToShow()
+                    },
+                )
+        }
     }
 
     Scaffold(
@@ -105,7 +120,8 @@ fun DevOptionsScreen(
                 strings = strings,
                 scrollBehavior = scrollBehavior,
                 navigateBack = navigateBack,
-                onResetValuesToDefaultClick = { showResetValuesToDefaultDialog = true },
+                onRestartAppClick = { dialogToShow = Dialog.RestartApp },
+                onResetValuesToDefaultClick = { dialogToShow = Dialog.ResetValuesToDefault },
             )
         },
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets.withoutBottom(),
@@ -123,12 +139,21 @@ fun DevOptionsScreen(
     }
 }
 
+/**
+ * An enumeration of the dialogs that are local (private) to the 'Developer Options' screen.
+ */
+private enum class Dialog {
+    RestartApp,
+    ResetValuesToDefault,
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar(
     strings: DevOptionsUiStrings,
     scrollBehavior: TopAppBarScrollBehavior,
     navigateBack: () -> Unit,
+    onRestartAppClick: () -> Unit,
     onResetValuesToDefaultClick: () -> Unit,
 ) {
     val debouncedNavigateBack = remember(navigateBack) {
@@ -154,10 +179,18 @@ private fun TopBar(
         },
         actions = {
             IconButton(
-                onClick = onResetValuesToDefaultClick,
+                onClick = onRestartAppClick,
             ) {
                 Icon(
                     imageVector = ImageVector.vectorResource(DesignR.drawable.ic_restart_alt),
+                    contentDescription = strings.topBarRestartAppIconDesc,
+                )
+            }
+            IconButton(
+                onClick = onResetValuesToDefaultClick,
+            ) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(DesignR.drawable.ic_reset_settings),
                     contentDescription = strings.topBarResetValuesToDefaultIconDesc,
                 )
             }
@@ -185,7 +218,7 @@ fun DevOptions(
             val options = DomainPredictableRandomColors.entries.map { predictableRandomColors ->
                 PredictableRandomColorsOption(
                     text = predictableRandomColors.toVerboseUiString(strings),
-                    isDefault = (predictableRandomColors == data.defaultPredictableRandomColors),
+                    isDefault = (predictableRandomColors == data.predictableRandomColorsByDefault),
                     isSelected = (predictableRandomColors == data.predictableRandomColors),
                     onSelect = { data.changePredictableRandomColors(predictableRandomColors) },
                 )
@@ -194,7 +227,7 @@ fun DevOptions(
                 title = strings.itemPredictableRandomColorsTitle,
                 description = strings.itemPredictableRandomColorsDesc,
                 value = data.predictableRandomColors.toShortUiString(strings),
-                showAttentionBadge = (data.predictableRandomColors != data.defaultPredictableRandomColors),
+                showAttentionBadge = (data.predictableRandomColors != data.predictableRandomColorsByDefault),
                 onClick = { showSelectionDialog = true },
             )
             if (showSelectionDialog) {
@@ -206,6 +239,22 @@ fun DevOptions(
                     )
                 }
             }
+        }
+
+        item("strict mode") {
+            val description = remember {
+                strings.itemStrictModeDesc.toAnnotatedString<Annotation> { annotation ->
+                    check(annotation.key == "link")
+                    LinkAnnotation.Url(url = annotation.value)
+                }
+            }
+            StrictMode(
+                title = strings.itemStrictModeTitle,
+                description = description,
+                checked = data.isStrictModeEnabled,
+                onCheckedChange = data.changeStrictModeEnablement,
+                showAttentionBadge = (data.isStrictModeEnabled != data.isStrictModeEnabledByDefault),
+            )
         }
 
         // keep this item very last
@@ -258,8 +307,12 @@ private fun previewData() =
         resetValuesToDefault = {},
 
         predictableRandomColors = DomainPredictableRandomColors.CyclingLightDark,
-        defaultPredictableRandomColors = DomainPredictableRandomColors.Random,
+        predictableRandomColorsByDefault = DomainPredictableRandomColors.Random,
         changePredictableRandomColors = {},
+
+        isStrictModeEnabled = true,
+        isStrictModeEnabledByDefault = false,
+        changeStrictModeEnablement = {},
 
         buildInfo = DevOptionsData.BuildInfo(
             appBuildType = DomainBuildType.Debug,

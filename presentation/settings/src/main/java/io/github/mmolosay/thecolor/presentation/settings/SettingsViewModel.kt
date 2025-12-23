@@ -5,8 +5,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.asSingletonSet
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
-import io.github.mmolosay.thecolor.domain.usecase.IsDevOptionsEnabledUseCase
 import io.github.mmolosay.thecolor.domain.usecase.ResetUserPreferencesToDefaultUseCase
+import io.github.mmolosay.thecolor.domain.usecase.feature.IsDevOptionsEnabledUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

@@ -6,4 +6,5 @@ package io.github.mmolosay.thecolor.domain.model
 enum class BuildType {
     Release,
     Debug,
+    QA,
 }

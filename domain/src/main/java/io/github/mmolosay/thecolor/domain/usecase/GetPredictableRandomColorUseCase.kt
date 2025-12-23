@@ -2,7 +2,9 @@ package io.github.mmolosay.thecolor.domain.usecase
 
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.DevOptions.PredictableRandomColors
+import io.github.mmolosay.thecolor.domain.repository.DefaultDevOptions
 import io.github.mmolosay.thecolor.domain.repository.DevOptionsRepository
+import io.github.mmolosay.thecolor.domain.repository.valueOrElse
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -14,6 +16,7 @@ import javax.inject.Singleton
 class GetPredictableRandomColorUseCase @Inject constructor(
     private val colorFactory: ColorFactory,
     private val devOptionsRepository: DevOptionsRepository,
+    private val defaultDevOptions: DefaultDevOptions,
 ) {
 
     private val cyclingRgb by lazy {
@@ -36,6 +39,7 @@ class GetPredictableRandomColorUseCase @Inject constructor(
 
     operator fun invoke(): Color {
         val strategy = devOptionsRepository.flowOfPredictableRandomColors.value
+            .valueOrElse { defaultDevOptions.predictableRandomColors }
         return when (strategy) {
             PredictableRandomColors.Random -> colorFactory.random()
             PredictableRandomColors.CyclingRgb -> cyclingRgb.next()
