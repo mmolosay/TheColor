@@ -164,7 +164,6 @@ private fun TopBar(
     }
     LargeTopAppBar(
         title = {
-            // TODO: same style as on Settings screen. Extract into a reusable component?
             Text(text = strings.topBarTitle)
         },
         navigationIcon = {
@@ -195,7 +194,6 @@ private fun TopBar(
                 )
             }
         },
-        colors = TopAppBarDefaults.topAppBarColors(),
         scrollBehavior = scrollBehavior,
     )
 }
@@ -211,7 +209,7 @@ fun DevOptions(
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = extraContentPadding,
-        verticalArrangement = Arrangement.spacedBy(12.dp), // TODO: same style as on Settings screen. Extract into a reusable component?
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item("predictable random colors") {
             var showSelectionDialog by remember { mutableStateOf(false) }
