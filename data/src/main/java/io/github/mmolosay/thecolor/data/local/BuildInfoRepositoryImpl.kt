@@ -4,20 +4,20 @@ import android.content.Context
 import androidx.core.content.pm.PackageInfoCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.mmolosay.thecolor.domain.model.BuildType
+import io.github.mmolosay.thecolor.domain.repository.AppBuildTypeProvider
 import io.github.mmolosay.thecolor.domain.repository.BuildInfoRepository
-import io.github.mmolosay.thecolor.domain.usecase.GetAppBuildTypeUseCase
 import java.lang.ref.WeakReference
 import javax.inject.Inject
 
 class BuildInfoRepositoryImpl @Inject constructor(
     @ApplicationContext context: Context,
-    private val getAppBuildType: GetAppBuildTypeUseCase,
+    private val appBuildTypeProvider: AppBuildTypeProvider,
 ) : BuildInfoRepository {
 
     private val context = WeakReference(context)
 
     override fun getAppBuildType(): BuildType =
-        getAppBuildType.invoke()
+        appBuildTypeProvider.get()
 
     override fun getAppBuildVersionCode(): Long {
         val context = context.get() ?: nullContextError()

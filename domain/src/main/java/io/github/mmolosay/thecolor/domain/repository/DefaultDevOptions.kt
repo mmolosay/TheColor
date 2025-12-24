@@ -2,7 +2,6 @@ package io.github.mmolosay.thecolor.domain.repository
 
 import io.github.mmolosay.thecolor.domain.model.BuildType
 import io.github.mmolosay.thecolor.domain.model.DevOptions
-import io.github.mmolosay.thecolor.domain.usecase.GetAppBuildTypeUseCase
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -12,7 +11,7 @@ import javax.inject.Singleton
  */
 @Singleton // in theory, there shouldn't be a case where multiple instances of this class are required
 class DefaultDevOptions @Inject constructor(
-    val getBuildType: GetAppBuildTypeUseCase,
+    val buildInfoRepository: BuildInfoRepository,
 ) {
 
     val predictableRandomColors: DevOptions.PredictableRandomColors =
@@ -25,7 +24,7 @@ class DefaultDevOptions @Inject constructor(
          * which may interfere with debugging and development.
          */
         val buildTypesWhereEnabled = listOf(BuildType.QA)
-        val enabled = (getBuildType() in buildTypesWhereEnabled)
+        val enabled = (buildInfoRepository.getAppBuildType() in buildTypesWhereEnabled)
         DevOptions.StrictMode(enabled)
     }
 }
