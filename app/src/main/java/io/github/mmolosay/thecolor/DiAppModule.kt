@@ -7,7 +7,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dagger.hilt.migration.DisableInstallInCheck
-import io.github.mmolosay.thecolor.domain.usecase.GetAppBuildTypeUseCase
+import io.github.mmolosay.thecolor.domain.repository.AppBuildTypeProvider
 import kotlinx.coroutines.CoroutineScope
 import javax.inject.Named
 
@@ -45,6 +45,6 @@ object DiAppModule {
         fun bindApplicationCoroutineScopeProvider(application: TheColorApplication): ApplicationCoroutineScopeProvider
 
         @Binds
-        fun bindGetAppBuildTypeUseCase(impl: GetAppBuildTypeUseCaseImpl): GetAppBuildTypeUseCase
+        fun bindAppBuildTypeProvider(impl: AppBuildTypeProviderImpl): AppBuildTypeProvider
     }
 }

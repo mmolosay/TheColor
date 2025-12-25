@@ -1,16 +1,16 @@
 package io.github.mmolosay.thecolor
 
 import io.github.mmolosay.thecolor.domain.model.BuildType
-import io.github.mmolosay.thecolor.domain.usecase.GetAppBuildTypeUseCase
+import io.github.mmolosay.thecolor.domain.repository.AppBuildTypeProvider
 import javax.inject.Inject
 
 /**
- * An implementation of [GetAppBuildTypeUseCase] that returns the build type of the application
+ * An implementation of [AppBuildTypeProvider] that returns the build type of the application
  * (the `:app` Gradle module to be precise).
  */
-class GetAppBuildTypeUseCaseImpl @Inject constructor() : GetAppBuildTypeUseCase {
+class AppBuildTypeProviderImpl @Inject constructor() : AppBuildTypeProvider {
 
-    override fun invoke(): BuildType {
+    override fun get(): BuildType {
         val buildTypeName = BuildConfig.BUILD_TYPE
         @Suppress("KotlinConstantConditions") // BuildConfig.BUILD_TYPE is a generated source value which IDE resolves as a const string
         return when (buildTypeName) {
