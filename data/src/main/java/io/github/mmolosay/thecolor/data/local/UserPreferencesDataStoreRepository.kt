@@ -242,7 +242,6 @@ class UserPreferencesDataStoreRepository @Inject constructor(
     private object DataStoreKeys {
         val ColorInputType = stringPreferencesKey("color_input_type")
 
-        // TODO: consider using Proto DataStore for such complex classes
         /** Key for a `light` [UserPreferences.UiColorScheme] from the [UserPreferences.UiColorSchemeSet]. */
         val AppUiColorSchemeLight = stringPreferencesKey("app_ui_color_scheme_set_light_value")
 
