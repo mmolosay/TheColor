@@ -32,6 +32,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:${libs.versions.androidx.lifecycle.get()}")
 
     // Misc (preserve alphabetical order)
+    implementation("com.github.skydoves:colorpicker-compose:1.1.3")
     implementation("com.jakewharton.timber:timber:${libs.versions.jakewhartonTimber.get()}")
     implementation("com.valentinilk.shimmer:compose-shimmer:${libs.versions.valentinilkShimmer.get()}")
 

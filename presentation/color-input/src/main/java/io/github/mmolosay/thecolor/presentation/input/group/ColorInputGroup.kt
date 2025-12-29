@@ -2,6 +2,7 @@ package io.github.mmolosay.thecolor.presentation.input.group
 
 import android.content.res.Configuration
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,6 +34,7 @@ import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHex
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexData
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexUiStrings
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
+import io.github.mmolosay.thecolor.presentation.input.picker.ColorInputPicker
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgb
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbData
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbUiStrings
@@ -63,6 +65,9 @@ fun ColorInputGroup(
                 rgbInput = {
                     ColorInputRgb(viewModel = viewModel.rgbViewModel)
                 },
+                pickerInput = {
+                    ColorInputPicker()
+                },
             )
         }
     }
@@ -74,12 +79,14 @@ fun ColorInputGroup(
     strings: ColorInputGroupUiStrings,
     hexInput: @Composable () -> Unit,
     rgbInput: @Composable () -> Unit,
+    pickerInput: @Composable () -> Unit,
 ) {
     Column(
         modifier = Modifier.padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Crossfade(
+            modifier = Modifier.animateContentSize(),
             targetState = data.selectedInputType,
             label = "Input type cross-fade",
         ) { type ->
@@ -91,6 +98,7 @@ fun ColorInputGroup(
                 when (type) {
                     DomainColorInputType.Hex -> hexInput()
                     DomainColorInputType.Rgb -> rgbInput()
+                    DomainColorInputType.VisualPicker -> pickerInput()
                 }
             }
         }
@@ -152,6 +160,7 @@ private fun DomainColorInputType.label(strings: ColorInputGroupUiStrings): Strin
     when (this) {
         DomainColorInputType.Hex -> strings.hexLabel
         DomainColorInputType.Rgb -> strings.rgbLabel
+        DomainColorInputType.VisualPicker -> "PICKER" // TODO: use string
     }
 
 @Preview(uiMode = Configuration.UI_MODE_TYPE_NORMAL)
@@ -174,6 +183,9 @@ private fun Preview() {
                         data = previewRgbData(),
                         strings = previewRgbUiStrings(),
                     )
+                },
+                pickerInput = {
+                    ColorInputPicker()
                 },
             )
         }
