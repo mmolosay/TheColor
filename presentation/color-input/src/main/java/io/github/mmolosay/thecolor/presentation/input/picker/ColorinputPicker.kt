@@ -2,10 +2,14 @@ package io.github.mmolosay.thecolor.presentation.input.picker
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -21,15 +25,25 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 
 @Composable
 fun ColorInputPicker() {
-    Column {
+    Row(
+        modifier = Modifier.height(IntrinsicSize.Min),
+    ) {
         SaturationAndValuePicker(
             modifier = Modifier
-                .fillMaxWidth()
+                .weight(1f)
                 .height(128.dp)
                 .clip(RoundedCornerShape(size = 4.dp)),
             hue = HueSource.FromColor(Color(0xFF859A8A)),
             saturationAndValue = SaturationAndValue(saturation = 1f, value = 1f),
             onChange = {},
+        )
+
+        Spacer(Modifier.width(6.dp))
+        HuePicker(
+            modifier = Modifier
+                .width(24.dp)
+                .fillMaxHeight(),
+            hueBarShape = RoundedCornerShape(size = 4.dp)
         )
     }
 }
