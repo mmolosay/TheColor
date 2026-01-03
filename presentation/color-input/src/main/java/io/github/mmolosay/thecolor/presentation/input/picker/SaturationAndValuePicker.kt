@@ -3,19 +3,15 @@ package io.github.mmolosay.thecolor.presentation.input.picker
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -24,17 +20,23 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.center
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
-import io.github.mmolosay.thecolor.presentation.common.compose.toIntOffset
+import androidx.compose.ui.util.fastFirst
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.input.picker.ColorUtils.HsvColor
 import io.github.mmolosay.thecolor.presentation.input.picker.ColorUtils.HsvHueRange
 import io.github.mmolosay.thecolor.presentation.input.picker.ColorUtils.HsvSaturationRange
 import io.github.mmolosay.thecolor.presentation.input.picker.ColorUtils.HsvValueRange
 import kotlin.math.nextDown
+import kotlin.math.roundToInt
 
 @Composable
 internal fun SaturationAndValuePicker(
@@ -46,16 +48,6 @@ internal fun SaturationAndValuePicker(
     @Suppress("NAME_SHADOWING") // intentional name shadowing to enforce using this wrapped lambda instead of the one passed in arguments
     val onChange by rememberUpdatedState(onChange) // preventive measure to avoid possible redraws due to new lambda
     var mapSize: Size? by remember { mutableStateOf(null) }
-    val pointerPosition: Offset? by produceState(
-        initialValue = null,
-        /*keys*/ mapSize, sv,
-    ) {
-        val mapSize = mapSize ?: return@produceState
-        value = Offset(
-            x = mapSize.width * sv.saturation,
-            y = mapSize.height * (1f - sv.value),
-        )
-    }
     fun rawPointerPositionToSv(rawPos: Offset): SaturationAndValue? {
         val mapSize = mapSize ?: return null // hasn't been measured yet, so can't process the position
         val coercedPosition = Offset(
@@ -73,35 +65,64 @@ internal fun SaturationAndValuePicker(
             onChange(pointerSv)
         }
     }
-    Box(
+    Layout(
         modifier = modifier,
-        contentAlignment = Alignment.TopStart,
-    ) {
-        SaturationAndValueMap(
-            modifier = Modifier
-                .onSizeChanged {
-                    mapSize = it.toSize()
-                }
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onTap = { position ->
-                            onPointerPositionChange(position)
-                        },
-                    )
-                }
-                .pointerInput(Unit) {
-                    detectDragGestures(
-                        onDrag = { change, _ ->
-                            onPointerPositionChange(change.position)
-                        },
-                    )
-                },
-            hue = hue,
-        )
-        pointerPosition?.let { pointerPosition ->
-            Pointer(
-                position = pointerPosition,
+        content = {
+            SaturationAndValueMap(
+                modifier = Modifier
+                    .layoutId(Components.Map)
+                    .onSizeChanged {
+                        mapSize = it.toSize()
+                    }
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onTap = { position ->
+                                onPointerPositionChange(position)
+                            },
+                        )
+                    }
+                    .pointerInput(Unit) {
+                        detectDragGestures(
+                            onDrag = { change, _ ->
+                                onPointerPositionChange(change.position)
+                            },
+                        )
+                    },
+                hue = hue,
             )
+            Pointer(
+                modifier = Modifier
+                    .layoutId(Components.Pointer),
+            )
+        },
+    ) { measurables, constraints ->
+        val mapPlaceable = run {
+            val measurable = measurables.fastFirst { it.layoutId == Components.Map }
+            // SV map size should satisfy specifications from the passed 'modifier'
+            measurable.measure(constraints)
+        }
+        val pointerPlaceable = run {
+            val measurable = measurables.fastFirst { it.layoutId == Components.Pointer }
+            // pointer size may be smaller than the SV map
+            val constraints = constraints.copy(minWidth = 0, minHeight = 0)
+            measurable.measure(constraints)
+        }
+        val pointerPosition = run {
+            val mapSize = IntSize(mapPlaceable.width, mapPlaceable.height)
+            val centerOfPointerSize = IntSize(pointerPlaceable.width, pointerPlaceable.height).center
+            val posOfPointerCenter = Offset(
+                x = mapSize.width * sv.saturation,
+                y = mapSize.height * (1f - sv.value),
+            )
+            val posOfPointerTopLeft = IntOffset(
+                x = (posOfPointerCenter.x - centerOfPointerSize.x).roundToInt(),
+                y = (posOfPointerCenter.y - centerOfPointerSize.y).roundToInt(),
+            )
+            posOfPointerTopLeft
+        }
+        layout(width = mapPlaceable.width, height = mapPlaceable.height) {
+            mapPlaceable.placeRelative(x = 0, y = 0)
+            pointerPlaceable.placeRelative(position = pointerPosition)
         }
     }
 }
@@ -125,6 +146,13 @@ internal data class SaturationAndValue(
         require(saturation in HsvSaturationRange)
         require(value in HsvValueRange)
     }
+}
+
+/**
+ * The enumeration of all the UI components that are present in [SaturationAndValuePicker].
+ */
+private enum class Components {
+    Map, Pointer;
 }
 
 @Composable
@@ -151,19 +179,15 @@ private fun SaturationAndValueMap(
 
 @Composable
 private fun Pointer(
-    position: Offset,
+    modifier: Modifier = Modifier,
 ) {
     val radius = 8.dp
     val strokeWidth = 3.dp
+    // stroke is drawn on top of the circumference in the middle,
+    // so that half of the stroke width is outside of the circle and the other half is inside
     val totalSize = (radius * 2) + strokeWidth
     Canvas(
-        modifier = Modifier
-            .offset {
-                val radius = (totalSize.toPx() / 2)
-                val offset = position - Offset(x = radius, y = radius)
-                offset.toIntOffset()
-            }
-            .size(totalSize),
+        modifier = modifier.size(totalSize),
     ) {
         val radius = radius.toPx()
         val strokeWidth = strokeWidth.toPx()

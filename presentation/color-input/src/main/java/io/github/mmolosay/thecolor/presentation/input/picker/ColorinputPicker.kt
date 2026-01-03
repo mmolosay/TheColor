@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,12 +35,9 @@ fun ColorInputPicker() {
             val value = SaturationAndValue(saturation = 1f, value = 1f)
             mutableStateOf(value)
         }
-        LaunchedEffect(hue, sv) {
-            println("PRIVET, new HSV: hue=$hue, saturation=${sv.saturation}, value=${sv.value}")
-        }
         SaturationAndValuePicker(
             modifier = Modifier
-                .height(128.dp)
+                .width(128.dp)
                 .aspectRatio(1f / 1f)
                 .clip(RoundedCornerShape(size = 4.dp)),
             hue = hue,
