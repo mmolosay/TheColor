@@ -13,6 +13,10 @@ sealed interface Color {
         val value: Int,
     ) : Color {
 
+        init {
+            require(value in ColorConstants.HexColorIntRange)
+        }
+
         // for a convenient presentation in debugger
         override fun toString(): String =
             value
@@ -27,6 +31,12 @@ sealed interface Color {
         val g: Int,
         val b: Int,
     ) : Color {
+
+        init {
+            require(r in ColorConstants.RgbColorComponentIntRange)
+            require(g in ColorConstants.RgbColorComponentIntRange)
+            require(b in ColorConstants.RgbColorComponentIntRange)
+        }
 
         // for a convenient presentation in debugger
         override fun toString(): String =
