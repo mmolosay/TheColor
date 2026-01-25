@@ -42,4 +42,21 @@ sealed interface Color {
         override fun toString(): String =
             "r=$r,g=$g,b=$b"
     }
+
+    data class Hsv(
+        val hue: Float,
+        val saturation: Float,
+        val value: Float,
+    ) : Color {
+
+        init {
+            require(hue in ColorConstants.HsvHueRange)
+            require(saturation in ColorConstants.HsvSaturationRange)
+            require(value in ColorConstants.HsvValueRange)
+        }
+
+        // for a convenient presentation in debugger
+        override fun toString(): String =
+            "h=$hue,saturation=$saturation,value=$value"
+    }
 }
