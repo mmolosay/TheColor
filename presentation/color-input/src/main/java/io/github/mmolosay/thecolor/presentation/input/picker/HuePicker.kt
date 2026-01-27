@@ -76,6 +76,9 @@ internal fun HuePicker2(
         },
         // TODO: use 'HueBar' for track and apply 'hueBarShape' to it
     )
+    LaunchedEffect(hue) {
+        sliderState.value = hue.value
+    }
     LaunchedEffect(sliderState) {
         snapshotFlow { sliderState.value }.collect { newHue ->
             onChange(HueValue(newHue))

@@ -6,10 +6,13 @@ import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.model.ColorConstants
 import io.github.mmolosay.thecolor.domain.repository.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
+import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.presentation.common.ImmediateRelay
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
+import io.github.mmolosay.thecolor.presentation.input.ColorInputMapper
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
+import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator.ColorState
 import io.github.mmolosay.thecolor.presentation.input.ColorInputValidator
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
@@ -48,6 +51,8 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     @Assisted private val submitAction: ColorInputSubmitAction,
     private val textFieldViewModelFactory: TextFieldViewModel.Factory,
     private val colorInputValidator: ColorInputValidator,
+    private val colorInputMapper: ColorInputMapper,
+    private val colorConverter: ColorConverter,
     private val userPreferencesRepository: UserPreferencesRepository,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
     @Named("uiDataUpdateDispatcher") private val uiDataUpdateDispatcher: CoroutineDispatcher,
@@ -107,10 +112,20 @@ class ColorInputRgbViewModel @AssistedInject constructor(
 
     private fun collectMediatorUpdates() {
         coroutineScope.launch(uiDataUpdateDispatcher) {
-            mediator.rgbColorInputFlow.collect { input ->
-                rTextFieldVm updateText TextFieldData.Text(input.r)
-                gTextFieldVm updateText TextFieldData.Text(input.g)
-                bTextFieldVm updateText TextFieldData.Text(input.b)
+            mediator.colorStateFlow.collect { (colorState, source) ->
+                // don't update text fields to avoid update loop if the color was set from this 'Color Input' type
+                // TODO: does 'textField.text.causedByUser' still needed?
+                if (source == DomainColorInputType.Rgb) return@collect
+                val colorInput = when (colorState) {
+                    is ColorState.AbsentOrInvalid -> ColorInput.Rgb(r = "", g = "", b = "")
+                    is ColorState.Valid -> {
+                        val hexColor = with(colorConverter) { colorState.color.toRgb() }
+                        with(colorInputMapper) { hexColor.toColorInput() }
+                    }
+                }
+                rTextFieldVm updateText TextFieldData.Text(colorInput.r)
+                gTextFieldVm updateText TextFieldData.Text(colorInput.g)
+                bTextFieldVm updateText TextFieldData.Text(colorInput.b)
             }
         }
     }

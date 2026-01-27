@@ -35,12 +35,14 @@ import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexData
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexUiStrings
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.picker.ColorInputPicker
+import io.github.mmolosay.thecolor.presentation.input.picker.ColorInputPickerData
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgb
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbData
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbUiStrings
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldUiStrings
 import io.github.mmolosay.thecolor.utils.doNothing
+import io.github.mmolosay.thecolor.domain.model.Color as DomainColor
 import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
 
 @Composable
@@ -66,7 +68,7 @@ fun ColorInputGroup(
                     ColorInputRgb(viewModel = viewModel.rgbViewModel)
                 },
                 pickerInput = {
-                    ColorInputPicker()
+                    ColorInputPicker(viewModel = viewModel.pickerViewModel)
                 },
             )
         }
@@ -185,7 +187,9 @@ private fun Preview() {
                     )
                 },
                 pickerInput = {
-                    ColorInputPicker()
+                    ColorInputPicker(
+                        data = previewPickerData(),
+                    )
                 },
             )
         }
@@ -277,4 +281,10 @@ private fun previewRgbUiStrings() =
             prefix = null,
             trailingIconContentDesc = null,
         ),
+    )
+
+private fun previewPickerData() =
+    ColorInputPickerData(
+        color = DomainColor.Hsv(hue = 259f, saturation = 0.65f, value = 0.82f),
+        onColorChanged = {},
     )

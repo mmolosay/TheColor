@@ -12,29 +12,56 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
+import io.github.mmolosay.thecolor.presentation.input.model.DataState
+import io.github.mmolosay.thecolor.utils.doNothing
+import io.github.mmolosay.thecolor.domain.model.Color as DomainColor
 
 @Composable
-fun ColorInputPicker() {
+fun ColorInputPicker(
+    viewModel: ColorInputPickerViewModel,
+) {
+    val dataState = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
+    when (dataState) {
+        is DataState.BeingInitialized ->
+            doNothing() // TODO: add loading as in other 'Color Input' types
+        is DataState.Ready ->
+            ColorInputPicker(
+                data = dataState.data
+            )
+    }
+}
+
+@Composable
+fun ColorInputPicker(
+    data: ColorInputPickerData,
+) {
+    val hue = run {
+        if (data.color != null) HueValue(data.color)
+        else HueValue.Min
+    }
+    val sv = run {
+        if (data.color != null) SaturationAndValue(data.color)
+        else SaturationAndValue(saturation = 1f, value = 1f)
+    }
+    fun HsvColor(hue: HueValue, sv: SaturationAndValue): DomainColor.Hsv =
+        DomainColor.Hsv(
+            hue = hue.value,
+            saturation = sv.saturation,
+            value = sv.value,
+        )
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(IntrinsicSize.Min),
         horizontalArrangement = Arrangement.Center,
     ) {
-        var hue by remember { mutableStateOf(HueValue.Min) }
-        var sv by remember {
-            val value = SaturationAndValue(saturation = 1f, value = 1f)
-            mutableStateOf(value)
-        }
         SaturationAndValuePicker(
             modifier = Modifier
                 .width(128.dp)
@@ -43,7 +70,8 @@ fun ColorInputPicker() {
             hue = hue,
             sv = sv,
             onChange = { newSv ->
-                sv = newSv
+                val newColor = HsvColor(hue, newSv)
+                data.onColorChanged(newColor)
             },
         )
 
@@ -52,8 +80,11 @@ fun ColorInputPicker() {
             modifier = Modifier
                 .width(24.dp)
                 .fillMaxHeight(),
-            hue = HueValue.Min,
-            onChange = { hue = it },
+            hue = hue,
+            onChange = { newHue ->
+                val newColor = HsvColor(newHue, sv)
+                data.onColorChanged(newColor)
+            },
             hueBarShape = RoundedCornerShape(size = 4.dp),
         )
     }
@@ -64,6 +95,14 @@ fun ColorInputPicker() {
 @Composable
 private fun Preview() {
     TheColorTheme {
-        ColorInputPicker()
+        ColorInputPicker(
+            data = previewData(),
+        )
     }
 }
+
+private fun previewData() =
+    ColorInputPickerData(
+        color = DomainColor.Hsv(hue = 259f, saturation = 0.65f, value = 0.82f),
+        onColorChanged = {},
+    )

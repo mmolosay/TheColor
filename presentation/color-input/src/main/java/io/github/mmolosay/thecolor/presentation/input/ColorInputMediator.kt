@@ -4,79 +4,36 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.model.Color
-import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
-import io.github.mmolosay.thecolor.utils.requireEmit
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
 
 /**
- * Acts as mediator between ViewModels of different color inputs.
- * The responsibility of this component is to synchronize data between different color inputs.
- * This class may also be used to set a specific color to all color inputs.
+ * Acts as a mediator between ViewModels of different 'Color Input' types.
  *
- * Once one ViewModel [send]s a [Color] (presumably parsed from [ColorInput]),
- * all other color input ViewModels get the same color data through their specific flows.
- * This way if user was using one specific View, after switching to other View they will see
- * the UI with the same data (color) they have left on in previous View.
+ * The responsibility of this component is to be a single source of truth regarding the color the user
+ * currently works with in the 'Color Input' View(s).
+ * This helps to synchronize the data between all types of 'Color Input'.
+ * This class may also be used to set a specific color to all 'Color Input' types.
  *
  * Any update is also sent to [colorInputColorStore], which can be used to obtain current
  * color.
  */
 class ColorInputMediator @AssistedInject constructor(
     @Assisted private val colorInputColorStore: ColorInputColorStore,
-    private val colorInputMapper: ColorInputMapper,
-    private val colorConverter: ColorConverter,
-    private val colorInputFactory: ColorInputFactory,
 ) {
 
-    private val colorStateFlow = MutableSharedFlow<ColorState>(
-        replay = 1,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST,
-    )
-    private var lastSourceInputType: DomainColorInputType? = null
-
-    val hexColorInputFlow: Flow<ColorInput.Hex> =
-        ColorInputFlow(
-            inputType = DomainColorInputType.Hex,
-            emptyColorInput = colorInputFactory::emptyHex,
-            colorToColorInput = {
-                val typedColor = with(colorConverter) { it.toHex() }
-                with(colorInputMapper) { typedColor.toColorInput() }
-            }
+    private val _colorStateFlow: MutableStateFlow<ColorStateWithSource> = run {
+        val value = ColorStateWithSource(
+            colorState = ColorState.AbsentOrInvalid,
+            sourceInputType = null,
         )
-
-    val rgbColorInputFlow: Flow<ColorInput.Rgb> =
-        ColorInputFlow(
-            inputType = DomainColorInputType.Rgb,
-            emptyColorInput = colorInputFactory::emptyRgb,
-            colorToColorInput = {
-                val typedColor = with(colorConverter) { it.toRgb() }
-                with(colorInputMapper) { typedColor.toColorInput() }
-            }
-        )
-
-    private fun <T : ColorInput> ColorInputFlow(
-        inputType: DomainColorInputType,
-        emptyColorInput: () -> T,
-        colorToColorInput: (Color) -> T,
-    ): Flow<T> =
-        colorStateFlow
-            .filter { lastSourceInputType != inputType } // prevent interrupting user
-            .map { colorState ->
-                when (colorState) {
-                    is ColorState.AbsentOrInvalid -> emptyColorInput()
-                    is ColorState.Valid -> colorToColorInput(colorState.color)
-                }
-            }
-
-    init {
-        colorStateFlow.requireEmit(ColorState.AbsentOrInvalid)
+        MutableStateFlow(value)
     }
+    val colorStateFlow: StateFlow<ColorStateWithSource> = _colorStateFlow.asStateFlow()
 
     /**
      * Propagates specified [color] to color input flows (e.g. [hexColorInputFlow]).
@@ -90,9 +47,13 @@ class ColorInputMediator @AssistedInject constructor(
         color: Color?,
         from: DomainColorInputType?,
     ) {
-        lastSourceInputType = from
-        colorInputColorStore.set(color)
-        colorStateFlow.requireEmit(color.toState())
+        _colorStateFlow.update {
+            colorInputColorStore.set(color)
+            return@update ColorStateWithSource(
+                colorState = color.toState(),
+                sourceInputType = from
+            )
+        }
     }
 
     private fun Color?.toState(): ColorState =
@@ -103,10 +64,20 @@ class ColorInputMediator @AssistedInject constructor(
         }
 
     /** State of the color the user is currently working with in 'Color Input' View */
-    private sealed interface ColorState {
+    sealed interface ColorState {
         data object AbsentOrInvalid : ColorState
         data class Valid(val color: Color) : ColorState
     }
+
+    /**
+     * Couples a [ColorState] with the source [DomainColorInputType] it originates from.
+     * When the [sourceInputType] is `null`, it means that this color update didn't come
+     * from any particular 'Color Input' type but was set programmatically.
+     */
+    data class ColorStateWithSource(
+        val colorState: ColorState,
+        val sourceInputType: DomainColorInputType?,
+    )
 
     @AssistedFactory
     fun interface Factory {
@@ -116,3 +87,6 @@ class ColorInputMediator @AssistedInject constructor(
     }
 }
 
+// TODO: remove me
+fun ColorInputMediator.ColorState.colorOrNull(): Color? =
+    this.let { it as? ColorInputMediator.ColorState.Valid }?.color

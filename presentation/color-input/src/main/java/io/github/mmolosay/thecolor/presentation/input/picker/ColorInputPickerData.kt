@@ -6,5 +6,6 @@ import io.github.mmolosay.thecolor.domain.model.Color
  * Platform-agnostic data provided by ViewModel to 'Visual Picker Color Input' View.
  */
 data class ColorInputPickerData(
-    val onColorChanged: (Color) -> Unit,
+    val color: Color.Hsv?,
+    val onColorChanged: (Color.Hsv) -> Unit,
 )

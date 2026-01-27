@@ -17,7 +17,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Layout
@@ -37,6 +36,8 @@ import io.github.mmolosay.thecolor.presentation.input.picker.ColorUtils.HsvSatur
 import io.github.mmolosay.thecolor.presentation.input.picker.ColorUtils.HsvValueRange
 import kotlin.math.nextDown
 import kotlin.math.roundToInt
+import androidx.compose.ui.graphics.Color as ComposeColor
+import io.github.mmolosay.thecolor.domain.model.Color as DomainColor
 
 @Composable
 internal fun SaturationAndValuePicker(
@@ -138,6 +139,9 @@ internal value class HueValue(val value: Float) {
     }
 }
 
+internal fun HueValue(color: DomainColor.Hsv): HueValue =
+    HueValue(value = color.hue)
+
 internal data class SaturationAndValue(
     val saturation: Float,
     val value: Float,
@@ -147,6 +151,9 @@ internal data class SaturationAndValue(
         require(value in HsvValueRange)
     }
 }
+
+internal fun SaturationAndValue(color: DomainColor.Hsv): SaturationAndValue =
+    SaturationAndValue(saturation = color.saturation, value = color.value)
 
 /**
  * The enumeration of all the UI components that are present in [SaturationAndValuePicker].
@@ -167,11 +174,11 @@ private fun SaturationAndValueMap(
         modifier = modifier.aspectRatio(1f / 1f),
     ) {
         val saturationGradient = Brush.horizontalGradient(
-            colors = listOf(Color.White, maxSvColor),
+            colors = listOf(ComposeColor.White, maxSvColor),
         )
         drawRect(saturationGradient)
         val valueGradient = Brush.verticalGradient(
-            colors = listOf(Color.Transparent, Color.Black),
+            colors = listOf(ComposeColor.Transparent, ComposeColor.Black),
         )
         drawRect(valueGradient)
     }
@@ -192,7 +199,7 @@ private fun Pointer(
         val radius = radius.toPx()
         val strokeWidth = strokeWidth.toPx()
         drawCircle(
-            color = Color.White,
+            color = ComposeColor.White,
             radius = radius,
             center = this.size.center,
             style = Stroke(width = strokeWidth),
