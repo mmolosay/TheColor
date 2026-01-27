@@ -7,7 +7,7 @@ import io.kotest.matchers.shouldBe
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 
-abstract class ColorConverterTest {
+class ColorConverterTest {
 
     val sut = ColorConverter()
 
@@ -27,13 +27,13 @@ abstract class ColorConverterTest {
     @ParameterizedTest
     @MethodSource("hexToRgbData")
     fun `HEX color is converted to expected RGB color`(
-        given: Color.Rgb,
-        expected: Color.Hex,
+        given: Color.Hex,
+        expected: Color.Rgb,
     ) {
-        val hex = with(sut) { given.toRgb() }
+        val rgb = with(sut) { given.toRgb() }
 
         withClue("HEX color $given should be RGB color $expected") {
-            hex shouldBe expected
+            rgb shouldBe expected
         }
     }
 
