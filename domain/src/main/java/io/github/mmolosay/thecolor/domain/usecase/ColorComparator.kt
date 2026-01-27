@@ -10,9 +10,13 @@ class ColorComparator @Inject constructor(
     private val colorConverter: ColorConverter,
 ) {
 
-    infix fun Color.isSameAs(other: Color): Boolean {
-        val thisAsHex = with(colorConverter) { toHex() }
-        val otherAsHex = with(colorConverter) { other.toHex() }
-        return (thisAsHex == otherAsHex)
+    // syntactic sugar
+    infix fun Color.isSameAs(other: Color): Boolean =
+        compare(c1 = this, c2 = other)
+
+    fun compare(c1: Color, c2: Color): Boolean {
+        val hex1 = with(colorConverter) { c1.toHex() }
+        val hex2 = with(colorConverter) { c2.toHex() }
+        return (hex1 == hex2)
     }
 }
