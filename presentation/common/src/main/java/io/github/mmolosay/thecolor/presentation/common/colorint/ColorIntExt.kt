@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.common.colorint
 
+import androidx.compose.ui.graphics.toArgb
 import android.graphics.Color as AndroidColor
 import androidx.annotation.ColorInt as AndroidColorInt
 import androidx.compose.ui.graphics.Color as ComposeColor
@@ -9,6 +10,12 @@ import androidx.compose.ui.graphics.Color as ComposeColor
  */
 fun ColorInt.toCompose(): ComposeColor =
     ComposeColor(0xFF_000000 or this.hex.toLong())
+
+/**
+ * Converts [Color][androidx.compose.ui.graphics.Color] from Jetpack Compose library to [ColorInt].
+ */
+fun ComposeColor.toColorInt(): ColorInt =
+    ColorInt(this.toArgb() and 0x00_FFFFFF)
 
 /**
  * Converts [ColorInt] to color [Int] in `ARGB` format that is commonly used across Android SDK.
