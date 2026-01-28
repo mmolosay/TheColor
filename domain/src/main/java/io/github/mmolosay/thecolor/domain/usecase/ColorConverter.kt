@@ -2,6 +2,7 @@ package io.github.mmolosay.thecolor.domain.usecase
 
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.ColorConstants
+import io.github.mmolosay.thecolor.utils.truncateDecimalPlaces
 import javax.inject.Inject
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -93,6 +94,12 @@ class ColorConverter @Inject constructor() {
         val min = minOf(nR, nG, nB)
         val delta = max - min
 
+        /*
+         * HEX/RGB is discrete (0–255 per channel).
+         * HSV decimals beyond ~2 for Hue and ~3–4 for Saturation/Value do not affect the RGB round-trip.
+         * Extra precision is harmless but unnecessary.
+         */
+
         val hue = run {
             val rawHue = when {
                 delta == 0f -> 0f
@@ -101,15 +108,20 @@ class ColorConverter @Inject constructor() {
                 max == nB -> 60 * (((nR - nG) / delta) + 4)
                 else -> error("unreachable")
             }
-            val shiftedHue = if (rawHue < 0f) rawHue + 360f else rawHue
-            return@run shiftedHue
+            val hue = if (rawHue < 0f) rawHue + 360f else rawHue
+            val rounded = hue.truncateDecimalPlaces(keep = 2)
+            return@run rounded
         }
-        val saturation = if (max == 0f) {
-            0f
-        } else {
-            delta / max
+        val saturation = run {
+            val saturation = if (max == 0f) 0f else delta / max
+            val rounded = saturation.truncateDecimalPlaces(keep = 4)
+            return@run rounded
         }
-        val value = max
+        val value = run {
+            val value = max
+            val rounded = value.truncateDecimalPlaces(keep = 4)
+            return@run rounded
+        }
         return Color.Hsv(hue, saturation, value)
     }
 }

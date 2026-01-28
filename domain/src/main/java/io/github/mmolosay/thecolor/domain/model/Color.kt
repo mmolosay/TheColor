@@ -57,6 +57,6 @@ sealed interface Color {
 
         // for a convenient presentation in debugger
         override fun toString(): String =
-            "h=$hue,saturation=$saturation,value=$value"
+            "h=$hue,s=$saturation,v=$value"
     }
 }
