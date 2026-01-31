@@ -23,7 +23,6 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterCompon
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterSessionStore.SessionState
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.CanProceed
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ColorSchemeSelectedSwatchData
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModelDiModule.ChannelForColorPreview
 import io.github.mmolosay.thecolor.presentation.input.ColorInputColorStore
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupViewModel
@@ -66,7 +65,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 import javax.inject.Named
-import javax.inject.Qualifier
 import javax.inject.Singleton
 
 /**
@@ -75,10 +73,6 @@ import javax.inject.Singleton
  *
  * It creates objects that are shared between sub-feature ViewModels via assisted injection and
  * factories.
- *
- * @param colorProcessedConfirmationChannelForColorPreview is passed to [ColorPreviewViewModel]
- * and is used to get notified when it has processed new color emitted from the color flow.
- * See [ColorPreviewViewModel] for details.
  */
 @HiltViewModel
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -86,7 +80,6 @@ class HomeViewModel @Inject constructor(
     colorInputMediatorFactory: ColorInputMediator.Factory,
     colorInputGroupViewModelFactory: ColorInputGroupViewModel.Factory,
     private val colorInputColorStore: ColorInputColorStore,
-    @ChannelForColorPreview private val colorProcessedConfirmationChannelForColorPreview: Channel<Color?>,
     colorPreviewViewModelFactory: ColorPreviewViewModel.Factory,
     colorCenterComponentsStoreFactory: ColorCenterComponentsStore.Factory,
     private val gates: SuspendGates,
@@ -112,8 +105,6 @@ class HomeViewModel @Inject constructor(
         colorInputMediatorFactory.create(
             colorInputColorStore = colorInputColorStore,
         )
-    private val flowOfProcessedColorsFromColorInput =
-        MutableStateFlow<Color?>(colorInputColorStore.colorFlow.value)
 
     val colorInputGroupViewModel: ColorInputGroupViewModel =
         colorInputGroupViewModelFactory.create(
@@ -125,8 +116,6 @@ class HomeViewModel @Inject constructor(
     val colorPreviewViewModel: ColorPreviewViewModel =
         colorPreviewViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
-            colorFlow = flowOfProcessedColorsFromColorInput,
-            colorProcessedConfirmationChannel = colorProcessedConfirmationChannelForColorPreview,
         )
 
     private val colorCenterComponentsStore: ColorCenterComponentsStore =
@@ -191,10 +180,7 @@ class HomeViewModel @Inject constructor(
                 clearProceedResult() // 'proceed' wasn't invoked for new color yet
                 onColorCenterSessionEnded()
             }
-            kotlin.run emitForColorPreviewWithConfirmationOfReceive@{
-                flowOfProcessedColorsFromColorInput.emit(color)
-                colorProcessedConfirmationChannelForColorPreview.receiveAllUntil(color)
-            }
+            colorPreviewViewModel.setColor(color)
         }
     }
 
@@ -517,15 +503,6 @@ class HomeViewModel @Inject constructor(
 @Module
 @InstallIn(ViewModelComponent::class)
 internal object HomeViewModelDiModule {
-
-    @Provides
-    @ChannelForColorPreview
-    fun provideColorProcessedConfirmationChannelForColorPreview(): Channel<Color?> =
-        Channel<Color?>(Channel.UNLIMITED)
-
-    @Qualifier
-    @Retention(AnnotationRetention.BINARY)
-    annotation class ChannelForColorPreview
 
     @Provides
     fun provideSuspendGates(): HomeViewModel.SuspendGates =

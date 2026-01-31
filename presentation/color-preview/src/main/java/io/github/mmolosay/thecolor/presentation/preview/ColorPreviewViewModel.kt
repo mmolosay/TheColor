@@ -13,19 +13,10 @@ import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModelDiModule.GateForDataFlow
 import io.github.mmolosay.thecolor.utils.OpenSuspendGate
 import io.github.mmolosay.thecolor.utils.SuspendGate
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.transformLatest
-import kotlinx.coroutines.launch
-import javax.inject.Named
+import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Qualifier
 
 /**
@@ -36,45 +27,32 @@ import javax.inject.Qualifier
  *
  * Instead, it can be created within "simple" `ViewModel` or Google's `ViewModel`.
  */
-@OptIn(ExperimentalCoroutinesApi::class)
 class ColorPreviewViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted colorFlow: Flow<Color?>,
-    @Assisted colorProcessedConfirmationChannel: SendChannel<Color?>?,
-    @GateForDataFlow gateForDataFlow: SuspendGate,
+    @GateForDataFlow private val gateForDataFlow: SuspendGate,
     private val colorToColorInt: ColorToColorIntUseCase,
-    @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
-    val dataFlow: StateFlow<ColorPreviewData?> = kotlin.run {
-        fun data(color: Color?) =
-            ColorPreviewData(
-                color = with(colorToColorInt) { color?.toColorInt() },
-            )
-        var lastConsumedColor: Color? = null
-        colorFlow
-            .transformLatest { color ->
-                gateForDataFlow.awaitOpen()
-                lastConsumedColor = color
-                emit(data(color))
-            }
-            .flowOn(defaultDispatcher)
-            .stateIn(coroutineScope, SharingStarted.Eagerly, initialValue = null)
-            .also { flow ->
-                coroutineScope.launch(defaultDispatcher) {
-                    flow.collectLatest {
-                        colorProcessedConfirmationChannel?.send(lastConsumedColor)
-                    }
-                }
-            }
+    private val _dataFlow = MutableStateFlow<ColorPreviewData?>(null)
+    val dataFlow: StateFlow<ColorPreviewData?> = _dataFlow.asStateFlow()
+
+    /**
+     * Sets the new [color]. It will be transformed to the [ColorPreviewData] and exposed via [dataFlow].
+     * This method suspends until the processing of the new [color] is finished and the [dataFlow] has
+     * emitted a new data.
+     */
+    suspend fun setColor(color: Color?) {
+        gateForDataFlow.awaitOpen()
+        val data = ColorPreviewData(
+            color = with(colorToColorInt) { color?.toColorInt() },
+        )
+        _dataFlow.emit(data)
     }
 
     @AssistedFactory
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            colorFlow: Flow<Color?>,
-            colorProcessedConfirmationChannel: SendChannel<Color?>?,
         ): ColorPreviewViewModel
     }
 }

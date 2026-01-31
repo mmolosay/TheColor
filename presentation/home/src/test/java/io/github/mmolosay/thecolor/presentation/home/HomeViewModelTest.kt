@@ -1,6 +1,5 @@
 package io.github.mmolosay.thecolor.presentation.home
 
-import androidx.lifecycle.viewModelScope
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.UserPreferences.ResumeFromLastSearchedColorOnStartup
 import io.github.mmolosay.thecolor.domain.repository.LastSearchedColorRepository
@@ -28,7 +27,6 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.CanProce
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel.SuspendGates
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModelDiModule
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.components
 import io.github.mmolosay.thecolor.presentation.input.ColorInputColorStore
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
@@ -63,15 +61,12 @@ import io.mockk.runs
 import io.mockk.spyk
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
@@ -104,10 +99,7 @@ class HomeViewModelTest {
         }
     }
 
-    val colorProcessedConfirmationChannelForColorPreviewReal: Channel<Color?> =
-        HomeViewModelDiModule.provideColorProcessedConfirmationChannelForColorPreview()
-    val colorProcessedConfirmationChannelForColorPreviewMock: Channel<Color?> =
-        mockk(relaxed = true)
+    val colorPreviewViewModel: ColorPreviewViewModel = mockk(relaxed = true)
 
     val colorDetailsViewModel: ColorDetailsViewModel = mockk(relaxed = true)
     val colorDetailsCommandStore: ColorDetailsCommandStore = mockk {
@@ -210,9 +202,6 @@ class HomeViewModelTest {
             run emitColorFromColorInput@{
                 colorInputColorFlow.emit(color)
             }
-            run emitConfirmationFromColorPreview@{
-                colorProcessedConfirmationChannelForColorPreviewReal.send(color)
-            }
 
             data.canProceed should beOfType<CanProceed.Yes>()
         }
@@ -228,7 +217,6 @@ class HomeViewModelTest {
             run emitColorFromColorInput@{
                 val color: Color? = null
                 colorInputColorFlow.emit(color)
-                colorProcessedConfirmationChannelForColorPreviewReal.send(color)
             }
 
             data.canProceed should beOfType<CanProceed.No>()
@@ -255,7 +243,6 @@ class HomeViewModelTest {
             run emitFirstColorFromColorInput@{
                 val nullColor: Color? = null
                 colorInputColorFlow.emit(nullColor)
-                colorProcessedConfirmationChannelForColorPreviewReal.send(nullColor)
             }
             sut.flowOfIsDataBeingUpdated.value shouldBe false // hasn't updated due to closed gate
             val data2 = data
@@ -317,72 +304,36 @@ class HomeViewModelTest {
             }
             run emitExactColorFromColorInput@{
                 colorInputColorFlow.emit(exactColorInRgb)
-                colorProcessedConfirmationChannelForColorPreviewReal.send(exactColorInRgb)
             }
 
             // indicator of not finished session
             data.proceedResult shouldNotBe null
         }
 
-
-    @Test
-    fun `when receiving any color from Color Input, then 'proceed' is not executed until Color Preview confirms that it has processed this color as well`() =
-        runTest(testDispatcher) {
-            mockStoresWithEmptyFlows()
-            val colorInputColorFlow = MutableStateFlow<Color?>(null)
-            every { colorInputColorStore.colorFlow } returns colorInputColorFlow
-            every { createColorData(color = any()) } returns mockk()
-            coEvery {
-                // relaxed suspend functions (such as receive()) will return a stub immediately.
-                // Channel.receiveAllUntil() contains forever loop, which will result in OOM if receive() doesn't suspend
-                colorProcessedConfirmationChannelForColorPreviewMock.receive()
-            } coAnswers {
-                suspendCancellableCoroutine {}
-            }
-            createSut(
-                colorProcessedConfirmationChannelForColorPreview = colorProcessedConfirmationChannelForColorPreviewMock,
-            )
-
-            val color = mockk<Color>()
-            run emitExactColorFromColorInput@{
-                colorInputColorFlow.emit(color)
-            }
-
-            coVerify(exactly = 0) {
-                colorProcessedConfirmationChannelForColorPreviewMock.send(color)
-            }
-            coVerify(exactly = 0) {
-                proceed(colorMatcher = matchAny(), colorRoleMatcher = matchAny())
-            }
-            sut.viewModelScope.cancel() // SUT is suspended waiting for confirmation from Color Preview
-        }
-
     /**
-     * Ongoing data transaction should wait until [HomeViewModel.colorProcessedConfirmationChannelForColorPreview]
-     * sends confirmation that the new color was processed by [ColorPreviewViewModel] before said
-     * data transaction finishes.
+     * Ongoing data transaction should wait until [ColorPreviewViewModel.setColor] returns
+     * (meaning that the new color has been processed by the [ColorPreviewViewModel])
+     * before said data transaction finishes.
      */
     @Test
-    fun `when receiving any color from Color Input, then 'is data being updated' flag stays true until Color Preview confirms that it has processed this color as well`() =
+    fun `when receiving any color from Color Input, then 'is data being updated' flag stays true until Color Preview's method returns`() =
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             val colorInputColorFlow = MutableStateFlow<Color?>(null)
             every { colorInputColorStore.colorFlow } returns colorInputColorFlow
             every { createColorData(color = any()) } returns mockk()
-            createSut(
-                colorProcessedConfirmationChannelForColorPreview = colorProcessedConfirmationChannelForColorPreviewReal,
-            )
+            val gateForSetColorMethod = ClosableSuspendGate(closed = true)
+            coEvery { colorPreviewViewModel.setColor(color = any()) }
+                .coAnswers { gateForSetColorMethod.awaitOpen() }
+            createSut()
 
             val color = mockk<Color>()
             run emitExactColorFromColorInput@{
                 colorInputColorFlow.emit(color)
             }
             sut.flowOfIsDataBeingUpdated.value shouldBe true // data transaction has started and is ongoing
-            // colorProcessedConfirmationChannelForColorPreviewReal.send(color) wasn't called yet
 
-            run emitConfirmationFromColorPreview@{
-                colorProcessedConfirmationChannelForColorPreviewReal.send(color)
-            }
+            gateForSetColorMethod.open()
             sut.flowOfIsDataBeingUpdated.value shouldBe false // data transaction has finished
         }
 
@@ -627,7 +578,6 @@ class HomeViewModelTest {
             } coAnswers  {
                 val sentColor = firstArg<Color>()
                 colorInputColorFlow.emit(sentColor)
-                colorProcessedConfirmationChannelForColorPreviewReal.send(sentColor)
             }
             every { colorInputColorStore.colorFlow } returns colorInputColorFlow
             val colorDetailsEventFlow = MutableSharedFlow<ColorDetailsEvent>()
@@ -702,9 +652,6 @@ class HomeViewModelTest {
             }
             run emitExactColorFromColorInput@{
                 colorInputColorFlow.emit(exactColor)
-            }
-            run emitConfirmationFromColorPreview@{
-                colorProcessedConfirmationChannelForColorPreviewReal.send(exactColor)
             }
             run emitDataFetchedEvent@{
                 val event = ColorDetailsEvent.DataFetched(
@@ -798,9 +745,6 @@ class HomeViewModelTest {
             run emitExactColorFromColorInput@{
                 colorInputColorFlow.emit(exactColor)
             }
-            run emitConfirmationFromColorPreview@{
-                colorProcessedConfirmationChannelForColorPreviewReal.send(exactColor)
-            }
             run emitDataFetchedEvent@{
                 val domainDetails: DomainColorDetails = mockk(relaxed = true) {
                     every { color } returns exactColor
@@ -818,9 +762,6 @@ class HomeViewModelTest {
             }
             run emitInitialColorFromColorInput@{
                 colorInputColorFlow.emit(initialColor)
-            }
-            run emitConfirmationFromColorPreview@{
-                colorProcessedConfirmationChannelForColorPreviewReal.send(initialColor)
             }
             run emitDataFetchedEvent@{
                 val domainDetails: DomainColorDetails = mockk(relaxed = true) {
@@ -895,7 +836,6 @@ class HomeViewModelTest {
             run emitColorFromColorInput@{
                 val newColor: Color? = null
                 colorInputColorFlow.emit(newColor)
-                colorProcessedConfirmationChannelForColorPreviewReal.send(newColor)
             }
 
             data.proceedResult shouldBe null
@@ -941,7 +881,6 @@ class HomeViewModelTest {
             run emitNewColorFromColorInput@{
                 val newColor: Color? = null
                 colorInputColorFlow.emit(newColor)
-                colorProcessedConfirmationChannelForColorPreviewReal.send(newColor)
             }
 
             shouldNotThrowAny {
@@ -1005,7 +944,6 @@ class HomeViewModelTest {
             val newColor = Color.Hex(0x2)
             run emitNewColorFromColorInput@{
                 colorInputColorFlow.emit(newColor)
-                colorProcessedConfirmationChannelForColorPreviewReal.send(newColor)
             }
             run proceedWithNewColor@{
                 // we know from other tests that it would be 'CanProceed.Yes'
@@ -1033,7 +971,6 @@ class HomeViewModelTest {
             }
             run emitExactColorForInitialColorFromColorInput@{
                 colorInputColorFlow.emit(exactColorForInitialColor)
-                colorProcessedConfirmationChannelForColorPreviewReal.send(exactColorForInitialColor)
             }
 
             data.proceedResult shouldBe null
@@ -1193,7 +1130,6 @@ class HomeViewModelTest {
             } coAnswers  {
                 val sentColor = firstArg<Color>()
                 colorInputColorFlow.emit(sentColor)
-                colorProcessedConfirmationChannelForColorPreviewReal.send(sentColor)
             }
 
             createSut()
@@ -1239,7 +1175,6 @@ class HomeViewModelTest {
             }
             run emitExactColor@{
                 colorInputColorFlow.emit(exactColor)
-                colorProcessedConfirmationChannelForColorPreviewReal.send(exactColor)
             }
             run emitDataFetchedEvent@{
                 val event = ColorDetailsEvent.DataFetched(
@@ -1287,9 +1222,6 @@ class HomeViewModelTest {
             run emitColorFromColorInput@{
                 colorInputColorFlow.emit(randomColor)
             }
-            run emitConfirmationFromColorPreview@{
-                colorProcessedConfirmationChannelForColorPreviewReal.send(randomColor)
-            }
 
             coVerify(exactly = 1) {
                 proceed(colorMatcher = match(randomColor), colorRoleMatcher = match(null))
@@ -1297,7 +1229,6 @@ class HomeViewModelTest {
         }
 
     fun createSut(
-        colorProcessedConfirmationChannelForColorPreview: Channel<Color?> = colorProcessedConfirmationChannelForColorPreviewReal,
         gateForFlowOfColorCenterViewModel: SuspendGate = OpenSuspendGate,
         gateForCollectColorCenterComponent: SuspendGate = OpenSuspendGate,
         gateForDataUpdateGuard: SuspendGate = OpenSuspendGate,
@@ -1306,8 +1237,7 @@ class HomeViewModelTest {
             colorInputMediatorFactory = { _ -> colorInputMediator },
             colorInputGroupViewModelFactory = colorInputGroupViewModelFactory,
             colorInputColorStore = colorInputColorStore,
-            colorProcessedConfirmationChannelForColorPreview = colorProcessedConfirmationChannelForColorPreview,
-            colorPreviewViewModelFactory = { _, _, _ -> mockk(relaxed = true) },
+            colorPreviewViewModelFactory = { _ -> colorPreviewViewModel },
             colorCenterComponentsStoreFactory = colorCenterComponentsStoreFactory,
             gates = SuspendGates(
                 gateForFlowOfColorCenterViewModel = gateForFlowOfColorCenterViewModel,
