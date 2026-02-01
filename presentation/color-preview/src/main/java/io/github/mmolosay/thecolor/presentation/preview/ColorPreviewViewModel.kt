@@ -13,10 +13,16 @@ import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModelDiModule.GateForDataFlow
 import io.github.mmolosay.thecolor.utils.OpenSuspendGate
 import io.github.mmolosay.thecolor.utils.SuspendGate
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import javax.inject.Named
 import javax.inject.Qualifier
 
 /**
@@ -31,22 +37,37 @@ class ColorPreviewViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     @GateForDataFlow private val gateForDataFlow: SuspendGate,
     private val colorToColorInt: ColorToColorIntUseCase,
+    @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
     private val _dataFlow = MutableStateFlow<ColorPreviewData?>(null)
     val dataFlow: StateFlow<ColorPreviewData?> = _dataFlow.asStateFlow()
 
+    private val setColorMutex = Mutex()
+    private var setColorJob: Job? = null
+
     /**
      * Sets the new [color]. It will be transformed to the [ColorPreviewData] and exposed via [dataFlow].
+     *
      * This method suspends until the processing of the new [color] is finished and the [dataFlow] has
      * emitted a new data.
+     *
+     * All calls to this method are conflated, meaning that if there is an ongoing call
+     * to this method, then when it's invoked again the previous call will be cancelled.
      */
     suspend fun setColor(color: Color?) {
-        gateForDataFlow.awaitOpen()
-        val data = ColorPreviewData(
-            color = with(colorToColorInt) { color?.toColorInt() },
-        )
-        _dataFlow.emit(data)
+        val job = coroutineScope.launch(defaultDispatcher) {
+            gateForDataFlow.awaitOpen()
+            val data = ColorPreviewData(
+                color = with(colorToColorInt) { color?.toColorInt() },
+            )
+            _dataFlow.emit(data)
+        }
+        setColorMutex.withLock {
+            setColorJob?.cancel()
+            setColorJob = job
+        }
+        job.join()
     }
 
     @AssistedFactory
