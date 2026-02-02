@@ -100,6 +100,7 @@ class ColorInputGroupViewModel @AssistedInject constructor(
         super.dispose()
         hexViewModel.dispose()
         rgbViewModel.dispose()
+        pickerViewModel.dispose()
     }
 
     interface DataState {

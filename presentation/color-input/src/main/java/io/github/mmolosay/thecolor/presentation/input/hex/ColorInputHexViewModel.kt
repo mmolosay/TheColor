@@ -53,6 +53,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
 ) : SimpleViewModel(coroutineScope) {
 
     private val textFieldVm = textFieldViewModelFactory.create(
+        // TODO: pass current color from the mediator as "initialText"?
         coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
         filterUserInput = ::filterUserInput,
         enableClearTextFeature = true,
@@ -96,13 +97,12 @@ class ColorInputHexViewModel @AssistedInject constructor(
         coroutineScope.launch(uiDataUpdateDispatcher) {
             mediator.colorStateFlow.collect { (color, source) ->
                 // don't update text fields to avoid update loop if the color was set from this 'Color Input' type
-                // TODO: does 'textField.text.causedByUser' still needed?
                 if (source == DomainColorInputType.Hex) return@collect
                 val colorInput = if (color != null) {
                     val hexColor = with(colorConverter) { color.toHex() }
                     with(colorInputMapper) { hexColor.toColorInput() }
                 } else {
-                    ColorInput.Hex(string = "")
+                    EmptyColorInput
                 }
                 textFieldVm updateText TextFieldData.Text(colorInput.string)
             }
@@ -142,6 +142,10 @@ class ColorInputHexViewModel @AssistedInject constructor(
             mediator: ColorInputMediator,
             submitAction: ColorInputSubmitAction,
         ): ColorInputHexViewModel
+    }
+
+    companion object {
+        val EmptyColorInput = ColorInput.Hex(string = "")
     }
 }
 

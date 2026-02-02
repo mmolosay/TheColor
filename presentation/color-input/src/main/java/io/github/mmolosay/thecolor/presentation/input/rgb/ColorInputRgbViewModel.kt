@@ -113,13 +113,12 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         coroutineScope.launch(uiDataUpdateDispatcher) {
             mediator.colorStateFlow.collect { (color, source) ->
                 // don't update text fields to avoid update loop if the color was set from this 'Color Input' type
-                // TODO: does 'textField.text.causedByUser' still needed?
                 if (source == DomainColorInputType.Rgb) return@collect
                 val colorInput = if (color != null) {
                     val hexColor = with(colorConverter) { color.toRgb() }
                     with(colorInputMapper) { hexColor.toColorInput() }
                 } else {
-                    ColorInput.Rgb(r = "", g = "", b = "")
+                    EmptyColorInput
                 }
                 rTextFieldVm updateText TextFieldData.Text(colorInput.r)
                 gTextFieldVm updateText TextFieldData.Text(colorInput.g)
@@ -180,6 +179,10 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             mediator: ColorInputMediator,
             submitAction: ColorInputSubmitAction,
         ): ColorInputRgbViewModel
+    }
+
+    companion object {
+        val EmptyColorInput = ColorInput.Rgb(r = "", g = "", b = "")
     }
 }
 
