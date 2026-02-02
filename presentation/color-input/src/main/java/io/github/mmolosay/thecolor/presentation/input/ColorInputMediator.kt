@@ -1,14 +1,11 @@
 package io.github.mmolosay.thecolor.presentation.input
 
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.model.Color
-import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import javax.inject.Inject
 import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
 
 /**
@@ -18,37 +15,25 @@ import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInp
  * currently works with in the 'Color Input' View(s).
  * This helps to synchronize the data between all types of 'Color Input'.
  * This class may also be used to set a specific color to all 'Color Input' types.
- *
- * Any update is also sent to [colorInputColorStore], which can be used to obtain current
- * color.
  */
-class ColorInputMediator @AssistedInject constructor(
-    @Assisted private val colorInputColorStore: ColorInputColorStore,
-) {
+class ColorInputMediator @Inject constructor() {
 
-    private val _colorStateFlow: MutableStateFlow<ColorStateWithSource> = run {
-        val value = ColorStateWithSource(
-            colorState = ColorState.AbsentOrInvalid,
-            sourceInputType = null,
-        )
-        MutableStateFlow(value)
-    }
+    private val _colorStateFlow = MutableStateFlow(InitialColorStateWithSource)
     val colorStateFlow: StateFlow<ColorStateWithSource> = _colorStateFlow.asStateFlow()
 
     /**
-     * Propagates specified [color] to color input flows (e.g. [hexColorInputFlow]).
-     * Parameter [from] defines which color input flow will NOT receive an update to avoid
-     * update loop.
+     * Exposes the specified [color] from the [colorStateFlow].
      *
-     * Passing `null` [color] will emit empty [ColorInput]s from flows.
-     * Passing `null` [from] will not ignore any flow and all of them will emit.
+     * @param color The new [Color] to be set, or `null` if the color should be erased.
+     * @param from The type of 'Color Input' that triggered this update, or `null` if the
+     * update was triggered programmatically.
      */
+    // TODO: rename to "set"
     fun send(
         color: Color?,
         from: DomainColorInputType?,
     ) {
         _colorStateFlow.update {
-            colorInputColorStore.set(color)
             return@update ColorStateWithSource(
                 colorState = color.toState(),
                 sourceInputType = from
@@ -79,14 +64,13 @@ class ColorInputMediator @AssistedInject constructor(
         val sourceInputType: DomainColorInputType?,
     )
 
-    @AssistedFactory
-    fun interface Factory {
-        fun create(
-            colorInputColorStore: ColorInputColorStore,
-        ): ColorInputMediator
+    companion object {
+        val InitialColorStateWithSource = ColorStateWithSource(
+            colorState = ColorState.AbsentOrInvalid,
+            sourceInputType = null,
+        )
     }
 }
 
-// TODO: remove me
 fun ColorInputMediator.ColorState.colorOrNull(): Color? =
     this.let { it as? ColorInputMediator.ColorState.Valid }?.color

@@ -23,8 +23,8 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterCompon
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterSessionStore.SessionState
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.CanProceed
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ColorSchemeSelectedSwatchData
-import io.github.mmolosay.thecolor.presentation.input.ColorInputColorStore
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
+import io.github.mmolosay.thecolor.presentation.input.colorOrNull
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
@@ -77,9 +77,8 @@ import javax.inject.Singleton
 @HiltViewModel
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModel @Inject constructor(
-    colorInputMediatorFactory: ColorInputMediator.Factory,
+    private val colorInputMediator: ColorInputMediator,
     colorInputGroupViewModelFactory: ColorInputGroupViewModel.Factory,
-    private val colorInputColorStore: ColorInputColorStore,
     colorPreviewViewModelFactory: ColorPreviewViewModel.Factory,
     colorCenterComponentsStoreFactory: ColorCenterComponentsStore.Factory,
     private val gates: SuspendGates,
@@ -100,11 +99,6 @@ class HomeViewModel @Inject constructor(
 
     private val navEventRelay = ImmediateRelay<HomeNavEvent>()
     val navEventFlow = navEventRelay.flowForView
-
-    private val colorInputMediator: ColorInputMediator =
-        colorInputMediatorFactory.create(
-            colorInputColorStore = colorInputColorStore,
-        )
 
     val colorInputGroupViewModel: ColorInputGroupViewModel =
         colorInputGroupViewModelFactory.create(
@@ -166,15 +160,17 @@ class HomeViewModel @Inject constructor(
 
     private fun collectColorsFromColorInput() =
         viewModelScope.launch(defaultDispatcher) {
-            colorInputColorStore.colorFlow
+            colorInputMediator.colorStateFlow
                 .drop(1) // replayed value
                 .collect(::onColorFromColorInput)
         }
 
-    private suspend fun onColorFromColorInput(color: Color?) {
+    private suspend fun onColorFromColorInput(colorStateWithSource: ColorInputMediator.ColorStateWithSource) {
+        val color = colorStateWithSource.colorState.colorOrNull()
         dataUpdateGuard.withCounter {
             _dataFlow.update {
-                it.copy(canProceed = CanProceed(colorFromColorInput = color))
+                val canProceed = CanProceed(colorFromColorInput = color)
+                it.copy(canProceed = canProceed)
             }
             if (color == null || !color.doesBelongToCurrentSession()) {
                 clearProceedResult() // 'proceed' wasn't invoked for new color yet
@@ -296,7 +292,7 @@ class HomeViewModel @Inject constructor(
     private fun proceed() {
         viewModelScope.launch(defaultDispatcher) {
             dataUpdateGuard.withCounter {
-                val color = requireNotNull(colorInputColorStore.colorFlow.value)
+                val color = requireNotNull(colorInputMediator.colorStateFlow.value.colorState.colorOrNull())
                 onColorCenterSessionEnded() // end current session (if any)
                 proceedInNewColorCenterSession(color, colorRole = null)
                 componentsConsumerRegistry.suspendUntilAllConsumed()
@@ -391,7 +387,7 @@ class HomeViewModel @Inject constructor(
 
     private fun initialData(): HomeData {
         val canProceed = kotlin.run {
-            val color = colorInputColorStore.colorFlow.value
+            val color = colorInputMediator.colorStateFlow.value.colorState.colorOrNull()
             CanProceed(colorFromColorInput = color)
         }
         return HomeData(
