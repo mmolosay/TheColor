@@ -9,7 +9,6 @@ import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMapper
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
-import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator.ColorState
 import io.github.mmolosay.thecolor.presentation.input.ColorInputValidator
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
@@ -95,16 +94,15 @@ class ColorInputHexViewModel @AssistedInject constructor(
 
     private fun collectMediatorUpdates() {
         coroutineScope.launch(uiDataUpdateDispatcher) {
-            mediator.colorStateFlow.collect { (colorState, source) ->
+            mediator.colorStateFlow.collect { (color, source) ->
                 // don't update text fields to avoid update loop if the color was set from this 'Color Input' type
                 // TODO: does 'textField.text.causedByUser' still needed?
                 if (source == DomainColorInputType.Hex) return@collect
-                val colorInput = when (colorState) {
-                    is ColorState.AbsentOrInvalid -> ColorInput.Hex(string = "")
-                    is ColorState.Valid -> {
-                        val hexColor = with(colorConverter) { colorState.color.toHex() }
-                        with(colorInputMapper) { hexColor.toColorInput() }
-                    }
+                val colorInput = if (color != null) {
+                    val hexColor = with(colorConverter) { color.toHex() }
+                    with(colorInputMapper) { hexColor.toColorInput() }
+                } else {
+                    ColorInput.Hex(string = "")
                 }
                 textFieldVm updateText TextFieldData.Text(colorInput.string)
             }

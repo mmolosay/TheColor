@@ -7,7 +7,6 @@ import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
-import io.github.mmolosay.thecolor.presentation.input.colorOrNull
 import io.github.mmolosay.thecolor.presentation.input.model.DataState
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -30,10 +29,9 @@ class ColorInputPickerViewModel @AssistedInject constructor(
 
     init {
         coroutineScope.launch(defaultDispatcher) {
-            mediator.colorStateFlow.collect { (colorState, source) ->
+            mediator.colorStateFlow.collect { (color, source) ->
                 // don't update text fields to avoid update loop if the color was set from this 'Color Input' type
 //                 if (source == DomainColorInputType.VisualPicker) return@collect
-                val color = colorState.colorOrNull()
                 val data = ColorInputPickerData(
                     color = with(colorConverter) { color?.toHsv() },
                     onColorChanged = ::onColorChanged,

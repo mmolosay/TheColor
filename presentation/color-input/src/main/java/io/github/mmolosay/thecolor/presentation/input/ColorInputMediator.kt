@@ -4,7 +4,6 @@ import io.github.mmolosay.thecolor.domain.model.Color
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
 
@@ -18,8 +17,8 @@ import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInp
  */
 class ColorInputMediator @Inject constructor() {
 
-    private val _colorStateFlow = MutableStateFlow(InitialColorStateWithSource)
-    val colorStateFlow: StateFlow<ColorStateWithSource> = _colorStateFlow.asStateFlow()
+    private val _colorStateFlow = MutableStateFlow(InitialColorState)
+    val colorStateFlow: StateFlow<ColorState> = _colorStateFlow.asStateFlow()
 
     /**
      * Exposes the specified [color] from the [colorStateFlow].
@@ -32,44 +31,22 @@ class ColorInputMediator @Inject constructor() {
         color: Color?,
         source: DomainColorInputType?,
     ) {
-        _colorStateFlow.update {
-            return@update ColorStateWithSource(
-                colorState = color.toState(),
-                sourceInputType = source
-            )
-        }
-    }
-
-    private fun Color?.toState(): ColorState =
-        if (this != null) {
-            ColorState.Valid(color = this)
-        } else {
-            ColorState.AbsentOrInvalid
-        }
-
-    /** State of the color the user is currently working with in 'Color Input' View */
-    sealed interface ColorState {
-        data object AbsentOrInvalid : ColorState
-        data class Valid(val color: Color) : ColorState
+        _colorStateFlow.value = ColorState(color = color, source = source)
     }
 
     /**
-     * Couples a [ColorState] with the source [DomainColorInputType] it originates from.
-     * When the [sourceInputType] is `null`, it means that this color update didn't come
-     * from any particular 'Color Input' type but was set programmatically.
+     * State of the color across the 'Color Input' feature.
+     *
+     * @param color the current color. `null` means that the color is absent or invalid.
+     * @param source the type of the 'Color Input' this [color] originates from.
+     * `null` means that this [color] didn't come from any particular type of the 'Color Input' but was set programmatically.
      */
-    data class ColorStateWithSource(
-        val colorState: ColorState,
-        val sourceInputType: DomainColorInputType?,
+    data class ColorState(
+        val color: Color?,
+        val source: DomainColorInputType?,
     )
 
     companion object {
-        val InitialColorStateWithSource = ColorStateWithSource(
-            colorState = ColorState.AbsentOrInvalid,
-            sourceInputType = null,
-        )
+        val InitialColorState = ColorState(color = null, source = null)
     }
 }
-
-fun ColorInputMediator.ColorState.colorOrNull(): Color? =
-    this.let { it as? ColorInputMediator.ColorState.Valid }?.color

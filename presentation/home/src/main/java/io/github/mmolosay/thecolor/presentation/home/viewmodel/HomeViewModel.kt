@@ -24,7 +24,6 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterSessio
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.CanProceed
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ColorSchemeSelectedSwatchData
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
-import io.github.mmolosay.thecolor.presentation.input.colorOrNull
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
@@ -165,8 +164,8 @@ class HomeViewModel @Inject constructor(
                 .collect(::onColorFromColorInput)
         }
 
-    private suspend fun onColorFromColorInput(colorStateWithSource: ColorInputMediator.ColorStateWithSource) {
-        val color = colorStateWithSource.colorState.colorOrNull()
+    private suspend fun onColorFromColorInput(colorState: ColorInputMediator.ColorState) {
+        val color = colorState.color
         dataUpdateGuard.withCounter {
             _dataFlow.update {
                 val canProceed = CanProceed(colorFromColorInput = color)
@@ -292,7 +291,7 @@ class HomeViewModel @Inject constructor(
     private fun proceed() {
         viewModelScope.launch(defaultDispatcher) {
             dataUpdateGuard.withCounter {
-                val color = requireNotNull(colorInputMediator.colorStateFlow.value.colorState.colorOrNull())
+                val color = requireNotNull(colorInputMediator.colorStateFlow.value.color)
                 onColorCenterSessionEnded() // end current session (if any)
                 proceedInNewColorCenterSession(color, colorRole = null)
                 componentsConsumerRegistry.suspendUntilAllConsumed()
@@ -387,7 +386,7 @@ class HomeViewModel @Inject constructor(
 
     private fun initialData(): HomeData {
         val canProceed = kotlin.run {
-            val color = colorInputMediator.colorStateFlow.value.colorState.colorOrNull()
+            val color = colorInputMediator.colorStateFlow.value.color
             CanProceed(colorFromColorInput = color)
         }
         return HomeData(

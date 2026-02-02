@@ -2,9 +2,7 @@ package io.github.mmolosay.thecolor.presentation.input
 
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator.ColorState
-import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator.ColorStateWithSource
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.shouldBeInstanceOf
 import org.junit.jupiter.api.Test
 
 class ColorInputMediatorTest {
@@ -15,35 +13,28 @@ class ColorInputMediatorTest {
     fun `when SUT is initialized, then 'colorStateFlow' has correct initial value`() {
         createSut()
 
-        val expectedValue = ColorStateWithSource(
-            colorState = ColorState.AbsentOrInvalid,
-            sourceInputType = null,
-        )
-        colorStateWithSource shouldBe expectedValue
+        val expectedValue = ColorState(color = null, source = null)
+        colorState shouldBe expectedValue
+        colorState shouldBe ColorInputMediator.InitialColorState
     }
 
     @Test
-    fun `when 'null' color is set, then 'colorStateFlow' is updated with 'AbsentOrInvalid' color state`() {
+    fun `when 'null' color is set, then 'colorStateFlow' is updated with 'null' color`() {
         createSut()
 
-        sut.set(
-            color = null,
-            source = null,
-        )
+        sut.set(color = null, source = null)
 
-        colorStateWithSource.colorState.shouldBeInstanceOf<ColorState.AbsentOrInvalid>()
+        colorState.color shouldBe null
     }
 
     @Test
-    fun `when not-null color is set, then 'colorStateFlow' is updated with 'Valid' color state`() {
+    fun `when not-null color is set, then 'colorStateFlow' is updated with the provided color`() {
         createSut()
 
-        sut.set(
-            color = Color.Hex(0x0),
-            source = null,
-        )
+        val color = Color.Hex(0x0)
+        sut.set(color = color, source = null)
 
-        colorStateWithSource.colorState.shouldBeInstanceOf<ColorState.Valid>()
+        colorState.color shouldBe color
     }
 
     fun createSut() =
@@ -51,6 +42,6 @@ class ColorInputMediatorTest {
             sut = it
         }
 
-    val colorStateWithSource: ColorStateWithSource
+    val colorState: ColorState
         get() = sut.colorStateFlow.value
 }
