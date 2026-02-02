@@ -44,7 +44,7 @@ class ColorInputPickerViewModel @AssistedInject constructor(
     }
 
     private fun onColorChanged(newColor: Color.Hsv) {
-        mediator.send(color = newColor, from = DomainColorInputType.VisualPicker)
+        mediator.set(color = newColor, source = DomainColorInputType.VisualPicker)
     }
 
     @AssistedFactory

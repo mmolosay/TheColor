@@ -23,24 +23,24 @@ class ColorInputMediatorTest {
     }
 
     @Test
-    fun `when 'null' color is sent, then 'colorStateFlow' is updated with 'AbsentOrInvalid' color state`() {
+    fun `when 'null' color is set, then 'colorStateFlow' is updated with 'AbsentOrInvalid' color state`() {
         createSut()
 
-        sut.send(
+        sut.set(
             color = null,
-            from = null,
+            source = null,
         )
 
         colorStateWithSource.colorState.shouldBeInstanceOf<ColorState.AbsentOrInvalid>()
     }
 
     @Test
-    fun `when not-null color is sent, then 'colorStateFlow' is updated with 'Valid' color state`() {
+    fun `when not-null color is set, then 'colorStateFlow' is updated with 'Valid' color state`() {
         createSut()
 
-        sut.send(
+        sut.set(
             color = Color.Hex(0x0),
-            from = null,
+            source = null,
         )
 
         colorStateWithSource.colorState.shouldBeInstanceOf<ColorState.Valid>()

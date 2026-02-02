@@ -50,7 +50,7 @@ class ColorInputHexViewModelTest {
 
     val mediator: ColorInputMediator = mockk {
         every { hexColorInputFlow } returns flowOf(ColorInput.Hex(""))
-        coEvery { send(color = any(), from = DomainColorInputType.Hex) } just runs
+        coEvery { set(color = any(), source = DomainColorInputType.Hex) } just runs
     }
 
     val submitAction: ColorInputSubmitAction = mockk()
@@ -104,7 +104,7 @@ class ColorInputHexViewModelTest {
         }
 
     @Test
-    fun `initial data is not sent to mediator`() =
+    fun `initial data is not set to mediator`() =
         runTest(testDispatcher) {
             createSut()
             val collectionJob = launch {
@@ -112,13 +112,13 @@ class ColorInputHexViewModelTest {
             }
 
             coVerify(exactly = 0) {
-                mediator.send(color = any(), from = DomainColorInputType.Hex)
+                mediator.set(color = any(), source = DomainColorInputType.Hex)
             }
             collectionJob.cancel()
         }
 
     @Test
-    fun `changing input text to invalid color sends 'null' to mediator`() =
+    fun `changing input text to invalid color sets 'null' color to mediator`() =
         runTest(testDispatcher) {
             val colorInput = ColorInput.Hex("1F")
             every {
@@ -132,9 +132,9 @@ class ColorInputHexViewModelTest {
             data.textField.onTextChange(Text("1F"))
 
             coVerify(exactly = 1) {
-                mediator.send(
+                mediator.set(
                     color = null, // invalid color input
-                    from = DomainColorInputType.Hex,
+                    source = DomainColorInputType.Hex,
                 )
             }
             collectionJob.cancel()
@@ -160,7 +160,7 @@ class ColorInputHexViewModelTest {
         }
 
     @Test
-    fun `emission from mediator is not sent back to mediator and emission loop is not created`() =
+    fun `emission from mediator is not set back to mediator and emission loop is not created`() =
         runTest(testDispatcher) {
             val hexColorInputFlow = MutableSharedFlow<ColorInput.Hex>()
             every { mediator.hexColorInputFlow } returns hexColorInputFlow
@@ -176,7 +176,7 @@ class ColorInputHexViewModelTest {
             hexColorInputFlow.emit(sentColorInput)
 
             coVerify(exactly = 0) {
-                mediator.send(color = any(), from = DomainColorInputType.Hex)
+                mediator.set(color = any(), source = DomainColorInputType.Hex)
             }
             collectionJob.cancel()
         }

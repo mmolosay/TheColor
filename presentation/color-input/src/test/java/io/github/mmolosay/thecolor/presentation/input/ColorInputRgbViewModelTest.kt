@@ -51,7 +51,7 @@ class ColorInputRgbViewModelTest {
 
     val mediator: ColorInputMediator = mockk {
         every { rgbColorInputFlow } returns flowOf(ColorInput.Rgb("", "", ""))
-        coEvery { send(color = any(), from = DomainColorInputType.Rgb) } just runs
+        coEvery { set(color = any(), source = DomainColorInputType.Rgb) } just runs
     }
 
     val submitAction: ColorInputSubmitAction = mockk()
@@ -120,19 +120,19 @@ class ColorInputRgbViewModelTest {
         }
 
     @Test
-    fun `initial data is not sent to mediator`() =
+    fun `initial data is not set to mediator`() =
         runTest(testDispatcher) {
             createSut()
             val collectionJob = launch {
                 sut.dataStateFlow.collect() // subscriber to activate the flow
             }
 
-            coVerify(exactly = 0) { mediator.send(color = any(), from = DomainColorInputType.Rgb) }
+            coVerify(exactly = 0) { mediator.set(color = any(), source = DomainColorInputType.Rgb) }
             collectionJob.cancel()
         }
 
     @Test
-    fun `data updated from UI is sent to mediator`() =
+    fun `data updated from UI is set to mediator`() =
         runTest(testDispatcher) {
             val parsedColor = mockk<Color>()
             every {
@@ -154,7 +154,7 @@ class ColorInputRgbViewModelTest {
             data.bTextField.onTextChange(Text("20"))
 
             coVerify(exactly = 1) {
-                mediator.send(color = parsedColor, from = DomainColorInputType.Rgb)
+                mediator.set(color = parsedColor, source = DomainColorInputType.Rgb)
             }
             collectionJob.cancel()
         }
@@ -179,7 +179,7 @@ class ColorInputRgbViewModelTest {
         }
 
     @Test
-    fun `emission from mediator is not sent back to mediator and emission loop is not created`() =
+    fun `emission from mediator is not set back to mediator and emission loop is not created`() =
         runTest(testDispatcher) {
             val rgbColorInputFlow = MutableSharedFlow<ColorInput.Rgb>()
             every { mediator.rgbColorInputFlow } returns rgbColorInputFlow
@@ -192,7 +192,7 @@ class ColorInputRgbViewModelTest {
             rgbColorInputFlow.emit(sentColorInput)
 
             coVerify(exactly = 0) {
-                mediator.send(color = any(), from = DomainColorInputType.Rgb)
+                mediator.set(color = any(), source = DomainColorInputType.Rgb)
             }
             collectionJob.cancel()
         }

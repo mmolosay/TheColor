@@ -92,7 +92,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                         .any { it.text.causedByUser }
                 if (!isAnyCausedByUser) return@onEach // none caused by user
                 val parsedColor = fullData.colorInputValidationResult.getColorOrNull()
-                mediator.send(color = parsedColor, from = DomainColorInputType.Rgb)
+                mediator.set(color = parsedColor, source = DomainColorInputType.Rgb)
             }
             .map { fullData -> fullData.reduce() }
             .map { data -> DataState(data) }

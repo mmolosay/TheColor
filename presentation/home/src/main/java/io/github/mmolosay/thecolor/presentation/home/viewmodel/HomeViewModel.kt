@@ -216,7 +216,7 @@ class HomeViewModel @Inject constructor(
                 viewModelScope.launch(defaultDispatcher) {
                     dataUpdateGuard.withCounter {
                         val color = event.color
-                        colorInputMediator.send(color)
+                        colorInputMediator.set(color)
                         // assuming any color selected belongs to ongoing session
                         proceed(color = color, colorRole = event.colorRole)
                     }
@@ -280,7 +280,7 @@ class HomeViewModel @Inject constructor(
             val color = lastSearchedColorRepository.getLastSearchedColor() ?: return@launch
             dataUpdateGuard.withCounter {
                 proceedInNewColorCenterSession(color, colorRole = null)
-                colorInputMediator.send(color)
+                colorInputMediator.set(color)
                 componentsConsumerRegistry.suspendUntilAllConsumed()
             }
         }.also { job ->
@@ -350,11 +350,11 @@ class HomeViewModel @Inject constructor(
             if (shouldProceed) {
                 dataUpdateGuard.withCounter {
                     proceedInNewColorCenterSession(color, colorRole = null)
-                    colorInputMediator.send(color)
+                    colorInputMediator.set(color)
                     componentsConsumerRegistry.suspendUntilAllConsumed()
                 }
             } else {
-                colorInputMediator.send(color)
+                colorInputMediator.set(color)
             }
         }.also { job ->
             job.setToJobWithProceed()
@@ -432,9 +432,9 @@ class HomeViewModel @Inject constructor(
         colorCenterComponentsStore.disposeComponents()
     }
 
-    // private extension for HomeViewModel, which always sends a color with null 'from'
-    private fun ColorInputMediator.send(color: Color?) {
-        this.send(color = color, from = null)
+    // private extension for HomeViewModel, which always sets a color with null 'source'
+    private fun ColorInputMediator.set(color: Color?) {
+        this.set(color = color, source = null)
     }
 
     private fun Job.setToJobWithProceed() {

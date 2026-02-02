@@ -25,18 +25,17 @@ class ColorInputMediator @Inject constructor() {
      * Exposes the specified [color] from the [colorStateFlow].
      *
      * @param color The new [Color] to be set, or `null` if the color should be erased.
-     * @param from The type of 'Color Input' that triggered this update, or `null` if the
+     * @param source The type of 'Color Input' that triggered this update, or `null` if the
      * update was triggered programmatically.
      */
-    // TODO: rename to "set"
-    fun send(
+    fun set(
         color: Color?,
-        from: DomainColorInputType?,
+        source: DomainColorInputType?,
     ) {
         _colorStateFlow.update {
             return@update ColorStateWithSource(
                 colorState = color.toState(),
-                sourceInputType = from
+                sourceInputType = source
             )
         }
     }

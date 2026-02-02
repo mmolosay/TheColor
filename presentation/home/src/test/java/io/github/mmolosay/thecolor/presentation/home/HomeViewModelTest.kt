@@ -650,7 +650,7 @@ class HomeViewModelTest {
         }
 
     @Test
-    fun `when receiving a 'ColorSelected' event from Color Details, 'set color and proceed' action is invoked, thus new color is sent to color input mediator`() =
+    fun `when receiving a 'ColorSelected' event from Color Details, 'set color and proceed' action is invoked, thus new color is set to color input mediator`() =
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             every { colorInputMediator.colorStateFlow } returns run {
@@ -674,7 +674,7 @@ class HomeViewModelTest {
             colorDetailsEventFlow.emit(event)
 
             coVerify {
-                colorInputMediator.send(color = Color.Hex(0x123456), from = null)
+                colorInputMediator.set(color = Color.Hex(0x123456), source = null)
             }
         }
 
@@ -692,7 +692,7 @@ class HomeViewModelTest {
             }
             every { colorInputMediator.colorStateFlow } returns colorStateFlow
             coEvery {
-                colorInputMediator.send(color = any(), from = any())
+                colorInputMediator.set(color = any(), source = any())
             } coAnswers  {
                 val color = firstArg<Color>()
                 val source = secondArg<DomainColorInputType?>()
@@ -1353,7 +1353,7 @@ class HomeViewModelTest {
             val colorData: ProceedResult.Success.ColorData = mockk()
             every { createColorData(color = lastSearchedColor) } returns colorData
             coEvery {
-                colorInputMediator.send(color = any(), from = any())
+                colorInputMediator.set(color = any(), source = any())
             } coAnswers  {
                 val color = firstArg<Color>()
                 val source = secondArg<DomainColorInputType?>()
@@ -1431,7 +1431,7 @@ class HomeViewModelTest {
         }
 
     @Test
-    fun `invoking 'randomize color' sends new randomized color to color input mediator`() =
+    fun `invoking 'randomize color' sets new randomized color to color input mediator`() =
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             val randomColor: Color.Hex = mockk()
@@ -1443,7 +1443,7 @@ class HomeViewModelTest {
             data.randomizeColor()
 
             coVerify(exactly = 1) {
-                colorInputMediator.send(color = randomColor, from = null)
+                colorInputMediator.set(color = randomColor, source = null)
             }
         }
 

@@ -75,7 +75,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
                 // don't synchronize this data with other Views to avoid update loop
                 if (!fullData.textField.text.causedByUser) return@onEach
                 val parsedColor = fullData.colorInputValidationResult.getColorOrNull()
-                mediator.send(color = parsedColor, from = DomainColorInputType.Hex)
+                mediator.set(color = parsedColor, source = DomainColorInputType.Hex)
             }
             .map { fullData -> fullData.reduce() }
             .map { data -> DataState(data) }
