@@ -83,7 +83,7 @@ class ColorInputGroupViewModelTest {
             submitAction = mockk(),
             hexViewModelFactory = { _, _, _ -> mockk() },
             rgbViewModelFactory = { _, _, _ -> mockk() },
-            pickerViewModelFactory = { _, _ -> mockk() },
+            hsvViewModelFactory = { _, _ -> mockk() },
             userPreferencesRepository = userPreferencesRepository,
             defaultDispatcher = testDispatcher,
         ).also {

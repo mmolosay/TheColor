@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.input.picker
+package io.github.mmolosay.thecolor.presentation.input.hsv
 
 import androidx.compose.ui.graphics.Color
 import android.graphics.Color as AndroidColor

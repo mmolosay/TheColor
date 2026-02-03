@@ -272,6 +272,7 @@ private object ColorInputTypeMapper {
     private val valueToDtoStringMap = mapOf(
         ColorInputType.Hex to "hex",
         ColorInputType.Rgb to "rgb",
+        ColorInputType.Hsv to "hsv",
     )
 
     init {

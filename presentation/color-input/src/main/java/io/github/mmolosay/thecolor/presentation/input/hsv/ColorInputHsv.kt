@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.input.picker
+package io.github.mmolosay.thecolor.presentation.input.hsv
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
@@ -23,23 +23,23 @@ import io.github.mmolosay.thecolor.utils.doNothing
 import io.github.mmolosay.thecolor.domain.model.Color as DomainColor
 
 @Composable
-fun ColorInputPicker(
-    viewModel: ColorInputPickerViewModel,
+fun ColorInputHsv(
+    viewModel: ColorInputHsvViewModel,
 ) {
     val dataState = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
     when (dataState) {
         is DataState.BeingInitialized ->
             doNothing() // TODO: add loading as in other 'Color Input' types
         is DataState.Ready ->
-            ColorInputPicker(
+            ColorInputHsv(
                 data = dataState.data
             )
     }
 }
 
 @Composable
-fun ColorInputPicker(
-    data: ColorInputPickerData,
+fun ColorInputHsv(
+    data: ColorInputHsvData,
 ) {
     val hue = run {
         if (data.color != null) HueValue(data.color)
@@ -95,14 +95,14 @@ fun ColorInputPicker(
 @Composable
 private fun Preview() {
     TheColorTheme {
-        ColorInputPicker(
+        ColorInputHsv(
             data = previewData(),
         )
     }
 }
 
 private fun previewData() =
-    ColorInputPickerData(
+    ColorInputHsvData(
         color = DomainColor.Hsv(hue = 259f, saturation = 0.65f, value = 0.82f),
         onColorChanged = {},
     )

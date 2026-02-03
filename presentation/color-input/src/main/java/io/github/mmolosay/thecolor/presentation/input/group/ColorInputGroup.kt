@@ -33,9 +33,9 @@ import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupViewM
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHex
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexData
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexUiStrings
+import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsv
+import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvData
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
-import io.github.mmolosay.thecolor.presentation.input.picker.ColorInputPicker
-import io.github.mmolosay.thecolor.presentation.input.picker.ColorInputPickerData
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgb
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbData
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbUiStrings
@@ -67,8 +67,8 @@ fun ColorInputGroup(
                 rgbInput = {
                     ColorInputRgb(viewModel = viewModel.rgbViewModel)
                 },
-                pickerInput = {
-                    ColorInputPicker(viewModel = viewModel.pickerViewModel)
+                hsvInput = {
+                    ColorInputHsv(viewModel = viewModel.hsvViewModel)
                 },
             )
         }
@@ -81,7 +81,7 @@ fun ColorInputGroup(
     strings: ColorInputGroupUiStrings,
     hexInput: @Composable () -> Unit,
     rgbInput: @Composable () -> Unit,
-    pickerInput: @Composable () -> Unit,
+    hsvInput: @Composable () -> Unit,
 ) {
     Column(
         modifier = Modifier.padding(horizontal = 16.dp),
@@ -100,7 +100,7 @@ fun ColorInputGroup(
                 when (type) {
                     DomainColorInputType.Hex -> hexInput()
                     DomainColorInputType.Rgb -> rgbInput()
-                    DomainColorInputType.VisualPicker -> pickerInput()
+                    DomainColorInputType.Hsv -> hsvInput()
                 }
             }
         }
@@ -162,7 +162,7 @@ private fun DomainColorInputType.label(strings: ColorInputGroupUiStrings): Strin
     when (this) {
         DomainColorInputType.Hex -> strings.hexLabel
         DomainColorInputType.Rgb -> strings.rgbLabel
-        DomainColorInputType.VisualPicker -> "PICKER" // TODO: use string
+        DomainColorInputType.Hsv -> "HSV" // TODO: use ColorInputGroupUiStrings
     }
 
 @Preview(uiMode = Configuration.UI_MODE_TYPE_NORMAL)
@@ -186,9 +186,9 @@ private fun Preview() {
                         strings = previewRgbUiStrings(),
                     )
                 },
-                pickerInput = {
-                    ColorInputPicker(
-                        data = previewPickerData(),
+                hsvInput = {
+                    ColorInputHsv(
+                        data = previewHsvData(),
                     )
                 },
             )
@@ -283,8 +283,8 @@ private fun previewRgbUiStrings() =
         ),
     )
 
-private fun previewPickerData() =
-    ColorInputPickerData(
+private fun previewHsvData() =
+    ColorInputHsvData(
         color = DomainColor.Hsv(hue = 259f, saturation = 0.65f, value = 0.82f),
         onColorChanged = {},
     )

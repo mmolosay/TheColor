@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.input.picker
+package io.github.mmolosay.thecolor.presentation.input.hsv
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -42,8 +42,8 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.input.picker.ColorUtils.HsvColor
-import io.github.mmolosay.thecolor.presentation.input.picker.ColorUtils.HsvHueRange
+import io.github.mmolosay.thecolor.presentation.input.hsv.ColorUtils.HsvColor
+import io.github.mmolosay.thecolor.presentation.input.hsv.ColorUtils.HsvHueRange
 import kotlin.math.nextDown
 import kotlin.math.roundToInt
 

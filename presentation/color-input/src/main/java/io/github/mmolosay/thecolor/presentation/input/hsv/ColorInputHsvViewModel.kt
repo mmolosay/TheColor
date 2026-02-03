@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.input.picker
+package io.github.mmolosay.thecolor.presentation.input.hsv
 
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -17,22 +17,30 @@ import kotlinx.coroutines.launch
 import javax.inject.Named
 import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
 
-class ColorInputPickerViewModel @AssistedInject constructor(
+/**
+ * Handles presentation logic of the 'HEX Color Input' feature.
+ *
+ * Unlike typical `ViewModel`s, it doesn't derive from Google's [ViewModel][androidx.lifecycle.ViewModel],
+ * thus cannot be instantiated using [ViewModelProvider][androidx.lifecycle.ViewModelProvider].
+ *
+ * Instead, it can be created within "simple" `ViewModel` or Google's `ViewModel`.
+ */
+class ColorInputHsvViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     @Assisted private val mediator: ColorInputMediator,
     private val colorConverter: ColorConverter,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
-    private val _dataStateFlow = MutableStateFlow<DataState<ColorInputPickerData>>(DataState.BeingInitialized)
-    val dataStateFlow: StateFlow<DataState<ColorInputPickerData>> = _dataStateFlow.asStateFlow()
+    private val _dataStateFlow = MutableStateFlow<DataState<ColorInputHsvData>>(DataState.BeingInitialized)
+    val dataStateFlow: StateFlow<DataState<ColorInputHsvData>> = _dataStateFlow.asStateFlow()
 
     init {
         coroutineScope.launch(defaultDispatcher) {
             mediator.colorStateFlow.collect { (color, source) ->
                 // don't update text fields to avoid update loop if the color was set from this 'Color Input' type
 //                 if (source == DomainColorInputType.VisualPicker) return@collect
-                val data = ColorInputPickerData(
+                val data = ColorInputHsvData(
                     color = with(colorConverter) { color?.toHsv() },
                     onColorChanged = ::onColorChanged,
                 )
@@ -42,7 +50,7 @@ class ColorInputPickerViewModel @AssistedInject constructor(
     }
 
     private fun onColorChanged(newColor: Color.Hsv) {
-        mediator.set(color = newColor, source = DomainColorInputType.VisualPicker)
+        mediator.set(color = newColor, source = DomainColorInputType.Hsv)
     }
 
     @AssistedFactory
@@ -50,6 +58,6 @@ class ColorInputPickerViewModel @AssistedInject constructor(
         fun create(
             coroutineScope: CoroutineScope,
             mediator: ColorInputMediator,
-        ): ColorInputPickerViewModel
+        ): ColorInputHsvViewModel
     }
 }

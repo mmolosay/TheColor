@@ -8,8 +8,8 @@ import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexViewModel
+import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
-import io.github.mmolosay.thecolor.presentation.input.picker.ColorInputPickerViewModel
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -36,7 +36,7 @@ class ColorInputGroupViewModel @AssistedInject constructor(
     @Assisted submitAction: ColorInputSubmitAction,
     hexViewModelFactory: ColorInputHexViewModel.Factory,
     rgbViewModelFactory: ColorInputRgbViewModel.Factory,
-    pickerViewModelFactory: ColorInputPickerViewModel.Factory,
+    hsvViewModelFactory: ColorInputHsvViewModel.Factory,
     private val userPreferencesRepository: UserPreferencesRepository,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
@@ -58,8 +58,8 @@ class ColorInputGroupViewModel @AssistedInject constructor(
             submitAction = submitAction,
         )
 
-    val pickerViewModel: ColorInputPickerViewModel =
-        pickerViewModelFactory.create(
+    val hsvViewModel: ColorInputHsvViewModel =
+        hsvViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
             mediator = mediator,
         )
@@ -100,7 +100,7 @@ class ColorInputGroupViewModel @AssistedInject constructor(
         super.dispose()
         hexViewModel.dispose()
         rgbViewModel.dispose()
-        pickerViewModel.dispose()
+        hsvViewModel.dispose()
     }
 
     interface DataState {
