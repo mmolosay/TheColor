@@ -9,6 +9,7 @@ import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.WithSource
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.ClearTextFeature
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -41,6 +42,7 @@ class TextFieldViewModel @AssistedInject constructor(
 ) : SimpleViewModel(coroutineScope) {
 
     private val dataUpdateMutex = Mutex()
+    private val clearTextAction: () -> Unit = { updateTextByUser(Text("")) }
 
     private val _dataFlow: MutableStateFlow<TextFieldData> = run {
         val textWithSource = Text(initialText) causedByUser false // coerce initial data to be caused by not a user
@@ -93,14 +95,12 @@ class TextFieldViewModel @AssistedInject constructor(
             clearText = clearTextFeatureOrNull(text = text.data),
         )
 
-    private fun clearTextFeatureOrNull(text: Text): TextFieldData.ClearTextFeature? {
+    private fun clearTextFeatureOrNull(text: Text): ClearTextFeature? {
         if (!enableClearTextFeature) return null
-        return object : TextFieldData.ClearTextFeature {
-            override val willBeIdempotent: Boolean =
-                text.string.isEmpty()
-            override fun invoke() =
-                updateTextByUser(Text(""))
-        }
+        return ClearTextFeatureImpl(
+            willBeIdempotent = text.string.isEmpty(),
+            invoke = clearTextAction,
+        )
     }
 
     private fun makeInitialData(text: WithSource<Text>) =
@@ -114,6 +114,14 @@ class TextFieldViewModel @AssistedInject constructor(
                 .value.let { it ?: DefaultUserPreferences.SelectAllTextOnTextFieldFocus }
                 .enabled,
         )
+
+    /** An implementation of the [ClearTextFeature] that supports meaningful equality check. */
+    private data class ClearTextFeatureImpl(
+        override val willBeIdempotent: Boolean,
+        private val invoke: () -> Unit,
+    ) : ClearTextFeature {
+        override fun invoke() = this.invoke.invoke()
+    }
 
     @AssistedFactory
     interface Factory {

@@ -121,6 +121,22 @@ class TextFieldViewModelTest {
     }
 
     @Test
+    fun `given that 'clear text' feature is enabled, when text is updated with the same value, then previous and new instances of the 'clear text' are equal`() =
+        runTest(testDispatcher) {
+            val initialText = ""
+            createSut(
+                initialText = initialText,
+                enableClearTextFeature = true,
+            )
+            val firstClearTextFeature = data.clearText
+
+            sut.updateText(Text(""))
+            val secondClearTextFeature = data.clearText
+
+            firstClearTextFeature shouldBe secondClearTextFeature
+        }
+
+    @Test
     fun `given that 'clear text' feature is disabled, when SUT is created with empty text, then 'clear text' feature is absent`() {
         createSut(
             initialText = "",
