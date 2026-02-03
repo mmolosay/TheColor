@@ -14,7 +14,7 @@ sealed interface Color {
     ) : Color {
 
         init {
-            require(value in ColorConstants.HexColorIntRange)
+            require(value in Range)
         }
 
         // for a convenient presentation in debugger
@@ -24,6 +24,10 @@ sealed interface Color {
                 .padStart(6, '0')
                 .uppercase()
                 .let { "#$it" }
+
+        companion object {
+            val Range = 0..0xFFFFFF
+        }
     }
 
     data class Rgb(
@@ -33,14 +37,16 @@ sealed interface Color {
     ) : Color {
 
         init {
-            require(r in ColorConstants.RgbColorComponentIntRange)
-            require(g in ColorConstants.RgbColorComponentIntRange)
-            require(b in ColorConstants.RgbColorComponentIntRange)
+            require(listOf(r, g, b).all { it in ComponentRange })
         }
 
         // for a convenient presentation in debugger
         override fun toString(): String =
             "r=$r,g=$g,b=$b"
+
+        companion object {
+            val ComponentRange = 0..255
+        }
     }
 
     data class Hsv(
@@ -50,13 +56,19 @@ sealed interface Color {
     ) : Color {
 
         init {
-            require(hue in ColorConstants.HsvHueRange)
-            require(saturation in ColorConstants.HsvSaturationRange)
-            require(value in ColorConstants.HsvValueRange)
+            require(hue in HueRange)
+            require(saturation in SaturationRange)
+            require(value in ValueRange)
         }
 
         // for a convenient presentation in debugger
         override fun toString(): String =
             "h=$hue,s=$saturation,v=$value"
+
+        companion object {
+            val HueRange = 0f..<360f
+            val SaturationRange = 0f..1f
+            val ValueRange = 0f..1f
+        }
     }
 }

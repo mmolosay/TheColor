@@ -1,7 +1,6 @@
 package io.github.mmolosay.thecolor.domain.usecase
 
 import io.github.mmolosay.thecolor.domain.model.Color
-import io.github.mmolosay.thecolor.domain.model.ColorConstants
 import io.github.mmolosay.thecolor.utils.truncateDecimalPlaces
 import javax.inject.Inject
 import kotlin.math.abs
@@ -75,7 +74,7 @@ class ColorConverter @Inject constructor() {
         val nG = normalize(cG)
         val nB = normalize(cB)
         fun quantize(normalizedComponent: Float): Int =
-            (normalizedComponent * ColorConstants.RgbColorComponentIntRange.last).roundToInt()
+            (normalizedComponent * Color.Rgb.ComponentRange.last).roundToInt()
         val r = quantize(nR)
         val g = quantize(nG)
         val b = quantize(nB)
@@ -84,7 +83,7 @@ class ColorConverter @Inject constructor() {
 
     fun Color.Rgb.toHsv(): Color.Hsv {
         fun normalize(rgbComponent: Int): Float {
-            val rgbComponentMaxValue = ColorConstants.RgbColorComponentIntRange.last
+            val rgbComponentMaxValue = Color.Rgb.ComponentRange.last
             return (rgbComponent.toFloat() / rgbComponentMaxValue)
         }
         val nR = normalize(this.r)

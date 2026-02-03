@@ -1,7 +1,6 @@
 package io.github.mmolosay.thecolor.domain.usecase
 
 import io.github.mmolosay.thecolor.domain.model.Color
-import io.github.mmolosay.thecolor.domain.model.ColorConstants.HexColorIntRange
 import io.github.mmolosay.thecolor.domain.model.ColorPrototype
 import javax.inject.Inject
 import kotlin.random.Random
@@ -37,8 +36,7 @@ class ColorFactory @Inject constructor(
     }
 
     fun random(): Color {
-        val hexIntRange = HexColorIntRange
-        val hexInt = Random.nextInt(hexIntRange)
+        val hexInt = Random.nextInt(Color.Hex.Range)
         return Color.Hex(value = hexInt)
     }
 }

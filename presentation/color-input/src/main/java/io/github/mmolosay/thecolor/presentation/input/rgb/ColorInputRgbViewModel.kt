@@ -3,7 +3,7 @@ package io.github.mmolosay.thecolor.presentation.input.rgb
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.domain.model.ColorConstants
+import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.repository.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
@@ -133,8 +133,8 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             .take(3) // rgb component can be up to 3 digits long
             .let { string ->
                 if (string.isEmpty()) return@let ""
-                val rgbComponentMinValue = ColorConstants.RgbColorComponentIntRange.first
-                val rgbComponentMaxValue = ColorConstants.RgbColorComponentIntRange.last
+                val rgbComponentMinValue = Color.Rgb.ComponentRange.first
+                val rgbComponentMaxValue = Color.Rgb.ComponentRange.last
                 var int = string.toIntOrNull() ?: rgbComponentMinValue // remove leading zeros
                 // reduce int from right until it's in range
                 while (int > rgbComponentMaxValue) {
