@@ -19,7 +19,6 @@ import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCorout
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommand
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEvent
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorRole
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterComponentsConsumerRegistry.ConsumerId
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterSessionStore.SessionState
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.CanProceed
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ColorSchemeSelectedSwatchData
@@ -34,29 +33,22 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
 import io.github.mmolosay.thecolor.utils.OpenSuspendGate
 import io.github.mmolosay.thecolor.utils.SuspendGate
 import io.github.mmolosay.thecolor.utils.doNothing
-import io.github.mmolosay.thecolor.utils.receiveAllUntil
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
@@ -115,45 +107,16 @@ class HomeViewModel @Inject constructor(
         colorCenterComponentsStoreFactory.create(
             viewModelScope = viewModelScope,
         )
-    private val componentsConsumerRegistry = ColorCenterComponentsConsumerRegistry()
 
-    val colorCenterViewModelFlow: StateFlow<ColorCenterViewModel?> = kotlin.run {
-        val consumedComponents = mutableListOf<ColorCenterComponents?>()
-        val consumedComponentsMutex = Mutex()
-        val componentsConsumedConfirmationChannel = kotlin.run {
-            val consumerId = ConsumerId("colorCenterViewModelFlow")
-            componentsConsumerRegistry.register(consumerId)
-        }
-        colorCenterComponentsStore.componentsFlow
-            .transformLatest { components ->
-                gates.gateForFlowOfColorCenterViewModel.awaitOpen()
-                consumedComponentsMutex.withLock {
-                    consumedComponents += components
-                }
-                emit(components?.colorCenterViewModel)
-            }
-            .flowOn(defaultDispatcher)
-            .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = null)
-            .also { flow ->
-                viewModelScope.launch(defaultDispatcher) {
-                    flow.collect {
-                        consumedComponentsMutex.withLock {
-                            consumedComponents.forEach { components ->
-                                componentsConsumedConfirmationChannel.send(components)
-                            }
-                            consumedComponents.clear()
-                        }
-                    }
-                }
-            }
-    }
+    private val _colorCenterViewModelFlow = MutableStateFlow<ColorCenterViewModel?>(null)
+    val colorCenterViewModelFlow: StateFlow<ColorCenterViewModel?> = _colorCenterViewModelFlow.asStateFlow()
 
     private val ccSessionStore = ColorCenterSessionStore()
     private var jobWithProceed: Job? = null
+    private var jobWithComponentsCollection: Job? = null
 
     init {
         collectColorsFromColorInput()
-        collectColorCenterComponents()
         maybeProceedWithLastSearchedColor()
     }
 
@@ -178,36 +141,6 @@ class HomeViewModel @Inject constructor(
             colorPreviewViewModel.setColor(color)
         }
     }
-
-    private fun collectColorCenterComponents() =
-        viewModelScope.launch(defaultDispatcher) {
-            val componentsConsumedConfirmationChannel = kotlin.run {
-                val consumerId = ConsumerId("collectColorCenterComponents()")
-                componentsConsumerRegistry.register(consumerId)
-            }
-            colorCenterComponentsStore.componentsFlow.collectLatest { components ->
-                coroutineScope {
-                    if (components != null) {
-                        launch {
-                            components.colorDetailsEventStore.eventFlow
-                                .collect(::onEventFromColorDetailsOfColorCenter)
-                        }
-                        launch {
-                            components.colorSchemeEventStore.eventFlow
-                                .collect(::onEventFromColorScheme)
-                        }
-                        launch {
-                            components.selectedSwatchColorDetailsEventStore.eventFlow
-                                .collect(::onEventFromColorDetailsOfSelectedSwatch)
-                        }
-                    }
-                    launch {
-                        gates.gateForCollectColorCenterComponent.awaitOpen()
-                        componentsConsumedConfirmationChannel.send(components)
-                    }
-                }
-            }
-        }
 
     private fun onEventFromColorDetailsOfColorCenter(event: ColorDetailsEvent) {
         when (event) {
@@ -280,7 +213,6 @@ class HomeViewModel @Inject constructor(
             dataUpdateGuard.withCounter {
                 proceedInNewColorCenterSession(color, colorRole = null)
                 colorInputMediator.set(color)
-                componentsConsumerRegistry.suspendUntilAllConsumed()
             }
         }.also { job ->
             job.setToJobWithProceed()
@@ -294,7 +226,6 @@ class HomeViewModel @Inject constructor(
                 val color = requireNotNull(colorInputMediator.colorStateFlow.value.color)
                 onColorCenterSessionEnded() // end current session (if any)
                 proceedInNewColorCenterSession(color, colorRole = null)
-                componentsConsumerRegistry.suspendUntilAllConsumed()
             }
         }.also { job ->
             job.setToJobWithProceed()
@@ -304,29 +235,54 @@ class HomeViewModel @Inject constructor(
     /**
      * Invokes [proceed] action and starts a new Color Center session, which also means
      * new [ColorCenterComponents] are created.
-     * You may also want to call [ColorCenterComponentsConsumerRegistry.suspendUntilAllConsumed].
      */
-    private fun CoroutineScope.proceedInNewColorCenterSession(
+    private suspend fun CoroutineScope.proceedInNewColorCenterSession(
         color: Color,
         colorRole: ColorRole?,
     ) {
         colorCenterComponentsStore.createNewComponents()
+        run consumeNewComponents@{
+            val newComponents = colorCenterComponentsStore.components
+            _colorCenterViewModelFlow.emit(newComponents?.colorCenterViewModel)
+            // collect components' flows in a standalone coroutine to decouple it from the 'jobWithProceed'
+            viewModelScope.launch(defaultDispatcher) {
+                if (newComponents != null) {
+                    launch {
+                        newComponents.colorDetailsEventStore.eventFlow
+                            .collect(::onEventFromColorDetailsOfColorCenter)
+                    }
+                    launch {
+                        newComponents.colorSchemeEventStore.eventFlow
+                            .collect(::onEventFromColorScheme)
+                    }
+                    launch {
+                        newComponents.selectedSwatchColorDetailsEventStore.eventFlow
+                            .collect(::onEventFromColorDetailsOfSelectedSwatch)
+                    }
+                }
+            }.also { job ->
+                jobWithComponentsCollection?.cancel()
+                jobWithComponentsCollection = job
+            }
+        }
         onColorCenterSessionStarted(color)
         proceed(color, colorRole)
     }
 
-    private fun CoroutineScope.proceed(
+    private suspend fun proceed(
         color: Color,
         colorRole: ColorRole?,
     ) {
         val components = requireNotNull(colorCenterComponentsStore.components)
-        launch issueCommandToColorDetails@{
-            val command = ColorDetailsCommand.FetchData(color, colorRole)
-            components.colorDetailsCommandStore.issue(command)
-        }
-        launch issueCommandToColorScheme@{
-            val command = ColorSchemeCommand.FetchData(color)
-            components.colorSchemeCommandStore.issue(command)
+        coroutineScope {
+            launch issueCommandToColorDetails@{
+                val command = ColorDetailsCommand.FetchData(color, colorRole)
+                components.colorDetailsCommandStore.issue(command)
+            }
+            launch issueCommandToColorScheme@{
+                val command = ColorSchemeCommand.FetchData(color)
+                components.colorSchemeCommandStore.issue(command)
+            }
         }
         kotlin.run updateData@{
             val colorData = createColorData(color)
@@ -350,7 +306,6 @@ class HomeViewModel @Inject constructor(
                 dataUpdateGuard.withCounter {
                     proceedInNewColorCenterSession(color, colorRole = null)
                     colorInputMediator.set(color)
-                    componentsConsumerRegistry.suspendUntilAllConsumed()
                 }
             } else {
                 colorInputMediator.set(color)
@@ -408,18 +363,16 @@ class HomeViewModel @Inject constructor(
 
     private fun CoroutineScope.onColorCenterSessionStarted(seed: Color) {
         val components = requireNotNull(colorCenterComponentsStore.components)
-        ccSessionStore.set(
-            SessionState.BeingBuilt(seed, coroutineContext.job)
-        )
-        launch(defaultDispatcher) {
-            val event = components.colorDetailsEventStore.eventFlow
-                .filterIsInstance<ColorDetailsEvent.DataFetched>()
-                .first { it.domainDetails.color == seed }
-            val relatedColors = setOf(event.domainDetails.exact.color)
-            ensureActive()
-            ccSessionStore.set(
-                SessionState.Ongoing(session = ColorCenterSession(seed, relatedColors))
-            )
+        launch(defaultDispatcher, start = CoroutineStart.UNDISPATCHED) {
+            ccSessionStore.startBuilding(seed).run {
+                val event = components.colorDetailsEventStore.eventFlow
+                    .filterIsInstance<ColorDetailsEvent.DataFetched>()
+                    .first { it.domainDetails.color == seed }
+                val relatedColors = setOf(event.domainDetails.exact.color)
+                val session = ColorCenterSession(seed, relatedColors)
+                ensureActive()
+                complete(session)
+            }
         }
         launch(defaultDispatcher) {
             lastSearchedColorRepository.setLastSearchedColor(seed)
@@ -427,8 +380,9 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun onColorCenterSessionEnded() {
-        ccSessionStore.set(SessionState.NoSession)
+        ccSessionStore.clear()
         colorCenterComponentsStore.disposeComponents()
+        jobWithComponentsCollection?.cancel()
     }
 
     // private extension for HomeViewModel, which always sets a color with null 'source'
@@ -439,11 +393,6 @@ class HomeViewModel @Inject constructor(
     private fun Job.setToJobWithProceed() {
         jobWithProceed?.cancel()
         jobWithProceed = this
-    }
-
-    private suspend fun ColorCenterComponentsConsumerRegistry.suspendUntilAllConsumed() {
-        val components = colorCenterComponentsStore.components
-        this.suspendUntilAllConsumed(components)
     }
 
     private fun Color.doesBelongToCurrentSession(): Boolean {
@@ -467,7 +416,6 @@ class HomeViewModel @Inject constructor(
                         dataUpdateGuard.withCounter {
                             val color = validationResult.color
                             proceedInNewColorCenterSession(color, colorRole = null)
-                            componentsConsumerRegistry.suspendUntilAllConsumed()
                         }
                     }.also { job ->
                         job.setToJobWithProceed()
@@ -489,8 +437,6 @@ class HomeViewModel @Inject constructor(
 
     /** A collection of [SuspendGate]s for [HomeViewModel]. */
     data class SuspendGates(
-        val gateForFlowOfColorCenterViewModel: SuspendGate,
-        val gateForCollectColorCenterComponent: SuspendGate,
         val gateForDataUpdateGuard: SuspendGate,
     )
 }
@@ -502,8 +448,6 @@ internal object HomeViewModelDiModule {
     @Provides
     fun provideSuspendGates(): HomeViewModel.SuspendGates =
         HomeViewModel.SuspendGates(
-            gateForFlowOfColorCenterViewModel = OpenSuspendGate,
-            gateForCollectColorCenterComponent = OpenSuspendGate,
             gateForDataUpdateGuard = OpenSuspendGate,
         )
 }
@@ -550,58 +494,48 @@ private class DataUpdateGuard(
         numberOfOngoingUpdates > 0
 }
 
-/**
- * Coordinates confirmation from multiple consumers that a shared [ColorCenterComponents] instance
- * has been received and processed.
- *
- * This registry is used to ensure that all [register]ed consumers have consumed the latest components
- * before proceeding. It provides a method [suspendUntilAllConsumed] to suspend until
- * every consumer has acknowledged the most recent components.
- * This avoids relying on flow emission timing (that may get delayed due to non-deterministic
- * CPU scheduling) to guarantee that all consumers have processed the latest components before
- * [DataUpdateGuard] finishes ongoing data transaction.
- *
- * This "await confirmation from consumer" approach, rather than simple
- * `flowOfMappedComponents.first { ... }`, avoids making a transitive assumption about the
- * implementation of consumers (the fact that they employ / depend on components).
- */
-private class ColorCenterComponentsConsumerRegistry {
-
-    private val mapOfConsumersToChannels =
-        mutableMapOf<ConsumerId, ReceiveChannel<ColorCenterComponents?>>()
-
-    fun register(consumer: ConsumerId): SendChannel<ColorCenterComponents?> {
-        require(mapOfConsumersToChannels[consumer] == null) { "Consumer is already registered" }
-        val consumedConfirmationChannel = Channel<ColorCenterComponents?>(Channel.CONFLATED)
-        mapOfConsumersToChannels[consumer] = consumedConfirmationChannel
-        return consumedConfirmationChannel
-    }
-
-    suspend fun suspendUntilAllConsumed(components: ColorCenterComponents?) {
-        coroutineScope {
-            mapOfConsumersToChannels.values.forEach { consumedConfirmationChannel ->
-                launch {
-                    consumedConfirmationChannel.receiveAllUntil(components)
-                }
-            }
-        }
-    }
-
-    @JvmInline
-    value class ConsumerId(val value: Any)
-}
-
+// TODO: write unit tests
 private class ColorCenterSessionStore {
 
     private val _flowOfSessionState = MutableStateFlow<SessionState>(SessionState.NoSession)
     val flowOfSessionState = _flowOfSessionState.asStateFlow()
 
-    fun set(state: SessionState) {
+    fun clear() {
         _flowOfSessionState.update { currentState ->
             if (currentState is SessionState.BeingBuilt) {
                 currentState.job.cancel()
             }
-            return@update state
+            SessionState.NoSession
+        }
+    }
+
+    suspend fun startBuilding(seed: Color): SessionBuildingScope {
+        var newState: SessionState.BeingBuilt? = null
+        _flowOfSessionState.update { currentState ->
+            val job = currentCoroutineContext().job
+            if (currentState is SessionState.BeingBuilt) {
+                currentState.job.cancel()
+            }
+            SessionState.BeingBuilt(seed, job).also { newState = it }
+        }
+        return SessionBuildingScopeImpl(origin = newState!!) // TODO: bug-prone, redesign
+    }
+
+    interface SessionBuildingScope {
+        fun complete(session: ColorCenterSession)
+    }
+
+    private inner class SessionBuildingScopeImpl(
+        private val origin: SessionState.BeingBuilt,
+    ) : SessionBuildingScope {
+
+        override fun complete(session: ColorCenterSession) {
+            _flowOfSessionState.update { currentState ->
+                if (currentState != origin) {
+                    error("Cannot complete stale session building scope")
+                }
+                SessionState.Ongoing(session)
+            }
         }
     }
 
