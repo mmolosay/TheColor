@@ -379,7 +379,7 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun onColorCenterSessionEnded() {
+    private suspend fun onColorCenterSessionEnded() {
         ccSessionStore.clear()
         colorCenterComponentsStore.disposeComponents()
         jobWithComponentsCollection?.cancel()
@@ -494,49 +494,55 @@ private class DataUpdateGuard(
         numberOfOngoingUpdates > 0
 }
 
-// TODO: write unit tests
-private class ColorCenterSessionStore {
+/* 'internal' for testing */
+internal class ColorCenterSessionStore {
 
     private val _flowOfSessionState = MutableStateFlow<SessionState>(SessionState.NoSession)
     val flowOfSessionState = _flowOfSessionState.asStateFlow()
 
-    fun clear() {
-        _flowOfSessionState.update { currentState ->
-            if (currentState is SessionState.BeingBuilt) {
-                currentState.job.cancel()
-            }
-            SessionState.NoSession
-        }
-    }
+    private val updateStateMutex = Mutex()
 
-    suspend fun startBuilding(seed: Color): SessionBuildingScope {
-        var newState: SessionState.BeingBuilt? = null
-        _flowOfSessionState.update { currentState ->
-            val job = currentCoroutineContext().job
-            if (currentState is SessionState.BeingBuilt) {
-                currentState.job.cancel()
+    suspend fun clear() =
+        updateStateMutex.withLock {
+            _flowOfSessionState.update { currentState ->
+                currentState.cancelIfBuilding()
+                return@update SessionState.NoSession
             }
-            SessionState.BeingBuilt(seed, job).also { newState = it }
         }
-        return SessionBuildingScopeImpl(origin = newState!!) // TODO: bug-prone, redesign
+
+    suspend fun startBuilding(seed: Color): SessionBuildingScope =
+        updateStateMutex.withLock {
+            val newState = SessionState.BeingBuilt(seed, currentCoroutineContext().job)
+            _flowOfSessionState.update { currentState ->
+                currentState.cancelIfBuilding()
+                return@update newState
+            }
+            return SessionBuildingScopeImpl(origin = newState)
+        }
+
+    private fun SessionState.cancelIfBuilding() {
+        if (this is SessionState.BeingBuilt) {
+            this.job.cancel()
+        }
     }
 
     interface SessionBuildingScope {
-        fun complete(session: ColorCenterSession)
+        suspend fun complete(session: ColorCenterSession)
     }
 
     private inner class SessionBuildingScopeImpl(
         private val origin: SessionState.BeingBuilt,
     ) : SessionBuildingScope {
 
-        override fun complete(session: ColorCenterSession) {
-            _flowOfSessionState.update { currentState ->
-                if (currentState != origin) {
-                    error("Cannot complete stale session building scope")
+        override suspend fun complete(session: ColorCenterSession) =
+            updateStateMutex.withLock {
+                _flowOfSessionState.update { currentState ->
+                    if (currentState != origin) {
+                        error("Cannot complete building session in the stale scope")
+                    }
+                    SessionState.Ongoing(session)
                 }
-                SessionState.Ongoing(session)
             }
-        }
     }
 
     sealed interface SessionState {
