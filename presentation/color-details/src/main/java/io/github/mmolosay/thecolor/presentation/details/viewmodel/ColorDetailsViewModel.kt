@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -50,7 +51,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
     private val _dataStateFlow = MutableStateFlow<DataState>(DataState.Idle)
     val dataStateFlow = _dataStateFlow.asStateFlow()
 
-    private var fetchOrFindColorDetailsJob: Job? = null
+    private val fetchOrFindColorDetailsJob = AtomicReference<Job?>(null)
     private var lastFetchDataCommand: ColorDetailsCommand.FetchData? = null
     private val cachedDetails = mutableSetOf<DomainColorDetails>()
 
@@ -92,8 +93,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
         color: Color,
         colorRole: ColorRole?,
     ) {
-        fetchOrFindColorDetailsJob?.cancel()
-        fetchOrFindColorDetailsJob = coroutineScope.launch(defaultDispatcher) {
+        coroutineScope.launch(defaultDispatcher) {
             fun proceed(details: DomainColorDetails) {
                 setColorDetails(details, colorRole)
             }
@@ -119,6 +119,8 @@ class ColorDetailsViewModel @AssistedInject constructor(
                     )
                     _dataStateFlow.value = DataState.Error(error)
                 }
+        }.also { job ->
+            fetchOrFindColorDetailsJob.getAndSet(job)?.cancel()
         }
     }
 

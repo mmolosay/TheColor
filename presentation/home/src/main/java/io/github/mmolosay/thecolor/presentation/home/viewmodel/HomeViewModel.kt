@@ -54,6 +54,7 @@ import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -112,8 +113,8 @@ class HomeViewModel @Inject constructor(
     val colorCenterViewModelFlow: StateFlow<ColorCenterViewModel?> = _colorCenterViewModelFlow.asStateFlow()
 
     private val ccSessionStore = ColorCenterSessionStore()
-    private var jobWithProceed: Job? = null
-    private var jobWithComponentsCollection: Job? = null
+    private val jobWithProceed = AtomicReference<Job?>(null)
+    private val jobWithComponentsCollection = AtomicReference<Job?>(null)
 
     init {
         collectColorsFromColorInput()
@@ -261,8 +262,7 @@ class HomeViewModel @Inject constructor(
                     }
                 }
             }.also { job ->
-                jobWithComponentsCollection?.cancel()
-                jobWithComponentsCollection = job
+                jobWithComponentsCollection.getAndSet(job)?.cancel()
             }
         }
         onColorCenterSessionStarted(color)
@@ -382,7 +382,7 @@ class HomeViewModel @Inject constructor(
     private suspend fun onColorCenterSessionEnded() {
         ccSessionStore.clear()
         colorCenterComponentsStore.disposeComponents()
-        jobWithComponentsCollection?.cancel()
+        jobWithComponentsCollection.getAndSet(null)?.cancel()
     }
 
     // private extension for HomeViewModel, which always sets a color with null 'source'
@@ -391,8 +391,7 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun Job.setToJobWithProceed() {
-        jobWithProceed?.cancel()
-        jobWithProceed = this
+        jobWithProceed.getAndSet(this)?.cancel()
     }
 
     private fun Color.doesBelongToCurrentSession(): Boolean {

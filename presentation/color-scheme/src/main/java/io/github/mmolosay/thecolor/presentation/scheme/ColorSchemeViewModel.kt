@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -53,7 +54,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
-    private var fetchDataJob: Job? = null
+    private val fetchDataJob = AtomicReference<Job?>(null)
     private var lastUsedSeed: Color? = null
     private var lastDomainColorScheme: DomainColorScheme? = null
 
@@ -90,8 +91,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
         val requestConfig = assembleRequestConfig()
         val request = requestConfig.toDomainRequest(seed)
         _statefulDataFlow.updateState(State.Loading)
-        fetchDataJob?.cancel()
-        fetchDataJob = coroutineScope.launch(ioDispatcher) {
+        coroutineScope.launch(ioDispatcher) {
             colorRepository.getColorScheme(request)
                 .onSuccess { scheme ->
                     lastDomainColorScheme = scheme
@@ -109,6 +109,8 @@ class ColorSchemeViewModel @AssistedInject constructor(
                         it.copy(error = error, state = State.Error)
                     }
                 }
+        }.also { job ->
+            fetchDataJob.getAndSet(job)?.cancel()
         }
     }
 

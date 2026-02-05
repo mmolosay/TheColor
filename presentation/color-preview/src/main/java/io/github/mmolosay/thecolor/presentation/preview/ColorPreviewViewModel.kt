@@ -20,8 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Named
 import javax.inject.Qualifier
 
@@ -43,8 +42,7 @@ class ColorPreviewViewModel @AssistedInject constructor(
     private val _dataFlow = MutableStateFlow<ColorPreviewData?>(null)
     val dataFlow: StateFlow<ColorPreviewData?> = _dataFlow.asStateFlow()
 
-    private val setColorMutex = Mutex()
-    private var setColorJob: Job? = null
+    private val setColorJob = AtomicReference<Job?>(null)
 
     /**
      * Sets the new [color]. It will be transformed to the [ColorPreviewData] and exposed via [dataFlow].
@@ -63,10 +61,7 @@ class ColorPreviewViewModel @AssistedInject constructor(
             )
             _dataFlow.emit(data)
         }
-        setColorMutex.withLock {
-            setColorJob?.cancel()
-            setColorJob = job
-        }
+        setColorJob.getAndSet(job)?.cancel()
         job.join()
     }
 
