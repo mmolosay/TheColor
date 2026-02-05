@@ -148,10 +148,13 @@ class HomeViewModelTest {
     val createColorData: CreateColorDataUseCase = mockk()
 
     // real implementation, there's no need to have mock for color comparison
+    val colorComparator = ColorComparator(
+        colorConverter = ColorConverter(),
+    )
+
+    // real implementation, there's no need to have mock for color comparison
     val doesColorBelongToSession = DoesColorBelongToSessionUseCase(
-        colorComparator = ColorComparator(
-            colorConverter = ColorConverter(),
-        ),
+        colorComparator = colorComparator,
     )
 
     val userPreferencesRepository: UserPreferencesRepository = mockk {
@@ -1255,6 +1258,7 @@ class HomeViewModelTest {
                 gateForDataUpdateGuard = gateForDataUpdateGuard,
             ),
             createColorData = createColorData,
+            colorComparator = colorComparator,
             doesColorBelongToSession = doesColorBelongToSession,
             userPreferencesRepository = userPreferencesRepository,
             lastSearchedColorRepository = lastSearchedColorRepository,

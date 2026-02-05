@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.repository.LastSearchedColorRepository
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
+import io.github.mmolosay.thecolor.domain.usecase.ColorComparator
 import io.github.mmolosay.thecolor.domain.usecase.GetPredictableRandomColorUseCase
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
@@ -75,6 +76,7 @@ class HomeViewModel @Inject constructor(
     colorCenterComponentsStoreFactory: ColorCenterComponentsStore.Factory,
     private val gates: SuspendGates,
     private val createColorData: CreateColorDataUseCase,
+    private val colorComparator: ColorComparator,
     private val doesColorBelongToSession: DoesColorBelongToSessionUseCase,
     private val userPreferencesRepository: UserPreferencesRepository,
     private val lastSearchedColorRepository: LastSearchedColorRepository,
@@ -399,7 +401,7 @@ class HomeViewModel @Inject constructor(
         val sessionState = ccSessionStore.sessionState
         return when (sessionState) {
             is SessionState.NoSession -> false // no session -> nothing to belong to
-            is SessionState.BeingBuilt -> (sessionState.seed == color) // started this session
+            is SessionState.BeingBuilt -> with(colorComparator) { color isSameAs sessionState.seed } // started this session
             is SessionState.Ongoing -> with(doesColorBelongToSession) { color doesBelongTo sessionState.session }
         }
     }
