@@ -1,6 +1,5 @@
 package io.github.mmolosay.thecolor.presentation.scheme
 
-import arrow.atomic.update
 import arrow.optics.copy
 import arrow.optics.optics
 import dagger.assisted.Assisted
@@ -22,12 +21,17 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.SwatchCou
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.Config
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.DataState
 import io.github.mmolosay.thecolor.presentation.scheme.StatefulData.State
+import io.github.mmolosay.thecolor.utils.asDelegate
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
@@ -53,19 +57,26 @@ class ColorSchemeViewModel @AssistedInject constructor(
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
-    private val statefulData: AtomicReference<StatefulData> = run {
+    private val statefulDataFlow: MutableStateFlow<StatefulData> = run {
         val dataSession = DataSession(seed = null, domainColorScheme = null, data = null)
         val value = StatefulData(dataSession = dataSession, error = null, state = State.Idle)
-        AtomicReference(value)
+        MutableStateFlow(value)
     }
+    private val statefulData: StatefulData by statefulDataFlow.asDelegate()
+
+    val dataStateFlow: StateFlow<DataState> = statefulDataFlow
+        .map { it.toDataState() }
+        .flowOn(defaultDispatcher)
+        .stateIn(
+            scope = coroutineScope,
+            started = SharingStarted.Eagerly,
+            initialValue = statefulDataFlow.value.toDataState(),
+        )
 
     private val fetchDataJob = AtomicReference<Job?>(null)
     private val dataEditor = ColorSchemeDataEditor(
         applyChanges = ::applyChanges,
     )
-
-    private val _dataStateFlow = MutableStateFlow<DataState>(statefulData.get().toDataState())
-    val dataStateFlow: StateFlow<DataState> = _dataStateFlow.asStateFlow()
 
     init {
         collectColorSchemeCommands()
@@ -81,7 +92,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
     private fun ColorSchemeCommand.process() = when (this) {
         is ColorSchemeCommand.FetchData -> {
             val seed = this.color
-            statefulData.update {
+            statefulDataFlow.update {
                 it.copy { StatefulData.dataSession.seed set seed }
             }
             fetchColorScheme(seed)
@@ -91,18 +102,16 @@ class ColorSchemeViewModel @AssistedInject constructor(
     private fun fetchColorScheme(seed: Color) {
         val requestConfig = assembleRequestConfig()
         val request = requestConfig.toDomainRequest(seed)
-        _dataStateFlow.updateFromStateful {
+        statefulDataFlow.update {
             it.copy { StatefulData.state set State.Loading }
         }
         coroutineScope.launch(ioDispatcher) {
             colorRepository.getColorScheme(request)
                 .onSuccess { scheme ->
-                    statefulData.update {
-                        it.copy { StatefulData.dataSession.domainColorScheme set scheme }
-                    }
                     val data = createData(scheme = scheme, config = requestConfig)
-                    _dataStateFlow.updateFromStateful {
+                    statefulDataFlow.update {
                         it.copy {
+                            StatefulData.dataSession.domainColorScheme set scheme
                             StatefulData.dataSession.data set data
                             StatefulData.state set State.Ready
                         }
@@ -113,7 +122,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
                         type = failure.toErrorType(),
                         tryAgain = ::onErrorAction,
                     )
-                    _dataStateFlow.updateFromStateful {
+                    statefulDataFlow.update {
                         it.copy {
                             StatefulData.error set error
                             StatefulData.state set State.Error
@@ -138,13 +147,13 @@ class ColorSchemeViewModel @AssistedInject constructor(
         )
 
     private fun onErrorAction() {
-        val seed = requireNotNull(statefulData.get().dataSession.seed)
+        val seed = requireNotNull(statefulData.dataSession.seed)
         fetchColorScheme(seed = seed)
 
     }
 
     private fun sendSwatchSelectedEvent(indexOfSelectedSwatch: Int) {
-        val dataSession = statefulData.get().dataSession
+        val dataSession = statefulData.dataSession
         val lastDomainColorScheme = requireNotNull(dataSession.domainColorScheme)
         val swatch =
             dataSession.data?.swatches?.getOrNull(indexOfSelectedSwatch) ?: return
@@ -157,7 +166,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
     }
 
     private fun selectMode(mode: Mode) {
-        _dataStateFlow.updateFromStateful {
+        statefulDataFlow.update {
             val newData = with(dataEditor) {
                 it.dataSession.data?.copyConsistently(selectedMode = mode)
             }
@@ -166,7 +175,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
     }
 
     private fun selectSwatchCount(count: SwatchCount) {
-        _dataStateFlow.updateFromStateful {
+        statefulDataFlow.update {
             val newData = with(dataEditor) {
                 it.dataSession.data?.copyConsistently(selectedSwatchCount = count)
             }
@@ -175,15 +184,15 @@ class ColorSchemeViewModel @AssistedInject constructor(
     }
 
     private fun applyChanges() {
-        val stateful = statefulData.get()
-        val data = stateful.dataSession.data ?: return
+        val dataSession = statefulData.dataSession
+        val data = dataSession.data ?: return
         if (data.changes !is Changes.Present) return // ignore clicks during button hiding animation
-        val seed = stateful.dataSession.seed ?: return
+        val seed = dataSession.seed ?: return
         fetchColorScheme(seed)
     }
 
     private fun assembleRequestConfig(): Config {
-        val data = statefulData.get().dataSession.data
+        val data = statefulData.dataSession.data
         return if (data != null)
             Config(
                 mode = data.selectedMode,
@@ -202,13 +211,6 @@ class ColorSchemeViewModel @AssistedInject constructor(
             mode = this.mode,
             swatchCount = this.swatchCount.value,
         )
-
-    private fun MutableStateFlow<DataState>.updateFromStateful(
-        update: (StatefulData) -> StatefulData,
-    ) {
-        val newData = statefulData.updateAndGet(update)
-        this.value = newData.toDataState()
-    }
 
     /** [GetColorSchemeRequest] mapped to presentation layer model. */
     data class Config(
