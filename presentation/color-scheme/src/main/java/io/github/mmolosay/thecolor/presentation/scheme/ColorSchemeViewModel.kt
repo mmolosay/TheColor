@@ -60,6 +60,9 @@ class ColorSchemeViewModel @AssistedInject constructor(
     }
 
     private val fetchDataJob = AtomicReference<Job?>(null)
+    private val dataEditor = ColorSchemeDataEditor(
+        applyChanges = ::applyChanges,
+    )
 
     private val _dataStateFlow = MutableStateFlow<DataState>(statefulData.get().toDataState())
     val dataStateFlow: StateFlow<DataState> = _dataStateFlow.asStateFlow()
@@ -155,18 +158,18 @@ class ColorSchemeViewModel @AssistedInject constructor(
 
     private fun selectMode(mode: Mode) {
         _dataStateFlow.updateFromStateful {
-            val newData = it.dataSession.data
-                ?.copy { ColorSchemeData.selectedMode set mode }
-                ?.harmonize()
+            val newData = with(dataEditor) {
+                it.dataSession.data?.copyConsistently(selectedMode = mode)
+            }
             it.copy { StatefulData.dataSession.data set newData }
         }
     }
 
     private fun selectSwatchCount(count: SwatchCount) {
         _dataStateFlow.updateFromStateful {
-            val newData = it.dataSession.data
-                ?.copy { ColorSchemeData.selectedSwatchCount set count }
-                ?.harmonize()
+            val newData = with(dataEditor) {
+                it.dataSession.data?.copyConsistently(selectedSwatchCount = count)
+            }
             it.copy { StatefulData.dataSession.data set newData }
         }
     }
@@ -199,23 +202,6 @@ class ColorSchemeViewModel @AssistedInject constructor(
             mode = this.mode,
             swatchCount = this.swatchCount.value,
         )
-
-    /** Synchronizes values between each other, ensuring data integrity. */
-    private fun ColorSchemeData.harmonize(): ColorSchemeData {
-        val changes = run {
-            fun hasModeChanged() = (selectedMode != activeMode)
-            fun hasSwatchCountChanged() = (selectedSwatchCount != activeSwatchCount)
-            val hasChanges = (hasModeChanged() || hasSwatchCountChanged())
-            if (hasChanges) {
-                Changes.Present(applyChanges = ::applyChanges)
-            } else {
-                Changes.None
-            }
-        }
-        return this.copy(
-            changes = changes,
-        )
-    }
 
     private fun MutableStateFlow<DataState>.updateFromStateful(
         update: (StatefulData) -> StatefulData,
@@ -295,6 +281,7 @@ private fun StatefulData.toDataState(): DataState =
     }
 
 @Singleton
+// 'private' but Dagger
 class CreateColorSchemeDataUseCase @Inject constructor(
     private val colorToColorInt: ColorToColorIntUseCase,
     private val isColorLight: IsColorLightUseCase,
@@ -326,4 +313,40 @@ class CreateColorSchemeDataUseCase @Inject constructor(
             color = with(colorToColorInt) { toColorInt() },
             isDark = with(isColorLight) { isLight().not() },
         )
+}
+
+/**
+ * Creates updated copies of [ColorSchemeData] while ensuring data consistency.
+ */
+// 'private' but Dagger
+class ColorSchemeDataEditor(
+    private val applyChanges: () -> Unit,
+) {
+
+    fun ColorSchemeData.copyConsistently(
+        selectedMode: Mode = this.selectedMode,
+        selectedSwatchCount: SwatchCount = this.selectedSwatchCount,
+    ): ColorSchemeData =
+        this.copy(
+            selectedMode = selectedMode,
+            selectedSwatchCount = selectedSwatchCount,
+            changes = Changes(
+                selectedMode,
+                this.activeMode,
+                selectedSwatchCount,
+                this.activeSwatchCount,
+            ),
+        )
+
+    private fun Changes(
+        selectedMode: Mode,
+        activeMode: Mode,
+        selectedSwatchCount: SwatchCount,
+        activeSwatchCount: SwatchCount,
+    ): Changes {
+        fun hasModeChanged() = (selectedMode != activeMode)
+        fun hasSwatchCountChanged() = (selectedSwatchCount != activeSwatchCount)
+        val hasChanges = (hasModeChanged() || hasSwatchCountChanged())
+        return if (hasChanges) Changes.Present(applyChanges) else Changes.None
+    }
 }
