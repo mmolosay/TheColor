@@ -69,11 +69,11 @@ class ColorDetailsViewModel @AssistedInject constructor(
     private fun ColorDetailsCommand.process() = when (this) {
         is ColorDetailsCommand.FetchData -> {
             lastFetchDataCommand = this
-            updateCurrentSeedData(color = this.color)
+            _currentSeedDataFlow.value = createSeedData(this.color)
             fetchOrFindColorDetails(command = this)
         }
         is ColorDetailsCommand.SetColorDetails -> {
-            updateCurrentSeedData(color = this.domainDetails.color)
+            _currentSeedDataFlow.value = createSeedData(this.domainDetails.color)
             setColorDetails(
                 domainDetails = this.domainDetails,
                 colorRole = null,
@@ -135,10 +135,6 @@ class ColorDetailsViewModel @AssistedInject constructor(
             val event = ColorDetailsEvent.DataFetched(domainDetails)
             eventStore.send(event)
         }
-    }
-
-    private fun updateCurrentSeedData(color: Color) {
-        _currentSeedDataFlow.value = createSeedData(color)
     }
 
     private fun createData(
