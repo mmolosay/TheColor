@@ -52,7 +52,6 @@ class ColorDetailsViewModel @AssistedInject constructor(
     val dataStateFlow = _dataStateFlow.asStateFlow()
 
     private val fetchOrFindColorDetailsJob = AtomicReference<Job?>(null)
-    private var lastFetchDataCommand: ColorDetailsCommand.FetchData? = null
     private val cachedDetails = mutableSetOf<DomainColorDetails>()
 
     init {
@@ -68,7 +67,6 @@ class ColorDetailsViewModel @AssistedInject constructor(
 
     private fun ColorDetailsCommand.process() = when (this) {
         is ColorDetailsCommand.FetchData -> {
-            lastFetchDataCommand = this
             _currentSeedDataFlow.value = createSeedData(this.color)
             fetchOrFindColorDetails(command = this)
         }
@@ -83,17 +81,9 @@ class ColorDetailsViewModel @AssistedInject constructor(
 
     private fun fetchOrFindColorDetails(
         command: ColorDetailsCommand.FetchData,
-    ) =
-        fetchOrFindColorDetails(
-            color = command.color,
-            colorRole = command.colorRole,
-        )
-
-    private fun fetchOrFindColorDetails(
-        color: Color,
-        colorRole: ColorRole?,
     ) {
         coroutineScope.launch(defaultDispatcher) {
+            val (color, colorRole) = command
             fun proceed(details: DomainColorDetails) {
                 setColorDetails(details, colorRole)
             }
@@ -115,7 +105,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
                 .onFailure { failure ->
                     val error = ColorDetailsError(
                         type = failure.toErrorType(),
-                        tryAgain = ::onErrorAction,
+                        tryAgain = { fetchOrFindColorDetails(command) },
                     )
                     _dataStateFlow.value = DataState.Error(error)
                 }
@@ -177,11 +167,6 @@ class ColorDetailsViewModel @AssistedInject constructor(
             val event = ColorDetailsEvent.ColorSelected(color, colorRole)
             eventStore.send(event)
         }
-    }
-
-    private fun onErrorAction() {
-        val command = requireNotNull(lastFetchDataCommand)
-        fetchOrFindColorDetails(command)
     }
 
     sealed interface DataState {
