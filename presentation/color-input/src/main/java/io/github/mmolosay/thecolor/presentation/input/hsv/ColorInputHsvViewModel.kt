@@ -38,8 +38,6 @@ class ColorInputHsvViewModel @AssistedInject constructor(
     init {
         coroutineScope.launch(defaultDispatcher) {
             mediator.colorStateFlow.collect { (color, source) ->
-                // don't update text fields to avoid update loop if the color was set from this 'Color Input' type
-//                 if (source == DomainColorInputType.VisualPicker) return@collect
                 val data = ColorInputHsvData(
                     color = with(colorConverter) { color?.toHsv() },
                     onColorChanged = ::onColorChanged,
