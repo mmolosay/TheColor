@@ -12,6 +12,12 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.time.Duration
 
+/**
+ * Produces the most recently [offer]ed value at most once per [period].
+ *
+ * Thread-safe. Sampling runs in the provided [coroutineScope], invokes [onSampleProduced] sequentially,
+ * and automatically stops when no new values are offered.
+ */
 class Sampler<T>(
     private val period: Duration,
     private val onSampleProduced: OnSampleProducedCallback<T>,
