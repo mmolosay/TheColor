@@ -16,7 +16,6 @@ import java.util.concurrent.CyclicBarrier
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.time.ComparableTimeMark
 import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -25,12 +24,12 @@ class SamplerTest {
     val testDispatcher = StandardTestDispatcher()
     val coroutineScope = CoroutineScope(testDispatcher)
 
-    lateinit var sut: Sampler<Int>
+    lateinit var sut: Sampler<Int?>
 
     @Test
     fun `given SUT is created, when first value is offered, then the sample is produced immediately`() =
         runTest(testDispatcher) {
-            val producedSamples = mutableListOf<Int>()
+            val producedSamples = mutableListOf<Int?>()
             sut = Sampler(
                 period = 100.milliseconds,
                 onSampleProduced = { sample -> producedSamples += sample },
@@ -42,36 +41,102 @@ class SamplerTest {
             producedSamples shouldContainExactly listOf(0)
         }
 
-    // TODO: add KDoc with steps or meaningful test name
     @Test
-    fun `#1`() =
+    fun `intermediate values within the same period are dropped, and only the last one is produced as sample once period has ended`() =
         runTest(testDispatcher) {
-            val producedSamples = mutableListOf<ValueWithTimeMark<Int>>()
+            val producedSamples = mutableListOf<Int?>()
             sut = Sampler(
                 period = 100.milliseconds,
-                onSampleProduced = { sample ->
-                    producedSamples += ValueWithTimeMark(
-                        value = sample,
-                        timeMark = testScheduler.timeSource.markNow(),
-                    )
-                },
+                onSampleProduced = { sample -> producedSamples += sample },
                 coroutineScope = coroutineScope,
             )
 
             producedSamples.clear()
             sut.offer(0)
             producedSamples shouldHaveSize 1
-            producedSamples.single().value shouldBe 0
+            producedSamples.single() shouldBe 0
 
             producedSamples.clear()
             advanceTimeBy(50.milliseconds)
             sut.offer(1)
-            producedSamples shouldHaveSize 0
+            producedSamples shouldHaveSize 0 // no new sample produced
 
             advanceUntilIdle()
+            producedSamples shouldHaveSize 1 // new sample '1' has been produced
+            producedSamples.single() shouldBe 1
+        }
+
+    @Test
+    fun `multiple values spaced beyond the period duration are produced as samples`() =
+        runTest(testDispatcher) {
+            val producedSamples = mutableListOf<Int?>()
+            sut = Sampler(
+                period = 100.milliseconds,
+                onSampleProduced = { sample -> producedSamples += sample },
+                coroutineScope = coroutineScope,
+            )
+
+            producedSamples.clear()
+            sut.offer(0)
             producedSamples shouldHaveSize 1
-            producedSamples.single().value shouldBe 1
-            producedSamples.single().timeMark.elapsedNow() shouldBe 100.milliseconds
+            producedSamples.single() shouldBe 0
+
+            producedSamples.clear()
+            advanceTimeBy(101.milliseconds)
+            sut.offer(1)
+            producedSamples shouldHaveSize 1
+            producedSamples.single() shouldBe 1
+
+            producedSamples.clear()
+            advanceTimeBy(101.milliseconds)
+            sut.offer(2)
+            producedSamples shouldHaveSize 1
+            producedSamples.single() shouldBe 2
+        }
+
+    @Test
+    fun `when two same values are offered within the same period, then they are produced as samples in individual periods`() =
+        runTest(testDispatcher) {
+            val producedSamples = mutableListOf<Int?>()
+            sut = Sampler(
+                period = 100.milliseconds,
+                onSampleProduced = { sample -> producedSamples += sample },
+                coroutineScope = coroutineScope,
+            )
+
+            producedSamples.clear()
+            sut.offer(0)
+            advanceTimeBy(50.milliseconds)
+            sut.offer(0)
+            producedSamples shouldHaveSize 1
+            producedSamples.single() shouldBe 0
+
+            producedSamples.clear()
+            advanceTimeBy(51.milliseconds) // advance to the start of the next period
+            producedSamples shouldHaveSize 1
+            producedSamples.single() shouldBe 0
+        }
+
+    @Test
+    fun `offered 'null' values are treated as correct values and produced as samples`() =
+        runTest(testDispatcher) {
+            val producedSamples = mutableListOf<Int?>()
+            sut = Sampler(
+                period = 100.milliseconds,
+                onSampleProduced = { sample -> producedSamples += sample },
+                coroutineScope = coroutineScope,
+            )
+
+            producedSamples.clear()
+            sut.offer(0)
+            producedSamples shouldHaveSize 1
+            producedSamples.single() shouldBe 0
+
+            producedSamples.clear()
+            advanceTimeBy(101.milliseconds)
+            sut.offer(null)
+            producedSamples shouldHaveSize 1
+            producedSamples.single() shouldBe null
         }
 
     /**
@@ -109,9 +174,4 @@ class SamplerTest {
 
             samplesCount.get() shouldBe 1
         }
-
-    data class ValueWithTimeMark<T>(
-        val value: T,
-        val timeMark: ComparableTimeMark,
-    )
 }
