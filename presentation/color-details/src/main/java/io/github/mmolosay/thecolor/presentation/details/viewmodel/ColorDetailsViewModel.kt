@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CopyOnWriteArraySet
 import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 import javax.inject.Named
@@ -53,7 +53,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
     val dataStateFlow = _dataStateFlow.asStateFlow()
 
     private val fetchOrFindColorDetailsJob = AtomicReference<Job?>(null)
-    private val cachedDetails = ConcurrentHashMap.newKeySet<DomainColorDetails>()
+    private val cachedDetails = CopyOnWriteArraySet<DomainColorDetails>()
 
     init {
         collectColorDetailsCommands()
