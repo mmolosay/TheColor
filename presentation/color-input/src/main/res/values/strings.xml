@@ -3,6 +3,7 @@
 
     <string name="color_input_tab_hex" translatable="false">HEX</string>
     <string name="color_input_tab_rgb" translatable="false">RGB</string>
+    <string name="color_input_tab_hsv" translatable="false">HSV</string>
 
     <string name="color_input_hex_label" translatable="false">HEX</string>
     <string name="color_input_hex_placeholder" translatable="false">000000</string>

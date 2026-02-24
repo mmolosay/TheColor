@@ -162,7 +162,7 @@ private fun DomainColorInputType.label(strings: ColorInputGroupUiStrings): Strin
     when (this) {
         DomainColorInputType.Hex -> strings.hexLabel
         DomainColorInputType.Rgb -> strings.rgbLabel
-        DomainColorInputType.Hsv -> "HSV" // TODO: use ColorInputGroupUiStrings
+        DomainColorInputType.Hsv -> strings.hsvLabel
     }
 
 @Preview(uiMode = Configuration.UI_MODE_TYPE_NORMAL)
@@ -210,6 +210,7 @@ private fun previewUiStrings() =
     ColorInputGroupUiStrings(
         hexLabel = "HEX",
         rgbLabel = "RGB",
+        hsvLabel = "HSV",
     )
 
 private fun previewHexData() =

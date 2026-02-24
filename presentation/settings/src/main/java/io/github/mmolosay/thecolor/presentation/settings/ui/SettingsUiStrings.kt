@@ -23,6 +23,7 @@ data class SettingsUiStrings(
     val itemPreferredColorInputTypeDesc: String,
     val itemPreferredColorInputTypeValueHex: String,
     val itemPreferredColorInputTypeValueRgb: String,
+    val itemPreferredColorInputTypeValueHsv: String,
 
     val itemAppUiColorSchemeTitle: String,
     val itemAppUiColorSchemeDesc: String,
@@ -66,6 +67,7 @@ fun SettingsUiStrings(context: Context) =
         itemPreferredColorInputTypeDesc = context.getString(R.string.settings_item_preferred_color_input_type_desc),
         itemPreferredColorInputTypeValueHex = context.getString(R.string.settings_item_preferred_color_input_type_value_hex),
         itemPreferredColorInputTypeValueRgb = context.getString(R.string.settings_item_preferred_color_input_value_type_rgb),
+        itemPreferredColorInputTypeValueHsv = context.getString(R.string.settings_item_preferred_color_input_value_type_hsv),
 
         itemAppUiColorSchemeTitle = context.getString(R.string.settings_item_app_ui_color_scheme_title),
         itemAppUiColorSchemeDesc = context.getString(R.string.settings_item_app_ui_color_scheme_desc),

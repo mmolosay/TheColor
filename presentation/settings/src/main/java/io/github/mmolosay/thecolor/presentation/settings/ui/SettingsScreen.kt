@@ -322,7 +322,7 @@ private fun DomainColorInputType.toUiString(
     when (this) {
         DomainColorInputType.Hex -> strings.itemPreferredColorInputTypeValueHex
         DomainColorInputType.Rgb -> strings.itemPreferredColorInputTypeValueRgb
-        DomainColorInputType.Hsv -> "PICKER" // TODO: use SettingsUiStrings
+        DomainColorInputType.Hsv -> strings.itemPreferredColorInputTypeValueHsv
     }
 
 private fun DomainUiColorSchemeSet.toShortUiString(
