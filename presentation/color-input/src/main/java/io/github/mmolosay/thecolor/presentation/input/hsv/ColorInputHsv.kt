@@ -7,11 +7,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
@@ -58,7 +61,6 @@ fun ColorInputHsv(
 
     Row(
         modifier = Modifier
-            .fillMaxWidth()
             .height(IntrinsicSize.Min),
         horizontalArrangement = Arrangement.Center,
     ) {
@@ -76,17 +78,19 @@ fun ColorInputHsv(
         )
 
         Spacer(Modifier.width(8.dp))
-        HuePicker2(
-            modifier = Modifier
-                .width(24.dp)
-                .fillMaxHeight(),
-            hue = hue,
-            onChange = { newHue ->
-                val newColor = HsvColor(newHue, sv)
-                data.onColorChanged(newColor)
-            },
-            hueBarShape = RoundedCornerShape(size = 4.dp),
-        )
+        CompositionLocalProvider(
+            LocalMinimumInteractiveComponentSize provides 0.dp,
+        ) {
+            HuePicker(
+                modifier = Modifier
+                    .fillMaxHeight(),
+                hue = hue,
+                onChange = { newHue ->
+                    val newColor = HsvColor(newHue, sv)
+                    data.onColorChanged(newColor)
+                },
+            )
+        }
     }
 }
 
@@ -95,14 +99,16 @@ fun ColorInputHsv(
 @Composable
 private fun Preview() {
     TheColorTheme {
-        ColorInputHsv(
-            data = previewData(),
-        )
+        Surface(color = MaterialTheme.colorScheme.background) {
+            ColorInputHsv(
+                data = previewData(),
+            )
+        }
     }
 }
 
 private fun previewData() =
     ColorInputHsvData(
-        color = DomainColor.Hsv(hue = 259f, saturation = 0.65f, value = 0.82f),
+        color = DomainColor.Hsv(hue = 117f, saturation = 0.59f, value = 0.31f),
         onColorChanged = {},
     )
