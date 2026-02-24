@@ -21,8 +21,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
+import io.github.mmolosay.thecolor.presentation.input.UiComponents.DataStateCrossfade
 import io.github.mmolosay.thecolor.presentation.input.model.DataState
-import io.github.mmolosay.thecolor.utils.doNothing
 import io.github.mmolosay.thecolor.domain.model.Color as DomainColor
 
 @Composable
@@ -30,13 +30,18 @@ fun ColorInputHsv(
     viewModel: ColorInputHsvViewModel,
 ) {
     val dataState = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
-    when (dataState) {
-        is DataState.BeingInitialized ->
-            doNothing() // TODO: add loading as in other 'Color Input' types
-        is DataState.Ready ->
-            ColorInputHsv(
-                data = dataState.data
-            )
+
+    DataStateCrossfade(
+        actualDataState = dataState,
+    ) { state ->
+        when (state) {
+            is DataState.BeingInitialized ->
+                ColorInputHsvLoading()
+            is DataState.Ready ->
+                ColorInputHsv(
+                    data = state.data,
+                )
+        }
     }
 }
 
