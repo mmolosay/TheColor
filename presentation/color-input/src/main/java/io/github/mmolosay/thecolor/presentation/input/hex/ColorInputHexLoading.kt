@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.input.hex
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.defaultMinSize
@@ -15,7 +16,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.valentinilk.shimmer.shimmer
 import io.github.mmolosay.thecolor.presentation.common.compose.clipFullyRounded
-import io.github.mmolosay.thecolor.presentation.design.ColorScheme
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 
 /**
@@ -45,24 +45,11 @@ private fun TextField() {
     )
 }
 
-@Preview
+@Preview(uiMode = Configuration.UI_MODE_TYPE_NORMAL)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL)
 @Composable
-private fun PreviewLight() {
-    TheColorTheme(
-        colorScheme = ColorScheme.Light,
-    ) {
-        Surface(color = MaterialTheme.colorScheme.background) {
-            ColorInputHexLoading()
-        }
-    }
-}
-
-@Preview
-@Composable
-private fun PreviewDark() {
-    TheColorTheme(
-        colorScheme = ColorScheme.Dark,
-    ) {
+private fun Preview() {
+    TheColorTheme {
         Surface(color = MaterialTheme.colorScheme.background) {
             ColorInputHexLoading()
         }
