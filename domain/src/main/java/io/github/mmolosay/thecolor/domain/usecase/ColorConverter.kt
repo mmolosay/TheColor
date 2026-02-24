@@ -25,7 +25,6 @@ class ColorConverter @Inject constructor() {
             is Color.Hsv -> this.toRgb()
         }
 
-    // TODO: unit test me
     fun Color.toHsv(): Color.Hsv =
         when (this) {
             is Color.Hex -> this.toRgb().toHsv()
