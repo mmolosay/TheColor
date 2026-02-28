@@ -101,14 +101,14 @@ import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroup
 import io.github.mmolosay.thecolor.presentation.preview.AnimatedColorPreview
 import io.github.mmolosay.thecolor.utils.cache.DequeCache
 import io.github.mmolosay.thecolor.utils.cache.PruneOnSizeThreshold
+import io.github.mmolosay.thecolor.utils.collectConsuming
 import io.github.mmolosay.thecolor.utils.doNothing
+import io.github.mmolosay.thecolor.utils.pendingAsFlow
 import io.github.mmolosay.thecolor.utils.stabilize
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
@@ -123,6 +123,7 @@ fun HomeScreen(
     navBarAppearanceController: NavBarAppearanceController,
 ) {
     val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
     val coroutineScope = rememberCoroutineScope()
 
     val strings = remember(context) { HomeUiStrings(context) }
@@ -222,11 +223,9 @@ fun HomeScreen(
     HomeScreen(
         data = data,
         strings = strings,
-        navEventFlow = viewModel.navEventFlow,
         colorInput = colorInput,
         colorPreview = colorPreview,
         colorCenter = colorCenter,
-        navigateToSettings = navigateToSettings,
         animController = animController,
         navBarAppearanceController = navBarAppearanceController,
     )
@@ -235,6 +234,18 @@ fun HomeScreen(
         data = data.colorSchemeSelectedSwatchData,
         navBarAppearanceController = selectedSwatchDetailsDialogController,
     )
+
+    val navEventStore = viewModel.navEventStore
+    LaunchedEffect(navEventStore) {
+        navEventStore.pendingAsFlow().collectConsuming(navEventStore) { (_, event) ->
+            when (event) {
+                is HomeNavEvent.GoToSettings -> {
+                    focusManager.clearFocus()
+                    navigateToSettings()
+                }
+            }
+        }
+    }
 }
 
 /** Describes UI state of 'Home' View. Used to infer appropriate animation sequence / state. */
@@ -256,16 +267,12 @@ private typealias ColorCenterComposable = @Composable () -> Unit
 private fun HomeScreen(
     data: HomeData,
     strings: HomeUiStrings,
-    navEventFlow: Flow<HomeNavEvent>,
     colorInput: @Composable () -> Unit,
     colorPreview: ColorPreviewWithDependencies,
     colorCenter: ColorCenterComposable?,
-    navigateToSettings: () -> Unit,
     animController: HomeAnimController?,
     navBarAppearanceController: NavBarAppearanceController,
 ) {
-    val focusManager = LocalFocusManager.current
-
     Scaffold(
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets.withoutBottom(),
     ) { contentPadding ->
@@ -281,17 +288,6 @@ private fun HomeScreen(
             animController = animController,
             navBarAppearanceController = navBarAppearanceController,
         )
-    }
-
-    LaunchedEffect(Unit) {
-        navEventFlow.collect { event ->
-            when (event) {
-                is HomeNavEvent.GoToSettings -> {
-                    focusManager.clearFocus()
-                    navigateToSettings()
-                }
-            }
-        }
     }
 }
 
@@ -754,7 +750,6 @@ private fun Preview() {
         HomeScreen(
             data = previewData(),
             strings = previewUiStrings(),
-            navEventFlow = remember { emptyFlow() },
             colorInput = {
                 Text(
                     modifier = Modifier
@@ -783,7 +778,6 @@ private fun Preview() {
                     text = "Color Center",
                 )
             },
-            navigateToSettings = {},
             animController = remember {
                 val currentState = HomeAnimState(
                     colorPreviewPosition = HomeAnimState.ColorPreview.Position.NotDived,

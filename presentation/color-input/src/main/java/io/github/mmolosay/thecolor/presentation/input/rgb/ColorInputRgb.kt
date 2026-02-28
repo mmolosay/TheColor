@@ -23,8 +23,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.common.compose.thenIf
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.input.UiComponents.CollectColorSubmissionResultAsSideEffect
 import io.github.mmolosay.thecolor.presentation.input.UiComponents.DataStateCrossfade
+import io.github.mmolosay.thecolor.presentation.input.UiComponents.ProcessColorSubmissionResultsAsSideEffect
 import io.github.mmolosay.thecolor.presentation.input.UiComponents.onBackspace
 import io.github.mmolosay.thecolor.presentation.input.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
@@ -56,8 +56,8 @@ fun ColorInputRgb(
         }
     }
 
-    CollectColorSubmissionResultAsSideEffect(
-        resultFlow = viewModel.colorSubmissionResultFlow,
+    ProcessColorSubmissionResultsAsSideEffect(
+        resultStore = viewModel.submissionResultStore,
     )
 }
 

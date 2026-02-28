@@ -6,7 +6,6 @@ import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.model.ColorConstants
 import io.github.mmolosay.thecolor.domain.repository.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
-import io.github.mmolosay.thecolor.presentation.common.ImmediateRelay
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
@@ -21,6 +20,8 @@ import io.github.mmolosay.thecolor.presentation.input.plus
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldViewModel
 import io.github.mmolosay.thecolor.presentation.input.textfield.updateText
+import io.github.mmolosay.thecolor.utils.MutableConsumableStore
+import io.github.mmolosay.thecolor.utils.asConsumableStore
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
@@ -98,8 +99,8 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                 initialValue = DataState.BeingInitialized,
             )
 
-    private val colorSubmissionResultRelay = ImmediateRelay<ColorSubmissionResult>()
-    val colorSubmissionResultFlow = colorSubmissionResultRelay.flowForView
+    private val _submissionResultStore = MutableConsumableStore<ColorSubmissionResult>()
+    val submissionResultStore = _submissionResultStore.asConsumableStore()
 
     init {
         collectMediatorUpdates()
@@ -141,9 +142,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             validationResult = validationResult,
         )
         val result = ColorSubmissionResult(wasAccepted)
-        coroutineScope.launch {
-            colorSubmissionResultRelay.send(result)
-        }
+        _submissionResultStore.publish(result)
     }
 
     private fun createTextFieldViewModel(): TextFieldViewModel =

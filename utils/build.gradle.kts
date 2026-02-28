@@ -7,6 +7,7 @@ plugins {
 dependencies {
     // Kotlin
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.coroutines.get()}")
+    implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.4.0")
 
     // Testing
     testImplementation("org.junit.jupiter:junit-jupiter-api:${libs.versions.junit.get()}")
