@@ -12,6 +12,7 @@ import io.github.mmolosay.thecolor.presentation.input.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldViewModel
 import io.github.mmolosay.thecolor.testing.MainDispatcherExtension
+import io.github.mmolosay.thecolor.utils.pending
 import io.kotest.assertions.withClue
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -28,6 +29,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
@@ -258,7 +263,7 @@ class ColorInputHexViewModelTest {
             coVerify(exactly = 1) {
                 submitAction.invoke(colorInput = colorAsColorInput, validationResult = any())
             }
-            val submissionResult = sut.colorSubmissionResultFlow.first()
+            val submissionResult = sut.submissionResultStore.pending.last().value
             submissionResult.wasAccepted shouldBe true
         }
 

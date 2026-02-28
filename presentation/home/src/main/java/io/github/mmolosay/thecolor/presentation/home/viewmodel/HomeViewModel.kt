@@ -14,7 +14,6 @@ import io.github.mmolosay.thecolor.domain.usecase.ColorComparator
 import io.github.mmolosay.thecolor.domain.usecase.GetPredictableRandomColorUseCase
 import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
-import io.github.mmolosay.thecolor.presentation.common.ImmediateRelay
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommand
@@ -31,8 +30,10 @@ import io.github.mmolosay.thecolor.presentation.input.model.ColorInputValidation
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommand
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
+import io.github.mmolosay.thecolor.utils.MutableConsumableStore
 import io.github.mmolosay.thecolor.utils.OpenSuspendGate
 import io.github.mmolosay.thecolor.utils.SuspendGate
+import io.github.mmolosay.thecolor.utils.asConsumableStore
 import io.github.mmolosay.thecolor.utils.doNothing
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -91,8 +92,8 @@ class HomeViewModel @Inject constructor(
     val flowOfIsDataBeingUpdated: StateFlow<Boolean> =
         dataUpdateGuard.flowOfIsDataBeingUpdated
 
-    private val navEventRelay = ImmediateRelay<HomeNavEvent>()
-    val navEventFlow = navEventRelay.flowForView
+    private val _navEventStore = MutableConsumableStore<HomeNavEvent>()
+    val navEventStore = _navEventStore.asConsumableStore()
 
     val colorInputGroupViewModel: ColorInputGroupViewModel =
         colorInputGroupViewModelFactory.create(
@@ -323,10 +324,8 @@ class HomeViewModel @Inject constructor(
          * In a real app, here would've been a logic for accepting / denying UI's navigation request
          * depending on the business logic. Here may also be sending data to analytics or logging.
          */
-        viewModelScope.launch(Dispatchers.Main.immediate) {
-            val event = HomeNavEvent.GoToSettings
-            navEventRelay.send(event)
-        }
+        val event = HomeNavEvent.GoToSettings
+        _navEventStore.publish(event)
     }
 
     private fun clearProceedResult() {

@@ -4,7 +4,6 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
-import io.github.mmolosay.thecolor.presentation.common.ImmediateRelay
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMapper
@@ -20,6 +19,8 @@ import io.github.mmolosay.thecolor.presentation.input.plus
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldViewModel
 import io.github.mmolosay.thecolor.presentation.input.textfield.updateText
+import io.github.mmolosay.thecolor.utils.MutableConsumableStore
+import io.github.mmolosay.thecolor.utils.asConsumableStore
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
@@ -86,8 +87,8 @@ class ColorInputHexViewModel @AssistedInject constructor(
                 initialValue = DataState.BeingInitialized,
             )
 
-    private val colorSubmissionResultRelay = ImmediateRelay<ColorSubmissionResult>()
-    val colorSubmissionResultFlow = colorSubmissionResultRelay.flowForView
+    private val _submissionResultStore = MutableConsumableStore<ColorSubmissionResult>()
+    val submissionResultStore = _submissionResultStore.asConsumableStore()
 
     init {
         collectMediatorUpdates()
@@ -125,9 +126,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
             validationResult = validationResult,
         )
         val result = ColorSubmissionResult(wasAccepted)
-        coroutineScope.launch {
-            colorSubmissionResultRelay.send(result)
-        }
+        _submissionResultStore.publish(result)
     }
 
     override fun dispose() {

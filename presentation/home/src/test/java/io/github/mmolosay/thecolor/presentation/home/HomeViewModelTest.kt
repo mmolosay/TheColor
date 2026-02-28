@@ -1005,7 +1005,7 @@ class HomeViewModelTest {
      * THEN
      * [HomeData.proceedResult] is set to `null`.
      * If WHEN #6 led to creation of new [ColorCenterSession] with seed being c0, then it would've
-     * been the current session. Thus c1 would've been considered belonging to that session,
+     * been the current session. Thus, c1 would've been considered belonging to that session,
      * and [HomeData.proceedResult] wouldn't have been set to `null`.
      */
     @Test
