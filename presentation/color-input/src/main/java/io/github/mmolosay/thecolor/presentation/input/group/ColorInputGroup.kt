@@ -1,8 +1,11 @@
 package io.github.mmolosay.thecolor.presentation.input.group
 
 import android.content.res.Configuration
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -87,10 +90,12 @@ fun ColorInputGroup(
         modifier = Modifier.padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Crossfade(
-            modifier = Modifier.animateContentSize(),
+        AnimatedContent(
             targetState = data.selectedInputType,
-            label = "Input type cross-fade",
+            transitionSpec = {
+                fadeIn() togetherWith fadeOut() using SizeTransform(clip = false)
+            },
+            label = "Input type animated content",
         ) { type ->
             Box(
                 modifier = Modifier
