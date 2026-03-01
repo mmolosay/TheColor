@@ -346,9 +346,9 @@ class ColorSchemeDataEditor(
         selectedSwatchCount: SwatchCount,
         activeSwatchCount: SwatchCount,
     ): Changes {
-        fun hasModeChanged() = (selectedMode != activeMode)
-        fun hasSwatchCountChanged() = (selectedSwatchCount != activeSwatchCount)
-        val hasChanges = (hasModeChanged() || hasSwatchCountChanged())
+        val hasModeChanged by lazy { selectedMode != activeMode }
+        val hasSwatchCountChanged by lazy { selectedSwatchCount != activeSwatchCount }
+        val hasChanges = (hasModeChanged || hasSwatchCountChanged)
         return if (hasChanges) Changes.Present(applyChanges) else Changes.None
     }
 }
