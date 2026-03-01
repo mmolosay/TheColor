@@ -21,6 +21,9 @@ internal fun Project.configureKotlin() {
             freeCompilerArgs.add("-Xstring-concat=inline")
             // https://youtrack.jetbrains.com/issue/KT-73255
             freeCompilerArgs.add("-Xannotation-default-target=param-property")
+            // Arrow's optics employ context parameters, which require the explicit compiler opt-in
+            // https://kotlinlang.org/docs/context-parameters.html
+            freeCompilerArgs.add("-Xcontext-parameters")
         }
     }
 }

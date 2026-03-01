@@ -1,7 +1,6 @@
 package io.github.mmolosay.thecolor.domain.usecase
 
-import io.github.mmolosay.thecolor.domain.model.ColorConstants.HexColorIntRange
-import io.github.mmolosay.thecolor.domain.model.ColorConstants.RgbColorComponentIntRange
+import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.model.ColorPrototype
 import javax.inject.Inject
 
@@ -19,13 +18,11 @@ class ColorPrototypeValidator @Inject constructor() {
 
     fun ColorPrototype.Hex.isValid(): Boolean {
         value ?: return false
-        fun inRange() = value in HexColorIntRange
-        return inRange()
+        return (value in Color.Hex.Range)
     }
 
     fun ColorPrototype.Rgb.isValid(): Boolean {
         if ((r == null || g == null || b == null)) return false
-        fun Int.isInComponentRange() = this in RgbColorComponentIntRange
-        return (r.isInComponentRange() && g.isInComponentRange() && b.isInComponentRange())
+        return listOf(r, g, b).all { it in Color.Rgb.ComponentRange }
     }
 }

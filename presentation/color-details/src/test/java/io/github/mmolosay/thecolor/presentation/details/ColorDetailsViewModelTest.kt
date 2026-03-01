@@ -5,10 +5,13 @@ import io.github.mmolosay.thecolor.domain.model.ColorDetails
 import io.github.mmolosay.thecolor.domain.repository.ColorRepository
 import io.github.mmolosay.thecolor.domain.result.HttpFailure
 import io.github.mmolosay.thecolor.domain.result.Result
+import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
+import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommand
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommandProvider
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData
+import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ExactMatch
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsError
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEvent
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEventStore
@@ -17,7 +20,6 @@ import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsVi
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorRole
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.CreateColorDetailsDataUseCase
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.CreateSeedDataUseCase
-import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
 import io.github.mmolosay.thecolor.testing.MainDispatcherExtension
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
@@ -35,8 +37,10 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
@@ -62,16 +66,16 @@ class ColorDetailsViewModelTest {
     val mainDispatcherExtension = MainDispatcherExtension(testDispatcher)
 
     val commandProvider: ColorDetailsCommandProvider = mockk()
-    val eventStore: ColorDetailsEventStore = mockk {
+    val eventStoreMock: ColorDetailsEventStore = mockk {
         coEvery { send(event = any()) } just runs
     }
+    val eventStoreReal = ColorDetailsEventStore()
     val colorRepository: ColorRepository = mockk()
     val createDataMock: CreateColorDetailsDataUseCase = mockk()
-    val colorToColorInt: ColorToColorIntUseCase = mockk {
-        every { any<Color>().toColorInt() } returns mockk(relaxed = true)
-    }
     val createDataReal = CreateColorDetailsDataUseCase(
-        colorToColorInt = colorToColorInt,
+        colorToColorInt = ColorToColorIntUseCase(
+            colorConverter = ColorConverter(),
+        ),
     )
     val createSeedData: CreateSeedDataUseCase = mockk(relaxed = true)
 
@@ -241,7 +245,7 @@ class ColorDetailsViewModelTest {
             commandFlow.emit(ColorDetailsCommand.FetchData(color, colorRole = null))
 
             val data = sut.dataStateFlow.value.shouldBeInstanceOf<DataState.Ready>().data
-            val exactMatch = data.exactMatch.shouldBeInstanceOf<ColorDetailsData.ExactMatch.No>()
+            val exactMatch = data.exactMatch.shouldBeInstanceOf<ExactMatch.No>()
             exactMatch.goToExactColor()
 
             coVerify {
@@ -249,7 +253,7 @@ class ColorDetailsViewModelTest {
                     color = Color.Hex(0x123456),
                     colorRole = ColorRole.Exact,
                 )
-                eventStore.send(expectedEvent)
+                eventStoreMock.send(expectedEvent)
             }
         }
 
@@ -322,7 +326,6 @@ class ColorDetailsViewModelTest {
                     Result.Success(fetchedDetailsForColor)
             coEvery { colorRepository.getColorDetails(color = exactColor) } returns
                     Result.Success(fetchedDetailsForExactColor)
-            every { with(colorToColorInt) { initialColor.toColorInt() } } returns initialColorInt
             createSut(
                 createData = createDataReal,
             )
@@ -345,7 +348,6 @@ class ColorDetailsViewModelTest {
     fun `invoking 'go to initial color' sends appropriate event to color details event store`() =
         runTest(testDispatcher) {
             val initialColor = Color.Hex(0x1A803F)
-            val initialColorInt = ColorInt(0x1A803F)
             val exactColor = Color.Hex(0x123456)
             val commandFlow = MutableSharedFlow<ColorDetailsCommand>()
             every { commandProvider.commandFlow } returns commandFlow
@@ -363,7 +365,6 @@ class ColorDetailsViewModelTest {
                     Result.Success(fetchedDetailsForColor)
             coEvery { colorRepository.getColorDetails(color = exactColor) } returns
                     Result.Success(fetchedDetailsForExactColor)
-            every { with(colorToColorInt) { initialColor.toColorInt() } } returns initialColorInt
             createSut(
                 createData = createDataReal,
             )
@@ -378,7 +379,7 @@ class ColorDetailsViewModelTest {
                     color = Color.Hex(0x1A803F),
                     colorRole = ColorRole.Initial,
                 )
-                eventStore.send(expectedEvent)
+                eventStoreMock.send(expectedEvent)
             }
         }
 
@@ -495,7 +496,76 @@ class ColorDetailsViewModelTest {
             sut.dataStateFlow.value should beOfType<DataState.Ready>()
         }
 
+    /**
+     * Tests that [ColorDetailsViewModel.cachedDetails] adds new elements in the end of the set,
+     * thus enabling methods like [ColorDetailsViewModel.findCachedDetailsWithExactColor] to work as expected.
+     */
+    @Test
+    fun `multiple repetitions of 'go to exact'-'go to initial' actions result in the correct data`() =
+        runTest(testDispatcher) {
+            // GIVEN
+            val commandFlow = MutableSharedFlow<ColorDetailsCommand>()
+            every { commandProvider.commandFlow } returns commandFlow
+            val initialColor = Color.Hex(0x1A803F)
+            val exactColor = Color.Hex(0x126B40)
+            coEvery { colorRepository.getColorDetails(color = initialColor) } returns run {
+                val colorDetails: ColorDetails = mockk(relaxed = true) {
+                    every { this@mockk.color } returns initialColor
+                    every { colorName } returns "initial"
+                    every { exact.color } returns exactColor
+                    every { matchesExact } returns false
+                    every { this@mockk.hashCode() } returns -1066639853
+                }
+                Result.Success(colorDetails)
+            }
+            coEvery { colorRepository.getColorDetails(color = exactColor) } returns run {
+                val colorDetails: ColorDetails = mockk(relaxed = true) {
+                    every { this@mockk.color } returns exactColor
+                    every { colorName } returns "exact"
+                    every { exact.color } returns exactColor
+                    every { matchesExact } returns true
+                    every { this@mockk.hashCode() } returns 1802741316
+                }
+                Result.Success(colorDetails)
+            }
+            createSut(
+                eventStore = eventStoreReal,
+                createData = createDataReal,
+            )
+
+            // WHEN
+            suspend fun emitFetchDataCommand(event: ColorDetailsEvent) {
+                event.shouldBeInstanceOf<ColorDetailsEvent.ColorSelected>()
+                val command = ColorDetailsCommand.FetchData(color = event.color, colorRole = event.colorRole)
+                commandFlow.emit(command)
+            }
+            run fetchDataForInitialColor@{
+                val command = ColorDetailsCommand.FetchData(color = initialColor, colorRole = null)
+                commandFlow.emit(command)
+            }
+
+            val event1 = async { eventStoreReal.eventFlow.first() }
+            sut.data.goToExactColor()
+            emitFetchDataCommand(event = event1.await())
+
+            val event2 = async { eventStoreReal.eventFlow.first() }
+            sut.data.goToInitialColor()
+            emitFetchDataCommand(event = event2.await())
+
+            val event3 = async { eventStoreReal.eventFlow.first() }
+            sut.data.goToExactColor()
+            emitFetchDataCommand(event = event3.await())
+
+            val event4 = async { eventStoreReal.eventFlow.first() }
+            sut.data.goToInitialColor()
+            emitFetchDataCommand(event = event4.await())
+
+            // THEN
+            sut.data.colorName shouldBe "initial"
+        }
+
     fun createSut(
+        eventStore: ColorDetailsEventStore = eventStoreMock,
         createData: CreateColorDetailsDataUseCase = createDataMock,
         coroutineDispatcher: CoroutineDispatcher = testDispatcher,
     ) =
@@ -511,4 +581,16 @@ class ColorDetailsViewModelTest {
         ).also {
             sut = it
         }
+
+    fun DataState.asReady(): DataState.Ready =
+        this.shouldBeInstanceOf<DataState.Ready>()
+
+    val ColorDetailsViewModel.data: ColorDetailsData
+        get() = this.dataStateFlow.value.asReady().data
+
+    val ColorDetailsData.goToExactColor: () -> Unit
+        get() = this.exactMatch.shouldBeInstanceOf<ExactMatch.No>().goToExactColor
+
+    val ColorDetailsData.goToInitialColor: () -> Unit
+        get() = this.initialColorData.shouldNotBeNull().goToInitialColor
 }

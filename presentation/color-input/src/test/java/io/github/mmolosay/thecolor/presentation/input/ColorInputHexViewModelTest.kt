@@ -1,6 +1,8 @@
 package io.github.mmolosay.thecolor.presentation.input
 
+import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
+import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexData
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
@@ -22,14 +24,10 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
+import io.mockk.verify
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
@@ -49,8 +47,7 @@ class ColorInputHexViewModelTest {
     val mainDispatcherExtension = MainDispatcherExtension(testDispatcher)
 
     val mediator: ColorInputMediator = mockk {
-        every { hexColorInputFlow } returns flowOf(ColorInput.Hex(""))
-        coEvery { send(color = any(), from = DomainColorInputType.Hex) } just runs
+        coEvery { set(color = any(), source = DomainColorInputType.Hex) } just runs
     }
 
     val submitAction: ColorInputSubmitAction = mockk()
@@ -61,6 +58,7 @@ class ColorInputHexViewModelTest {
             MutableStateFlow(value)
         }
     }
+
     val textFieldViewModelFactory: TextFieldViewModel.Factory = TextFieldViewModelTestFactory(
         userPreferencesRepository = userPreferencesRepository,
         defaultDispatcher = testDispatcher,
@@ -68,129 +66,197 @@ class ColorInputHexViewModelTest {
     )
 
     val colorInputValidator: ColorInputValidator = mockk {
-        every { any<ColorInput>().validate() } returns mockk<ColorInputValidationResult.Invalid>()
+        every { any<ColorInput.Hex>().validate() } returns mockk<ColorInputValidationResult.Invalid>()
     }
+
+    val colorInputMapper: ColorInputMapper = mockk()
+
+    val colorConverter: ColorConverter = mockk()
 
     lateinit var sut: ColorInputHexViewModel
 
-    @Test
-    fun `state becomes Ready short after SUT is created even if mediator HEX flow has no value yet`() {
-        every { mediator.hexColorInputFlow } returns emptyFlow()
-
-        createSut()
-
-        dataState should beOfType<DataState.Ready<*>>()
-    }
-
-    @Test
-    fun `state becomes Ready short after SUT is created even if mediator HEX flow has value already`() {
-        every { mediator.hexColorInputFlow } returns flowOf(ColorInput.Hex(""))
-
-        createSut()
-
-        dataState should beOfType<DataState.Ready<*>>()
-    }
-
-    @Test
-    fun `state becomes Ready when mediator emits first value from HEX flow`() =
+    @Test // ANCHOR:Label=0
+    fun `given SUT is created, when mediator has not-null color, then data state becomes Ready`() =
         runTest(testDispatcher) {
-            val hexColorInputFlow = MutableSharedFlow<ColorInput.Hex>()
-            every { mediator.hexColorInputFlow } returns hexColorInputFlow
-            createSut()
+            val color = Color.Hex(0x1A803F)
+            every { mediator.colorStateFlow } returns run {
+                val value = ColorInputMediator.ColorState(color = color, source = null)
+                MutableStateFlow(value)
+            }
+            with(colorConverter) {
+                every { (color as Color).toHex() } returns color
+            }
+            with(colorInputMapper) {
+                every { color.toColorInput() } returns ColorInput.Hex("1A803F")
+            }
 
-            hexColorInputFlow.emit(ColorInput.Hex(""))
+            createSut()
 
             dataState should beOfType<DataState.Ready<*>>()
         }
 
     @Test
-    fun `initial data is not sent to mediator`() =
+    fun `given SUT is created, when mediator has not-null color, then text field is populated with the correct text`() =
         runTest(testDispatcher) {
-            createSut()
-            val collectionJob = launch {
-                sut.dataStateFlow.collect() // subscriber to activate the flow
+            val color = Color.Hex(0x1A803F)
+            every { mediator.colorStateFlow } returns run {
+                val value = ColorInputMediator.ColorState(color = color, source = null)
+                MutableStateFlow(value)
+            }
+            with(colorConverter) {
+                every { (color as Color).toHex() } returns color
+            }
+            with(colorInputMapper) {
+                every { color.toColorInput() } returns ColorInput.Hex("1A803F")
             }
 
-            coVerify(exactly = 0) {
-                mediator.send(color = any(), from = DomainColorInputType.Hex)
-            }
-            collectionJob.cancel()
+            createSut()
+
+            // REFERENCE:Label=0
+            val data = dataState.shouldBeInstanceOf<DataState.Ready<ColorInputHexData>>().data
+            data.textField.text.data shouldBe Text("1A803F")
         }
 
     @Test
-    fun `changing input text to invalid color sends 'null' to mediator`() =
+    fun `given SUT is created, when mediator has 'null' color, then data state becomes Ready nonetheless`() =
         runTest(testDispatcher) {
-            val colorInput = ColorInput.Hex("1F")
-            every {
-                with(colorInputValidator) { colorInput.validate() }
-            } returns mockk<ColorInputValidationResult.Invalid>()
-            createSut()
-            val collectionJob = launch {
-                sut.dataStateFlow.collect() // subscriber to activate the flow
+            every { mediator.colorStateFlow } returns run {
+                val value = ColorInputMediator.ColorState(color = null, source = null)
+                MutableStateFlow(value)
             }
 
-            data.textField.onTextChange(Text("1F"))
+            createSut()
 
-            coVerify(exactly = 1) {
-                mediator.send(
+            dataState should beOfType<DataState.Ready<*>>()
+        }
+
+    @Test
+    fun `given mediator has not-null color, when SUT is created, then the initial color is not set to mediator and update loop is not created`() =
+        runTest(testDispatcher) {
+            val color = Color.Hex(0x0)
+            every { mediator.colorStateFlow } returns run {
+                val value = ColorInputMediator.ColorState(color = color, source = null)
+                MutableStateFlow(value)
+            }
+            with(colorInputValidator) {
+                every { ColorInput.Hex("").validate() } returns mockk<ColorInputValidationResult.Invalid>()
+                every { ColorInput.Hex("0").validate() } returns ColorInputValidationResult.Valid(color)
+            }
+            with(colorConverter) {
+                every { (color as Color).toHex() } returns color
+            }
+            with(colorInputMapper) {
+                every { color.toColorInput() } returns ColorInput.Hex("0")
+            }
+
+            createSut()
+
+            coVerify(exactly = 0) {
+                mediator.set(color = any(), source = DomainColorInputType.Hex)
+            }
+        }
+
+    @Test
+    fun `when text is changed to invalid color, then 'null' color is set to mediator`() =
+        runTest(testDispatcher) {
+            every { mediator.colorStateFlow } returns run {
+                val value = ColorInputMediator.ColorState(color = null, source = null)
+                MutableStateFlow(value)
+            }
+            with(colorInputValidator) {
+                every { ColorInput.Hex("").validate() } returns mockk<ColorInputValidationResult.Invalid>()
+                every { ColorInput.Hex("gibberish").validate() } returns mockk<ColorInputValidationResult.Invalid>()
+            }
+            createSut()
+
+            data.textField.onTextChange(Text("gibberish"))
+
+            verify(exactly = 1) {
+                mediator.set(
                     color = null, // invalid color input
-                    from = DomainColorInputType.Hex,
+                    source = DomainColorInputType.Hex,
                 )
             }
-            collectionJob.cancel()
         }
 
     @Test
-    fun `emission from mediator updates data`() =
+    fun `when mediator emits not-null color from non-HEX source, then data is updated`() =
         runTest(testDispatcher) {
-            val hexColorInputFlow = MutableSharedFlow<ColorInput.Hex>()
-            every { mediator.hexColorInputFlow } returns hexColorInputFlow
-            every {
-                with(colorInputValidator) { ColorInput.Hex("1F").validate() }
-            } returns mockk<ColorInputValidationResult.Invalid>()
+            val color = Color.Hex(0x1A803F)
+            val colorStateFlow = run {
+                val value = ColorInputMediator.ColorState(color = null, source = null)
+                MutableStateFlow(value)
+            }
+            every { mediator.colorStateFlow } returns colorStateFlow
+            with(colorInputValidator) {
+                every { ColorInput.Hex("").validate() } returns mockk<ColorInputValidationResult.Invalid>()
+                every { ColorInput.Hex("1A803F").validate() } returns ColorInputValidationResult.Valid(color)
+            }
+            with(colorConverter) {
+                every { (color as Color).toHex() } returns color
+            }
+            with(colorInputMapper) {
+                every { color.toColorInput() } returns ColorInput.Hex("1A803F")
+            }
             createSut()
-            val collectionJob = launch {
-                sut.dataStateFlow.collect() // subscriber to activate the flow
+
+            run {
+                val value = ColorInputMediator.ColorState(color = color, source = DomainColorInputType.Rgb)
+                colorStateFlow.emit(value)
             }
 
-            hexColorInputFlow.emit(ColorInput.Hex("1F"))
-
-            data.textField.text.data.string shouldBe "1F"
-            collectionJob.cancel()
+            data.textField.text.data.string shouldBe "1A803F"
         }
 
     @Test
-    fun `emission from mediator is not sent back to mediator and emission loop is not created`() =
+    fun `when mediator emits not-null color from HEX source, then data is not updated and update loop is not created`() =
         runTest(testDispatcher) {
-            val hexColorInputFlow = MutableSharedFlow<ColorInput.Hex>()
-            every { mediator.hexColorInputFlow } returns hexColorInputFlow
-            every {
-                with(colorInputValidator) { ColorInput.Hex("1F").validate() }
-            } returns mockk<ColorInputValidationResult.Invalid>()
+            val color = Color.Hex(0x1A803F)
+            val colorStateFlow = run {
+                val value = ColorInputMediator.ColorState(color = null, source = null)
+                MutableStateFlow(value)
+            }
+            every { mediator.colorStateFlow } returns colorStateFlow
+            with(colorInputValidator) {
+                every { ColorInput.Hex("").validate() } returns mockk<ColorInputValidationResult.Invalid>()
+                every { ColorInput.Hex("1A803F").validate() } returns ColorInputValidationResult.Valid(color)
+            }
             createSut()
-            val collectionJob = launch {
-                sut.dataStateFlow.collect() // subscriber to activate the flow
+
+            run {
+                val value = ColorInputMediator.ColorState(color = color, source = DomainColorInputType.Hex)
+                colorStateFlow.emit(value)
             }
 
-            val sentColorInput = ColorInput.Hex("1F")
-            hexColorInputFlow.emit(sentColorInput)
-
-            coVerify(exactly = 0) {
-                mediator.send(color = any(), from = DomainColorInputType.Hex)
-            }
-            collectionJob.cancel()
+            data.textField.text.data.string shouldBe ""
         }
 
     @Test
     fun `given 'submit action' returns 'true', when invoking 'submit input', then 'submission result' is emitted`() =
         runTest(testDispatcher) {
-            every { submitAction.invoke(colorInput = any(), validationResult = any()) } returns true
+            val color = Color.Hex(0x1A803F)
+            val colorAsColorInput = ColorInput.Hex("1A803F")
+            every { mediator.colorStateFlow } returns run {
+                val value = ColorInputMediator.ColorState(color = color, source = null)
+                MutableStateFlow(value)
+            }
+            with(colorInputValidator) {
+                every { ColorInput.Hex("").validate() } returns mockk<ColorInputValidationResult.Invalid>()
+                every { colorAsColorInput.validate() } returns ColorInputValidationResult.Valid(color)
+            }
+            with(colorConverter) {
+                every { (color as Color).toHex() } returns color
+            }
+            with(colorInputMapper) {
+                every { color.toColorInput() } returns colorAsColorInput
+            }
+            every { submitAction.invoke(colorInput = colorAsColorInput, validationResult = any()) } returns true
             createSut()
 
             data.submitInput()
 
             coVerify(exactly = 1) {
-                submitAction.invoke(colorInput = any(), validationResult = any())
+                submitAction.invoke(colorInput = colorAsColorInput, validationResult = any())
             }
             val submissionResult = sut.submissionResultStore.pending.last().value
             submissionResult.wasAccepted shouldBe true
@@ -201,15 +267,20 @@ class ColorInputHexViewModelTest {
     fun `user input is filtered as expected`(
         input: String,
         expectedTextString: String,
-    ) {
-        createSut()
+    ) =
+        runTest(testDispatcher) {
+            every { mediator.colorStateFlow } returns run {
+                val value = ColorInputMediator.ColorState(color = null, source = null)
+                MutableStateFlow(value)
+            }
+            createSut()
 
-        val text = data.textField.filterUserInput(input)
+            val text = data.textField.filterUserInput(input)
 
-        withClue("Filtering user input \"$input\" should return \"$expectedTextString\"") {
-            text shouldBe Text(expectedTextString)
+            withClue("Filtering user input \"$input\" should return \"$expectedTextString\"") {
+                text shouldBe Text(expectedTextString)
+            }
         }
-    }
 
     fun createSut() =
         ColorInputHexViewModel(
@@ -218,6 +289,8 @@ class ColorInputHexViewModelTest {
             submitAction = submitAction,
             textFieldViewModelFactory = textFieldViewModelFactory,
             colorInputValidator = colorInputValidator,
+            colorInputMapper = colorInputMapper,
+            colorConverter = colorConverter,
             defaultDispatcher = testDispatcher,
             uiDataUpdateDispatcher = testDispatcher,
         ).also {

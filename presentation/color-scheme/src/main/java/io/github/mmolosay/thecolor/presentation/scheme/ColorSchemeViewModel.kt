@@ -1,5 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.scheme
 
+import arrow.optics.copy
+import arrow.optics.optics
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -19,6 +21,7 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.SwatchCou
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.Config
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.DataState
 import io.github.mmolosay.thecolor.presentation.scheme.StatefulData.State
+import io.github.mmolosay.thecolor.utils.asDelegate
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -30,6 +33,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -53,19 +57,26 @@ class ColorSchemeViewModel @AssistedInject constructor(
     @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
-    private var fetchDataJob: Job? = null
-    private var lastUsedSeed: Color? = null
-    private var lastDomainColorScheme: DomainColorScheme? = null
+    private val statefulDataFlow: MutableStateFlow<StatefulData> = run {
+        val dataSession = DataSession(seed = null, domainColorScheme = null, data = null)
+        val value = StatefulData(dataSession = dataSession, error = null, state = State.Idle)
+        MutableStateFlow(value)
+    }
+    private val statefulData: StatefulData by statefulDataFlow.asDelegate()
 
-    private val _statefulDataFlow = MutableStateFlow(initialStatefulData())
-    val dataStateFlow: StateFlow<DataState> = _statefulDataFlow
+    val dataStateFlow: StateFlow<DataState> = statefulDataFlow
         .map { it.toDataState() }
         .flowOn(defaultDispatcher)
         .stateIn(
             scope = coroutineScope,
-            started = SharingStarted.Eagerly, // View will start collecting immediately, also simplifies tests
-            initialValue = DataState.Loading,
+            started = SharingStarted.Eagerly,
+            initialValue = statefulDataFlow.value.toDataState(),
         )
+
+    private val fetchDataJob = AtomicReference<Job?>(null)
+    private val dataEditor = ColorSchemeDataEditor(
+        applyChanges = ::applyChanges,
+    )
 
     init {
         collectColorSchemeCommands()
@@ -81,7 +92,9 @@ class ColorSchemeViewModel @AssistedInject constructor(
     private fun ColorSchemeCommand.process() = when (this) {
         is ColorSchemeCommand.FetchData -> {
             val seed = this.color
-            lastUsedSeed = seed
+            statefulDataFlow.update {
+                it.copy { StatefulData.dataSession.seed set seed }
+            }
             fetchColorScheme(seed)
         }
     }
@@ -89,15 +102,19 @@ class ColorSchemeViewModel @AssistedInject constructor(
     private fun fetchColorScheme(seed: Color) {
         val requestConfig = assembleRequestConfig()
         val request = requestConfig.toDomainRequest(seed)
-        _statefulDataFlow.updateState(State.Loading)
-        fetchDataJob?.cancel()
-        fetchDataJob = coroutineScope.launch(ioDispatcher) {
+        statefulDataFlow.update {
+            it.copy { StatefulData.state set State.Loading }
+        }
+        coroutineScope.launch(ioDispatcher) {
             colorRepository.getColorScheme(request)
                 .onSuccess { scheme ->
-                    lastDomainColorScheme = scheme
                     val data = createData(scheme = scheme, config = requestConfig)
-                    _statefulDataFlow.update {
-                        it.copy(data = data, state = State.Ready)
+                    statefulDataFlow.update {
+                        it.copy {
+                            StatefulData.dataSession.domainColorScheme set scheme
+                            StatefulData.dataSession.data set data
+                            StatefulData.state set State.Ready
+                        }
                     }
                 }
                 .onFailure { failure ->
@@ -105,10 +122,15 @@ class ColorSchemeViewModel @AssistedInject constructor(
                         type = failure.toErrorType(),
                         tryAgain = ::onErrorAction,
                     )
-                    _statefulDataFlow.update {
-                        it.copy(error = error, state = State.Error)
+                    statefulDataFlow.update {
+                        it.copy {
+                            StatefulData.error set error
+                            StatefulData.state set State.Error
+                        }
                     }
                 }
+        }.also { job ->
+            fetchDataJob.getAndSet(job)?.cancel()
         }
     }
 
@@ -125,14 +147,16 @@ class ColorSchemeViewModel @AssistedInject constructor(
         )
 
     private fun onErrorAction() {
-        val seed = requireNotNull(lastUsedSeed)
+        val seed = requireNotNull(statefulData.dataSession.seed)
         fetchColorScheme(seed = seed)
+
     }
 
     private fun sendSwatchSelectedEvent(indexOfSelectedSwatch: Int) {
-        val lastDomainColorScheme = requireNotNull(lastDomainColorScheme)
+        val dataSession = statefulData.dataSession
+        val lastDomainColorScheme = requireNotNull(dataSession.domainColorScheme)
         val swatch =
-            _statefulDataFlow.value.data?.swatches?.getOrNull(indexOfSelectedSwatch) ?: return
+            dataSession.data?.swatches?.getOrNull(indexOfSelectedSwatch) ?: return
         val swatchColorDetails =
             lastDomainColorScheme.swatchDetails.getOrNull(indexOfSelectedSwatch) ?: return
         val event = ColorSchemeEvent.SwatchSelected(swatch, swatchColorDetails)
@@ -142,30 +166,33 @@ class ColorSchemeViewModel @AssistedInject constructor(
     }
 
     private fun selectMode(mode: Mode) {
-        _statefulDataFlow.updateNotNullData { currentData ->
-            currentData
-                .copy(selectedMode = mode)
-                .harmonize()
+        statefulDataFlow.update {
+            val newData = with(dataEditor) {
+                it.dataSession.data?.copyConsistently(selectedMode = mode)
+            }
+            it.copy { StatefulData.dataSession.data set newData }
         }
     }
 
     private fun selectSwatchCount(count: SwatchCount) {
-        _statefulDataFlow.updateNotNullData { currentData ->
-            currentData
-                .copy(selectedSwatchCount = count)
-                .harmonize()
+        statefulDataFlow.update {
+            val newData = with(dataEditor) {
+                it.dataSession.data?.copyConsistently(selectedSwatchCount = count)
+            }
+            it.copy { StatefulData.dataSession.data set newData }
         }
     }
 
     private fun applyChanges() {
-        val data = _statefulDataFlow.value.data ?: return
+        val dataSession = statefulData.dataSession
+        val data = dataSession.data ?: return
         if (data.changes !is Changes.Present) return // ignore clicks during button hiding animation
-        val seed = lastUsedSeed ?: return
+        val seed = dataSession.seed ?: return
         fetchColorScheme(seed)
     }
 
     private fun assembleRequestConfig(): Config {
-        val data = _statefulDataFlow.value.data
+        val data = statefulData.dataSession.data
         return if (data != null)
             Config(
                 mode = data.selectedMode,
@@ -173,8 +200,8 @@ class ColorSchemeViewModel @AssistedInject constructor(
             )
         else
             Config(
-                mode = InitialOrFallbackMode,
-                swatchCount = InitialOrFallbackSwatchCount,
+                mode = Mode.Monochrome,
+                swatchCount = SwatchCount.Six,
             )
     }
 
@@ -183,30 +210,6 @@ class ColorSchemeViewModel @AssistedInject constructor(
             seed = seed,
             mode = this.mode,
             swatchCount = this.swatchCount.value,
-        )
-
-    /** Synchronizes values between each other, ensuring data integrity. */
-    private fun ColorSchemeData.harmonize(): ColorSchemeData {
-        val changes = run {
-            fun hasModeChanged() = (selectedMode != activeMode)
-            fun hasSwatchCountChanged() = (selectedSwatchCount != activeSwatchCount)
-            val hasChanges = (hasModeChanged() || hasSwatchCountChanged())
-            if (hasChanges) {
-                Changes.Present(applyChanges = ::applyChanges)
-            } else {
-                Changes.None
-            }
-        }
-        return this.copy(
-            changes = changes,
-        )
-    }
-
-    private fun initialStatefulData() =
-        StatefulData(
-            data = null,
-            error = null,
-            state = State.Idle,
         )
 
     /** [GetColorSchemeRequest] mapped to presentation layer model. */
@@ -230,61 +233,52 @@ class ColorSchemeViewModel @AssistedInject constructor(
             colorSchemeEventStore: ColorSchemeEventStore,
         ): ColorSchemeViewModel
     }
+}
 
-    companion object {
-        private val InitialOrFallbackMode = Mode.Monochrome
-        private val InitialOrFallbackSwatchCount = SwatchCount.Six
-    }
+/**
+ * Couples data which is exposed from the ViewModel with various values that are related to it:
+ * derived from the exposed data, or used to produce it.
+ */
+@optics
+// 'private' but optics
+data class DataSession(
+    val seed: Color?,
+    val domainColorScheme: DomainColorScheme?,
+    val data: ColorSchemeData?,
+) {
+    companion object // required by Arrow's optics
 }
 
 /**
  * Couples data with a state.
  * This class is mapped to [DataState] (see [toDataState()][toDataState]).
- * Such approach solves issue of losing last [data] when [DataState] changes from `Ready` to `Loading`.
+ * Such approach solves issue of losing last [data], e.g. when [DataState] changes from `Ready` to `Loading`.
  */
-private data class StatefulData(
-    val data: ColorSchemeData?,
+@optics
+// 'private' but optics
+data class StatefulData(
+    val dataSession: DataSession,
     val error: ColorSchemeError?,
     val state: State,
 ) {
+
     enum class State {
         Idle, Loading, Ready, Error,
     }
+
+    companion object // required by Arrow's optics
 }
 
 private fun StatefulData.toDataState(): DataState =
     when (this.state) {
         State.Idle -> DataState.Idle
         State.Loading -> DataState.Loading
-        State.Ready -> DataState.Ready(data = requireNotNull(this.data))
+        State.Ready -> DataState.Ready(data = requireNotNull(this.dataSession.data))
         State.Error -> DataState.Error(error = requireNotNull(this.error))
     }
 
-private fun MutableStateFlow<StatefulData>.updateState(
-    newState: State,
-) =
-    update {
-        it.copy(state = newState)
-    }
-
-private fun MutableStateFlow<StatefulData>.updateData(
-    createNewData: (currentData: ColorSchemeData?) -> ColorSchemeData?,
-) =
-    update { statefulData ->
-        val currentData = statefulData.data
-        val newData = createNewData(currentData)
-        statefulData.copy(data = newData)
-    }
-
-private fun MutableStateFlow<StatefulData>.updateNotNullData(
-    createNewData: (currentData: ColorSchemeData) -> ColorSchemeData,
-) =
-    updateData { currentData ->
-        if (currentData == null) return@updateData null
-        createNewData(currentData)
-    }
-
 @Singleton
+// 'private' but Dagger
 class CreateColorSchemeDataUseCase @Inject constructor(
     private val colorToColorInt: ColorToColorIntUseCase,
     private val isColorLight: IsColorLightUseCase,
@@ -316,4 +310,40 @@ class CreateColorSchemeDataUseCase @Inject constructor(
             color = with(colorToColorInt) { toColorInt() },
             isDark = with(isColorLight) { isLight().not() },
         )
+}
+
+/**
+ * Creates updated copies of [ColorSchemeData] while ensuring data consistency.
+ */
+// 'private' but Dagger
+class ColorSchemeDataEditor(
+    private val applyChanges: () -> Unit,
+) {
+
+    fun ColorSchemeData.copyConsistently(
+        selectedMode: Mode = this.selectedMode,
+        selectedSwatchCount: SwatchCount = this.selectedSwatchCount,
+    ): ColorSchemeData =
+        this.copy(
+            selectedMode = selectedMode,
+            selectedSwatchCount = selectedSwatchCount,
+            changes = Changes(
+                selectedMode,
+                this.activeMode,
+                selectedSwatchCount,
+                this.activeSwatchCount,
+            ),
+        )
+
+    private fun Changes(
+        selectedMode: Mode,
+        activeMode: Mode,
+        selectedSwatchCount: SwatchCount,
+        activeSwatchCount: SwatchCount,
+    ): Changes {
+        val hasModeChanged by lazy { selectedMode != activeMode }
+        val hasSwatchCountChanged by lazy { selectedSwatchCount != activeSwatchCount }
+        val hasChanges = (hasModeChanged || hasSwatchCountChanged)
+        return if (hasChanges) Changes.Present(applyChanges) else Changes.None
+    }
 }

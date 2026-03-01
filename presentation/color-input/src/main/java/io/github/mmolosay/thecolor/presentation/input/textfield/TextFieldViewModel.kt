@@ -9,6 +9,7 @@ import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.WithSource
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.ClearTextFeature
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -33,7 +34,7 @@ import javax.inject.Named
 class TextFieldViewModel @AssistedInject constructor(
     @Assisted initialText: String,
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted private val filterUserInput: (String) -> TextFieldData.Text,
+    @Assisted private val filterUserInput: (String) -> Text,
     @Assisted private val enableClearTextFeature: Boolean,
     private val userPreferencesRepository: UserPreferencesRepository,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
@@ -41,9 +42,10 @@ class TextFieldViewModel @AssistedInject constructor(
 ) : SimpleViewModel(coroutineScope) {
 
     private val dataUpdateMutex = Mutex()
+    private val clearTextAction: () -> Unit = { updateTextByUser(Text("")) }
 
     private val _dataFlow: MutableStateFlow<TextFieldData> = run {
-        val textWithSource = TextFieldData.Text(initialText) causedByUser false // coerce initial data to be caused by not a user
+        val textWithSource = Text(initialText) causedByUser false // coerce initial data to be caused by not a user
         val data = makeInitialData(textWithSource)
         MutableStateFlow(data)
     }
@@ -66,7 +68,7 @@ class TextFieldViewModel @AssistedInject constructor(
         }
     }
 
-    fun updateText(textWithSource: WithSource<TextFieldData.Text>) {
+    fun updateText(textWithSource: WithSource<Text>) {
         coroutineScope.launch(defaultDispatcher) {
             /*
              * MutableStateFlow.update() is NOT fair. If we:
@@ -87,23 +89,21 @@ class TextFieldViewModel @AssistedInject constructor(
         }
     }
 
-    private fun TextFieldData.smartCopy(text: WithSource<TextFieldData.Text>) =
+    private fun TextFieldData.smartCopy(text: WithSource<Text>) =
         this.copy(
             text = text,
             clearText = clearTextFeatureOrNull(text = text.data),
         )
 
-    private fun clearTextFeatureOrNull(text: TextFieldData.Text): TextFieldData.ClearTextFeature? {
+    private fun clearTextFeatureOrNull(text: Text): ClearTextFeature? {
         if (!enableClearTextFeature) return null
-        return object : TextFieldData.ClearTextFeature {
-            override val willBeIdempotent: Boolean =
-                text.string.isEmpty()
-            override fun invoke() =
-                updateTextByUser(Text(""))
-        }
+        return ClearTextFeatureImpl(
+            willBeIdempotent = text.string.isEmpty(),
+            invoke = clearTextAction,
+        )
     }
 
-    private fun makeInitialData(text: WithSource<TextFieldData.Text>) =
+    private fun makeInitialData(text: WithSource<Text>) =
         TextFieldData(
             text = text,
             onTextChange = ::updateTextByUser, // the client of this ViewModel is a View, all text changes come from View (user)
@@ -114,6 +114,14 @@ class TextFieldViewModel @AssistedInject constructor(
                 .value.let { it ?: DefaultUserPreferences.SelectAllTextOnTextFieldFocus }
                 .enabled,
         )
+
+    /** An implementation of the [ClearTextFeature] that supports meaningful equality check. */
+    private data class ClearTextFeatureImpl(
+        override val willBeIdempotent: Boolean,
+        private val invoke: () -> Unit,
+    ) : ClearTextFeature {
+        override fun invoke() = this.invoke.invoke()
+    }
 
     @AssistedFactory
     interface Factory {
@@ -131,7 +139,7 @@ class TextFieldViewModel @AssistedInject constructor(
         fun create(
             initialText: String = "",
             coroutineScope: CoroutineScope,
-            filterUserInput: (String) -> TextFieldData.Text,
+            filterUserInput: (String) -> Text,
             enableClearTextFeature: Boolean,
         ): TextFieldViewModel
     }
@@ -140,8 +148,8 @@ class TextFieldViewModel @AssistedInject constructor(
 /**
  * Update text when it comes not from UI or user input.
  */
-internal infix fun TextFieldViewModel.updateText(text: TextFieldData.Text) =
+internal infix fun TextFieldViewModel.updateText(text: Text) =
     updateText(text causedByUser false)
 
-private fun TextFieldViewModel.updateTextByUser(text: TextFieldData.Text) =
+private fun TextFieldViewModel.updateTextByUser(text: Text) =
     updateText(text causedByUser true)

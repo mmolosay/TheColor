@@ -3,11 +3,13 @@ package io.github.mmolosay.thecolor.presentation.input.rgb
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.domain.model.ColorConstants
+import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.repository.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
+import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
+import io.github.mmolosay.thecolor.presentation.input.ColorInputMapper
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.ColorInputValidator
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
@@ -49,6 +51,8 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     @Assisted private val submitAction: ColorInputSubmitAction,
     private val textFieldViewModelFactory: TextFieldViewModel.Factory,
     private val colorInputValidator: ColorInputValidator,
+    private val colorInputMapper: ColorInputMapper,
+    private val colorConverter: ColorConverter,
     private val userPreferencesRepository: UserPreferencesRepository,
     @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
     @Named("uiDataUpdateDispatcher") private val uiDataUpdateDispatcher: CoroutineDispatcher,
@@ -88,7 +92,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                         .any { it.text.causedByUser }
                 if (!isAnyCausedByUser) return@onEach // none caused by user
                 val parsedColor = fullData.colorInputValidationResult.getColorOrNull()
-                mediator.send(color = parsedColor, from = DomainColorInputType.Rgb)
+                mediator.set(color = parsedColor, source = DomainColorInputType.Rgb)
             }
             .map { fullData -> fullData.reduce() }
             .map { data -> DataState(data) }
@@ -108,10 +112,18 @@ class ColorInputRgbViewModel @AssistedInject constructor(
 
     private fun collectMediatorUpdates() {
         coroutineScope.launch(uiDataUpdateDispatcher) {
-            mediator.rgbColorInputFlow.collect { input ->
-                rTextFieldVm updateText TextFieldData.Text(input.r)
-                gTextFieldVm updateText TextFieldData.Text(input.g)
-                bTextFieldVm updateText TextFieldData.Text(input.b)
+            mediator.colorStateFlow.collect { (color, source) ->
+                // don't update text fields to avoid update loop if the color was set from this 'Color Input' type
+                if (source == DomainColorInputType.Rgb) return@collect
+                val colorInput = if (color != null) {
+                    val hexColor = with(colorConverter) { color.toRgb() }
+                    with(colorInputMapper) { hexColor.toColorInput() }
+                } else {
+                    EmptyColorInput
+                }
+                rTextFieldVm updateText TextFieldData.Text(colorInput.r)
+                gTextFieldVm updateText TextFieldData.Text(colorInput.g)
+                bTextFieldVm updateText TextFieldData.Text(colorInput.b)
             }
         }
     }
@@ -122,8 +134,8 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             .take(3) // rgb component can be up to 3 digits long
             .let { string ->
                 if (string.isEmpty()) return@let ""
-                val rgbComponentMinValue = ColorConstants.RgbColorComponentIntRange.first
-                val rgbComponentMaxValue = ColorConstants.RgbColorComponentIntRange.last
+                val rgbComponentMinValue = Color.Rgb.ComponentRange.first
+                val rgbComponentMaxValue = Color.Rgb.ComponentRange.last
                 var int = string.toIntOrNull() ?: rgbComponentMinValue // remove leading zeros
                 // reduce int from right until it's in range
                 while (int > rgbComponentMaxValue) {
@@ -166,6 +178,10 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             mediator: ColorInputMediator,
             submitAction: ColorInputSubmitAction,
         ): ColorInputRgbViewModel
+    }
+
+    companion object {
+        val EmptyColorInput = ColorInput.Rgb(r = "", g = "", b = "")
     }
 }
 

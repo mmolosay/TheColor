@@ -6,6 +6,9 @@ import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkOut
+import androidx.compose.foundation.interaction.InteractionSource
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
@@ -25,14 +28,12 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
-import io.github.mmolosay.thecolor.presentation.common.compose.thenIf
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.NoOpClearTextFeature
@@ -53,16 +54,19 @@ internal fun TextField(
     keyboardActions: KeyboardActions,
     modifier: Modifier = Modifier,
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    if (data.shouldSelectAllTextOnFocus) {
+        SelectAllTextOnFocusAsSideEffect(
+            interactionSource = interactionSource,
+            value = value,
+            onValueChange = onValueChange,
+        )
+    }
     OutlinedTextField(
-        modifier = modifier
-            .thenIf(data.shouldSelectAllTextOnFocus) {
-                selectAllTextOnFocus(
-                    value = value,
-                    onValueChange = onValueChange,
-                )
-            },
+        modifier = modifier,
         value = value,
         onValueChange = { new ->
+            @Suppress("UnnecessaryVariable")
             val current = value
             if (current.text != new.text) {
                 // can't just pass new.text to ViewModel for filtering: TextFieldValue.selection will be lost
@@ -89,6 +93,7 @@ internal fun TextField(
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
         singleLine = true,
+        interactionSource = interactionSource,
     )
     // for when text is cleared with trailing button or set programmatically
     LaunchedEffect(data.text) {
@@ -154,18 +159,20 @@ private fun Prefix(text: String) =
         text = text,
     )
 
-private fun Modifier.selectAllTextOnFocus(
+@Composable
+private fun SelectAllTextOnFocusAsSideEffect(
+    interactionSource: InteractionSource,
     value: TextFieldValue,
     onValueChange: (TextFieldValue) -> Unit,
-) =
-    onFocusChanged action@{
-        if (!it.isFocused) return@action
+) {
+    val isFocused by interactionSource.collectIsFocusedAsState()
+    LaunchedEffect(isFocused) {
+        if (!isFocused) return@LaunchedEffect
         val text = value.text
-        val newValue = value.copy(
-            selection = TextRange(start = 0, end = text.length)
-        )
+        val newValue = value.copy(selection = TextRange(start = 0, end = text.length))
         onValueChange(newValue)
     }
+}
 
 /*
  * At the moment, focus may work weirdly in the "Interactive mode".

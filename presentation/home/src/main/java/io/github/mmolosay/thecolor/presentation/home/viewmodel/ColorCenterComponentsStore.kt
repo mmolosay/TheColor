@@ -3,8 +3,8 @@ package io.github.mmolosay.thecolor.presentation.home.viewmodel
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
+import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommandStore
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEventStore
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
@@ -12,13 +12,11 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommandStore
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEventStore
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Provider
 
 /**
- * Stores [ColorCenterComponents] in a [componentsFlow].
+ * Stores [ColorCenterComponents].
  * Provides methods for disposing of a current components when they are no longer needed
  * and for creating new components.
  */
@@ -27,26 +25,22 @@ class ColorCenterComponentsStore @AssistedInject constructor(
     @Assisted private val viewModelScope: CoroutineScope,
     private val factory: ColorCenterComponentsFactory,
 ) {
-
-    private val _componentsFlow = MutableStateFlow<ColorCenterComponents?>(null)
-    val componentsFlow = _componentsFlow.asStateFlow()
+    @Volatile // faster than '@Synchronized get'
+    var components: ColorCenterComponents? = null
+        private set
 
     @Synchronized
     fun createNewComponents() {
         disposeComponents() // dispose of current components if there are any
-        val components = factory.create()
-        _componentsFlow.value = components
+        this.components = factory.create(viewModelScope)
     }
 
     @Synchronized
     fun disposeComponents() {
         val components = components ?: return
         components.colorCenterViewModel.dispose() // will also dispose of its child ViewModels
-        _componentsFlow.value = null
+        this.components = null
     }
-
-    private fun ColorCenterComponentsFactory.create(): ColorCenterComponents =
-        this.create(viewModelScope)
 
     @AssistedFactory
     fun interface Factory {
@@ -55,9 +49,6 @@ class ColorCenterComponentsStore @AssistedInject constructor(
         ): ColorCenterComponentsStore
     }
 }
-
-val ColorCenterComponentsStore.components: ColorCenterComponents?
-    get() = this.componentsFlow.value
 
 /* private for ColorCenterComponentsStore */
 class ColorCenterComponentsFactory @Inject constructor(

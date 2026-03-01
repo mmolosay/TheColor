@@ -1,7 +1,11 @@
 package io.github.mmolosay.thecolor.presentation.input.group
 
 import android.content.res.Configuration
-import androidx.compose.animation.Crossfade
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +36,8 @@ import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupViewM
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHex
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexData
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexUiStrings
+import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsv
+import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvData
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgb
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbData
@@ -39,6 +45,7 @@ import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbUiStrings
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldUiStrings
 import io.github.mmolosay.thecolor.utils.doNothing
+import io.github.mmolosay.thecolor.domain.model.Color as DomainColor
 import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
 
 @Composable
@@ -63,6 +70,9 @@ fun ColorInputGroup(
                 rgbInput = {
                     ColorInputRgb(viewModel = viewModel.rgbViewModel)
                 },
+                hsvInput = {
+                    ColorInputHsv(viewModel = viewModel.hsvViewModel)
+                },
             )
         }
     }
@@ -74,14 +84,18 @@ fun ColorInputGroup(
     strings: ColorInputGroupUiStrings,
     hexInput: @Composable () -> Unit,
     rgbInput: @Composable () -> Unit,
+    hsvInput: @Composable () -> Unit,
 ) {
     Column(
         modifier = Modifier.padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Crossfade(
+        AnimatedContent(
             targetState = data.selectedInputType,
-            label = "Input type cross-fade",
+            transitionSpec = {
+                fadeIn() togetherWith fadeOut() using SizeTransform(clip = false)
+            },
+            label = "Input type animated content",
         ) { type ->
             Box(
                 modifier = Modifier
@@ -91,6 +105,7 @@ fun ColorInputGroup(
                 when (type) {
                     DomainColorInputType.Hex -> hexInput()
                     DomainColorInputType.Rgb -> rgbInput()
+                    DomainColorInputType.Hsv -> hsvInput()
                 }
             }
         }
@@ -152,6 +167,7 @@ private fun DomainColorInputType.label(strings: ColorInputGroupUiStrings): Strin
     when (this) {
         DomainColorInputType.Hex -> strings.hexLabel
         DomainColorInputType.Rgb -> strings.rgbLabel
+        DomainColorInputType.Hsv -> strings.hsvLabel
     }
 
 @Preview(uiMode = Configuration.UI_MODE_TYPE_NORMAL)
@@ -175,6 +191,11 @@ private fun Preview() {
                         strings = previewRgbUiStrings(),
                     )
                 },
+                hsvInput = {
+                    ColorInputHsv(
+                        data = previewHsvData(),
+                    )
+                },
             )
         }
     }
@@ -194,6 +215,7 @@ private fun previewUiStrings() =
     ColorInputGroupUiStrings(
         hexLabel = "HEX",
         rgbLabel = "RGB",
+        hsvLabel = "HSV",
     )
 
 private fun previewHexData() =
@@ -265,4 +287,10 @@ private fun previewRgbUiStrings() =
             prefix = null,
             trailingIconContentDesc = null,
         ),
+    )
+
+private fun previewHsvData() =
+    ColorInputHsvData(
+        color = DomainColor.Hsv(hue = 259f, saturation = 0.65f, value = 0.82f),
+        onColorChanged = {},
     )

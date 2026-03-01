@@ -46,8 +46,7 @@ robolectricJunit5Ext = "0.9.0"
 
 # Misc (preserve alphabetical order)
 aboutLibraries = "13.1.0"
-arrow-optics-lib = "2.1.0"
-arrow-optics-ksp-plugin = "2.1.0"
+arrow-optics = "2.2.1.1"
 jakewhartonTimber = "5.0.1"
 mmolosayDebounce = "1.2.0"
 valentinilkShimmer = "1.2.0"

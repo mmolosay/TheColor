@@ -14,6 +14,7 @@
     <string name="settings_item_preferred_color_input_type_desc">It will be selected on app startup.</string>
     <string name="settings_item_preferred_color_input_type_value_hex">HEX</string>
     <string name="settings_item_preferred_color_input_value_type_rgb">RGB</string>
+    <string name="settings_item_preferred_color_input_value_type_hsv">HSV</string>
 
     <string name="settings_item_app_ui_color_scheme_title">UI theme</string>
     <string name="settings_item_app_ui_color_scheme_desc">A color scheme of the application.</string>

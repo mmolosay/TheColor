@@ -12,10 +12,12 @@ import io.github.mmolosay.thecolor.presentation.input.R
 data class ColorInputGroupUiStrings(
     val hexLabel: String,
     val rgbLabel: String,
+    val hsvLabel: String,
 )
 
 fun ColorInputGroupUiStrings(context: Context) =
     ColorInputGroupUiStrings(
         hexLabel = context.getString(R.string.color_input_tab_hex),
         rgbLabel = context.getString(R.string.color_input_tab_rgb),
+        hsvLabel = context.getString(R.string.color_input_tab_hsv),
     )

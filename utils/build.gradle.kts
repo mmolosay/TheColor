@@ -10,6 +10,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.4.0")
 
     // Testing
+    testImplementation(project(":utils:testing"))
     testImplementation("org.junit.jupiter:junit-jupiter-api:${libs.versions.junit.get()}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${libs.versions.junit.get()}")
     testImplementation("org.junit.jupiter:junit-jupiter-params:${libs.versions.junit.get()}")
