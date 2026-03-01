@@ -16,7 +16,7 @@ import javax.inject.Inject
 import javax.inject.Provider
 
 /**
- * Stores [ColorCenterComponents] in a [componentsFlow].
+ * Stores [ColorCenterComponents].
  * Provides methods for disposing of a current components when they are no longer needed
  * and for creating new components.
  */
@@ -25,6 +25,7 @@ class ColorCenterComponentsStore @AssistedInject constructor(
     @Assisted private val viewModelScope: CoroutineScope,
     private val factory: ColorCenterComponentsFactory,
 ) {
+    @Volatile // faster than '@Synchronized get'
     var components: ColorCenterComponents? = null
         private set
 
