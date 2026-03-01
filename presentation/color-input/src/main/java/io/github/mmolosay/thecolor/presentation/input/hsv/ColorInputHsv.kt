@@ -22,9 +22,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.input.UiComponents.DataStateCrossfade
-import io.github.mmolosay.thecolor.presentation.input.hsv.ColorUtils.HsvHueRange
-import io.github.mmolosay.thecolor.presentation.input.hsv.ColorUtils.HsvSaturationRange
-import io.github.mmolosay.thecolor.presentation.input.hsv.ColorUtils.HsvValueRange
+import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvHueRange
+import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvSaturationRange
+import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvValueRange
 import io.github.mmolosay.thecolor.presentation.input.model.DataState
 import io.github.mmolosay.thecolor.domain.model.Color as DomainColor
 

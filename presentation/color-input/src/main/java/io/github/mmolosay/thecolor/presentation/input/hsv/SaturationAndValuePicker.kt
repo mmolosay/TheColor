@@ -30,10 +30,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.util.fastFirst
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.input.hsv.ColorUtils.HsvColor
-import io.github.mmolosay.thecolor.presentation.input.hsv.ColorUtils.HsvHueRange
-import io.github.mmolosay.thecolor.presentation.input.hsv.ColorUtils.HsvSaturationRange
-import io.github.mmolosay.thecolor.presentation.input.hsv.ColorUtils.HsvValueRange
+import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvColor
+import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvHueRange
+import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvSaturationRange
+import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvValueRange
 import kotlin.math.roundToInt
 import androidx.compose.ui.graphics.Color as ComposeColor
 import io.github.mmolosay.thecolor.domain.model.Color as DomainColor
@@ -127,6 +127,9 @@ internal fun SaturationAndValuePicker(
     }
 }
 
+/**
+ * The value of the 'hue' in the HSV color space.
+ */
 @JvmInline
 internal value class HueValue(val value: Float) {
     init {
@@ -137,6 +140,9 @@ internal value class HueValue(val value: Float) {
 internal fun HueValue(color: DomainColor.Hsv): HueValue =
     HueValue(value = color.hue)
 
+/**
+ * The value of the 'saturation' and 'value' in the HSV color space.
+ */
 internal data class SaturationAndValue(
     val saturation: Float,
     val value: Float,

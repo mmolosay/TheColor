@@ -32,10 +32,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.input.hsv.ColorUtils.HsvColor
-import io.github.mmolosay.thecolor.presentation.input.hsv.ColorUtils.HsvHueRange
-import io.github.mmolosay.thecolor.presentation.input.hsv.ColorUtils.HsvSaturationRange
-import io.github.mmolosay.thecolor.presentation.input.hsv.ColorUtils.HsvValueRange
+import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvColor
+import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvHueRange
+import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvSaturationRange
+import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvValueRange
 import kotlin.math.nextDown
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)

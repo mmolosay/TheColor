@@ -4,9 +4,9 @@ import androidx.compose.ui.graphics.Color
 import android.graphics.Color as AndroidColor
 
 /**
- * Color utils for the 'Visual Picker Color Input' feature.
+ * Color utils for the 'HSV Color Input' feature.
  */
-internal object ColorUtils {
+internal object HsvColorUtils {
 
     /**
      * The range of valid hue values in HSV color space.
