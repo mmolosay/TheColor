@@ -34,6 +34,8 @@ import androidx.compose.ui.unit.dp
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorUtils.HsvColor
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorUtils.HsvHueRange
+import io.github.mmolosay.thecolor.presentation.input.hsv.ColorUtils.HsvSaturationRange
+import io.github.mmolosay.thecolor.presentation.input.hsv.ColorUtils.HsvValueRange
 import kotlin.math.nextDown
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -89,9 +91,7 @@ internal fun HuePicker(
 private fun HueBar(
     modifier: Modifier = Modifier,
 ) {
-    val hues = remember {
-        makeListOfPureHues()
-    }
+    val hues = remember { makeListOfPureHues() }
     Canvas(
         modifier = modifier
             .fillMaxWidth()
@@ -104,10 +104,14 @@ private fun HueBar(
 
 private fun makeListOfPureHues(): List<Color> {
     val totalHues = 360
-    val maxHueValue = 360f
+    val maxHueValue = HsvHueRange.endExclusive
     val hueStep = (maxHueValue / totalHues)
-    val hsvComponents =
-        floatArrayOf(/*h*/ 0f, /*s*/ 1f, /*v*/ 1f) // reuse the same array to reduce allocations
+    // reuse the same array to reduce allocations
+    val hsvComponents = floatArrayOf(
+        /*h*/ Float.NEGATIVE_INFINITY,
+        /*s*/ HsvSaturationRange.endInclusive,
+        /*v*/ HsvValueRange.endInclusive,
+    )
     return List(totalHues) { index ->
         val hue = index * hueStep
         hsvComponents[0] = hue
