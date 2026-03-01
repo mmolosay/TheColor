@@ -22,6 +22,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.input.UiComponents.DataStateCrossfade
+import io.github.mmolosay.thecolor.presentation.input.hsv.ColorUtils.HsvHueRange
+import io.github.mmolosay.thecolor.presentation.input.hsv.ColorUtils.HsvSaturationRange
+import io.github.mmolosay.thecolor.presentation.input.hsv.ColorUtils.HsvValueRange
 import io.github.mmolosay.thecolor.presentation.input.model.DataState
 import io.github.mmolosay.thecolor.domain.model.Color as DomainColor
 
@@ -51,11 +54,11 @@ fun ColorInputHsv(
 ) {
     val hue = run {
         if (data.color != null) HueValue(data.color)
-        else HueValue.Min
+        else HueValue(HsvHueRange.start)
     }
     val sv = run {
         if (data.color != null) SaturationAndValue(data.color)
-        else SaturationAndValue(saturation = 1f, value = 1f)
+        else SaturationAndValue(saturation = HsvSaturationRange.endInclusive, value = HsvValueRange.endInclusive)
     }
     fun HsvColor(hue: HueValue, sv: SaturationAndValue): DomainColor.Hsv =
         DomainColor.Hsv(

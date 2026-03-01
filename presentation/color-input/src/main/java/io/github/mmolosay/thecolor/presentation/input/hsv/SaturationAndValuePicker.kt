@@ -34,7 +34,6 @@ import io.github.mmolosay.thecolor.presentation.input.hsv.ColorUtils.HsvColor
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorUtils.HsvHueRange
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorUtils.HsvSaturationRange
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorUtils.HsvValueRange
-import kotlin.math.nextDown
 import kotlin.math.roundToInt
 import androidx.compose.ui.graphics.Color as ComposeColor
 import io.github.mmolosay.thecolor.domain.model.Color as DomainColor
@@ -133,10 +132,6 @@ internal value class HueValue(val value: Float) {
     init {
         require(value in HsvHueRange)
     }
-    companion object {
-        val Min by lazy { HueValue(HsvHueRange.start) }
-        val Max by lazy { HueValue(HsvHueRange.endExclusive.nextDown()) }
-    }
 }
 
 internal fun HueValue(color: DomainColor.Hsv): HueValue =
@@ -191,7 +186,7 @@ private fun Pointer(
     val radius = 8.dp
     val strokeWidth = 3.dp
     // stroke is drawn on top of the circumference in the middle,
-    // so that half of the stroke width is outside of the circle and the other half is inside
+    // so that half of the stroke width is outside the circle and the other half is inside
     val totalSize = (radius * 2) + strokeWidth
     Canvas(
         modifier = modifier.size(totalSize),
