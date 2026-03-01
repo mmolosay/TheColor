@@ -200,8 +200,8 @@ class ColorSchemeViewModel @AssistedInject constructor(
             )
         else
             Config(
-                mode = InitialOrFallbackMode,
-                swatchCount = InitialOrFallbackSwatchCount,
+                mode = Mode.Monochrome,
+                swatchCount = SwatchCount.Six,
             )
     }
 
@@ -232,11 +232,6 @@ class ColorSchemeViewModel @AssistedInject constructor(
             colorSchemeCommandProvider: ColorSchemeCommandProvider,
             colorSchemeEventStore: ColorSchemeEventStore,
         ): ColorSchemeViewModel
-    }
-
-    companion object {
-        private val InitialOrFallbackMode = Mode.Monochrome
-        private val InitialOrFallbackSwatchCount = SwatchCount.Six
     }
 }
 
