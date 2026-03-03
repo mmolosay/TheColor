@@ -99,6 +99,8 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeNavEvent
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroup
 import io.github.mmolosay.thecolor.presentation.preview.AnimatedColorPreview
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState
+import io.github.mmolosay.thecolor.presentation.preview.toUiState
 import io.github.mmolosay.thecolor.utils.cache.DequeCache
 import io.github.mmolosay.thecolor.utils.cache.PruneOnSizeThreshold
 import io.github.mmolosay.thecolor.utils.collectConsuming
@@ -173,11 +175,11 @@ fun HomeScreen(
         fun actualUiState(): HomeUiState? {
             val isColorPreviewVisible = run {
                 val data = flowOfColorPreviewData.value ?: return null
-                isColorPreviewVisible(data)
+                return@run data.toUiState() is ColorPreviewUiState.Visible
             }
             val isColorCenterVisible = run {
                 val data = flowOfHomeData.value
-                isColorCenterVisible(data.proceedResult)
+                return@run data.proceedResult is ProceedResult.Success
             }
             return HomeUiState(isColorPreviewVisible, isColorCenterVisible)
         }
