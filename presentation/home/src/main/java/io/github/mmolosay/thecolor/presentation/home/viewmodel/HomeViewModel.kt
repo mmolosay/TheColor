@@ -459,7 +459,7 @@ internal object HomeViewModelDiModule {
  * consumer won't collect unstable, inconsistent data that is about to change, because data transaction
  * is still running.
  *
- * Ensures correct behaviour in concurrent execution when multiple data updates are
+ * Ensures correct behavior in concurrent execution when multiple data updates are
  * running in parallel.
  * Finishing one won't falsely signal that all are done (as it would've been with a simple boolean).
  */
