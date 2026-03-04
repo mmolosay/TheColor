@@ -32,9 +32,8 @@ class SamplerTest {
             val producedSamples = mutableListOf<Int?>()
             sut = Sampler(
                 period = 100.milliseconds,
-                onSampleProduced = { sample -> producedSamples += sample },
                 coroutineScope = coroutineScope,
-            )
+            ) { sample -> producedSamples += sample }
 
             sut.offer(0)
 
@@ -47,9 +46,8 @@ class SamplerTest {
             val producedSamples = mutableListOf<Int?>()
             sut = Sampler(
                 period = 100.milliseconds,
-                onSampleProduced = { sample -> producedSamples += sample },
                 coroutineScope = coroutineScope,
-            )
+            ) { sample -> producedSamples += sample }
 
             producedSamples.clear()
             sut.offer(0)
@@ -72,9 +70,8 @@ class SamplerTest {
             val producedSamples = mutableListOf<Int?>()
             sut = Sampler(
                 period = 100.milliseconds,
-                onSampleProduced = { sample -> producedSamples += sample },
                 coroutineScope = coroutineScope,
-            )
+            ) { sample -> producedSamples += sample }
 
             producedSamples.clear()
             sut.offer(0)
@@ -100,9 +97,8 @@ class SamplerTest {
             val producedSamples = mutableListOf<Int?>()
             sut = Sampler(
                 period = 100.milliseconds,
-                onSampleProduced = { sample -> producedSamples += sample },
                 coroutineScope = coroutineScope,
-            )
+            ) { sample -> producedSamples += sample }
 
             producedSamples.clear()
             sut.offer(0)
@@ -123,9 +119,8 @@ class SamplerTest {
             val producedSamples = mutableListOf<Int?>()
             sut = Sampler(
                 period = 100.milliseconds,
-                onSampleProduced = { sample -> producedSamples += sample },
                 coroutineScope = coroutineScope,
-            )
+            ) { sample -> producedSamples += sample }
 
             producedSamples.clear()
             sut.offer(0)
@@ -155,9 +150,8 @@ class SamplerTest {
             val samplesCount = AtomicInteger(0)
             sut = Sampler(
                 period = 100.milliseconds,
-                onSampleProduced = { samplesCount.incrementAndGet() },
                 coroutineScope = coroutineScope,
-            )
+            ) { samplesCount.incrementAndGet() }
 
             val numberOfThreads = 32
             val barrier = CyclicBarrier(numberOfThreads)

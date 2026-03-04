@@ -19,10 +19,12 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterSessio
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.CanProceed
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ColorSchemeSelectedSwatchData
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
+import io.github.mmolosay.thecolor.presentation.input.colorState
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputValidationResult
+import io.github.mmolosay.thecolor.presentation.input.set
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommand
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
@@ -223,7 +225,7 @@ class HomeViewModel @Inject constructor(
     private fun proceed() {
         viewModelScope.launch(defaultDispatcher) {
             dataUpdateCounter.withCounter {
-                val color = requireNotNull(colorInputMediator.colorStateFlow.value.color)
+                val color = requireNotNull(colorInputMediator.colorState.color)
                 onColorCenterSessionEnded() // end current session (if any)
                 proceedInNewColorCenterSession(color, colorRole = null)
             }
@@ -297,17 +299,17 @@ class HomeViewModel @Inject constructor(
     private fun randomizeColor() {
         viewModelScope.launch(defaultDispatcher) {
             val color = getPredictableRandomColor()
-            val shouldProceed = userPreferencesRepository
-                .flowOfAutoProceedWithRandomizedColors
-                .filterNotNull().first()
-                .enabled
-            if (shouldProceed) {
+            colorInputMediator.withLock { editor ->
+                val shouldProceed = userPreferencesRepository
+                    .flowOfAutoProceedWithRandomizedColors
+                    .filterNotNull().first()
+                    .enabled
                 dataUpdateCounter.withCounter {
-                    proceedInNewColorCenterSession(color, colorRole = null)
-                    colorInputMediator.set(color)
+                    if (shouldProceed) {
+                        proceedInNewColorCenterSession(color, colorRole = null)
+                    }
+                    editor.set(color)
                 }
-            } else {
-                colorInputMediator.set(color)
             }
         }.also { job ->
             job.setToJobWithProceed()
@@ -338,7 +340,7 @@ class HomeViewModel @Inject constructor(
 
     private fun initialData(): HomeData {
         val canProceed = kotlin.run {
-            val color = colorInputMediator.colorStateFlow.value.color
+            val color = colorInputMediator.colorState.color
             CanProceed(colorFromColorInput = color)
         }
         return HomeData(
@@ -380,11 +382,6 @@ class HomeViewModel @Inject constructor(
         ccSessionStore.clear()
         colorCenterComponentsStore.disposeComponents()
         jobWithComponentsCollection.getAndSet(null)?.cancel()
-    }
-
-    // private extension for HomeViewModel, which always sets a color with null 'source'
-    private fun ColorInputMediator.set(color: Color?) {
-        this.set(color = color, source = null)
     }
 
     private fun Job.setToJobWithProceed() {

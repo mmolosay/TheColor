@@ -7,11 +7,12 @@ import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
+import io.github.mmolosay.thecolor.presentation.input.colorState
 import io.github.mmolosay.thecolor.presentation.input.model.DataState
 import io.github.mmolosay.thecolor.utils.Sampler
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,14 +23,13 @@ import kotlin.time.Duration.Companion.milliseconds
 import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
 
 /**
- * Handles presentation logic of the 'HEX Color Input' feature.
+ * Handles presentation logic of the 'HSV Color Input' feature.
  *
  * Unlike typical `ViewModel`s, it doesn't derive from Google's [ViewModel][androidx.lifecycle.ViewModel],
  * thus cannot be instantiated using [ViewModelProvider][androidx.lifecycle.ViewModelProvider].
  *
  * Instead, it can be created within "simple" `ViewModel` or Google's `ViewModel`.
  */
-@OptIn(FlowPreview::class)
 class ColorInputHsvViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     @Assisted private val mediator: ColorInputMediator,
@@ -40,13 +40,22 @@ class ColorInputHsvViewModel @AssistedInject constructor(
     private val _dataStateFlow = MutableStateFlow<DataState<ColorInputHsvData>>(DataState.BeingInitialized)
     val dataStateFlow: StateFlow<DataState<ColorInputHsvData>> = _dataStateFlow.asStateFlow()
 
-    private val samplerForNewColors = Sampler<Color.Hsv>(
+    private var sampleProcessingJob: Job? = null // 'onSampleProduced' is never invoked concurrently
+    private val samplerForNewColors = Sampler<ColorWithId>(
         period = 200.milliseconds,
-        onSampleProduced = { color ->
-            mediator.set(color = color, source = DomainColorInputType.Hsv)
-        },
         coroutineScope = CoroutineScope(coroutineScope.coroutineContext + defaultDispatcher),
-    )
+    ) { colorWithId ->
+        sampleProcessingJob?.cancel()
+        sampleProcessingJob = coroutineScope.launch(defaultDispatcher) {
+            mediator.withLock { editor ->
+                val idThen = colorWithId.mediatorStateId
+                val idNow = mediator.colorState.id
+                if (idNow == idThen) {
+                    editor.set(color = colorWithId.color, source = DomainColorInputType.Hsv)
+                }
+            }
+        }
+    }
 
     init {
         coroutineScope.launch(defaultDispatcher) {
@@ -66,8 +75,18 @@ class ColorInputHsvViewModel @AssistedInject constructor(
             val newData = dataState.data.copy(color = newColor)
             DataState.Ready(data = newData)
         }
-        samplerForNewColors.offer(newColor)
+        val colorWithId = ColorWithId(color = newColor, mediatorStateId = mediator.colorState.id)
+        samplerForNewColors.offer(colorWithId)
     }
+
+    /**
+     * Couples [color] received via [onColorChanged] with [ColorInputMediator.ColorState.id]
+     * at the moment when [color] was received.
+     */
+    private data class ColorWithId(
+        val color: Color.Hsv,
+        val mediatorStateId: Int,
+    )
 
     @AssistedFactory
     fun interface Factory {
