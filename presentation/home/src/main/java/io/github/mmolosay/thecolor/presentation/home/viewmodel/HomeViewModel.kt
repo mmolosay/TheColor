@@ -2,10 +2,6 @@ package io.github.mmolosay.thecolor.presentation.home.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.Module
-import dagger.Provides
-import dagger.hilt.InstallIn
-import dagger.hilt.android.components.ViewModelComponent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.model.Color
 import io.github.mmolosay.thecolor.domain.repository.LastSearchedColorRepository
@@ -31,8 +27,7 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommand
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
 import io.github.mmolosay.thecolor.utils.MutableConsumableStore
-import io.github.mmolosay.thecolor.utils.OpenSuspendGate
-import io.github.mmolosay.thecolor.utils.SuspendGate
+import io.github.mmolosay.thecolor.utils.OperationCounter
 import io.github.mmolosay.thecolor.utils.asConsumableStore
 import io.github.mmolosay.thecolor.utils.doNothing
 import kotlinx.coroutines.CoroutineDispatcher
@@ -74,7 +69,6 @@ class HomeViewModel @Inject constructor(
     colorInputGroupViewModelFactory: ColorInputGroupViewModel.Factory,
     colorPreviewViewModelFactory: ColorPreviewViewModel.Factory,
     colorCenterComponentsStoreFactory: ColorCenterComponentsStore.Factory,
-    private val gates: SuspendGates,
     private val createColorData: CreateColorDataUseCase,
     private val colorComparator: ColorComparator,
     private val doesColorBelongToSession: DoesColorBelongToSessionUseCase,
@@ -87,9 +81,12 @@ class HomeViewModel @Inject constructor(
     private val _dataFlow = MutableStateFlow(initialData())
     val dataFlow = _dataFlow.asStateFlow()
 
-    private val dataUpdateGuard = DataUpdateGuard(gate = gates.gateForDataUpdateGuard)
-    val flowOfIsDataBeingUpdated: StateFlow<Boolean> =
-        dataUpdateGuard.flowOfIsDataBeingUpdated
+    private val _flowOfIsDataBeingUpdated = MutableStateFlow(false)
+    val flowOfIsDataBeingUpdated: StateFlow<Boolean> = _flowOfIsDataBeingUpdated.asStateFlow()
+    private val dataUpdateCounter = OperationCounter { counter, _ ->
+        val areThereAnyOngoingUpdates = (counter > 0)
+        _flowOfIsDataBeingUpdated.value = areThereAnyOngoingUpdates
+    }
 
     private val _navEventStore = MutableConsumableStore<HomeNavEvent>()
     val navEventStore = _navEventStore.asConsumableStore()
@@ -132,7 +129,7 @@ class HomeViewModel @Inject constructor(
 
     private suspend fun onColorFromColorInput(colorState: ColorInputMediator.ColorState) {
         val color = colorState.color
-        dataUpdateGuard.withCounter {
+        dataUpdateCounter.withCounter {
             _dataFlow.update {
                 val canProceed = CanProceed(colorFromColorInput = color)
                 it.copy(canProceed = canProceed)
@@ -149,7 +146,7 @@ class HomeViewModel @Inject constructor(
         when (event) {
             is ColorDetailsEvent.ColorSelected ->
                 viewModelScope.launch(defaultDispatcher) {
-                    dataUpdateGuard.withCounter {
+                    dataUpdateCounter.withCounter {
                         val color = event.color
                         colorInputMediator.set(color)
                         // assuming any color selected belongs to ongoing session
@@ -213,7 +210,7 @@ class HomeViewModel @Inject constructor(
             val enabled = resumeFromLastSearchedColorOnStartup.enabled
             if (!enabled) return@launch
             val color = lastSearchedColorRepository.getLastSearchedColor() ?: return@launch
-            dataUpdateGuard.withCounter {
+            dataUpdateCounter.withCounter {
                 proceedInNewColorCenterSession(color, colorRole = null)
                 colorInputMediator.set(color)
             }
@@ -225,7 +222,7 @@ class HomeViewModel @Inject constructor(
     /** Variation that takes the current color of Color Input. */
     private fun proceed() {
         viewModelScope.launch(defaultDispatcher) {
-            dataUpdateGuard.withCounter {
+            dataUpdateCounter.withCounter {
                 val color = requireNotNull(colorInputMediator.colorStateFlow.value.color)
                 onColorCenterSessionEnded() // end current session (if any)
                 proceedInNewColorCenterSession(color, colorRole = null)
@@ -305,7 +302,7 @@ class HomeViewModel @Inject constructor(
                 .filterNotNull().first()
                 .enabled
             if (shouldProceed) {
-                dataUpdateGuard.withCounter {
+                dataUpdateCounter.withCounter {
                     proceedInNewColorCenterSession(color, colorRole = null)
                     colorInputMediator.set(color)
                 }
@@ -412,7 +409,7 @@ class HomeViewModel @Inject constructor(
             when (validationResult) {
                 is ColorInputValidationResult.Valid -> {
                     viewModelScope.launch(defaultDispatcher) {
-                        dataUpdateGuard.withCounter {
+                        dataUpdateCounter.withCounter {
                             val color = validationResult.color
                             proceedInNewColorCenterSession(color, colorRole = null)
                         }
@@ -433,64 +430,6 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
-
-    /** A collection of [SuspendGate]s for [HomeViewModel]. */
-    data class SuspendGates(
-        val gateForDataUpdateGuard: SuspendGate,
-    )
-}
-
-@Module
-@InstallIn(ViewModelComponent::class)
-internal object HomeViewModelDiModule {
-
-    @Provides
-    fun provideSuspendGates(): HomeViewModel.SuspendGates =
-        HomeViewModel.SuspendGates(
-            gateForDataUpdateGuard = OpenSuspendGate,
-        )
-}
-
-/**
- * Tracks the number of ongoing data updates using reference counting technique.
- *
- * [HomeViewModel] may update its data multiple times during the same factual data transaction.
- * Having a counter of ongoing updates that data consumer (View) takes into account ensures that
- * consumer won't collect unstable, inconsistent data that is about to change, because data transaction
- * is still running.
- *
- * Ensures correct behavior in concurrent execution when multiple data updates are
- * running in parallel.
- * Finishing one won't falsely signal that all are done (as it would've been with a simple boolean).
- */
-private class DataUpdateGuard(
-    private val gate: SuspendGate,
-) {
-
-    private var numberOfOngoingUpdates = 0
-    private val mutexForNumberOfOngoingUpdates = Mutex()
-    val flowOfIsDataBeingUpdated = MutableStateFlow<Boolean>(value = isDataBeingUpdated())
-
-    suspend inline fun withCounter(block: () -> Unit) {
-        updateNumberOfOngoingUpdates { it + 1 }
-        try {
-            block()
-        } finally {
-            updateNumberOfOngoingUpdates { it - 1 }
-            assert(numberOfOngoingUpdates >= 0)
-        }
-    }
-
-    private suspend fun updateNumberOfOngoingUpdates(newNumber: (Int) -> Int) {
-        gate.awaitOpen()
-        mutexForNumberOfOngoingUpdates.withLock {
-            numberOfOngoingUpdates = newNumber(numberOfOngoingUpdates)
-            flowOfIsDataBeingUpdated.update { isDataBeingUpdated() }
-        }
-    }
-
-    private fun isDataBeingUpdated() =
-        numberOfOngoingUpdates > 0
 }
 
 /* 'internal' for testing */

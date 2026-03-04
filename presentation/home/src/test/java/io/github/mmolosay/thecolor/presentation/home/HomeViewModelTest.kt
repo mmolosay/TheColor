@@ -25,7 +25,6 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.CanProceed
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel.SuspendGates
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
@@ -38,8 +37,6 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEventStore
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
 import io.github.mmolosay.thecolor.testing.MainDispatcherExtension
 import io.github.mmolosay.thecolor.utils.ClosableSuspendGate
-import io.github.mmolosay.thecolor.utils.OpenSuspendGate
-import io.github.mmolosay.thecolor.utils.SuspendGate
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
@@ -231,40 +228,6 @@ class HomeViewModelTest {
             }
 
             data.canProceed should beOfType<CanProceed.No>()
-        }
-
-    @Test
-    fun `when receiving a 'null' color from Color Input, then data is NOT updated until 'is data being updated' flag is set to 'true'`() =
-        runTest(testDispatcher) {
-            mockStoresWithEmptyFlows()
-            val initialColor = Color.Hex(0x0)
-            val colorStateFlow = run {
-                val value = ColorInputMediator.ColorState(color = initialColor, source = null)
-                MutableStateFlow(value)
-            }
-            every { colorInputMediator.colorStateFlow } returns colorStateFlow
-            every { createColorData(color = any()) } returns mockk()
-            val gate = ClosableSuspendGate(closed = false)
-            createSut(
-                gateForDataUpdateGuard = gate,
-            )
-
-            data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke() // REFERENCE:Label=0
-            val data1 = data
-            data1.proceedResult shouldNotBe null // REFERENCE:Label=1
-
-            gate.close()
-            run emitFirstColorFromColorInput@{
-                val value = ColorInputMediator.ColorState(color = null, source = null)
-                colorStateFlow.emit(value)
-            }
-            sut.flowOfIsDataBeingUpdated.value shouldBe false // hasn't updated due to closed gate
-            val data2 = data
-            data2.proceedResult shouldBe data1.proceedResult // hasn't updated yet
-
-            gate.open()
-            val data3 = data
-            data3.proceedResult shouldBe null // REFERENCE:Label=2
         }
 
     /**
@@ -1246,17 +1209,12 @@ class HomeViewModelTest {
             }
         }
 
-    fun createSut(
-        gateForDataUpdateGuard: SuspendGate = OpenSuspendGate,
-    ) =
+    fun createSut() =
         HomeViewModel(
             colorInputMediator = colorInputMediator,
             colorInputGroupViewModelFactory = colorInputGroupViewModelFactory,
             colorPreviewViewModelFactory = { _ -> colorPreviewViewModel },
             colorCenterComponentsStoreFactory = colorCenterComponentsStoreFactory,
-            gates = SuspendGates(
-                gateForDataUpdateGuard = gateForDataUpdateGuard,
-            ),
             createColorData = createColorData,
             colorComparator = colorComparator,
             doesColorBelongToSession = doesColorBelongToSession,
