@@ -138,7 +138,7 @@ class HomeViewModel @Inject constructor(
             }
             if (color == null || !color.doesBelongToCurrentSession()) {
                 clearProceedResult() // 'proceed' wasn't invoked for new color yet
-                onColorCenterSessionEnded()
+                endColorCenterSession()
             }
             colorPreviewViewModel.setColor(color)
         }
@@ -227,7 +227,7 @@ class HomeViewModel @Inject constructor(
     private fun proceed() {
         viewModelScope.launch(defaultDispatcher) {
             dataUpdateCounter.withCounter {
-                onColorCenterSessionEnded() // end current session (if any)
+                endColorCenterSession() // end current session (if any)
                 val color = requireNotNull(colorInputMediator.colorState.color)
                 val payload = ProceedPayload(color)
                 proceedInNewColorCenterSession(payload)
@@ -266,7 +266,7 @@ class HomeViewModel @Inject constructor(
                 jobWithComponentsCollection.getAndSet(job)?.cancel()
             }
         }
-        onColorCenterSessionStarted(seed = payload.color)
+        startColorCenterSession(seed = payload.color)
         proceed(payload)
     }
 
@@ -358,7 +358,7 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun CoroutineScope.onColorCenterSessionStarted(seed: Color) {
+    private fun CoroutineScope.startColorCenterSession(seed: Color) {
         val components = requireNotNull(colorCenterComponentsStore.components)
         launch(defaultDispatcher, start = CoroutineStart.UNDISPATCHED) {
             ccSessionStore.startBuilding(seed).run {
@@ -376,7 +376,7 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private suspend fun onColorCenterSessionEnded() {
+    private suspend fun endColorCenterSession() {
         ccSessionStore.clear()
         colorCenterComponentsStore.disposeComponents()
         jobWithComponentsCollection.getAndSet(null)?.cancel()
