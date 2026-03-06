@@ -151,8 +151,9 @@ class HomeViewModel @Inject constructor(
                     dataUpdateCounter.withCounter {
                         val color = event.color
                         colorInputMediator.set(color)
+                        val payload = ProceedPayload(color, colorRole = event.colorRole)
                         // assuming any color selected belongs to ongoing session
-                        proceed(color = color, colorRole = event.colorRole)
+                        proceed(payload)
                     }
                 }.also { job ->
                     job.setToJobWithProceed()
@@ -213,7 +214,8 @@ class HomeViewModel @Inject constructor(
             if (!enabled) return@launch
             val color = lastSearchedColorRepository.getLastSearchedColor() ?: return@launch
             dataUpdateCounter.withCounter {
-                proceedInNewColorCenterSession(color, colorRole = null)
+                val payload = ProceedPayload(color)
+                proceedInNewColorCenterSession(payload)
                 colorInputMediator.set(color)
             }
         }.also { job ->
@@ -225,9 +227,10 @@ class HomeViewModel @Inject constructor(
     private fun proceed() {
         viewModelScope.launch(defaultDispatcher) {
             dataUpdateCounter.withCounter {
-                val color = requireNotNull(colorInputMediator.colorState.color)
                 onColorCenterSessionEnded() // end current session (if any)
-                proceedInNewColorCenterSession(color, colorRole = null)
+                val color = requireNotNull(colorInputMediator.colorState.color)
+                val payload = ProceedPayload(color)
+                proceedInNewColorCenterSession(payload)
             }
         }.also { job ->
             job.setToJobWithProceed()
@@ -238,10 +241,7 @@ class HomeViewModel @Inject constructor(
      * Invokes [proceed] action and starts a new Color Center session, which also means
      * new [ColorCenterComponents] are created.
      */
-    private suspend fun CoroutineScope.proceedInNewColorCenterSession(
-        color: Color,
-        colorRole: ColorRole?,
-    ) {
+    private suspend fun CoroutineScope.proceedInNewColorCenterSession(payload: ProceedPayload) {
         colorCenterComponentsStore.createNewComponents()
         run consumeNewComponents@{
             val newComponents = colorCenterComponentsStore.components
@@ -266,27 +266,24 @@ class HomeViewModel @Inject constructor(
                 jobWithComponentsCollection.getAndSet(job)?.cancel()
             }
         }
-        onColorCenterSessionStarted(color)
-        proceed(color, colorRole)
+        onColorCenterSessionStarted(seed = payload.color)
+        proceed(payload)
     }
 
-    private suspend fun proceed(
-        color: Color,
-        colorRole: ColorRole?,
-    ) {
+    private suspend fun proceed(payload: ProceedPayload) {
         val components = requireNotNull(colorCenterComponentsStore.components)
         coroutineScope {
             launch issueCommandToColorDetails@{
-                val command = ColorDetailsCommand.FetchData(color, colorRole)
+                val command = ColorDetailsCommand.FetchData(payload.color, payload.colorRole)
                 components.colorDetailsCommandStore.issue(command)
             }
             launch issueCommandToColorScheme@{
-                val command = ColorSchemeCommand.FetchData(color)
+                val command = ColorSchemeCommand.FetchData(payload.color)
                 components.colorSchemeCommandStore.issue(command)
             }
         }
         kotlin.run updateData@{
-            val colorData = createColorData(color)
+            val colorData = createColorData(payload.color)
             val proceedResult = HomeData.ProceedResult.Success(
                 colorData = colorData,
             )
@@ -306,7 +303,8 @@ class HomeViewModel @Inject constructor(
                     .enabled
                 dataUpdateCounter.withCounter {
                     if (shouldProceed) {
-                        proceedInNewColorCenterSession(color, colorRole = null)
+                        val payload = ProceedPayload(color)
+                        proceedInNewColorCenterSession(payload)
                     }
                     editor.set(color)
                 }
@@ -408,7 +406,8 @@ class HomeViewModel @Inject constructor(
                     viewModelScope.launch(defaultDispatcher) {
                         dataUpdateCounter.withCounter {
                             val color = validationResult.color
-                            proceedInNewColorCenterSession(color, colorRole = null)
+                            val payload = ProceedPayload(color)
+                            proceedInNewColorCenterSession(payload)
                         }
                     }.also { job ->
                         job.setToJobWithProceed()
@@ -427,6 +426,14 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
+
+    /**
+     * Contains the payload for the [proceed] action.
+     */
+    private data class ProceedPayload(
+        val color: Color,
+        val colorRole: ColorRole? = null,
+    )
 }
 
 /* 'internal' for testing */
