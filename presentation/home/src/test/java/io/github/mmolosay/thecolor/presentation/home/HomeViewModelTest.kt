@@ -1,12 +1,12 @@
 package io.github.mmolosay.thecolor.presentation.home
 
-import io.github.mmolosay.thecolor.domain.model.Color
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.ResumeFromLastSearchedColorOnStartup
-import io.github.mmolosay.thecolor.domain.repository.LastSearchedColorRepository
-import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
-import io.github.mmolosay.thecolor.domain.usecase.ColorComparator
-import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
-import io.github.mmolosay.thecolor.domain.usecase.GetPredictableRandomColorUseCase
+import io.github.mmolosay.thecolor.domain.color.Color
+import io.github.mmolosay.thecolor.domain.color.ColorComparator
+import io.github.mmolosay.thecolor.domain.color.ColorConverter
+import io.github.mmolosay.thecolor.domain.color.GetPredictableRandomColorUseCase
+import io.github.mmolosay.thecolor.domain.color.LastSearchedColorRepository
+import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.ResumeFromLastSearchedColorOnStartup
+import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommand
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommandStore
@@ -67,8 +67,8 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import javax.inject.Provider
-import io.github.mmolosay.thecolor.domain.model.ColorDetails as DomainColorDetails
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.AutoProceedWithRandomizedColors as DomainAutoProceedWithRandomizedColors
+import io.github.mmolosay.thecolor.domain.color.ColorDetails as DomainColorDetails
+import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.AutoProceedWithRandomizedColors as DomainAutoProceedWithRandomizedColors
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModelTest {

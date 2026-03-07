@@ -1,10 +1,10 @@
 package io.github.mmolosay.thecolor.presentation.input
 
-import io.github.mmolosay.thecolor.domain.model.ColorPrototype
+import io.github.mmolosay.thecolor.domain.color.prototype.ColorPrototype
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.model.isInShortForm
 import javax.inject.Inject
-import io.github.mmolosay.thecolor.domain.model.Color as DomainColor
+import io.github.mmolosay.thecolor.domain.color.Color as DomainColor
 
 /**
  * Maps [ColorInput] to and from domain models.

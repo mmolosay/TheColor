@@ -1,7 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.settings
 
-import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeSet as DomainUiColorSchemeSet
+import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
+import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.UiColorSchemeSet as DomainUiColorSchemeSet
 
 /**
  * Platform-agnostic data provided by ViewModel to 'Settings' View.

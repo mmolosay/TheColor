@@ -1,11 +1,11 @@
 package io.github.mmolosay.thecolor.presentation.input.testing
 
-import io.github.mmolosay.thecolor.domain.model.Color
+import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
+import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 
 fun MockColorInputMediatorComponents(): MockColorInputMediatorComponents {
     val editor = mockk<ColorInputMediator.Editor>(relaxed = true)

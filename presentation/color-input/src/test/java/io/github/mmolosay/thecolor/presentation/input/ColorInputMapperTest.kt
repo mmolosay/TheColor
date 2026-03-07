@@ -1,7 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.input
 
-import io.github.mmolosay.thecolor.domain.model.Color
-import io.github.mmolosay.thecolor.domain.model.ColorPrototype
+import io.github.mmolosay.thecolor.domain.color.Color
+import io.github.mmolosay.thecolor.domain.color.prototype.ColorPrototype
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test

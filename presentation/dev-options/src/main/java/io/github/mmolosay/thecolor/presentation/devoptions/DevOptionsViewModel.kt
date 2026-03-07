@@ -3,11 +3,11 @@ package io.github.mmolosay.thecolor.presentation.devoptions
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.mmolosay.thecolor.domain.repository.BuildInfoRepository
-import io.github.mmolosay.thecolor.domain.repository.DefaultDevOptions
-import io.github.mmolosay.thecolor.domain.repository.DevOptionsRepository
-import io.github.mmolosay.thecolor.domain.repository.valueOrElse
-import io.github.mmolosay.thecolor.domain.usecase.ResetDevOptionsToDefaultUseCase
+import io.github.mmolosay.thecolor.domain.buildfeatures.BuildInfoRepository
+import io.github.mmolosay.thecolor.domain.dev.options.DefaultDevOptions
+import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository
+import io.github.mmolosay.thecolor.domain.dev.options.ResetDevOptionsToDefaultUseCase
+import io.github.mmolosay.thecolor.domain.dev.options.valueOrElse
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -18,8 +18,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Named
-import io.github.mmolosay.thecolor.domain.model.DevOptions.PredictableRandomColors as DomainPredictableRandomColors
-import io.github.mmolosay.thecolor.domain.model.DevOptions.StrictMode as DomainStrictMode
+import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.PredictableRandomColors as DomainPredictableRandomColors
+import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.StrictMode as DomainStrictMode
 
 @HiltViewModel
 class DevOptionsViewModel @Inject constructor(

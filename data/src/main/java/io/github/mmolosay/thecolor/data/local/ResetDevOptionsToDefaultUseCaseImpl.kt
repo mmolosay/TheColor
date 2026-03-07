@@ -1,7 +1,7 @@
 package io.github.mmolosay.thecolor.data.local
 
-import io.github.mmolosay.thecolor.domain.repository.DevOptionsRepository
-import io.github.mmolosay.thecolor.domain.usecase.ResetDevOptionsToDefaultUseCase
+import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository
+import io.github.mmolosay.thecolor.domain.dev.options.ResetDevOptionsToDefaultUseCase
 import javax.inject.Inject
 
 class ResetDevOptionsToDefaultUseCaseImpl @Inject constructor(

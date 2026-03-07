@@ -7,7 +7,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dagger.hilt.migration.DisableInstallInCheck
-import io.github.mmolosay.thecolor.domain.repository.AppBuildTypeProvider
+import io.github.mmolosay.thecolor.domain.buildfeatures.AppBuildTypeProvider
 import kotlinx.coroutines.CoroutineScope
 import javax.inject.Named
 

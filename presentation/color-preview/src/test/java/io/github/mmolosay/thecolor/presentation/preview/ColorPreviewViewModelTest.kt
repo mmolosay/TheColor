@@ -1,7 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.preview
 
-import io.github.mmolosay.thecolor.domain.model.Color
-import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
+import io.github.mmolosay.thecolor.domain.color.Color
+import io.github.mmolosay.thecolor.domain.color.ColorConverter
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.testing.MainDispatcherExtension
 import io.github.mmolosay.thecolor.utils.ClosableSuspendGate

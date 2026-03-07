@@ -9,7 +9,7 @@ import io.github.mmolosay.thecolor.data.remote.ColorRepositoryRemoteImpl
 import io.github.mmolosay.thecolor.data.remote.HttpFailureFactoryImpl
 import io.github.mmolosay.thecolor.data.remote.api.TheColorApiService
 import io.github.mmolosay.thecolor.data.remote.model.SchemeModeDtoAdapter
-import io.github.mmolosay.thecolor.domain.repository.ColorRepository
+import io.github.mmolosay.thecolor.domain.color.ColorRepository
 import io.github.mmolosay.thecolor.domain.result.HttpFailureFactory
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor

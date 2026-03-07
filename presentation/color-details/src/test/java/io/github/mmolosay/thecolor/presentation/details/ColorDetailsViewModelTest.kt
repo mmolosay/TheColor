@@ -1,11 +1,11 @@
 package io.github.mmolosay.thecolor.presentation.details
 
-import io.github.mmolosay.thecolor.domain.model.Color
-import io.github.mmolosay.thecolor.domain.model.ColorDetails
-import io.github.mmolosay.thecolor.domain.repository.ColorRepository
+import io.github.mmolosay.thecolor.domain.color.Color
+import io.github.mmolosay.thecolor.domain.color.ColorConverter
+import io.github.mmolosay.thecolor.domain.color.ColorDetails
+import io.github.mmolosay.thecolor.domain.color.ColorRepository
 import io.github.mmolosay.thecolor.domain.result.HttpFailure
 import io.github.mmolosay.thecolor.domain.result.Result
-import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommand

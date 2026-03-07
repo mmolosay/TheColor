@@ -3,11 +3,11 @@ package io.github.mmolosay.thecolor.presentation.details.viewmodel
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.domain.model.Color
-import io.github.mmolosay.thecolor.domain.repository.ColorRepository
+import io.github.mmolosay.thecolor.domain.color.Color
+import io.github.mmolosay.thecolor.domain.color.ColorRepository
+import io.github.mmolosay.thecolor.domain.color.IsColorLightUseCase
 import io.github.mmolosay.thecolor.domain.result.onFailure
 import io.github.mmolosay.thecolor.domain.result.onSuccess
-import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ExactMatch
@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
-import io.github.mmolosay.thecolor.domain.model.ColorDetails as DomainColorDetails
+import io.github.mmolosay.thecolor.domain.color.ColorDetails as DomainColorDetails
 
 /**
  * Handles presentation logic of the 'Color Details' feature.

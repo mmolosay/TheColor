@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.input
 
-import io.github.mmolosay.thecolor.domain.model.Color
+import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator.ColorState
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContainExactly
@@ -22,7 +22,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.max
 import kotlin.time.Duration.Companion.milliseconds
-import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
+import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ColorInputMediatorTest {

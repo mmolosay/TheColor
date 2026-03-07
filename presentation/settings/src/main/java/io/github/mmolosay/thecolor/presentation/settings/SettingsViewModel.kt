@@ -3,10 +3,10 @@ package io.github.mmolosay.thecolor.presentation.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.asSingletonSet
-import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
-import io.github.mmolosay.thecolor.domain.usecase.ResetUserPreferencesToDefaultUseCase
-import io.github.mmolosay.thecolor.domain.usecase.feature.IsDevOptionsEnabledUseCase
+import io.github.mmolosay.thecolor.domain.buildfeatures.IsDevOptionsEnabledUseCase
+import io.github.mmolosay.thecolor.domain.user.preferences.ResetUserPreferencesToDefaultUseCase
+import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.asSingletonSet
+import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -18,14 +18,14 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Named
-import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.AutoProceedWithRandomizedColors as DomainAutoProceedWithRandomizedColors
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.DynamicUiColors as DomainDynamicUiColors
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.ResumeFromLastSearchedColorOnStartup as DomainShouldResumeFromLastSearchedColorOnStartup
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.SelectAllTextOnTextFieldFocus as DomainSelectAllTextOnTextFieldFocus
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.SmartBackspace as DomainSmartBackspace
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorScheme as DomainUiColorScheme
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeSet as DomainUiColorSchemeSet
+import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
+import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.AutoProceedWithRandomizedColors as DomainAutoProceedWithRandomizedColors
+import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.DynamicUiColors as DomainDynamicUiColors
+import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.ResumeFromLastSearchedColorOnStartup as DomainShouldResumeFromLastSearchedColorOnStartup
+import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.SelectAllTextOnTextFieldFocus as DomainSelectAllTextOnTextFieldFocus
+import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.SmartBackspace as DomainSmartBackspace
+import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.UiColorScheme as DomainUiColorScheme
+import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.UiColorSchemeSet as DomainUiColorSchemeSet
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(

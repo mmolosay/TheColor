@@ -1,11 +1,11 @@
 package io.github.mmolosay.thecolor.presentation.details.viewmodel
 
-import io.github.mmolosay.thecolor.domain.model.Color
+import io.github.mmolosay.thecolor.domain.color.Color
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import javax.inject.Inject
-import io.github.mmolosay.thecolor.domain.model.ColorDetails as DomainColorDetails
+import io.github.mmolosay.thecolor.domain.color.ColorDetails as DomainColorDetails
 
 /**
  * Storage that holds a [Flow] of [ColorDetailsCommand]s for a 'Color Details' to handle.

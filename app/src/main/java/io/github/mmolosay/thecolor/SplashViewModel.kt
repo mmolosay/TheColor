@@ -3,7 +3,7 @@ package io.github.mmolosay.thecolor
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.mmolosay.thecolor.domain.usecase.TouchLocalDatabaseUseCase
+import io.github.mmolosay.thecolor.domain.TouchLocalDatabaseUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow

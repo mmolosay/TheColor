@@ -3,8 +3,8 @@ package io.github.mmolosay.thecolor.data.local
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import dagger.Lazy
-import io.github.mmolosay.thecolor.domain.usecase.TouchLocalDatabaseUseCase
-import io.github.mmolosay.thecolor.domain.usecase.feature.IsDevOptionsEnabledUseCase
+import io.github.mmolosay.thecolor.domain.TouchLocalDatabaseUseCase
+import io.github.mmolosay.thecolor.domain.buildfeatures.IsDevOptionsEnabledUseCase
 import kotlinx.coroutines.flow.first
 import timber.log.Timber
 import javax.inject.Inject

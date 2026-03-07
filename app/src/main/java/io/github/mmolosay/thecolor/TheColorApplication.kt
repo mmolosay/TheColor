@@ -7,11 +7,11 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import dagger.hilt.android.HiltAndroidApp
-import io.github.mmolosay.thecolor.domain.repository.DefaultDevOptions
-import io.github.mmolosay.thecolor.domain.repository.DevOptionsRepository
-import io.github.mmolosay.thecolor.domain.repository.filterOutBeingInitialized
-import io.github.mmolosay.thecolor.domain.repository.valueOrElse
-import io.github.mmolosay.thecolor.domain.usecase.feature.AreLogsEnabledUseCase
+import io.github.mmolosay.thecolor.domain.buildfeatures.AreLogsEnabledUseCase
+import io.github.mmolosay.thecolor.domain.dev.options.DefaultDevOptions
+import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository
+import io.github.mmolosay.thecolor.domain.dev.options.filterOutBeingInitialized
+import io.github.mmolosay.thecolor.domain.dev.options.valueOrElse
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

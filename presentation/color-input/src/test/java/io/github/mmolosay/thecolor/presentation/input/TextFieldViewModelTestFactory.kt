@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.input
 
-import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
+import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldViewModel
 import kotlinx.coroutines.CoroutineDispatcher

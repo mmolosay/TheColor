@@ -1,7 +1,7 @@
 package io.github.mmolosay.thecolor.data.remote.mapper
 
 import io.github.mmolosay.thecolor.data.remote.model.ColorDetailsDto
-import io.github.mmolosay.thecolor.domain.model.ColorDetails
+import io.github.mmolosay.thecolor.domain.color.ColorDetails
 import javax.inject.Inject
 
 /**

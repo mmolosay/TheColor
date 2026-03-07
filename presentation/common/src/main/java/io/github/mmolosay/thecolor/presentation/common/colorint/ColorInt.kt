@@ -1,7 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.common.colorint
 
-import io.github.mmolosay.thecolor.domain.model.Color
-import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
+import io.github.mmolosay.thecolor.domain.color.Color
+import io.github.mmolosay.thecolor.domain.color.ColorConverter
 import javax.inject.Inject
 import javax.inject.Singleton
 

@@ -3,7 +3,7 @@ package io.github.mmolosay.thecolor.presentation.input.group
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
+import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Named
-import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
+import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 
 /**
  * Handles presentation logic of the 'Color Input Group' feature.

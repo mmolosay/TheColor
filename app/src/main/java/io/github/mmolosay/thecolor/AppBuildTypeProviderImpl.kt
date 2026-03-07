@@ -1,7 +1,7 @@
 package io.github.mmolosay.thecolor
 
-import io.github.mmolosay.thecolor.domain.model.BuildType
-import io.github.mmolosay.thecolor.domain.repository.AppBuildTypeProvider
+import io.github.mmolosay.thecolor.domain.buildfeatures.AppBuildTypeProvider
+import io.github.mmolosay.thecolor.domain.buildfeatures.BuildType
 import javax.inject.Inject
 
 /**

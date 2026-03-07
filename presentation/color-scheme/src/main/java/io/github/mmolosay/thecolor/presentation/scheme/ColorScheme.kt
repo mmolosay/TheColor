@@ -65,7 +65,7 @@ import io.github.mmolosay.thecolor.presentation.errors.message
 import io.github.mmolosay.thecolor.presentation.errors.rememberDefaultErrorsUiStrings
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.DataState
 import io.github.mmolosay.thecolor.utils.doNothing
-import io.github.mmolosay.thecolor.domain.model.ColorScheme as DomainColorScheme
+import io.github.mmolosay.thecolor.domain.color.ColorScheme as DomainColorScheme
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 @Composable

@@ -31,9 +31,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.debounce.debounced
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.asSingletonSet
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.isSingleton
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.single
+import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.asSingletonSet
+import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.isSingleton
+import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.single
 import io.github.mmolosay.thecolor.presentation.common.compose.onlyBottom
 import io.github.mmolosay.thecolor.presentation.common.compose.withoutBottom
 import io.github.mmolosay.thecolor.presentation.design.Material3DynamicColorsAvailability.areDynamicColorsAvailable
@@ -42,9 +42,9 @@ import io.github.mmolosay.thecolor.presentation.settings.SettingsData
 import io.github.mmolosay.thecolor.presentation.settings.SettingsViewModel
 import io.github.mmolosay.thecolor.presentation.settings.SettingsViewModel.DataState
 import kotlin.time.Duration.Companion.milliseconds
-import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorScheme as DomainUiColorScheme
-import io.github.mmolosay.thecolor.domain.model.UserPreferences.UiColorSchemeSet as DomainUiColorSchemeSet
+import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
+import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.UiColorScheme as DomainUiColorScheme
+import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.UiColorSchemeSet as DomainUiColorSchemeSet
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 @Composable

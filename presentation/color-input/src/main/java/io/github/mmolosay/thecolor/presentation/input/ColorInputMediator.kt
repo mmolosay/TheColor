@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.input
 
-import io.github.mmolosay.thecolor.domain.model.Color
+import io.github.mmolosay.thecolor.domain.color.Color
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -10,7 +10,7 @@ import javax.inject.Inject
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
-import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
+import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 
 /**
  * Acts as a mediator between ViewModels of different 'Color Input' types.

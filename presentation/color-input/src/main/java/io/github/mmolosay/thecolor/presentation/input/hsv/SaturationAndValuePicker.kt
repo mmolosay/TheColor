@@ -36,7 +36,7 @@ import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvSatur
 import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvValueRange
 import kotlin.math.roundToInt
 import androidx.compose.ui.graphics.Color as ComposeColor
-import io.github.mmolosay.thecolor.domain.model.Color as DomainColor
+import io.github.mmolosay.thecolor.domain.color.Color as DomainColor
 
 @Composable
 internal fun SaturationAndValuePicker(

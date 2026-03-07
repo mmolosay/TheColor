@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import javax.inject.Inject
-import io.github.mmolosay.thecolor.domain.model.ColorDetails as DomainColorDetails
+import io.github.mmolosay.thecolor.domain.color.ColorDetails as DomainColorDetails
 
 /**
  * Storage that holds a [Flow] of [ColorSchemeEvent]s from a 'Color Scheme' feature.

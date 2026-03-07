@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.data.remote.mapper
 
-import io.github.mmolosay.thecolor.domain.model.Color
+import io.github.mmolosay.thecolor.domain.color.Color
 import javax.inject.Inject
 import javax.inject.Singleton
 

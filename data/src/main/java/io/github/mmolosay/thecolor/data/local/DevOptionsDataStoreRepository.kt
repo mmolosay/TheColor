@@ -5,11 +5,11 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import io.github.mmolosay.thecolor.data.local.utils.setOrRemoveValue
-import io.github.mmolosay.thecolor.domain.model.DevOptions.PredictableRandomColors
-import io.github.mmolosay.thecolor.domain.model.DevOptions.StrictMode
-import io.github.mmolosay.thecolor.domain.repository.DevOptionsRepository
-import io.github.mmolosay.thecolor.domain.repository.DevOptionsRepository.DataState
-import io.github.mmolosay.thecolor.domain.repository.IllegalStoredValue
+import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.PredictableRandomColors
+import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.StrictMode
+import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository
+import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository.DataState
+import io.github.mmolosay.thecolor.domain.dev.options.IllegalStoredValue
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow

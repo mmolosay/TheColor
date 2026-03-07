@@ -17,13 +17,13 @@ import io.github.mmolosay.thecolor.data.local.ResetDevOptionsToDefaultUseCaseImp
 import io.github.mmolosay.thecolor.data.local.ResetUserPreferenceToDefaultUseCaseImpl
 import io.github.mmolosay.thecolor.data.local.TouchLocalDatabaseUseCaseImpl
 import io.github.mmolosay.thecolor.data.local.UserPreferencesDataStoreRepository
-import io.github.mmolosay.thecolor.domain.repository.BuildInfoRepository
-import io.github.mmolosay.thecolor.domain.repository.DevOptionsRepository
-import io.github.mmolosay.thecolor.domain.repository.LastSearchedColorRepository
-import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
-import io.github.mmolosay.thecolor.domain.usecase.ResetDevOptionsToDefaultUseCase
-import io.github.mmolosay.thecolor.domain.usecase.ResetUserPreferencesToDefaultUseCase
-import io.github.mmolosay.thecolor.domain.usecase.TouchLocalDatabaseUseCase
+import io.github.mmolosay.thecolor.domain.TouchLocalDatabaseUseCase
+import io.github.mmolosay.thecolor.domain.buildfeatures.BuildInfoRepository
+import io.github.mmolosay.thecolor.domain.color.LastSearchedColorRepository
+import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository
+import io.github.mmolosay.thecolor.domain.dev.options.ResetDevOptionsToDefaultUseCase
+import io.github.mmolosay.thecolor.domain.user.preferences.ResetUserPreferencesToDefaultUseCase
+import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
 import javax.inject.Named
 import javax.inject.Singleton
 

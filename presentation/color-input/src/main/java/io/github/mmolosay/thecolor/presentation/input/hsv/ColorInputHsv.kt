@@ -26,7 +26,7 @@ import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvHueRa
 import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvSaturationRange
 import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvValueRange
 import io.github.mmolosay.thecolor.presentation.input.model.DataState
-import io.github.mmolosay.thecolor.domain.model.Color as DomainColor
+import io.github.mmolosay.thecolor.domain.color.Color as DomainColor
 
 @Composable
 fun ColorInputHsv(
