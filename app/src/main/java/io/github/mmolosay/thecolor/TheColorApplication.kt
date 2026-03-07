@@ -12,6 +12,7 @@ import io.github.mmolosay.thecolor.domain.dev.options.DefaultDevOptions
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository
 import io.github.mmolosay.thecolor.domain.dev.options.filterOutBeingInitialized
 import io.github.mmolosay.thecolor.domain.dev.options.valueOrElse
+import io.github.mmolosay.thecolor.utils.ApplicationCoroutineScopeProvider
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
