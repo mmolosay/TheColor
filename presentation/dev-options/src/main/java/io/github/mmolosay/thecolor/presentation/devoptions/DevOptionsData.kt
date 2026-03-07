@@ -17,6 +17,10 @@ data class DevOptionsData(
     val isStrictModeEnabledByDefault: Boolean,
     val changeStrictModeEnablement: (Boolean) -> Unit,
 
+    val isHttpLoggingEnabled: Boolean,
+    val isHttpLoggingEnabledByDefault: Boolean,
+    val changeHttpLoggingEnablement: (Boolean) -> Unit,
+
     val buildInfo: BuildInfo,
 ) {
 

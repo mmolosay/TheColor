@@ -4,18 +4,28 @@ import com.squareup.moshi.Moshi
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.migration.DisableInstallInCheck
 import io.github.mmolosay.thecolor.data.remote.ColorRepositoryRemoteImpl
 import io.github.mmolosay.thecolor.data.remote.HttpFailureFactoryImpl
 import io.github.mmolosay.thecolor.data.remote.api.TheColorApiService
 import io.github.mmolosay.thecolor.data.remote.model.SchemeModeDtoAdapter
 import io.github.mmolosay.thecolor.domain.color.ColorRepository
+import io.github.mmolosay.thecolor.domain.dev.options.DefaultDevOptions
+import io.github.mmolosay.thecolor.domain.dev.options.DevOptions
+import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository
+import io.github.mmolosay.thecolor.domain.dev.options.valueOrElse
 import io.github.mmolosay.thecolor.domain.result.HttpFailureFactory
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.util.concurrent.TimeUnit
+import javax.inject.Singleton
 
 /**
  * Part of [DiDataModule].
@@ -32,45 +42,37 @@ object DiDataRemoteModule
 object DiDataRemoteProvideModule {
 
     @Provides
+    @Singleton
     fun provideTheColorApiService(
-        retrofit: Retrofit,
-    ): TheColorApiService =
-        retrofit.create(TheColorApiService::class.java)
-
-    @Provides
-    fun provideRetrofit(
-        client: OkHttpClient,
-    ): Retrofit {
-        val moshi = makeMoshi()
-        val moshiConverterFactory = MoshiConverterFactory.create(moshi)
-        return Retrofit.Builder()
-            .baseUrl(THE_COLOR_API_BASE_URL)
-            .client(client)
-            .addConverterFactory(moshiConverterFactory)
-            .build()
-    }
-
-    @Provides
-    fun provideOkHttpClient(): OkHttpClient =
-        OkHttpClient.Builder()
-            .connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-            .readTimeout(READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-            .addInterceptor(makeHttpLoggingInterceptor())
-            .build()
-
-    private fun makeMoshi(): Moshi =
-        Moshi.Builder()
-            .add(SchemeModeDtoAdapter())
-            .build()
-
-    private fun makeHttpLoggingInterceptor() =
-        HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
+        httpLoggingInterceptorFactory: DevOptionsHttpLoggingInterceptor.Factory,
+    ): TheColorApiService {
+        val okHttpClient = run {
+            OkHttpClient.Builder()
+                .connectTimeout(10, TimeUnit.SECONDS)
+                .readTimeout(10, TimeUnit.SECONDS)
+                .apply addHttpLoggingInterceptor@{
+                    val interceptor = httpLoggingInterceptorFactory.create(
+                        delegate = HttpLoggingInterceptor().apply {
+                            level = HttpLoggingInterceptor.Level.BODY
+                        },
+                    )
+                    addInterceptor(interceptor)
+                }
+                .build()
         }
-
-    private const val THE_COLOR_API_BASE_URL = "https://www.thecolorapi.com/"
-    private const val CONNECT_TIMEOUT_SECONDS = 10L
-    private const val READ_TIMEOUT_SECONDS = 10L
+        val retrofit = run {
+            val moshi = Moshi.Builder()
+                .add(SchemeModeDtoAdapter())
+                .build()
+            val moshiConverterFactory = MoshiConverterFactory.create(moshi)
+            Retrofit.Builder()
+                .baseUrl("https://www.thecolorapi.com/")
+                .client(okHttpClient)
+                .addConverterFactory(moshiConverterFactory)
+                .build()
+        }
+        return retrofit.create(TheColorApiService::class.java)
+    }
 }
 
 @Module
@@ -82,4 +84,32 @@ interface DiDataRemoteBindModule {
 
     @Binds
     fun bindColorRepositoryRemoteImpl(impl: ColorRepositoryRemoteImpl): ColorRepository
+}
+
+/**
+ * A [HttpLoggingInterceptor] that adheres to the [DevOptions.HttpLogging] feature.
+ */
+class DevOptionsHttpLoggingInterceptor @AssistedInject constructor(
+    @Assisted private val delegate: HttpLoggingInterceptor,
+    private val devOptionsRepository: DevOptionsRepository,
+    private val defaultDevOptions: DefaultDevOptions,
+) : Interceptor {
+
+    override fun intercept(chain: Interceptor.Chain): Response {
+        val isHttpLoggingEnabled = devOptionsRepository.flowOfHttpLogging
+            .value.valueOrElse { defaultDevOptions.httpLogging }
+            .enabled
+        return if (isHttpLoggingEnabled) {
+            delegate.intercept(chain)
+        } else {
+            chain.proceed(chain.request())
+        }
+    }
+
+    @AssistedFactory
+    fun interface Factory {
+        fun create(
+            delegate: HttpLoggingInterceptor,
+        ): DevOptionsHttpLoggingInterceptor
+    }
 }

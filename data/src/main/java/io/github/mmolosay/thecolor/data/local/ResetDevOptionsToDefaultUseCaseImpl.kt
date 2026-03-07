@@ -12,5 +12,6 @@ class ResetDevOptionsToDefaultUseCaseImpl @Inject constructor(
         // updating values sequentially vs concurrently take about the same time ~68ms
         devOptionsRepository.setPredictableRandomColors(null)
         devOptionsRepository.setStrictMode(null)
+        devOptionsRepository.setHttpLogging(null)
     }
 }

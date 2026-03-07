@@ -255,6 +255,16 @@ fun DevOptions(
             )
         }
 
+        item("http logging") {
+            HttpLogging(
+                title = strings.itemHttpLoggingTitle,
+                description = strings.itemHttpLoggingDesc,
+                checked = data.isHttpLoggingEnabled,
+                onCheckedChange = data.changeHttpLoggingEnablement,
+                showAttentionBadge = (data.isHttpLoggingEnabled != data.isHttpLoggingEnabledByDefault),
+            )
+        }
+
         // keep this item very last
         item("build info") {
             fun makeInfoProperty(name: String, value: Any?) =
@@ -311,6 +321,10 @@ private fun previewData() =
         isStrictModeEnabled = true,
         isStrictModeEnabledByDefault = false,
         changeStrictModeEnablement = {},
+
+        isHttpLoggingEnabled = true,
+        isHttpLoggingEnabledByDefault = false,
+        changeHttpLoggingEnablement = {},
 
         buildInfo = DevOptionsData.BuildInfo(
             appBuildType = DomainBuildType.Debug,

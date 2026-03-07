@@ -37,6 +37,9 @@ data class DevOptionsUiStrings(
     val itemStrictModeTitle: String,
     val itemStrictModeDesc: Spanned,
 
+    val itemHttpLoggingTitle: String,
+    val itemHttpLoggingDesc: String,
+
     val itemBuildInfoTitle: String,
     val itemBuildInfoAppBuildTypeLabel: String,
     val itemBuildInfoAppVersionNameLabel: String,
@@ -70,6 +73,9 @@ fun DevOptionsUiStrings(context: Context) =
 
         itemStrictModeTitle = context.getString(R.string.dev_options_item_strict_mode_title),
         itemStrictModeDesc = context.getText(R.string.dev_options_item_strict_mode_desc) as Spanned,
+
+        itemHttpLoggingTitle = context.getString(R.string.dev_options_item_http_logging_title),
+        itemHttpLoggingDesc = context.getString(R.string.dev_options_item_http_logging_desc),
 
         itemBuildInfoTitle = context.getString(R.string.dev_options_item_build_info_title),
         itemBuildInfoAppBuildTypeLabel = context.getString(R.string.dev_options_item_build_info_app_build_type_label),

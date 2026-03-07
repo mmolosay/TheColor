@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import io.github.mmolosay.thecolor.data.local.utils.setOrRemoveValue
+import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.HttpLogging
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.PredictableRandomColors
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.StrictMode
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository
@@ -84,6 +85,32 @@ class DevOptionsDataStoreRepository @Inject constructor(
         }
     }
 
+    override val flowOfHttpLogging: StateFlow<DataState<HttpLogging>> =
+        dataStore.data
+            .map { it.getHttpLogging() }
+            .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
+
+    private fun Preferences.getHttpLogging(): DataState<HttpLogging> {
+        val key = DataStoreKeys.HttpLogging
+        if (key !in this) return DataState.NoValueStored
+        val dtoValue = this[key]
+        if (dtoValue != null) {
+            val value = HttpLogging(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
+            return DataState.HasValueStored(value)
+        } else {
+            throw IllegalStoredValue<HttpLogging>(value = dtoValue) // 'dtoValue' is null here
+        }
+    }
+
+    override suspend fun setHttpLogging(value: HttpLogging?) {
+        withContext(ioDispatcher) {
+            dataStore.setOrRemoveValue(
+                key = DataStoreKeys.HttpLogging,
+                value = value?.enabled,
+            )
+        }
+    }
+
     private fun <T> Flow<T>.stateEagerlyInAppScope(
         initialValue: T,
     ): StateFlow<T> =
@@ -97,6 +124,7 @@ class DevOptionsDataStoreRepository @Inject constructor(
     private object DataStoreKeys {
         val PredictableRandomColors = stringPreferencesKey("predictable_random_colors")
         val StrictMode = booleanPreferencesKey("strict_mode")
+        val HttpLogging = booleanPreferencesKey("http_logging")
     }
 }
 
