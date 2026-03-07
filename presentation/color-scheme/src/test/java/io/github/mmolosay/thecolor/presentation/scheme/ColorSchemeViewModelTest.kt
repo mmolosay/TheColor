@@ -1,14 +1,14 @@
 package io.github.mmolosay.thecolor.presentation.scheme
 
-import io.github.mmolosay.thecolor.domain.model.Color
-import io.github.mmolosay.thecolor.domain.model.ColorDetails
-import io.github.mmolosay.thecolor.domain.model.ColorScheme
-import io.github.mmolosay.thecolor.domain.model.ColorScheme.Mode
-import io.github.mmolosay.thecolor.domain.repository.ColorRepository
-import io.github.mmolosay.thecolor.domain.repository.ColorRepository.GetColorSchemeRequest
+import io.github.mmolosay.thecolor.domain.color.Color
+import io.github.mmolosay.thecolor.domain.color.ColorDetails
+import io.github.mmolosay.thecolor.domain.color.ColorRepository
+import io.github.mmolosay.thecolor.domain.color.ColorRepository.GetColorSchemeRequest
+import io.github.mmolosay.thecolor.domain.color.ColorScheme
+import io.github.mmolosay.thecolor.domain.color.ColorScheme.Mode
+import io.github.mmolosay.thecolor.domain.color.IsColorLightUseCase
 import io.github.mmolosay.thecolor.domain.result.HttpFailure
 import io.github.mmolosay.thecolor.domain.result.Result
-import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Changes
@@ -38,7 +38,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
-import io.github.mmolosay.thecolor.domain.model.ColorScheme as DomainColorScheme
+import io.github.mmolosay.thecolor.domain.color.ColorScheme as DomainColorScheme
 
 /**
  * In some cases SUT ViewModel will use mocked instance of [CreateColorSchemeDataUseCase].

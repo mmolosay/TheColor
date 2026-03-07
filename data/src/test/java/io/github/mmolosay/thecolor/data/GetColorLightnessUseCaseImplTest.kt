@@ -1,8 +1,8 @@
 package io.github.mmolosay.thecolor.data
 
 import io.github.mmolosay.thecolor.data.remote.mapper.ColorMapper
-import io.github.mmolosay.thecolor.domain.model.Color
-import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
+import io.github.mmolosay.thecolor.domain.color.Color
+import io.github.mmolosay.thecolor.domain.color.ColorConverter
 import io.kotest.assertions.withClue
 import io.kotest.matchers.floats.shouldBeLessThan
 import org.junit.jupiter.params.ParameterizedTest

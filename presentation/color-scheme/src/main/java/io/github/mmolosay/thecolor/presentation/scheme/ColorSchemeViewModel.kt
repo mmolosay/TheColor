@@ -5,13 +5,13 @@ import arrow.optics.optics
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.domain.model.Color
-import io.github.mmolosay.thecolor.domain.model.ColorScheme.Mode
-import io.github.mmolosay.thecolor.domain.repository.ColorRepository
-import io.github.mmolosay.thecolor.domain.repository.ColorRepository.GetColorSchemeRequest
+import io.github.mmolosay.thecolor.domain.color.Color
+import io.github.mmolosay.thecolor.domain.color.ColorRepository
+import io.github.mmolosay.thecolor.domain.color.ColorRepository.GetColorSchemeRequest
+import io.github.mmolosay.thecolor.domain.color.ColorScheme.Mode
+import io.github.mmolosay.thecolor.domain.color.IsColorLightUseCase
 import io.github.mmolosay.thecolor.domain.result.onFailure
 import io.github.mmolosay.thecolor.domain.result.onSuccess
-import io.github.mmolosay.thecolor.domain.usecase.IsColorLightUseCase
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.errors.toErrorType
@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
-import io.github.mmolosay.thecolor.domain.model.ColorScheme as DomainColorScheme
+import io.github.mmolosay.thecolor.domain.color.ColorScheme as DomainColorScheme
 
 /**
  * Handles presentation logic of the 'Color Scheme' feature.

@@ -42,8 +42,8 @@ import io.github.mmolosay.thecolor.presentation.devoptions.DevOptionsData
 import io.github.mmolosay.thecolor.presentation.devoptions.DevOptionsViewModel
 import io.github.mmolosay.thecolor.presentation.devoptions.DevOptionsViewModel.DataState
 import kotlin.time.Duration.Companion.milliseconds
-import io.github.mmolosay.thecolor.domain.model.BuildType as DomainBuildType
-import io.github.mmolosay.thecolor.domain.model.DevOptions.PredictableRandomColors as DomainPredictableRandomColors
+import io.github.mmolosay.thecolor.domain.buildfeatures.BuildType as DomainBuildType
+import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.PredictableRandomColors as DomainPredictableRandomColors
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 @Composable

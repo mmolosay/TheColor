@@ -1,7 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.home.viewmodel
 
-import io.github.mmolosay.thecolor.domain.model.Color
-import io.github.mmolosay.thecolor.domain.usecase.ColorComparator
+import io.github.mmolosay.thecolor.domain.color.Color
+import io.github.mmolosay.thecolor.domain.color.ColorComparator
 import javax.inject.Inject
 
 /**

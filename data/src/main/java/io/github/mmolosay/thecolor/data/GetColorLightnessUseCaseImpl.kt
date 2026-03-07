@@ -2,9 +2,9 @@ package io.github.mmolosay.thecolor.data
 
 import com.github.ajalt.colormath.model.SRGB
 import io.github.mmolosay.thecolor.data.remote.mapper.ColorMapper
-import io.github.mmolosay.thecolor.domain.model.Color
-import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
-import io.github.mmolosay.thecolor.domain.usecase.GetColorLightnessUseCase
+import io.github.mmolosay.thecolor.domain.color.Color
+import io.github.mmolosay.thecolor.domain.color.ColorConverter
+import io.github.mmolosay.thecolor.domain.color.GetColorLightnessUseCase
 import javax.inject.Inject
 
 class GetColorLightnessUseCaseImpl @Inject constructor(

@@ -1,8 +1,8 @@
 package io.github.mmolosay.thecolor.data.remote.mapper
 
 import io.github.mmolosay.thecolor.data.remote.model.SchemeModeDto
-import io.github.mmolosay.thecolor.domain.model.ColorScheme
-import io.github.mmolosay.thecolor.domain.model.ColorScheme as DomainColorScheme
+import io.github.mmolosay.thecolor.domain.color.ColorScheme
+import io.github.mmolosay.thecolor.domain.color.ColorScheme as DomainColorScheme
 
 fun DomainColorScheme.Mode.toDto(): SchemeModeDto =
     when (this) {

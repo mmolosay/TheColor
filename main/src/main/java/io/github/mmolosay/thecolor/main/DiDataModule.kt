@@ -6,7 +6,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dagger.hilt.migration.DisableInstallInCheck
 import io.github.mmolosay.thecolor.data.GetColorLightnessUseCaseImpl
-import io.github.mmolosay.thecolor.domain.usecase.GetColorLightnessUseCase
+import io.github.mmolosay.thecolor.domain.color.GetColorLightnessUseCase
 
 /**
  * DI module for components of __Data__ architectural layer.

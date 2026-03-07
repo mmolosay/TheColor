@@ -1,7 +1,7 @@
 package io.github.mmolosay.thecolor.domain
 
-import io.github.mmolosay.thecolor.domain.model.ColorPrototype
-import io.github.mmolosay.thecolor.domain.usecase.ColorPrototypeValidator
+import io.github.mmolosay.thecolor.domain.color.prototype.ColorPrototype
+import io.github.mmolosay.thecolor.domain.color.prototype.ColorPrototypeValidator
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.params.ParameterizedTest

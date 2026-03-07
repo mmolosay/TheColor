@@ -1,7 +1,7 @@
 package io.github.mmolosay.thecolor.data.local
 
-import io.github.mmolosay.thecolor.domain.repository.UserPreferencesRepository
-import io.github.mmolosay.thecolor.domain.usecase.ResetUserPreferencesToDefaultUseCase
+import io.github.mmolosay.thecolor.domain.user.preferences.ResetUserPreferencesToDefaultUseCase
+import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
 import javax.inject.Inject
 
 class ResetUserPreferenceToDefaultUseCaseImpl @Inject constructor(

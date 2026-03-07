@@ -3,9 +3,9 @@ package io.github.mmolosay.thecolor.data.local
 import android.content.Context
 import androidx.core.content.pm.PackageInfoCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
-import io.github.mmolosay.thecolor.domain.model.BuildType
-import io.github.mmolosay.thecolor.domain.repository.AppBuildTypeProvider
-import io.github.mmolosay.thecolor.domain.repository.BuildInfoRepository
+import io.github.mmolosay.thecolor.domain.buildfeatures.AppBuildTypeProvider
+import io.github.mmolosay.thecolor.domain.buildfeatures.BuildInfoRepository
+import io.github.mmolosay.thecolor.domain.buildfeatures.BuildType
 import java.lang.ref.WeakReference
 import javax.inject.Inject
 

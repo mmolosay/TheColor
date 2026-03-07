@@ -1,7 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.devoptions
 
-import io.github.mmolosay.thecolor.domain.model.BuildType as DomainBuildType
-import io.github.mmolosay.thecolor.domain.model.DevOptions.PredictableRandomColors as DomainPredictableRandomColors
+import io.github.mmolosay.thecolor.domain.buildfeatures.BuildType as DomainBuildType
+import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.PredictableRandomColors as DomainPredictableRandomColors
 
 /**
  * Platform-agnostic data provided by ViewModel to 'Developer Options' View.

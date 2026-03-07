@@ -10,7 +10,7 @@ class FailureFactory @Inject constructor(
     private val httpFailureFactory: HttpFailureFactory,
 ) {
 
-    @Suppress("KotlinUnreachableCode") // invalid warning
+    @Suppress("USELESS_ELVIS_LEFT_IS_NULL")
     fun Throwable.asFailureOrNull(): Result.Failure? =
         null
             ?: with(httpFailureFactory) { asHttpFailureOrNull() }

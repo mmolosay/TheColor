@@ -45,8 +45,8 @@ import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbUiStrings
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldUiStrings
 import io.github.mmolosay.thecolor.utils.doNothing
-import io.github.mmolosay.thecolor.domain.model.Color as DomainColor
-import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
+import io.github.mmolosay.thecolor.domain.color.Color as DomainColor
+import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 
 @Composable
 fun ColorInputGroup(

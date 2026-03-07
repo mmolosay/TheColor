@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.input.group
 
-import io.github.mmolosay.thecolor.domain.model.ColorInputType as DomainColorInputType
+import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 
 /**
  * Platform-agnostic data provided by ViewModel to 'Color Input Group' View.

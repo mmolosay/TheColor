@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.input.model
 
-import io.github.mmolosay.thecolor.domain.model.Color
+import io.github.mmolosay.thecolor.domain.color.Color
 
 /**
  * Depicts a result of validation / parsing of some [ColorInput].

@@ -5,14 +5,14 @@ import io.github.mmolosay.thecolor.data.remote.mapper.ColorDetailsMapper
 import io.github.mmolosay.thecolor.data.remote.mapper.ColorMapper
 import io.github.mmolosay.thecolor.data.remote.mapper.ColorSchemeMapper
 import io.github.mmolosay.thecolor.data.remote.mapper.toDto
-import io.github.mmolosay.thecolor.domain.model.Color
-import io.github.mmolosay.thecolor.domain.model.ColorDetails
-import io.github.mmolosay.thecolor.domain.model.ColorScheme
-import io.github.mmolosay.thecolor.domain.repository.ColorRepository
-import io.github.mmolosay.thecolor.domain.repository.ColorRepository.GetColorSchemeRequest
+import io.github.mmolosay.thecolor.domain.color.Color
+import io.github.mmolosay.thecolor.domain.color.ColorConverter
+import io.github.mmolosay.thecolor.domain.color.ColorDetails
+import io.github.mmolosay.thecolor.domain.color.ColorRepository
+import io.github.mmolosay.thecolor.domain.color.ColorRepository.GetColorSchemeRequest
+import io.github.mmolosay.thecolor.domain.color.ColorScheme
 import io.github.mmolosay.thecolor.domain.result.Result
 import io.github.mmolosay.thecolor.domain.result.ResultMapper
-import io.github.mmolosay.thecolor.domain.usecase.ColorConverter
 import javax.inject.Inject
 
 /**
