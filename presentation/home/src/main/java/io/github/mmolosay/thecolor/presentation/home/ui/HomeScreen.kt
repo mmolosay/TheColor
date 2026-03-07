@@ -99,6 +99,8 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeNavEvent
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroup
 import io.github.mmolosay.thecolor.presentation.preview.AnimatedColorPreview
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState
+import io.github.mmolosay.thecolor.presentation.preview.toUiState
 import io.github.mmolosay.thecolor.utils.cache.DequeCache
 import io.github.mmolosay.thecolor.utils.cache.PruneOnSizeThreshold
 import io.github.mmolosay.thecolor.utils.collectConsuming
@@ -106,7 +108,6 @@ import io.github.mmolosay.thecolor.utils.doNothing
 import io.github.mmolosay.thecolor.utils.pendingAsFlow
 import io.github.mmolosay.thecolor.utils.stabilize
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -173,29 +174,27 @@ fun HomeScreen(
         fun actualUiState(): HomeUiState? {
             val isColorPreviewVisible = run {
                 val data = flowOfColorPreviewData.value ?: return null
-                isColorPreviewVisible(data)
+                return@run data.toUiState() is ColorPreviewUiState.Visible
             }
             val isColorCenterVisible = run {
                 val data = flowOfHomeData.value
-                isColorCenterVisible(data.proceedResult)
+                return@run data.proceedResult is ProceedResult.Success
             }
             return HomeUiState(isColorPreviewVisible, isColorCenterVisible)
         }
-        val signal = Any()
-        combine(
+        combineTransform(
             flowOfColorPreviewData,
             flowOfHomeData,
-            transform = { _, _ -> signal }, // discard values and just emit "something has changed" signal
-        )
+            viewModel.flowOfIsDataBeingUpdated,
+        ) { _, _, isBeingUpdated ->
             // impl of 'stabilize()' that takes actual value of the flow instead of last collected
-            .combineTransform(viewModel.flowOfIsDataBeingUpdated) { signal, isBeingUpdated ->
-                if (!isBeingUpdated) {
-                    actualUiState()?.let { emit(it) }
-                }
+            if (!isBeingUpdated) {
+                actualUiState()?.let { emit(it) }
             }
+        }
             .distinctUntilChanged()
             // make it hot to allow replaying last value when creating 'animController'
-            .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
+            .shareIn(coroutineScope, SharingStarted.Eagerly, replay = 1)
     }
     val animController by produceState<HomeAnimController?>(initialValue = null) {
         val uiState = flowOfUiState.first()

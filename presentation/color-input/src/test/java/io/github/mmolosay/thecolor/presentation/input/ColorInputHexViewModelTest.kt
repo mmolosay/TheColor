@@ -9,6 +9,7 @@ import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputValidationResult
 import io.github.mmolosay.thecolor.presentation.input.model.DataState
+import io.github.mmolosay.thecolor.presentation.input.testing.MockColorInputMediatorComponents
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldViewModel
 import io.github.mmolosay.thecolor.testing.MainDispatcherExtension
@@ -18,13 +19,9 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import io.kotest.matchers.types.shouldBeInstanceOf
-import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
-import io.mockk.just
 import io.mockk.mockk
-import io.mockk.runs
-import io.mockk.verify
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,9 +43,8 @@ class ColorInputHexViewModelTest {
     @Suppress("unused")
     val mainDispatcherExtension = MainDispatcherExtension(testDispatcher)
 
-    val mediator: ColorInputMediator = mockk {
-        coEvery { set(color = any(), source = DomainColorInputType.Hex) } just runs
-    }
+    val mediatorComponents = MockColorInputMediatorComponents()
+    val mediator = mediatorComponents.mediator
 
     val submitAction: ColorInputSubmitAction = mockk()
 
@@ -80,7 +76,7 @@ class ColorInputHexViewModelTest {
         runTest(testDispatcher) {
             val color = Color.Hex(0x1A803F)
             every { mediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = color, source = null)
+                val value = ColorInputMediator.ColorState(color = color, source = null, id = 0)
                 MutableStateFlow(value)
             }
             with(colorConverter) {
@@ -100,7 +96,7 @@ class ColorInputHexViewModelTest {
         runTest(testDispatcher) {
             val color = Color.Hex(0x1A803F)
             every { mediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = color, source = null)
+                val value = ColorInputMediator.ColorState(color = color, source = null, id = 0)
                 MutableStateFlow(value)
             }
             with(colorConverter) {
@@ -121,7 +117,7 @@ class ColorInputHexViewModelTest {
     fun `given SUT is created, when mediator has 'null' color, then data state becomes Ready nonetheless`() =
         runTest(testDispatcher) {
             every { mediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = null, source = null)
+                val value = ColorInputMediator.ColorState(color = null, source = null, id = 0)
                 MutableStateFlow(value)
             }
 
@@ -135,7 +131,7 @@ class ColorInputHexViewModelTest {
         runTest(testDispatcher) {
             val color = Color.Hex(0x0)
             every { mediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = color, source = null)
+                val value = ColorInputMediator.ColorState(color = color, source = null, id = 0)
                 MutableStateFlow(value)
             }
             with(colorInputValidator) {
@@ -152,17 +148,14 @@ class ColorInputHexViewModelTest {
             createSut()
 
             coVerify(exactly = 0) {
-                mediator.set(color = any(), source = DomainColorInputType.Hex)
+                mediatorComponents.editor.set(color = any(), source = DomainColorInputType.Hex)
             }
         }
 
     @Test
     fun `when text is changed to invalid color, then 'null' color is set to mediator`() =
         runTest(testDispatcher) {
-            every { mediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = null, source = null)
-                MutableStateFlow(value)
-            }
+            every { mediator.colorStateFlow } returns MutableStateFlow(ColorInputMediator.InitialColorState)
             with(colorInputValidator) {
                 every { ColorInput.Hex("").validate() } returns mockk<ColorInputValidationResult.Invalid>()
                 every { ColorInput.Hex("gibberish").validate() } returns mockk<ColorInputValidationResult.Invalid>()
@@ -171,11 +164,8 @@ class ColorInputHexViewModelTest {
 
             data.textField.onTextChange(Text("gibberish"))
 
-            verify(exactly = 1) {
-                mediator.set(
-                    color = null, // invalid color input
-                    source = DomainColorInputType.Hex,
-                )
+            coVerify(exactly = 1) {
+                mediatorComponents.editor.set(color = null /*invalid color input*/, source = DomainColorInputType.Hex)
             }
         }
 
@@ -183,10 +173,7 @@ class ColorInputHexViewModelTest {
     fun `when mediator emits not-null color from non-HEX source, then data is updated`() =
         runTest(testDispatcher) {
             val color = Color.Hex(0x1A803F)
-            val colorStateFlow = run {
-                val value = ColorInputMediator.ColorState(color = null, source = null)
-                MutableStateFlow(value)
-            }
+            val colorStateFlow = MutableStateFlow(ColorInputMediator.InitialColorState)
             every { mediator.colorStateFlow } returns colorStateFlow
             with(colorInputValidator) {
                 every { ColorInput.Hex("").validate() } returns mockk<ColorInputValidationResult.Invalid>()
@@ -201,7 +188,7 @@ class ColorInputHexViewModelTest {
             createSut()
 
             run {
-                val value = ColorInputMediator.ColorState(color = color, source = DomainColorInputType.Rgb)
+                val value = ColorInputMediator.ColorState(color = color, source = DomainColorInputType.Rgb, id = 1)
                 colorStateFlow.emit(value)
             }
 
@@ -212,10 +199,7 @@ class ColorInputHexViewModelTest {
     fun `when mediator emits not-null color from HEX source, then data is not updated and update loop is not created`() =
         runTest(testDispatcher) {
             val color = Color.Hex(0x1A803F)
-            val colorStateFlow = run {
-                val value = ColorInputMediator.ColorState(color = null, source = null)
-                MutableStateFlow(value)
-            }
+            val colorStateFlow = MutableStateFlow(ColorInputMediator.InitialColorState)
             every { mediator.colorStateFlow } returns colorStateFlow
             with(colorInputValidator) {
                 every { ColorInput.Hex("").validate() } returns mockk<ColorInputValidationResult.Invalid>()
@@ -224,7 +208,7 @@ class ColorInputHexViewModelTest {
             createSut()
 
             run {
-                val value = ColorInputMediator.ColorState(color = color, source = DomainColorInputType.Hex)
+                val value = ColorInputMediator.ColorState(color = color, source = DomainColorInputType.Hex, id = 1)
                 colorStateFlow.emit(value)
             }
 
@@ -237,7 +221,7 @@ class ColorInputHexViewModelTest {
             val color = Color.Hex(0x1A803F)
             val colorAsColorInput = ColorInput.Hex("1A803F")
             every { mediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = color, source = null)
+                val value = ColorInputMediator.ColorState(color = color, source = null, id = 0)
                 MutableStateFlow(value)
             }
             with(colorInputValidator) {
@@ -269,10 +253,7 @@ class ColorInputHexViewModelTest {
         expectedTextString: String,
     ) =
         runTest(testDispatcher) {
-            every { mediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = null, source = null)
-                MutableStateFlow(value)
-            }
+            every { mediator.colorStateFlow } returns MutableStateFlow(ColorInputMediator.InitialColorState)
             createSut()
 
             val text = data.textField.filterUserInput(input)

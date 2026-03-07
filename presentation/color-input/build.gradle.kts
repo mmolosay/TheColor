@@ -37,6 +37,7 @@ dependencies {
 
     // Testing
     testImplementation(project(":utils:testing"))
+    testImplementation(project(":presentation:color-input:testing"))
     testImplementation("org.junit.jupiter:junit-jupiter-api:${libs.versions.junit.get()}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${libs.versions.junit.get()}")
     testImplementation("org.junit.jupiter:junit-jupiter-params:${libs.versions.junit.get()}")

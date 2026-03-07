@@ -30,6 +30,7 @@ include(":presentation:errors")
 
 include(":presentation:home")
 include(":presentation:color-input")
+include(":presentation:color-input:testing")
 include(":presentation:color-details")
 include(":presentation:color-scheme")
 include(":presentation:color-center")

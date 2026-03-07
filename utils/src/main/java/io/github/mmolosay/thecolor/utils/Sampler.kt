@@ -14,14 +14,20 @@ import kotlin.time.Duration
 
 /**
  * Produces the most recently [offer]ed value at most once per [period].
+ * Invokes [onSampleProduced] callback when a new sample is produced.
  *
- * Thread-safe. Sampling runs in the provided [coroutineScope], invokes [onSampleProduced] sequentially,
- * and automatically stops when no new values are offered.
+ * Thread-safe.
+ * Sampling runs in a new coroutine launched in the [coroutineScope] and stops
+ * automatically when no new values are offered.
+ *
+ * The [onSampleProduced] callback is never invoked concurrently.
+ * Because the callback runs inside the sampling coroutine, long-running suspending
+ * operations inside [onSampleProduced] will delay subsequent sampling.
  */
 class Sampler<T>(
     private val period: Duration,
-    private val onSampleProduced: OnSampleProducedCallback<T>,
     private val coroutineScope: CoroutineScope,
+    private val onSampleProduced: OnSampleProducedCallback<T>,
 ) {
 
     private var job: Job? = null
@@ -40,13 +46,13 @@ class Sampler<T>(
         coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) {
             while (true) {
                 val sample = lastValue.getAndSet(Optional.None)
-                    .let { it as? Optional.Value ?: break }
+                    .let { lastOptional -> (lastOptional as? Optional.Value) ?: break }
                     .value
                 onSampleProduced(sample)
                 delay(period)
             }
         }.also { job ->
-            this.job = job // will be reached after the coroutine first suspends, and this is OK
+            this.job = job // will be reached after the coroutine first suspends, and it's OK
         }
     }
 
@@ -66,15 +72,14 @@ class Sampler<T>(
 
 fun <T> Sampler(
     period: Duration,
+    coroutineScope: CoroutineScope,
     inputFlow: Flow<T>,
     outputFlow: MutableSharedFlow<T>,
-    coroutineScope: CoroutineScope,
 ): Sampler<T> {
     val sampler = Sampler<T>(
         period = period,
-        onSampleProduced = { sample -> outputFlow.emit(sample) },
         coroutineScope = coroutineScope,
-    )
+    ) { sample -> outputFlow.emit(sample) }
     inputFlow
         .onEach { value -> sampler.offer(value) }
         .launchIn(coroutineScope)

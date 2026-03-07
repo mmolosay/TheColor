@@ -96,6 +96,7 @@ class ColorConverterTest {
             /* #4  */ Color.Hex(0x690B00) convertsTo Color.Hsv(6.28f, 1f, 0.4117f),
             /* #5  */ Color.Hex(0xF0F8FF) convertsTo Color.Hsv(208f, 0.0588f, 1f),
             /* #6  */ Color.Hex(0xFFFFFF) convertsTo Color.Hsv(0f, 0f, 1f),
+            /* #7  */ Color.Hex(0x5EBE4A) convertsTo Color.Hsv(109.65f, 0.6105f, 0.7450f),
         )
 
         @JvmStatic
@@ -107,6 +108,7 @@ class ColorConverterTest {
             /* #4  */ Color.Hsv(6.28f, 1f, 0.4117f) convertsTo Color.Hex(0x690B00),
             /* #5  */ Color.Hsv(208f, 0.0588f, 1f) convertsTo Color.Hex(0xF0F8FF),
             /* #6  */ Color.Hsv(0f, 0f, 1f) convertsTo Color.Hex(0xFFFFFF),
+            /* #7  */ Color.Hsv(109.65f, 0.6105f, 0.7450f) convertsTo Color.Hex(0x5EBE4A),
         )
 
         infix fun <ColorSource, ColorDest> ColorSource.convertsTo(expected: ColorDest) =

@@ -39,7 +39,7 @@ dataStore-preferences = "1.1.1"
 
 # Testing
 junit = "5.11.4"
-mockk = "1.13.3"
+mockk = "1.14.9"
 kotestAssertions = "5.5.5"
 robolectric = "4.16"
 robolectricJunit5Ext = "0.9.0"
