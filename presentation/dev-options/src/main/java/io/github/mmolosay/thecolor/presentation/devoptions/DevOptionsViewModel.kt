@@ -8,6 +8,7 @@ import io.github.mmolosay.thecolor.domain.dev.options.DefaultDevOptions
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository
 import io.github.mmolosay.thecolor.domain.dev.options.ResetDevOptionsToDefaultUseCase
 import io.github.mmolosay.thecolor.domain.dev.options.valueOrElse
+import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -17,7 +18,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import javax.inject.Named
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.HttpLogging as DomainHttpLogging
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.PredictableRandomColors as DomainPredictableRandomColors
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.StrictMode as DomainStrictMode
@@ -28,7 +28,7 @@ class DevOptionsViewModel @Inject constructor(
     private val defaultDevOptions: DefaultDevOptions,
     private val buildInfoRepository: BuildInfoRepository,
     private val resetDevOptionsToDefault: ResetDevOptionsToDefaultUseCase,
-    @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
+    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     val dataStateFlow: StateFlow<DataState> =

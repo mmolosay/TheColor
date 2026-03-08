@@ -13,6 +13,7 @@ android {
 dependencies {
     implementation(project(":domain"))
     implementation(project(":data"))
+    implementation(project(":main:di-qualifiers"))
 
     // Data Remote
     implementation("com.squareup.retrofit2:retrofit:${libs.versions.retrofit.library.get()}")

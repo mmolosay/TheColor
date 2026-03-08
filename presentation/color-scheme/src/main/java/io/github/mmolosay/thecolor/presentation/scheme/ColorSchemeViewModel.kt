@@ -12,6 +12,8 @@ import io.github.mmolosay.thecolor.domain.color.ColorScheme.Mode
 import io.github.mmolosay.thecolor.domain.color.IsColorLightUseCase
 import io.github.mmolosay.thecolor.domain.result.onFailure
 import io.github.mmolosay.thecolor.domain.result.onSuccess
+import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
+import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.IoDispatcher
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.errors.toErrorType
@@ -35,7 +37,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
-import javax.inject.Named
 import javax.inject.Singleton
 import io.github.mmolosay.thecolor.domain.color.ColorScheme as DomainColorScheme
 
@@ -53,8 +54,8 @@ class ColorSchemeViewModel @AssistedInject constructor(
     @Assisted private val eventStore: ColorSchemeEventStore,
     private val colorRepository: ColorRepository,
     private val createData: CreateColorSchemeDataUseCase,
-    @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
-    @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
+    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
     private val statefulDataFlow: MutableStateFlow<StatefulData> = run {

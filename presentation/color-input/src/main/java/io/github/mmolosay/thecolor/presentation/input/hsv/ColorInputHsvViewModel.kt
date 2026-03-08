@@ -5,6 +5,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.domain.color.ColorConverter
+import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.colorState
@@ -18,7 +19,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Named
 import kotlin.time.Duration.Companion.milliseconds
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 
@@ -34,7 +34,7 @@ class ColorInputHsvViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     @Assisted private val mediator: ColorInputMediator,
     private val colorConverter: ColorConverter,
-    @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
+    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
     private val _dataStateFlow = MutableStateFlow<DataState<ColorInputHsvData>>(DataState.BeingInitialized)

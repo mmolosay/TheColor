@@ -7,6 +7,7 @@ import io.github.mmolosay.thecolor.domain.buildfeatures.IsDevOptionsEnabledUseCa
 import io.github.mmolosay.thecolor.domain.user.preferences.ResetUserPreferencesToDefaultUseCase
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.asSingletonSet
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
+import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -17,7 +18,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import javax.inject.Named
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.AutoProceedWithRandomizedColors as DomainAutoProceedWithRandomizedColors
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.DynamicUiColors as DomainDynamicUiColors
@@ -32,7 +32,7 @@ class SettingsViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
     private val resetUserPreferencesToDefault: ResetUserPreferencesToDefaultUseCase,
     private val isDevOptionsEnabled: IsDevOptionsEnabledUseCase,
-    @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
+    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     val dataStateFlow: StateFlow<DataState> =

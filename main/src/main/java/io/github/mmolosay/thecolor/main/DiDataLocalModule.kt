@@ -24,7 +24,7 @@ import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository
 import io.github.mmolosay.thecolor.domain.dev.options.ResetDevOptionsToDefaultUseCase
 import io.github.mmolosay.thecolor.domain.user.preferences.ResetUserPreferencesToDefaultUseCase
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
-import javax.inject.Named
+import io.github.mmolosay.thecolor.main.di.qualifiers.DataStoreDiQualifiers
 import javax.inject.Singleton
 
 /**
@@ -42,8 +42,8 @@ object DiDataLocalModule
 object DiDataLocalProvideModule {
 
     @Provides
-    @Named("UserPreferences")
     @Singleton
+    @DataStoreDiQualifiers.UserPreferences
     fun provideUserPreferencesDataStore(
         @ApplicationContext context: Context,
     ): DataStore<Preferences> =
@@ -52,8 +52,8 @@ object DiDataLocalProvideModule {
         )
 
     @Provides
-    @Named("DevOptions")
     @Singleton
+    @DataStoreDiQualifiers.DevOptions
     fun provideDevOptionsDataStore(
         @ApplicationContext context: Context,
     ): DataStore<Preferences> =
@@ -62,8 +62,8 @@ object DiDataLocalProvideModule {
         )
 
     @Provides
-    @Named("MiscValues")
     @Singleton
+    @DataStoreDiQualifiers.MiscValues
     fun provideMiscValuesDataStore(
         @ApplicationContext context: Context,
     ): DataStore<Preferences> =

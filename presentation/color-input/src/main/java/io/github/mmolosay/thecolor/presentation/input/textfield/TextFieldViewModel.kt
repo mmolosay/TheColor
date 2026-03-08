@@ -6,6 +6,8 @@ import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
+import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
+import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.UiDataUpdateDispatcher
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.WithSource
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
@@ -21,7 +23,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import javax.inject.Named
 
 /**
  * Handles presentation logic of a single text field inside a 'Color Input' feature.
@@ -37,8 +38,8 @@ class TextFieldViewModel @AssistedInject constructor(
     @Assisted private val filterUserInput: (String) -> Text,
     @Assisted private val enableClearTextFeature: Boolean,
     private val userPreferencesRepository: UserPreferencesRepository,
-    @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
-    @Named("uiDataUpdateDispatcher") private val uiDataUpdateDispatcher: CoroutineDispatcher,
+    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
+    @UiDataUpdateDispatcher private val uiDataUpdateDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
     private val dataUpdateMutex = Mutex()

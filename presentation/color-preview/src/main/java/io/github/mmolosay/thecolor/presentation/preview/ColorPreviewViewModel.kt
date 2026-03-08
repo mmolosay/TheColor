@@ -8,6 +8,7 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
 import io.github.mmolosay.thecolor.domain.color.Color
+import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModelDiModule.GateForDataFlow
@@ -21,7 +22,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicReference
-import javax.inject.Named
 import javax.inject.Qualifier
 
 /**
@@ -36,7 +36,7 @@ class ColorPreviewViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     @GateForDataFlow private val gateForDataFlow: SuspendGate,
     private val colorToColorInt: ColorToColorIntUseCase,
-    @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
+    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
     private val _dataFlow = MutableStateFlow<ColorPreviewData?>(null)

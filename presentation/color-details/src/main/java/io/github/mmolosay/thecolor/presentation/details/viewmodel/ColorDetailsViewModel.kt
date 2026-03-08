@@ -8,6 +8,8 @@ import io.github.mmolosay.thecolor.domain.color.ColorRepository
 import io.github.mmolosay.thecolor.domain.color.IsColorLightUseCase
 import io.github.mmolosay.thecolor.domain.result.onFailure
 import io.github.mmolosay.thecolor.domain.result.onSuccess
+import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
+import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.IoDispatcher
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ExactMatch
@@ -23,7 +25,6 @@ import kotlinx.coroutines.withContext
 import java.util.concurrent.CopyOnWriteArraySet
 import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
-import javax.inject.Named
 import javax.inject.Singleton
 import io.github.mmolosay.thecolor.domain.color.ColorDetails as DomainColorDetails
 
@@ -42,8 +43,8 @@ class ColorDetailsViewModel @AssistedInject constructor(
     private val colorRepository: ColorRepository,
     private val createData: CreateColorDetailsDataUseCase,
     private val createSeedData: CreateSeedDataUseCase,
-    @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
-    @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
     private val _currentSeedDataFlow = MutableStateFlow<ColorDetailsSeedData?>(null)
