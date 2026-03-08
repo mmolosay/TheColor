@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Named
+import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.HttpLogging as DomainHttpLogging
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.PredictableRandomColors as DomainPredictableRandomColors
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.StrictMode as DomainStrictMode
 
@@ -35,6 +36,7 @@ class DevOptionsViewModel @Inject constructor(
             flows = listOf(
                 devOptionsRepository.flowOfPredictableRandomColors,
                 devOptionsRepository.flowOfStrictMode,
+                devOptionsRepository.flowOfHttpLogging,
             ),
             transform = ::createData,
         )
@@ -73,6 +75,13 @@ class DevOptionsViewModel @Inject constructor(
         }
     }
 
+    private fun updateHttpLoggingEnablement(value: Boolean) {
+        viewModelScope.launch(defaultDispatcher) {
+            val domainModel = DomainHttpLogging(enabled = value)
+            devOptionsRepository.setHttpLogging(domainModel)
+        }
+    }
+
     // that's the only way to combine() more than 5 flows of different types
     @Suppress("UNCHECKED_CAST")
     private fun createData(
@@ -86,12 +95,16 @@ class DevOptionsViewModel @Inject constructor(
             strictMode = iterator.next()
                 .let { it as DevOptionsRepository.DataState<DomainStrictMode> }
                 .valueOrElse { defaultDevOptions.strictMode },
+            httpLogging = iterator.next()
+                .let { it as DevOptionsRepository.DataState<DomainHttpLogging> }
+                .valueOrElse { defaultDevOptions.httpLogging },
         )
     }
 
     private fun createData(
         predictableRandomColors: DomainPredictableRandomColors,
         strictMode: DomainStrictMode,
+        httpLogging: DomainHttpLogging,
     ): DevOptionsData {
         return DevOptionsData(
             resetValuesToDefault = ::resetValuesToDefault,
@@ -103,6 +116,10 @@ class DevOptionsViewModel @Inject constructor(
             isStrictModeEnabled = strictMode.enabled,
             isStrictModeEnabledByDefault = defaultDevOptions.strictMode.enabled,
             changeStrictModeEnablement = ::updateStrictModeEnablement,
+
+            isHttpLoggingEnabled = httpLogging.enabled,
+            isHttpLoggingEnabledByDefault = defaultDevOptions.httpLogging.enabled,
+            changeHttpLoggingEnablement = ::updateHttpLoggingEnablement,
 
             buildInfo = buildInfo,
         )

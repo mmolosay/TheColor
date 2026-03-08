@@ -15,4 +15,9 @@ object DevOptions {
     value class StrictMode(
         val enabled: Boolean,
     )
+
+    @JvmInline
+    value class HttpLogging(
+        val enabled: Boolean,
+    )
 }

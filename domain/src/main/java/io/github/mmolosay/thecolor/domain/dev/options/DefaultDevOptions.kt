@@ -27,4 +27,10 @@ class DefaultDevOptions @Inject constructor(
         val enabled = (buildInfoRepository.getAppBuildType() in buildTypesWhereEnabled)
         DevOptions.StrictMode(enabled)
     }
+
+    val httpLogging: DevOptions.HttpLogging by lazy {
+        val buildTypesWhereEnabled = listOf<BuildType>() // don't enable in any build type by default
+        val enabled = (buildInfoRepository.getAppBuildType() in buildTypesWhereEnabled)
+        DevOptions.HttpLogging(enabled)
+    }
 }
