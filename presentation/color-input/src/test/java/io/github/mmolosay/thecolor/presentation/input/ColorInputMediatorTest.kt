@@ -167,7 +167,6 @@ class ColorInputMediatorTest {
 
             val expectedColors = (0 until numberOfThreads).map { color(it) }
             colorStates.map { it.color } shouldContainExactly expectedColors
-            println(colorStates)
             colorStates.size shouldBe numberOfThreads
             dispatcher.close()
         }

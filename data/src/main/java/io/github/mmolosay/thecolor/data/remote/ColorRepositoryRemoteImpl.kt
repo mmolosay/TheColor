@@ -11,8 +11,8 @@ import io.github.mmolosay.thecolor.domain.color.ColorDetails
 import io.github.mmolosay.thecolor.domain.color.ColorRepository
 import io.github.mmolosay.thecolor.domain.color.ColorRepository.GetColorSchemeRequest
 import io.github.mmolosay.thecolor.domain.color.ColorScheme
-import io.github.mmolosay.thecolor.domain.result.Result
-import io.github.mmolosay.thecolor.domain.result.ResultMapper
+import io.github.mmolosay.thecolor.domain.exception.DomainFailureFactory
+import io.github.mmolosay.thecolor.domain.exception.tryMapFailureToDomain
 import javax.inject.Inject
 
 /**
@@ -24,23 +24,23 @@ class ColorRepositoryRemoteImpl @Inject constructor(
     private val colorMapper: ColorMapper,
     private val colorDetailsMapper: ColorDetailsMapper,
     private val colorSchemeMapper: ColorSchemeMapper,
-    private val resultMapper: ResultMapper,
+    private val domainFailureFactory: DomainFailureFactory,
 ) : ColorRepository {
 
     override suspend fun getColorDetails(color: Color): Result<ColorDetails> {
         val colorString = color.toDtoString()
-        val kotlinResult = runCatching {
+        return runCatching {
             api.getColorDetails(hex = colorString)
         }
             .map { colorDetailsDto ->
                 with(colorDetailsMapper) { colorDetailsDto.toDomain() }
             }
-        return with(resultMapper) { kotlinResult.toDomainResult() }
+            .tryMapFailureToDomain(domainFailureFactory)
     }
 
     override suspend fun getColorScheme(request: GetColorSchemeRequest): Result<ColorScheme> {
         val seedHex = request.seed.toDtoString()
-        val kotlinResult = runCatching {
+        return runCatching {
             api.getColorScheme(
                 hex = seedHex,
                 mode = request.mode.toDto(),
@@ -50,7 +50,7 @@ class ColorRepositoryRemoteImpl @Inject constructor(
             .map { colorSchemeDto ->
                 with(colorSchemeMapper) { colorSchemeDto.toDomain() }
             }
-        return with(resultMapper) { kotlinResult.toDomainResult() }
+            .tryMapFailureToDomain(domainFailureFactory)
     }
 
     private fun Color.toDtoString(): String {
