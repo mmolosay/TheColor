@@ -8,8 +8,9 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dagger.hilt.migration.DisableInstallInCheck
 import io.github.mmolosay.thecolor.domain.buildfeatures.AppBuildTypeProvider
+import io.github.mmolosay.thecolor.main.di.qualifiers.AppCoroutineScope
+import io.github.mmolosay.thecolor.utils.ApplicationCoroutineScopeProvider
 import kotlinx.coroutines.CoroutineScope
-import javax.inject.Named
 
 /**
  * DI module for components of `:app` Gradle module.
@@ -32,7 +33,7 @@ object DiAppModule {
             application as TheColorApplication
 
         @Provides
-        @Named("ApplicationScope")
+        @AppCoroutineScope
         fun provideApplicationScope(provider: ApplicationCoroutineScopeProvider): CoroutineScope =
             provider.applicationScope
     }

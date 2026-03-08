@@ -5,19 +5,21 @@ import androidx.datastore.preferences.core.Preferences
 import dagger.Lazy
 import io.github.mmolosay.thecolor.domain.TouchLocalDatabaseUseCase
 import io.github.mmolosay.thecolor.domain.buildfeatures.IsDevOptionsEnabledUseCase
+import io.github.mmolosay.thecolor.main.di.qualifiers.DataStoreDiQualifiers.DevOptions
+import io.github.mmolosay.thecolor.main.di.qualifiers.DataStoreDiQualifiers.MiscValues
+import io.github.mmolosay.thecolor.main.di.qualifiers.DataStoreDiQualifiers.UserPreferences
 import kotlinx.coroutines.flow.first
 import timber.log.Timber
 import javax.inject.Inject
-import javax.inject.Named
 import kotlin.time.measureTime
 
 /**
  * This implementation should access all local databases that exist in the app.
  */
 class TouchLocalDatabaseUseCaseImpl @Inject constructor(
-    @Named("UserPreferences") private val userPreferences: DataStore<Preferences>,
-    @Named("DevOptions") private val devOptionsFactory: Lazy<DataStore<Preferences>>,
-    @Named("MiscValues") private val miscValues: DataStore<Preferences>,
+    @UserPreferences private val userPreferences: DataStore<Preferences>,
+    @DevOptions private val devOptionsFactory: Lazy<DataStore<Preferences>>,
+    @MiscValues private val miscValues: DataStore<Preferences>,
     private val isDevOptionsEnabled: IsDevOptionsEnabledUseCase,
 ) : TouchLocalDatabaseUseCase {
 

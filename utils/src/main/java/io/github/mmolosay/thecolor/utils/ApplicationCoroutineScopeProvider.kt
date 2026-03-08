@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor
+package io.github.mmolosay.thecolor.utils
 
 import kotlinx.coroutines.CoroutineScope
 

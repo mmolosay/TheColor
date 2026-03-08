@@ -22,6 +22,7 @@ include(":utils")
 include(":utils:testing")
 include(":data")
 include(":main")
+include(":main:di-qualifiers")
 
 include(":app")
 include(":presentation:common")

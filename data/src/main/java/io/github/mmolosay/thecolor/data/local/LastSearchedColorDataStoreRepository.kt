@@ -7,19 +7,20 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.domain.color.ColorConverter
 import io.github.mmolosay.thecolor.domain.color.LastSearchedColorRepository
+import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.IoDispatcher
+import io.github.mmolosay.thecolor.main.di.qualifiers.DataStoreDiQualifiers.MiscValues
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
-import javax.inject.Named
 
 /**
  * Implementation of [LastSearchedColorRepository] powered by DataStore library.
  */
 class LastSearchedColorDataStoreRepository @Inject constructor(
-    @Named("MiscValues") private val dataStore: DataStore<Preferences>,
+    @MiscValues private val dataStore: DataStore<Preferences>,
     private val colorMapper: ColorMapper,
-    @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : LastSearchedColorRepository {
 
     override suspend fun getLastSearchedColor(): Color? =

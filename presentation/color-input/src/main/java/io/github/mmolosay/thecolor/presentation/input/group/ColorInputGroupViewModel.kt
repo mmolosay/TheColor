@@ -4,6 +4,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
+import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
@@ -19,7 +20,6 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Named
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 
 /**
@@ -38,7 +38,7 @@ class ColorInputGroupViewModel @AssistedInject constructor(
     rgbViewModelFactory: ColorInputRgbViewModel.Factory,
     hsvViewModelFactory: ColorInputHsvViewModel.Factory,
     private val userPreferencesRepository: UserPreferencesRepository,
-    @Named("defaultDispatcher") private val defaultDispatcher: CoroutineDispatcher,
+    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
     private val _dataStateFlow = MutableStateFlow<DataState>(DataState.Loading)

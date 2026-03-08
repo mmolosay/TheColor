@@ -16,6 +16,7 @@ android {
 dependencies {
     implementation(project(":domain"))
     implementation(project(":utils"))
+    implementation(project(":main:di-qualifiers"))
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.coroutines.get()}")
     implementation("javax.inject:javax.inject:1")

@@ -8,7 +8,6 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import io.github.mmolosay.thecolor.data.local.utils.setOrRemoveValue
 import io.github.mmolosay.thecolor.domain.color.ColorInputType
 import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
-import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.AutoProceedWithRandomizedColors
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.DynamicUiColors
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.ResumeFromLastSearchedColorOnStartup
@@ -17,6 +16,9 @@ import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.Smart
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.UiColorScheme
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.UiColorSchemeSet
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
+import io.github.mmolosay.thecolor.main.di.qualifiers.AppCoroutineScope
+import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.IoDispatcher
+import io.github.mmolosay.thecolor.main.di.qualifiers.DataStoreDiQualifiers.UserPreferences
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -26,7 +28,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
-import javax.inject.Named
 import javax.inject.Singleton
 
 /**
@@ -34,9 +35,9 @@ import javax.inject.Singleton
  */
 @Singleton
 class UserPreferencesDataStoreRepository @Inject constructor(
-    @Named("UserPreferences") private val dataStore: DataStore<Preferences>,
-    @Named("ApplicationScope") private val appScope: CoroutineScope,
-    @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
+    @UserPreferences private val dataStore: DataStore<Preferences>,
+    @AppCoroutineScope private val appScope: CoroutineScope,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : UserPreferencesRepository {
 
     override val flowOfColorInputType: StateFlow<ColorInputType?> =
@@ -242,10 +243,10 @@ class UserPreferencesDataStoreRepository @Inject constructor(
     private object DataStoreKeys {
         val ColorInputType = stringPreferencesKey("color_input_type")
 
-        /** Key for a `light` [UserPreferences.UiColorScheme] from the [UserPreferences.UiColorSchemeSet]. */
+        /** Key for a `light` [UserPreferences1.UiColorScheme] from the [UserPreferences1.UiColorSchemeSet]. */
         val AppUiColorSchemeLight = stringPreferencesKey("app_ui_color_scheme_set_light_value")
 
-        /** Key for a `dark` [UserPreferences.UiColorScheme] from the [UserPreferences.UiColorSchemeSet]. */
+        /** Key for a `dark` [UserPreferences1.UiColorScheme] from the [UserPreferences1.UiColorSchemeSet]. */
         val AppUiColorSchemeDark = stringPreferencesKey("app_ui_color_scheme_set_dark_value")
 
         val DynamicUiColors = booleanPreferencesKey("dynamic_ui_colors")
@@ -291,7 +292,7 @@ private object ColorInputTypeMapper {
 }
 
 /**
- * Maps [UserPreferences.UiColorScheme] of domain layer to its representation in data layer (DTO)
+ * Maps [UserPreferences1.UiColorScheme] of domain layer to its representation in data layer (DTO)
  * and vice versa.
  */
 private object UiColorSchemeMapper {

@@ -11,6 +11,9 @@ import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.StrictMode
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository.DataState
 import io.github.mmolosay.thecolor.domain.dev.options.IllegalStoredValue
+import io.github.mmolosay.thecolor.main.di.qualifiers.AppCoroutineScope
+import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.IoDispatcher
+import io.github.mmolosay.thecolor.main.di.qualifiers.DataStoreDiQualifiers.DevOptions
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -20,7 +23,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
-import javax.inject.Named
 import javax.inject.Singleton
 
 /**
@@ -28,9 +30,9 @@ import javax.inject.Singleton
  */
 @Singleton
 class DevOptionsDataStoreRepository @Inject constructor(
-    @Named("DevOptions") private val dataStore: DataStore<Preferences>,
-    @Named("ApplicationScope") private val appScope: CoroutineScope,
-    @Named("ioDispatcher") private val ioDispatcher: CoroutineDispatcher,
+    @DevOptions private val dataStore: DataStore<Preferences>,
+    @AppCoroutineScope private val appScope: CoroutineScope,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : DevOptionsRepository {
 
     override val flowOfPredictableRandomColors: StateFlow<DataState<PredictableRandomColors>> =
