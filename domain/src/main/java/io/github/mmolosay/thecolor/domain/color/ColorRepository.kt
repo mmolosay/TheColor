@@ -1,7 +1,5 @@
 package io.github.mmolosay.thecolor.domain.color
 
-import io.github.mmolosay.thecolor.domain.result.Result
-
 interface ColorRepository {
     suspend fun getColorDetails(color: Color): Result<ColorDetails>
     suspend fun getColorScheme(request: GetColorSchemeRequest): Result<ColorScheme>

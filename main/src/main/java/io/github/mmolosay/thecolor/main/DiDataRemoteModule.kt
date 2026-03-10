@@ -9,7 +9,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.migration.DisableInstallInCheck
 import io.github.mmolosay.thecolor.data.remote.ColorRepositoryRemoteImpl
-import io.github.mmolosay.thecolor.data.remote.HttpFailureFactoryImpl
+import io.github.mmolosay.thecolor.data.remote.HttpDomainFailureFactoryImpl
 import io.github.mmolosay.thecolor.data.remote.api.TheColorApiService
 import io.github.mmolosay.thecolor.data.remote.model.SchemeModeDtoAdapter
 import io.github.mmolosay.thecolor.domain.color.ColorRepository
@@ -17,7 +17,7 @@ import io.github.mmolosay.thecolor.domain.dev.options.DefaultDevOptions
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository
 import io.github.mmolosay.thecolor.domain.dev.options.valueOrElse
-import io.github.mmolosay.thecolor.domain.result.HttpFailureFactory
+import io.github.mmolosay.thecolor.domain.exception.HttpDomainFailureFactory
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -80,7 +80,7 @@ object DiDataRemoteProvideModule {
 interface DiDataRemoteBindModule {
 
     @Binds
-    fun bindHttpFailureFactory(impl: HttpFailureFactoryImpl): HttpFailureFactory
+    fun bindHttpDomainExceptionFactory(impl: HttpDomainFailureFactoryImpl): HttpDomainFailureFactory
 
     @Binds
     fun bindColorRepositoryRemoteImpl(impl: ColorRepositoryRemoteImpl): ColorRepository

@@ -28,12 +28,12 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel.DataState
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsError
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
+import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel.DataState
 import io.github.mmolosay.thecolor.presentation.errors.ErrorMessageWithButton
-import io.github.mmolosay.thecolor.presentation.errors.message
+import io.github.mmolosay.thecolor.presentation.errors.messageOrUnknown
 import io.github.mmolosay.thecolor.presentation.errors.rememberDefaultErrorsUiStrings
 import io.github.mmolosay.thecolor.utils.doNothing
 
@@ -148,7 +148,7 @@ private fun Error(
         modifier = Modifier
             .padding(horizontal = 24.dp)
             .fillMaxWidth(),
-        message = error.type.message(strings),
+        message = error.cause.messageOrUnknown(strings),
         button = {
             val colors = ButtonDefaults.outlinedButtonColors(
                 contentColor = colorsOnTintedSurface.accent,

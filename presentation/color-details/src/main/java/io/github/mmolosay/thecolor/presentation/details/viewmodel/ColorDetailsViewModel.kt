@@ -6,15 +6,12 @@ import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.domain.color.ColorRepository
 import io.github.mmolosay.thecolor.domain.color.IsColorLightUseCase
-import io.github.mmolosay.thecolor.domain.result.onFailure
-import io.github.mmolosay.thecolor.domain.result.onSuccess
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.IoDispatcher
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ExactMatch
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.InitialColorData
-import io.github.mmolosay.thecolor.presentation.errors.toErrorType
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -104,9 +101,9 @@ class ColorDetailsViewModel @AssistedInject constructor(
                     proceed(fetchedDomainDetails)
                     return@launch
                 }
-                .onFailure { failure ->
+                .onFailure { exception ->
                     val error = ColorDetailsError(
-                        type = failure.toErrorType(),
+                        cause = exception,
                         tryAgain = { fetchOrFindColorDetails(command) },
                     )
                     _dataStateFlow.value = DataState.Error(error)

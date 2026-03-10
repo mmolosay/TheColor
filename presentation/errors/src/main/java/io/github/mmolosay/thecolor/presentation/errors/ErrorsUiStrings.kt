@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import io.github.mmolosay.thecolor.domain.exception.DomainException
+import io.github.mmolosay.thecolor.domain.exception.DomainFailure
 
 /**
  * Strings that are pre-defined in UI and don't come from ViewModel.
@@ -33,3 +35,20 @@ fun rememberDefaultErrorsUiStrings(): ErrorsUiStrings {
     val context = LocalContext.current
     return remember(context) { ErrorsUiStrings(context) }
 }
+
+fun Throwable.messageOrUnknown(strings: ErrorsUiStrings): String =
+    when (this) {
+        is DomainException -> this.failure.message(strings)
+        else -> strings.messageUnexpectedError
+    }
+
+fun DomainFailure.message(strings: ErrorsUiStrings): String =
+    when (this) {
+        is DomainFailure.Http ->
+            when (this) {
+                is DomainFailure.Http.UnknownHost -> strings.messageNoConnection
+                is DomainFailure.Http.Timeout -> strings.messageTimeout
+                is DomainFailure.Http.IO -> strings.messageUnexpectedError
+                is DomainFailure.Http.ErrorResponse -> strings.messageErrorResponse
+            }
+    }
