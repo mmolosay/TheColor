@@ -83,31 +83,22 @@ class ColorDetailsViewModel @AssistedInject constructor(
     ) {
         coroutineScope.launch(defaultDispatcher) {
             val (color, colorRole) = command
-            fun proceed(details: DomainColorDetails) {
-                setColorDetails(details, colorRole)
-            }
-
-            val cachedDetails = findCachedDetails(color)
-            if (cachedDetails != null) {
-                proceed(cachedDetails)
-                return@launch
-            }
-
-            _dataStateFlow.value = DataState.Loading
-            withContext(ioDispatcher) {
-                colorRepository.getColorDetails(color)
-            }
-                .onSuccess { fetchedDomainDetails ->
-                    proceed(fetchedDomainDetails)
-                    return@launch
+            val colorDetails = run {
+                val cached = findCachedDetails(color)
+                if (cached != null) return@run cached
+                return@run withContext(ioDispatcher) {
+                    colorRepository.getColorDetails(color)
                 }
-                .onFailure { exception ->
-                    val error = ColorDetailsError(
-                        cause = exception,
-                        tryAgain = { fetchOrFindColorDetails(command) },
-                    )
-                    _dataStateFlow.value = DataState.Error(error)
-                }
+                    .getOrElse { exception ->
+                        val error = ColorDetailsError(
+                            cause = exception,
+                            tryAgain = { fetchOrFindColorDetails(command) },
+                        )
+                        _dataStateFlow.value = DataState.Error(error)
+                        return@launch
+                    }
+            }
+            setColorDetails(colorDetails, colorRole)
         }.also { job ->
             fetchOrFindColorDetailsJob.getAndSet(job)?.cancel()
         }
