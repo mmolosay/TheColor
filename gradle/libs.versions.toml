@@ -43,6 +43,7 @@ mockk = "1.14.9"
 kotestAssertions = "5.5.5"
 robolectric = "4.16"
 robolectricJunit5Ext = "0.9.0"
+turbine = "1.2.1"
 
 # Misc (preserve alphabetical order)
 aboutLibraries = "13.1.0"

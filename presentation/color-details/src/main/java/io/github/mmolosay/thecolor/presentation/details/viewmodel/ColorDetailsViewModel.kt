@@ -11,8 +11,8 @@ import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQuali
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.IoDispatcher
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
+import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ColorRoleData
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ExactMatch
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.InitialColorData
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -144,24 +144,25 @@ class ColorDetailsViewModel @AssistedInject constructor(
     }
 
     private fun createData(
-        domainDetails: DomainColorDetails,
+        details: DomainColorDetails,
         entryType: ColorEntry.Type,
     ): ColorDetailsData {
-        val color = domainDetails.color
-        val exactColor = domainDetails.exact.color
-        val initialColor = if (entryType == ColorEntry.Type.Exact) {
-            val details = findCachedDetailsWithExactColor(exactColor = color)
-            details?.color
-        } else null
-        val goToInitialColor =
-            if (entryType == ColorEntry.Type.Exact && initialColor != null) {
-                { sendColorSelectedEvent(initialColor, ColorRole.Initial) }
-            } else null
         return createData(
-            details = domainDetails,
-            goToExactColor = { sendColorSelectedEvent(exactColor, ColorRole.Exact) },
-            initialColor = initialColor,
-            goToInitialColor = goToInitialColor,
+            details = details,
+            colorRole = run {
+                when (entryType) {
+                    ColorEntry.Type.Seed -> ColorRole.Initial
+                    ColorEntry.Type.Exact -> ColorRole.Exact
+                }
+            },
+            goToExactColor = { exactColor -> sendColorSelectedEvent(exactColor, ColorRole.Exact) },
+            goToInitialColor = { initialColor ->
+                sendColorSelectedEvent(
+                    initialColor,
+                    ColorRole.Initial
+                )
+            },
+            getInitialColorOfExactColor = { exactColor -> findCachedDetailsWithExactColor(exactColor)?.color },
         )
     }
 
@@ -243,9 +244,10 @@ class CreateColorDetailsDataUseCase @Inject constructor(
 
     operator fun invoke(
         details: DomainColorDetails,
-        goToExactColor: () -> Unit,
-        initialColor: Color?,
-        goToInitialColor: (() -> Unit)?,
+        colorRole: ColorRole,
+        goToExactColor: GoToExactColorAction,
+        goToInitialColor: GoToInitialColorAction,
+        getInitialColorOfExactColor: GetInitialColorOfExactColorAction,
     ) =
         ColorDetailsData(
             colorName = details.colorName,
@@ -273,19 +275,18 @@ class CreateColorDetailsDataUseCase @Inject constructor(
             ),
             exactMatch = ExactMatch(
                 details = details,
-                goToExactColor = goToExactColor,
             ),
-            initialColorData = if (details.matchesExact) { // set 'InitialColorData' only for "exact" colors
-                InitialColorData(
-                    initialColor = initialColor,
-                    goToInitialColor = goToInitialColor,
-                )
-            } else null,
+            colorRoleData = ColorRoleData(
+                details = details,
+                colorRole = colorRole,
+                goToExactColor = goToExactColor,
+                goToInitialColor = goToInitialColor,
+                getInitialColorOfExactColor = getInitialColorOfExactColor,
+            ),
         )
 
     private fun ExactMatch(
         details: DomainColorDetails,
-        goToExactColor: () -> Unit,
     ): ExactMatch =
         if (details.matchesExact) {
             ExactMatch.Yes
@@ -293,21 +294,45 @@ class CreateColorDetailsDataUseCase @Inject constructor(
             ExactMatch.No(
                 exactValue = details.exact.hexStringWithNumberSign,
                 exactColor = with(colorToColorInt) { details.exact.color.toColorInt() },
-                goToExactColor = goToExactColor,
                 deviation = details.distanceFromExact.toString(),
             )
         }
 
-    private fun InitialColorData(
-        initialColor: Color?,
-        goToInitialColor: (() -> Unit)?,
-    ): InitialColorData? {
-        initialColor ?: return null
-        goToInitialColor ?: return null
-        return InitialColorData(
-            initialColor = with(colorToColorInt) { initialColor.toColorInt() },
-            goToInitialColor = goToInitialColor,
-        )
+    private fun ColorRoleData(
+        details: DomainColorDetails,
+        colorRole: ColorRole,
+        goToExactColor: GoToExactColorAction,
+        goToInitialColor: GoToInitialColorAction,
+        getInitialColorOfExactColor: GetInitialColorOfExactColorAction,
+    ): ColorRoleData =
+        when (colorRole) {
+            ColorRole.Initial -> {
+                val exactColor = details.exact.color
+                ColorRoleData.Initial(
+                    exactColor = with(colorToColorInt) { exactColor.toColorInt() },
+                    goToExactColor = { goToExactColor(exactColor) },
+                )
+            }
+            ColorRole.Exact -> {
+                val initialColor = getInitialColorOfExactColor(exactColor = details.color)
+                    .let { requireNotNull(it) }
+                ColorRoleData.Exact(
+                    initialColor = with(colorToColorInt) { initialColor.toColorInt() },
+                    goToInitialColor = { goToInitialColor(initialColor) },
+                )
+            }
+        }
+
+    fun interface GoToExactColorAction {
+        operator fun invoke(exactColor: Color)
+    }
+
+    fun interface GoToInitialColorAction {
+        operator fun invoke(initialColor: Color)
+    }
+
+    fun interface GetInitialColorOfExactColorAction {
+        operator fun invoke(exactColor: Color): Color?
     }
 }
 

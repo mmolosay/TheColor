@@ -158,10 +158,12 @@ private fun Preview() {
                     exactMatch = ColorDetailsData.ExactMatch.No(
                         exactValue = "#126B40",
                         exactColor = ColorInt(0x126B40),
-                        goToExactColor = { },
                         deviation = "1366",
                     ),
-                    initialColorData = null,
+                    colorRoleData = ColorDetailsData.ColorRoleData.Exact(
+                        initialColor = ColorInt(0x1A803F),
+                        goToInitialColor = {},
+                    ),
                 )
             ),
         )

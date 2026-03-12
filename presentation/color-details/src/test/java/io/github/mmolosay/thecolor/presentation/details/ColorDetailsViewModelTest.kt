@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.details
 
+import app.cash.turbine.test
 import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.domain.color.ColorComparator
 import io.github.mmolosay.thecolor.domain.color.ColorConverter
@@ -12,7 +13,7 @@ import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntU
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommand
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommandProvider
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ExactMatch
+import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ColorRoleData
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsError
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEvent
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEventStore
@@ -22,7 +23,6 @@ import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorRole
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.CreateColorDetailsDataUseCase
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.CreateSeedDataUseCase
 import io.github.mmolosay.thecolor.testing.MainDispatcherExtension
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -72,7 +72,17 @@ class ColorDetailsViewModelTest {
     }
     val eventStoreReal = ColorDetailsEventStore()
     val colorRepository: ColorRepository = mockk()
-    val createDataMock: CreateColorDetailsDataUseCase = mockk()
+    val createDataMock: CreateColorDetailsDataUseCase = mockk {
+        every {
+            invoke(
+                details = any(),
+                colorRole = any(),
+                goToExactColor = any(),
+                goToInitialColor = any(),
+                getInitialColorOfExactColor = any(),
+            )
+        } returns mockk()
+    }
     val createDataReal = CreateColorDetailsDataUseCase(
         colorToColorInt = ColorToColorIntUseCase(
             colorConverter = ColorConverter(),
@@ -86,12 +96,12 @@ class ColorDetailsViewModelTest {
     lateinit var sut: ColorDetailsViewModel
 
     @Test
-    fun `SUT remains with initial Idle state if there's no 'fetch data' command emitted`() {
+    fun `given SUT is created, when no 'fetch data' command emitted, then SUT remains with initial Idle state`() {
         every { commandProvider.commandFlow } returns emptyFlow()
 
         createSut()
 
-        sut.dataStateFlow.value shouldBe DataState.Idle
+        sut.dataStateFlow.value should beOfType<DataState.Idle>()
     }
 
     @Test
@@ -100,22 +110,22 @@ class ColorDetailsViewModelTest {
             val color = Color.Hex(0x1A803F)
             val commandFlow = MutableSharedFlow<ColorDetailsCommand>()
             every { commandProvider.commandFlow } returns commandFlow
-            val fetchedDetails: ColorDetails = mockk(relaxed = true)
-            coEvery { colorRepository.getColorDetails(color = any()) } returns
-                    Result.success(fetchedDetails)
-            every {
-                createDataMock(
-                    details = any(),
-                    goToExactColor = any(),
-                    initialColor = any(),
-                    goToInitialColor = any(),
-                )
-            } returns mockk()
+            coEvery { colorRepository.getColorDetails(color) } returns run {
+                val details = mockk<ColorDetails> {
+                    every { this@mockk.color } returns color
+                }
+                Result.success(details)
+            }
             createSut()
 
-            commandFlow.emit(ColorDetailsCommand.FetchData(color, colorRole = null))
+            sut.dataStateFlow.test {
+                run {
+                    val command = ColorDetailsCommand.FetchData(color, colorRole = null)
+                    commandFlow.emit(command)
+                }
 
-            sut.dataStateFlow.value should beOfType<DataState.Ready>()
+                expectMostRecentItem() should beOfType<DataState.Ready>()
+            }
         }
 
     @Test
@@ -124,7 +134,7 @@ class ColorDetailsViewModelTest {
             val color = Color.Hex(0x1A803F)
             val commandFlow = MutableSharedFlow<ColorDetailsCommand>()
             every { commandProvider.commandFlow } returns commandFlow
-            coEvery { colorRepository.getColorDetails(color = any()) } returns run {
+            coEvery { colorRepository.getColorDetails(color) } returns run {
                 val exception = DomainException(
                     failure = DomainFailure.Http.Timeout,
                     cause = Exception("test exception"),
@@ -133,33 +143,38 @@ class ColorDetailsViewModelTest {
             }
             createSut()
 
-            commandFlow.emit(ColorDetailsCommand.FetchData(color, colorRole = null))
+            sut.dataStateFlow.test {
+                run {
+                    val command = ColorDetailsCommand.FetchData(color, colorRole = null)
+                    commandFlow.emit(command)
+                }
 
-            sut.dataStateFlow.value should beOfType<DataState.Error>()
+                expectMostRecentItem() should beOfType<DataState.Error>()
+            }
         }
 
     @Test
     fun `emission of 'fetch data' command results in emission of seed color data`() =
         runTest(testDispatcher) {
-            val color = mockk<Color.Hex>()
+            val color = Color.Hex(0x1A803F)
             val commandFlow = MutableSharedFlow<ColorDetailsCommand>()
             every { commandProvider.commandFlow } returns commandFlow
-            val fetchedDetails: ColorDetails = mockk(relaxed = true)
-            coEvery { colorRepository.getColorDetails(color = any()) } returns
-                    Result.success(fetchedDetails)
-            every {
-                createDataMock(
-                    details = any(),
-                    goToExactColor = any(),
-                    initialColor = any(),
-                    goToInitialColor = any(),
-                )
-            } returns mockk()
+            coEvery { colorRepository.getColorDetails(color = any()) } returns run {
+                val details = mockk<ColorDetails> {
+                    every { this@mockk.color } returns color
+                }
+                Result.success(details)
+            }
             createSut()
 
-            commandFlow.emit(ColorDetailsCommand.FetchData(color, colorRole = null))
+            sut.currentSeedDataFlow.test {
+                run {
+                    val command = ColorDetailsCommand.FetchData(color, colorRole = null)
+                    commandFlow.emit(command)
+                }
 
-            sut.currentSeedDataFlow.value shouldNotBe null
+                expectMostRecentItem() shouldNotBe null
+            }
         }
 
     @Test
@@ -167,45 +182,45 @@ class ColorDetailsViewModelTest {
         runTest(testDispatcher) {
             val commandFlow = MutableSharedFlow<ColorDetailsCommand>()
             every { commandProvider.commandFlow } returns commandFlow
-            val fetchedDetails: ColorDetails = mockk(relaxed = true)
             val getColorDetailsDeferred = CompletableDeferred<Result<ColorDetails>>()
             coEvery {
                 colorRepository.getColorDetails(color = any())
             } coAnswers {
                 getColorDetailsDeferred.await()
             }
-            every {
-                createDataMock(
-                    details = any(),
-                    goToExactColor = any(),
-                    initialColor = any(),
-                    goToInitialColor = any(),
-                )
-            } returns mockk()
             createSut()
 
-            kotlin.run emitFirstCommand@{
+            val color1 = Color.Hex(0x0)
+            run emitFirstCommand@{
                 val command = ColorDetailsCommand.FetchData(
-                    color = mockk<Color.Hex>(), colorRole = null
+                    color = color1, colorRole = null
                 )
                 commandFlow.emit(command)
             }
-            kotlin.run emitSecondCommand@{
+            val color2 = Color.Hex(0x1)
+            run emitSecondCommand@{
                 val command = ColorDetailsCommand.FetchData(
-                    color = mockk<Color.Hex>(), colorRole = null
+                    color = color2, colorRole = null
                 )
                 commandFlow.emit(command)
             }
-            getColorDetailsDeferred.complete(value = Result.success(fetchedDetails))
+            run {
+                val details = mockk<ColorDetails> {
+                    every { this@mockk.color } returns color1
+                }
+                val value = Result.success(details)
+                getColorDetailsDeferred.complete(value)
+            }
 
             // verify that component that is called deep inside 'fetchColorDetails()' is only called once:
             // the first coroutine is canceled thus it never goes deep enough to trigger this component.
             coVerify(exactly = 1) {
                 createDataMock(
                     details = any(),
+                    colorRole = any(),
                     goToExactColor = any(),
-                    initialColor = any(),
                     goToInitialColor = any(),
+                    getInitialColorOfExactColor = any(),
                 )
             }
         }
@@ -217,47 +232,47 @@ class ColorDetailsViewModelTest {
             every { commandProvider.commandFlow } returns commandFlow
             coEvery { colorRepository.getColorDetails(color = any()) } returns
                     Result.success(value = mockk())
-            every {
-                createDataMock(
-                    details = any(),
-                    goToExactColor = any(),
-                    initialColor = any(),
-                    goToInitialColor = any(),
-                )
-            } returns mockk()
             createSut()
 
-            val domainDetails: ColorDetails = mockk(relaxed = true)
-            val command = ColorDetailsCommand.SetColorDetails(domainDetails)
-            commandFlow.emit(command)
+            sut.currentSeedDataFlow.test {
+                run {
+                    val details = mockk<ColorDetails>(relaxed = true)
+                    val command = ColorDetailsCommand.SetColorDetails(details)
+                    commandFlow.emit(command)
+                }
 
-            sut.currentSeedDataFlow.value shouldNotBe null
+                expectMostRecentItem() shouldNotBe null
+            }
         }
 
     @Test
     fun `invoking 'go to exact color' sends appropriate event to color details event store`() =
         runTest(testDispatcher) {
-            val color = Color.Hex(0x1A803F)
+            val initialColor = Color.Hex(0x1A803F)
+            val exactColor = Color.Hex(0x126B40)
             val commandFlow = MutableSharedFlow<ColorDetailsCommand>()
             every { commandProvider.commandFlow } returns commandFlow
-            val fetchedDetails: ColorDetails = mockk(relaxed = true) {
-                every { exact.color } returns Color.Hex(0x123456)
-                every { matchesExact } returns false
+            coEvery { colorRepository.getColorDetails(initialColor) } returns run {
+                val details = mockk<ColorDetails>(relaxed = true) {
+                    every { this@mockk.color } returns initialColor
+                    every { exact.color } returns exactColor
+                    every { matchesExact } returns false
+                }
+                Result.success(details)
             }
-            coEvery { colorRepository.getColorDetails(color = any()) } returns
-                    Result.success(fetchedDetails)
             createSut(
                 createData = createDataReal,
             )
-            commandFlow.emit(ColorDetailsCommand.FetchData(color, colorRole = null))
 
-            val data = sut.dataStateFlow.value.shouldBeInstanceOf<DataState.Ready>().data
-            val exactMatch = data.exactMatch.shouldBeInstanceOf<ExactMatch.No>()
-            exactMatch.goToExactColor()
+            run {
+                val command = ColorDetailsCommand.FetchData(initialColor, colorRole = null)
+                commandFlow.emit(command)
+            }
+            sut.data.goToExactColor()
 
             coVerify {
                 val expectedEvent = ColorDetailsEvent.ColorSelected(
-                    color = Color.Hex(0x123456),
+                    color = exactColor,
                     colorRole = ColorRole.Exact,
                 )
                 eventStoreMock.send(expectedEvent)
@@ -265,42 +280,52 @@ class ColorDetailsViewModelTest {
         }
 
     /**
-     * GIVEN [FetchData][ColorDetailsCommand.FetchData] command with `null` color role is emitted
-     *
-     * WHEN [FetchData][ColorDetailsCommand.FetchData] command with [ColorRole.Exact] is emitted
-     *
-     * THEN initial color for this exact color is recalled and [ColorDetailsData.initialColorData] is not null
+     * Tests that
+     * 1. SUT "recalls" an initial color `cI` for specified exact color `cE`
+     * 2. SUT verifies that color `cE` from the [ColorDetailsCommand.FetchData] is indeed a [ColorRole.Exact]
+     * for the initial color `cI`
+     * 3. SUT produces correct [ColorDetailsData] with [ColorDetailsData.colorRoleData] being a [ColorRoleData.Exact].
      */
     @Test
-    fun `emission of 'fetch data' command with color type 'exact' results in present initial color data`() =
+    fun `emission of 'fetch data' command with color role 'exact' results in emission of the correct data`() =
         runTest(testDispatcher) {
             val initialColor = Color.Hex(0x1A803F)
-            val exactColor = Color.Hex(0x123456)
+            val exactColor = Color.Hex(0x126B40)
             val commandFlow = MutableSharedFlow<ColorDetailsCommand>()
             every { commandProvider.commandFlow } returns commandFlow
-            val fetchedDetailsForColor: ColorDetails = mockk(relaxed = true) {
-                every { this@mockk.color } returns initialColor
-                every { exact.color } returns exactColor
-                every { matchesExact } returns false
+            coEvery { colorRepository.getColorDetails(color = initialColor) } returns run {
+                val details = mockk<ColorDetails>(relaxed = true) {
+                    every { this@mockk.color } returns initialColor
+                    every { exact.color } returns exactColor
+                    every { matchesExact } returns false
+                }
+                Result.success(details)
             }
-            val fetchedDetailsForExactColor: ColorDetails = mockk(relaxed = true) {
-                every { this@mockk.color } returns exactColor
-                every { exact.color } returns exactColor
-                every { matchesExact } returns true
+            coEvery { colorRepository.getColorDetails(color = exactColor) } returns run {
+                val details = mockk<ColorDetails>(relaxed = true) {
+                    every { this@mockk.color } returns exactColor
+                    every { exact.color } returns exactColor
+                    every { matchesExact } returns true
+                }
+                Result.success(details)
             }
-            coEvery { colorRepository.getColorDetails(color = initialColor) } returns
-                    Result.success(fetchedDetailsForColor)
-            coEvery { colorRepository.getColorDetails(color = exactColor) } returns
-                    Result.success(fetchedDetailsForExactColor)
             createSut(
                 createData = createDataReal,
             )
-            commandFlow.emit(ColorDetailsCommand.FetchData(initialColor, colorRole = null))
 
-            commandFlow.emit(ColorDetailsCommand.FetchData(exactColor, ColorRole.Exact))
+            sut.dataStateFlow.test {
+                run {
+                    val command = ColorDetailsCommand.FetchData(initialColor, colorRole = null)
+                    commandFlow.emit(command)
+                }
+                run {
+                    val command = ColorDetailsCommand.FetchData(exactColor, ColorRole.Exact)
+                    commandFlow.emit(command)
+                }
 
-            val data = sut.dataStateFlow.value.shouldBeInstanceOf<DataState.Ready>().data
-            data.initialColorData shouldNotBe null
+                val data = expectMostRecentItem().shouldBeInstanceOf<DataState.Ready>().data
+                data.colorRoleData should beOfType<ColorRoleData.Exact>()
+            }
         }
 
     /**
@@ -315,33 +340,40 @@ class ColorDetailsViewModelTest {
     fun `emission of 'fetch data' command with color type 'exact' results in present initial color data with correct color value`() =
         runTest(testDispatcher) {
             val initialColor = Color.Hex(0x1A803F)
-            val initialColorInt = ColorInt(0x1A803F)
-            val exactColor = Color.Hex(0x123456)
+            val exactColor = Color.Hex(0x126B40)
             val commandFlow = MutableSharedFlow<ColorDetailsCommand>()
             every { commandProvider.commandFlow } returns commandFlow
-            val fetchedDetailsForColor: ColorDetails = mockk(relaxed = true) {
-                every { this@mockk.color } returns initialColor
-                every { exact.color } returns exactColor
-                every { matchesExact } returns false
+            coEvery { colorRepository.getColorDetails(color = initialColor) } returns run {
+                val details = mockk<ColorDetails>(relaxed = true) {
+                    every { this@mockk.color } returns initialColor
+                    every { exact.color } returns exactColor
+                    every { matchesExact } returns false
+                }
+                Result.success(details)
             }
-            val fetchedDetailsForExactColor: ColorDetails = mockk(relaxed = true) {
-                every { this@mockk.color } returns exactColor
-                every { exact.color } returns exactColor
-                every { matchesExact } returns true
+            coEvery { colorRepository.getColorDetails(color = exactColor) } returns run {
+                val details = mockk<ColorDetails>(relaxed = true) {
+                    every { this@mockk.color } returns exactColor
+                    every { exact.color } returns exactColor
+                    every { matchesExact } returns true
+                }
+                Result.success(details)
             }
-            coEvery { colorRepository.getColorDetails(color = initialColor) } returns
-                    Result.success(fetchedDetailsForColor)
-            coEvery { colorRepository.getColorDetails(color = exactColor) } returns
-                    Result.success(fetchedDetailsForExactColor)
             createSut(
                 createData = createDataReal,
             )
-            commandFlow.emit(ColorDetailsCommand.FetchData(initialColor, colorRole = null))
 
-            commandFlow.emit(ColorDetailsCommand.FetchData(exactColor, ColorRole.Exact))
+            run {
+                val command = ColorDetailsCommand.FetchData(initialColor, colorRole = null)
+                commandFlow.emit(command)
+            }
+            run {
+                val command = ColorDetailsCommand.FetchData(exactColor, colorRole = ColorRole.Exact)
+                commandFlow.emit(command)
+            }
 
-            val data = sut.dataStateFlow.value.shouldBeInstanceOf<DataState.Ready>().data
-            data.initialColorData.shouldNotBeNull().initialColor shouldBe initialColorInt
+            val colorRoleData = sut.data.colorRoleData.shouldBeInstanceOf<ColorRoleData.Exact>()
+            colorRoleData.initialColor shouldBe ColorInt(0x1A803F)
         }
 
     /**
@@ -354,36 +386,46 @@ class ColorDetailsViewModelTest {
     @Test
     fun `invoking 'go to initial color' sends appropriate event to color details event store`() =
         runTest(testDispatcher) {
+            // GIVEN
             val initialColor = Color.Hex(0x1A803F)
-            val exactColor = Color.Hex(0x123456)
+            val exactColor = Color.Hex(0x126B40)
             val commandFlow = MutableSharedFlow<ColorDetailsCommand>()
             every { commandProvider.commandFlow } returns commandFlow
-            val fetchedDetailsForColor: ColorDetails = mockk(relaxed = true) {
-                every { this@mockk.color } returns initialColor
-                every { exact.color } returns exactColor
-                every { matchesExact } returns false
+            coEvery { colorRepository.getColorDetails(color = initialColor) } returns run {
+                val details = mockk<ColorDetails>(relaxed = true) {
+                    every { this@mockk.color } returns initialColor
+                    every { exact.color } returns exactColor
+                    every { matchesExact } returns false
+                }
+                Result.success(details)
             }
-            val fetchedDetailsForExactColor: ColorDetails = mockk(relaxed = true) {
-                every { this@mockk.color } returns exactColor
-                every { exact.color } returns exactColor
-                every { matchesExact } returns true
+            coEvery { colorRepository.getColorDetails(color = exactColor) } returns run {
+                val details = mockk<ColorDetails>(relaxed = true) {
+                    every { this@mockk.color } returns exactColor
+                    every { exact.color } returns exactColor
+                    every { matchesExact } returns true
+                }
+                Result.success(details)
             }
-            coEvery { colorRepository.getColorDetails(color = initialColor) } returns
-                    Result.success(fetchedDetailsForColor)
-            coEvery { colorRepository.getColorDetails(color = exactColor) } returns
-                    Result.success(fetchedDetailsForExactColor)
             createSut(
                 createData = createDataReal,
             )
-            commandFlow.emit(ColorDetailsCommand.FetchData(initialColor, colorRole = null))
-            commandFlow.emit(ColorDetailsCommand.FetchData(exactColor, ColorRole.Exact))
 
-            val data = sut.dataStateFlow.value.shouldBeInstanceOf<DataState.Ready>().data
-            data.initialColorData.shouldNotBeNull().goToInitialColor()
+            // WHEN
+            run {
+                val command = ColorDetailsCommand.FetchData(initialColor, colorRole = null)
+                commandFlow.emit(command)
+            }
+            run {
+                val command = ColorDetailsCommand.FetchData(exactColor, colorRole = ColorRole.Exact)
+                commandFlow.emit(command)
+            }
+            sut.data.goToInitialColor()
 
+            // THEN
             coVerify {
                 val expectedEvent = ColorDetailsEvent.ColorSelected(
-                    color = Color.Hex(0x1A803F),
+                    color = initialColor,
                     colorRole = ColorRole.Initial,
                 )
                 eventStoreMock.send(expectedEvent)
@@ -415,8 +457,10 @@ class ColorDetailsViewModelTest {
             }
             createSut()
 
-            val command = ColorDetailsCommand.FetchData(color = mockk(), colorRole = null)
-            commandFlow.emit(command)
+            run {
+                val command = ColorDetailsCommand.FetchData(color = mockk(), colorRole = null)
+                commandFlow.emit(command)
+            }
 
             sut.dataStateFlow.value should beOfType<DataState.Error>()
         }
@@ -452,20 +496,13 @@ class ColorDetailsViewModelTest {
             val commandFlow = MutableSharedFlow<ColorDetailsCommand>()
             every { commandProvider.commandFlow } returns commandFlow
             mockGetColorDetailsReturnsSuccess()
-            every {
-                createDataMock(
-                    details = any(),
-                    goToExactColor = any(),
-                    initialColor = any(),
-                    goToInitialColor = any(),
-                )
-            } returns mockk()
             createSut()
-            val color1 = Color.Hex(0x111111)
-            val command1 = ColorDetailsCommand.FetchData(
-                color = color1, colorRole = null
-            )
-            commandFlow.emit(command1)
+
+            val color1 = Color.Hex(0x0)
+            run {
+                val command = ColorDetailsCommand.FetchData(color = color1, colorRole = null)
+                commandFlow.emit(command)
+            }
             coEvery { colorRepository.getColorDetails(color = any()) } returns run {
                 val exception = DomainException(
                     failure = DomainFailure.Http.UnknownHost,
@@ -473,20 +510,19 @@ class ColorDetailsViewModelTest {
                 )
                 Result.failure(exception)
             }
-            val color2 = Color.Hex(0x222222)
-            val command2 = ColorDetailsCommand.FetchData(
-                color = color2, colorRole = null
-            )
-            commandFlow.emit(command2)
+            val color2 = Color.Hex(0x1)
+            run {
+                val command = ColorDetailsCommand.FetchData(color = color2, colorRole = null)
+                commandFlow.emit(command)
+            }
             mockGetColorDetailsReturnsSuccess()
 
             sut.dataStateFlow.value.shouldBeInstanceOf<DataState.Error>().error.tryAgain()
-
-            val colors = mutableListOf<Color>()
+            val capturedColors = mutableListOf<Color>()
             coVerify {
-                colorRepository.getColorDetails(color = capture(colors))
+                colorRepository.getColorDetails(color = capture(capturedColors))
             }
-            colors.last() shouldBe color2
+            capturedColors.last() shouldBe color2
         }
 
     @Test
@@ -496,19 +532,13 @@ class ColorDetailsViewModelTest {
             every { commandProvider.commandFlow } returns commandFlow
             coEvery { colorRepository.getColorDetails(color = any()) } returns
                     Result.success(value = mockk())
-            every {
-                createDataMock(
-                    details = any(),
-                    goToExactColor = any(),
-                    initialColor = any(),
-                    goToInitialColor = any(),
-                )
-            } returns mockk()
             createSut()
 
-            val domainDetails: ColorDetails = mockk(relaxed = true)
-            val command = ColorDetailsCommand.SetColorDetails(domainDetails)
-            commandFlow.emit(command)
+            run {
+                val details: ColorDetails = mockk(relaxed = true)
+                val command = ColorDetailsCommand.SetColorDetails(details)
+                commandFlow.emit(command)
+            }
 
             sut.dataStateFlow.value should beOfType<DataState.Ready>()
         }
@@ -526,24 +556,24 @@ class ColorDetailsViewModelTest {
             val initialColor = Color.Hex(0x1A803F)
             val exactColor = Color.Hex(0x126B40)
             coEvery { colorRepository.getColorDetails(color = initialColor) } returns run {
-                val colorDetails: ColorDetails = mockk(relaxed = true) {
+                val details = mockk<ColorDetails>(relaxed = true) {
                     every { this@mockk.color } returns initialColor
                     every { colorName } returns "initial"
                     every { exact.color } returns exactColor
                     every { matchesExact } returns false
                     every { this@mockk.hashCode() } returns -1066639853
                 }
-                Result.success(colorDetails)
+                Result.success(details)
             }
             coEvery { colorRepository.getColorDetails(color = exactColor) } returns run {
-                val colorDetails: ColorDetails = mockk(relaxed = true) {
+                val details = mockk<ColorDetails>(relaxed = true) {
                     every { this@mockk.color } returns exactColor
                     every { colorName } returns "exact"
                     every { exact.color } returns exactColor
                     every { matchesExact } returns true
                     every { this@mockk.hashCode() } returns 1802741316
                 }
-                Result.success(colorDetails)
+                Result.success(details)
             }
             createSut(
                 eventStore = eventStoreReal,
@@ -607,8 +637,8 @@ class ColorDetailsViewModelTest {
         get() = this.dataStateFlow.value.asReady().data
 
     val ColorDetailsData.goToExactColor: () -> Unit
-        get() = this.exactMatch.shouldBeInstanceOf<ExactMatch.No>().goToExactColor
+        get() = this.colorRoleData.shouldBeInstanceOf<ColorRoleData.Initial>().goToExactColor
 
     val ColorDetailsData.goToInitialColor: () -> Unit
-        get() = this.initialColorData.shouldNotBeNull().goToInitialColor
+        get() = this.colorRoleData.shouldBeInstanceOf<ColorRoleData.Exact>().goToInitialColor
 }

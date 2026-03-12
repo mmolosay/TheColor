@@ -112,7 +112,7 @@ fun ColorDetails(
                 modifier = Modifier.align(Alignment.Start),
                 colorName = data.colorName,
                 exactMatch = data.exactMatch,
-                initialColorData = data.initialColorData,
+                colorRoleData = data.colorRoleData,
                 strings = strings,
             )
         }
@@ -265,10 +265,12 @@ private fun previewData() =
         exactMatch = ColorDetailsData.ExactMatch.No(
             exactValue = "#126B40",
             exactColor = ColorInt(0x126B40),
-            goToExactColor = {},
             deviation = "1366",
         ),
-        initialColorData = null,
+        colorRoleData = ColorDetailsData.ColorRoleData.Initial(
+            exactColor = ColorInt(0x126B40),
+            goToExactColor = {},
+        ),
     )
 
 private fun previewDataExact() =
@@ -299,7 +301,7 @@ private fun previewDataExact() =
             k = "50",
         ),
         exactMatch = ColorDetailsData.ExactMatch.Yes,
-        initialColorData = ColorDetailsData.InitialColorData(
+        colorRoleData = ColorDetailsData.ColorRoleData.Exact(
             initialColor = ColorInt(0x1A803F),
             goToInitialColor = {},
         ),
