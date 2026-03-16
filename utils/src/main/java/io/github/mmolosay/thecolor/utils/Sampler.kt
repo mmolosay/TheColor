@@ -9,7 +9,8 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 import kotlin.time.Duration
 
 /**
@@ -31,23 +32,28 @@ class Sampler<T>(
 ) {
 
     private var job: Job? = null
-    private val lastValue = AtomicReference<Optional<T>>(Optional.None)
+    private var lastValue: Optional<T> = Optional.None
+    val lock = ReentrantLock()
 
-    @Synchronized
-    fun offer(value: T) {
-        lastValue.set(Optional.Value(value))
-        if (job?.isActive != true) {
-            launchCoroutine()
+    fun offer(value: T) =
+        lock.withLock {
+            lastValue = Optional.Value(value)
+            if (job?.isActive != true) {
+                launchCoroutine()
+            }
         }
-    }
 
     private fun launchCoroutine() {
         require(job?.isActive != true)
         coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) {
             while (true) {
-                val sample = lastValue.getAndSet(Optional.None)
-                    .let { lastOptional -> (lastOptional as? Optional.Value) ?: break }
-                    .value
+                val sample = lock.withLock {
+                    val current = lastValue
+                    lastValue = Optional.None
+                    if (current is Optional.Value) return@withLock current.value
+                    job = null // coroutine will finish due to the following 'return', but Job.isActive may still be 'true'
+                    return@launch
+                }
                 onSampleProduced(sample)
                 delay(period)
             }
