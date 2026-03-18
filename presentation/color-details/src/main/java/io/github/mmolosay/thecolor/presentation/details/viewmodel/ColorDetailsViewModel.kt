@@ -40,14 +40,14 @@ class ColorDetailsViewModel @AssistedInject constructor(
     @Assisted private val eventStore: ColorDetailsEventStore,
     private val colorRepository: ColorRepository,
     private val createData: CreateColorDetailsDataUseCase,
-    private val createSeedData: CreateSeedDataUseCase,
+    private val createSubjectColorData: CreateSubjectColorDataUseCase,
     private val colorComparator: ColorComparator,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
-    private val _currentSeedDataFlow = MutableStateFlow<ColorDetailsSeedData?>(null)
-    val currentSeedDataFlow = _currentSeedDataFlow.asStateFlow()
+    private val _subjectColorDataFlow = MutableStateFlow<SubjectColorData?>(null)
+    val subjectColorDataFlow = _subjectColorDataFlow.asStateFlow()
 
     private val _dataStateFlow = MutableStateFlow<DataState>(DataState.Idle)
     val dataStateFlow = _dataStateFlow.asStateFlow()
@@ -70,11 +70,11 @@ class ColorDetailsViewModel @AssistedInject constructor(
 
     private fun ColorDetailsCommand.process() = when (this) {
         is ColorDetailsCommand.FetchData -> {
-            _currentSeedDataFlow.value = createSeedData(this.color)
+            _subjectColorDataFlow.value = createSubjectColorData(this.color)
             fetchOrFindColorDetails(command = this)
         }
         is ColorDetailsCommand.SetColorDetails -> {
-            _currentSeedDataFlow.value = createSeedData(this.domainDetails.color)
+            _subjectColorDataFlow.value = createSubjectColorData(this.domainDetails.color)
             setColorDetails(this.domainDetails)
         }
     }
@@ -338,13 +338,13 @@ class CreateColorDetailsDataUseCase @Inject constructor(
 
 @Singleton
 /* private but Dagger */
-class CreateSeedDataUseCase @Inject constructor(
+class CreateSubjectColorDataUseCase @Inject constructor(
     private val colorToColorInt: ColorToColorIntUseCase,
     private val isColorLight: IsColorLightUseCase,
 ) {
 
     operator fun invoke(color: Color) =
-        ColorDetailsSeedData(
+        SubjectColorData(
             color = with(colorToColorInt) { color.toColorInt() },
             isDark = with(isColorLight) { color.isLight().not() },
         )

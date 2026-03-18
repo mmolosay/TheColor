@@ -21,7 +21,7 @@ import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsVi
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel.DataState
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorRole
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.CreateColorDetailsDataUseCase
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.CreateSeedDataUseCase
+import io.github.mmolosay.thecolor.presentation.details.viewmodel.CreateSubjectColorDataUseCase
 import io.github.mmolosay.thecolor.testing.MainDispatcherExtension
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -88,7 +88,7 @@ class ColorDetailsViewModelTest {
             colorConverter = ColorConverter(),
         ),
     )
-    val createSeedData: CreateSeedDataUseCase = mockk(relaxed = true)
+    val createSubjectColorData: CreateSubjectColorDataUseCase = mockk(relaxed = true)
     val colorComparator = ColorComparator(
         colorConverter = ColorConverter(),
     )
@@ -154,7 +154,7 @@ class ColorDetailsViewModelTest {
         }
 
     @Test
-    fun `emission of 'fetch data' command results in emission of seed color data`() =
+    fun `emission of 'fetch data' command results in emission of the subject color data`() =
         runTest(testDispatcher) {
             val color = Color.Hex(0x1A803F)
             val commandFlow = MutableSharedFlow<ColorDetailsCommand>()
@@ -167,7 +167,7 @@ class ColorDetailsViewModelTest {
             }
             createSut()
 
-            sut.currentSeedDataFlow.test {
+            sut.subjectColorDataFlow.test {
                 run {
                     val command = ColorDetailsCommand.FetchData(color, colorRole = null)
                     commandFlow.emit(command)
@@ -226,7 +226,7 @@ class ColorDetailsViewModelTest {
         }
 
     @Test
-    fun `emission of 'set color details' command results in emission of seed color data`() =
+    fun `emission of 'set color details' command results in emission of the subject color data`() =
         runTest(testDispatcher) {
             val commandFlow = MutableSharedFlow<ColorDetailsCommand>()
             every { commandProvider.commandFlow } returns commandFlow
@@ -234,7 +234,7 @@ class ColorDetailsViewModelTest {
                     Result.success(value = mockk())
             createSut()
 
-            sut.currentSeedDataFlow.test {
+            sut.subjectColorDataFlow.test {
                 run {
                     val details = mockk<ColorDetails>(relaxed = true)
                     val command = ColorDetailsCommand.SetColorDetails(details)
@@ -622,7 +622,7 @@ class ColorDetailsViewModelTest {
             eventStore = eventStore,
             colorRepository = colorRepository,
             createData = createData,
-            createSeedData = createSeedData,
+            createSubjectColorData = createSubjectColorData,
             colorComparator = colorComparator,
             ioDispatcher = coroutineDispatcher,
             defaultDispatcher = coroutineDispatcher,
