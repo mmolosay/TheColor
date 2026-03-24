@@ -829,7 +829,7 @@ class HomeViewModelTest {
             run emitColorSelectedEvent@{
                 val event = ColorDetailsEvent.ColorSelected(
                     color = initialColor,
-                    colorRole = ColorRole.Initial,
+                    colorRole = ColorRole.Seed,
                 )
                 colorDetailsEventFlow.emit(event)
             }
@@ -847,7 +847,7 @@ class HomeViewModelTest {
 
             coVerifyOrder {
                 proceed(colorMatcher = match(exactColor), colorRoleMatcher = match(ColorRole.Exact))
-                proceed(colorMatcher = match(initialColor), colorRoleMatcher = match(ColorRole.Initial))
+                proceed(colorMatcher = match(initialColor), colorRoleMatcher = match(ColorRole.Seed))
             }
         }
 

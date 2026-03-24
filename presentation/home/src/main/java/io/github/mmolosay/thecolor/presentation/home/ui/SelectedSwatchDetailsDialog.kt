@@ -162,8 +162,8 @@ private fun Preview() {
                         deviation = "1366",
                     ),
                     colorRoleData = ColorDetailsData.ColorRoleData.Exact(
-                        initialColor = ColorInt(0x1A803F),
-                        goToInitialColor = {},
+                        seedColor = ColorInt(0x1A803F),
+                        goToSeedColor = {},
                     ),
                 )
             ),

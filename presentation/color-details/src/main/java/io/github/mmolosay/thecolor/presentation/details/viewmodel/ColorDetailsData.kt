@@ -56,14 +56,14 @@ data class ColorDetailsData(
 
     sealed interface ColorRoleData {
 
-        data class Initial(
+        data class Seed(
             val exactColor: ColorInt,
             val goToExactColor: () -> Unit,
         ) : ColorRoleData
 
         data class Exact(
-            val initialColor: ColorInt,
-            val goToInitialColor: () -> Unit,
+            val seedColor: ColorInt,
+            val goToSeedColor: () -> Unit,
         ) : ColorRoleData
     }
 }

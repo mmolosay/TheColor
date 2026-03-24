@@ -175,7 +175,7 @@ private fun PreviewLight() {
         ProvideColorsOnTintedSurface(colors) {
             ColorDetailsWithPreviewData(
                 modifier = Modifier.background(Color(0xFF_1A803F)),
-                data = previewData(),
+                data = previewDataSeed(),
             )
         }
     }
@@ -189,7 +189,7 @@ private fun PreviewDark() {
         ProvideColorsOnTintedSurface(colors) {
             ColorDetailsWithPreviewData(
                 modifier = Modifier.background(Color(0xFF_F0F8FF)),
-                data = previewData(),
+                data = previewDataSeed(),
             )
         }
     }
@@ -235,7 +235,7 @@ private fun ColorDetailsWithPreviewData(
     )
 }
 
-private fun previewData() =
+private fun previewDataSeed() =
     ColorDetailsData(
         colorName = "Jewel",
         hex = ColorDetailsData.Hex(
@@ -267,7 +267,7 @@ private fun previewData() =
             exactColor = ColorInt(0x126B40),
             deviation = "1366",
         ),
-        colorRoleData = ColorDetailsData.ColorRoleData.Initial(
+        colorRoleData = ColorDetailsData.ColorRoleData.Seed(
             exactColor = ColorInt(0x126B40),
             goToExactColor = {},
         ),
@@ -302,8 +302,8 @@ private fun previewDataExact() =
         ),
         exactMatch = ColorDetailsData.ExactMatch.Yes,
         colorRoleData = ColorDetailsData.ColorRoleData.Exact(
-            initialColor = ColorInt(0x1A803F),
-            goToInitialColor = {},
+            seedColor = ColorInt(0x1A803F),
+            goToSeedColor = {},
         ),
     )
 
@@ -318,7 +318,7 @@ private fun previewUiStrings() =
         exactMatchLabel = "EXACT MATCH",
         exactMatchYes = "Yes",
         exactMatchNo = "No",
-        goBackToInitialColorButtonText = "Go back to",
+        goBackToSeedColorButtonText = "Go back to",
         exactValueLabel = "EXACT VALUE",
         deviationLabel = "DEVIATION",
     )

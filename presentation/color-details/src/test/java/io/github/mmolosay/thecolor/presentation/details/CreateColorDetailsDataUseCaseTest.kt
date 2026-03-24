@@ -28,10 +28,10 @@ class CreateColorDetailsDataUseCaseTest {
         val details = ColorDetails()
         val resultData = sut.invoke(
             details = details,
-            colorRole = ColorRole.Initial,
+            colorRole = ColorRole.Seed,
             goToExactColor = {},
-            goToInitialColor = {},
-            getInitialColorOfExactColor = { null },
+            goToSeedColor = {},
+            getSeedColor = { null },
         )
 
         val comparableData = resultData.copyWithNoopLambdas()
@@ -64,7 +64,7 @@ class CreateColorDetailsDataUseCaseTest {
                 exactColor = ColorInt(0x126B40),
                 deviation = "1366",
             ),
-            colorRoleData = ColorRoleData.Initial(
+            colorRoleData = ColorRoleData.Seed(
                 exactColor = ColorInt(0x126B40),
                 goToExactColor = NoopOnClickAction,
             )
@@ -85,11 +85,11 @@ class CreateColorDetailsDataUseCaseTest {
         this.copy(
             colorRoleData = colorRoleData.run {
                 when (this) {
-                    is ColorRoleData.Initial -> this.copy(
+                    is ColorRoleData.Seed -> this.copy(
                         goToExactColor = NoopOnClickAction,
                     )
                     is ColorRoleData.Exact -> this.copy(
-                        goToInitialColor = NoopOnClickAction,
+                        goToSeedColor = NoopOnClickAction,
                     )
                 }
             },

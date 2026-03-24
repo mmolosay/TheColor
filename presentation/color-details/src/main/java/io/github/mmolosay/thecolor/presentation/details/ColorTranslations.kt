@@ -203,7 +203,7 @@ private fun PreviewLight() {
                     exactMatchLabel = "_",
                     exactMatchYes = "_",
                     exactMatchNo = "_",
-                    goBackToInitialColorButtonText = "_",
+                    goBackToSeedColorButtonText = "_",
                     exactValueLabel = "_",
                     deviationLabel = "_",
                 ),
