@@ -71,11 +71,15 @@ class ColorDetailsViewModel @AssistedInject constructor(
     private fun ColorDetailsCommand.process() = when (this) {
         is ColorDetailsCommand.FetchData -> {
             _subjectColorDataFlow.value = createSubjectColorData(this.color)
+            val colorRole = this.color.inferColorRole()
+            if (colorRole == null) entryStore.clear()
             fetchOrFindColorDetails(command = this)
         }
         is ColorDetailsCommand.SetColorDetails -> {
-            _subjectColorDataFlow.value = createSubjectColorData(this.domainDetails.color)
-            setColorDetails(this.domainDetails)
+            _subjectColorDataFlow.value = createSubjectColorData(this.details.color)
+            val colorRole = this.details.color.inferColorRole()
+            if (colorRole == null) entryStore.clear()
+            setColorDetails(details = this.details)
         }
     }
 
@@ -108,57 +112,47 @@ class ColorDetailsViewModel @AssistedInject constructor(
     private fun setColorDetails(
         details: DomainColorDetails,
     ) {
-        val entryType = details.inferEntryType()
-        val data = createData(details, entryType)
+        val colorRole = details.color.inferColorRole() ?: error("ColorRole cannot be null here")
+        val data = createData(
+            details = details,
+            colorRole = colorRole,
+            goToSeedColor = { seedColor -> sendColorSelectedEvent(seedColor, ColorRole.Seed) },
+            goToExactColor = { exactColor -> sendColorSelectedEvent(exactColor, ColorRole.Exact) },
+            getSeedColor = { exactColor -> findCachedDetailsWithExactColor(exactColor)?.color },
+        )
         _dataStateFlow.value = DataState.Ready(data)
         cachedDetails += details
-        run {
-            val entry = ColorEntry(color = details.color, type = entryType)
-            entryStore.set(entry)
-        }
+        entryStore.set(color = details.color, role = colorRole)
         coroutineScope.launch(defaultDispatcher) {
             val event = ColorDetailsEvent.DataFetched(details)
             eventStore.send(event)
         }
     }
 
-    private fun DomainColorDetails.inferEntryType(): ColorEntry.Type {
-        val details = this
-        val existingSeed = entryStore.findOfType(ColorEntry.Type.Seed)
+    /**
+     * Infers the [ColorRole] of the receiver [Color] in the context of the current state of this ViewModel.
+     *
+     * @return [ColorRole] or `null` if the specified [Color] doesn't relate to the current state.
+     */
+    private fun Color.inferColorRole(): ColorRole? {
+        val color = this
+        val existingSeed = entryStore.findWithRole(ColorRole.Seed)
         if (existingSeed == null) {
-            return ColorEntry.Type.Seed
+            return ColorRole.Seed
         }
-        if (with(colorComparator) { existingSeed.color isSameAs details.color }) {
-            return ColorEntry.Type.Seed
+        if (with(colorComparator) { color isSameAs existingSeed }) {
+            return ColorRole.Seed
         }
-        val existingExact = entryStore.findOfType(ColorEntry.Type.Exact)
-        if (existingExact != null && with(colorComparator) { existingExact.color isSameAs details.color }) {
-            return ColorEntry.Type.Exact
+        val existingExact = entryStore.findWithRole(ColorRole.Exact)
+        if (existingExact != null && with(colorComparator) { color isSameAs existingExact }) {
+            return ColorRole.Exact
         }
-        val detailsOfSeed = requireNotNull(findCachedDetails(color = existingSeed.color))
-        val isExactForSeed = with(colorComparator) { details.color isSameAs detailsOfSeed.exact.color }
+        val detailsOfSeed = requireNotNull(findCachedDetails(color = existingSeed))
+        val isExactForSeed = with(colorComparator) { color isSameAs detailsOfSeed.exact.color }
         if (isExactForSeed) {
-            return ColorEntry.Type.Exact
+            return ColorRole.Exact
         }
-        error("Cannot infer ColorOrigin")
-    }
-
-    private fun createData(
-        details: DomainColorDetails,
-        entryType: ColorEntry.Type,
-    ): ColorDetailsData {
-        return createData(
-            details = details,
-            colorRole = run {
-                when (entryType) {
-                    ColorEntry.Type.Seed -> ColorRole.Seed
-                    ColorEntry.Type.Exact -> ColorRole.Exact
-                }
-            },
-            goToSeedColor = { seedColor -> sendColorSelectedEvent(seedColor, ColorRole.Seed) },
-            goToExactColor = { exactColor -> sendColorSelectedEvent(exactColor, ColorRole.Exact) },
-            getSeedColor = { exactColor -> findCachedDetailsWithExactColor(exactColor)?.color },
-        )
+        return null
     }
 
     private fun findCachedDetailsWithExactColor(exactColor: Color): DomainColorDetails? =
@@ -198,36 +192,29 @@ class ColorDetailsViewModel @AssistedInject constructor(
     }
 }
 
-// TODO: rename?
-private data class ColorEntry(
-    val color: Color,
-    val type: Type,
-) {
-    enum class Type {
-        Seed, Exact,
-    }
-}
-
 private class ColorEntryStore {
 
-    private val entries = mutableMapOf<ColorEntry.Type, Color>()
-    var currentType: ColorEntry.Type? = null
-    val currentEntry: ColorEntry?
-        get() {
-            val currentType = currentType ?: return null
-            val color = entries.getValue(currentType)
-            return ColorEntry(color = color, type = currentType)
-        }
+    private val entries = mutableMapOf<Color, ColorRole>()
+    var currentColor: Color? = null
+        private set
 
     @Synchronized
-    fun set(entry: ColorEntry) {
-        entries[entry.type] = entry.color
-        currentType = entry.type
+    fun set(color: Color, role: ColorRole) {
+        entries[color] = role
+        currentColor = color
     }
 
-    fun findOfType(type: ColorEntry.Type): ColorEntry? {
-        val color = entries[type] ?: return null
-        return ColorEntry(color = color, type = type)
+    @Synchronized
+    @Suppress("UnusedVariable")
+    fun findWithRole(role: ColorRole): Color? =
+        entries.entries
+            .find { (entryColor, entryRole) -> entryRole == role }
+            ?.key
+
+    @Synchronized
+    fun clear() {
+        entries.clear()
+        currentColor = null
     }
 }
 

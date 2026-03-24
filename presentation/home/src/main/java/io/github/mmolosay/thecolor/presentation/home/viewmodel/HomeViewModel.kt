@@ -169,7 +169,7 @@ class HomeViewModel @Inject constructor(
             when (event) {
                 is ColorSchemeEvent.SwatchSelected -> {
                     val command = ColorDetailsCommand.SetColorDetails(
-                        domainDetails = event.swatchColorDetails,
+                        details = event.swatchColorDetails,
                     )
                     val commandStore = colorCenterComponentsStore.components
                         ?.selectedSwatchColorDetailsCommandStore

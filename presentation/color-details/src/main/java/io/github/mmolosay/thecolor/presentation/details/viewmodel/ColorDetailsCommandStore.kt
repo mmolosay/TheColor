@@ -34,8 +34,8 @@ sealed interface ColorDetailsCommand {
         val colorRole: ColorRole?,
     ) : ColorDetailsCommand
 
-    /** Update data with specified [domainDetails]. */
+    /** Update data with specified [details]. */
     data class SetColorDetails(
-        val domainDetails: DomainColorDetails,
+        val details: DomainColorDetails,
     ) : ColorDetailsCommand
 }
