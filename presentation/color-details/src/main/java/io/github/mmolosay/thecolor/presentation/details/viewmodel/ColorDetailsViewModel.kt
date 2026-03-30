@@ -54,6 +54,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
 
     private val fetchOrFindColorDetailsJob = AtomicReference<Job?>(null)
 
+    private val session = AtomicReference<Session?>(null)
     private val entryStore = ColorEntryStore()
     private val cachedDetails = CopyOnWriteArraySet<DomainColorDetails>()
 
@@ -63,51 +64,91 @@ class ColorDetailsViewModel @AssistedInject constructor(
 
     private fun collectColorDetailsCommands() =
         coroutineScope.launch(defaultDispatcher) {
-            commandProvider.commandFlow.collect { command ->
-                command.process()
-            }
+            commandProvider.commandFlow.collect(::process)
         }
 
-    private fun ColorDetailsCommand.process() = when (this) {
-        is ColorDetailsCommand.FetchData -> {
-            _subjectColorDataFlow.value = createSubjectColorData(this.color)
-            val colorRole = this.color.inferColorRole()
-            if (colorRole == null) entryStore.clear()
-            fetchOrFindColorDetails(command = this)
-        }
-        is ColorDetailsCommand.SetColorDetails -> {
-            _subjectColorDataFlow.value = createSubjectColorData(this.details.color)
-            val colorRole = this.details.color.inferColorRole()
-            if (colorRole == null) entryStore.clear()
-            setColorDetails(details = this.details)
-        }
-    }
-
-    private fun fetchOrFindColorDetails(
-        command: ColorDetailsCommand.FetchData,
-    ) {
-        val color = command.color
-        coroutineScope.launch(defaultDispatcher) {
-            val colorDetails = run {
-                val cached = findCachedDetails(color)
-                if (cached != null) return@run cached
-                return@run withContext(ioDispatcher) {
-                    colorRepository.getColorDetails(color)
+    // TODO: make is so that commands are processed in an individual coroutine thus unblocking successive commands from being processed
+    // TODO: cancel ongoing command if a new one of the same type was issued
+    private suspend fun process(command: ColorDetailsCommand) {
+        when (command) {
+            is ColorDetailsCommand.SetSeedColor -> {
+                val color = command.color
+                session.set(null)
+                _subjectColorDataFlow.value = createSubjectColorData(color)
+                val details = fetchOrFindColorDetails(color).getOrElse { exception ->
+                    val error = ColorDetailsError(
+                        cause = exception,
+                        tryAgain = {
+                            coroutineScope.launch(defaultDispatcher) {
+                                process(command)
+                            }
+                        },
+                    )
+                    _dataStateFlow.value = DataState.Error(error)
+                    return
                 }
-                    .getOrElse { exception ->
-                        val error = ColorDetailsError(
-                            cause = exception,
-                            tryAgain = { fetchOrFindColorDetails(command) },
-                        )
-                        _dataStateFlow.value = DataState.Error(error)
-                        return@launch
-                    }
+                setColorDetails(details)
+                session.set(Session(seedDetails = details))
             }
-            setColorDetails(colorDetails)
-        }.also { job ->
-            fetchOrFindColorDetailsJob.getAndSet(job)?.cancel()
+            is ColorDetailsCommand.SetSeedDetails -> {
+                val details = command.details
+                session.set(null)
+                _subjectColorDataFlow.value = createSubjectColorData(details.color)
+                setColorDetails(details)
+                session.set(Session(seedDetails = details))
+            }
+            is ColorDetailsCommand.SelectColor -> {
+                val targetRole = command.colorRole
+                val session = session.get()
+                require(session != null) { "Session must be initialized" }
+                val color = session.getByRole(targetRole)
+                val details = fetchOrFindColorDetails(color).getOrElse { exception ->
+                    val error = ColorDetailsError(
+                        cause = exception,
+                        tryAgain = {
+                            coroutineScope.launch(defaultDispatcher) {
+                                process(command)
+                            }
+                        },
+                    )
+                    _dataStateFlow.value = DataState.Error(error)
+                    return
+                }
+                setColorDetails(details)
+            }
         }
     }
+
+    private suspend fun fetchOrFindColorDetails(color: Color): Result<DomainColorDetails> {
+        val cached = findCachedDetails(color)
+        if (cached != null) return Result.success(cached)
+        return withContext(ioDispatcher) {
+            colorRepository.getColorDetails(color)
+        }
+    }
+
+//    private fun fetchOrFindColorDetails(color: Color) {
+//        coroutineScope.launch(defaultDispatcher) {
+//            val colorDetails = run {
+//                val cached = findCachedDetails(color)
+//                if (cached != null) return@run cached
+//                return@run withContext(ioDispatcher) {
+//                    colorRepository.getColorDetails(color)
+//                }
+//                    .getOrElse { exception ->
+//                        val error = ColorDetailsError(
+//                            cause = exception,
+//                            tryAgain = { fetchOrFindColorDetails(color) },
+//                        )
+//                        _dataStateFlow.value = DataState.Error(error)
+//                        return@launch
+//                    }
+//            }
+//            setColorDetails(colorDetails)
+//        }.also { job ->
+//            fetchOrFindColorDetailsJob.getAndSet(job)?.cancel()
+//        }
+//    }
 
     private fun setColorDetails(
         details: DomainColorDetails,
@@ -191,6 +232,23 @@ class ColorDetailsViewModel @AssistedInject constructor(
         ): ColorDetailsViewModel
     }
 }
+
+private class Session(
+    val seed: Color,
+    val exact: Color,
+)
+
+private fun Session(seedDetails: DomainColorDetails) =
+    Session(
+        seed = seedDetails.color,
+        exact = seedDetails.exact.color,
+    )
+
+private fun Session.getByRole(role: ColorRole): Color =
+    when (role) {
+        ColorRole.Seed -> this.seed
+        ColorRole.Exact -> this.exact
+    }
 
 private class ColorEntryStore {
 

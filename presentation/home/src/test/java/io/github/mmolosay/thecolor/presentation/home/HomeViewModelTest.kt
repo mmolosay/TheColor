@@ -339,7 +339,7 @@ class HomeViewModelTest {
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
 
             coVerify {
-                proceed(colorMatcher = matchAny(), colorRoleMatcher = matchAny())
+                proceed()
             }
         }
 
@@ -390,7 +390,7 @@ class HomeViewModelTest {
             )
 
             coVerify {
-                proceed(colorMatcher = matchAny(), colorRoleMatcher = matchAny())
+                proceed()
             }
         }
 
@@ -649,7 +649,10 @@ class HomeViewModelTest {
             }
 
             coVerify {
-                proceed(colorMatcher = match(exactColor), colorRoleMatcher = match(ColorRole.Exact))
+                proceed(
+                    expectedColor = exactColor,
+                    expectedColorDetailsCommand = ColorDetailsCommand.SelectColor(ColorRole.Exact),
+                )
             }
         }
 
@@ -846,8 +849,14 @@ class HomeViewModelTest {
             }
 
             coVerifyOrder {
-                proceed(colorMatcher = match(exactColor), colorRoleMatcher = match(ColorRole.Exact))
-                proceed(colorMatcher = match(initialColor), colorRoleMatcher = match(ColorRole.Seed))
+                proceed(
+                    expectedColor = exactColor,
+                    expectedColorDetailsCommand = ColorDetailsCommand.SelectColor(ColorRole.Exact),
+                )
+                proceed(
+                    expectedColor = initialColor,
+                    expectedColorDetailsCommand = ColorDetailsCommand.SelectColor(ColorRole.Seed),
+                )
             }
         }
 
@@ -897,7 +906,7 @@ class HomeViewModelTest {
                 val commandStore = colorCenterComponentsStore.components
                     ?.selectedSwatchColorDetailsCommandStore
                     .shouldNotBeNull()
-                commandStore.issue(command = any<ColorDetailsCommand.SetColorDetails>())
+                commandStore.issue(command = any<ColorDetailsCommand.SetSeedDetails>())
             }
         }
 
@@ -1299,7 +1308,10 @@ class HomeViewModelTest {
             }
 
             coVerify(exactly = 1) {
-                proceed(colorMatcher = match(randomColor), colorRoleMatcher = match(null))
+                proceed(
+                    expectedColor = randomColor,
+                    expectedColorDetailsCommand = ColorDetailsCommand.SetSeedColor(randomColor),
+                )
             }
         }
 
@@ -1334,25 +1346,35 @@ class HomeViewModelTest {
      * Use inside [coVerify] block.
      */
     suspend inline fun MockKVerificationScope.proceed(
-        colorMatcher: MyMatcher<Color> = matchAny(),
-        colorRoleMatcher: MyMatcher<ColorRole?> = matchAny(),
+        matcherForColorDetailsCommand: MyMatcher<ColorDetailsCommand> = matchAny(),
+        matcherForColorSchemeCommand: MyMatcher<ColorSchemeCommand> = matchAny(),
     ) {
         kotlin.run verifyColorDetailsCommandIssued@{
             // and(matcher, matcher) is inconvenient to use
             val expectedCommand = match<ColorDetailsCommand> { command ->
-                if (command !is ColorDetailsCommand.FetchData) return@match false
-                colorMatcher.match(command.color) && colorRoleMatcher.match(command.colorRole)
+                matcherForColorDetailsCommand.match(command)
             }
             colorDetailsCommandStore.issue(command = expectedCommand)
         }
         kotlin.run verifyColorSchemeCommandIssued@{
             // and(matcher, matcher) is inconvenient to use
             val expectedCommand = match<ColorSchemeCommand> { command ->
-                if (command !is ColorSchemeCommand.FetchData) return@match false
-                colorMatcher.match(command.color)
+                matcherForColorSchemeCommand.match(command)
             }
             colorSchemeCommandStore.issue(command = expectedCommand)
         }
+    }
+
+    suspend inline fun MockKVerificationScope.proceed(
+        expectedColor: Color,
+        expectedColorDetailsCommand: ColorDetailsCommand,
+    ) {
+        proceed(
+            matcherForColorDetailsCommand = match(expectedColorDetailsCommand),
+            matcherForColorSchemeCommand = { command ->
+                (command is ColorSchemeCommand.FetchData) && (command.color == expectedColor)
+            },
+        )
     }
 
     fun interface MyMatcher<in T> {
