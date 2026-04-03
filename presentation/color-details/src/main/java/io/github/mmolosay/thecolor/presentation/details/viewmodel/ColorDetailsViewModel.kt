@@ -52,11 +52,10 @@ class ColorDetailsViewModel @AssistedInject constructor(
     private val _dataStateFlow = MutableStateFlow<DataState>(DataState.Idle)
     val dataStateFlow = _dataStateFlow.asStateFlow()
 
-    private val fetchOrFindColorDetailsJob = AtomicReference<Job?>(null)
+    private val jobOfProcessSetSeedColorCommand = AtomicReference<Job?>(null)
 
     private val session = AtomicReference<Session?>(null)
-    private val entryStore = ColorEntryStore()
-    private val cachedDetails = CopyOnWriteArraySet<DomainColorDetails>()
+    private val colorDetailsStore = ColorDetailsStore()
 
     init {
         collectColorDetailsCommands()
@@ -67,35 +66,21 @@ class ColorDetailsViewModel @AssistedInject constructor(
             commandProvider.commandFlow.collect(::process)
         }
 
-    // TODO: make is so that commands are processed in an individual coroutine thus unblocking successive commands from being processed
-    // TODO: cancel ongoing command if a new one of the same type was issued
     private suspend fun process(command: ColorDetailsCommand) {
         when (command) {
             is ColorDetailsCommand.SetSeedColor -> {
-                val color = command.color
-                session.set(null)
-                _subjectColorDataFlow.value = createSubjectColorData(color)
-                val details = fetchOrFindColorDetails(color).getOrElse { exception ->
-                    val error = ColorDetailsError(
-                        cause = exception,
-                        tryAgain = {
-                            coroutineScope.launch(defaultDispatcher) {
-                                process(command)
-                            }
-                        },
-                    )
-                    _dataStateFlow.value = DataState.Error(error)
-                    return
+                coroutineScope.launch(defaultDispatcher) {
+                    process(command)
+                }.also { job ->
+                    jobOfProcessSetSeedColorCommand.getAndSet(job)?.cancel()
                 }
-                setColorDetails(details)
-                session.set(Session(seedDetails = details))
             }
             is ColorDetailsCommand.SetSeedDetails -> {
                 val details = command.details
                 session.set(null)
                 _subjectColorDataFlow.value = createSubjectColorData(details.color)
+                session.set(Session.fromSeedDetails(seedDetails = details))
                 setColorDetails(details)
-                session.set(Session(seedDetails = details))
             }
             is ColorDetailsCommand.SelectColor -> {
                 val targetRole = command.colorRole
@@ -103,13 +88,14 @@ class ColorDetailsViewModel @AssistedInject constructor(
                 require(session != null) { "Session must be initialized" }
                 val color = session.getByRole(targetRole)
                 val details = fetchOrFindColorDetails(color).getOrElse { exception ->
+                    val tryAgain: () -> Unit = {
+                        coroutineScope.launch(defaultDispatcher) {
+                            process(command)
+                        }
+                    }
                     val error = ColorDetailsError(
                         cause = exception,
-                        tryAgain = {
-                            coroutineScope.launch(defaultDispatcher) {
-                                process(command)
-                            }
-                        },
+                        tryAgain = tryAgain,
                     )
                     _dataStateFlow.value = DataState.Error(error)
                     return
@@ -119,36 +105,36 @@ class ColorDetailsViewModel @AssistedInject constructor(
         }
     }
 
+    private suspend fun process(command: ColorDetailsCommand.SetSeedColor) {
+        val color = command.color
+        session.set(null)
+        _subjectColorDataFlow.value = createSubjectColorData(color)
+        val details = fetchOrFindColorDetails(color).getOrElse { exception ->
+            val tryAgain: () -> Unit = {
+                coroutineScope.launch(defaultDispatcher) {
+                    process(command)
+                }.also { job ->
+                    jobOfProcessSetSeedColorCommand.getAndSet(job)?.cancel()
+                }
+            }
+            val error = ColorDetailsError(
+                cause = exception,
+                tryAgain = tryAgain,
+            )
+            _dataStateFlow.value = DataState.Error(error)
+            return
+        }
+        session.set(Session.fromSeedDetails(seedDetails = details))
+        setColorDetails(details)
+    }
+
     private suspend fun fetchOrFindColorDetails(color: Color): Result<DomainColorDetails> {
-        val cached = findCachedDetails(color)
+        val cached = colorDetailsStore.findWithColor(color)
         if (cached != null) return Result.success(cached)
         return withContext(ioDispatcher) {
             colorRepository.getColorDetails(color)
         }
     }
-
-//    private fun fetchOrFindColorDetails(color: Color) {
-//        coroutineScope.launch(defaultDispatcher) {
-//            val colorDetails = run {
-//                val cached = findCachedDetails(color)
-//                if (cached != null) return@run cached
-//                return@run withContext(ioDispatcher) {
-//                    colorRepository.getColorDetails(color)
-//                }
-//                    .getOrElse { exception ->
-//                        val error = ColorDetailsError(
-//                            cause = exception,
-//                            tryAgain = { fetchOrFindColorDetails(color) },
-//                        )
-//                        _dataStateFlow.value = DataState.Error(error)
-//                        return@launch
-//                    }
-//            }
-//            setColorDetails(colorDetails)
-//        }.also { job ->
-//            fetchOrFindColorDetailsJob.getAndSet(job)?.cancel()
-//        }
-//    }
 
     private fun setColorDetails(
         details: DomainColorDetails,
@@ -159,52 +145,27 @@ class ColorDetailsViewModel @AssistedInject constructor(
             colorRole = colorRole,
             goToSeedColor = { seedColor -> sendColorSelectedEvent(seedColor, ColorRole.Seed) },
             goToExactColor = { exactColor -> sendColorSelectedEvent(exactColor, ColorRole.Exact) },
-            getSeedColor = { exactColor -> findCachedDetailsWithExactColor(exactColor)?.color },
+            getSeedColor = { exactColor -> colorDetailsStore.findWithExactColor(exactColor)?.color },
         )
         _dataStateFlow.value = DataState.Ready(data)
-        cachedDetails += details
-        entryStore.set(color = details.color, role = colorRole)
+        colorDetailsStore.add(details)
         coroutineScope.launch(defaultDispatcher) {
             val event = ColorDetailsEvent.DataFetched(details)
             eventStore.send(event)
         }
     }
 
-    /**
-     * Infers the [ColorRole] of the receiver [Color] in the context of the current state of this ViewModel.
-     *
-     * @return [ColorRole] or `null` if the specified [Color] doesn't relate to the current state.
-     */
     private fun Color.inferColorRole(): ColorRole? {
         val color = this
-        val existingSeed = entryStore.findWithRole(ColorRole.Seed)
-        if (existingSeed == null) {
+        val session = requireNotNull(session.get())
+        if (with(colorComparator) { color isSameAs session.seed }) {
             return ColorRole.Seed
         }
-        if (with(colorComparator) { color isSameAs existingSeed }) {
-            return ColorRole.Seed
-        }
-        val existingExact = entryStore.findWithRole(ColorRole.Exact)
-        if (existingExact != null && with(colorComparator) { color isSameAs existingExact }) {
-            return ColorRole.Exact
-        }
-        val detailsOfSeed = requireNotNull(findCachedDetails(color = existingSeed))
-        val isExactForSeed = with(colorComparator) { color isSameAs detailsOfSeed.exact.color }
-        if (isExactForSeed) {
+        if (with(colorComparator) { color isSameAs session.exact }) {
             return ColorRole.Exact
         }
         return null
     }
-
-    private fun findCachedDetailsWithExactColor(exactColor: Color): DomainColorDetails? =
-        cachedDetails.find { colorDetails ->
-            colorDetails.exact.color == exactColor
-        }
-
-    private fun findCachedDetails(color: Color): DomainColorDetails? =
-        cachedDetails.find { colorDetails ->
-            colorDetails.color == color
-        }
 
     private fun sendColorSelectedEvent(
         color: Color,
@@ -231,49 +192,47 @@ class ColorDetailsViewModel @AssistedInject constructor(
             colorDetailsEventStore: ColorDetailsEventStore,
         ): ColorDetailsViewModel
     }
+
+    /**
+     * Describes the current state (color-wise) of the 'Color Details'.
+     */
+    private class Session(
+        val seed: Color,
+        val exact: Color,
+    ) {
+        companion object {
+            fun fromSeedDetails(seedDetails: DomainColorDetails) =
+                Session(
+                    seed = seedDetails.color,
+                    exact = seedDetails.exact.color,
+                )
+        }
+    }
+
+    private fun Session.getByRole(role: ColorRole): Color =
+        when (role) {
+            ColorRole.Seed -> this.seed
+            ColorRole.Exact -> this.exact
+        }
 }
 
-private class Session(
-    val seed: Color,
-    val exact: Color,
-)
+private class ColorDetailsStore {
 
-private fun Session(seedDetails: DomainColorDetails) =
-    Session(
-        seed = seedDetails.color,
-        exact = seedDetails.exact.color,
-    )
+    private val cachedDetails = CopyOnWriteArraySet<DomainColorDetails>()
 
-private fun Session.getByRole(role: ColorRole): Color =
-    when (role) {
-        ColorRole.Seed -> this.seed
-        ColorRole.Exact -> this.exact
+    fun add(details: DomainColorDetails) {
+        cachedDetails += details
     }
 
-private class ColorEntryStore {
+    fun findWithExactColor(exactColor: Color): DomainColorDetails? =
+        cachedDetails.find { colorDetails ->
+            colorDetails.exact.color == exactColor
+        }
 
-    private val entries = mutableMapOf<Color, ColorRole>()
-    var currentColor: Color? = null
-        private set
-
-    @Synchronized
-    fun set(color: Color, role: ColorRole) {
-        entries[color] = role
-        currentColor = color
-    }
-
-    @Synchronized
-    @Suppress("UnusedVariable")
-    fun findWithRole(role: ColorRole): Color? =
-        entries.entries
-            .find { (entryColor, entryRole) -> entryRole == role }
-            ?.key
-
-    @Synchronized
-    fun clear() {
-        entries.clear()
-        currentColor = null
-    }
+    fun findWithColor(color: Color): DomainColorDetails? =
+        cachedDetails.find { colorDetails ->
+            colorDetails.color == color
+        }
 }
 
 @Singleton
