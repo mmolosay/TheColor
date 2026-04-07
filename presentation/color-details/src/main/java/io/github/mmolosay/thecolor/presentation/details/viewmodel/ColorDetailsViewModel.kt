@@ -51,6 +51,8 @@ class ColorDetailsViewModel @AssistedInject constructor(
     val dataStateFlow = _dataStateFlow.asStateFlow()
 
     private val fetchOrFindColorDetailsJob = AtomicReference<Job?>(null)
+
+    private val entryStore = ColorEntryStore()
     private val cachedDetails = CopyOnWriteArraySet<DomainColorDetails>()
 
     init {
@@ -71,18 +73,15 @@ class ColorDetailsViewModel @AssistedInject constructor(
         }
         is ColorDetailsCommand.SetColorDetails -> {
             _currentSeedDataFlow.value = createSeedData(this.domainDetails.color)
-            setColorDetails(
-                domainDetails = this.domainDetails,
-                colorRole = null,
-            )
+            setColorDetails(this.domainDetails)
         }
     }
 
     private fun fetchOrFindColorDetails(
         command: ColorDetailsCommand.FetchData,
     ) {
+        val (color, _) = command
         coroutineScope.launch(defaultDispatcher) {
-            val (color, colorRole) = command
             val colorDetails = run {
                 val cached = findCachedDetails(color)
                 if (cached != null) return@run cached
@@ -98,37 +97,62 @@ class ColorDetailsViewModel @AssistedInject constructor(
                         return@launch
                     }
             }
-            setColorDetails(colorDetails, colorRole)
+            setColorDetails(colorDetails)
         }.also { job ->
             fetchOrFindColorDetailsJob.getAndSet(job)?.cancel()
         }
     }
 
     private fun setColorDetails(
-        domainDetails: DomainColorDetails,
-        colorRole: ColorRole?,
+        details: DomainColorDetails,
     ) {
-        val data = createData(domainDetails, colorRole)
+        val entryType = details.inferEntryType()
+        val data = createData(details, entryType)
         _dataStateFlow.value = DataState.Ready(data)
-        cachedDetails += domainDetails
+        cachedDetails += details
+        run {
+            val entry = ColorEntry(color = details.color, type = entryType)
+            entryStore.set(entry)
+        }
         coroutineScope.launch(defaultDispatcher) {
-            val event = ColorDetailsEvent.DataFetched(domainDetails)
+            val event = ColorDetailsEvent.DataFetched(details)
             eventStore.send(event)
         }
     }
 
+    private fun DomainColorDetails.inferEntryType(): ColorEntry.Type {
+        val details = this
+        val existingSeed = entryStore.findOfType(ColorEntry.Type.Seed)
+        if (existingSeed == null) {
+            return ColorEntry.Type.Seed
+        }
+        if (existingSeed.color == details.color) {
+            return ColorEntry.Type.Seed
+        }
+        val existingExact = entryStore.findOfType(ColorEntry.Type.Exact)
+        if (existingExact?.color == details.color) {
+            return ColorEntry.Type.Exact
+        }
+        val detailsOfSeed = requireNotNull(findCachedDetails(color = existingSeed.color))
+        val isExactForSeed = (details.color == detailsOfSeed.exact.color)
+        if (isExactForSeed) {
+            return ColorEntry.Type.Exact
+        }
+        error("Cannot infer ColorOrigin")
+    }
+
     private fun createData(
         domainDetails: DomainColorDetails,
-        colorRole: ColorRole?,
+        entryType: ColorEntry.Type,
     ): ColorDetailsData {
         val color = domainDetails.color
         val exactColor = domainDetails.exact.color
-        val initialColor = if (colorRole == ColorRole.Exact) {
+        val initialColor = if (entryType == ColorEntry.Type.Exact) {
             val details = findCachedDetailsWithExactColor(exactColor = color)
             details?.color
         } else null
         val goToInitialColor =
-            if (colorRole == ColorRole.Exact && initialColor != null) {
+            if (entryType == ColorEntry.Type.Exact && initialColor != null) {
                 { sendColorSelectedEvent(initialColor, ColorRole.Initial) }
             } else null
         return createData(
@@ -173,6 +197,39 @@ class ColorDetailsViewModel @AssistedInject constructor(
             colorDetailsCommandProvider: ColorDetailsCommandProvider,
             colorDetailsEventStore: ColorDetailsEventStore,
         ): ColorDetailsViewModel
+    }
+}
+
+// TODO: rename?
+private data class ColorEntry(
+    val color: Color,
+    val type: Type,
+) {
+    enum class Type {
+        Seed, Exact,
+    }
+}
+
+private class ColorEntryStore {
+
+    private val entries = mutableMapOf<ColorEntry.Type, Color>()
+    var currentType: ColorEntry.Type? = null
+    val currentEntry: ColorEntry?
+        get() {
+            val currentType = currentType ?: return null
+            val color = entries.getValue(currentType)
+            return ColorEntry(color = color, type = currentType)
+        }
+
+    @Synchronized
+    fun set(entry: ColorEntry) {
+        entries[entry.type] = entry.color
+        currentType = entry.type
+    }
+
+    fun findOfType(type: ColorEntry.Type): ColorEntry? {
+        val color = entries[type] ?: return null
+        return ColorEntry(color = color, type = type)
     }
 }
 
