@@ -1,6 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.details
 
 import io.github.mmolosay.thecolor.domain.color.Color
+import io.github.mmolosay.thecolor.domain.color.ColorComparator
 import io.github.mmolosay.thecolor.domain.color.ColorConverter
 import io.github.mmolosay.thecolor.domain.color.ColorDetails
 import io.github.mmolosay.thecolor.domain.color.ColorRepository
@@ -78,6 +79,9 @@ class ColorDetailsViewModelTest {
         ),
     )
     val createSeedData: CreateSeedDataUseCase = mockk(relaxed = true)
+    val colorComparator = ColorComparator(
+        colorConverter = ColorConverter(),
+    )
 
     lateinit var sut: ColorDetailsViewModel
 
@@ -589,6 +593,7 @@ class ColorDetailsViewModelTest {
             colorRepository = colorRepository,
             createData = createData,
             createSeedData = createSeedData,
+            colorComparator = colorComparator,
             ioDispatcher = coroutineDispatcher,
             defaultDispatcher = coroutineDispatcher,
         ).also {

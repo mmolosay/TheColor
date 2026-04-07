@@ -4,6 +4,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.color.Color
+import io.github.mmolosay.thecolor.domain.color.ColorComparator
 import io.github.mmolosay.thecolor.domain.color.ColorRepository
 import io.github.mmolosay.thecolor.domain.color.IsColorLightUseCase
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
@@ -40,6 +41,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
     private val colorRepository: ColorRepository,
     private val createData: CreateColorDetailsDataUseCase,
     private val createSeedData: CreateSeedDataUseCase,
+    private val colorComparator: ColorComparator,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
@@ -80,7 +82,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
     private fun fetchOrFindColorDetails(
         command: ColorDetailsCommand.FetchData,
     ) {
-        val (color, _) = command
+        val color = command.color
         coroutineScope.launch(defaultDispatcher) {
             val colorDetails = run {
                 val cached = findCachedDetails(color)
@@ -126,15 +128,15 @@ class ColorDetailsViewModel @AssistedInject constructor(
         if (existingSeed == null) {
             return ColorEntry.Type.Seed
         }
-        if (existingSeed.color == details.color) {
+        if (with(colorComparator) { existingSeed.color isSameAs details.color }) {
             return ColorEntry.Type.Seed
         }
         val existingExact = entryStore.findOfType(ColorEntry.Type.Exact)
-        if (existingExact?.color == details.color) {
+        if (existingExact != null && with(colorComparator) { existingExact.color isSameAs details.color }) {
             return ColorEntry.Type.Exact
         }
         val detailsOfSeed = requireNotNull(findCachedDetails(color = existingSeed.color))
-        val isExactForSeed = (details.color == detailsOfSeed.exact.color)
+        val isExactForSeed = with(colorComparator) { details.color isSameAs detailsOfSeed.exact.color }
         if (isExactForSeed) {
             return ColorEntry.Type.Exact
         }

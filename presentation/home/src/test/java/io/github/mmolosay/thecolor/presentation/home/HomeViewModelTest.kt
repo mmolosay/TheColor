@@ -556,13 +556,16 @@ class HomeViewModelTest {
         }
 
     @Test
-    fun `when receiving a 'ColorSelected' event from Color Details, 'set color and proceed' action is invoked, thus new color is set to color input mediator`() =
+    fun `when receiving a 'ColorSelected' event from Color Details, then the 'set color and proceed' action is invoked, thus new color is set to color input mediator`() =
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
-            every { colorInputMediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = Color.Hex(0x0), source = null, id = 0)
+            val initialColor = Color.Hex(0x0)
+            val exactColor = Color.Hex(0x1)
+            val colorStateFlow = run {
+                val value = ColorInputMediator.ColorState(color = initialColor, source = null, id = 0)
                 MutableStateFlow(value)
             }
+            every { colorInputMediator.colorStateFlow } returns colorStateFlow
             val colorDetailsEventFlow = MutableSharedFlow<ColorDetailsEvent>()
             every { colorDetailsEventStore.eventFlow } returns colorDetailsEventFlow
             every { createColorData(color = any()) } returns mockk()
@@ -570,15 +573,31 @@ class HomeViewModelTest {
             // we know from other tests that it would be 'CanProceed.Yes'
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
 
-            val event = ColorDetailsEvent.ColorSelected(
-                color = Color.Hex(0x123456),
-                colorRole = ColorRole.Exact,
-            )
-            colorDetailsEventFlow.emit(event)
+            run emitDataFetchedEvent@{
+                val domainDetails: DomainColorDetails = mockk(relaxed = true) {
+                    every { color } returns initialColor
+                    every { exact } returns mockk {
+                        every { color } returns exactColor
+                    }
+                }
+                val event = ColorDetailsEvent.DataFetched(domainDetails)
+                colorDetailsEventFlow.emit(event)
+            }
+            run emitColorSelectedEvent@{
+                val event = ColorDetailsEvent.ColorSelected(
+                    color = exactColor,
+                    colorRole = ColorRole.Exact,
+                )
+                colorDetailsEventFlow.emit(event)
+            }
+            run emitExactColorFromColorInput@{
+                val value = ColorInputMediator.ColorState(color = exactColor, source = null, id = 1)
+                colorStateFlow.emit(value)
+            }
 
             coVerify {
                 colorInputMediator.withLock(block = any())
-                colorInputMediatorComponents.editor.set(color = Color.Hex(0x123456), source = null)
+                colorInputMediatorComponents.editor.set(color = exactColor, source = null)
             }
         }
 
@@ -702,10 +721,13 @@ class HomeViewModelTest {
     fun `when receiving a 'ColorSelected' event from Color Details, 'proceed' action is invoked, thus 'proceedResult' is updated`() =
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
-            every { colorInputMediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = Color.Hex(0x0), source = null, id = 0)
+            val initialColor = Color.Hex(0x0)
+            val exactColor = Color.Hex(0x1)
+            val colorStateFlow = run {
+                val value = ColorInputMediator.ColorState(color = initialColor, source = null, id = 0)
                 MutableStateFlow(value)
             }
+            every { colorInputMediator.colorStateFlow } returns colorStateFlow
             val colorDetailsEventFlow = MutableSharedFlow<ColorDetailsEvent>()
             every { colorDetailsEventStore.eventFlow } returns colorDetailsEventFlow
             val colorData: ProceedResult.Success.ColorData = mockk()
@@ -714,14 +736,29 @@ class HomeViewModelTest {
             // we know from other tests that it would be 'CanProceed.Yes'
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
 
-            val event = ColorDetailsEvent.ColorSelected(
-                color = Color.Hex(0x123456),
-                colorRole = ColorRole.Exact,
-            )
-            colorDetailsEventFlow.emit(event)
+            run emitDataFetchedEvent@{
+                val domainDetails: DomainColorDetails = mockk(relaxed = true) {
+                    every { color } returns initialColor
+                    every { exact } returns mockk {
+                        every { color } returns exactColor
+                    }
+                }
+                val event = ColorDetailsEvent.DataFetched(domainDetails)
+                colorDetailsEventFlow.emit(event)
+            }
+            run emitColorSelectedEvent@{
+                val event = ColorDetailsEvent.ColorSelected(
+                    color = exactColor,
+                    colorRole = ColorRole.Exact,
+                )
+                colorDetailsEventFlow.emit(event)
+            }
+            run emitExactColorFromColorInput@{
+                val value = ColorInputMediator.ColorState(color = exactColor, source = null, id = 1)
+                colorStateFlow.emit(value)
+            }
 
-            val proceedResultAsSuccess =
-                data.proceedResult.shouldBeInstanceOf<ProceedResult.Success>()
+            val proceedResultAsSuccess = data.proceedResult.shouldBeInstanceOf<ProceedResult.Success>()
             proceedResultAsSuccess.colorData shouldBe colorData
         }
 
@@ -910,6 +947,55 @@ class HomeViewModelTest {
             }
 
             data.proceedResult shouldBe null
+        }
+
+    /**
+     * Tests that when a [ColorDetailsEvent.DataFetched] event is received during the building
+     * of the [ColorCenterSession], then colors are matched using [colorComparator] to finalize
+     * building the session.
+     */
+    @Test
+    fun `when receiving a 'DataFetched' event from Color Details, then colors are compared using comparator`() =
+        runTest(testDispatcher) {
+            mockStoresWithEmptyFlows()
+            val initialColorInRgb = Color.Rgb(26, 128, 63)
+            val initialColorInHex = Color.Hex(0x1A803F)
+            val exactColor = Color.Hex(0x126B40)
+            val colorStateFlow = run {
+                val value = ColorInputMediator.ColorState(color = initialColorInRgb, source = null, id = 0)
+                MutableStateFlow(value)
+            }
+            every { colorInputMediator.colorStateFlow } returns colorStateFlow
+            val colorDetailsEventFlow = MutableSharedFlow<ColorDetailsEvent>()
+            every { colorDetailsEventStore.eventFlow } returns colorDetailsEventFlow
+            every { createColorData(color = any()) } returns mockk()
+            createSut()
+            // we know from other tests that it would be 'CanProceed.Yes'
+            data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
+
+            run emitDataFetchedEvent@{
+                val domainDetails: DomainColorDetails = mockk(relaxed = true) {
+                    every { color } returns initialColorInHex
+                    every { exact } returns mockk {
+                        every { color } returns exactColor
+                    }
+                }
+                val event = ColorDetailsEvent.DataFetched(domainDetails)
+                colorDetailsEventFlow.emit(event)
+            }
+            run emitExactColorSelectedEvent@{
+                val event = ColorDetailsEvent.ColorSelected(
+                    color = exactColor,
+                    colorRole = ColorRole.Exact,
+                )
+                colorDetailsEventFlow.emit(event)
+            }
+            run emitExactColorFromColorInput@{
+                val value = ColorInputMediator.ColorState(color = exactColor, source = null, id = 1)
+                colorStateFlow.emit(value)
+            }
+
+            data.proceedResult.shouldBeInstanceOf<ProceedResult.Success>()
         }
 
     @Test

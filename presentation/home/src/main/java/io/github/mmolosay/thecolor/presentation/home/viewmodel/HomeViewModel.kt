@@ -148,6 +148,7 @@ class HomeViewModel @Inject constructor(
         when (event) {
             is ColorDetailsEvent.ColorSelected ->
                 viewModelScope.launch(defaultDispatcher) {
+                    ccSessionStore.sessionState.mustBeOngoing()
                     dataUpdateCounter.withCounter {
                         val color = event.color
                         colorInputMediator.set(color)
@@ -364,7 +365,7 @@ class HomeViewModel @Inject constructor(
             ccSessionStore.startBuilding(seed).run {
                 val event = components.colorDetailsEventStore.eventFlow
                     .filterIsInstance<ColorDetailsEvent.DataFetched>()
-                    .first { it.domainDetails.color == seed }
+                    .first { with(colorComparator) { it.domainDetails.color isSameAs seed } }
                 val relatedColors = setOf(event.domainDetails.exact.color)
                 val session = ColorCenterSession(seed, relatedColors)
                 ensureActive()
@@ -496,6 +497,10 @@ internal class ColorCenterSessionStore {
 
 private val ColorCenterSessionStore.sessionState: SessionState
     get() = this.flowOfSessionState.value
+
+private fun SessionState.mustBeOngoing() {
+    check(this is SessionState.Ongoing) { "SessionState $this must be Ongoing" }
+}
 
 /**
  * Creates an instance of [HomeData.ProceedResult.Success.ColorData].
