@@ -269,7 +269,7 @@ private fun previewDataSeed() =
         ),
         colorRoleData = ColorDetailsData.ColorRoleData.Seed(
             exactColor = ColorInt(0x126B40),
-            goToExactColor = {},
+            selectExactColor = {},
         ),
     )
 
@@ -303,7 +303,7 @@ private fun previewDataExact() =
         exactMatch = ColorDetailsData.ExactMatch.Yes,
         colorRoleData = ColorDetailsData.ColorRoleData.Exact(
             seedColor = ColorInt(0x1A803F),
-            goToSeedColor = {},
+            selectSeedColor = {},
         ),
     )
 

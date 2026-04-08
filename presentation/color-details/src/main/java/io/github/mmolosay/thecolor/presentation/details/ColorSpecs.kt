@@ -103,43 +103,25 @@ private fun ExactMatch(
         is ColorDetailsData.ExactMatch.Yes -> strings.exactMatchYes
         is ColorDetailsData.ExactMatch.No -> strings.exactMatchNo
     }
-    val goToSeedColorButton: (@Composable () -> Unit)? =
-        if (colorRoleData is ColorDetailsData.ColorRoleData.Exact) {
-            {
-                GoToSeedColorButton(
-                    onClick = colorRoleData.goToSeedColor,
-                    text = strings.goBackToSeedColorButtonText,
-                    seedColor = colorRoleData.seedColor.toCompose(),
-                )
-            }
-        } else null
-    ExactMatch(
-        label = strings.exactMatchLabel,
-        value = value,
-        goToSeedColorButton = goToSeedColorButton,
-    )
-}
-
-@Composable
-private fun ExactMatch(
-    label: String,
-    value: String,
-    goToSeedColorButton: (@Composable () -> Unit)?,
-) {
     Row {
         Column {
-            Label(text = label)
+            Label(text = strings.exactMatchLabel)
             Value(text = value)
         }
-        if (goToSeedColorButton != null) {
+        val showSelectSeedColorButton = (colorRoleData is ColorDetailsData.ColorRoleData.Exact)
+        if (showSelectSeedColorButton) {
             Spacer(modifier = Modifier.weight(1f))
-            goToSeedColorButton()
+            SelectSeedColorButton(
+                onClick = colorRoleData.selectSeedColor,
+                text = strings.goBackToSeedColorButtonText,
+                seedColor = colorRoleData.seedColor.toCompose(),
+            )
         }
     }
 }
 
 @Composable
-private fun GoToSeedColorButton(
+private fun SelectSeedColorButton(
     onClick: () -> Unit,
     text: String,
     seedColor: Color,
@@ -175,7 +157,7 @@ private fun ExactValue(
     ExactValue(
         label = strings.exactValueLabel,
         exactColorValue = exactMatch.exactValue,
-        goToExactColor = colorRoleData.goToExactColor,
+        selectExactColor = colorRoleData.selectExactColor,
         exactColor = colorRoleData.exactColor.toCompose(),
     )
 }
@@ -185,7 +167,7 @@ private fun ExactValue(
 private fun ExactValue(
     label: String,
     exactColorValue: String,
-    goToExactColor: () -> Unit,
+    selectExactColor: () -> Unit,
     exactColor: Color,
 ) {
     Column {
@@ -201,7 +183,7 @@ private fun ExactValue(
                     contentColor = colorsOnTintedSurface.accent,
                 )
                 IconButton(
-                    onClick = goToExactColor,
+                    onClick = selectExactColor,
                     modifier = Modifier.size(20.dp),
                     colors = colors,
                 ) {
@@ -327,7 +309,7 @@ private fun PreviewContentSeed() {
         ),
         colorRoleData = ColorDetailsData.ColorRoleData.Seed(
             exactColor = ColorInt(0x126B40),
-            goToExactColor = {},
+            selectExactColor = {},
         ),
         strings = ColorDetailsUiStrings(
             hexLabel = "_",
@@ -353,7 +335,7 @@ private fun PreviewContentExact() {
         exactMatch = ColorDetailsData.ExactMatch.Yes,
         colorRoleData = ColorDetailsData.ColorRoleData.Exact(
             seedColor = ColorInt(0x1A803F),
-            goToSeedColor = {},
+            selectSeedColor = {},
         ),
         strings = ColorDetailsUiStrings(
             hexLabel = "_",

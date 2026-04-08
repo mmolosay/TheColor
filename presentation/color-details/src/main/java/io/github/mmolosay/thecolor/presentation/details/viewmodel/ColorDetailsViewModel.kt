@@ -143,8 +143,8 @@ class ColorDetailsViewModel @AssistedInject constructor(
         val data = createData(
             details = details,
             colorRole = colorRole,
-            goToSeedColor = { seedColor -> sendColorSelectedEvent(seedColor, ColorRole.Seed) },
-            goToExactColor = { exactColor -> sendColorSelectedEvent(exactColor, ColorRole.Exact) },
+            selectSeedColor = { seedColor -> sendColorSelectedEvent(seedColor, ColorRole.Seed) },
+            selectExactColor = { exactColor -> sendColorSelectedEvent(exactColor, ColorRole.Exact) },
             getSeedColor = { exactColor -> colorDetailsStore.findWithExactColor(exactColor)?.color },
         )
         _dataStateFlow.value = DataState.Ready(data)
@@ -244,8 +244,8 @@ class CreateColorDetailsDataUseCase @Inject constructor(
     operator fun invoke(
         details: DomainColorDetails,
         colorRole: ColorRole,
-        goToSeedColor: GoToSeedColorAction,
-        goToExactColor: GoToExactColorAction,
+        selectSeedColor: SelectSeedColorAction,
+        selectExactColor: SelectExactColorAction,
         getSeedColor: GetSeedColorAction,
     ) =
         ColorDetailsData(
@@ -278,8 +278,8 @@ class CreateColorDetailsDataUseCase @Inject constructor(
             colorRoleData = ColorRoleData(
                 details = details,
                 colorRole = colorRole,
-                goToSeedColor = goToSeedColor,
-                goToExactColor = goToExactColor,
+                selectSeedColor = selectSeedColor,
+                selectExactColor = selectExactColor,
                 getSeedColor = getSeedColor,
             ),
         )
@@ -300,8 +300,8 @@ class CreateColorDetailsDataUseCase @Inject constructor(
     private fun ColorRoleData(
         details: DomainColorDetails,
         colorRole: ColorRole,
-        goToSeedColor: GoToSeedColorAction,
-        goToExactColor: GoToExactColorAction,
+        selectSeedColor: SelectSeedColorAction,
+        selectExactColor: SelectExactColorAction,
         getSeedColor: GetSeedColorAction,
     ): ColorRoleData =
         when (colorRole) {
@@ -309,7 +309,7 @@ class CreateColorDetailsDataUseCase @Inject constructor(
                 val exactColor = details.exact.color
                 ColorRoleData.Seed(
                     exactColor = with(colorToColorInt) { exactColor.toColorInt() },
-                    goToExactColor = { goToExactColor(exactColor) },
+                    selectExactColor = { selectExactColor(exactColor) },
                 )
             }
             ColorRole.Exact -> {
@@ -317,16 +317,16 @@ class CreateColorDetailsDataUseCase @Inject constructor(
                     .let { requireNotNull(it) }
                 ColorRoleData.Exact(
                     seedColor = with(colorToColorInt) { seedColor.toColorInt() },
-                    goToSeedColor = { goToSeedColor(seedColor) },
+                    selectSeedColor = { selectSeedColor(seedColor) },
                 )
             }
         }
 
-    fun interface GoToSeedColorAction {
+    fun interface SelectSeedColorAction {
         operator fun invoke(seedColor: Color)
     }
 
-    fun interface GoToExactColorAction {
+    fun interface SelectExactColorAction {
         operator fun invoke(exactColor: Color)
     }
 

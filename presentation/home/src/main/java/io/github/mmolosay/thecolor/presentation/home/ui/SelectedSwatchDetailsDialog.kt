@@ -163,7 +163,7 @@ private fun Preview() {
                     ),
                     colorRoleData = ColorDetailsData.ColorRoleData.Exact(
                         seedColor = ColorInt(0x1A803F),
-                        goToSeedColor = {},
+                        selectSeedColor = {},
                     ),
                 )
             ),

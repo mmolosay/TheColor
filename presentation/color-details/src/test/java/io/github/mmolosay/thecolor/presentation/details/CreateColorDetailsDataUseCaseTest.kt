@@ -29,8 +29,8 @@ class CreateColorDetailsDataUseCaseTest {
         val resultData = sut.invoke(
             details = details,
             colorRole = ColorRole.Seed,
-            goToExactColor = {},
-            goToSeedColor = {},
+            selectExactColor = {},
+            selectSeedColor = {},
             getSeedColor = { null },
         )
 
@@ -66,7 +66,7 @@ class CreateColorDetailsDataUseCaseTest {
             ),
             colorRoleData = ColorRoleData.Seed(
                 exactColor = ColorInt(0x126B40),
-                goToExactColor = NoopOnClickAction,
+                selectExactColor = NoopOnClickAction,
             )
         )
     }
@@ -86,10 +86,10 @@ class CreateColorDetailsDataUseCaseTest {
             colorRoleData = colorRoleData.run {
                 when (this) {
                     is ColorRoleData.Seed -> this.copy(
-                        goToExactColor = NoopOnClickAction,
+                        selectExactColor = NoopOnClickAction,
                     )
                     is ColorRoleData.Exact -> this.copy(
-                        goToSeedColor = NoopOnClickAction,
+                        selectSeedColor = NoopOnClickAction,
                     )
                 }
             },

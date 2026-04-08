@@ -76,8 +76,8 @@ class ColorDetailsViewModelTest {
             invoke(
                 details = any(),
                 colorRole = any(),
-                goToSeedColor = any(),
-                goToExactColor = any(),
+                selectSeedColor = any(),
+                selectExactColor = any(),
                 getSeedColor = any(),
             )
         } returns mockk()
@@ -222,8 +222,8 @@ class ColorDetailsViewModelTest {
                 createDataMock(
                     details = any(),
                     colorRole = any(),
-                    goToSeedColor = any(),
-                    goToExactColor = any(),
+                    selectSeedColor = any(),
+                    selectExactColor = any(),
                     getSeedColor = any(),
                 )
             }
@@ -248,7 +248,7 @@ class ColorDetailsViewModelTest {
         }
 
     @Test
-    fun `when 'go to exact color' is invoked, then SUT sends appropriate event to the event store`() =
+    fun `when 'select exact color' is invoked, then SUT sends appropriate event to the event store`() =
         runTest(testDispatcher) {
             val seedColor = Color.Hex(0x1A803F)
             val exactColor = Color.Hex(0x126B40)
@@ -270,7 +270,7 @@ class ColorDetailsViewModelTest {
                 val command = ColorDetailsCommand.SetSeedColor(seedColor)
                 commandFlow.emit(command)
             }
-            sut.data.goToExactColor()
+            sut.data.selectExactColor()
 
             coVerify {
                 val expectedEvent = ColorDetailsEvent.ColorSelected(
@@ -282,7 +282,7 @@ class ColorDetailsViewModelTest {
         }
 
     @Test
-    fun `when 'go to seed color' is invoked, then SUT sends appropriate event to the event store`() =
+    fun `when 'select seed color' is invoked, then SUT sends appropriate event to the event store`() =
         runTest(testDispatcher) {
             // GIVEN
             val seedColor = Color.Hex(0x1A803F)
@@ -318,7 +318,7 @@ class ColorDetailsViewModelTest {
                 val command = ColorDetailsCommand.SelectColor(ColorRole.Exact)
                 commandFlow.emit(command)
             }
-            sut.data.goToSeedColor()
+            sut.data.selectSeedColor()
 
             // THEN
             coVerify {
@@ -432,8 +432,8 @@ class ColorDetailsViewModelTest {
                 createDataMock(
                     details = detailsOfColor1,
                     colorRole = any(),
-                    goToSeedColor = any(),
-                    goToExactColor = any(),
+                    selectSeedColor = any(),
+                    selectExactColor = any(),
                     getSeedColor = any(),
                 )
             }
@@ -441,8 +441,8 @@ class ColorDetailsViewModelTest {
                 createDataMock(
                     details = detailsOfColor2,
                     colorRole = any(),
-                    goToSeedColor = any(),
-                    goToExactColor = any(),
+                    selectSeedColor = any(),
+                    selectExactColor = any(),
                     getSeedColor = any(),
                 )
             }
@@ -515,7 +515,7 @@ class ColorDetailsViewModelTest {
      * thus keeping it ordered chronologically and enabling all private methods to iterate it correctly.
      */
     @Test
-    fun `when pairs of 'go to exact'-'go to seed' actions are invoked multiple times, then SUT emits correct data`() =
+    fun `when pairs of 'select exact'-'select seed' actions are invoked multiple times, then SUT emits correct data`() =
         runTest(testDispatcher) {
             // GIVEN
             val commandFlow = MutableSharedFlow<ColorDetailsCommand>()
@@ -559,19 +559,19 @@ class ColorDetailsViewModelTest {
             }
 
             val event1 = async { eventStoreReal.eventFlow.first() }
-            sut.data.goToExactColor()
+            sut.data.selectExactColor()
             emitSelectColorCommand(event = event1.await())
 
             val event2 = async { eventStoreReal.eventFlow.first() }
-            sut.data.goToSeedColor()
+            sut.data.selectSeedColor()
             emitSelectColorCommand(event = event2.await())
 
             val event3 = async { eventStoreReal.eventFlow.first() }
-            sut.data.goToExactColor()
+            sut.data.selectExactColor()
             emitSelectColorCommand(event = event3.await())
 
             val event4 = async { eventStoreReal.eventFlow.first() }
-            sut.data.goToSeedColor()
+            sut.data.selectSeedColor()
             emitSelectColorCommand(event = event4.await())
 
             // THEN
@@ -603,9 +603,9 @@ class ColorDetailsViewModelTest {
     val ColorDetailsViewModel.data: ColorDetailsData
         get() = this.dataStateFlow.value.asReady().data
 
-    val ColorDetailsData.goToSeedColor: () -> Unit
-        get() = this.colorRoleData.shouldBeInstanceOf<ColorRoleData.Exact>().goToSeedColor
+    val ColorDetailsData.selectSeedColor: () -> Unit
+        get() = this.colorRoleData.shouldBeInstanceOf<ColorRoleData.Exact>().selectSeedColor
 
-    val ColorDetailsData.goToExactColor: () -> Unit
-        get() = this.colorRoleData.shouldBeInstanceOf<ColorRoleData.Seed>().goToExactColor
+    val ColorDetailsData.selectExactColor: () -> Unit
+        get() = this.colorRoleData.shouldBeInstanceOf<ColorRoleData.Seed>().selectExactColor
 }
