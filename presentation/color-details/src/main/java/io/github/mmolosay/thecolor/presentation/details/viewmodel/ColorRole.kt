@@ -1,10 +1,9 @@
 package io.github.mmolosay.thecolor.presentation.details.viewmodel
 
 /**
- * Depicts a role of a color in relation to some other color (usually the current one).
- * Consider `null` to be a standalone color that has no counterpart color.
+ * Depicts a role of a color inside the 'Color Details' feature.
  */
 enum class ColorRole {
+    Seed,
     Exact,
-    Initial,
 }

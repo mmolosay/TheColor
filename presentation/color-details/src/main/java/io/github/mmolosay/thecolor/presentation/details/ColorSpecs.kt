@@ -18,6 +18,7 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -33,20 +34,20 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
+import io.github.mmolosay.thecolor.presentation.common.colorint.toCompose
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData
-import io.github.mmolosay.thecolor.presentation.common.colorint.toCompose
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 @Composable
 internal fun ColorSpecs(
     colorName: String,
     exactMatch: ColorDetailsData.ExactMatch,
-    initialColorData: ColorDetailsData.InitialColorData?,
+    colorRoleData: ColorDetailsData.ColorRoleData,
     strings: ColorDetailsUiStrings,
     modifier: Modifier = Modifier,
 ) {
@@ -61,13 +62,16 @@ internal fun ColorSpecs(
 
         ExactMatch(
             exactMatch = exactMatch,
-            initialColorData = initialColorData,
+            colorRoleData = colorRoleData,
             strings = strings,
         )
 
-        if (exactMatch is ColorDetailsData.ExactMatch.No) {
+        val isNotExactMatch = (exactMatch is ColorDetailsData.ExactMatch.No)
+        val isSeedColor = (colorRoleData is ColorDetailsData.ColorRoleData.Seed)
+        if (isNotExactMatch && isSeedColor) {
             ExactValue(
                 exactMatch = exactMatch,
+                colorRoleData = colorRoleData,
                 strings = strings,
             )
             Deviation(
@@ -92,53 +96,35 @@ private fun Name(
 @Composable
 private fun ExactMatch(
     exactMatch: ColorDetailsData.ExactMatch,
-    initialColorData: ColorDetailsData.InitialColorData?,
+    colorRoleData: ColorDetailsData.ColorRoleData,
     strings: ColorDetailsUiStrings,
 ) {
     val value = when (exactMatch) {
         is ColorDetailsData.ExactMatch.Yes -> strings.exactMatchYes
         is ColorDetailsData.ExactMatch.No -> strings.exactMatchNo
     }
-    val goBackToInitialColorButton: (@Composable () -> Unit)? =
-        if (initialColorData != null) {
-            {
-                GoBackToInitialColorButton(
-                    onClick = initialColorData.goToInitialColor,
-                    text = strings.goBackToInitialColorButtonText,
-                    initialColor = initialColorData.initialColor.toCompose(),
-                )
-            }
-        } else null
-    ExactMatch(
-        label = strings.exactMatchLabel,
-        value = value,
-        goBackToInitialColorButton = goBackToInitialColorButton,
-    )
-}
-
-@Composable
-private fun ExactMatch(
-    label: String,
-    value: String,
-    goBackToInitialColorButton: (@Composable () -> Unit)?,
-) {
     Row {
         Column {
-            Label(text = label)
+            Label(text = strings.exactMatchLabel)
             Value(text = value)
         }
-        if (goBackToInitialColorButton != null) {
+        val showSelectSeedColorButton = (colorRoleData is ColorDetailsData.ColorRoleData.Exact)
+        if (showSelectSeedColorButton) {
             Spacer(modifier = Modifier.weight(1f))
-            goBackToInitialColorButton()
+            SelectSeedColorButton(
+                onClick = colorRoleData.selectSeedColor,
+                text = strings.goBackToSeedColorButtonText,
+                seedColor = colorRoleData.seedColor.toCompose(),
+            )
         }
     }
 }
 
 @Composable
-private fun GoBackToInitialColorButton(
+private fun SelectSeedColorButton(
     onClick: () -> Unit,
     text: String,
-    initialColor: Color,
+    seedColor: Color,
 ) {
     val colors = ButtonDefaults.outlinedButtonColors(
         contentColor = colorsOnTintedSurface.accent,
@@ -157,7 +143,7 @@ private fun GoBackToInitialColorButton(
         Spacer(modifier = Modifier.width(4.dp))
         ColorPreview(
             modifier = Modifier.padding(top = 1.dp),
-            color = initialColor,
+            color = seedColor,
         )
     }
 }
@@ -165,13 +151,14 @@ private fun GoBackToInitialColorButton(
 @Composable
 private fun ExactValue(
     exactMatch: ColorDetailsData.ExactMatch.No,
+    colorRoleData: ColorDetailsData.ColorRoleData.Seed,
     strings: ColorDetailsUiStrings,
 ) {
     ExactValue(
         label = strings.exactValueLabel,
         exactColorValue = exactMatch.exactValue,
-        goToExactColor = exactMatch.goToExactColor,
-        exactColor = exactMatch.exactColor.toCompose(),
+        selectExactColor = colorRoleData.selectExactColor,
+        exactColor = colorRoleData.exactColor.toCompose(),
     )
 }
 
@@ -180,7 +167,7 @@ private fun ExactValue(
 private fun ExactValue(
     label: String,
     exactColorValue: String,
-    goToExactColor: () -> Unit,
+    selectExactColor: () -> Unit,
     exactColor: Color,
 ) {
     Column {
@@ -196,7 +183,7 @@ private fun ExactValue(
                     contentColor = colorsOnTintedSurface.accent,
                 )
                 IconButton(
-                    onClick = goToExactColor,
+                    onClick = selectExactColor,
                     modifier = Modifier.size(20.dp),
                     colors = colors,
                 ) {
@@ -263,46 +250,66 @@ private fun Value(
         style = MaterialTheme.typography.bodyLarge,
     )
 
-@Preview(showBackground = true)
+@Preview
 @Composable
-private fun PreviewLight() {
+private fun PreviewSeedLight() {
     TheColorTheme {
-        ProvideColorsOnTintedSurface(colorsOnDarkSurface()) {
-            ColorSpecsWithPreviewData(
-                modifier = Modifier.background(Color(0xFF_126B40)),
-            )
+        Surface(color = Color(0xFF_126B40)) {
+            ProvideColorsOnTintedSurface(colorsOnDarkSurface()) {
+                PreviewContentSeed()
+            }
         }
     }
 }
 
-@Preview(showBackground = true)
+@Preview
 @Composable
-private fun PreviewDark() {
+private fun PreviewSeedDark() {
     TheColorTheme {
-        ProvideColorsOnTintedSurface(colorsOnLightSurface()) {
-            ColorSpecsWithPreviewData(
-                modifier = Modifier.background(Color(0xFF_F0F8FF)),
-            )
+        Surface(color = Color(0xFF_F0F8FF)) {
+            ProvideColorsOnTintedSurface(colorsOnLightSurface()) {
+                PreviewContentSeed()
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewExactLight() {
+    TheColorTheme {
+        Surface(color = Color(0xFF_126B40)) {
+            ProvideColorsOnTintedSurface(colorsOnDarkSurface()) {
+                PreviewContentExact()
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewExactDark() {
+    TheColorTheme {
+        Surface(color = Color(0xFF_F0F8FF)) {
+            ProvideColorsOnTintedSurface(colorsOnLightSurface()) {
+                PreviewContentExact()
+            }
         }
     }
 }
 
 @Composable
-private fun ColorSpecsWithPreviewData(
-    modifier: Modifier,
-) {
+private fun PreviewContentSeed() {
     ColorSpecs(
-        modifier = modifier,
         colorName = "Jewel",
         exactMatch = ColorDetailsData.ExactMatch.No(
             exactValue = "#126B40",
             exactColor = ColorInt(0x126B40),
-            goToExactColor = {},
             deviation = "1366",
         ),
-        initialColorData = ColorDetailsData.InitialColorData(
-            initialColor = ColorInt(0x1A803F),
-            goToInitialColor = {},
+        colorRoleData = ColorDetailsData.ColorRoleData.Seed(
+            exactColor = ColorInt(0x126B40),
+            selectExactColor = {},
         ),
         strings = ColorDetailsUiStrings(
             hexLabel = "_",
@@ -314,7 +321,33 @@ private fun ColorSpecsWithPreviewData(
             exactMatchLabel = "EXACT MATCH",
             exactMatchYes = "Yes",
             exactMatchNo = "No",
-            goBackToInitialColorButtonText = "Go back to",
+            goBackToSeedColorButtonText = "Go back to",
+            exactValueLabel = "EXACT VALUE",
+            deviationLabel = "DEVIATION",
+        ),
+    )
+}
+
+@Composable
+private fun PreviewContentExact() {
+    ColorSpecs(
+        colorName = "Jewel",
+        exactMatch = ColorDetailsData.ExactMatch.Yes,
+        colorRoleData = ColorDetailsData.ColorRoleData.Exact(
+            seedColor = ColorInt(0x1A803F),
+            selectSeedColor = {},
+        ),
+        strings = ColorDetailsUiStrings(
+            hexLabel = "_",
+            rgbLabel = "_",
+            hslLabel = "_",
+            hsvLabel = "_",
+            cmykLabel = "_",
+            nameLabel = "NAME",
+            exactMatchLabel = "EXACT MATCH",
+            exactMatchYes = "Yes",
+            exactMatchNo = "No",
+            goBackToSeedColorButtonText = "Go back to",
             exactValueLabel = "EXACT VALUE",
             deviationLabel = "DEVIATION",
         ),

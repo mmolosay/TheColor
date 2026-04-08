@@ -112,7 +112,7 @@ fun ColorDetails(
                 modifier = Modifier.align(Alignment.Start),
                 colorName = data.colorName,
                 exactMatch = data.exactMatch,
-                initialColorData = data.initialColorData,
+                colorRoleData = data.colorRoleData,
                 strings = strings,
             )
         }
@@ -175,7 +175,7 @@ private fun PreviewLight() {
         ProvideColorsOnTintedSurface(colors) {
             ColorDetailsWithPreviewData(
                 modifier = Modifier.background(Color(0xFF_1A803F)),
-                data = previewData(),
+                data = previewDataSeed(),
             )
         }
     }
@@ -189,7 +189,7 @@ private fun PreviewDark() {
         ProvideColorsOnTintedSurface(colors) {
             ColorDetailsWithPreviewData(
                 modifier = Modifier.background(Color(0xFF_F0F8FF)),
-                data = previewData(),
+                data = previewDataSeed(),
             )
         }
     }
@@ -235,7 +235,7 @@ private fun ColorDetailsWithPreviewData(
     )
 }
 
-private fun previewData() =
+private fun previewDataSeed() =
     ColorDetailsData(
         colorName = "Jewel",
         hex = ColorDetailsData.Hex(
@@ -265,10 +265,12 @@ private fun previewData() =
         exactMatch = ColorDetailsData.ExactMatch.No(
             exactValue = "#126B40",
             exactColor = ColorInt(0x126B40),
-            goToExactColor = {},
             deviation = "1366",
         ),
-        initialColorData = null,
+        colorRoleData = ColorDetailsData.ColorRoleData.Seed(
+            exactColor = ColorInt(0x126B40),
+            selectExactColor = {},
+        ),
     )
 
 private fun previewDataExact() =
@@ -299,9 +301,9 @@ private fun previewDataExact() =
             k = "50",
         ),
         exactMatch = ColorDetailsData.ExactMatch.Yes,
-        initialColorData = ColorDetailsData.InitialColorData(
-            initialColor = ColorInt(0x1A803F),
-            goToInitialColor = {},
+        colorRoleData = ColorDetailsData.ColorRoleData.Exact(
+            seedColor = ColorInt(0x1A803F),
+            selectSeedColor = {},
         ),
     )
 
@@ -316,7 +318,7 @@ private fun previewUiStrings() =
         exactMatchLabel = "EXACT MATCH",
         exactMatchYes = "Yes",
         exactMatchNo = "No",
-        goBackToInitialColorButtonText = "Go back to",
+        goBackToSeedColorButtonText = "Go back to",
         exactValueLabel = "EXACT VALUE",
         deviationLabel = "DEVIATION",
     )

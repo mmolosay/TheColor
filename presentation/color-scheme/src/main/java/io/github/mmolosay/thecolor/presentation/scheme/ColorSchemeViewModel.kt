@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -103,19 +104,11 @@ class ColorSchemeViewModel @AssistedInject constructor(
         statefulDataFlow.update {
             it.copy { StatefulData.state set State.Loading }
         }
-        coroutineScope.launch(ioDispatcher) {
-            colorRepository.getColorScheme(request)
-                .onSuccess { scheme ->
-                    val data = createData(scheme = scheme, config = requestConfig)
-                    statefulDataFlow.update {
-                        it.copy {
-                            StatefulData.dataSession.domainColorScheme set scheme
-                            StatefulData.dataSession.data set data
-                            StatefulData.state set State.Ready
-                        }
-                    }
-                }
-                .onFailure { exception ->
+        coroutineScope.launch(defaultDispatcher) {
+            val colorScheme = withContext(ioDispatcher) {
+                colorRepository.getColorScheme(request)
+            }
+                .getOrElse { exception ->
                     val error = ColorSchemeError(
                         cause = exception,
                         tryAgain = ::onErrorAction,
@@ -126,7 +119,16 @@ class ColorSchemeViewModel @AssistedInject constructor(
                             StatefulData.state set State.Error
                         }
                     }
+                    return@launch
                 }
+            val data = createData(scheme = colorScheme, config = requestConfig)
+            statefulDataFlow.update {
+                it.copy {
+                    StatefulData.dataSession.domainColorScheme set colorScheme
+                    StatefulData.dataSession.data set data
+                    StatefulData.state set State.Ready
+                }
+            }
         }.also { job ->
             fetchDataJob.getAndSet(job)?.cancel()
         }

@@ -17,7 +17,7 @@ import kotlin.contracts.contract
 class OperationCounter(
     private val onCounterChange: OnCounterChangeAction,
 ) {
-    @Volatile
+    @Volatile // public value, needs visibility guarantee across threads for clients
     var updateCounter = 0
         private set
     private val mutex = Mutex()

@@ -15,7 +15,6 @@ import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntU
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommand
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEvent
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorRole
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterSessionStore.SessionState
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.CanProceed
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ColorSchemeSelectedSwatchData
@@ -148,12 +147,15 @@ class HomeViewModel @Inject constructor(
         when (event) {
             is ColorDetailsEvent.ColorSelected ->
                 viewModelScope.launch(defaultDispatcher) {
+                    ccSessionStore.sessionState.mustBeOngoing()
                     dataUpdateCounter.withCounter {
                         val color = event.color
                         colorInputMediator.set(color)
-                        val payload = ProceedPayload(color, colorRole = event.colorRole)
                         // assuming any color selected belongs to ongoing session
-                        proceed(payload)
+                        proceed(
+                            color = color,
+                            colorDetailsCommand = ColorDetailsCommand.SelectColor(event.colorRole),
+                        )
                     }
                 }.also { job ->
                     job.setToJobWithProceed()
@@ -167,9 +169,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch(defaultDispatcher) {
             when (event) {
                 is ColorSchemeEvent.SwatchSelected -> {
-                    val command = ColorDetailsCommand.SetColorDetails(
-                        domainDetails = event.swatchColorDetails,
-                    )
+                    val command = ColorDetailsCommand.SetSeedDetails(event.swatchColorDetails)
                     val commandStore = colorCenterComponentsStore.components
                         ?.selectedSwatchColorDetailsCommandStore
                         ?: return@launch
@@ -195,10 +195,7 @@ class HomeViewModel @Inject constructor(
                 val commandStore = colorCenterComponentsStore.components
                     ?.selectedSwatchColorDetailsCommandStore
                     ?: return
-                val command = ColorDetailsCommand.FetchData(
-                    color = event.color,
-                    colorRole = event.colorRole,
-                )
+                val command = ColorDetailsCommand.SelectColor(colorRole = event.colorRole)
                 commandStore.issue(command)
             }
             else -> doNothing()
@@ -214,8 +211,12 @@ class HomeViewModel @Inject constructor(
             if (!enabled) return@launch
             val color = lastSearchedColorRepository.getLastSearchedColor() ?: return@launch
             dataUpdateCounter.withCounter {
-                val payload = ProceedPayload(color)
-                proceedInNewColorCenterSession(payload)
+                createAndConsumeNewColorCenterComponents()
+                startColorCenterSession(seed = color)
+                proceed(
+                    color = color,
+                    colorDetailsCommand = ColorDetailsCommand.SetSeedColor(color),
+                )
                 colorInputMediator.set(color)
             }
         }.also { job ->
@@ -229,19 +230,19 @@ class HomeViewModel @Inject constructor(
             dataUpdateCounter.withCounter {
                 endColorCenterSession() // end current session (if any)
                 val color = requireNotNull(colorInputMediator.colorState.color)
-                val payload = ProceedPayload(color)
-                proceedInNewColorCenterSession(payload)
+                createAndConsumeNewColorCenterComponents()
+                startColorCenterSession(seed = color)
+                proceed(
+                    color = color,
+                    colorDetailsCommand = ColorDetailsCommand.SetSeedColor(color),
+                )
             }
         }.also { job ->
             job.setToJobWithProceed()
         }
     }
 
-    /**
-     * Invokes [proceed] action and starts a new Color Center session, which also means
-     * new [ColorCenterComponents] are created.
-     */
-    private suspend fun CoroutineScope.proceedInNewColorCenterSession(payload: ProceedPayload) {
+    private suspend fun createAndConsumeNewColorCenterComponents() {
         colorCenterComponentsStore.createNewComponents()
         run consumeNewComponents@{
             val newComponents = colorCenterComponentsStore.components
@@ -266,24 +267,24 @@ class HomeViewModel @Inject constructor(
                 jobWithComponentsCollection.getAndSet(job)?.cancel()
             }
         }
-        startColorCenterSession(seed = payload.color)
-        proceed(payload)
     }
 
-    private suspend fun proceed(payload: ProceedPayload) {
+    private suspend fun proceed(
+        color: Color,
+        colorDetailsCommand: ColorDetailsCommand,
+    ) {
         val components = requireNotNull(colorCenterComponentsStore.components)
         coroutineScope {
             launch issueCommandToColorDetails@{
-                val command = ColorDetailsCommand.FetchData(payload.color, payload.colorRole)
-                components.colorDetailsCommandStore.issue(command)
+                components.colorDetailsCommandStore.issue(colorDetailsCommand)
             }
             launch issueCommandToColorScheme@{
-                val command = ColorSchemeCommand.FetchData(payload.color)
+                val command = ColorSchemeCommand.FetchData(color)
                 components.colorSchemeCommandStore.issue(command)
             }
         }
         kotlin.run updateData@{
-            val colorData = createColorData(payload.color)
+            val colorData = createColorData(color)
             val proceedResult = HomeData.ProceedResult.Success(
                 colorData = colorData,
             )
@@ -303,8 +304,12 @@ class HomeViewModel @Inject constructor(
                     .enabled
                 dataUpdateCounter.withCounter {
                     if (shouldProceed) {
-                        val payload = ProceedPayload(color)
-                        proceedInNewColorCenterSession(payload)
+                        createAndConsumeNewColorCenterComponents()
+                        startColorCenterSession(seed = color)
+                        proceed(
+                            color = color,
+                            colorDetailsCommand = ColorDetailsCommand.SetSeedColor(color),
+                        )
                     }
                     editor.set(color)
                 }
@@ -364,7 +369,7 @@ class HomeViewModel @Inject constructor(
             ccSessionStore.startBuilding(seed).run {
                 val event = components.colorDetailsEventStore.eventFlow
                     .filterIsInstance<ColorDetailsEvent.DataFetched>()
-                    .first { it.domainDetails.color == seed }
+                    .first { with(colorComparator) { it.domainDetails.color isSameAs seed } }
                 val relatedColors = setOf(event.domainDetails.exact.color)
                 val session = ColorCenterSession(seed, relatedColors)
                 ensureActive()
@@ -406,8 +411,12 @@ class HomeViewModel @Inject constructor(
                     viewModelScope.launch(defaultDispatcher) {
                         dataUpdateCounter.withCounter {
                             val color = validationResult.color
-                            val payload = ProceedPayload(color)
-                            proceedInNewColorCenterSession(payload)
+                            createAndConsumeNewColorCenterComponents()
+                            startColorCenterSession(seed = color)
+                            proceed(
+                                color = color,
+                                colorDetailsCommand = ColorDetailsCommand.SetSeedColor(color),
+                            )
                         }
                     }.also { job ->
                         job.setToJobWithProceed()
@@ -426,14 +435,6 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
-
-    /**
-     * Contains the payload for the [proceed] action.
-     */
-    private data class ProceedPayload(
-        val color: Color,
-        val colorRole: ColorRole? = null,
-    )
 }
 
 /* 'internal' for testing */
@@ -496,6 +497,10 @@ internal class ColorCenterSessionStore {
 
 private val ColorCenterSessionStore.sessionState: SessionState
     get() = this.flowOfSessionState.value
+
+private fun SessionState.mustBeOngoing() {
+    check(this is SessionState.Ongoing) { "SessionState $this must be Ongoing" }
+}
 
 /**
  * Creates an instance of [HomeData.ProceedResult.Success.ColorData].

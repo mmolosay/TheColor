@@ -1,33 +1,37 @@
 package io.github.mmolosay.thecolor.presentation.details
 
 import io.github.mmolosay.thecolor.domain.color.Color
+import io.github.mmolosay.thecolor.domain.color.ColorConverter
 import io.github.mmolosay.thecolor.domain.color.ColorDetails
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData
+import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ColorRoleData
+import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ExactMatch
+import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorRole
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.CreateColorDetailsDataUseCase
 import io.kotest.matchers.shouldBe
-import io.mockk.every
-import io.mockk.mockk
 import org.junit.jupiter.api.Test
 
 class CreateColorDetailsDataUseCaseTest {
 
-    val colorToColorInt: ColorToColorIntUseCase = mockk()
+    val colorToColorInt = ColorToColorIntUseCase(
+        colorConverter = ColorConverter(),
+    )
 
     lateinit var sut: CreateColorDetailsDataUseCase
 
     @Test
     fun `creates correct data`() {
-        every { with(colorToColorInt) { any<Color>().toColorInt() } } returns ColorInt(0x123456)
         createSut()
 
         val details = ColorDetails()
         val resultData = sut.invoke(
             details = details,
-            goToExactColor = {},
-            initialColor = null,
-            goToInitialColor = {},
+            colorRole = ColorRole.Seed,
+            selectExactColor = {},
+            selectSeedColor = {},
+            getSeedColor = { null },
         )
 
         val comparableData = resultData.copyWithNoopLambdas()
@@ -55,13 +59,15 @@ class CreateColorDetailsDataUseCaseTest {
                 y = "51",
                 k = "50",
             ),
-            exactMatch = ColorDetailsData.ExactMatch.No(
+            exactMatch = ExactMatch.No(
                 exactValue = "#126B40",
-                exactColor = ColorInt(0x123456),
-                goToExactColor = NoopOnClickAction,
+                exactColor = ColorInt(0x126B40),
                 deviation = "1366",
             ),
-            initialColorData = null,
+            colorRoleData = ColorRoleData.Seed(
+                exactColor = ColorInt(0x126B40),
+                selectExactColor = NoopOnClickAction,
+            )
         )
     }
 
@@ -77,12 +83,14 @@ class CreateColorDetailsDataUseCaseTest {
     // https://arrow-kt.io/learn/immutable-data/lens/#sealed-class-hierarchies
     fun ColorDetailsData.copyWithNoopLambdas() =
         this.copy(
-            exactMatch = exactMatch.run {
+            colorRoleData = colorRoleData.run {
                 when (this) {
-                    is ColorDetailsData.ExactMatch.No -> this.copy(
-                        goToExactColor = NoopOnClickAction,
+                    is ColorRoleData.Seed -> this.copy(
+                        selectExactColor = NoopOnClickAction,
                     )
-                    is ColorDetailsData.ExactMatch.Yes -> this
+                    is ColorRoleData.Exact -> this.copy(
+                        selectSeedColor = NoopOnClickAction,
+                    )
                 }
             },
         )
@@ -92,7 +100,6 @@ class CreateColorDetailsDataUseCaseTest {
     }
 }
 
-@Suppress("TestFunctionName") // not a unit test
 private fun ColorDetails() =
     ColorDetails(
         color = Color.Hex(0x1A803F),
