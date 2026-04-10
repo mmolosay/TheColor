@@ -10,7 +10,7 @@ import io.github.mmolosay.thecolor.domain.exception.DomainException
 import io.github.mmolosay.thecolor.domain.exception.DomainFailure
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommand
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommandProvider
+import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommandStore
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ColorRoleData
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEvent
@@ -37,8 +37,6 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -65,7 +63,7 @@ class ColorDetailsViewModelTest {
     @Suppress("unused")
     val mainDispatcherExtension = MainDispatcherExtension(testDispatcher)
 
-    val commandProvider: ColorDetailsCommandProvider = mockk()
+    val commandStore = ColorDetailsCommandStore()
     val eventStoreMock: ColorDetailsEventStore = mockk {
         coEvery { send(event = any()) } just runs
     }
@@ -96,8 +94,6 @@ class ColorDetailsViewModelTest {
 
     @Test
     fun `given SUT is created, when no 'set seed color' command emitted, then SUT remains with initial 'Idle' state`() {
-        every { commandProvider.commandFlow } returns emptyFlow()
-
         createSut()
 
         sut.dataStateFlow.value should beOfType<DataState.Idle>()
@@ -107,8 +103,6 @@ class ColorDetailsViewModelTest {
     fun `when 'set seed color' command is emitted, then SUT emits 'Ready' state`() =
         runTest(testDispatcher) {
             val color = Color.Hex(0x1A803F)
-            val commandFlow = MutableSharedFlow<ColorDetailsCommand>()
-            every { commandProvider.commandFlow } returns commandFlow
             coEvery { colorRepository.getColorDetails(color) } returns run {
                 val details = mockk<ColorDetails> {
                     every { this@mockk.color } returns color
@@ -121,7 +115,7 @@ class ColorDetailsViewModelTest {
             sut.dataStateFlow.test {
                 run {
                     val command = ColorDetailsCommand.SetSeedColor(color)
-                    commandFlow.emit(command)
+                    commandStore.channel.send(command)
                 }
 
                 expectMostRecentItem() should beOfType<DataState.Ready>()
@@ -132,8 +126,6 @@ class ColorDetailsViewModelTest {
     fun `when 'set seed color' command is emitted, then SUT emits 'Error' state`() =
         runTest(testDispatcher) {
             val color = Color.Hex(0x1A803F)
-            val commandFlow = MutableSharedFlow<ColorDetailsCommand>()
-            every { commandProvider.commandFlow } returns commandFlow
             coEvery { colorRepository.getColorDetails(color) } returns run {
                 val exception = DomainException(
                     failure = DomainFailure.Http.Timeout,
@@ -146,7 +138,7 @@ class ColorDetailsViewModelTest {
             sut.dataStateFlow.test {
                 run {
                     val command = ColorDetailsCommand.SetSeedColor(color)
-                    commandFlow.emit(command)
+                    commandStore.channel.send(command)
                 }
 
                 expectMostRecentItem() should beOfType<DataState.Error>()
@@ -157,8 +149,6 @@ class ColorDetailsViewModelTest {
     fun `when 'set seed color' command is emitted, then SUT emits subject color data`() =
         runTest(testDispatcher) {
             val color = Color.Hex(0x1A803F)
-            val commandFlow = MutableSharedFlow<ColorDetailsCommand>()
-            every { commandProvider.commandFlow } returns commandFlow
             coEvery { colorRepository.getColorDetails(color = any()) } returns run {
                 val details = mockk<ColorDetails> {
                     every { this@mockk.color } returns color
@@ -171,7 +161,7 @@ class ColorDetailsViewModelTest {
             sut.subjectColorDataFlow.test {
                 run {
                     val command = ColorDetailsCommand.SetSeedColor(color)
-                    commandFlow.emit(command)
+                    commandStore.channel.send(command)
                 }
 
                 expectMostRecentItem() shouldNotBe null
@@ -184,8 +174,6 @@ class ColorDetailsViewModelTest {
         runTest(testDispatcher) {
             val color1 = Color.Hex(0x0)
             val color2 = Color.Hex(0x1)
-            val commandFlow = MutableSharedFlow<ColorDetailsCommand>()
-            every { commandProvider.commandFlow } returns commandFlow
             coEvery {
                 colorRepository.getColorDetails(color = color1)
             } coAnswers {
@@ -201,11 +189,11 @@ class ColorDetailsViewModelTest {
 
             run emitFirstCommand@{
                 val command = ColorDetailsCommand.SetSeedColor(color = color1)
-                commandFlow.emit(command)
+                commandStore.channel.send(command)
             }
             run emitSecondCommand@{
                 val command = ColorDetailsCommand.SetSeedColor(color = color2)
-                commandFlow.emit(command)
+                commandStore.channel.send(command)
             }
             run {
                 val details = mockk<ColorDetails> {
@@ -232,15 +220,13 @@ class ColorDetailsViewModelTest {
     @Test
     fun `when 'set seed details' command is emitted, then SUT emits subject color data`() =
         runTest(testDispatcher) {
-            val commandFlow = MutableSharedFlow<ColorDetailsCommand>()
-            every { commandProvider.commandFlow } returns commandFlow
             createSut()
 
             sut.subjectColorDataFlow.test {
                 run {
                     val details = mockk<ColorDetails>(relaxed = true)
                     val command = ColorDetailsCommand.SetSeedDetails(details)
-                    commandFlow.emit(command)
+                    commandStore.channel.send(command)
                 }
 
                 expectMostRecentItem() shouldNotBe null
@@ -252,8 +238,6 @@ class ColorDetailsViewModelTest {
         runTest(testDispatcher) {
             val seedColor = Color.Hex(0x1A803F)
             val exactColor = Color.Hex(0x126B40)
-            val commandFlow = MutableSharedFlow<ColorDetailsCommand>()
-            every { commandProvider.commandFlow } returns commandFlow
             coEvery { colorRepository.getColorDetails(seedColor) } returns run {
                 val details = mockk<ColorDetails>(relaxed = true) {
                     every { this@mockk.color } returns seedColor
@@ -268,7 +252,7 @@ class ColorDetailsViewModelTest {
 
             run {
                 val command = ColorDetailsCommand.SetSeedColor(seedColor)
-                commandFlow.emit(command)
+                commandStore.channel.send(command)
             }
             sut.data.selectExactColor()
 
@@ -287,8 +271,6 @@ class ColorDetailsViewModelTest {
             // GIVEN
             val seedColor = Color.Hex(0x1A803F)
             val exactColor = Color.Hex(0x126B40)
-            val commandFlow = MutableSharedFlow<ColorDetailsCommand>()
-            every { commandProvider.commandFlow } returns commandFlow
             coEvery { colorRepository.getColorDetails(color = seedColor) } returns run {
                 val details = mockk<ColorDetails>(relaxed = true) {
                     every { this@mockk.color } returns seedColor
@@ -312,11 +294,11 @@ class ColorDetailsViewModelTest {
             // WHEN
             run {
                 val command = ColorDetailsCommand.SetSeedColor(seedColor)
-                commandFlow.emit(command)
+                commandStore.channel.send(command)
             }
             run {
                 val command = ColorDetailsCommand.SelectColor(ColorRole.Exact)
-                commandFlow.emit(command)
+                commandStore.channel.send(command)
             }
             sut.data.selectSeedColor()
 
@@ -341,8 +323,6 @@ class ColorDetailsViewModelTest {
         runTest(testDispatcher) {
             val seedColor = Color.Hex(0x1A803F)
             val exactColor = Color.Hex(0x126B40)
-            val commandFlow = MutableSharedFlow<ColorDetailsCommand>()
-            every { commandProvider.commandFlow } returns commandFlow
             coEvery { colorRepository.getColorDetails(color = seedColor) } returns run {
                 val details = mockk<ColorDetails>(relaxed = true) {
                     every { this@mockk.color } returns seedColor
@@ -366,11 +346,11 @@ class ColorDetailsViewModelTest {
             sut.dataStateFlow.test {
                 run {
                     val command = ColorDetailsCommand.SetSeedColor(seedColor)
-                    commandFlow.emit(command)
+                    commandStore.channel.send(command)
                 }
                 run {
                     val command = ColorDetailsCommand.SelectColor(ColorRole.Exact)
-                    commandFlow.emit(command)
+                    commandStore.channel.send(command)
                 }
 
                 val data = expectMostRecentItem().shouldBeInstanceOf<DataState.Ready>().data
@@ -383,8 +363,6 @@ class ColorDetailsViewModelTest {
         runTest(testDispatcher) {
             val color1 = Color.Hex(0x0)
             val color2 = Color.Hex(0x1)
-            val commandFlow = MutableSharedFlow<ColorDetailsCommand>()
-            every { commandProvider.commandFlow } returns commandFlow
             coEvery { colorRepository.getColorDetails(color = color1) } returns run {
                 val exception = DomainException(
                     failure = DomainFailure.Http.UnknownHost,
@@ -404,7 +382,7 @@ class ColorDetailsViewModelTest {
 
             run {
                 val command = ColorDetailsCommand.SetSeedColor(color1)
-                commandFlow.emit(command)
+                commandStore.channel.send(command)
             }
             val getColorDetailsDeferred = CompletableDeferred<Result<ColorDetails>>()
             coEvery { colorRepository.getColorDetails(color = color1) } coAnswers {
@@ -414,7 +392,7 @@ class ColorDetailsViewModelTest {
                 .error.tryAgain.invoke()
             run {
                 val command = ColorDetailsCommand.SetSeedColor(color2)
-                commandFlow.emit(command)
+                commandStore.channel.send(command)
             }
             // complete Deferred in case SUT hasn't canceled the job
             val detailsOfColor1 = mockk<ColorDetails> {
@@ -460,15 +438,13 @@ class ColorDetailsViewModelTest {
                         Result.success(value = fetchedDetails)
             }
 
-            val commandFlow = MutableSharedFlow<ColorDetailsCommand>()
-            every { commandProvider.commandFlow } returns commandFlow
             mockGetColorDetailsReturnsSuccess()
             createSut()
 
             val color1 = Color.Hex(0x0)
             run {
                 val command = ColorDetailsCommand.SetSeedColor(color = color1)
-                commandFlow.emit(command)
+                commandStore.channel.send(command)
             }
             coEvery { colorRepository.getColorDetails(color = any()) } returns run {
                 val exception = DomainException(
@@ -480,7 +456,7 @@ class ColorDetailsViewModelTest {
             val color2 = Color.Hex(0x1)
             run {
                 val command = ColorDetailsCommand.SetSeedColor(color = color2)
-                commandFlow.emit(command)
+                commandStore.channel.send(command)
             }
             mockGetColorDetailsReturnsSuccess()
 
@@ -495,16 +471,12 @@ class ColorDetailsViewModelTest {
     @Test
     fun `when 'set seed details' command is emitted, then SUT emits 'Ready' state`() =
         runTest(testDispatcher) {
-            val commandFlow = MutableSharedFlow<ColorDetailsCommand>()
-            every { commandProvider.commandFlow } returns commandFlow
-            coEvery { colorRepository.getColorDetails(color = any()) } returns
-                    Result.success(value = mockk())
             createSut()
 
             run {
                 val details: ColorDetails = mockk(relaxed = true)
                 val command = ColorDetailsCommand.SetSeedDetails(details)
-                commandFlow.emit(command)
+                commandStore.channel.send(command)
             }
 
             sut.dataStateFlow.value should beOfType<DataState.Ready>()
@@ -518,8 +490,6 @@ class ColorDetailsViewModelTest {
     fun `when pairs of 'select exact'-'select seed' actions are invoked multiple times, then SUT emits correct data`() =
         runTest(testDispatcher) {
             // GIVEN
-            val commandFlow = MutableSharedFlow<ColorDetailsCommand>()
-            every { commandProvider.commandFlow } returns commandFlow
             val seedColor = Color.Hex(0x1A803F)
             val exactColor = Color.Hex(0x126B40)
             coEvery { colorRepository.getColorDetails(color = seedColor) } returns run {
@@ -551,11 +521,11 @@ class ColorDetailsViewModelTest {
             suspend fun emitSelectColorCommand(event: ColorDetailsEvent) {
                 event.shouldBeInstanceOf<ColorDetailsEvent.ColorSelected>()
                 val command = ColorDetailsCommand.SelectColor(colorRole = event.colorRole)
-                commandFlow.emit(command)
+                commandStore.channel.send(command)
             }
             run fetchDataForSeedColor@{
                 val command = ColorDetailsCommand.SetSeedColor(color = seedColor)
-                commandFlow.emit(command)
+                commandStore.channel.send(command)
             }
 
             val event1 = async { eventStoreReal.eventFlow.first() }
@@ -585,7 +555,7 @@ class ColorDetailsViewModelTest {
     ) =
         ColorDetailsViewModel(
             coroutineScope = CoroutineScope(context = coroutineDispatcher),
-            commandProvider = commandProvider,
+            commandProvider = commandStore,
             eventStore = eventStore,
             colorRepository = colorRepository,
             createData = createData,

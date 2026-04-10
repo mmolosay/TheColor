@@ -173,7 +173,7 @@ class HomeViewModel @Inject constructor(
                     val commandStore = colorCenterComponentsStore.components
                         ?.selectedSwatchColorDetailsCommandStore
                         ?: return@launch
-                    commandStore.issue(command)
+                    commandStore.channel.send(command)
                     val selectedSwatchColorDetailsViewModel = colorCenterComponentsStore.components
                         ?.selectedSwatchColorDetailsViewModel
                         ?: return@launch
@@ -196,7 +196,7 @@ class HomeViewModel @Inject constructor(
                     ?.selectedSwatchColorDetailsCommandStore
                     ?: return
                 val command = ColorDetailsCommand.SelectColor(colorRole = event.colorRole)
-                commandStore.issue(command)
+                commandStore.channel.send(command)
             }
             else -> doNothing()
         }
@@ -276,7 +276,8 @@ class HomeViewModel @Inject constructor(
         val components = requireNotNull(colorCenterComponentsStore.components)
         coroutineScope {
             launch issueCommandToColorDetails@{
-                components.colorDetailsCommandStore.issue(colorDetailsCommand)
+                val commandStore = components.colorDetailsCommandStore
+                commandStore.channel.send(colorDetailsCommand)
             }
             launch issueCommandToColorScheme@{
                 val command = ColorSchemeCommand.FetchData(color)

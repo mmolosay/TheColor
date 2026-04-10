@@ -97,12 +97,9 @@ class HomeViewModelTest {
     val colorPreviewViewModel: ColorPreviewViewModel = mockk(relaxed = true)
 
     val colorDetailsViewModel: ColorDetailsViewModel = mockk(relaxed = true)
-    val colorDetailsCommandStore: ColorDetailsCommandStore = mockk {
-        coEvery { issue(command = any()) } just runs
-    }
-    val colorDetailsCommandStoreProvider: Provider<ColorDetailsCommandStore> = mockk {
-        every { get() } returns colorDetailsCommandStore
-    }
+    val colorDetailsCommandStore = ColorDetailsCommandStore(
+        channel = mockk(relaxed = true),
+    )
     val colorDetailsEventStore: ColorDetailsEventStore = mockk()
     val colorDetailsEventStoreProvider: Provider<ColorDetailsEventStore> = mockk {
         every { get() } returns colorDetailsEventStore
@@ -127,7 +124,7 @@ class HomeViewModelTest {
             viewModelScope: CoroutineScope,
         ): ColorCenterComponentsStore {
             val factory = ColorCenterComponentsFactory(
-                colorDetailsCommandStoreProvider = colorDetailsCommandStoreProvider,
+                colorDetailsCommandStoreProvider = Provider { colorDetailsCommandStore },
                 colorDetailsEventStoreProvider = colorDetailsEventStoreProvider,
                 colorDetailsViewModelFactory = { _, _, _ -> colorDetailsViewModel },
                 colorSchemeCommandStoreProvider = colorSchemeCommandStoreProvider,
@@ -902,11 +899,11 @@ class HomeViewModelTest {
             val event: ColorSchemeEvent.SwatchSelected = mockk(relaxed = true)
             colorSchemeEventFlow.emit(event)
 
-            coEvery {
+            coVerify {
                 val commandStore = colorCenterComponentsStore.components
                     ?.selectedSwatchColorDetailsCommandStore
                     .shouldNotBeNull()
-                commandStore.issue(command = any<ColorDetailsCommand.SetSeedDetails>())
+                commandStore.channel.send(any<ColorDetailsCommand.SetSeedDetails>())
             }
         }
 
@@ -1349,14 +1346,14 @@ class HomeViewModelTest {
         matcherForColorDetailsCommand: MyMatcher<ColorDetailsCommand> = matchAny(),
         matcherForColorSchemeCommand: MyMatcher<ColorSchemeCommand> = matchAny(),
     ) {
-        kotlin.run verifyColorDetailsCommandIssued@{
+        run verifyColorDetailsCommandIssued@{
             // and(matcher, matcher) is inconvenient to use
             val expectedCommand = match<ColorDetailsCommand> { command ->
                 matcherForColorDetailsCommand.match(command)
             }
-            colorDetailsCommandStore.issue(command = expectedCommand)
+            colorDetailsCommandStore.channel.send(element = expectedCommand)
         }
-        kotlin.run verifyColorSchemeCommandIssued@{
+        run verifyColorSchemeCommandIssued@{
             // and(matcher, matcher) is inconvenient to use
             val expectedCommand = match<ColorSchemeCommand> { command ->
                 matcherForColorSchemeCommand.match(command)

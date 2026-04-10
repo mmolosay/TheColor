@@ -1,31 +1,16 @@
 package io.github.mmolosay.thecolor.presentation.details.viewmodel
 
 import io.github.mmolosay.thecolor.domain.color.Color
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import javax.inject.Inject
 import io.github.mmolosay.thecolor.domain.color.ColorDetails as DomainColorDetails
 
+// TODO: rename file?
+
 /**
- * Storage that holds a [Flow] of [ColorDetailsCommand]s for a 'Color Details' to handle.
+ * A command issued towards 'Color Details' feature to be handled by it.
+ * 
+ * Processed in [ColorDetailsViewModel]. Should only be used to communicate with 
+ * 'Color Details' feature from other features and `ViewModel`s.
  */
-class ColorDetailsCommandStore @Inject constructor() : ColorDetailsCommandProvider {
-
-    private val _commandFlow = MutableSharedFlow<ColorDetailsCommand>(replay = Int.MAX_VALUE)
-    override val commandFlow: Flow<ColorDetailsCommand> = _commandFlow.asSharedFlow()
-
-    suspend infix fun issue(command: ColorDetailsCommand) {
-        _commandFlow.emit(command)
-    }
-}
-
-/** Read-only provider. */
-interface ColorDetailsCommandProvider {
-    val commandFlow: Flow<ColorDetailsCommand>
-}
-
-/** A command issued towards 'Color Details' feature to be handled by it. */
 sealed interface ColorDetailsCommand {
 
     /**
