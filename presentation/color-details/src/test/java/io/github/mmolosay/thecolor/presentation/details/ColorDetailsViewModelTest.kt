@@ -10,7 +10,6 @@ import io.github.mmolosay.thecolor.domain.exception.DomainException
 import io.github.mmolosay.thecolor.domain.exception.DomainFailure
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommand
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommandStore
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ColorRoleData
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEvent
@@ -63,7 +62,7 @@ class ColorDetailsViewModelTest {
     @Suppress("unused")
     val mainDispatcherExtension = MainDispatcherExtension(testDispatcher)
 
-    val commandStore = ColorDetailsCommandStore()
+    val commandStore = DiModule.ProvideModule.provideCommandStore()
     val eventStoreMock: ColorDetailsEventStore = mockk {
         coEvery { send(event = any()) } just runs
     }
@@ -555,7 +554,7 @@ class ColorDetailsViewModelTest {
     ) =
         ColorDetailsViewModel(
             coroutineScope = CoroutineScope(context = coroutineDispatcher),
-            commandProvider = commandStore,
+            commandStore = commandStore,
             eventStore = eventStore,
             colorRepository = colorRepository,
             createData = createData,

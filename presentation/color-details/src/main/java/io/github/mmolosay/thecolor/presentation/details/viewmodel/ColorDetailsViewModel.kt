@@ -36,7 +36,7 @@ import io.github.mmolosay.thecolor.domain.color.ColorDetails as DomainColorDetai
  */
 class ColorDetailsViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted private val commandProvider: NewColorDetailsCommandProvider,
+    @Assisted private val commandStore: ColorDetailsCommandStore,
     @Assisted private val eventStore: ColorDetailsEventStore,
     private val colorRepository: ColorRepository,
     private val createData: CreateColorDetailsDataUseCase,
@@ -63,7 +63,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
 
     private fun collectColorDetailsCommands() =
         coroutineScope.launch(defaultDispatcher) {
-            for (command in commandProvider.channel) {
+            for (command in commandStore.channel) {
                 process(command)
             }
         }
@@ -190,7 +190,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            colorDetailsCommandProvider: NewColorDetailsCommandProvider,
+            colorDetailsCommandStore: ColorDetailsCommandStore,
             colorDetailsEventStore: ColorDetailsEventStore,
         ): ColorDetailsViewModel
     }

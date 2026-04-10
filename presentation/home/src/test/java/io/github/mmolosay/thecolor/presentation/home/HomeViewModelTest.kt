@@ -8,6 +8,7 @@ import io.github.mmolosay.thecolor.domain.color.LastSearchedColorRepository
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.ResumeFromLastSearchedColorOnStartup
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
+import io.github.mmolosay.thecolor.presentation.common.viewmodel.CommandStore
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommand
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommandStore
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEvent
@@ -97,7 +98,7 @@ class HomeViewModelTest {
     val colorPreviewViewModel: ColorPreviewViewModel = mockk(relaxed = true)
 
     val colorDetailsViewModel: ColorDetailsViewModel = mockk(relaxed = true)
-    val colorDetailsCommandStore = ColorDetailsCommandStore(
+    val colorDetailsCommandStore: ColorDetailsCommandStore = CommandStore(
         channel = mockk(relaxed = true),
     )
     val colorDetailsEventStore: ColorDetailsEventStore = mockk()

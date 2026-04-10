@@ -69,7 +69,7 @@ class ColorCenterComponentsFactory @Inject constructor(
         val colorDetailsEventStore = colorDetailsEventStoreProvider.get()
         val colorDetailsViewModel = colorDetailsViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = colorCenterViewModelCoroutineScope),
-            colorDetailsCommandProvider = colorDetailsCommandStore,
+            colorDetailsCommandStore = colorDetailsCommandStore,
             colorDetailsEventStore = colorDetailsEventStore,
         )
         val colorSchemeViewModelCoroutineScope =
@@ -90,7 +90,7 @@ class ColorCenterComponentsFactory @Inject constructor(
         val selectedSwatchColorDetailsEventStore = colorDetailsEventStoreProvider.get()
         val selectedSwatchColorDetailsViewModel = colorDetailsViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = colorSchemeViewModelCoroutineScope),
-            colorDetailsCommandProvider = selectedSwatchColorDetailsCommandStore,
+            colorDetailsCommandStore = selectedSwatchColorDetailsCommandStore,
             colorDetailsEventStore = selectedSwatchColorDetailsEventStore,
         )
         return ColorCenterComponents(
