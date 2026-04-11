@@ -280,8 +280,9 @@ class HomeViewModel @Inject constructor(
                 viewModel.commands.send(colorDetailsCommand)
             }
             launch issueCommandToColorScheme@{
+                val viewModel = components.colorCenterViewModel.colorSchemeViewModel
                 val command = ColorSchemeCommand.FetchData(color)
-                components.colorSchemeCommandStore.issue(command)
+                viewModel.commands.send(command)
             }
         }
         kotlin.run updateData@{

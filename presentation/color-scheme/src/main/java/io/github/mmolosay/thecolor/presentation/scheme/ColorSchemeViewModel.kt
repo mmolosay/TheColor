@@ -14,6 +14,7 @@ import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQuali
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.IoDispatcher
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
+import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCommandsChannel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Changes
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Swatch
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.SwatchCount
@@ -24,6 +25,7 @@ import io.github.mmolosay.thecolor.utils.asDelegate
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -48,7 +50,6 @@ import io.github.mmolosay.thecolor.domain.color.ColorScheme as DomainColorScheme
  */
 class ColorSchemeViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted private val commandProvider: ColorSchemeCommandProvider,
     @Assisted private val eventStore: ColorSchemeEventStore,
     private val colorRepository: ColorRepository,
     private val createData: CreateColorSchemeDataUseCase,
@@ -72,6 +73,9 @@ class ColorSchemeViewModel @AssistedInject constructor(
             initialValue = statefulDataFlow.value.toDataState(),
         )
 
+    private val _commands = ViewModelCommandsChannel<ColorSchemeCommand>()
+    val commands: SendChannel<ColorSchemeCommand> = _commands
+
     private val fetchDataJob = AtomicReference<Job?>(null)
     private val dataEditor = ColorSchemeDataEditor(
         applyChanges = ::applyChanges,
@@ -83,7 +87,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
 
     private fun collectColorSchemeCommands() =
         coroutineScope.launch(defaultDispatcher) {
-            commandProvider.commandFlow.collect { command ->
+            for (command in _commands) {
                 command.process()
             }
         }
@@ -229,7 +233,6 @@ class ColorSchemeViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            colorSchemeCommandProvider: ColorSchemeCommandProvider,
             colorSchemeEventStore: ColorSchemeEventStore,
         ): ColorSchemeViewModel
     }

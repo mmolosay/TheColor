@@ -32,7 +32,6 @@ import io.github.mmolosay.thecolor.presentation.input.testing.MockColorInputMedi
 import io.github.mmolosay.thecolor.presentation.input.testing.mockSet
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommand
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommandStore
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEventStore
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
@@ -102,12 +101,6 @@ class HomeViewModelTest {
     }
 
     val colorSchemeViewModel: ColorSchemeViewModel = mockk(relaxed = true)
-    val colorSchemeCommandStore: ColorSchemeCommandStore = mockk {
-        coEvery { issue(command = any()) } just runs
-    }
-    val colorSchemeCommandStoreProvider: Provider<ColorSchemeCommandStore> = mockk {
-        every { get() } returns colorSchemeCommandStore
-    }
     val colorSchemeEventStore: ColorSchemeEventStore = mockk()
     val colorSchemeEventStoreProvider: Provider<ColorSchemeEventStore> = mockk {
         every { get() } returns colorSchemeEventStore
@@ -125,9 +118,8 @@ class HomeViewModelTest {
             val factory = ColorCenterComponentsFactory(
                 colorDetailsEventStoreProvider = colorDetailsEventStoreProvider,
                 colorDetailsViewModelFactory = { _, _ -> colorDetailsViewModel },
-                colorSchemeCommandStoreProvider = colorSchemeCommandStoreProvider,
                 colorSchemeEventStoreProvider = colorSchemeEventStoreProvider,
-                colorSchemeViewModelFactory = { _, _, _ -> colorSchemeViewModel },
+                colorSchemeViewModelFactory = { _, _ -> colorSchemeViewModel },
                 colorCenterViewModelFactory = { _, _, _ -> colorCenterViewModel },
             )
             return ColorCenterComponentsStore(
@@ -1359,7 +1351,7 @@ class HomeViewModelTest {
             val expectedCommand = match<ColorSchemeCommand> { command ->
                 matcherForColorSchemeCommand.match(command)
             }
-            colorSchemeCommandStore.issue(command = expectedCommand)
+            colorSchemeViewModel.commands.send(expectedCommand)
         }
     }
 
