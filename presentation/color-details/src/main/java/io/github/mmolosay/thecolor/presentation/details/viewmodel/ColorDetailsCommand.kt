@@ -1,10 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.details.viewmodel
 
 import io.github.mmolosay.thecolor.domain.color.Color
-import io.github.mmolosay.thecolor.presentation.common.viewmodel.CommandStore
 import io.github.mmolosay.thecolor.domain.color.ColorDetails as DomainColorDetails
-
-typealias ColorDetailsCommandStore = CommandStore<ColorDetailsCommand>
 
 /**
  * A command issued towards 'Color Details' feature to be handled by it.

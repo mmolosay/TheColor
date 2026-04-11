@@ -170,10 +170,10 @@ class HomeViewModel @Inject constructor(
             when (event) {
                 is ColorSchemeEvent.SwatchSelected -> {
                     val command = ColorDetailsCommand.SetSeedDetails(event.swatchColorDetails)
-                    val commandStore = colorCenterComponentsStore.components
-                        ?.selectedSwatchColorDetailsCommandStore
+                    val viewModel = colorCenterComponentsStore.components
+                        ?.selectedSwatchColorDetailsViewModel
                         ?: return@launch
-                    commandStore.channel.send(command)
+                    viewModel.commands.send(command)
                     val selectedSwatchColorDetailsViewModel = colorCenterComponentsStore.components
                         ?.selectedSwatchColorDetailsViewModel
                         ?: return@launch
@@ -192,11 +192,11 @@ class HomeViewModel @Inject constructor(
     private suspend fun onEventFromColorDetailsOfSelectedSwatch(event: ColorDetailsEvent) {
         when (event) {
             is ColorDetailsEvent.ColorSelected -> {
-                val commandStore = colorCenterComponentsStore.components
-                    ?.selectedSwatchColorDetailsCommandStore
+                val viewModel = colorCenterComponentsStore.components
+                    ?.selectedSwatchColorDetailsViewModel
                     ?: return
                 val command = ColorDetailsCommand.SelectColor(colorRole = event.colorRole)
-                commandStore.channel.send(command)
+                viewModel.commands.send(command)
             }
             else -> doNothing()
         }
@@ -276,8 +276,8 @@ class HomeViewModel @Inject constructor(
         val components = requireNotNull(colorCenterComponentsStore.components)
         coroutineScope {
             launch issueCommandToColorDetails@{
-                val commandStore = components.colorDetailsCommandStore
-                commandStore.channel.send(colorDetailsCommand)
+                val viewModel = components.colorCenterViewModel.colorDetailsViewModel
+                viewModel.commands.send(colorDetailsCommand)
             }
             launch issueCommandToColorScheme@{
                 val command = ColorSchemeCommand.FetchData(color)

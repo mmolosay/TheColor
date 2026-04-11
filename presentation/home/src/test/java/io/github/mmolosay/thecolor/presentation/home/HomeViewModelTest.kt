@@ -8,9 +8,7 @@ import io.github.mmolosay.thecolor.domain.color.LastSearchedColorRepository
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.ResumeFromLastSearchedColorOnStartup
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
-import io.github.mmolosay.thecolor.presentation.common.viewmodel.CommandStore
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommand
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommandStore
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEvent
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEventStore
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
@@ -98,9 +96,6 @@ class HomeViewModelTest {
     val colorPreviewViewModel: ColorPreviewViewModel = mockk(relaxed = true)
 
     val colorDetailsViewModel: ColorDetailsViewModel = mockk(relaxed = true)
-    val colorDetailsCommandStore: ColorDetailsCommandStore = CommandStore(
-        channel = mockk(relaxed = true),
-    )
     val colorDetailsEventStore: ColorDetailsEventStore = mockk()
     val colorDetailsEventStoreProvider: Provider<ColorDetailsEventStore> = mockk {
         every { get() } returns colorDetailsEventStore
@@ -118,16 +113,18 @@ class HomeViewModelTest {
         every { get() } returns colorSchemeEventStore
     }
 
-    val colorCenterViewModel: ColorCenterViewModel = mockk(relaxed = true)
+    val colorCenterViewModel: ColorCenterViewModel = mockk(relaxed = true) {
+        every { colorDetailsViewModel } returns this@HomeViewModelTest.colorDetailsViewModel
+        every { colorSchemeViewModel } returns this@HomeViewModelTest.colorSchemeViewModel
+    }
     lateinit var colorCenterComponentsStore: ColorCenterComponentsStore
     val colorCenterComponentsStoreFactory = object : ColorCenterComponentsStore.Factory {
         override fun create(
             viewModelScope: CoroutineScope,
         ): ColorCenterComponentsStore {
             val factory = ColorCenterComponentsFactory(
-                colorDetailsCommandStoreProvider = Provider { colorDetailsCommandStore },
                 colorDetailsEventStoreProvider = colorDetailsEventStoreProvider,
-                colorDetailsViewModelFactory = { _, _, _ -> colorDetailsViewModel },
+                colorDetailsViewModelFactory = { _, _ -> colorDetailsViewModel },
                 colorSchemeCommandStoreProvider = colorSchemeCommandStoreProvider,
                 colorSchemeEventStoreProvider = colorSchemeEventStoreProvider,
                 colorSchemeViewModelFactory = { _, _, _ -> colorSchemeViewModel },
@@ -901,10 +898,10 @@ class HomeViewModelTest {
             colorSchemeEventFlow.emit(event)
 
             coVerify {
-                val commandStore = colorCenterComponentsStore.components
-                    ?.selectedSwatchColorDetailsCommandStore
+                val viewModel = colorCenterComponentsStore.components
+                    ?.selectedSwatchColorDetailsViewModel
                     .shouldNotBeNull()
-                commandStore.channel.send(any<ColorDetailsCommand.SetSeedDetails>())
+                viewModel.commands.send(any<ColorDetailsCommand.SetSeedDetails>())
             }
         }
 
@@ -1294,8 +1291,11 @@ class HomeViewModelTest {
             every { colorInputMediator.colorStateFlow } returns colorStateFlow
             val randomColor: Color.Hex = mockk()
             every { getPredictableRandomColor() } returns randomColor
-            val featureValue = DomainAutoProceedWithRandomizedColors(enabled = true)
-            every { userPreferencesRepository.flowOfAutoProceedWithRandomizedColors } returns MutableStateFlow(featureValue)
+
+            every { userPreferencesRepository.flowOfAutoProceedWithRandomizedColors } returns run {
+                val value = DomainAutoProceedWithRandomizedColors(enabled = true)
+                MutableStateFlow(value)
+            }
             every { createColorData(color = any()) } returns mockk()
             createSut()
 
@@ -1352,7 +1352,7 @@ class HomeViewModelTest {
             val expectedCommand = match<ColorDetailsCommand> { command ->
                 matcherForColorDetailsCommand.match(command)
             }
-            colorDetailsCommandStore.channel.send(element = expectedCommand)
+            colorDetailsViewModel.commands.send(expectedCommand)
         }
         run verifyColorSchemeCommandIssued@{
             // and(matcher, matcher) is inconvenient to use

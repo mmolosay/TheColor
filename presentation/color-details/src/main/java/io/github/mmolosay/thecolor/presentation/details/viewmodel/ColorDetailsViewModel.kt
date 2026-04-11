@@ -11,11 +11,13 @@ import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQuali
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.IoDispatcher
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
+import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCommandsChannel
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ColorRoleData
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ExactMatch
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -36,7 +38,6 @@ import io.github.mmolosay.thecolor.domain.color.ColorDetails as DomainColorDetai
  */
 class ColorDetailsViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted private val commandStore: ColorDetailsCommandStore,
     @Assisted private val eventStore: ColorDetailsEventStore,
     private val colorRepository: ColorRepository,
     private val createData: CreateColorDetailsDataUseCase,
@@ -52,6 +53,9 @@ class ColorDetailsViewModel @AssistedInject constructor(
     private val _dataStateFlow = MutableStateFlow<DataState>(DataState.Idle)
     val dataStateFlow = _dataStateFlow.asStateFlow()
 
+    private val _commands = ViewModelCommandsChannel<ColorDetailsCommand>()
+    val commands: SendChannel<ColorDetailsCommand> = _commands
+
     private val jobOfProcessSetSeedColorCommand = AtomicReference<Job?>(null)
 
     private val session = AtomicReference<Session?>(null)
@@ -63,7 +67,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
 
     private fun collectColorDetailsCommands() =
         coroutineScope.launch(defaultDispatcher) {
-            for (command in commandStore.channel) {
+            for (command in _commands) {
                 process(command)
             }
         }
@@ -190,7 +194,6 @@ class ColorDetailsViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            colorDetailsCommandStore: ColorDetailsCommandStore,
             colorDetailsEventStore: ColorDetailsEventStore,
         ): ColorDetailsViewModel
     }
