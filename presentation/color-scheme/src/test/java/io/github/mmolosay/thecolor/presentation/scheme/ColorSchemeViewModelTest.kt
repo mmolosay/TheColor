@@ -78,7 +78,7 @@ class ColorSchemeViewModelTest {
     lateinit var sut: ColorSchemeViewModel
 
     @Test
-    fun `emission of 'fetch data' command results in emission of Loading state`() =
+    fun `when 'fetch data' command is sent, then SUT emits 'Loading' state`() =
         runTest(testDispatcher) {
             coEvery { colorRepository.getColorScheme(request = any()) } returns
                     Result.success(value = mockk())
@@ -106,7 +106,7 @@ class ColorSchemeViewModelTest {
         }
 
     @Test
-    fun `emission of 'fetch data' command results in emission of Ready state`() =
+    fun `when 'fetch data' command is sent, then SUT emits 'Ready' state`() =
         runTest(testDispatcher) {
             coEvery { colorRepository.getColorScheme(request = any()) } returns
                     Result.success(value = mockk())
@@ -128,7 +128,7 @@ class ColorSchemeViewModelTest {
         }
 
     @Test
-    fun `emission of 'fetch data' command cancels previous 'fetch data' job, so that repository is only accessed once`() =
+    fun `when 'fetch data' command is sent, then previous 'fetch data' job is canceled, so that repository is only accessed once`() =
         runTest(testDispatcher) {
             val fetchedScheme: ColorScheme = mockk(relaxed = true)
             val getColorSchemeDeferred = CompletableDeferred<Result<ColorScheme>>()
@@ -172,7 +172,7 @@ class ColorSchemeViewModelTest {
         }
 
     @Test
-    fun `selecting new mode updates selected mode`() =
+    fun `when a new mode is selected, then the 'selected mode' is updated`() =
         runTest(testDispatcher) {
             coEvery { colorRepository.getColorScheme(request = any()) } returns
                     Result.success(value = someDomainColorScheme())
@@ -188,7 +188,7 @@ class ColorSchemeViewModelTest {
         }
 
     @Test
-    fun `selecting new mode that is different from the active mode results in 'Changes Present'`() =
+    fun `when a new mode is selected and it is different from the active mode, then SUT emits data with 'Changes Present'`() =
         runTest(testDispatcher) {
             coEvery { colorRepository.getColorScheme(request = any()) } returns
                     Result.success(value = someDomainColorScheme())
@@ -204,7 +204,7 @@ class ColorSchemeViewModelTest {
         }
 
     @Test
-    fun `selecting new mode that is same as the active mode results in 'Changes None'`() =
+    fun `when a new mode is selected and it is the same as the active mode, then SUT emits data with 'Changes None'`() =
         runTest(testDispatcher) {
             coEvery { colorRepository.getColorScheme(request = any()) } returns
                     Result.success(value = someDomainColorScheme())
@@ -222,7 +222,7 @@ class ColorSchemeViewModelTest {
         }
 
     @Test
-    fun `selecting new swatch count updates selected swatch count`() =
+    fun `when a new swatch count is selected, then the 'selected swatch count' is updated`() =
         runTest(testDispatcher) {
             coEvery { colorRepository.getColorScheme(request = any()) } returns
                     Result.success(value = someDomainColorScheme())
@@ -238,7 +238,7 @@ class ColorSchemeViewModelTest {
         }
 
     @Test
-    fun `selecting new swatch count that is different from the active swatch count results in 'Changes Present'`() =
+    fun `when a new swatch count is selected and it is different from the active swatch count, then SUT emits data with 'Changes Present'`() =
         runTest(testDispatcher) {
             coEvery { colorRepository.getColorScheme(request = any()) } returns
                     Result.success(value = someDomainColorScheme())
@@ -254,7 +254,7 @@ class ColorSchemeViewModelTest {
         }
 
     @Test
-    fun `selecting new swatch count that is same as the active swatch count results in 'Changes None'`() =
+    fun `when a new swatch count is selected and it is the same as the active swatch count, then SUT emits data with 'Changes None'`() =
         runTest(testDispatcher) {
             coEvery { colorRepository.getColorScheme(request = any()) } returns
                     Result.success(value = someDomainColorScheme())
@@ -272,7 +272,7 @@ class ColorSchemeViewModelTest {
         }
 
     @Test
-    fun `calling 'apply changes' uses color of last 'fetch data' command as seed`() =
+    fun `when 'apply changes' is invoked, then the color of last 'fetch data' command is used`() =
         runTest(testDispatcher) {
             coEvery { colorRepository.getColorScheme(request = any()) } returns
                     Result.success(value = someDomainColorScheme())
@@ -291,19 +291,8 @@ class ColorSchemeViewModelTest {
             requests.last().seed shouldBe seedColor
         }
 
-    /**
-     * GIVEN
-     *  1. fetching color scheme will end with failure.
-     *  2. SUT is initialized.
-     *
-     * WHEN
-     *  [FetchData][ColorSchemeCommand.FetchData] command is emitted and data fetching ends with failure
-     *
-     * THEN
-     *  updated data state is [DataState.Error].
-     */
     @Test
-    fun `emission of 'fetch data' command that triggers failing data fetching results in emission of 'DataState Error'`() =
+    fun `when 'fetch data' command is sent and data fetching fails, then SUT emits 'Error' state`() =
         runTest(testDispatcher) {
             coEvery { colorRepository.getColorScheme(request = any()) } returns run {
                 val exception = DomainException(
@@ -335,7 +324,7 @@ class ColorSchemeViewModelTest {
      *  data is fetched successfully and mode / swatch count that were set are used in request.
      */
     @Test
-    fun `invoking 'try again' action of 'DataState Error' with changed selected values uses those values for repeated request`() =
+    fun `when 'try again' is invoked, then SUT uses values from the command that has failed and is being retried`() =
         runTest(testDispatcher) {
             fun mockGetColorSchemeReturnsSuccess() {
                 coEvery { colorRepository.getColorScheme(request = any()) } returns
@@ -372,7 +361,7 @@ class ColorSchemeViewModelTest {
         }
 
     @Test
-    fun `invoking 'on swatch select' action sends corresponding event to event store`() =
+    fun `when 'on swatch select' is invoked, then SUT sends appropriate event to the event store`() =
         runTest(testDispatcher) {
             coEvery { colorRepository.getColorScheme(request = any()) } returns
                     Result.success(value = someDomainColorScheme())
