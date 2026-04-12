@@ -7,16 +7,17 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
-import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
+import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCommandsChannel
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModelDiModule.GateForDataFlow
 import io.github.mmolosay.thecolor.utils.OpenSuspendGate
 import io.github.mmolosay.thecolor.utils.SuspendGate
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -42,27 +43,39 @@ class ColorPreviewViewModel @AssistedInject constructor(
     private val _dataFlow = MutableStateFlow<ColorPreviewData?>(null)
     val dataFlow: StateFlow<ColorPreviewData?> = _dataFlow.asStateFlow()
 
+    private val _commands = ViewModelCommandsChannel<ColorPreviewCommand>()
+    val commands: SendChannel<ColorPreviewCommand> = _commands
+
     private val setColorJob = AtomicReference<Job?>(null)
 
-    /**
-     * Sets the new [color]. It will be transformed to the [ColorPreviewData] and exposed via [dataFlow].
-     *
-     * This method suspends until the processing of the new [color] is finished and the [dataFlow] has
-     * emitted a new data.
-     *
-     * All calls to this method are conflated, meaning that if there is an ongoing call
-     * to this method, then when it's invoked again the previous call will be cancelled.
-     */
-    suspend fun setColor(color: Color?) {
-        val job = coroutineScope.launch(defaultDispatcher) {
-            gateForDataFlow.awaitOpen()
-            val data = ColorPreviewData(
-                color = with(colorToColorInt) { color?.toColorInt() },
-            )
-            _dataFlow.emit(data)
+    init {
+        collectColorPreviewCommands()
+    }
+
+    private fun collectColorPreviewCommands() {
+        coroutineScope.launch(defaultDispatcher) {
+            for (command in _commands) {
+                process(command)
+            }
         }
-        setColorJob.getAndSet(job)?.cancel()
-        job.join()
+    }
+
+    private suspend fun process(command: ColorPreviewCommand) {
+        when (command) {
+            is ColorPreviewCommand.SetColor -> {
+                val color = command.color
+                coroutineScope.launch(defaultDispatcher) {
+                    gateForDataFlow.awaitOpen()
+                    val data = ColorPreviewData(
+                        color = with(colorToColorInt) { color?.toColorInt() },
+                    )
+                    _dataFlow.emit(data)
+                    command.completion.complete(Unit)
+                }.also { job ->
+                    setColorJob.getAndSet(job)?.cancel()
+                }
+            }
+        }
     }
 
     @AssistedFactory
