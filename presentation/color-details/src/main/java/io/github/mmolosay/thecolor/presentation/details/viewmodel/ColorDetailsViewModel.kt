@@ -14,12 +14,15 @@ import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCommandsChannel
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ColorRoleData
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ExactMatch
+import io.github.mmolosay.thecolor.utils.ProcessingRegistry
+import io.github.mmolosay.thecolor.utils.removeAndCancelAll
+import io.github.mmolosay.thecolor.utils.withRegistry
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.CopyOnWriteArraySet
@@ -55,8 +58,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
 
     private val _commands = ViewModelCommandsChannel<ColorDetailsCommand>()
     val commands: SendChannel<ColorDetailsCommand> = _commands
-
-    private val jobOfProcessSetSeedColorCommand = AtomicReference<Job?>(null)
+    private val commandRegistry = ProcessingRegistry<ColorDetailsCommand>()
 
     private val session = AtomicReference<Session?>(null)
     private val colorDetailsStore = ColorDetailsStore()
@@ -75,63 +77,64 @@ class ColorDetailsViewModel @AssistedInject constructor(
     private suspend fun process(command: ColorDetailsCommand) {
         when (command) {
             is ColorDetailsCommand.SetSeedColor -> {
-                coroutineScope.launch(defaultDispatcher) {
-                    process(command)
-                }.also { job ->
-                    jobOfProcessSetSeedColorCommand.getAndSet(job)?.cancel()
-                }
+                process(command)
             }
             is ColorDetailsCommand.SetSeedDetails -> {
-                val details = command.details
-                session.set(null)
-                _subjectColorDataFlow.value = createSubjectColorData(details.color)
-                session.set(Session.fromSeedDetails(seedDetails = details))
-                setColorDetails(details)
+                commandRegistry.withRegistry(command, job = null) {
+                    val details = command.details
+                    session.set(null)
+                    _subjectColorDataFlow.value = createSubjectColorData(details.color)
+                    session.set(Session.fromSeedDetails(seedDetails = details))
+                    setColorDetails(details)
+                }
             }
             is ColorDetailsCommand.SelectColor -> {
-                val targetRole = command.colorRole
-                val session = session.get()
-                require(session != null) { "Session must be initialized" }
-                val color = session.getByRole(targetRole)
+                commandRegistry.withRegistry(command, job = null) {
+                    val targetRole = command.colorRole
+                    val session = session.get()
+                    require(session != null) { "Session must be initialized" }
+                    val color = session.getByRole(targetRole)
+                    val details = fetchOrFindColorDetails(color).getOrElse { exception ->
+                        val tryAgain: () -> Unit = {
+                            coroutineScope.launch(defaultDispatcher) {
+                                process(command)
+                            }
+                        }
+                        val error = ColorDetailsError(
+                            cause = exception,
+                            tryAgain = tryAgain,
+                        )
+                        _dataStateFlow.value = DataState.Error(error)
+                        return
+                    }
+                    setColorDetails(details)
+                }
+            }
+        }
+    }
+
+    private fun process(command: ColorDetailsCommand.SetSeedColor) {
+        coroutineScope.launch(defaultDispatcher) {
+            commandRegistry.removeAndCancelAll { it.value is ColorDetailsCommand.SetSeedColor }
+            commandRegistry.withRegistry(command, coroutineContext.job) {
+                val color = command.color
+                session.set(null)
+                _subjectColorDataFlow.value = createSubjectColorData(color)
                 val details = fetchOrFindColorDetails(color).getOrElse { exception ->
                     val tryAgain: () -> Unit = {
-                        coroutineScope.launch(defaultDispatcher) {
-                            process(command)
-                        }
+                        process(command)
                     }
                     val error = ColorDetailsError(
                         cause = exception,
                         tryAgain = tryAgain,
                     )
                     _dataStateFlow.value = DataState.Error(error)
-                    return
+                    return@launch
                 }
+                session.set(Session.fromSeedDetails(seedDetails = details))
                 setColorDetails(details)
             }
         }
-    }
-
-    private suspend fun process(command: ColorDetailsCommand.SetSeedColor) {
-        val color = command.color
-        session.set(null)
-        _subjectColorDataFlow.value = createSubjectColorData(color)
-        val details = fetchOrFindColorDetails(color).getOrElse { exception ->
-            val tryAgain: () -> Unit = {
-                coroutineScope.launch(defaultDispatcher) {
-                    process(command)
-                }.also { job ->
-                    jobOfProcessSetSeedColorCommand.getAndSet(job)?.cancel()
-                }
-            }
-            val error = ColorDetailsError(
-                cause = exception,
-                tryAgain = tryAgain,
-            )
-            _dataStateFlow.value = DataState.Error(error)
-            return
-        }
-        session.set(Session.fromSeedDetails(seedDetails = details))
-        setColorDetails(details)
     }
 
     private suspend fun fetchOrFindColorDetails(color: Color): Result<DomainColorDetails> {
