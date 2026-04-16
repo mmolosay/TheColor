@@ -89,26 +89,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
                 }
             }
             is ColorDetailsCommand.SelectColor -> {
-                commandRegistry.withRegistry(command, job = null) {
-                    val targetRole = command.colorRole
-                    val session = session.get()
-                    require(session != null) { "Session must be initialized" }
-                    val color = session.getByRole(targetRole)
-                    val details = fetchOrFindColorDetails(color).getOrElse { exception ->
-                        val tryAgain: () -> Unit = {
-                            coroutineScope.launch(defaultDispatcher) {
-                                process(command)
-                            }
-                        }
-                        val error = ColorDetailsError(
-                            cause = exception,
-                            tryAgain = tryAgain,
-                        )
-                        _dataStateFlow.value = DataState.Error(error)
-                        return
-                    }
-                    setColorDetails(details)
-                }
+                process(command)
             }
         }
     }
@@ -132,6 +113,32 @@ class ColorDetailsViewModel @AssistedInject constructor(
                     return@launch
                 }
                 session.set(Session.fromSeedDetails(seedDetails = details))
+                setColorDetails(details)
+            }
+        }
+    }
+
+    private fun process(command: ColorDetailsCommand.SelectColor) {
+        coroutineScope.launch(defaultDispatcher) {
+            commandRegistry.removeAndCancelAll { it.value is ColorDetailsCommand.SelectColor }
+            commandRegistry.withRegistry(command, coroutineContext.job) {
+                val targetRole = command.colorRole
+                val session = session.get()
+                require(session != null) { "Session must be initialized" }
+                val color = session.getByRole(targetRole)
+                val details = fetchOrFindColorDetails(color).getOrElse { exception ->
+                    val tryAgain: () -> Unit = {
+                        coroutineScope.launch(defaultDispatcher) {
+                            process(command)
+                        }
+                    }
+                    val error = ColorDetailsError(
+                        cause = exception,
+                        tryAgain = tryAgain,
+                    )
+                    _dataStateFlow.value = DataState.Error(error)
+                    return@launch
+                }
                 setColorDetails(details)
             }
         }

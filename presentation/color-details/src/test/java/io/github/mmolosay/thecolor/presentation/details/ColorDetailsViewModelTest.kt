@@ -546,6 +546,73 @@ class ColorDetailsViewModelTest {
             sut.data.colorName shouldBe "seed"
         }
 
+    @Test
+    fun `given 'select color' command is being processed, when a new 'select color' command is sent, then SUT cancels the ongoing one`() =
+        runTest(testDispatcher) {
+            val seed = Color.Hex(0x0)
+            val exact = Color.Hex(0x1)
+            val detailsOfSeedColor = mockk<ColorDetails>(relaxed = true) {
+                every { this@mockk.color } returns seed
+                every { this@mockk.exact.color } returns exact
+                every { matchesExact } returns false
+            }
+            coEvery { colorRepository.getColorDetails(seed) } returns run {
+                Result.success(detailsOfSeedColor)
+            }
+            createSut()
+
+            run {
+                val command = ColorDetailsCommand.SetSeedColor(seed)
+                sut.commands.send(command)
+            }
+            val getColorDetailsDeferred = CompletableDeferred<Result<ColorDetails>>()
+            coEvery { colorRepository.getColorDetails(exact) } coAnswers {
+                getColorDetailsDeferred.await()
+            }
+            run {
+                val command = ColorDetailsCommand.SelectColor(ColorRole.Exact)
+                sut.commands.send(command)
+            }
+            coEvery { colorRepository.getColorDetails(seed) } coAnswers {
+                Result.success(detailsOfSeedColor)
+            }
+            run {
+                val command = ColorDetailsCommand.SelectColor(ColorRole.Seed)
+                sut.commands.send(command)
+            }
+            // complete Deferred in case SUT hasn't canceled the job
+            val detailsOfExactColor = mockk<ColorDetails> {
+                every { this@mockk.color } returns exact
+                every { this@mockk.exact.color } returns exact
+                every { matchesExact } returns true
+            }
+            run {
+                val value = Result.success(detailsOfExactColor)
+                getColorDetailsDeferred.complete(value)
+            }
+
+            // verify that component that is called deep inside 'process(command)' is only called once:
+            // the first 'select color' coroutine is canceled thus it never goes deep enough to trigger this component.
+            coVerify(exactly = 0) {
+                createDataMock(
+                    details = detailsOfExactColor,
+                    colorRole = any(),
+                    selectSeedColor = any(),
+                    selectExactColor = any(),
+                    getSeedColor = any(),
+                )
+            }
+            coVerify(exactly = 2) { // one time for 'set seed color' and the other for 'select color [seed]'
+                createDataMock(
+                    details = detailsOfSeedColor,
+                    colorRole = any(),
+                    selectSeedColor = any(),
+                    selectExactColor = any(),
+                    getSeedColor = any(),
+                )
+            }
+        }
+
     fun createSut(
         eventStore: ColorDetailsEventStore = eventStoreMock,
         createData: CreateColorDetailsDataUseCase = createDataMock,
