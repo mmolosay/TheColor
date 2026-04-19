@@ -26,7 +26,6 @@ import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitActi
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputValidationResult
 import io.github.mmolosay.thecolor.presentation.input.set
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommand
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
 import io.github.mmolosay.thecolor.utils.MutableConsumableStore
 import io.github.mmolosay.thecolor.utils.OperationCounter
@@ -281,14 +280,13 @@ class HomeViewModel @Inject constructor(
     ) {
         val components = requireNotNull(colorCenterComponentsStore.components)
         coroutineScope {
-            launch issueCommandToColorDetails@{
+            launch invokeActionOnColorDetails@{
                 val viewModel = components.colorCenterViewModel.colorDetailsViewModel
                 colorDetailsAction(viewModel)
             }
-            launch issueCommandToColorScheme@{
+            launch invokeActionOnColorScheme@{
                 val viewModel = components.colorCenterViewModel.colorSchemeViewModel
-                val command = ColorSchemeCommand.FetchData(color)
-                viewModel.commands.send(command)
+                viewModel.fetchColorScheme(seed = color)
             }
         }
         kotlin.run updateData@{

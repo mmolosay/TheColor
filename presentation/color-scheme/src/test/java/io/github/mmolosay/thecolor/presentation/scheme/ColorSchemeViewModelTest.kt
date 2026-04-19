@@ -78,7 +78,7 @@ class ColorSchemeViewModelTest {
     lateinit var sut: ColorSchemeViewModel
 
     @Test
-    fun `when 'fetch data' command is sent, then SUT emits 'Loading' state`() =
+    fun `when 'fetch color scheme' is invoked, then SUT emits 'Loading' state`() =
         runTest(testDispatcher) {
             coEvery { colorRepository.getColorScheme(request = any()) } returns
                     Result.success(value = mockk())
@@ -101,12 +101,11 @@ class ColorSchemeViewModelTest {
             }
 
             // "when" block
-            val command = ColorSchemeCommand.FetchData(color = mockk())
-            sut.commands.send(command)
+            sut.fetchColorScheme(seed = mockk()).await()
         }
 
     @Test
-    fun `when 'fetch data' command is sent, then SUT emits 'Ready' state`() =
+    fun `when 'fetch color scheme' is invoked, then SUT emits 'Ready' state`() =
         runTest(testDispatcher) {
             coEvery { colorRepository.getColorScheme(request = any()) } returns
                     Result.success(value = mockk())
@@ -121,14 +120,13 @@ class ColorSchemeViewModelTest {
             } returns mockk()
             createSut()
 
-            val command = ColorSchemeCommand.FetchData(color = mockk())
-            sut.commands.send(command)
+            sut.fetchColorScheme(seed = mockk())
 
             sut.dataStateFlow.value should beOfType<DataState.Ready>()
         }
 
     @Test
-    fun `when 'fetch data' command is sent, then previous 'fetch data' job is canceled, so that repository is only accessed once`() =
+    fun `when 'fetch color scheme' is invoked, then the ongoing job is canceled, so that repository is only accessed once`() =
         runTest(testDispatcher) {
             val fetchedScheme: ColorScheme = mockk(relaxed = true)
             val getColorSchemeDeferred = CompletableDeferred<Result<ColorScheme>>()
@@ -148,17 +146,13 @@ class ColorSchemeViewModelTest {
             } returns mockk()
             createSut()
 
-            kotlin.run emitFirstCommand@{
-                val command = ColorSchemeCommand.FetchData(color = mockk<Color.Hex>())
-                sut.commands.send(command)
-            }
-            kotlin.run emitSecondCommand@{
-                val command = ColorSchemeCommand.FetchData(color = mockk<Color.Hex>())
-                sut.commands.send(command)
-            }
+            val color1 = Color.Hex(0x0)
+            sut.fetchColorScheme(color1)
+            val color2 = Color.Hex(0x1)
+            sut.fetchColorScheme(color2)
             getColorSchemeDeferred.complete(value = Result.success(fetchedScheme))
 
-            // verify that component that is called deep inside 'fetchColorDetails()' is only called once:
+            // verify that component that is called deep inside 'setSeedColor()' is only called once:
             // the first coroutine is canceled thus it never goes deep enough to trigger this component.
             coVerify(exactly = 1) {
                 createDataMock(
@@ -179,9 +173,8 @@ class ColorSchemeViewModelTest {
             createSut(
                 createData = createDataReal,
             )
-            val command = ColorSchemeCommand.FetchData(color = mockk())
-            sut.commands.send(command)
 
+            sut.fetchColorScheme(seed = mockk())
             sut.data.onModeSelect(Mode.Analogic)
 
             sut.data.selectedMode shouldBe Mode.Analogic
@@ -195,9 +188,8 @@ class ColorSchemeViewModelTest {
             createSut(
                 createData = createDataReal,
             )
-            val command = ColorSchemeCommand.FetchData(color = mockk())
-            sut.commands.send(command)
 
+            sut.fetchColorScheme(seed = mockk())
             sut.data.onModeSelect(Mode.Analogic)
 
             sut.data.changes should beOfType<Changes.Present>()
@@ -211,11 +203,10 @@ class ColorSchemeViewModelTest {
             createSut(
                 createData = createDataReal,
             )
-            val command = ColorSchemeCommand.FetchData(color = mockk())
-            sut.commands.send(command)
+
+            sut.fetchColorScheme(seed = mockk())
             sut.data.onModeSelect(Mode.Triad)
             sut.data.changes.asPresent().applyChanges()
-
             sut.data.onModeSelect(Mode.Triad)
 
             sut.data.changes should beOfType<Changes.None>()
@@ -229,9 +220,8 @@ class ColorSchemeViewModelTest {
             createSut(
                 createData = createDataReal,
             )
-            val command = ColorSchemeCommand.FetchData(color = mockk())
-            sut.commands.send(command)
 
+            sut.fetchColorScheme(seed = mockk())
             sut.data.onSwatchCountSelect(SwatchCount.Thirteen)
 
             sut.data.selectedSwatchCount shouldBe SwatchCount.Thirteen
@@ -245,9 +235,8 @@ class ColorSchemeViewModelTest {
             createSut(
                 createData = createDataReal,
             )
-            val command = ColorSchemeCommand.FetchData(color = mockk())
-            sut.commands.send(command)
 
+            sut.fetchColorScheme(seed = mockk())
             sut.data.onSwatchCountSelect(SwatchCount.Thirteen)
 
             sut.data.changes should beOfType<Changes.Present>()
@@ -261,29 +250,27 @@ class ColorSchemeViewModelTest {
             createSut(
                 createData = createDataReal,
             )
-            val command = ColorSchemeCommand.FetchData(color = mockk())
-            sut.commands.send(command)
+
+            sut.fetchColorScheme(seed = mockk())
             sut.data.onSwatchCountSelect(SwatchCount.Thirteen)
             sut.data.changes.asPresent().applyChanges()
-
             sut.data.onSwatchCountSelect(SwatchCount.Thirteen)
 
             sut.data.changes should beOfType<Changes.None>()
         }
 
     @Test
-    fun `when 'apply changes' is invoked, then the color of last 'fetch data' command is used`() =
+    fun `when 'apply changes' is invoked, then the color of last 'fetch color scheme' action is used`() =
         runTest(testDispatcher) {
+            val seedColor = Color.Hex(0x123456)
             coEvery { colorRepository.getColorScheme(request = any()) } returns
                     Result.success(value = someDomainColorScheme())
             createSut(
                 createData = createDataReal,
             )
-            val seedColor = Color.Hex(0x123456)
-            val command = ColorSchemeCommand.FetchData(color = seedColor)
-            sut.commands.send(command)
-            sut.data.onModeSelect(Mode.Triad)
 
+            sut.fetchColorScheme(seedColor)
+            sut.data.onModeSelect(Mode.Triad)
             sut.data.changes.asPresent().applyChanges()
 
             val requests = mutableListOf<GetColorSchemeRequest>()
@@ -292,7 +279,7 @@ class ColorSchemeViewModelTest {
         }
 
     @Test
-    fun `when 'fetch data' command is sent and data fetching fails, then SUT emits 'Error' state`() =
+    fun `when 'fetch data' is invoked and data fetching fails, then SUT emits 'Error' state`() =
         runTest(testDispatcher) {
             coEvery { colorRepository.getColorScheme(request = any()) } returns run {
                 val exception = DomainException(
@@ -303,41 +290,40 @@ class ColorSchemeViewModelTest {
             }
             createSut()
 
-            val command = ColorSchemeCommand.FetchData(color = mockk())
-            sut.commands.send(command)
+            sut.fetchColorScheme(seed = mockk())
 
             sut.dataStateFlow.value should beOfType<DataState.Error>()
         }
 
     /**
      * GIVEN
-     *  1. SUT is initialized.
-     *  2. [FetchData][ColorSchemeCommand.FetchData] command is emitted and initial data is fetched.
-     *  3. selected mode and swatch count are changed.
-     *  4. changes are applied, but this time data fetching returns failure and data state
-     *  is set to [DataState.Error].
+     * SUT is initialized.
      *
      * WHEN
-     *  [ColorSchemeError.tryAgain] is invoked
+     * 1. [ColorSchemeViewModel.fetchColorScheme] is invoked and initial data is fetched.
+     * 2. selected mode and swatch count are changed.
+     * 3. changes are applied, but this time data fetching returns failure and data state
+     * is set to [DataState.Error].
+     * 4. [ColorSchemeError.tryAgain] is invoked
      *
      * THEN
-     *  data is fetched successfully and mode / swatch count that were set are used in request.
+     * data is fetched successfully and mode / swatch count that were set in WHEN #2 are used in request.
      */
     @Test
-    fun `when 'try again' is invoked, then SUT uses values from the command that has failed and is being retried`() =
+    fun `when 'try again' is invoked, then SUT uses values from the action that has failed and is being retried`() =
         runTest(testDispatcher) {
             fun mockGetColorSchemeReturnsSuccess() {
                 coEvery { colorRepository.getColorScheme(request = any()) } returns
                         Result.success(value = someDomainColorScheme())
             }
 
+            val seedColor = Color.Hex(0x123456)
             mockGetColorSchemeReturnsSuccess()
             createSut(
                 createData = createDataReal,
             )
-            val seedColor = Color.Hex(0x123456)
-            val command = ColorSchemeCommand.FetchData(color = seedColor)
-            sut.commands.send(command)
+
+            sut.fetchColorScheme(seedColor)
             sut.data.onModeSelect(Mode.Triad)
             sut.data.onSwatchCountSelect(SwatchCount.Thirteen)
             coEvery { colorRepository.getColorScheme(request = any()) } returns run {
@@ -368,14 +354,14 @@ class ColorSchemeViewModelTest {
             createSut(
                 createData = createDataReal,
             )
+
             val indexOfSelectedSwatch = 1
             val selectedSwatchColor = ColorInt(0x1A803F)
             every {
                 with(colorToColorInt) { Color.Hex(0x1A803F).toColorInt() }
             } returns selectedSwatchColor
             val seedColor = Color.Hex(0x123456)
-            val command = ColorSchemeCommand.FetchData(color = seedColor)
-            sut.commands.send(command)
+            sut.fetchColorScheme(seedColor)
 
             sut.data.onSwatchSelect(indexOfSelectedSwatch)
 

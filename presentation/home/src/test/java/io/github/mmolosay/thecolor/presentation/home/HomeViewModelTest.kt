@@ -28,7 +28,6 @@ import io.github.mmolosay.thecolor.presentation.input.model.ColorInputValidation
 import io.github.mmolosay.thecolor.presentation.input.testing.MockColorInputMediatorComponents
 import io.github.mmolosay.thecolor.presentation.input.testing.mockSet
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommand
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEventStore
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
@@ -327,9 +326,7 @@ class HomeViewModelTest {
 
             coVerify {
                 colorDetailsViewModel.setSeedColor(color)
-                colorSchemeViewModel.commands.send(match {
-                    it is ColorSchemeCommand.FetchData && it.color == color
-                })
+                colorSchemeViewModel.fetchColorScheme(seed = color)
             }
         }
 
@@ -382,9 +379,7 @@ class HomeViewModelTest {
 
             coVerify {
                 colorDetailsViewModel.setSeedColor(color)
-                colorSchemeViewModel.commands.send(match {
-                    it is ColorSchemeCommand.FetchData && it.color == color
-                })
+                colorSchemeViewModel.fetchColorScheme(seed = color)
             }
         }
 
@@ -644,9 +639,7 @@ class HomeViewModelTest {
 
             coVerify {
                 colorDetailsViewModel.selectColor(ColorRole.Exact)
-                colorSchemeViewModel.commands.send(match {
-                    it is ColorSchemeCommand.FetchData && it.color == exactColor
-                })
+                colorSchemeViewModel.fetchColorScheme(seed = exactColor)
             }
         }
 
@@ -845,15 +838,11 @@ class HomeViewModelTest {
             coVerifyOrder {
                 run {
                     colorDetailsViewModel.selectColor(ColorRole.Exact)
-                    colorSchemeViewModel.commands.send(match {
-                        it is ColorSchemeCommand.FetchData && it.color == exactColor
-                    })
+                    colorSchemeViewModel.fetchColorScheme(seed = exactColor)
                 }
                 run {
                     colorDetailsViewModel.selectColor(ColorRole.Seed)
-                    colorSchemeViewModel.commands.send(match {
-                        it is ColorSchemeCommand.FetchData && it.color == initialColor
-                    })
+                    colorSchemeViewModel.fetchColorScheme(seed = initialColor)
                 }
             }
         }
@@ -1310,9 +1299,7 @@ class HomeViewModelTest {
 
             coVerify(exactly = 1) {
                 colorDetailsViewModel.setSeedColor(randomColor)
-                colorSchemeViewModel.commands.send(match {
-                    it is ColorSchemeCommand.FetchData && it.color == randomColor
-                })
+                colorSchemeViewModel.fetchColorScheme(seed = randomColor)
             }
         }
 
