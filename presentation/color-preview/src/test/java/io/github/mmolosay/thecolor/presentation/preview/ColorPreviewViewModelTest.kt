@@ -33,7 +33,7 @@ class ColorPreviewViewModelTest {
     lateinit var sut: ColorPreviewViewModel
 
     @Test
-    fun `when 'set color' command is sent, then it only completes after the color has been processed and 'dataFlow' emitted a new value`() =
+    fun `when a new color is set, then the method returns only after the color has been processed and 'dataFlow' emitted a new value`() =
         runTest(testDispatcher) {
             val gate = ClosableSuspendGate(closed = true)
             createSut(
@@ -48,9 +48,7 @@ class ColorPreviewViewModelTest {
             }
             val color = Color.Hex(0x0)
             launch {
-                val command = ColorPreviewCommand.SetColor(color = color)
-                sut.commands.send(command)
-                command.completion.await() // will suspend indefinitely until gate is open
+                sut.setColor(color) // will suspend indefinitely until gate is open
             }
             emittedData.shouldBeEmpty() // no new data has been emitted yet
 
@@ -60,11 +58,11 @@ class ColorPreviewViewModelTest {
         }
 
     /**
-     * Tests that all ongoing [ColorPreviewViewModel.process] calls for [ColorPreviewCommand.SetColor]
-     * are canceled when the new [ColorPreviewCommand.SetColor] command is sent.
+     * Tests that all ongoing [ColorPreviewViewModel.setColor] calls are cancelled
+     * when the new [ColorPreviewViewModel.setColor] call is made.
      */
     @Test
-    fun `given that 'set color' command is being processed, when another 'set color' command is sent, then processing of the first command is canceled`() =
+    fun `given there is a suspended call to set a new color, when the new call is made and the gate is opened, then the previous suspended calls are cancelled`() =
         runTest(testDispatcher) {
             val gate = ClosableSuspendGate(closed = true)
             createSut(
@@ -79,26 +77,19 @@ class ColorPreviewViewModelTest {
             }
             val color1 = Color.Hex(0x0)
             val color2 = Color.Hex(0x1)
-            val sendCommand1Job = launch {
-                val command = ColorPreviewCommand.SetColor(color1)
-                sut.commands.send(command)
-                command.completion.await()
-                error("this CompletableDeferred should never complete")
+            launch {
+                sut.setColor(color1)
             }
             emittedData.shouldBeEmpty()
             launch {
-                val command = ColorPreviewCommand.SetColor(color2)
-                sut.commands.send(command)
-                command.completion.await()
-                println() // TODO: remove
+                sut.setColor(color2)
             }
             emittedData.shouldBeEmpty()
 
             gate.open()
-            emittedData.size shouldBe 1 // processing of 'color1' should've been canceled and thus no data emitted
+            emittedData.size shouldBe 1 // processing of 'color1' should've been cancelled and thus no data emitted
 
             dataCollectionJob.cancel()
-            sendCommand1Job.cancel()
         }
 
     fun createSut(

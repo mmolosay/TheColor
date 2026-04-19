@@ -25,7 +25,6 @@ import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputValidationResult
 import io.github.mmolosay.thecolor.presentation.input.set
-import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewCommand
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommand
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
@@ -140,11 +139,7 @@ class HomeViewModel @Inject constructor(
                 clearProceedResult() // 'proceed' wasn't invoked for new color yet
                 endColorCenterSession()
             }
-            run {
-                val command = ColorPreviewCommand.SetColor(color = color)
-                colorPreviewViewModel.commands.send(command)
-                command.completion.await()
-            }
+            colorPreviewViewModel.setColor(color)
         }
     }
 

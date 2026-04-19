@@ -27,7 +27,6 @@ import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitActi
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputValidationResult
 import io.github.mmolosay.thecolor.presentation.input.testing.MockColorInputMediatorComponents
 import io.github.mmolosay.thecolor.presentation.input.testing.mockSet
-import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewCommand
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommand
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
@@ -89,12 +88,7 @@ class HomeViewModelTest {
         }
     }
 
-    val colorPreviewViewModel: ColorPreviewViewModel = mockk(relaxed = true) {
-        coEvery { commands.send(any<ColorPreviewCommand.SetColor>()) } coAnswers {
-            val command = firstArg<ColorPreviewCommand.SetColor>()
-            command.completion.complete(Unit)
-        }
-    }
+    val colorPreviewViewModel: ColorPreviewViewModel = mockk(relaxed = true)
 
     val colorDetailsViewModel: ColorDetailsViewModel = mockk(relaxed = true)
     val colorDetailsEventStore: ColorDetailsEventStore = mockk()
@@ -283,8 +277,8 @@ class HomeViewModelTest {
         }
 
     /**
-     * Ongoing data transaction should wait until [ColorPreviewViewModel] finishes processing sent
-     * [ColorPreviewCommand.SetColor] command and marks it as complete
+     * Ongoing data transaction should wait until [ColorPreviewViewModel.setColor] returns
+     * (meaning that the new color has been processed by the [ColorPreviewViewModel])
      * before said data transaction finishes.
      */
     @Test
@@ -298,12 +292,8 @@ class HomeViewModelTest {
             every { colorInputMediator.colorStateFlow } returns colorStateFlow
             every { createColorData(color = any()) } returns mockk()
             val gateForSetColorMethod = ClosableSuspendGate(closed = true)
-            coEvery { colorPreviewViewModel.commands.send(any<ColorPreviewCommand.SetColor>()) }
-                .coAnswers {
-                    gateForSetColorMethod.awaitOpen()
-                    val command = firstArg<ColorPreviewCommand.SetColor>()
-                    command.completion.complete(Unit)
-                }
+            coEvery { colorPreviewViewModel.setColor(color = any()) }
+                .coAnswers { gateForSetColorMethod.awaitOpen() }
             createSut()
 
             val color = Color.Hex(0x0)
