@@ -50,6 +50,7 @@ import io.mockk.mockk
 import io.mockk.runs
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
@@ -277,12 +278,12 @@ class HomeViewModelTest {
         }
 
     /**
-     * Ongoing data transaction should wait until [ColorPreviewViewModel.setColor] returns
+     * Ongoing data transaction should wait until [ColorPreviewViewModel.setColor] job completes
      * (meaning that the new color has been processed by the [ColorPreviewViewModel])
      * before said data transaction finishes.
      */
     @Test
-    fun `when receiving any color from Color Input, then 'is data being updated' flag stays true until Color Preview's method returns`() =
+    fun `when receiving any color from Color Input, then 'is data being updated' flag stays 'true' until 'set color' of Color Preview completes`() =
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             val colorStateFlow = run {
@@ -293,7 +294,9 @@ class HomeViewModelTest {
             every { createColorData(color = any()) } returns mockk()
             val gateForSetColorMethod = ClosableSuspendGate(closed = true)
             coEvery { colorPreviewViewModel.setColor(color = any()) }
-                .coAnswers { gateForSetColorMethod.awaitOpen() }
+                .coAnswers {
+                    async { gateForSetColorMethod.awaitOpen() }
+                }
             createSut()
 
             val color = Color.Hex(0x0)

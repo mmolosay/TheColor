@@ -139,7 +139,7 @@ class HomeViewModel @Inject constructor(
                 clearProceedResult() // 'proceed' wasn't invoked for new color yet
                 endColorCenterSession()
             }
-            colorPreviewViewModel.setColor(color)
+            colorPreviewViewModel.setColor(color).await()
         }
     }
 
