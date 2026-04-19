@@ -13,8 +13,8 @@ import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQuali
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommand
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEvent
+import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterSessionStore.SessionState
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.CanProceed
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ColorSchemeSelectedSwatchData
@@ -159,7 +159,9 @@ class HomeViewModel @Inject constructor(
                         // assuming any color selected belongs to ongoing session
                         proceed(
                             color = color,
-                            colorDetailsCommand = ColorDetailsCommand.SelectColor(event.colorRole),
+                            colorDetailsAction = { viewModel ->
+                                viewModel.selectColor(event.colorRole)
+                            },
                         )
                     }
                 }.also { job ->
@@ -170,15 +172,15 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun onEventFromColorScheme(event: ColorSchemeEvent) {
+    @Suppress("RedundantSuspendModifier")
+    private suspend fun onEventFromColorScheme(event: ColorSchemeEvent) {
         viewModelScope.launch(defaultDispatcher) {
             when (event) {
                 is ColorSchemeEvent.SwatchSelected -> {
-                    val command = ColorDetailsCommand.SetSeedDetails(event.swatchColorDetails)
                     val viewModel = colorCenterComponentsStore.components
                         ?.selectedSwatchColorDetailsViewModel
                         ?: return@launch
-                    viewModel.commands.send(command)
+                    viewModel.setSeedDetails(event.swatchColorDetails)
                     val selectedSwatchColorDetailsViewModel = colorCenterComponentsStore.components
                         ?.selectedSwatchColorDetailsViewModel
                         ?: return@launch
@@ -194,14 +196,14 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    @Suppress("RedundantSuspendModifier")
     private suspend fun onEventFromColorDetailsOfSelectedSwatch(event: ColorDetailsEvent) {
         when (event) {
             is ColorDetailsEvent.ColorSelected -> {
                 val viewModel = colorCenterComponentsStore.components
                     ?.selectedSwatchColorDetailsViewModel
                     ?: return
-                val command = ColorDetailsCommand.SelectColor(colorRole = event.colorRole)
-                viewModel.commands.send(command)
+                viewModel.selectColor(event.colorRole)
             }
             else -> doNothing()
         }
@@ -220,7 +222,9 @@ class HomeViewModel @Inject constructor(
                 startColorCenterSession(seed = color)
                 proceed(
                     color = color,
-                    colorDetailsCommand = ColorDetailsCommand.SetSeedColor(color),
+                    colorDetailsAction = { viewModel ->
+                        viewModel.setSeedColor(color)
+                    },
                 )
                 colorInputMediator.set(color)
             }
@@ -239,7 +243,9 @@ class HomeViewModel @Inject constructor(
                 startColorCenterSession(seed = color)
                 proceed(
                     color = color,
-                    colorDetailsCommand = ColorDetailsCommand.SetSeedColor(color),
+                    colorDetailsAction = { viewModel ->
+                        viewModel.setSeedColor(color)
+                    },
                 )
             }
         }.also { job ->
@@ -276,13 +282,13 @@ class HomeViewModel @Inject constructor(
 
     private suspend fun proceed(
         color: Color,
-        colorDetailsCommand: ColorDetailsCommand,
+        colorDetailsAction: suspend (ColorDetailsViewModel) -> Unit,
     ) {
         val components = requireNotNull(colorCenterComponentsStore.components)
         coroutineScope {
             launch issueCommandToColorDetails@{
                 val viewModel = components.colorCenterViewModel.colorDetailsViewModel
-                viewModel.commands.send(colorDetailsCommand)
+                colorDetailsAction(viewModel)
             }
             launch issueCommandToColorScheme@{
                 val viewModel = components.colorCenterViewModel.colorSchemeViewModel
@@ -315,7 +321,9 @@ class HomeViewModel @Inject constructor(
                         startColorCenterSession(seed = color)
                         proceed(
                             color = color,
-                            colorDetailsCommand = ColorDetailsCommand.SetSeedColor(color),
+                            colorDetailsAction = { viewModel ->
+                                viewModel.setSeedColor(color)
+                            },
                         )
                     }
                     editor.set(color)
@@ -422,7 +430,9 @@ class HomeViewModel @Inject constructor(
                             startColorCenterSession(seed = color)
                             proceed(
                                 color = color,
-                                colorDetailsCommand = ColorDetailsCommand.SetSeedColor(color),
+                                colorDetailsAction = { viewModel ->
+                                    viewModel.setSeedColor(color)
+                                },
                             )
                         }
                     }.also { job ->

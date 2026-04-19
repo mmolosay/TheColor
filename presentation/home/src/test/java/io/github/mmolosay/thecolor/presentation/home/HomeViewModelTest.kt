@@ -8,13 +8,10 @@ import io.github.mmolosay.thecolor.domain.color.LastSearchedColorRepository
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.ResumeFromLastSearchedColorOnStartup
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommand
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEvent
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEventStore
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorRole
-import io.github.mmolosay.thecolor.presentation.home.HomeViewModelTest.MyMatchers.match
-import io.github.mmolosay.thecolor.presentation.home.HomeViewModelTest.MyMatchers.matchAny
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterComponentsFactory
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterComponentsStore
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterSession
@@ -45,7 +42,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
 import io.kotest.matchers.types.shouldBeInstanceOf
-import io.mockk.MockKVerificationScope
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifyOrder
@@ -325,18 +321,22 @@ class HomeViewModelTest {
     fun `given there is a not-null color in Color Input, when 'proceed' action is invoked, then 'proceed' is executed`() =
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
+            val color = Color.Hex(0x0)
             every { colorInputMediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = Color.Hex(0x0), source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = color, source = null, id = 0)
                 MutableStateFlow(value)
             }
-            every { createColorData(color = any()) } returns mockk()
+            every { createColorData(color) } returns mockk()
             createSut()
 
             // we know from other tests that it would be 'CanProceed.Yes'
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
 
             coVerify {
-                proceed()
+                colorDetailsViewModel.setSeedColor(color)
+                colorSchemeViewModel.commands.send(match {
+                    it is ColorSchemeCommand.FetchData && it.color == color
+                })
             }
         }
 
@@ -374,20 +374,24 @@ class HomeViewModelTest {
     fun `when 'submit action' of Color Input is invoked with 'Valid' color input validation result, then 'proceed' method is invoked`() =
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
+            val color = Color.Hex(0x0)
             every { colorInputMediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = Color.Hex(0x0), source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = color, source = null, id = 0)
                 MutableStateFlow(value)
             }
-            every { createColorData(color = any()) } returns mockk()
+            every { createColorData(color) } returns mockk()
             createSut()
 
             colorInputSubmitAction.invoke(
                 colorInput = mockk(),
-                validationResult = ColorInputValidationResult.Valid(color = mockk()),
+                validationResult = ColorInputValidationResult.Valid(color),
             )
 
             coVerify {
-                proceed()
+                colorDetailsViewModel.setSeedColor(color)
+                colorSchemeViewModel.commands.send(match {
+                    it is ColorSchemeCommand.FetchData && it.color == color
+                })
             }
         }
 
@@ -646,10 +650,10 @@ class HomeViewModelTest {
             }
 
             coVerify {
-                proceed(
-                    expectedColor = exactColor,
-                    expectedColorDetailsCommand = ColorDetailsCommand.SelectColor(ColorRole.Exact),
-                )
+                colorDetailsViewModel.selectColor(ColorRole.Exact)
+                colorSchemeViewModel.commands.send(match {
+                    it is ColorSchemeCommand.FetchData && it.color == exactColor
+                })
             }
         }
 
@@ -846,14 +850,18 @@ class HomeViewModelTest {
             }
 
             coVerifyOrder {
-                proceed(
-                    expectedColor = exactColor,
-                    expectedColorDetailsCommand = ColorDetailsCommand.SelectColor(ColorRole.Exact),
-                )
-                proceed(
-                    expectedColor = initialColor,
-                    expectedColorDetailsCommand = ColorDetailsCommand.SelectColor(ColorRole.Seed),
-                )
+                run {
+                    colorDetailsViewModel.selectColor(ColorRole.Exact)
+                    colorSchemeViewModel.commands.send(match {
+                        it is ColorSchemeCommand.FetchData && it.color == exactColor
+                    })
+                }
+                run {
+                    colorDetailsViewModel.selectColor(ColorRole.Seed)
+                    colorSchemeViewModel.commands.send(match {
+                        it is ColorSchemeCommand.FetchData && it.color == initialColor
+                    })
+                }
             }
         }
 
@@ -881,7 +889,7 @@ class HomeViewModelTest {
         }
 
     @Test
-    fun `when receiving a 'SwatchSelected' event from Color Scheme, then command is sent to 'selected swatch color details'`() =
+    fun `when receiving a 'SwatchSelected' event from Color Scheme, then 'set seed details' is invoked`() =
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             every { colorInputMediator.colorStateFlow } returns run {
@@ -903,7 +911,7 @@ class HomeViewModelTest {
                 val viewModel = colorCenterComponentsStore.components
                     ?.selectedSwatchColorDetailsViewModel
                     .shouldNotBeNull()
-                viewModel.commands.send(any<ColorDetailsCommand.SetSeedDetails>())
+                viewModel.setSeedDetails(details = any())
             }
         }
 
@@ -1308,10 +1316,10 @@ class HomeViewModelTest {
             }
 
             coVerify(exactly = 1) {
-                proceed(
-                    expectedColor = randomColor,
-                    expectedColorDetailsCommand = ColorDetailsCommand.SetSeedColor(randomColor),
-                )
+                colorDetailsViewModel.setSeedColor(randomColor)
+                colorSchemeViewModel.commands.send(match {
+                    it is ColorSchemeCommand.FetchData && it.color == randomColor
+                })
             }
         }
 
@@ -1339,50 +1347,5 @@ class HomeViewModelTest {
         every { colorInputMediator.colorStateFlow } returns MutableStateFlow(ColorInputMediator.InitialColorState)
         every { colorDetailsEventStore.eventFlow } returns MutableSharedFlow()
         every { colorSchemeEventStore.eventFlow } returns emptyFlow()
-    }
-
-    /**
-     * Verifies that [HomeViewModel.proceed] was invoked with the specified parameters.
-     * Use inside [coVerify] block.
-     */
-    suspend inline fun MockKVerificationScope.proceed(
-        matcherForColorDetailsCommand: MyMatcher<ColorDetailsCommand> = matchAny(),
-        matcherForColorSchemeCommand: MyMatcher<ColorSchemeCommand> = matchAny(),
-    ) {
-        run verifyColorDetailsCommandIssued@{
-            // and(matcher, matcher) is inconvenient to use
-            val expectedCommand = match<ColorDetailsCommand> { command ->
-                matcherForColorDetailsCommand.match(command)
-            }
-            colorDetailsViewModel.commands.send(expectedCommand)
-        }
-        run verifyColorSchemeCommandIssued@{
-            // and(matcher, matcher) is inconvenient to use
-            val expectedCommand = match<ColorSchemeCommand> { command ->
-                matcherForColorSchemeCommand.match(command)
-            }
-            colorSchemeViewModel.commands.send(expectedCommand)
-        }
-    }
-
-    suspend inline fun MockKVerificationScope.proceed(
-        expectedColor: Color,
-        expectedColorDetailsCommand: ColorDetailsCommand,
-    ) {
-        proceed(
-            matcherForColorDetailsCommand = match(expectedColorDetailsCommand),
-            matcherForColorSchemeCommand = { command ->
-                (command is ColorSchemeCommand.FetchData) && (command.color == expectedColor)
-            },
-        )
-    }
-
-    fun interface MyMatcher<in T> {
-        fun match(actual: T): Boolean
-    }
-
-    object MyMatchers {
-        fun <T> matchAny() = MyMatcher<T> { true }
-        fun <T> match(expected: T) = MyMatcher<T> { actual -> actual == expected }
     }
 }
