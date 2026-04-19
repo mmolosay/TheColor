@@ -162,7 +162,7 @@ class HomeViewModel @Inject constructor(
                     job.setToJobWithProceed()
                 }
             is ColorDetailsEvent.DataFetched ->
-                doNothing() // ignore, handled in onColorCenterSessionStarted()
+                doNothing() // ignore, handled in startColorCenterSession()
         }
     }
 
