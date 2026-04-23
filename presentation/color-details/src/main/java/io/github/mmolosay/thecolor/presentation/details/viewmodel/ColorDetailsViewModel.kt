@@ -16,10 +16,11 @@ import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsDa
 import io.github.mmolosay.thecolor.utils.ProcessingRegistry
 import io.github.mmolosay.thecolor.utils.removeAndCancelAll
 import io.github.mmolosay.thecolor.utils.withRegistry
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.completeWith
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.job
@@ -61,17 +62,22 @@ class ColorDetailsViewModel @AssistedInject constructor(
     private val colorDetailsStore = ColorDetailsStore()
 
     /**
-     * Sets the specified [color] as the "seed" color of this ViewModel and
-     * fetches [DomainColorDetails] for it, which will be exposed from the [dataStateFlow].
+     * Sets the specified [color] as the "seed" color of this ViewModel.
+     * Fetches [DomainColorDetails] for this [color] and sets them into [deferredDetails].
+     * Exposes the details (or an error) via [dataStateFlow].
      */
-    fun setSeedColor(color: Color): Deferred<Result<DomainColorDetails>> =
-        coroutineScope.async(defaultDispatcher) {
+    fun setSeedColor(
+        color: Color,
+        deferredDetails: CompletableDeferred<DomainColorDetails>? = null,
+    ): Job =
+        coroutineScope.launch(defaultDispatcher) {
             opRegistry.removeAndCancelAll()
             val operation = Operation.SetSeedColor(color)
             opRegistry.withRegistry(operation, coroutineContext.job) {
                 session.set(null)
                 _subjectColorDataFlow.value = createSubjectColorData(color)
                 val detailsResult = fetchOrFindColorDetails(color)
+                deferredDetails?.completeWith(detailsResult)
                 val details = detailsResult.getOrElse { exception ->
                     val tryAgain: () -> Unit = {
                         setSeedColor(color)
@@ -81,19 +87,18 @@ class ColorDetailsViewModel @AssistedInject constructor(
                         tryAgain = tryAgain,
                     )
                     _dataStateFlow.value = DataState.Error(error)
-                    return@async detailsResult
+                    return@launch
                 }
                 session.set(Session.fromSeedDetails(seedDetails = details))
                 setColorDetails(details)
-                return@async detailsResult
             }
         }
 
     /**
      * Same as [setSeedColor], but provides the [details] of the "seed" color to use.
      */
-    fun setSeedDetails(details: DomainColorDetails): Deferred<Unit> =
-        coroutineScope.async(defaultDispatcher) {
+    fun setSeedDetails(details: DomainColorDetails): Job =
+        coroutineScope.launch(defaultDispatcher) {
             opRegistry.removeAndCancelAll()
             val operation = Operation.SetSeedDetails(details)
             opRegistry.withRegistry(operation, coroutineContext.job) {
@@ -105,38 +110,43 @@ class ColorDetailsViewModel @AssistedInject constructor(
         }
 
     /**
-     * Selects a color with the specified [ColorRole] and exposes its details from the [dataStateFlow].
+     * Infers a color with the specified [role] in the ongoing color session.
+     * Fetches [DomainColorDetails] for that color and sets them into [deferredDetails].
+     * Exposes the details (or an error) via [dataStateFlow].
+     *
      * Requires the "seed" color to be set.
      */
-    fun selectColor(role: ColorRole): Deferred<Result<DomainColorDetails>> =
-        coroutineScope.async(defaultDispatcher) {
+    fun selectColor(
+        role: ColorRole,
+        deferredDetails: CompletableDeferred<DomainColorDetails>? = null,
+    ): Job =
+        coroutineScope.launch(defaultDispatcher) {
             opRegistry.removeAndCancelAll()
             val operation = Operation.SelectColor(role)
             opRegistry.withRegistry(operation, coroutineContext.job) {
                 val session = requireNotNull(session.get()) { "Session must be initialized" }
                 val color = session.getByRole(role)
                 val detailsResult = fetchOrFindColorDetails(color)
+                deferredDetails?.completeWith(detailsResult)
                 val details = detailsResult.getOrElse { exception ->
                     val tryAgain: () -> Unit = {
-                        coroutineScope.launch(defaultDispatcher) {
-                            selectColor(role)
-                        }
+                        selectColor(role)
                     }
                     val error = ColorDetailsError(
                         cause = exception,
                         tryAgain = tryAgain,
                     )
                     _dataStateFlow.value = DataState.Error(error)
-                    return@async detailsResult
+                    return@launch
                 }
                 setColorDetails(details)
-                return@async detailsResult
             }
         }
 
     private suspend fun fetchOrFindColorDetails(color: Color): Result<DomainColorDetails> {
         val cached = colorDetailsStore.findWithColor(color)
         if (cached != null) return Result.success(cached)
+        _dataStateFlow.value = DataState.Loading
         return withContext(ioDispatcher) {
             colorRepository.getColorDetails(color)
         }
@@ -155,10 +165,6 @@ class ColorDetailsViewModel @AssistedInject constructor(
         )
         _dataStateFlow.value = DataState.Ready(data)
         colorDetailsStore.add(details)
-        coroutineScope.launch(defaultDispatcher) {
-            val event = ColorDetailsEvent.DataFetched(details)
-            eventStore.send(event)
-        }
     }
 
     private fun Color.inferColorRole(): ColorRole? {

@@ -3,12 +3,16 @@ package io.github.mmolosay.thecolor.presentation.home
 import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterSession
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterSessionStore
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterSessionStore.SessionBuildingScope
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterSessionStore.SessionState
-import io.github.mmolosay.thecolor.utils.ClosableSuspendGate
-import io.kotest.assertions.throwables.shouldThrowAny
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.beOfType
 import io.mockk.mockk
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -27,7 +31,7 @@ internal class ColorCenterSessionStoreTest {
         runTest(testDispatcher) {
             createSut()
             launch {
-                sut.startBuilding(seed = Color.Hex(0x0))
+                sut.startBuilding(seed = Color.Hex(0x0), job = coroutineContext.job)
             }
 
             sut.clear()
@@ -42,7 +46,7 @@ internal class ColorCenterSessionStoreTest {
 
             val seed = Color.Hex(0x0)
             val job = launch {
-                sut.startBuilding(seed)
+                sut.startBuilding(seed = seed, job = coroutineContext.job)
             }
 
             sut.sessionState shouldBe SessionState.BeingBuilt(seed = seed, job = job)
@@ -53,7 +57,7 @@ internal class ColorCenterSessionStoreTest {
         runTest(testDispatcher) {
             createSut()
             val jobOfBuildingSession = launch {
-                sut.startBuilding(seed = Color.Hex(0x0))
+                sut.startBuilding(seed = Color.Hex(0x0), job = coroutineContext.job)
                 suspendCancellableCoroutine {} // suspends indefinitely
             }
 
@@ -67,11 +71,11 @@ internal class ColorCenterSessionStoreTest {
         runTest(testDispatcher) {
             createSut()
             val jobOfBuildingSession = launch {
-                sut.startBuilding(seed = Color.Hex(0x0))
+                sut.startBuilding(seed = Color.Hex(0x0), job = coroutineContext.job)
                 suspendCancellableCoroutine {} // suspends indefinitely
             }
 
-            sut.startBuilding(seed = Color.Hex(0x1))
+            sut.startBuilding(seed = Color.Hex(0x1), job = coroutineContext.job)
 
             jobOfBuildingSession.isCancelled shouldBe true
         }
@@ -84,9 +88,8 @@ internal class ColorCenterSessionStoreTest {
             val session = ColorCenterSession(seed = seed, relatedColors = emptySet())
 
             launch {
-                sut.startBuilding(seed).run {
-                    complete(session)
-                }
+                val sessionBuilding = sut.startBuilding(seed = seed, job = coroutineContext.job)
+                sessionBuilding.complete(session)
             }
 
             sut.sessionState shouldBe SessionState.Ongoing(session)
@@ -99,11 +102,10 @@ internal class ColorCenterSessionStoreTest {
             val seed = Color.Hex(0x0)
 
             val jobOfBuildingSession = launch {
-                sut.startBuilding(seed).run {
-                    val session = ColorCenterSession(seed = seed, relatedColors = emptySet())
-                    complete(session)
-                    suspendCancellableCoroutine {} // suspends indefinitely
-                }
+                val sessionBuilding = sut.startBuilding(seed = seed, job = coroutineContext.job)
+                val session = ColorCenterSession(seed = seed, relatedColors = emptySet())
+                sessionBuilding.complete(session)
+                suspendCancellableCoroutine {} // suspends indefinitely
             }
 
             jobOfBuildingSession.isCancelled shouldBe false
@@ -111,57 +113,47 @@ internal class ColorCenterSessionStoreTest {
         }
 
     /**
-     * Tests that "stale" [ColorCenterSessionStore.SessionBuildingScope] cannot be used to
-     * complete building a session.
-     *
-     * Example:
-     * 1. [ColorCenterSessionStore.startBuilding] is called.
-     * It returns [ColorCenterSessionStore.SessionBuildingScope] which we will call S.
-     * 2. [ColorCenterSessionStore.clear] is called.
-     * 3. [ColorCenterSessionStore.SessionBuildingScope.complete] is called on the S.
-     *
-     * Due to step 2 interrupting the 'BeingBuilt -> Ongoing' session state pipeline, scope S
-     * is considered "stale".
+     * Tests that [SessionBuildingScope.complete] is cancellation-cooperative.
+     * If the [SessionState.BeingBuilt.job] is already canceled, then the original [CancellationException]
+     * is re-thrown.
      */
     @Test
-    fun `given current state is 'NoSession', when 'complete' is called on the building scope, then an exception is thrown`() =
+    fun `when 'complete' is called on the building scope which job is already canceled, then it re-throws original 'CancellationException'`() =
         runTest(testDispatcher) {
             createSut()
-            val gate = ClosableSuspendGate(closed = true)
-
+            var sessionBuilding: SessionBuildingScope? = null
             launch {
-                val sessionBuildingScope = sut.startBuilding(seed = Color.Hex(0x0))
-                gate.awaitOpen()
-                shouldThrowAny {
-                    sessionBuildingScope.complete(session = mockk<ColorCenterSession>())
-                }
+                sessionBuilding = sut.startBuilding(seed = Color.Hex(0x0), job = coroutineContext.job)
+                suspendCancellableCoroutine {} // suspends indefinitely
             }
-            launch {
-                sut.clear()
-                gate.open()
+            sut.clear() // will cancel the job of the building scope
+
+            shouldThrow<CancellationException> {
+                sessionBuilding!!.complete(session = mockk())
             }
         }
 
     /**
-     * Test the same thing as the test above.
+     * Tests that [SessionBuildingScope.complete] is cancellation-cooperative.
+     * If the [SessionState.BeingBuilt.job] is already canceled, then the method is no-op.
      */
     @Test
-    fun `given current state is 'BeingBuilt', when 'complete' is called on the old building scope, then an exception is thrown`() =
+    fun `when 'complete' is called on the building scope which job is already canceled, then it doesn't change current state'`() =
         runTest(testDispatcher) {
             createSut()
-
-            var scope1: ColorCenterSessionStore.SessionBuildingScope? = null
+            var sessionBuilding: SessionBuildingScope? = null
             launch {
-                scope1 = sut.startBuilding(seed = Color.Hex(0x0))
+                sessionBuilding = sut.startBuilding(seed = Color.Hex(0x0), job = coroutineContext.job)
+                suspendCancellableCoroutine {} // suspends indefinitely
             }
+            sut.clear() // will cancel the job of the building scope
 
-            launch {
-                @Suppress("UnusedVariable")
-                val scope2 = sut.startBuilding(seed = Color.Hex(0x0)) // seed doesn't matter in this test
-                shouldThrowAny {
-                    scope1!!.complete(session = mockk<ColorCenterSession>())
-                }
-            }
+            val currentState = sut.sessionState
+            currentState should beOfType<SessionState.NoSession>()
+            try {
+                sessionBuilding!!.complete(session = mockk())
+            } catch (_: CancellationException) {}
+            sut.sessionState shouldBe currentState // unchanged
         }
 
     fun createSut(): ColorCenterSessionStore =
