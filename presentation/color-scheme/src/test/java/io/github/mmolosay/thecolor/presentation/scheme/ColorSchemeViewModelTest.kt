@@ -101,7 +101,7 @@ class ColorSchemeViewModelTest {
             }
 
             // "when" block
-            sut.fetchColorScheme(seed = mockk()).await()
+            sut.fetchColorScheme(seed = mockk())
         }
 
     @Test

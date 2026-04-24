@@ -19,12 +19,12 @@ import io.github.mmolosay.thecolor.utils.removeAndCancelAll
 import io.github.mmolosay.thecolor.utils.withRegistry
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
 import javax.inject.Qualifier
 
 /**
@@ -54,8 +54,8 @@ class ColorPreviewViewModel @AssistedInject constructor(
      * All calls to this method are conflated, meaning that if there is an ongoing job that belong to this method,
      * then when it's invoked again the ongoing job will be canceled.
      */
-    fun setColor(color: Color?): Deferred<Unit> =
-        coroutineScope.async(defaultDispatcher) {
+    fun setColor(color: Color?): Job =
+        coroutineScope.launch(defaultDispatcher) {
             opRegistry.removeAndCancelAll { it.value is Operation.SetColor }
             val operation = Operation.SetColor(color)
             opRegistry.withRegistry(operation, coroutineContext.job) {

@@ -26,8 +26,7 @@ import io.github.mmolosay.thecolor.utils.removeAndCancelAll
 import io.github.mmolosay.thecolor.utils.withRegistry
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -85,8 +84,8 @@ class ColorSchemeViewModel @AssistedInject constructor(
      * Fetches [DomainColorScheme] for the specified "[seed]" color of the color scheme.
      * Exposes fetched color scheme from the [dataStateFlow].
      */
-    fun fetchColorScheme(seed: Color): Deferred<Result<DomainColorScheme>> =
-        coroutineScope.async(defaultDispatcher) {
+    fun fetchColorScheme(seed: Color): Job =
+        coroutineScope.launch(defaultDispatcher) {
             opRegistry.removeAndCancelAll { it.value is Operation.FetchColorScheme }
             val operation = Operation.FetchColorScheme(seed)
             opRegistry.withRegistry(operation, coroutineContext.job) {
@@ -116,7 +115,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
                             StatefulData.state set State.Error
                         }
                     }
-                    return@async schemeResult
+                    return@launch
                 }
                 val data = createData(scheme = colorScheme, config = requestConfig)
                 statefulDataFlow.update {
@@ -126,7 +125,6 @@ class ColorSchemeViewModel @AssistedInject constructor(
                         StatefulData.state set State.Ready
                     }
                 }
-                return@async schemeResult
             }
         }
 

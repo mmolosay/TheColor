@@ -48,7 +48,7 @@ class ColorPreviewViewModelTest {
             }
             val color = Color.Hex(0x0)
             launch {
-                sut.setColor(color).await() // will suspend indefinitely until gate is open
+                sut.setColor(color).join() // will suspend indefinitely until gate is open
             }
             emittedData.shouldBeEmpty() // no new data has been emitted yet
 
@@ -78,11 +78,11 @@ class ColorPreviewViewModelTest {
             val color1 = Color.Hex(0x0)
             val color2 = Color.Hex(0x1)
             launch {
-                sut.setColor(color1).await()
+                sut.setColor(color1).join()
             }
             emittedData.shouldBeEmpty()
             launch {
-                sut.setColor(color2).await()
+                sut.setColor(color2).join()
             }
             emittedData.shouldBeEmpty()
 
