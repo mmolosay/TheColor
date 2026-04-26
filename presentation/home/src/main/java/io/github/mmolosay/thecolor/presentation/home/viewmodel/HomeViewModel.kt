@@ -38,6 +38,7 @@ import io.github.mmolosay.thecolor.utils.withRegistry
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -352,28 +353,25 @@ class HomeViewModel @Inject constructor(
 
     private suspend fun createAndConsumeNewColorCenterComponents() {
         colorCenterComponentsStore.createNewComponents()
-        run consumeNewComponents@{
-            val newComponents = colorCenterComponentsStore.components
-            _colorCenterViewModelFlow.emit(newComponents?.colorCenterViewModel)
-            // collect components' flows in a standalone coroutine to decouple it from the 'jobWithProceed'
-            viewModelScope.launch(defaultDispatcher) {
-                opRegistry.removeAndCancelAll { it.value is Operation.ConsumeColorCenterComponents }
-                val operation = Operation.ConsumeColorCenterComponents
-                opRegistry.withRegistry(operation, coroutineContext.job) {
-                    if (newComponents != null) {
-                        launch {
-                            newComponents.colorDetailsEventStore.eventFlow
-                                .collect(::onEventFromColorDetailsOfColorCenter)
-                        }
-                        launch {
-                            newComponents.colorSchemeEventStore.eventFlow
-                                .collect(::onEventFromColorScheme)
-                        }
-                        launch {
-                            newComponents.selectedSwatchColorDetailsEventStore.eventFlow
-                                .collect(::onEventFromColorDetailsOfSelectedSwatch)
-                        }
-                    }
+        val newComponents = colorCenterComponentsStore.components
+        _colorCenterViewModelFlow.emit(newComponents?.colorCenterViewModel)
+        // collect components' flows in a standalone coroutine to decouple it from the 'jobWithProceed'
+        viewModelScope.launch(defaultDispatcher) {
+            opRegistry.removeAndCancelAll { it.value is Operation.ConsumeColorCenterComponents }
+            val operation = Operation.ConsumeColorCenterComponents
+            opRegistry.withRegistry(operation, coroutineContext.job) {
+                if (newComponents == null) return@launch
+                launch(start = CoroutineStart.UNDISPATCHED) {
+                    newComponents.colorDetailsEventStore.eventFlow
+                        .collect(::onEventFromColorDetailsOfColorCenter)
+                }
+                launch(start = CoroutineStart.UNDISPATCHED) {
+                    newComponents.colorSchemeEventStore.eventFlow
+                        .collect(::onEventFromColorScheme)
+                }
+                launch(start = CoroutineStart.UNDISPATCHED) {
+                    newComponents.selectedSwatchColorDetailsEventStore.eventFlow
+                        .collect(::onEventFromColorDetailsOfSelectedSwatch)
                 }
             }
         }
