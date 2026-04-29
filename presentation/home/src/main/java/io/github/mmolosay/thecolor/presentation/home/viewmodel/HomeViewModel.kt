@@ -371,12 +371,13 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun CoroutineScope.startColorCenterSession(
+    private suspend fun CoroutineScope.startColorCenterSession(
         seed: Color,
         deferredDetails: Deferred<DomainColorDetails>,
     ) {
-        launch(defaultDispatcher, start = CoroutineStart.UNDISPATCHED) {
-            val sessionBuilding = ccSessionStore.startBuilding(seed, coroutineContext.job)
+        val deferredSessionBuildingScope = CompletableDeferred<ColorCenterSessionStore.SessionBuildingScope>()
+        val sessionBuildingJob = launch {
+            val sessionBuilding = deferredSessionBuildingScope.await()
             val session = run {
                 val seedDetails = runCatching { deferredDetails.await() }.getOrElse {
                     sessionBuilding.cancel() // will also cancel this coroutine
@@ -388,7 +389,12 @@ class HomeViewModel @Inject constructor(
             }
             sessionBuilding.complete(session)
         }
-        launch(defaultDispatcher) {
+        // start building a new session inline suspending to guarantee that
+        // by the time this function returns the session store has a new 'building' state
+        val sessionBuilding = ccSessionStore.startBuilding(seed, sessionBuildingJob)
+        deferredSessionBuildingScope.complete(sessionBuilding)
+
+        launch {
             lastSearchedColorRepository.setLastSearchedColor(seed)
         }
     }
