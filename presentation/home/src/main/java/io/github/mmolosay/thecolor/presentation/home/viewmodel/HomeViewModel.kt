@@ -18,6 +18,8 @@ import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsVi
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterSessionStore.SessionState
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.CanProceed
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ColorSchemeSelectedSwatchData
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel.ProcessingRegistryRules.consumeColorCenterComponents
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel.ProcessingRegistryRules.proceed
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.colorState
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupViewModel
@@ -33,7 +35,7 @@ import io.github.mmolosay.thecolor.utils.OperationCounter
 import io.github.mmolosay.thecolor.utils.ProcessingRegistry
 import io.github.mmolosay.thecolor.utils.asConsumableStore
 import io.github.mmolosay.thecolor.utils.removeAndCancelAll
-import io.github.mmolosay.thecolor.utils.withRegistry
+import io.github.mmolosay.thecolor.utils.singleActive
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -47,7 +49,6 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -143,9 +144,7 @@ class HomeViewModel @Inject constructor(
         when (event) {
             is ColorDetailsEvent.ColorSelected ->
                 viewModelScope.launch(defaultDispatcher) {
-                    opRegistry.removeAndCancelAll { it.value is Operation.Proceed }
-                    val operation = Operation.Proceed
-                    opRegistry.withRegistry(operation, coroutineContext.job) {
+                    opRegistry.proceed {
                         ccSessionStore.sessionState.mustBeOngoing()
                         dataUpdateCounter.withCounter {
                             val color = event.color
@@ -199,9 +198,7 @@ class HomeViewModel @Inject constructor(
 
     private fun maybeProceedWithLastSearchedColor() {
         viewModelScope.launch(defaultDispatcher) {
-            opRegistry.removeAndCancelAll { it.value is Operation.Proceed }
-            val operation = Operation.Proceed
-            opRegistry.withRegistry(operation, coroutineContext.job) {
+            opRegistry.proceed {
                 val resumeFromLastSearchedColorOnStartup = userPreferencesRepository
                     .flowOfResumeFromLastSearchedColorOnStartup
                     .filterNotNull().first()
@@ -228,9 +225,7 @@ class HomeViewModel @Inject constructor(
     /** Variation that takes the current color of Color Input. */
     private fun proceed() {
         viewModelScope.launch(defaultDispatcher) {
-            opRegistry.removeAndCancelAll { it.value is Operation.Proceed }
-            val operation = Operation.Proceed
-            opRegistry.withRegistry(operation, coroutineContext.job) {
+            opRegistry.proceed {
                 dataUpdateCounter.withCounter {
                     endColorCenterSession() // end current session (if any)
                     val color = requireNotNull(colorInputMediator.colorState.color)
@@ -272,9 +267,7 @@ class HomeViewModel @Inject constructor(
 
     private fun randomizeColor() {
         viewModelScope.launch(defaultDispatcher) {
-            opRegistry.removeAndCancelAll { it.value is Operation.Proceed }
-            val operation = Operation.Proceed
-            opRegistry.withRegistry(operation, coroutineContext.job) {
+            opRegistry.proceed {
                 val color = getPredictableRandomColor()
                 colorInputMediator.withLock { editor ->
                     val shouldProceed = userPreferencesRepository
@@ -351,9 +344,7 @@ class HomeViewModel @Inject constructor(
         _colorCenterViewModelFlow.emit(newComponents?.colorCenterViewModel)
         // collect components' flows in a standalone coroutine to decouple it from the 'jobWithProceed'
         viewModelScope.launch(defaultDispatcher) {
-            opRegistry.removeAndCancelAll { it.value is Operation.ConsumeColorCenterComponents }
-            val operation = Operation.ConsumeColorCenterComponents
-            opRegistry.withRegistry(operation, coroutineContext.job) {
+            opRegistry.consumeColorCenterComponents {
                 if (newComponents == null) return@launch
                 launch(start = CoroutineStart.UNDISPATCHED) {
                     newComponents.colorDetailsEventStore.eventFlow
@@ -423,9 +414,7 @@ class HomeViewModel @Inject constructor(
             when (validationResult) {
                 is ColorInputValidationResult.Valid -> {
                     viewModelScope.launch(defaultDispatcher) {
-                        opRegistry.removeAndCancelAll { it.value is Operation.Proceed }
-                        val operation = Operation.Proceed
-                        opRegistry.withRegistry(operation, coroutineContext.job) {
+                        opRegistry.proceed {
                             dataUpdateCounter.withCounter {
                                 val color = validationResult.color
                                 createAndConsumeNewColorCenterComponents()
@@ -459,6 +448,27 @@ class HomeViewModel @Inject constructor(
     private sealed interface Operation {
         data object Proceed : Operation
         data object ConsumeColorCenterComponents : Operation
+    }
+
+    private object ProcessingRegistryRules {
+
+        suspend inline fun ProcessingRegistry<Operation>.proceed(
+            block: () -> Unit,
+        ): Unit =
+            this.singleActive(
+                removeAndCancelAll = { it.value is Operation.Proceed },
+                value = Operation.Proceed,
+                block = block,
+            )
+
+        suspend inline fun ProcessingRegistry<Operation>.consumeColorCenterComponents(
+            block: () -> Unit,
+        ): Unit =
+            this.singleActive(
+                removeAndCancelAll = { it.value is Operation.ConsumeColorCenterComponents },
+                value = Operation.ConsumeColorCenterComponents,
+                block = block,
+            )
     }
 }
 

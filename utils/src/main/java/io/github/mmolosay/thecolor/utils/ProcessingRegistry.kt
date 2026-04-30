@@ -3,6 +3,8 @@ package io.github.mmolosay.thecolor.utils
 import io.github.mmolosay.thecolor.utils.ProcessingRegistry.Item
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.job
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.contracts.ExperimentalContracts
@@ -104,6 +106,21 @@ fun <T> ProcessingRegistry<T>.AccessProvider.removeAndCancel(id: Item.Id): Item<
         item.job?.cancel()
     }
 
+/**
+ * [Removes][ProcessingRegistry.remove] and [cancels][Job.cancel] all items matching the given [predicate].
+ *
+ * @return the list of removed items.
+ */
+inline fun <T> ProcessingRegistry<T>.AccessProvider.removeAndCancelAll(
+    crossinline predicate: (Item<T>) -> Boolean,
+): List<Item<T>> {
+    val items = this.items.filter(predicate)
+    for (item in items) {
+        removeAndCancel(item.id)
+    }
+    return items
+}
+
 // endregion
 
 // region Extensions for ProcessingRegistry
@@ -163,23 +180,39 @@ suspend inline fun <T, R> ProcessingRegistry<T>.withRegistry(
     }
 }
 
+/**
+ * Wraps the execution of the [block], which is supposed to process the [value],
+ * within an [add]-[remove] lifecycle.
+ *
+ * Guarantees that at any time there will be at most only one active [Job] that corresponds to the
+ * specified [value].
+ * However, there can be more than one [block] running at the same time.
+ * See [Job]'s `cancelling` state.
+ */
+suspend inline fun <T, R> ProcessingRegistry<T>.singleActive(
+    crossinline removeAndCancelAll: (Item<T>) -> Boolean,
+    value: T,
+    block: () -> R,
+): R {
+    val id = this.access {
+        removeAndCancelAll(predicate = removeAndCancelAll)
+        add(value = value, job = currentCoroutineContext().job)
+    }
+    try {
+        return block()
+    } finally {
+        this.remove(id)
+    }
+}
+
 suspend inline fun <T> ProcessingRegistry<T>.removeAndCancelAll(): List<Item<T>> =
     this.removeAndCancelAll { true }
 
-/**
- * [Removes][ProcessingRegistry.remove] and [cancels][Job.cancel] all items matching the given [predicate].
- *
- * @return the list of removed items.
- */
 suspend inline fun <T> ProcessingRegistry<T>.removeAndCancelAll(
     crossinline predicate: (Item<T>) -> Boolean,
 ): List<Item<T>> =
     this.access {
-        val items = this.items.filter(predicate)
-        for (item in items) {
-            removeAndCancel(item.id)
-        }
-        return@access items
+        removeAndCancelAll(predicate)
     }
 
 // endregion

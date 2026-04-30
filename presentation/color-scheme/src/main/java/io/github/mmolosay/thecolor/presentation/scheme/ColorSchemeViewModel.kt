@@ -22,8 +22,7 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.Data
 import io.github.mmolosay.thecolor.presentation.scheme.StatefulData.State
 import io.github.mmolosay.thecolor.utils.ProcessingRegistry
 import io.github.mmolosay.thecolor.utils.asDelegate
-import io.github.mmolosay.thecolor.utils.removeAndCancelAll
-import io.github.mmolosay.thecolor.utils.withRegistry
+import io.github.mmolosay.thecolor.utils.singleActive
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -34,7 +33,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
@@ -86,9 +84,10 @@ class ColorSchemeViewModel @AssistedInject constructor(
      */
     fun fetchColorScheme(seed: Color): Job =
         coroutineScope.launch(defaultDispatcher) {
-            opRegistry.removeAndCancelAll { it.value is Operation.FetchColorScheme }
-            val operation = Operation.FetchColorScheme(seed)
-            opRegistry.withRegistry(operation, coroutineContext.job) {
+            opRegistry.singleActive(
+                removeAndCancelAll = { it.value is Operation.FetchColorScheme },
+                value = Operation.FetchColorScheme(seed),
+            ) {
                 statefulDataFlow.update {
                     it.copy { StatefulData.dataSession.seed set seed }
                 }
