@@ -13,9 +13,9 @@ import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntU
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ColorRoleData
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ExactMatch
-import io.github.mmolosay.thecolor.utils.ProcessingRegistry
+import io.github.mmolosay.thecolor.utils.CoroutineRegistry
 import io.github.mmolosay.thecolor.utils.removeAndCancelAll
-import io.github.mmolosay.thecolor.utils.withRegistry
+import io.github.mmolosay.thecolor.utils.track
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -23,7 +23,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.completeWith
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.CopyOnWriteArraySet
@@ -57,7 +56,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
     private val _dataStateFlow = MutableStateFlow<DataState>(DataState.Idle)
     val dataStateFlow = _dataStateFlow.asStateFlow()
 
-    private val opRegistry = ProcessingRegistry<Operation>()
+    private val opRegistry = CoroutineRegistry<Operation>()
     private val session = AtomicReference<Session?>(null)
     private val colorDetailsStore = ColorDetailsStore()
 
@@ -73,7 +72,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
         coroutineScope.launch(defaultDispatcher) {
             opRegistry.removeAndCancelAll()
             val operation = Operation.SetSeedColor(color)
-            opRegistry.withRegistry(operation, coroutineContext.job) {
+            opRegistry.track(operation) {
                 session.set(null)
                 _subjectColorDataFlow.value = createSubjectColorData(color)
                 val detailsResult = fetchOrFindColorDetails(color)
@@ -101,7 +100,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
         coroutineScope.launch(defaultDispatcher) {
             opRegistry.removeAndCancelAll()
             val operation = Operation.SetSeedDetails(details)
-            opRegistry.withRegistry(operation, coroutineContext.job) {
+            opRegistry.track(operation) {
                 session.set(null)
                 _subjectColorDataFlow.value = createSubjectColorData(details.color)
                 session.set(Session.fromSeedDetails(seedDetails = details))
@@ -123,7 +122,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
         coroutineScope.launch(defaultDispatcher) {
             opRegistry.removeAndCancelAll()
             val operation = Operation.SelectColor(role)
-            opRegistry.withRegistry(operation, coroutineContext.job) {
+            opRegistry.track(operation) {
                 val session = requireNotNull(session.get()) { "Session must be initialized" }
                 val color = session.getByRole(role)
                 val detailsResult = fetchOrFindColorDetails(color)

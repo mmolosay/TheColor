@@ -20,9 +20,9 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.SwatchCou
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.Config
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.DataState
 import io.github.mmolosay.thecolor.presentation.scheme.StatefulData.State
-import io.github.mmolosay.thecolor.utils.ProcessingRegistry
+import io.github.mmolosay.thecolor.utils.CoroutineRegistry
 import io.github.mmolosay.thecolor.utils.asDelegate
-import io.github.mmolosay.thecolor.utils.singleActive
+import io.github.mmolosay.thecolor.utils.trackSingleActive
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -73,7 +73,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
             initialValue = statefulDataFlow.value.toDataState(),
         )
 
-    private val opRegistry = ProcessingRegistry<Operation>()
+    private val opRegistry = CoroutineRegistry<Operation>()
     private val dataEditor = ColorSchemeDataEditor(
         applyChanges = ::applyChanges,
     )
@@ -84,7 +84,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
      */
     fun fetchColorScheme(seed: Color): Job =
         coroutineScope.launch(defaultDispatcher) {
-            opRegistry.singleActive(
+            opRegistry.trackSingleActive(
                 removeAndCancelAll = { it.value is Operation.FetchColorScheme },
                 value = Operation.FetchColorScheme(seed),
             ) {

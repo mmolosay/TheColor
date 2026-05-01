@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.utils
 
-import io.github.mmolosay.thecolor.utils.ProcessingRegistry.Item
+import io.github.mmolosay.thecolor.utils.CoroutineRegistry.Item
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -9,12 +9,12 @@ import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
 /**
- * A synchronized collection of values that are being processed and require tracking.
- * Commonly used to keep track of launched and ongoing coroutines.
+ * A synchronized collection of a family of coroutines, each represented by a [Job]
+ * and an associated value of type [T].
  *
- * @param T the type of values (commands, events, operations, etc.).
+ * @param T the type of values associated with coroutines (commands, events, payloads, etc.).
  */
-class ProcessingRegistry<T> {
+class CoroutineRegistry<T> {
 
     private val mutex = Mutex()
     private val _items = mutableListOf<Item<T>>()
@@ -38,9 +38,9 @@ class ProcessingRegistry<T> {
 
     @ConsistentCopyVisibility
     data class Item<T> internal constructor(
-        val value: T,
         val id: Id,
-        val job: Job?,
+        val job: Job,
+        val value: T,
     ) {
         @JvmInline
         value class Id internal constructor(val value: Int)
@@ -59,7 +59,7 @@ class ProcessingRegistry<T> {
                 return _items.toList() // new instance for a truly immutable copy
             }
 
-        fun add(value: T, job: Job?): Item.Id {
+        fun add(value: T, job: Job): Item.Id {
             checkSynchronization()
             val item = itemFactory.create(value, job)
             _items += item
@@ -88,10 +88,10 @@ private class ItemFactory {
     private var nextId = 0
 
     @Synchronized
-    fun <T> create(value: T, job: Job?): Item<T> =
+    fun <T> create(value: T, job: Job): Item<T> =
         Item(
-            value = value,
             id = Item.Id(nextId++),
             job = job,
+            value = value,
         )
 }

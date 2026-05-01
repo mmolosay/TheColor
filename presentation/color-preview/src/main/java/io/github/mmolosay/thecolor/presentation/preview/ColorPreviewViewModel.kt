@@ -12,10 +12,10 @@ import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQuali
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModelDiModule.GateForDataFlow
+import io.github.mmolosay.thecolor.utils.CoroutineRegistry
 import io.github.mmolosay.thecolor.utils.OpenSuspendGate
-import io.github.mmolosay.thecolor.utils.ProcessingRegistry
 import io.github.mmolosay.thecolor.utils.SuspendGate
-import io.github.mmolosay.thecolor.utils.singleActive
+import io.github.mmolosay.thecolor.utils.trackSingleActive
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -43,7 +43,7 @@ class ColorPreviewViewModel @AssistedInject constructor(
     private val _dataFlow = MutableStateFlow<ColorPreviewData?>(null)
     val dataFlow: StateFlow<ColorPreviewData?> = _dataFlow.asStateFlow()
 
-    private val opRegistry = ProcessingRegistry<Operation>()
+    private val opRegistry = CoroutineRegistry<Operation>()
 
     /**
      * Sets the new [color].
@@ -54,7 +54,7 @@ class ColorPreviewViewModel @AssistedInject constructor(
      */
     fun setColor(color: Color?): Job =
         coroutineScope.launch(defaultDispatcher) {
-            opRegistry.singleActive(
+            opRegistry.trackSingleActive(
                 removeAndCancelAll = { it.value is Operation.SetColor },
                 value = Operation.SetColor(color),
             ) {

@@ -24,19 +24,19 @@ import kotlin.math.max
 import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ProcessingRegistryTest {
+class CoroutineRegistryTest {
 
     val testDispatcher = UnconfinedTestDispatcher()
 
-    lateinit var sut: ProcessingRegistry<String>
+    lateinit var sut: CoroutineRegistry<String>
 
     @Test
     fun `when value is added, then it is present in the items`() =
         runTest(testDispatcher) {
-            sut = ProcessingRegistry<String>()
+            sut = CoroutineRegistry<String>()
 
             val value = "1"
-            sut.add(value, job = null)
+            sut.add(value, Job())
 
             sut.items().any { it.value == value } shouldBe true
         }
@@ -44,12 +44,12 @@ class ProcessingRegistryTest {
     @Test
     fun `when the same value is added multiple times, then all of them are present in the items`() =
         runTest(testDispatcher) {
-            sut = ProcessingRegistry<String>()
+            sut = CoroutineRegistry<String>()
 
             val value = "1"
             val numberOfDuplicates = 5
             repeat(numberOfDuplicates) {
-                sut.add(value, job = null)
+                sut.add(value, Job())
             }
 
             sut.items().filter { it.value == value }.size shouldBe numberOfDuplicates
@@ -58,12 +58,12 @@ class ProcessingRegistryTest {
     @Test
     fun `when the same value is added multiple times, then all of them have unique IDs`() =
         runTest(testDispatcher) {
-            sut = ProcessingRegistry<String>()
+            sut = CoroutineRegistry<String>()
 
             val value = "1"
             val numberOfDuplicates = 5
             repeat(numberOfDuplicates) {
-                sut.add(value, job = null)
+                sut.add(value, Job())
             }
 
             sut.items().filter { it.value == value }.map { it.id }.shouldBeUnique()
@@ -73,13 +73,13 @@ class ProcessingRegistryTest {
     fun `when values are added from the single thread, then generated IDs are sequential`() =
         runTest(testDispatcher) {
             val numberOfValues = 100
-            sut = ProcessingRegistry<String>()
+            sut = CoroutineRegistry<String>()
 
             repeat(numberOfValues) { i ->
-                sut.add("Value #$i", job = null)
+                sut.add("Value #$i", Job())
             }
 
-            val expectedIds = List(numberOfValues) { i -> ProcessingRegistry.Item.Id(i) }
+            val expectedIds = List(numberOfValues) { i -> CoroutineRegistry.Item.Id(i) }
             sut.items().map { it.id } shouldContainExactly expectedIds
         }
 
@@ -88,7 +88,7 @@ class ProcessingRegistryTest {
         runTest(testDispatcher) {
             val numberOfThreads = 32
             val numberOfValuesPerThread = 3
-            sut = ProcessingRegistry<String>()
+            sut = CoroutineRegistry<String>()
 
             val barrier = CyclicBarrier(numberOfThreads)
             val dispatcher = Executors.newFixedThreadPool(numberOfThreads).asCoroutineDispatcher()
@@ -99,7 +99,7 @@ class ProcessingRegistryTest {
                         repeat(numberOfValuesPerThread) { valueIndex ->
                             sut.add(
                                 value = "Value #$valueIndex, thread #$threadIndex",
-                                job = null,
+                                job = Job(),
                             )
                         }
                     }
@@ -107,7 +107,7 @@ class ProcessingRegistryTest {
             }
 
             val totalValues = numberOfThreads * numberOfValuesPerThread
-            val expectedIds = List(totalValues) { i -> ProcessingRegistry.Item.Id(i) }
+            val expectedIds = List(totalValues) { i -> CoroutineRegistry.Item.Id(i) }
             sut.items().map { it.id } shouldContainExactly expectedIds
             dispatcher.close()
         }
@@ -116,10 +116,10 @@ class ProcessingRegistryTest {
     fun `when values are added from the single thread, then generated IDs are unique`() =
         runTest(testDispatcher) {
             val numberOfValues = 100
-            sut = ProcessingRegistry<String>()
+            sut = CoroutineRegistry<String>()
 
             repeat(numberOfValues) { i ->
-                sut.add("Value #$i", job = null)
+                sut.add("Value #$i", Job())
             }
 
             sut.items().shouldBeUnique()
@@ -130,7 +130,7 @@ class ProcessingRegistryTest {
         runTest(testDispatcher) {
             val numberOfThreads = 32
             val numberOfValuesPerThread = 3
-            sut = ProcessingRegistry<String>()
+            sut = CoroutineRegistry<String>()
 
             val barrier = CyclicBarrier(numberOfThreads)
             val dispatcher = Executors.newFixedThreadPool(numberOfThreads).asCoroutineDispatcher()
@@ -141,7 +141,7 @@ class ProcessingRegistryTest {
                         repeat(numberOfValuesPerThread) { valueIndex ->
                             sut.add(
                                 value = "Value #$valueIndex, thread #$threadIndex",
-                                job = null,
+                                job = Job(),
                             )
                         }
                     }
@@ -155,11 +155,11 @@ class ProcessingRegistryTest {
     @Test
     fun `when value is removed, then it is no longer present in the items`() =
         runTest(testDispatcher) {
-            sut = ProcessingRegistry<String>()
+            sut = CoroutineRegistry<String>()
 
             val value = "1"
             sut.access {
-                val id = add(value, job = null)
+                val id = add(value, Job())
                 remove(id)
             }
 
@@ -169,14 +169,14 @@ class ProcessingRegistryTest {
     @Test
     fun `when items is removed, then it is returned`() =
         runTest(testDispatcher) {
-            sut = ProcessingRegistry<String>()
+            sut = CoroutineRegistry<String>()
 
             val value = "1"
             val job = Job()
             val id = sut.add(value, job)
             val removedItem = sut.remove(id)
 
-            val expectedItem = ProcessingRegistry.Item(
+            val expectedItem = CoroutineRegistry.Item(
                 value = value,
                 id = id,
                 job = job,
@@ -188,10 +188,10 @@ class ProcessingRegistryTest {
     @Test
     fun `when value is removed, then subsequent attempts to remove it are idempotent`() =
         runTest(testDispatcher) {
-            sut = ProcessingRegistry<String>()
+            sut = CoroutineRegistry<String>()
 
             val value = "1"
-            val id = sut.add(value, job = null)
+            val id = sut.add(value, Job())
             sut.remove(id)
 
             val items = sut.items()
@@ -206,9 +206,9 @@ class ProcessingRegistryTest {
     @Test
     fun `when items are accessed, then the list is truly immutable`() =
         runTest(testDispatcher) {
-            sut = ProcessingRegistry<String>()
+            sut = CoroutineRegistry<String>()
 
-            sut.add("1", job = null)
+            sut.add("1", Job())
 
             val items = sut.items()
             items.shouldNotBeTypeOf<MutableList<*>>()
@@ -216,13 +216,13 @@ class ProcessingRegistryTest {
         }
 
     /**
-     * Tests that [ProcessingRegistry.access] can only be entered from a single thread (coroutine) at a time,
+     * Tests that [CoroutineRegistry.access] can only be entered from a single thread (coroutine) at a time,
      * thus critical section and updates are synchronized and safe for concurrency.
      */
     @RepeatedTest(10) // executed sequentially (by default)
     fun `when SUT is accessed from multiple threads concurrently, then the critical section is synchronized`() =
         runTest(testDispatcher) {
-            sut = ProcessingRegistry<String>()
+            sut = CoroutineRegistry<String>()
 
             val numberOfThreads = 16
             val dispatcher = Executors.newFixedThreadPool(numberOfThreads).asCoroutineDispatcher()
@@ -256,24 +256,24 @@ class ProcessingRegistryTest {
     @Test
     fun `when updates are made outside of the 'access' block, then an exception is thrown`() =
         runTest(testDispatcher) {
-            sut = ProcessingRegistry<String>()
+            sut = CoroutineRegistry<String>()
 
-            val capturedAccessProvider: ProcessingRegistry<String>.AccessProvider
+            val capturedAccessProvider: CoroutineRegistry<String>.AccessProvider
             sut.access {
                 capturedAccessProvider = this
             }
 
             shouldThrow<IllegalStateException> {
-                capturedAccessProvider.add("1", job = null)
+                capturedAccessProvider.add("1", Job())
             }
         }
 
     @Test
     fun `when updates are made via foreign access provider inside the 'access' block, then an exception is thrown`() =
         runTest(testDispatcher) {
-            sut = ProcessingRegistry<String>()
+            sut = CoroutineRegistry<String>()
 
-            val capturedAccessProvider: ProcessingRegistry<String>.AccessProvider
+            val capturedAccessProvider: CoroutineRegistry<String>.AccessProvider
             sut.access {
                 capturedAccessProvider = this
             }
@@ -281,7 +281,7 @@ class ProcessingRegistryTest {
             shouldThrow<IllegalStateException> {
                 sut.access {
                     // using foreign access provider, not the one from this 'access' block
-                    capturedAccessProvider.add("1", job = null)
+                    capturedAccessProvider.add("1", Job())
                 }
             }
         }
@@ -289,10 +289,10 @@ class ProcessingRegistryTest {
     @Test
     fun `when 'withRegistry' is called, then the value is added to the items immediately when the block starts`() =
         runTest(testDispatcher) {
-            sut = ProcessingRegistry<String>()
+            sut = CoroutineRegistry<String>()
 
             val value = "1"
-            sut.withRegistry(value, job = null) {
+            sut.track(value, Job()) {
                 sut.items().any { it.value == value } shouldBe true // <- "THEN"
                 // some work
             }
@@ -301,10 +301,10 @@ class ProcessingRegistryTest {
     @Test
     fun `when 'withRegistry' is called, then the value is removed from the items when the block finishes`() =
         runTest(testDispatcher) {
-            sut = ProcessingRegistry<String>()
+            sut = CoroutineRegistry<String>()
 
             val value = "1"
-            sut.withRegistry(value, job = null) {
+            sut.track(value, Job()) {
                 // some work
             }
 
@@ -314,12 +314,12 @@ class ProcessingRegistryTest {
     @Test
     fun `when 'withRegistry' is called and the value is removed before the block finishes, then no exception is thrown`() =
         runTest(testDispatcher) {
-            sut = ProcessingRegistry<String>()
+            sut = CoroutineRegistry<String>()
 
             val value = "1"
             val gate = ClosableSuspendGate(closed = true)
             launch {
-                sut.withRegistry(value, job = null) {
+                sut.track(value) {
                     // some work
                     gate.awaitOpen()
                 }
@@ -335,10 +335,10 @@ class ProcessingRegistryTest {
     @Test
     fun `when 'withRegistry' is called and an exception is thrown inside the block, then it is re-thrown up the call stack`() =
         runTest(testDispatcher) {
-            sut = ProcessingRegistry<String>()
+            sut = CoroutineRegistry<String>()
 
             shouldThrow<IllegalStateException> {
-                sut.withRegistry("1", job = null) {
+                sut.track("1", Job()) {
                     // some work
                     error("exception")
                 }
@@ -348,11 +348,11 @@ class ProcessingRegistryTest {
     @Test
     fun `when 'withRegistry' is called and an exception is thrown inside the block, then the added value is removed nonetheless`() =
         runTest(testDispatcher) {
-            sut = ProcessingRegistry<String>()
+            sut = CoroutineRegistry<String>()
 
             val value = "1"
             try {
-                sut.withRegistry(value, job = null) {
+                sut.track(value, Job()) {
                     // some work
                     error("exception")
                 }
