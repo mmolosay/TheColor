@@ -15,7 +15,7 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModelDiM
 import io.github.mmolosay.thecolor.utils.CoroutineRegistry
 import io.github.mmolosay.thecolor.utils.OpenSuspendGate
 import io.github.mmolosay.thecolor.utils.SuspendGate
-import io.github.mmolosay.thecolor.utils.trackSingleActive
+import io.github.mmolosay.thecolor.utils.trackThisAsSingleActive
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -54,8 +54,8 @@ class ColorPreviewViewModel @AssistedInject constructor(
      */
     fun setColor(color: Color?): Job =
         coroutineScope.launch(defaultDispatcher) {
-            opRegistry.trackSingleActive(
-                removeAndCancelAll = { it.value is Operation.SetColor },
+            opRegistry.trackThisAsSingleActive(
+                predicate = { it.value is Operation.SetColor },
                 value = Operation.SetColor(color),
             ) {
                 gateForDataFlow.awaitOpen()

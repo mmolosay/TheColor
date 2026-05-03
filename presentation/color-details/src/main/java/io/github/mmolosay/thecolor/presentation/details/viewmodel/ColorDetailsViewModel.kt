@@ -14,8 +14,7 @@ import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ColorRoleData
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ExactMatch
 import io.github.mmolosay.thecolor.utils.CoroutineRegistry
-import io.github.mmolosay.thecolor.utils.removeAndCancelAll
-import io.github.mmolosay.thecolor.utils.track
+import io.github.mmolosay.thecolor.utils.trackThisAsSingleActive
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -70,9 +69,10 @@ class ColorDetailsViewModel @AssistedInject constructor(
         deferredDetails: CompletableDeferred<DomainColorDetails>? = null,
     ): Job =
         coroutineScope.launch(defaultDispatcher) {
-            opRegistry.removeAndCancelAll()
-            val operation = Operation.SetSeedColor(color)
-            opRegistry.track(operation) {
+            opRegistry.trackThisAsSingleActive(
+                predicate = { true },
+                value = Operation.SetSeedColor(color),
+            ) {
                 session.set(null)
                 _subjectColorDataFlow.value = createSubjectColorData(color)
                 val detailsResult = fetchOrFindColorDetails(color)
@@ -98,9 +98,10 @@ class ColorDetailsViewModel @AssistedInject constructor(
      */
     fun setSeedDetails(details: DomainColorDetails): Job =
         coroutineScope.launch(defaultDispatcher) {
-            opRegistry.removeAndCancelAll()
-            val operation = Operation.SetSeedDetails(details)
-            opRegistry.track(operation) {
+            opRegistry.trackThisAsSingleActive(
+                predicate = { true },
+                value = Operation.SetSeedDetails(details),
+            ) {
                 session.set(null)
                 _subjectColorDataFlow.value = createSubjectColorData(details.color)
                 session.set(Session.fromSeedDetails(seedDetails = details))
@@ -120,9 +121,10 @@ class ColorDetailsViewModel @AssistedInject constructor(
         deferredDetails: CompletableDeferred<DomainColorDetails>? = null,
     ): Job =
         coroutineScope.launch(defaultDispatcher) {
-            opRegistry.removeAndCancelAll()
-            val operation = Operation.SelectColor(role)
-            opRegistry.track(operation) {
+            opRegistry.trackThisAsSingleActive(
+                predicate = { true },
+                value = Operation.SelectColor(role),
+            ) {
                 val session = requireNotNull(session.get()) { "Session must be initialized" }
                 val color = session.getByRole(role)
                 val detailsResult = fetchOrFindColorDetails(color)

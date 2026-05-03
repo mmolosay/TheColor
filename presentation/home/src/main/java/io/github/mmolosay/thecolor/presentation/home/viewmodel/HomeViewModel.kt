@@ -35,7 +35,7 @@ import io.github.mmolosay.thecolor.utils.MutableConsumableStore
 import io.github.mmolosay.thecolor.utils.OperationCounter
 import io.github.mmolosay.thecolor.utils.asConsumableStore
 import io.github.mmolosay.thecolor.utils.removeAndCancelAll
-import io.github.mmolosay.thecolor.utils.trackSingleActive
+import io.github.mmolosay.thecolor.utils.trackThisAsSingleActive
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -452,20 +452,22 @@ class HomeViewModel @Inject constructor(
 
     private object CoroutineRegistryRules {
 
+        context(coroutineScope: CoroutineScope)
         suspend inline fun CoroutineRegistry<Operation>.trackProceed(
             block: () -> Unit,
         ): Unit =
-            this.trackSingleActive(
-                removeAndCancelAll = { it.value is Operation.Proceed },
+            this.trackThisAsSingleActive(
+                predicate = { it.value is Operation.Proceed },
                 value = Operation.Proceed,
                 block = block,
             )
 
+        context(coroutineScope: CoroutineScope)
         suspend inline fun CoroutineRegistry<Operation>.trackConsumeColorCenterComponents(
             block: () -> Unit,
         ): Unit =
-            this.trackSingleActive(
-                removeAndCancelAll = { it.value is Operation.ConsumeColorCenterComponents },
+            this.trackThisAsSingleActive(
+                predicate = { it.value is Operation.ConsumeColorCenterComponents },
                 value = Operation.ConsumeColorCenterComponents,
                 block = block,
             )

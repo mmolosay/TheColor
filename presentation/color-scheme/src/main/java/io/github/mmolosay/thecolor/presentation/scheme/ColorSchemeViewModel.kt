@@ -22,7 +22,7 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.Data
 import io.github.mmolosay.thecolor.presentation.scheme.StatefulData.State
 import io.github.mmolosay.thecolor.utils.CoroutineRegistry
 import io.github.mmolosay.thecolor.utils.asDelegate
-import io.github.mmolosay.thecolor.utils.trackSingleActive
+import io.github.mmolosay.thecolor.utils.trackThisAsSingleActive
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -84,8 +84,8 @@ class ColorSchemeViewModel @AssistedInject constructor(
      */
     fun fetchColorScheme(seed: Color): Job =
         coroutineScope.launch(defaultDispatcher) {
-            opRegistry.trackSingleActive(
-                removeAndCancelAll = { it.value is Operation.FetchColorScheme },
+            opRegistry.trackThisAsSingleActive(
+                predicate = { it.value is Operation.FetchColorScheme },
                 value = Operation.FetchColorScheme(seed),
             ) {
                 statefulDataFlow.update {
