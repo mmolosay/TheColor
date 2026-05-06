@@ -46,7 +46,7 @@ suspend fun <T> CoroutineRegistry<T>.requireRemove(job: Job): Item<T> {
 }
 
 /**
- * Wraps the execution of the coroutine [block] within an [addThis]-[remove] lifecycle.
+ * Wraps the execution of the coroutine [block] within an [add]-[remove] lifecycle.
  *
  * If the exception occurs inside the [block] (including coroutine's [CancellationException]),
  * then the [job] will still be [remove]d from the registry correctly, but the function will re-throw the exception.
@@ -92,7 +92,7 @@ suspend inline fun <T, R> CoroutineRegistry<T>.trackThis(
 }
 
 /**
- * Guarantees that at any time there will be at most only one active [track]ed [Job]
+ * Guarantees that at any time there will be at most only one __active__ [track]ed [Job]
  * of the type specified by the [predicate].
  * All present items that match the [predicate] will be [removed and canceled][removeAndCancelAll].
  * However, there can be more than one [block] running at the same time.
