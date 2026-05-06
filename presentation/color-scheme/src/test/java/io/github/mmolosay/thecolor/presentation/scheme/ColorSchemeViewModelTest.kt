@@ -29,7 +29,6 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
@@ -59,9 +58,6 @@ class ColorSchemeViewModelTest {
     @Suppress("unused")
     val mainDispatcherExtension = MainDispatcherExtension(testDispatcher)
 
-    val commandProvider: ColorSchemeCommandProvider = mockk {
-        every { commandFlow } returns emptyFlow()
-    }
     val eventStore: ColorSchemeEventStore = mockk {
         every { eventFlow } returns emptyFlow()
         coEvery { send(event = any()) } just runs
@@ -82,10 +78,8 @@ class ColorSchemeViewModelTest {
     lateinit var sut: ColorSchemeViewModel
 
     @Test
-    fun `emission of 'fetch data' command results in emission of Loading state`() =
+    fun `when 'fetch color scheme' is invoked, then SUT emits 'Loading' state`() =
         runTest(testDispatcher) {
-            val commandFlow = MutableSharedFlow<ColorSchemeCommand>()
-            every { commandProvider.commandFlow } returns commandFlow
             coEvery { colorRepository.getColorScheme(request = any()) } returns
                     Result.success(value = mockk())
             every {
@@ -107,15 +101,12 @@ class ColorSchemeViewModelTest {
             }
 
             // "when" block
-            val command = ColorSchemeCommand.FetchData(color = mockk())
-            commandFlow.emit(command)
+            sut.fetchColorScheme(seed = mockk())
         }
 
     @Test
-    fun `emission of 'fetch data' command results in emission of Ready state`() =
+    fun `when 'fetch color scheme' is invoked, then SUT emits 'Ready' state`() =
         runTest(testDispatcher) {
-            val commandFlow = MutableSharedFlow<ColorSchemeCommand>()
-            every { commandProvider.commandFlow } returns commandFlow
             coEvery { colorRepository.getColorScheme(request = any()) } returns
                     Result.success(value = mockk())
             every {
@@ -129,17 +120,14 @@ class ColorSchemeViewModelTest {
             } returns mockk()
             createSut()
 
-            val command = ColorSchemeCommand.FetchData(color = mockk())
-            commandFlow.emit(command)
+            sut.fetchColorScheme(seed = mockk())
 
             sut.dataStateFlow.value should beOfType<DataState.Ready>()
         }
 
     @Test
-    fun `emission of 'fetch data' command cancels previous 'fetch data' job, so that repository is only accessed once`() =
+    fun `when 'fetch color scheme' is invoked, then the ongoing job is canceled, so that repository is only accessed once`() =
         runTest(testDispatcher) {
-            val commandFlow = MutableSharedFlow<ColorSchemeCommand>()
-            every { commandProvider.commandFlow } returns commandFlow
             val fetchedScheme: ColorScheme = mockk(relaxed = true)
             val getColorSchemeDeferred = CompletableDeferred<Result<ColorScheme>>()
             coEvery {
@@ -158,17 +146,13 @@ class ColorSchemeViewModelTest {
             } returns mockk()
             createSut()
 
-            kotlin.run emitFirstCommand@{
-                val command = ColorSchemeCommand.FetchData(color = mockk<Color.Hex>())
-                commandFlow.emit(command)
-            }
-            kotlin.run emitSecondCommand@{
-                val command = ColorSchemeCommand.FetchData(color = mockk<Color.Hex>())
-                commandFlow.emit(command)
-            }
+            val color1 = Color.Hex(0x0)
+            sut.fetchColorScheme(color1)
+            val color2 = Color.Hex(0x1)
+            sut.fetchColorScheme(color2)
             getColorSchemeDeferred.complete(value = Result.success(fetchedScheme))
 
-            // verify that component that is called deep inside 'fetchColorDetails()' is only called once:
+            // verify that component that is called deep inside 'setSeedColor()' is only called once:
             // the first coroutine is canceled thus it never goes deep enough to trigger this component.
             coVerify(exactly = 1) {
                 createDataMock(
@@ -182,132 +166,111 @@ class ColorSchemeViewModelTest {
         }
 
     @Test
-    fun `selecting new mode updates selected mode`() =
+    fun `when a new mode is selected, then the 'selected mode' is updated`() =
         runTest(testDispatcher) {
-            val commandFlow = MutableSharedFlow<ColorSchemeCommand>()
-            every { commandProvider.commandFlow } returns commandFlow
             coEvery { colorRepository.getColorScheme(request = any()) } returns
                     Result.success(value = someDomainColorScheme())
             createSut(
                 createData = createDataReal,
             )
-            val command = ColorSchemeCommand.FetchData(color = mockk())
-            commandFlow.emit(command)
 
+            sut.fetchColorScheme(seed = mockk())
             sut.data.onModeSelect(Mode.Analogic)
 
             sut.data.selectedMode shouldBe Mode.Analogic
         }
 
     @Test
-    fun `selecting new mode that is different from the active mode results in 'Changes Present'`() =
+    fun `when a new mode is selected and it is different from the active mode, then SUT emits data with 'Changes Present'`() =
         runTest(testDispatcher) {
-            val commandFlow = MutableSharedFlow<ColorSchemeCommand>()
-            every { commandProvider.commandFlow } returns commandFlow
             coEvery { colorRepository.getColorScheme(request = any()) } returns
                     Result.success(value = someDomainColorScheme())
             createSut(
                 createData = createDataReal,
             )
-            val command = ColorSchemeCommand.FetchData(color = mockk())
-            commandFlow.emit(command)
 
+            sut.fetchColorScheme(seed = mockk())
             sut.data.onModeSelect(Mode.Analogic)
 
             sut.data.changes should beOfType<Changes.Present>()
         }
 
     @Test
-    fun `selecting new mode that is same as the active mode results in 'Changes None'`() =
+    fun `when a new mode is selected and it is the same as the active mode, then SUT emits data with 'Changes None'`() =
         runTest(testDispatcher) {
-            val commandFlow = MutableSharedFlow<ColorSchemeCommand>()
-            every { commandProvider.commandFlow } returns commandFlow
             coEvery { colorRepository.getColorScheme(request = any()) } returns
                     Result.success(value = someDomainColorScheme())
             createSut(
                 createData = createDataReal,
             )
-            val command = ColorSchemeCommand.FetchData(color = mockk())
-            commandFlow.emit(command)
+
+            sut.fetchColorScheme(seed = mockk())
             sut.data.onModeSelect(Mode.Triad)
             sut.data.changes.asPresent().applyChanges()
-
             sut.data.onModeSelect(Mode.Triad)
 
             sut.data.changes should beOfType<Changes.None>()
         }
 
     @Test
-    fun `selecting new swatch count updates selected swatch count`() =
+    fun `when a new swatch count is selected, then the 'selected swatch count' is updated`() =
         runTest(testDispatcher) {
-            val commandFlow = MutableSharedFlow<ColorSchemeCommand>()
-            every { commandProvider.commandFlow } returns commandFlow
             coEvery { colorRepository.getColorScheme(request = any()) } returns
                     Result.success(value = someDomainColorScheme())
             createSut(
                 createData = createDataReal,
             )
-            val command = ColorSchemeCommand.FetchData(color = mockk())
-            commandFlow.emit(command)
 
+            sut.fetchColorScheme(seed = mockk())
             sut.data.onSwatchCountSelect(SwatchCount.Thirteen)
 
             sut.data.selectedSwatchCount shouldBe SwatchCount.Thirteen
         }
 
     @Test
-    fun `selecting new swatch count that is different from the active swatch count results in 'Changes Present'`() =
+    fun `when a new swatch count is selected and it is different from the active swatch count, then SUT emits data with 'Changes Present'`() =
         runTest(testDispatcher) {
-            val commandFlow = MutableSharedFlow<ColorSchemeCommand>()
-            every { commandProvider.commandFlow } returns commandFlow
             coEvery { colorRepository.getColorScheme(request = any()) } returns
                     Result.success(value = someDomainColorScheme())
             createSut(
                 createData = createDataReal,
             )
-            val command = ColorSchemeCommand.FetchData(color = mockk())
-            commandFlow.emit(command)
 
+            sut.fetchColorScheme(seed = mockk())
             sut.data.onSwatchCountSelect(SwatchCount.Thirteen)
 
             sut.data.changes should beOfType<Changes.Present>()
         }
 
     @Test
-    fun `selecting new swatch count that is same as the active swatch count results in 'Changes None'`() =
+    fun `when a new swatch count is selected and it is the same as the active swatch count, then SUT emits data with 'Changes None'`() =
         runTest(testDispatcher) {
-            val commandFlow = MutableSharedFlow<ColorSchemeCommand>()
-            every { commandProvider.commandFlow } returns commandFlow
             coEvery { colorRepository.getColorScheme(request = any()) } returns
                     Result.success(value = someDomainColorScheme())
             createSut(
                 createData = createDataReal,
             )
-            val command = ColorSchemeCommand.FetchData(color = mockk())
-            commandFlow.emit(command)
+
+            sut.fetchColorScheme(seed = mockk())
             sut.data.onSwatchCountSelect(SwatchCount.Thirteen)
             sut.data.changes.asPresent().applyChanges()
-
             sut.data.onSwatchCountSelect(SwatchCount.Thirteen)
 
             sut.data.changes should beOfType<Changes.None>()
         }
 
     @Test
-    fun `calling 'apply changes' uses color of last 'fetch data' command as seed`() =
+    fun `when 'apply changes' is invoked, then the color of last 'fetch color scheme' action is used`() =
         runTest(testDispatcher) {
-            val commandFlow = MutableSharedFlow<ColorSchemeCommand>()
-            every { commandProvider.commandFlow } returns commandFlow
+            val seedColor = Color.Hex(0x123456)
             coEvery { colorRepository.getColorScheme(request = any()) } returns
                     Result.success(value = someDomainColorScheme())
             createSut(
                 createData = createDataReal,
             )
-            val seedColor = Color.Hex(0x123456)
-            val command = ColorSchemeCommand.FetchData(color = seedColor)
-            commandFlow.emit(command)
-            sut.data.onModeSelect(Mode.Triad)
 
+            sut.fetchColorScheme(seedColor)
+            sut.data.onModeSelect(Mode.Triad)
             sut.data.changes.asPresent().applyChanges()
 
             val requests = mutableListOf<GetColorSchemeRequest>()
@@ -315,22 +278,9 @@ class ColorSchemeViewModelTest {
             requests.last().seed shouldBe seedColor
         }
 
-    /**
-     * GIVEN
-     *  1. fetching color scheme will end with failure.
-     *  2. SUT is initialized.
-     *
-     * WHEN
-     *  [FetchData][ColorSchemeCommand.FetchData] command is emitted and data fetching ends with failure
-     *
-     * THEN
-     *  updated data state is [DataState.Error].
-     */
     @Test
-    fun `emission of 'fetch data' command that triggers failing data fetching results in emission of 'DataState Error'`() =
+    fun `when 'fetch data' is invoked and data fetching fails, then SUT emits 'Error' state`() =
         runTest(testDispatcher) {
-            val commandFlow = MutableSharedFlow<ColorSchemeCommand>()
-            every { commandProvider.commandFlow } returns commandFlow
             coEvery { colorRepository.getColorScheme(request = any()) } returns run {
                 val exception = DomainException(
                     failure = DomainFailure.Http.UnknownHost,
@@ -340,43 +290,40 @@ class ColorSchemeViewModelTest {
             }
             createSut()
 
-            val command = ColorSchemeCommand.FetchData(color = mockk())
-            commandFlow.emit(command)
+            sut.fetchColorScheme(seed = mockk())
 
             sut.dataStateFlow.value should beOfType<DataState.Error>()
         }
 
     /**
      * GIVEN
-     *  1. SUT is initialized.
-     *  2. [FetchData][ColorSchemeCommand.FetchData] command is emitted and initial data is fetched.
-     *  3. selected mode and swatch count are changed.
-     *  4. changes are applied, but this time data fetching returns failure and data state
-     *  is set to [DataState.Error].
+     * SUT is initialized.
      *
      * WHEN
-     *  [ColorSchemeError.tryAgain] is invoked
+     * 1. [ColorSchemeViewModel.fetchColorScheme] is invoked and initial data is fetched.
+     * 2. selected mode and swatch count are changed.
+     * 3. changes are applied, but this time data fetching returns failure and data state
+     * is set to [DataState.Error].
+     * 4. [ColorSchemeError.tryAgain] is invoked
      *
      * THEN
-     *  data is fetched successfully and mode / swatch count that were set are used in request.
+     * data is fetched successfully and mode / swatch count that were set in WHEN #2 are used in request.
      */
     @Test
-    fun `invoking 'try again' action of 'DataState Error' with changed selected values uses those values for repeated request`() =
+    fun `when 'try again' is invoked, then SUT uses values from the action that has failed and is being retried`() =
         runTest(testDispatcher) {
             fun mockGetColorSchemeReturnsSuccess() {
                 coEvery { colorRepository.getColorScheme(request = any()) } returns
                         Result.success(value = someDomainColorScheme())
             }
 
-            val commandFlow = MutableSharedFlow<ColorSchemeCommand>()
-            every { commandProvider.commandFlow } returns commandFlow
+            val seedColor = Color.Hex(0x123456)
             mockGetColorSchemeReturnsSuccess()
             createSut(
                 createData = createDataReal,
             )
-            val seedColor = Color.Hex(0x123456)
-            val command = ColorSchemeCommand.FetchData(color = seedColor)
-            commandFlow.emit(command)
+
+            sut.fetchColorScheme(seedColor)
             sut.data.onModeSelect(Mode.Triad)
             sut.data.onSwatchCountSelect(SwatchCount.Thirteen)
             coEvery { colorRepository.getColorScheme(request = any()) } returns run {
@@ -400,23 +347,21 @@ class ColorSchemeViewModelTest {
         }
 
     @Test
-    fun `invoking 'on swatch select' action sends corresponding event to event store`() =
+    fun `when 'on swatch select' is invoked, then SUT sends appropriate event to the event store`() =
         runTest(testDispatcher) {
-            val commandFlow = MutableSharedFlow<ColorSchemeCommand>()
-            every { commandProvider.commandFlow } returns commandFlow
             coEvery { colorRepository.getColorScheme(request = any()) } returns
                     Result.success(value = someDomainColorScheme())
             createSut(
                 createData = createDataReal,
             )
+
             val indexOfSelectedSwatch = 1
             val selectedSwatchColor = ColorInt(0x1A803F)
             every {
                 with(colorToColorInt) { Color.Hex(0x1A803F).toColorInt() }
             } returns selectedSwatchColor
             val seedColor = Color.Hex(0x123456)
-            val command = ColorSchemeCommand.FetchData(color = seedColor)
-            commandFlow.emit(command)
+            sut.fetchColorScheme(seedColor)
 
             sut.data.onSwatchSelect(indexOfSelectedSwatch)
 
@@ -435,7 +380,6 @@ class ColorSchemeViewModelTest {
     ) =
         ColorSchemeViewModel(
             coroutineScope = CoroutineScope(context = coroutineDispatcher),
-            commandProvider = commandProvider,
             eventStore = eventStore,
             colorRepository = colorRepository,
             createData = createData,

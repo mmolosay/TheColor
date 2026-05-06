@@ -8,14 +8,10 @@ import io.github.mmolosay.thecolor.domain.color.LastSearchedColorRepository
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.ResumeFromLastSearchedColorOnStartup
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommand
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommandStore
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEvent
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEventStore
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorRole
-import io.github.mmolosay.thecolor.presentation.home.HomeViewModelTest.MyMatchers.match
-import io.github.mmolosay.thecolor.presentation.home.HomeViewModelTest.MyMatchers.matchAny
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterComponentsFactory
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterComponentsStore
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterSession
@@ -32,8 +28,6 @@ import io.github.mmolosay.thecolor.presentation.input.model.ColorInputValidation
 import io.github.mmolosay.thecolor.presentation.input.testing.MockColorInputMediatorComponents
 import io.github.mmolosay.thecolor.presentation.input.testing.mockSet
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommand
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommandStore
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEventStore
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
@@ -46,7 +40,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
 import io.kotest.matchers.types.shouldBeInstanceOf
-import io.mockk.MockKVerificationScope
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifyOrder
@@ -54,8 +47,13 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
+import io.mockk.slot
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
@@ -97,42 +95,31 @@ class HomeViewModelTest {
     val colorPreviewViewModel: ColorPreviewViewModel = mockk(relaxed = true)
 
     val colorDetailsViewModel: ColorDetailsViewModel = mockk(relaxed = true)
-    val colorDetailsCommandStore: ColorDetailsCommandStore = mockk {
-        coEvery { issue(command = any()) } just runs
-    }
-    val colorDetailsCommandStoreProvider: Provider<ColorDetailsCommandStore> = mockk {
-        every { get() } returns colorDetailsCommandStore
-    }
     val colorDetailsEventStore: ColorDetailsEventStore = mockk()
     val colorDetailsEventStoreProvider: Provider<ColorDetailsEventStore> = mockk {
         every { get() } returns colorDetailsEventStore
     }
 
     val colorSchemeViewModel: ColorSchemeViewModel = mockk(relaxed = true)
-    val colorSchemeCommandStore: ColorSchemeCommandStore = mockk {
-        coEvery { issue(command = any()) } just runs
-    }
-    val colorSchemeCommandStoreProvider: Provider<ColorSchemeCommandStore> = mockk {
-        every { get() } returns colorSchemeCommandStore
-    }
     val colorSchemeEventStore: ColorSchemeEventStore = mockk()
     val colorSchemeEventStoreProvider: Provider<ColorSchemeEventStore> = mockk {
         every { get() } returns colorSchemeEventStore
     }
 
-    val colorCenterViewModel: ColorCenterViewModel = mockk(relaxed = true)
+    val colorCenterViewModel: ColorCenterViewModel = mockk(relaxed = true) {
+        every { colorDetailsViewModel } returns this@HomeViewModelTest.colorDetailsViewModel
+        every { colorSchemeViewModel } returns this@HomeViewModelTest.colorSchemeViewModel
+    }
     lateinit var colorCenterComponentsStore: ColorCenterComponentsStore
     val colorCenterComponentsStoreFactory = object : ColorCenterComponentsStore.Factory {
         override fun create(
             viewModelScope: CoroutineScope,
         ): ColorCenterComponentsStore {
             val factory = ColorCenterComponentsFactory(
-                colorDetailsCommandStoreProvider = colorDetailsCommandStoreProvider,
                 colorDetailsEventStoreProvider = colorDetailsEventStoreProvider,
-                colorDetailsViewModelFactory = { _, _, _ -> colorDetailsViewModel },
-                colorSchemeCommandStoreProvider = colorSchemeCommandStoreProvider,
+                colorDetailsViewModelFactory = { _, _ -> colorDetailsViewModel },
                 colorSchemeEventStoreProvider = colorSchemeEventStoreProvider,
-                colorSchemeViewModelFactory = { _, _, _ -> colorSchemeViewModel },
+                colorSchemeViewModelFactory = { _, _ -> colorSchemeViewModel },
                 colorCenterViewModelFactory = { _, _, _ -> colorCenterViewModel },
             )
             return ColorCenterComponentsStore(
@@ -174,6 +161,7 @@ class HomeViewModelTest {
             val value = ColorInputMediator.ColorState(color = Color.Hex(0x0), source = null, id = 0)
             MutableStateFlow(value)
         }
+
         createSut()
 
         data.canProceed should beOfType<CanProceed.Yes>()
@@ -248,10 +236,12 @@ class HomeViewModelTest {
      * doesn't get finished, thus [HomeData.proceedResult] is not set to `null`.
      */
     @Test
-    fun `when receiving a not-null RGB color from Color Input due to 'ExactColorSelected', then session is not finished`() =
+    fun `when receiving a not-null RGB color from Color Input due to 'ColorSelected' event, then session is not finished`() =
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             val initialColorInHex = Color.Hex(0x0)
+            val exactColorInRgb = Color.Rgb(1, 2, 3)
+            val exactColorInHex = Color.Hex(0x010203)
             val colorStateFlow = run {
                 val value = ColorInputMediator.ColorState(color = initialColorInHex, source = null, id = 0)
                 MutableStateFlow(value)
@@ -260,24 +250,31 @@ class HomeViewModelTest {
             val colorDetailsEventFlow = MutableSharedFlow<ColorDetailsEvent>()
             every { colorDetailsEventStore.eventFlow } returns colorDetailsEventFlow
             every { createColorData(color = any()) } returns mockk()
+            run {
+                val slotOfDeferredDetails = slot<CompletableDeferred<DomainColorDetails>>()
+                every {
+                    colorDetailsViewModel.setSeedColor(
+                        color = initialColorInHex,
+                        deferredDetails = capture(slotOfDeferredDetails),
+                    )
+                } coAnswers {
+                    val deferredDetails = slotOfDeferredDetails.captured
+                    val domainDetails = mockk<DomainColorDetails>(relaxed = true) {
+                        every { color } returns initialColorInHex
+                        every { exact } returns mockk {
+                            every { color } returns exactColorInHex
+                        }
+                    }
+                    deferredDetails.complete(domainDetails)
+                    return@coAnswers Job()
+                }
+            }
             createSut()
 
             // we know from other tests that it would be 'CanProceed.Yes'
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
-            val exactColorInRgb = Color.Rgb(1, 2, 3)
-            val exactColorInHex = Color.Hex(0x010203)
-            run emitDataFetchedEvent@{
-                val domainDetails = mockk<DomainColorDetails>(relaxed = true) {
-                    every { color } returns initialColorInHex
-                    every { exact } returns mockk {
-                        every { color } returns exactColorInHex
-                    }
-                }
-                val event = ColorDetailsEvent.DataFetched(domainDetails)
-                colorDetailsEventFlow.emit(event)
-            }
             // clicking "Go to exact color"
-            run emitColorSelectedEvent@{
+            run emitExactColorSelectedEvent@{
                 val event = ColorDetailsEvent.ColorSelected(
                     color = exactColorInRgb,
                     colorRole = ColorRole.Exact,
@@ -294,12 +291,12 @@ class HomeViewModelTest {
         }
 
     /**
-     * Ongoing data transaction should wait until [ColorPreviewViewModel.setColor] returns
+     * Ongoing data transaction should wait until [ColorPreviewViewModel.setColor] job completes
      * (meaning that the new color has been processed by the [ColorPreviewViewModel])
      * before said data transaction finishes.
      */
     @Test
-    fun `when receiving any color from Color Input, then 'is data being updated' flag stays true until Color Preview's method returns`() =
+    fun `when receiving any color from Color Input, then 'is data being updated' flag stays 'true' until 'set color' of Color Preview completes`() =
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             val colorStateFlow = run {
@@ -310,7 +307,9 @@ class HomeViewModelTest {
             every { createColorData(color = any()) } returns mockk()
             val gateForSetColorMethod = ClosableSuspendGate(closed = true)
             coEvery { colorPreviewViewModel.setColor(color = any()) }
-                .coAnswers { gateForSetColorMethod.awaitOpen() }
+                .coAnswers {
+                    async { gateForSetColorMethod.awaitOpen() }
+                }
             createSut()
 
             val color = Color.Hex(0x0)
@@ -328,18 +327,23 @@ class HomeViewModelTest {
     fun `given there is a not-null color in Color Input, when 'proceed' action is invoked, then 'proceed' is executed`() =
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
+            val color = Color.Hex(0x0)
             every { colorInputMediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = Color.Hex(0x0), source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = color, source = null, id = 0)
                 MutableStateFlow(value)
             }
-            every { createColorData(color = any()) } returns mockk()
+            every { createColorData(color) } returns mockk()
             createSut()
 
             // we know from other tests that it would be 'CanProceed.Yes'
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
 
             coVerify {
-                proceed()
+                colorDetailsViewModel.setSeedColor(
+                    color = color,
+                    deferredDetails = any(),
+                )
+                colorSchemeViewModel.fetchColorScheme(seed = color)
             }
         }
 
@@ -377,20 +381,25 @@ class HomeViewModelTest {
     fun `when 'submit action' of Color Input is invoked with 'Valid' color input validation result, then 'proceed' method is invoked`() =
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
+            val color = Color.Hex(0x0)
             every { colorInputMediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = Color.Hex(0x0), source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = color, source = null, id = 0)
                 MutableStateFlow(value)
             }
-            every { createColorData(color = any()) } returns mockk()
+            every { createColorData(color) } returns mockk()
             createSut()
 
             colorInputSubmitAction.invoke(
                 colorInput = mockk(),
-                validationResult = ColorInputValidationResult.Valid(color = mockk()),
+                validationResult = ColorInputValidationResult.Valid(color),
             )
 
             coVerify {
-                proceed()
+                colorDetailsViewModel.setSeedColor(
+                    color = color,
+                    deferredDetails = any(),
+                )
+                colorSchemeViewModel.fetchColorScheme(seed = color)
             }
         }
 
@@ -543,11 +552,11 @@ class HomeViewModelTest {
             val colorData: ProceedResult.Success.ColorData = mockk()
             every { createColorData(color = any()) } returns colorData
             createSut()
+
             colorInputSubmitAction.invoke(
                 colorInput = mockk(),
                 validationResult = mockk<ColorInputValidationResult.Invalid>(),
             )
-
             // we know from other tests that it would be 'InvalidSubmittedColor'
             // REFERENCE:Label=3
             data.proceedResult.shouldBeInstanceOf<ProceedResult.InvalidSubmittedColor>().discard.invoke()
@@ -569,21 +578,30 @@ class HomeViewModelTest {
             val colorDetailsEventFlow = MutableSharedFlow<ColorDetailsEvent>()
             every { colorDetailsEventStore.eventFlow } returns colorDetailsEventFlow
             every { createColorData(color = any()) } returns mockk()
+            run {
+                val slotOfDeferredDetails = slot<CompletableDeferred<DomainColorDetails>>()
+                every {
+                    colorDetailsViewModel.setSeedColor(
+                        color = initialColor,
+                        deferredDetails = capture(slotOfDeferredDetails),
+                    )
+                } coAnswers {
+                    val deferredDetails = slotOfDeferredDetails.captured
+                    val domainDetails = mockk<DomainColorDetails>(relaxed = true) {
+                        every { color } returns initialColor
+                        every { exact } returns mockk {
+                            every { color } returns exactColor
+                        }
+                    }
+                    deferredDetails.complete(domainDetails)
+                    return@coAnswers Job()
+                }
+            }
             createSut()
+
             // we know from other tests that it would be 'CanProceed.Yes'
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
-
-            run emitDataFetchedEvent@{
-                val domainDetails: DomainColorDetails = mockk(relaxed = true) {
-                    every { color } returns initialColor
-                    every { exact } returns mockk {
-                        every { color } returns exactColor
-                    }
-                }
-                val event = ColorDetailsEvent.DataFetched(domainDetails)
-                colorDetailsEventFlow.emit(event)
-            }
-            run emitColorSelectedEvent@{
+            run emitExactColorSelectedEvent@{
                 val event = ColorDetailsEvent.ColorSelected(
                     color = exactColor,
                     colorRole = ColorRole.Exact,
@@ -606,6 +624,7 @@ class HomeViewModelTest {
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             val initialColor = Color.Hex(0x0)
+            val exactColor = Color.Hex(0x1)
             val colorStateFlow = run {
                 val value = ColorInputMediator.ColorState(color = initialColor, source = null, id = 0)
                 MutableStateFlow(value)
@@ -625,22 +644,30 @@ class HomeViewModelTest {
             val colorDetailsEventFlow = MutableSharedFlow<ColorDetailsEvent>()
             every { colorDetailsEventStore.eventFlow } returns colorDetailsEventFlow
             every { createColorData(color = any()) } returns mockk()
+            run {
+                val slotOfDeferredDetails = slot<CompletableDeferred<DomainColorDetails>>()
+                every {
+                    colorDetailsViewModel.setSeedColor(
+                        color = initialColor,
+                        deferredDetails = capture(slotOfDeferredDetails),
+                    )
+                } coAnswers {
+                    val deferredDetails = slotOfDeferredDetails.captured
+                    val domainDetails = mockk<DomainColorDetails>(relaxed = true) {
+                        every { color } returns initialColor
+                        every { exact } returns mockk {
+                            every { color } returns exactColor
+                        }
+                    }
+                    deferredDetails.complete(domainDetails)
+                    return@coAnswers Job()
+                }
+            }
             createSut()
+
             // we know from other tests that it would be 'CanProceed.Yes'
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
-            val exactColor = Color.Hex(0x1)
-            run emitDataFetchedEvent@{
-                val domainDetails: DomainColorDetails = mockk(relaxed = true) {
-                    every { color } returns initialColor
-                    every { exact } returns mockk {
-                        every { color } returns exactColor
-                    }
-                }
-                val event = ColorDetailsEvent.DataFetched(domainDetails)
-                colorDetailsEventFlow.emit(event)
-            }
-
-            run emitColorSelectedEvent@{
+            run emitExactColorSelectedEvent@{
                 val event = ColorDetailsEvent.ColorSelected(
                     color = exactColor,
                     colorRole = ColorRole.Exact,
@@ -649,10 +676,11 @@ class HomeViewModelTest {
             }
 
             coVerify {
-                proceed(
-                    expectedColor = exactColor,
-                    expectedColorDetailsCommand = ColorDetailsCommand.SelectColor(ColorRole.Exact),
+                colorDetailsViewModel.selectColor(
+                    role = ColorRole.Exact,
+                    deferredDetails = any(),
                 )
+                colorSchemeViewModel.fetchColorScheme(seed = exactColor)
             }
         }
 
@@ -661,6 +689,7 @@ class HomeViewModelTest {
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             val initialColor = Color.Hex(0x0)
+            val exactColor = Color.Hex(0x1)
             val colorStateFlow = run {
                 val value = ColorInputMediator.ColorState(color = initialColor, source = null, id = 0)
                 MutableStateFlow(value)
@@ -670,22 +699,30 @@ class HomeViewModelTest {
             every { colorDetailsEventStore.eventFlow } returns colorDetailsEventFlow
             val colorData: ProceedResult.Success.ColorData = mockk()
             every { createColorData(color = any()) } returns colorData
+            run {
+                val slotOfDeferredDetails = slot<CompletableDeferred<DomainColorDetails>>()
+                every {
+                    colorDetailsViewModel.setSeedColor(
+                        color = initialColor,
+                        deferredDetails = capture(slotOfDeferredDetails),
+                    )
+                } coAnswers {
+                    val deferredDetails = slotOfDeferredDetails.captured
+                    val domainDetails = mockk<DomainColorDetails>(relaxed = true) {
+                        every { color } returns initialColor
+                        every { exact } returns mockk {
+                            every { color } returns exactColor
+                        }
+                    }
+                    deferredDetails.complete(domainDetails)
+                    return@coAnswers Job()
+                }
+            }
             createSut()
 
             // we know from other tests that it would be 'CanProceed.Yes'
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed()
-            val exactColor = Color.Hex(0x123456)
-            run emitDataFetchedEvent@{
-                val domainDetails: DomainColorDetails = mockk(relaxed = true) {
-                    every { color } returns initialColor
-                    every { exact } returns mockk {
-                        every { color } returns exactColor
-                    }
-                }
-                val event = ColorDetailsEvent.DataFetched(domainDetails)
-                colorDetailsEventFlow.emit(event)
-            }
-
+            // TODO: use turbine
             val dataEmissions = mutableListOf<HomeData>()
             val dataEmissionsCollectionJob = launch {
                 sut.dataFlow
@@ -693,7 +730,7 @@ class HomeViewModelTest {
                     .toList(destination = dataEmissions)
             }
             // clicking "Go to exact color"
-            run emitColorSelectedEvent@{
+            run emitExactColorSelectedEvent@{
                 val event = ColorDetailsEvent.ColorSelected(
                     color = exactColor,
                     colorRole = ColorRole.Exact,
@@ -703,12 +740,6 @@ class HomeViewModelTest {
             run emitExactColorFromColorInput@{
                 val value = ColorInputMediator.ColorState(color = exactColor, source = null, id = 0)
                 colorStateFlow.emit(value)
-            }
-            run emitDataFetchedEvent@{
-                val event = ColorDetailsEvent.DataFetched(
-                    domainDetails = mockk(relaxed = true),
-                )
-                colorDetailsEventFlow.emit(event)
             }
 
             // the list is limited by 2 elements:
@@ -735,21 +766,30 @@ class HomeViewModelTest {
             every { colorDetailsEventStore.eventFlow } returns colorDetailsEventFlow
             val colorData: ProceedResult.Success.ColorData = mockk()
             every { createColorData(color = any()) } returns colorData
+            run {
+                val slotOfDeferredDetails = slot<CompletableDeferred<DomainColorDetails>>()
+                every {
+                    colorDetailsViewModel.setSeedColor(
+                        color = initialColor,
+                        deferredDetails = capture(slotOfDeferredDetails),
+                    )
+                } coAnswers {
+                    val deferredDetails = slotOfDeferredDetails.captured
+                    val domainDetails = mockk<DomainColorDetails>(relaxed = true) {
+                        every { color } returns initialColor
+                        every { exact } returns mockk {
+                            every { color } returns exactColor
+                        }
+                    }
+                    deferredDetails.complete(domainDetails)
+                    return@coAnswers Job()
+                }
+            }
             createSut()
+
             // we know from other tests that it would be 'CanProceed.Yes'
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
-
-            run emitDataFetchedEvent@{
-                val domainDetails: DomainColorDetails = mockk(relaxed = true) {
-                    every { color } returns initialColor
-                    every { exact } returns mockk {
-                        every { color } returns exactColor
-                    }
-                }
-                val event = ColorDetailsEvent.DataFetched(domainDetails)
-                colorDetailsEventFlow.emit(event)
-            }
-            run emitColorSelectedEvent@{
+            run emitExactColorSelectedEvent@{
                 val event = ColorDetailsEvent.ColorSelected(
                     color = exactColor,
                     colorRole = ColorRole.Exact,
@@ -763,6 +803,13 @@ class HomeViewModelTest {
 
             val proceedResultAsSuccess = data.proceedResult.shouldBeInstanceOf<ProceedResult.Success>()
             proceedResultAsSuccess.colorData shouldBe colorData
+            coVerify {
+                colorDetailsViewModel.selectColor(
+                    role = ColorRole.Exact,
+                    deferredDetails = any(),
+                )
+                colorSchemeViewModel.fetchColorScheme(seed = exactColor)
+            }
         }
 
     /**
@@ -782,6 +829,7 @@ class HomeViewModelTest {
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             val initialColor = Color.Hex(0x0)
+            val exactColor = Color.Hex(0x1)
             val colorStateFlow = run {
                 val value = ColorInputMediator.ColorState(color = initialColor, source = null, id = 0)
                 MutableStateFlow(value)
@@ -791,45 +839,44 @@ class HomeViewModelTest {
             every { colorDetailsEventStore.eventFlow } returns colorDetailsEventFlow
             val colorData: ProceedResult.Success.ColorData = mockk()
             every { createColorData(color = any()) } returns colorData
+            run {
+                val slotOfDeferredDetails = slot<CompletableDeferred<DomainColorDetails>>()
+                every {
+                    colorDetailsViewModel.setSeedColor(
+                        color = initialColor,
+                        deferredDetails = capture(slotOfDeferredDetails),
+                    )
+                } coAnswers {
+                    val deferredDetails = slotOfDeferredDetails.captured
+                    val domainDetails = mockk<DomainColorDetails>(relaxed = true) {
+                        every { color } returns initialColor
+                        every { exact } returns mockk {
+                            every { color } returns exactColor
+                        }
+                    }
+                    deferredDetails.complete(domainDetails)
+                    return@coAnswers Job()
+                }
+            }
             createSut()
+
             // we know from other tests that it would be 'CanProceed.Yes'
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
-            val exactColor = Color.Hex(0x1)
-            run emitDataFetchedEvent@{
-                val domainDetails: DomainColorDetails = mockk(relaxed = true) {
-                    every { color } returns initialColor
-                    every { exact } returns mockk {
-                        every { color } returns exactColor
-                    }
-                }
-                val event = ColorDetailsEvent.DataFetched(domainDetails)
-                colorDetailsEventFlow.emit(event)
-            }
-
-            // clicking "Go to exact color" twice in a quick succession
             run emitExactColorSelectedEvents@{
                 val event = ColorDetailsEvent.ColorSelected(
                     color = exactColor,
                     colorRole = ColorRole.Exact,
                 )
-                launch {
-                    colorDetailsEventFlow.emit(event) // 1st time
-                    colorDetailsEventFlow.emit(event) // 2nd time
+                coroutineScope {
+                    launch { colorDetailsEventFlow.emit(event) } // 1st time
+                    launch { colorDetailsEventFlow.emit(event) } // 2nd time
                 }
             }
             run emitExactColorFromColorInput@{
                 val value = ColorInputMediator.ColorState(color = exactColor, source = null, id = 1)
                 colorStateFlow.emit(value)
             }
-            run emitDataFetchedEvent@{
-                val domainDetails: DomainColorDetails = mockk(relaxed = true) {
-                    every { color } returns exactColor
-                }
-                val event = ColorDetailsEvent.DataFetched(domainDetails)
-                colorDetailsEventFlow.emit(event)
-            }
-            // clicking "Go back to initial color"
-            run emitColorSelectedEvent@{
+            run emitSeedColorSelectedEvent@{
                 val event = ColorDetailsEvent.ColorSelected(
                     color = initialColor,
                     colorRole = ColorRole.Seed,
@@ -840,23 +887,22 @@ class HomeViewModelTest {
                 val value = ColorInputMediator.ColorState(color = initialColor, source = null, id = 2)
                 colorStateFlow.emit(value)
             }
-            run emitDataFetchedEvent@{
-                val domainDetails: DomainColorDetails = mockk(relaxed = true) {
-                    every { color } returns initialColor
-                }
-                val event = ColorDetailsEvent.DataFetched(domainDetails)
-                colorDetailsEventFlow.emit(event)
-            }
 
             coVerifyOrder {
-                proceed(
-                    expectedColor = exactColor,
-                    expectedColorDetailsCommand = ColorDetailsCommand.SelectColor(ColorRole.Exact),
-                )
-                proceed(
-                    expectedColor = initialColor,
-                    expectedColorDetailsCommand = ColorDetailsCommand.SelectColor(ColorRole.Seed),
-                )
+                run {
+                    colorDetailsViewModel.selectColor(
+                        role = ColorRole.Exact,
+                        deferredDetails = any(),
+                    )
+                    colorSchemeViewModel.fetchColorScheme(seed = exactColor)
+                }
+                run {
+                    colorDetailsViewModel.selectColor(
+                        role = ColorRole.Seed,
+                        deferredDetails = any(),
+                    )
+                    colorSchemeViewModel.fetchColorScheme(seed = initialColor)
+                }
             }
         }
 
@@ -874,17 +920,19 @@ class HomeViewModelTest {
             val colorData: ProceedResult.Success.ColorData = mockk()
             every { createColorData(color = any()) } returns colorData
             createSut()
+
             // we know from other tests that it would be 'CanProceed.Yes'
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
-
-            val event: ColorSchemeEvent.SwatchSelected = mockk(relaxed = true)
-            colorSchemeEventFlow.emit(event)
+            run emitSwatchSelectedEvent@{
+                val event: ColorSchemeEvent.SwatchSelected = mockk(relaxed = true)
+                colorSchemeEventFlow.emit(event)
+            }
 
             data.colorSchemeSelectedSwatchData shouldNotBe null // assuming initially value is 'null'
         }
 
     @Test
-    fun `when receiving a 'SwatchSelected' event from Color Scheme, then command is sent to 'selected swatch color details'`() =
+    fun `when receiving a 'SwatchSelected' event from Color Scheme, then 'set seed details' is invoked`() =
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             every { colorInputMediator.colorStateFlow } returns run {
@@ -899,14 +947,16 @@ class HomeViewModelTest {
             // we know from other tests that it would be 'CanProceed.Yes'
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
 
-            val event: ColorSchemeEvent.SwatchSelected = mockk(relaxed = true)
-            colorSchemeEventFlow.emit(event)
+            run emitSwatchSelectedEvent@{
+                val event: ColorSchemeEvent.SwatchSelected = mockk(relaxed = true)
+                colorSchemeEventFlow.emit(event)
+            }
 
-            coEvery {
-                val commandStore = colorCenterComponentsStore.components
-                    ?.selectedSwatchColorDetailsCommandStore
+            coVerify {
+                val viewModel = colorCenterComponentsStore.components
+                    ?.selectedSwatchColorDetailsViewModel
                     .shouldNotBeNull()
-                commandStore.issue(command = any<ColorDetailsCommand.SetSeedDetails>())
+                viewModel.setSeedDetails(details = any())
             }
         }
 
@@ -925,7 +975,7 @@ class HomeViewModelTest {
 
             // we know from other tests that it would be 'CanProceed.Yes'
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
-            run emitColorFromColorInput@{
+            run emitNullColorFromColorInput@{
                 val value = ColorInputMediator.ColorState(color = null, source = null, id = 1)
                 colorStateFlow.emit(value)
             }
@@ -959,12 +1009,12 @@ class HomeViewModelTest {
         }
 
     /**
-     * Tests that when a [ColorDetailsEvent.DataFetched] event is received during the building
+     * Tests that when [DomainColorDetails] are received during the building
      * of the [ColorCenterSession], then colors are matched using [colorComparator] to finalize
      * building the session.
      */
     @Test
-    fun `when receiving a 'DataFetched' event from Color Details, then colors are compared using comparator`() =
+    fun `when receiving Color Details, then colors are compared using comparator`() =
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             val initialColorInRgb = Color.Rgb(26, 128, 63)
@@ -978,20 +1028,29 @@ class HomeViewModelTest {
             val colorDetailsEventFlow = MutableSharedFlow<ColorDetailsEvent>()
             every { colorDetailsEventStore.eventFlow } returns colorDetailsEventFlow
             every { createColorData(color = any()) } returns mockk()
+            run {
+                val slotOfDeferredDetails = slot<CompletableDeferred<DomainColorDetails>>()
+                every {
+                    colorDetailsViewModel.setSeedColor(
+                        color = initialColorInRgb,
+                        deferredDetails = capture(slotOfDeferredDetails),
+                    )
+                } coAnswers {
+                    val deferredDetails = slotOfDeferredDetails.captured
+                    val domainDetails = mockk<DomainColorDetails>(relaxed = true) {
+                        every { color } returns initialColorInHex
+                        every { exact } returns mockk {
+                            every { color } returns exactColor
+                        }
+                    }
+                    deferredDetails.complete(domainDetails)
+                    return@coAnswers Job()
+                }
+            }
             createSut()
+
             // we know from other tests that it would be 'CanProceed.Yes'
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
-
-            run emitDataFetchedEvent@{
-                val domainDetails: DomainColorDetails = mockk(relaxed = true) {
-                    every { color } returns initialColorInHex
-                    every { exact } returns mockk {
-                        every { color } returns exactColor
-                    }
-                }
-                val event = ColorDetailsEvent.DataFetched(domainDetails)
-                colorDetailsEventFlow.emit(event)
-            }
             run emitExactColorSelectedEvent@{
                 val event = ColorDetailsEvent.ColorSelected(
                     color = exactColor,
@@ -1008,10 +1067,11 @@ class HomeViewModelTest {
         }
 
     @Test
-    fun `when 'proceed' is invoked and Color Input is cleared before 'DataFetched' event arrives, then no exception is thrown`() =
+    fun `when 'proceed' is invoked and Color Input is cleared before color details arrive, then no exception is thrown`() =
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             val initialColor = Color.Hex(0x0)
+            val exactColor = Color.Hex(0x1)
             val colorStateFlow = run {
                 val value = ColorInputMediator.ColorState(color = initialColor, source = null, id = 0)
                 MutableStateFlow(value)
@@ -1020,109 +1080,148 @@ class HomeViewModelTest {
             val colorDetailsEventFlow = MutableSharedFlow<ColorDetailsEvent>()
             every { colorDetailsEventStore.eventFlow } returns colorDetailsEventFlow
             every { createColorData(color = any()) } returns mockk()
+            run {
+                val slotOfDeferredDetails = slot<CompletableDeferred<DomainColorDetails>>()
+                every {
+                    colorDetailsViewModel.setSeedColor(
+                        color = initialColor,
+                        deferredDetails = capture(slotOfDeferredDetails),
+                    )
+                } coAnswers {
+                    val deferredDetails = slotOfDeferredDetails.captured
+                    val domainDetails = mockk<DomainColorDetails>(relaxed = true) {
+                        every { color } returns initialColor
+                        every { exact } returns mockk {
+                            every { color } returns exactColor
+                        }
+                    }
+                    deferredDetails.complete(domainDetails)
+                    return@coAnswers Job()
+                }
+            }
             createSut()
 
             run proceedWithInitialColor@{
                 // we know from other tests that it would be 'CanProceed.Yes'
                 data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed()
             }
-            run emitNewColorFromColorInput@{
+            run emitNullColorFromColorInput@{
                 val value = ColorInputMediator.ColorState(color = null, source = null, id = 1)
                 colorStateFlow.emit(value)
             }
 
-            shouldNotThrowAny {
-                val domainDetails: DomainColorDetails = mockk(relaxed = true) {
-                    every { color } returns initialColor
-                    every { exact } returns mockk {
-                        every { color } returns mockk()
-                    }
-                }
-                val event = ColorDetailsEvent.DataFetched(domainDetails)
-                colorDetailsEventFlow.emit(event)
-            }
+            // "THEN"
+            // if any exception inside SUT is thrown, then 'runTest()' will re-throw it and the test will fail
         }
 
     /**
      * GIVEN
      * 1. [sut] is created
-     * 2. there's a color c0 in [ColorInputMediator]. Exact color for it is c1.
+     * 2. there's a color `c0` in [ColorInputMediator]. Exact color for it is `c1`.
      *
      * WHEN
      * 1. [HomeData.CanProceed.Yes.proceed] action is invoked.
-     * It is a new Color Center session, so [sut] starts waiting for [ColorDetailsEvent.DataFetched]
+     * It is a new Color Center session, so [sut] starts waiting for [DomainColorDetails] of color `c0`
      * to create a new [ColorCenterSession].
-     * 2. [ColorDetailsEvent.DataFetched] for proceeded color c0 hasn't arrived yet, so new
-     * [ColorCenterSession] is not created yet.
-     * 3. new color c2 is emitted from [ColorInputMediator.colorStateFlow].
+     * 2. [DomainColorDetails] of color `c0` hasn't arrived yet, so new [ColorCenterSession] is not
+     * created yet.
+     * 3. new color `c2` is emitted from [ColorInputMediator.colorStateFlow].
      * 4. [HomeData.CanProceed.Yes.proceed] action is invoked.
-     * It is a new Color Center session, so [sut] starts waiting for [ColorDetailsEvent.DataFetched]
+     * It is a new Color Center session, so [sut] starts waiting for [DomainColorDetails] of color `c2`
      * to create a new [ColorCenterSession].
-     * 5. [ColorDetailsEvent.DataFetched] for proceeded color c2 arrives, and new
-     * [ColorCenterSession] is created.
-     * 6. [ColorDetailsEvent.DataFetched] for proceeded color c0 arrives, but due to last
-     * "proceeded with" color was c2, it is ignored, and no new [ColorCenterSession] is created.
-     * 7. new color c1 (see GIVEN) is emitted from [ColorInputMediator.colorStateFlow].
-     * Due to it being an "exact" color for initial color c0, it belongs to the same [ColorCenterSession].
-     * But current session is for color c2, thus this color is treated as a color from different session.
+     * 5. [DomainColorDetails] of proceeded color `c2` arrives, and a new [ColorCenterSession]
+     * is created.
+     * 6. [DomainColorDetails] of color `c0` finally arrive, but due to last
+     * "proceeded with" color was `c2`, it is ignored, and no new [ColorCenterSession] is created.
+     * 7. new color `c1` (see GIVEN) is emitted from [ColorInputMediator.colorStateFlow].
+     * Due to it being an "exact" color for initial color `c0`, it belongs to the same [ColorCenterSession].
+     * But current session is for color `c2`, thus this color is treated as a color from different session.
      *
      * THEN
      * [HomeData.proceedResult] is set to `null`.
-     * If WHEN #6 led to creation of new [ColorCenterSession] with seed being c0, then it would've
-     * been the current session. Thus, c1 would've been considered belonging to that session,
+     * If WHEN #6 led to creation of a new [ColorCenterSession] with seed being `c0`, then it would've
+     * been the current session. Thus, `c1` would've been considered belonging to that session,
      * and [HomeData.proceedResult] wouldn't have been set to `null`.
      */
     @Test
-    fun `when 'proceed' is invoked and new color is emitted from Color Input and proceeded with before 'DataFetched' event arrives for initial color, then Color Center session is created for the latest proceeded color`() =
+    fun `when 'proceed' is invoked and new color is emitted from Color Input and proceeded with before color details of initial color arrive, then Color Center session is created for the latest proceeded color`() =
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
-            val initialColor = Color.Hex(0x0)
-            val exactColorForInitialColor = Color.Hex(0x1)
+            val firstColor = Color.Hex(0x0)
+            val exactColorForFirst = Color.Hex(0x1)
+            val secondColor = Color.Hex(0x2)
+            val exactColorForSecond = Color.Hex(0x3)
             val colorStateFlow = run {
-                val value = ColorInputMediator.ColorState(color = initialColor, source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = firstColor, source = null, id = 0)
                 MutableStateFlow(value)
             }
             every { colorInputMediator.colorStateFlow } returns colorStateFlow
             val colorDetailsEventFlow = MutableSharedFlow<ColorDetailsEvent>()
             every { colorDetailsEventStore.eventFlow } returns colorDetailsEventFlow
             every { createColorData(color = any()) } returns mockk()
+            val gateForDetailsOfFirstColor = ClosableSuspendGate(closed = true)
+            run {
+                val slotOfDeferredDetails = slot<CompletableDeferred<DomainColorDetails>>()
+                every {
+                    colorDetailsViewModel.setSeedColor(
+                        color = firstColor,
+                        deferredDetails = capture(slotOfDeferredDetails),
+                    )
+                } coAnswers {
+                    val deferredDetails = slotOfDeferredDetails.captured
+                    val domainDetails = mockk<DomainColorDetails>(relaxed = true) {
+                        every { color } returns firstColor
+                        every { exact } returns mockk {
+                            every { color } returns exactColorForFirst
+                        }
+                    }
+                    launch {
+                        gateForDetailsOfFirstColor.awaitOpen()
+                        deferredDetails.complete(domainDetails)
+                    }
+                    return@coAnswers Job()
+                }
+            }
+            run {
+                val slotOfDeferredDetails = slot<CompletableDeferred<DomainColorDetails>>()
+                every {
+                    colorDetailsViewModel.setSeedColor(
+                        color = secondColor,
+                        deferredDetails = capture(slotOfDeferredDetails),
+                    )
+                } coAnswers {
+                    val deferredDetails = slotOfDeferredDetails.captured
+                    val domainDetails = mockk<DomainColorDetails>(relaxed = true) {
+                        every { color } returns secondColor
+                        every { exact } returns mockk {
+                            every { color } returns exactColorForSecond
+                        }
+                    }
+                    deferredDetails.complete(domainDetails)
+                    return@coAnswers Job()
+                }
+            }
             createSut()
 
-            run proceedWithInitialColor@{
+            run proceedWithFirstColor@{
                 // we know from other tests that it would be 'CanProceed.Yes'
                 data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed()
             }
-            val newColor = Color.Hex(0x2)
-            run emitNewColorFromColorInput@{
-                val value = ColorInputMediator.ColorState(color = newColor, source = null, id = 1)
+            run emitSecondColorFromColorInput@{
+                val value =
+                    ColorInputMediator.ColorState(color = secondColor, source = null, id = 1)
                 colorStateFlow.emit(value)
             }
-            run proceedWithNewColor@{
+            run proceedWithSecondColor@{
                 // we know from other tests that it would be 'CanProceed.Yes'
                 data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed()
             }
-            run emitDataFetchedEventOfNewColor@{
-                val domainDetails: DomainColorDetails = mockk(relaxed = true) {
-                    every { color } returns newColor
-                    every { exact } returns mockk {
-                        every { color } returns Color.Hex(0x3)
-                    }
-                }
-                val event = ColorDetailsEvent.DataFetched(domainDetails)
-                colorDetailsEventFlow.emit(event)
+            run completeDetailsOfFirstColor@{
+                gateForDetailsOfFirstColor.open()
             }
-            run emitDataFetchedEventOfInitialColor@{
-                val domainDetails: DomainColorDetails = mockk(relaxed = true) {
-                    every { color } returns initialColor
-                    every { exact } returns mockk {
-                        every { color } returns exactColorForInitialColor
-                    }
-                }
-                val event = ColorDetailsEvent.DataFetched(domainDetails)
-                colorDetailsEventFlow.emit(event)
-            }
-            run emitExactColorForInitialColorFromColorInput@{
-                val value = ColorInputMediator.ColorState(color = exactColorForInitialColor, source = null, id = 2)
+            run emitExactColorForFirstColorFromColorInput@{
+                val value =
+                    ColorInputMediator.ColorState(color = exactColorForFirst, source = null, id = 2)
                 colorStateFlow.emit(value)
             }
 
@@ -1130,37 +1229,56 @@ class HomeViewModelTest {
         }
 
     @Test
-    fun `when 'proceed' is invoked for second time before 'DataFetched' event arrives, then no exception is thrown`() =
+    fun `when 'proceed' is invoked for second time before color details arrive, then no exception is thrown`() =
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
-            val currentColor = Color.Hex(0x0) // name 'color' conflicts with fields of DomainColorDetails
+            val initialColor = Color.Hex(0x0)
+            val exactColor = Color.Hex(0x1)
             every { colorInputMediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = currentColor, source = null, id = 0)
+                val value =
+                    ColorInputMediator.ColorState(color = initialColor, source = null, id = 0)
                 MutableStateFlow(value)
             }
             val colorDetailsColorFlow = MutableSharedFlow<ColorDetailsEvent>()
             every { colorDetailsEventStore.eventFlow } returns colorDetailsColorFlow
             every { createColorData(color = any()) } returns mockk()
+            var invocationCount =
+                0 // un-synchronized 'var' because 'UnconfinedTestDispatcher' is single-threaded
+            val gates = List(size = 2) { ClosableSuspendGate(closed = true) }
+            run {
+                val slotOfDeferredDetails = slot<CompletableDeferred<DomainColorDetails>>()
+                every {
+                    colorDetailsViewModel.setSeedColor(
+                        color = initialColor,
+                        deferredDetails = capture(slotOfDeferredDetails),
+                    )
+                } coAnswers {
+                    val currentInvocation = invocationCount++
+                    val deferredDetails = slotOfDeferredDetails.captured
+                    val domainDetails = mockk<DomainColorDetails>(relaxed = true) {
+                        every { color } returns initialColor
+                        every { exact } returns mockk {
+                            every { color } returns exactColor
+                        }
+                    }
+                    launch {
+                        gates[currentInvocation].awaitOpen()
+                        deferredDetails.complete(domainDetails)
+                    }
+                    return@coAnswers Job()
+                }
+            }
             createSut()
 
             // we know from other tests that it would be 'CanProceed.Yes'
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed()
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed()
-            val domainDetails: DomainColorDetails = mockk(relaxed = true) {
-                every { color } returns currentColor
-                every { exact } returns mockk {
-                    every { color } returns mockk()
-                }
-            }
-            // emit event for first invocation of 'proceed'
-            kotlin.run {
-                val event = ColorDetailsEvent.DataFetched(domainDetails)
-                colorDetailsColorFlow.emit(event)
-            }
-            // emit event for second invocation of 'proceed'
+            gates[0].open()
+
+            // "THEN"
+            // if any exception inside SUT is thrown, then 'runTest()' will re-throw it and the test will fail
             shouldNotThrowAny {
-                val event = ColorDetailsEvent.DataFetched(domainDetails)
-                colorDetailsColorFlow.emit(event)
+                gates[1].open()
             }
         }
 
@@ -1196,16 +1314,20 @@ class HomeViewModelTest {
             every { colorDetailsEventStore.eventFlow } returns colorDetailsEventFlow
             val colorData: ProceedResult.Success.ColorData = mockk()
             every { createColorData(color = lastSearchedColor) } returns colorData
-            coEvery {
-                colorInputMediator.withLock(block = any())
-            } coAnswers  {
-                val block = firstArg<suspend (ColorInputMediator.Editor) -> Unit>()
-                val editor = colorInputMediatorComponents.editor
-                editor.mockSet { color, source ->
-                    val value = ColorInputMediator.ColorState(color = color, source = source, id = 1)
-                    colorStateFlow.emit(value)
+            run {
+                val slotOfBlock = slot<suspend (ColorInputMediator.Editor) -> Unit>()
+                coEvery {
+                    colorInputMediator.withLock(block = capture(slotOfBlock))
+                } coAnswers {
+                    val block = slotOfBlock.captured
+                    val editor = colorInputMediatorComponents.editor
+                    editor.mockSet { color, source ->
+                        val value =
+                            ColorInputMediator.ColorState(color = color, source = source, id = 1)
+                        colorStateFlow.emit(value)
+                    }
+                    block.invoke(editor)
                 }
-                block.invoke(editor)
             }
 
             createSut()
@@ -1219,6 +1341,7 @@ class HomeViewModelTest {
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             val initialColor = Color.Hex(0x0)
+            val exactColor = Color.Hex(0x1)
             val colorStateFlow = run {
                 val value = ColorInputMediator.ColorState(color = initialColor, source = null, id = 0)
                 MutableStateFlow(value)
@@ -1227,39 +1350,39 @@ class HomeViewModelTest {
             val colorDetailsEventFlow = MutableSharedFlow<ColorDetailsEvent>()
             every { colorDetailsEventStore.eventFlow } returns colorDetailsEventFlow
             every { createColorData(color = any()) } returns mockk()
+            run {
+                val slotOfDeferredDetails = slot<CompletableDeferred<DomainColorDetails>>()
+                every {
+                    colorDetailsViewModel.setSeedColor(
+                        color = initialColor,
+                        deferredDetails = capture(slotOfDeferredDetails),
+                    )
+                } coAnswers {
+                    val deferredDetails = slotOfDeferredDetails.captured
+                    val domainDetails = mockk<DomainColorDetails>(relaxed = true) {
+                        every { color } returns initialColor
+                        every { exact } returns mockk {
+                            every { color } returns exactColor
+                        }
+                    }
+                    deferredDetails.complete(domainDetails)
+                    return@coAnswers Job()
+                }
+            }
             createSut()
 
             // we know from other tests that it would be 'CanProceed.Yes'
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed()
-            val exactColor = Color.Hex(0x123456)
-            run emitDataFetchedEvent@{
-                val domainDetails: DomainColorDetails = mockk(relaxed = true) {
-                    every { color } returns initialColor
-                    every { exact } returns mockk {
-                        every { color } returns exactColor
-                    }
-                }
-                val event = ColorDetailsEvent.DataFetched(domainDetails)
-                colorDetailsEventFlow.emit(event)
-            }
-
-            // clicking "Go to exact color"
-            run emitColorSelectedEvent@{
+            run emitExactColorSelectedEvent@{
                 val event = ColorDetailsEvent.ColorSelected(
                     color = exactColor,
                     colorRole = ColorRole.Exact,
                 )
                 colorDetailsEventFlow.emit(event)
             }
-            run emitExactColor@{
+            run emitExactColorFromColorInput@{
                 val value = ColorInputMediator.ColorState(color = exactColor, source = null, id = 1)
                 colorStateFlow.emit(value)
-            }
-            run emitDataFetchedEvent@{
-                val event = ColorDetailsEvent.DataFetched(
-                    domainDetails = mockk(relaxed = true),
-                )
-                colorDetailsEventFlow.emit(event)
             }
 
             coVerify(exactly = 1) {
@@ -1296,22 +1419,26 @@ class HomeViewModelTest {
             every { colorInputMediator.colorStateFlow } returns colorStateFlow
             val randomColor: Color.Hex = mockk()
             every { getPredictableRandomColor() } returns randomColor
-            val featureValue = DomainAutoProceedWithRandomizedColors(enabled = true)
-            every { userPreferencesRepository.flowOfAutoProceedWithRandomizedColors } returns MutableStateFlow(featureValue)
+
+            every { userPreferencesRepository.flowOfAutoProceedWithRandomizedColors } returns run {
+                val value = DomainAutoProceedWithRandomizedColors(enabled = true)
+                MutableStateFlow(value)
+            }
             every { createColorData(color = any()) } returns mockk()
             createSut()
 
             data.randomizeColor()
-            run emitColorFromColorInput@{
+            run emitRandomColorFromColorInput@{
                 val value = ColorInputMediator.ColorState(color = randomColor, source = null, id = 1)
                 colorStateFlow.emit(value)
             }
 
             coVerify(exactly = 1) {
-                proceed(
-                    expectedColor = randomColor,
-                    expectedColorDetailsCommand = ColorDetailsCommand.SetSeedColor(randomColor),
+                colorDetailsViewModel.setSeedColor(
+                    color = randomColor,
+                    deferredDetails = any(),
                 )
+                colorSchemeViewModel.fetchColorScheme(seed = randomColor)
             }
         }
 
@@ -1339,50 +1466,5 @@ class HomeViewModelTest {
         every { colorInputMediator.colorStateFlow } returns MutableStateFlow(ColorInputMediator.InitialColorState)
         every { colorDetailsEventStore.eventFlow } returns MutableSharedFlow()
         every { colorSchemeEventStore.eventFlow } returns emptyFlow()
-    }
-
-    /**
-     * Verifies that [HomeViewModel.proceed] was invoked with the specified parameters.
-     * Use inside [coVerify] block.
-     */
-    suspend inline fun MockKVerificationScope.proceed(
-        matcherForColorDetailsCommand: MyMatcher<ColorDetailsCommand> = matchAny(),
-        matcherForColorSchemeCommand: MyMatcher<ColorSchemeCommand> = matchAny(),
-    ) {
-        kotlin.run verifyColorDetailsCommandIssued@{
-            // and(matcher, matcher) is inconvenient to use
-            val expectedCommand = match<ColorDetailsCommand> { command ->
-                matcherForColorDetailsCommand.match(command)
-            }
-            colorDetailsCommandStore.issue(command = expectedCommand)
-        }
-        kotlin.run verifyColorSchemeCommandIssued@{
-            // and(matcher, matcher) is inconvenient to use
-            val expectedCommand = match<ColorSchemeCommand> { command ->
-                matcherForColorSchemeCommand.match(command)
-            }
-            colorSchemeCommandStore.issue(command = expectedCommand)
-        }
-    }
-
-    suspend inline fun MockKVerificationScope.proceed(
-        expectedColor: Color,
-        expectedColorDetailsCommand: ColorDetailsCommand,
-    ) {
-        proceed(
-            matcherForColorDetailsCommand = match(expectedColorDetailsCommand),
-            matcherForColorSchemeCommand = { command ->
-                (command is ColorSchemeCommand.FetchData) && (command.color == expectedColor)
-            },
-        )
-    }
-
-    fun interface MyMatcher<in T> {
-        fun match(actual: T): Boolean
-    }
-
-    object MyMatchers {
-        fun <T> matchAny() = MyMatcher<T> { true }
-        fun <T> match(expected: T) = MyMatcher<T> { actual -> actual == expected }
     }
 }

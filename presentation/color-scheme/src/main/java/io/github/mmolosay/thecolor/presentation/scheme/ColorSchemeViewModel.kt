@@ -20,7 +20,9 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.SwatchCou
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.Config
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.DataState
 import io.github.mmolosay.thecolor.presentation.scheme.StatefulData.State
+import io.github.mmolosay.thecolor.utils.CoroutineRegistry
 import io.github.mmolosay.thecolor.utils.asDelegate
+import io.github.mmolosay.thecolor.utils.trackThisAsSingleActive
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -33,7 +35,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.concurrent.atomic.AtomicReference
+import kotlinx.coroutines.yield
 import javax.inject.Inject
 import javax.inject.Singleton
 import io.github.mmolosay.thecolor.domain.color.ColorScheme as DomainColorScheme
@@ -48,7 +50,6 @@ import io.github.mmolosay.thecolor.domain.color.ColorScheme as DomainColorScheme
  */
 class ColorSchemeViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted private val commandProvider: ColorSchemeCommandProvider,
     @Assisted private val eventStore: ColorSchemeEventStore,
     private val colorRepository: ColorRepository,
     private val createData: CreateColorSchemeDataUseCase,
@@ -72,46 +73,40 @@ class ColorSchemeViewModel @AssistedInject constructor(
             initialValue = statefulDataFlow.value.toDataState(),
         )
 
-    private val fetchDataJob = AtomicReference<Job?>(null)
+    private val opRegistry = CoroutineRegistry<Operation>()
     private val dataEditor = ColorSchemeDataEditor(
         applyChanges = ::applyChanges,
     )
 
-    init {
-        collectColorSchemeCommands()
-    }
-
-    private fun collectColorSchemeCommands() =
+    /**
+     * Fetches [DomainColorScheme] for the specified "[seed]" color of the color scheme.
+     * Exposes fetched color scheme from the [dataStateFlow].
+     */
+    fun fetchColorScheme(seed: Color): Job =
         coroutineScope.launch(defaultDispatcher) {
-            commandProvider.commandFlow.collect { command ->
-                command.process()
-            }
-        }
-
-    private fun ColorSchemeCommand.process() = when (this) {
-        is ColorSchemeCommand.FetchData -> {
-            val seed = this.color
-            statefulDataFlow.update {
-                it.copy { StatefulData.dataSession.seed set seed }
-            }
-            fetchColorScheme(seed)
-        }
-    }
-
-    private fun fetchColorScheme(seed: Color) {
-        val requestConfig = assembleRequestConfig()
-        val request = requestConfig.toDomainRequest(seed)
-        statefulDataFlow.update {
-            it.copy { StatefulData.state set State.Loading }
-        }
-        coroutineScope.launch(defaultDispatcher) {
-            val colorScheme = withContext(ioDispatcher) {
-                colorRepository.getColorScheme(request)
-            }
-                .getOrElse { exception ->
+            opRegistry.trackThisAsSingleActive(
+                predicate = { it.value is Operation.FetchColorScheme },
+                value = Operation.FetchColorScheme(seed),
+            ) {
+                statefulDataFlow.update {
+                    it.copy { StatefulData.dataSession.seed set seed }
+                }
+                val requestConfig = assembleRequestConfig()
+                val request = requestConfig.toDomainRequest(seed)
+                statefulDataFlow.update {
+                    it.copy { StatefulData.state set State.Loading }
+                }
+                yield() // allow 'dataStateFlow' to emit 'Loading' state in unit tests
+                val schemeResult = withContext(ioDispatcher) {
+                    colorRepository.getColorScheme(request)
+                }
+                val colorScheme = schemeResult.getOrElse { exception ->
+                    val tryAgain: () -> Unit = {
+                        fetchColorScheme(seed)
+                    }
                     val error = ColorSchemeError(
                         cause = exception,
-                        tryAgain = ::onErrorAction,
+                        tryAgain = tryAgain,
                     )
                     statefulDataFlow.update {
                         it.copy {
@@ -121,18 +116,16 @@ class ColorSchemeViewModel @AssistedInject constructor(
                     }
                     return@launch
                 }
-            val data = createData(scheme = colorScheme, config = requestConfig)
-            statefulDataFlow.update {
-                it.copy {
-                    StatefulData.dataSession.domainColorScheme set colorScheme
-                    StatefulData.dataSession.data set data
-                    StatefulData.state set State.Ready
+                val data = createData(scheme = colorScheme, config = requestConfig)
+                statefulDataFlow.update {
+                    it.copy {
+                        StatefulData.dataSession.domainColorScheme set colorScheme
+                        StatefulData.dataSession.data set data
+                        StatefulData.state set State.Ready
+                    }
                 }
             }
-        }.also { job ->
-            fetchDataJob.getAndSet(job)?.cancel()
         }
-    }
 
     private fun createData(
         scheme: DomainColorScheme,
@@ -145,12 +138,6 @@ class ColorSchemeViewModel @AssistedInject constructor(
             onModeSelect = ::selectMode,
             onSwatchCountSelect = ::selectSwatchCount,
         )
-
-    private fun onErrorAction() {
-        val seed = requireNotNull(statefulData.dataSession.seed)
-        fetchColorScheme(seed = seed)
-
-    }
 
     private fun sendSwatchSelectedEvent(indexOfSelectedSwatch: Int) {
         val dataSession = statefulData.dataSession
@@ -186,23 +173,26 @@ class ColorSchemeViewModel @AssistedInject constructor(
     private fun applyChanges() {
         val dataSession = statefulData.dataSession
         val data = dataSession.data ?: return
-        if (data.changes !is Changes.Present) return // ignore clicks during button hiding animation
+        if (data.changes !is Changes.Present) return // ignore invocations on stale state
         val seed = dataSession.seed ?: return
         fetchColorScheme(seed)
     }
 
     private fun assembleRequestConfig(): Config {
-        val data = statefulData.dataSession.data
-        return if (data != null)
+        fun ColorSchemeData.toConfig() =
             Config(
-                mode = data.selectedMode,
-                swatchCount = data.selectedSwatchCount,
+                mode = this.selectedMode,
+                swatchCount = this.selectedSwatchCount,
             )
-        else
+
+        fun defaultConfig() =
             Config(
                 mode = Mode.Monochrome,
                 swatchCount = SwatchCount.Six,
             )
+
+        val data = statefulData.dataSession.data
+        return data?.toConfig() ?: defaultConfig()
     }
 
     private fun Config.toDomainRequest(seed: Color): GetColorSchemeRequest =
@@ -229,9 +219,22 @@ class ColorSchemeViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            colorSchemeCommandProvider: ColorSchemeCommandProvider,
             colorSchemeEventStore: ColorSchemeEventStore,
         ): ColorSchemeViewModel
+    }
+
+    /**
+     * Directly maps to the public methods of the [ColorSchemeViewModel].
+     * Implements "Command" design pattern.
+     */
+    private sealed interface Operation {
+
+        /**
+         * Corresponds to the [ColorSchemeViewModel.fetchColorScheme] method.
+         */
+        data class FetchColorScheme(
+            val seed: Color,
+        ) : Operation
     }
 }
 

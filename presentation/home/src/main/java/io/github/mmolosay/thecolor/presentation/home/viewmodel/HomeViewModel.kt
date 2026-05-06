@@ -13,11 +13,13 @@ import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQuali
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCommand
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEvent
+import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterSessionStore.SessionState
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.CanProceed
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ColorSchemeSelectedSwatchData
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel.CoroutineRegistryRules.trackAsConsumeColorCenterComponents
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel.CoroutineRegistryRules.trackAsProceed
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.colorState
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupViewModel
@@ -26,35 +28,31 @@ import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitActi
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputValidationResult
 import io.github.mmolosay.thecolor.presentation.input.set
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeCommand
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
+import io.github.mmolosay.thecolor.utils.CoroutineRegistry
 import io.github.mmolosay.thecolor.utils.MutableConsumableStore
 import io.github.mmolosay.thecolor.utils.OperationCounter
 import io.github.mmolosay.thecolor.utils.asConsumableStore
-import io.github.mmolosay.thecolor.utils.doNothing
+import io.github.mmolosay.thecolor.utils.removeAndCancelAll
+import io.github.mmolosay.thecolor.utils.trackThisAsSingleActive
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 import javax.inject.Singleton
+import io.github.mmolosay.thecolor.domain.color.ColorDetails as DomainColorDetails
 
 /**
  * A [ViewModel] for 'Home' View.
@@ -112,9 +110,8 @@ class HomeViewModel @Inject constructor(
     private val _colorCenterViewModelFlow = MutableStateFlow<ColorCenterViewModel?>(null)
     val colorCenterViewModelFlow: StateFlow<ColorCenterViewModel?> = _colorCenterViewModelFlow.asStateFlow()
 
+    private val opRegistry = CoroutineRegistry<Operation>()
     private val ccSessionStore = ColorCenterSessionStore()
-    private val jobWithProceed = AtomicReference<Job?>(null)
-    private val jobWithComponentsCollection = AtomicReference<Job?>(null)
 
     init {
         collectColorsFromColorInput()
@@ -139,7 +136,7 @@ class HomeViewModel @Inject constructor(
                 clearProceedResult() // 'proceed' wasn't invoked for new color yet
                 endColorCenterSession()
             }
-            colorPreviewViewModel.setColor(color)
+            colorPreviewViewModel.setColor(color).join()
         }
     }
 
@@ -147,33 +144,31 @@ class HomeViewModel @Inject constructor(
         when (event) {
             is ColorDetailsEvent.ColorSelected ->
                 viewModelScope.launch(defaultDispatcher) {
-                    ccSessionStore.sessionState.mustBeOngoing()
-                    dataUpdateCounter.withCounter {
-                        val color = event.color
-                        colorInputMediator.set(color)
-                        // assuming any color selected belongs to ongoing session
-                        proceed(
-                            color = color,
-                            colorDetailsCommand = ColorDetailsCommand.SelectColor(event.colorRole),
-                        )
+                    opRegistry.trackAsProceed {
+                        ccSessionStore.sessionState.mustBeOngoing()
+                        dataUpdateCounter.withCounter {
+                            val color = event.color
+                            colorInputMediator.set(color)
+                            // assuming any color selected belongs to ongoing session
+                            proceed(color) { colorDetails, colorScheme ->
+                                colorDetails.selectColor(event.colorRole)
+                                colorScheme.fetchColorScheme(color)
+                            }
+                        }
                     }
-                }.also { job ->
-                    job.setToJobWithProceed()
                 }
-            is ColorDetailsEvent.DataFetched ->
-                doNothing() // ignore, handled in onColorCenterSessionStarted()
         }
     }
 
-    private fun onEventFromColorScheme(event: ColorSchemeEvent) {
+    @Suppress("RedundantSuspendModifier")
+    private suspend fun onEventFromColorScheme(event: ColorSchemeEvent) {
         viewModelScope.launch(defaultDispatcher) {
             when (event) {
                 is ColorSchemeEvent.SwatchSelected -> {
-                    val command = ColorDetailsCommand.SetSeedDetails(event.swatchColorDetails)
-                    val commandStore = colorCenterComponentsStore.components
-                        ?.selectedSwatchColorDetailsCommandStore
+                    val viewModel = colorCenterComponentsStore.components
+                        ?.selectedSwatchColorDetailsViewModel
                         ?: return@launch
-                    commandStore.issue(command)
+                    viewModel.setSeedDetails(event.swatchColorDetails)
                     val selectedSwatchColorDetailsViewModel = colorCenterComponentsStore.components
                         ?.selectedSwatchColorDetailsViewModel
                         ?: return@launch
@@ -189,101 +184,77 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    @Suppress("RedundantSuspendModifier")
     private suspend fun onEventFromColorDetailsOfSelectedSwatch(event: ColorDetailsEvent) {
         when (event) {
             is ColorDetailsEvent.ColorSelected -> {
-                val commandStore = colorCenterComponentsStore.components
-                    ?.selectedSwatchColorDetailsCommandStore
+                val viewModel = colorCenterComponentsStore.components
+                    ?.selectedSwatchColorDetailsViewModel
                     ?: return
-                val command = ColorDetailsCommand.SelectColor(colorRole = event.colorRole)
-                commandStore.issue(command)
+                viewModel.selectColor(event.colorRole)
             }
-            else -> doNothing()
         }
     }
 
     private fun maybeProceedWithLastSearchedColor() {
         viewModelScope.launch(defaultDispatcher) {
-            val resumeFromLastSearchedColorOnStartup = userPreferencesRepository
-                .flowOfResumeFromLastSearchedColorOnStartup
-                .filterNotNull().first()
-            val enabled = resumeFromLastSearchedColorOnStartup.enabled
-            if (!enabled) return@launch
-            val color = lastSearchedColorRepository.getLastSearchedColor() ?: return@launch
-            dataUpdateCounter.withCounter {
-                createAndConsumeNewColorCenterComponents()
-                startColorCenterSession(seed = color)
-                proceed(
-                    color = color,
-                    colorDetailsCommand = ColorDetailsCommand.SetSeedColor(color),
-                )
-                colorInputMediator.set(color)
+            opRegistry.trackAsProceed {
+                val resumeFromLastSearchedColorOnStartup = userPreferencesRepository
+                    .flowOfResumeFromLastSearchedColorOnStartup
+                    .filterNotNull().first()
+                val enabled = resumeFromLastSearchedColorOnStartup.enabled
+                if (!enabled) return@launch
+                val color = lastSearchedColorRepository.getLastSearchedColor() ?: return@launch
+                dataUpdateCounter.withCounter {
+                    createAndConsumeNewColorCenterComponents()
+                    val deferredDetails = CompletableDeferred<DomainColorDetails>()
+                    startColorCenterSession(
+                        seed = color,
+                        deferredDetails = deferredDetails,
+                    )
+                    proceed(color) { colorDetails, colorScheme ->
+                        colorDetails.setSeedColor(color, deferredDetails)
+                        colorScheme.fetchColorScheme(color)
+                    }
+                    colorInputMediator.set(color)
+                }
             }
-        }.also { job ->
-            job.setToJobWithProceed()
         }
     }
 
     /** Variation that takes the current color of Color Input. */
     private fun proceed() {
         viewModelScope.launch(defaultDispatcher) {
-            dataUpdateCounter.withCounter {
-                endColorCenterSession() // end current session (if any)
-                val color = requireNotNull(colorInputMediator.colorState.color)
-                createAndConsumeNewColorCenterComponents()
-                startColorCenterSession(seed = color)
-                proceed(
-                    color = color,
-                    colorDetailsCommand = ColorDetailsCommand.SetSeedColor(color),
-                )
-            }
-        }.also { job ->
-            job.setToJobWithProceed()
-        }
-    }
-
-    private suspend fun createAndConsumeNewColorCenterComponents() {
-        colorCenterComponentsStore.createNewComponents()
-        run consumeNewComponents@{
-            val newComponents = colorCenterComponentsStore.components
-            _colorCenterViewModelFlow.emit(newComponents?.colorCenterViewModel)
-            // collect components' flows in a standalone coroutine to decouple it from the 'jobWithProceed'
-            viewModelScope.launch(defaultDispatcher) {
-                if (newComponents != null) {
-                    launch {
-                        newComponents.colorDetailsEventStore.eventFlow
-                            .collect(::onEventFromColorDetailsOfColorCenter)
-                    }
-                    launch {
-                        newComponents.colorSchemeEventStore.eventFlow
-                            .collect(::onEventFromColorScheme)
-                    }
-                    launch {
-                        newComponents.selectedSwatchColorDetailsEventStore.eventFlow
-                            .collect(::onEventFromColorDetailsOfSelectedSwatch)
+            opRegistry.trackAsProceed {
+                dataUpdateCounter.withCounter {
+                    endColorCenterSession() // end current session (if any)
+                    val color = requireNotNull(colorInputMediator.colorState.color)
+                    createAndConsumeNewColorCenterComponents()
+                    val deferredDetails = CompletableDeferred<DomainColorDetails>()
+                    startColorCenterSession(
+                        seed = color,
+                        deferredDetails = deferredDetails,
+                    )
+                    proceed(color) { colorDetails, colorScheme ->
+                        colorDetails.setSeedColor(color, deferredDetails)
+                        colorScheme.fetchColorScheme(color)
                     }
                 }
-            }.also { job ->
-                jobWithComponentsCollection.getAndSet(job)?.cancel()
             }
         }
     }
 
     private suspend fun proceed(
         color: Color,
-        colorDetailsCommand: ColorDetailsCommand,
+        colorCenterAction: suspend (ColorDetailsViewModel, ColorSchemeViewModel) -> Unit,
     ) {
-        val components = requireNotNull(colorCenterComponentsStore.components)
-        coroutineScope {
-            launch issueCommandToColorDetails@{
-                components.colorDetailsCommandStore.issue(colorDetailsCommand)
-            }
-            launch issueCommandToColorScheme@{
-                val command = ColorSchemeCommand.FetchData(color)
-                components.colorSchemeCommandStore.issue(command)
-            }
+        run executeColorCenterAction@{
+            val components = requireNotNull(colorCenterComponentsStore.components)
+            val colorDetails = components.colorCenterViewModel.colorDetailsViewModel
+            val colorScheme = components.colorCenterViewModel.colorSchemeViewModel
+            colorCenterAction(colorDetails, colorScheme)
         }
-        kotlin.run updateData@{
+        run updateData@{
             val colorData = createColorData(color)
             val proceedResult = HomeData.ProceedResult.Success(
                 colorData = colorData,
@@ -296,26 +267,30 @@ class HomeViewModel @Inject constructor(
 
     private fun randomizeColor() {
         viewModelScope.launch(defaultDispatcher) {
-            val color = getPredictableRandomColor()
-            colorInputMediator.withLock { editor ->
-                val shouldProceed = userPreferencesRepository
-                    .flowOfAutoProceedWithRandomizedColors
-                    .filterNotNull().first()
-                    .enabled
-                dataUpdateCounter.withCounter {
-                    if (shouldProceed) {
-                        createAndConsumeNewColorCenterComponents()
-                        startColorCenterSession(seed = color)
-                        proceed(
-                            color = color,
-                            colorDetailsCommand = ColorDetailsCommand.SetSeedColor(color),
-                        )
+            opRegistry.trackAsProceed {
+                val color = getPredictableRandomColor()
+                colorInputMediator.withLock { editor ->
+                    val shouldProceed = userPreferencesRepository
+                        .flowOfAutoProceedWithRandomizedColors
+                        .filterNotNull().first()
+                        .enabled
+                    dataUpdateCounter.withCounter {
+                        if (shouldProceed) {
+                            createAndConsumeNewColorCenterComponents()
+                            val deferredDetails = CompletableDeferred<DomainColorDetails>()
+                            startColorCenterSession(
+                                seed = color,
+                                deferredDetails = deferredDetails,
+                            )
+                            proceed(color) { colorDetails, colorScheme ->
+                                colorDetails.setSeedColor(color, deferredDetails)
+                                colorScheme.fetchColorScheme(color)
+                            }
+                        }
+                        editor.set(color)
                     }
-                    editor.set(color)
                 }
             }
-        }.also { job ->
-            job.setToJobWithProceed()
         }
     }
 
@@ -363,20 +338,54 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun CoroutineScope.startColorCenterSession(seed: Color) {
-        val components = requireNotNull(colorCenterComponentsStore.components)
-        launch(defaultDispatcher, start = CoroutineStart.UNDISPATCHED) {
-            ccSessionStore.startBuilding(seed).run {
-                val event = components.colorDetailsEventStore.eventFlow
-                    .filterIsInstance<ColorDetailsEvent.DataFetched>()
-                    .first { with(colorComparator) { it.domainDetails.color isSameAs seed } }
-                val relatedColors = setOf(event.domainDetails.exact.color)
-                val session = ColorCenterSession(seed, relatedColors)
-                ensureActive()
-                complete(session)
+    private suspend fun createAndConsumeNewColorCenterComponents() {
+        colorCenterComponentsStore.createNewComponents()
+        val newComponents = colorCenterComponentsStore.components
+        _colorCenterViewModelFlow.emit(newComponents?.colorCenterViewModel)
+        // collect components' flows in a standalone coroutine to decouple it from the 'jobWithProceed'
+        viewModelScope.launch(defaultDispatcher) {
+            opRegistry.trackAsConsumeColorCenterComponents {
+                if (newComponents == null) return@launch
+                launch(start = CoroutineStart.UNDISPATCHED) {
+                    newComponents.colorDetailsEventStore.eventFlow
+                        .collect(::onEventFromColorDetailsOfColorCenter)
+                }
+                launch(start = CoroutineStart.UNDISPATCHED) {
+                    newComponents.colorSchemeEventStore.eventFlow
+                        .collect(::onEventFromColorScheme)
+                }
+                launch(start = CoroutineStart.UNDISPATCHED) {
+                    newComponents.selectedSwatchColorDetailsEventStore.eventFlow
+                        .collect(::onEventFromColorDetailsOfSelectedSwatch)
+                }
             }
         }
-        launch(defaultDispatcher) {
+    }
+
+    private suspend fun CoroutineScope.startColorCenterSession(
+        seed: Color,
+        deferredDetails: Deferred<DomainColorDetails>,
+    ) {
+        val deferredSessionBuildingScope = CompletableDeferred<ColorCenterSessionStore.SessionBuildingScope>()
+        val sessionBuildingJob = launch {
+            val sessionBuilding = deferredSessionBuildingScope.await()
+            val session = run {
+                val seedDetails = runCatching { deferredDetails.await() }.getOrElse {
+                    sessionBuilding.cancel() // will also cancel this coroutine
+                    return@launch
+                }
+                with(colorComparator) { require(seed isSameAs seedDetails.color) }
+                val relatedColors = setOf(seedDetails.exact.color)
+                ColorCenterSession(seed, relatedColors)
+            }
+            sessionBuilding.complete(session)
+        }
+        // start building a new session inline suspending to guarantee that
+        // by the time this function returns the session store has a new 'building' state
+        val sessionBuilding = ccSessionStore.startBuilding(seed, sessionBuildingJob)
+        deferredSessionBuildingScope.complete(sessionBuilding)
+
+        launch {
             lastSearchedColorRepository.setLastSearchedColor(seed)
         }
     }
@@ -384,11 +393,7 @@ class HomeViewModel @Inject constructor(
     private suspend fun endColorCenterSession() {
         ccSessionStore.clear()
         colorCenterComponentsStore.disposeComponents()
-        jobWithComponentsCollection.getAndSet(null)?.cancel()
-    }
-
-    private fun Job.setToJobWithProceed() {
-        jobWithProceed.getAndSet(this)?.cancel()
+        opRegistry.removeAndCancelAll { it.value is Operation.ConsumeColorCenterComponents }
     }
 
     private fun Color.doesBelongToCurrentSession(): Boolean {
@@ -409,17 +414,21 @@ class HomeViewModel @Inject constructor(
             when (validationResult) {
                 is ColorInputValidationResult.Valid -> {
                     viewModelScope.launch(defaultDispatcher) {
-                        dataUpdateCounter.withCounter {
-                            val color = validationResult.color
-                            createAndConsumeNewColorCenterComponents()
-                            startColorCenterSession(seed = color)
-                            proceed(
-                                color = color,
-                                colorDetailsCommand = ColorDetailsCommand.SetSeedColor(color),
-                            )
+                        opRegistry.trackAsProceed {
+                            dataUpdateCounter.withCounter {
+                                val color = validationResult.color
+                                createAndConsumeNewColorCenterComponents()
+                                val deferredDetails = CompletableDeferred<DomainColorDetails>()
+                                startColorCenterSession(
+                                    seed = color,
+                                    deferredDetails = deferredDetails,
+                                )
+                                proceed(color) { colorDetails, colorScheme ->
+                                    colorDetails.setSeedColor(color, deferredDetails)
+                                    colorScheme.fetchColorScheme(color)
+                                }
+                            }
                         }
-                    }.also { job ->
-                        job.setToJobWithProceed()
                     }
                     return true
                 }
@@ -435,71 +444,34 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
-}
 
-/* 'internal' for testing */
-internal class ColorCenterSessionStore {
-
-    private val _flowOfSessionState = MutableStateFlow<SessionState>(SessionState.NoSession)
-    val flowOfSessionState = _flowOfSessionState.asStateFlow()
-
-    private val updateStateMutex = Mutex()
-
-    suspend fun clear() =
-        updateStateMutex.withLock {
-            _flowOfSessionState.update { currentState ->
-                currentState.cancelIfBuilding()
-                return@update SessionState.NoSession
-            }
-        }
-
-    suspend fun startBuilding(seed: Color): SessionBuildingScope =
-        updateStateMutex.withLock {
-            val newState = SessionState.BeingBuilt(seed, currentCoroutineContext().job)
-            _flowOfSessionState.update { currentState ->
-                currentState.cancelIfBuilding()
-                return@update newState
-            }
-            return SessionBuildingScopeImpl(origin = newState)
-        }
-
-    private fun SessionState.cancelIfBuilding() {
-        if (this is SessionState.BeingBuilt) {
-            this.job.cancel()
-        }
+    private sealed interface Operation {
+        data object Proceed : Operation
+        data object ConsumeColorCenterComponents : Operation
     }
 
-    interface SessionBuildingScope {
-        suspend fun complete(session: ColorCenterSession)
+    private object CoroutineRegistryRules {
+
+        context(coroutineScope: CoroutineScope)
+        suspend inline fun CoroutineRegistry<Operation>.trackAsProceed(
+            block: () -> Unit,
+        ): Unit =
+            this.trackThisAsSingleActive(
+                predicate = { it.value is Operation.Proceed },
+                value = Operation.Proceed,
+                block = block,
+            )
+
+        context(coroutineScope: CoroutineScope)
+        suspend inline fun CoroutineRegistry<Operation>.trackAsConsumeColorCenterComponents(
+            block: () -> Unit,
+        ): Unit =
+            this.trackThisAsSingleActive(
+                predicate = { it.value is Operation.ConsumeColorCenterComponents },
+                value = Operation.ConsumeColorCenterComponents,
+                block = block,
+            )
     }
-
-    private inner class SessionBuildingScopeImpl(
-        private val origin: SessionState.BeingBuilt,
-    ) : SessionBuildingScope {
-
-        override suspend fun complete(session: ColorCenterSession) =
-            updateStateMutex.withLock {
-                _flowOfSessionState.update { currentState ->
-                    if (currentState != origin) {
-                        error("Cannot complete building session in the stale scope")
-                    }
-                    SessionState.Ongoing(session)
-                }
-            }
-    }
-
-    sealed interface SessionState {
-        data object NoSession : SessionState
-        data class BeingBuilt(val seed: Color, val job: Job) : SessionState
-        data class Ongoing(val session: ColorCenterSession) : SessionState
-    }
-}
-
-private val ColorCenterSessionStore.sessionState: SessionState
-    get() = this.flowOfSessionState.value
-
-private fun SessionState.mustBeOngoing() {
-    check(this is SessionState.Ongoing) { "SessionState $this must be Ongoing" }
 }
 
 /**
