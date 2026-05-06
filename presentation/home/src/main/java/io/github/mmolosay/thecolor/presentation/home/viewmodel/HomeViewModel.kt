@@ -18,8 +18,8 @@ import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsVi
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterSessionStore.SessionState
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.CanProceed
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ColorSchemeSelectedSwatchData
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel.CoroutineRegistryRules.trackConsumeColorCenterComponents
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel.CoroutineRegistryRules.trackProceed
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel.CoroutineRegistryRules.trackAsConsumeColorCenterComponents
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel.CoroutineRegistryRules.trackAsProceed
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.colorState
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupViewModel
@@ -144,7 +144,7 @@ class HomeViewModel @Inject constructor(
         when (event) {
             is ColorDetailsEvent.ColorSelected ->
                 viewModelScope.launch(defaultDispatcher) {
-                    opRegistry.trackProceed {
+                    opRegistry.trackAsProceed {
                         ccSessionStore.sessionState.mustBeOngoing()
                         dataUpdateCounter.withCounter {
                             val color = event.color
@@ -198,7 +198,7 @@ class HomeViewModel @Inject constructor(
 
     private fun maybeProceedWithLastSearchedColor() {
         viewModelScope.launch(defaultDispatcher) {
-            opRegistry.trackProceed {
+            opRegistry.trackAsProceed {
                 val resumeFromLastSearchedColorOnStartup = userPreferencesRepository
                     .flowOfResumeFromLastSearchedColorOnStartup
                     .filterNotNull().first()
@@ -225,7 +225,7 @@ class HomeViewModel @Inject constructor(
     /** Variation that takes the current color of Color Input. */
     private fun proceed() {
         viewModelScope.launch(defaultDispatcher) {
-            opRegistry.trackProceed {
+            opRegistry.trackAsProceed {
                 dataUpdateCounter.withCounter {
                     endColorCenterSession() // end current session (if any)
                     val color = requireNotNull(colorInputMediator.colorState.color)
@@ -267,7 +267,7 @@ class HomeViewModel @Inject constructor(
 
     private fun randomizeColor() {
         viewModelScope.launch(defaultDispatcher) {
-            opRegistry.trackProceed {
+            opRegistry.trackAsProceed {
                 val color = getPredictableRandomColor()
                 colorInputMediator.withLock { editor ->
                     val shouldProceed = userPreferencesRepository
@@ -344,7 +344,7 @@ class HomeViewModel @Inject constructor(
         _colorCenterViewModelFlow.emit(newComponents?.colorCenterViewModel)
         // collect components' flows in a standalone coroutine to decouple it from the 'jobWithProceed'
         viewModelScope.launch(defaultDispatcher) {
-            opRegistry.trackConsumeColorCenterComponents {
+            opRegistry.trackAsConsumeColorCenterComponents {
                 if (newComponents == null) return@launch
                 launch(start = CoroutineStart.UNDISPATCHED) {
                     newComponents.colorDetailsEventStore.eventFlow
@@ -414,7 +414,7 @@ class HomeViewModel @Inject constructor(
             when (validationResult) {
                 is ColorInputValidationResult.Valid -> {
                     viewModelScope.launch(defaultDispatcher) {
-                        opRegistry.trackProceed {
+                        opRegistry.trackAsProceed {
                             dataUpdateCounter.withCounter {
                                 val color = validationResult.color
                                 createAndConsumeNewColorCenterComponents()
@@ -453,7 +453,7 @@ class HomeViewModel @Inject constructor(
     private object CoroutineRegistryRules {
 
         context(coroutineScope: CoroutineScope)
-        suspend inline fun CoroutineRegistry<Operation>.trackProceed(
+        suspend inline fun CoroutineRegistry<Operation>.trackAsProceed(
             block: () -> Unit,
         ): Unit =
             this.trackThisAsSingleActive(
@@ -463,7 +463,7 @@ class HomeViewModel @Inject constructor(
             )
 
         context(coroutineScope: CoroutineScope)
-        suspend inline fun CoroutineRegistry<Operation>.trackConsumeColorCenterComponents(
+        suspend inline fun CoroutineRegistry<Operation>.trackAsConsumeColorCenterComponents(
             block: () -> Unit,
         ): Unit =
             this.trackThisAsSingleActive(
