@@ -51,4 +51,5 @@ dependencies {
     testImplementation("io.mockk:mockk:${libs.versions.mockk.get()}")
     testImplementation("io.kotest:kotest-assertions-core:${libs.versions.kotestAssertions.get()}")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:${libs.versions.coroutines.get()}")
+    testImplementation("app.cash.turbine:turbine:${libs.versions.turbine.get()}")
 }

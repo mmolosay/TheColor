@@ -342,20 +342,19 @@ class HomeViewModel @Inject constructor(
         colorCenterComponentsStore.createNewComponents()
         val newComponents = colorCenterComponentsStore.components
         _colorCenterViewModelFlow.emit(newComponents?.colorCenterViewModel)
-        // collect components' flows in a standalone coroutine to decouple it from the 'jobWithProceed'
         viewModelScope.launch(defaultDispatcher) {
             opRegistry.trackAsConsumeColorCenterComponents {
                 if (newComponents == null) return@launch
                 launch(start = CoroutineStart.UNDISPATCHED) {
-                    newComponents.colorDetailsEventStore.eventFlow
+                    newComponents.colorCenterViewModel.colorDetailsViewModel.eventFlow
                         .collect(::onEventFromColorDetailsOfColorCenter)
                 }
                 launch(start = CoroutineStart.UNDISPATCHED) {
-                    newComponents.colorSchemeEventStore.eventFlow
+                    newComponents.colorCenterViewModel.colorSchemeViewModel.eventFlow
                         .collect(::onEventFromColorScheme)
                 }
                 launch(start = CoroutineStart.UNDISPATCHED) {
-                    newComponents.selectedSwatchColorDetailsEventStore.eventFlow
+                    newComponents.selectedSwatchColorDetailsViewModel.eventFlow
                         .collect(::onEventFromColorDetailsOfSelectedSwatch)
                 }
             }

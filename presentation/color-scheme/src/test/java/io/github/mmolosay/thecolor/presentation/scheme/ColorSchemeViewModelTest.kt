@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.scheme
 
+import app.cash.turbine.test
 import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.domain.color.ColorDetails
 import io.github.mmolosay.thecolor.domain.color.ColorRepository
@@ -22,17 +23,11 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
-import io.mockk.just
 import io.mockk.mockk
-import io.mockk.runs
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
@@ -58,10 +53,6 @@ class ColorSchemeViewModelTest {
     @Suppress("unused")
     val mainDispatcherExtension = MainDispatcherExtension(testDispatcher)
 
-    val eventStore: ColorSchemeEventStore = mockk {
-        every { eventFlow } returns emptyFlow()
-        coEvery { send(event = any()) } just runs
-    }
     val colorRepository: ColorRepository = mockk()
     val createDataMock: CreateColorSchemeDataUseCase = mockk()
     val colorToColorInt: ColorToColorIntUseCase = mockk {
@@ -93,15 +84,13 @@ class ColorSchemeViewModelTest {
             } returns mockk()
             createSut()
 
-            // "then" block
-            launch {
-                sut.dataStateFlow
-                    .drop(1) // replayed initial state
-                    .first() should beOfType<DataState.Loading>()
-            }
+            sut.dataStateFlow.test {
+                sut.fetchColorScheme(seed = mockk())
 
-            // "when" block
-            sut.fetchColorScheme(seed = mockk())
+                skipItems(1) // replayed value of 'StateFlow'
+                awaitItem() should beOfType<DataState.Loading>()
+                cancelAndIgnoreRemainingEvents()
+            }
         }
 
     @Test
@@ -351,26 +340,25 @@ class ColorSchemeViewModelTest {
         runTest(testDispatcher) {
             coEvery { colorRepository.getColorScheme(request = any()) } returns
                     Result.success(value = someDomainColorScheme())
-            createSut(
-                createData = createDataReal,
-            )
-
-            val indexOfSelectedSwatch = 1
             val selectedSwatchColor = ColorInt(0x1A803F)
             every {
                 with(colorToColorInt) { Color.Hex(0x1A803F).toColorInt() }
             } returns selectedSwatchColor
-            val seedColor = Color.Hex(0x123456)
-            sut.fetchColorScheme(seedColor)
+            createSut(
+                createData = createDataReal,
+            )
 
-            sut.data.onSwatchSelect(indexOfSelectedSwatch)
+            sut.eventFlow.test {
+                // WHEN
+                val seedColor = Color.Hex(0x123456)
+                sut.fetchColorScheme(seedColor)
+                val indexOfSelectedSwatch = 1
+                sut.data.onSwatchSelect(indexOfSelectedSwatch)
 
-            coVerify(exactly = 1) {
-                val expectedSentEvent: ColorSchemeEvent.SwatchSelected =
-                    match { actual ->
-                        actual.swatch.color == selectedSwatchColor
-                    }
-                eventStore.send(expectedSentEvent)
+                // THEN
+                val emittedEvent = awaitItem()
+                emittedEvent.shouldBeInstanceOf<ColorSchemeEvent.SwatchSelected>()
+                emittedEvent.swatch.color shouldBe selectedSwatchColor
             }
         }
 
@@ -380,7 +368,6 @@ class ColorSchemeViewModelTest {
     ) =
         ColorSchemeViewModel(
             coroutineScope = CoroutineScope(context = coroutineDispatcher),
-            eventStore = eventStore,
             colorRepository = colorRepository,
             createData = createData,
             defaultDispatcher = coroutineDispatcher,

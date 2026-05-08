@@ -5,13 +5,10 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEventStore
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEventStore
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
 import kotlinx.coroutines.CoroutineScope
 import javax.inject.Inject
-import javax.inject.Provider
 
 /**
  * Stores [ColorCenterComponents].
@@ -50,46 +47,33 @@ class ColorCenterComponentsStore @AssistedInject constructor(
 
 /* private for ColorCenterComponentsStore */
 class ColorCenterComponentsFactory @Inject constructor(
-    private val colorDetailsEventStoreProvider: Provider<ColorDetailsEventStore>,
     private val colorDetailsViewModelFactory: ColorDetailsViewModel.Factory,
-
-    private val colorSchemeEventStoreProvider: Provider<ColorSchemeEventStore>,
     private val colorSchemeViewModelFactory: ColorSchemeViewModel.Factory,
-
     private val colorCenterViewModelFactory: ColorCenterViewModel.Factory,
 ) {
 
     fun create(viewModelScope: CoroutineScope): ColorCenterComponents {
         val colorCenterViewModelCoroutineScope = ViewModelCoroutineScope(parent = viewModelScope)
-        val colorDetailsEventStore = colorDetailsEventStoreProvider.get()
         val colorDetailsViewModel = colorDetailsViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = colorCenterViewModelCoroutineScope),
-            colorDetailsEventStore = colorDetailsEventStore,
         )
         val colorSchemeViewModelCoroutineScope =
             ViewModelCoroutineScope(parent = colorCenterViewModelCoroutineScope)
-        val colorSchemeEventStore = colorSchemeEventStoreProvider.get()
         val colorSchemeViewModel = colorSchemeViewModelFactory.create(
             coroutineScope = colorSchemeViewModelCoroutineScope,
-            colorSchemeEventStore = colorSchemeEventStore,
         )
         val colorCenterViewModel = colorCenterViewModelFactory.create(
             coroutineScope = colorCenterViewModelCoroutineScope,
             colorDetailsViewModel = colorDetailsViewModel,
             colorSchemeViewModel = colorSchemeViewModel,
         )
-        val selectedSwatchColorDetailsEventStore = colorDetailsEventStoreProvider.get()
         val selectedSwatchColorDetailsViewModel = colorDetailsViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = colorSchemeViewModelCoroutineScope),
-            colorDetailsEventStore = selectedSwatchColorDetailsEventStore,
         )
         return ColorCenterComponents(
             colorCenterViewModel = colorCenterViewModel,
             colorCenterCoroutineScope = colorCenterViewModelCoroutineScope,
-            colorDetailsEventStore = colorDetailsEventStore,
-            colorSchemeEventStore = colorSchemeEventStore,
             selectedSwatchColorDetailsViewModel = selectedSwatchColorDetailsViewModel,
-            selectedSwatchColorDetailsEventStore = selectedSwatchColorDetailsEventStore,
         )
     }
 }
@@ -103,8 +87,5 @@ class ColorCenterComponentsFactory @Inject constructor(
 data class ColorCenterComponents(
     val colorCenterViewModel: ColorCenterViewModel,
     val colorCenterCoroutineScope: CoroutineScope,
-    val colorDetailsEventStore: ColorDetailsEventStore,
-    val colorSchemeEventStore: ColorSchemeEventStore,
     val selectedSwatchColorDetailsViewModel: ColorDetailsViewModel,
-    val selectedSwatchColorDetailsEventStore: ColorDetailsEventStore,
 )
