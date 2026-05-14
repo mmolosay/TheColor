@@ -53,26 +53,27 @@ class ColorCenterComponentsFactory @Inject constructor(
 ) {
 
     fun create(viewModelScope: CoroutineScope): ColorCenterComponents {
-        val colorCenterViewModelCoroutineScope = ViewModelCoroutineScope(parent = viewModelScope)
-        val colorDetailsViewModel = colorDetailsViewModelFactory.create(
-            coroutineScope = ViewModelCoroutineScope(parent = colorCenterViewModelCoroutineScope),
-        )
-        val colorSchemeViewModelCoroutineScope =
-            ViewModelCoroutineScope(parent = colorCenterViewModelCoroutineScope)
-        val colorSchemeViewModel = colorSchemeViewModelFactory.create(
-            coroutineScope = colorSchemeViewModelCoroutineScope,
-        )
-        val colorCenterViewModel = colorCenterViewModelFactory.create(
-            coroutineScope = colorCenterViewModelCoroutineScope,
-            colorDetailsViewModel = colorDetailsViewModel,
-            colorSchemeViewModel = colorSchemeViewModel,
-        )
+        val colorSchemeViewModelCoroutineScope: CoroutineScope
+        val colorCenterViewModel = run {
+            val coroutineScope = ViewModelCoroutineScope(parent = viewModelScope)
+            val colorDetailsViewModel = colorDetailsViewModelFactory.create(
+                coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
+            )
+            colorSchemeViewModelCoroutineScope = ViewModelCoroutineScope(parent = coroutineScope)
+            val colorSchemeViewModel = colorSchemeViewModelFactory.create(
+                coroutineScope = colorSchemeViewModelCoroutineScope,
+            )
+            return@run colorCenterViewModelFactory.create(
+                coroutineScope = coroutineScope,
+                colorDetailsViewModel = colorDetailsViewModel,
+                colorSchemeViewModel = colorSchemeViewModel,
+            )
+        }
         val selectedSwatchColorDetailsViewModel = colorDetailsViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = colorSchemeViewModelCoroutineScope),
         )
         return ColorCenterComponents(
             colorCenterViewModel = colorCenterViewModel,
-            colorCenterCoroutineScope = colorCenterViewModelCoroutineScope,
             selectedSwatchColorDetailsViewModel = selectedSwatchColorDetailsViewModel,
         )
     }
@@ -86,6 +87,5 @@ class ColorCenterComponentsFactory @Inject constructor(
 /* private for HomeViewModel */
 data class ColorCenterComponents(
     val colorCenterViewModel: ColorCenterViewModel,
-    val colorCenterCoroutineScope: CoroutineScope,
     val selectedSwatchColorDetailsViewModel: ColorDetailsViewModel,
 )
