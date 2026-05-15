@@ -10,6 +10,7 @@ import io.github.mmolosay.thecolor.domain.color.IsColorLightUseCase
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.IoDispatcher
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
+import io.github.mmolosay.thecolor.presentation.common.viewmodel.MutableViewModelEventFlow
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ColorRoleData
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ExactMatch
@@ -21,6 +22,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.completeWith
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -40,7 +42,6 @@ import io.github.mmolosay.thecolor.domain.color.ColorDetails as DomainColorDetai
  */
 class ColorDetailsViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted private val eventStore: ColorDetailsEventStore,
     private val colorRepository: ColorRepository,
     private val createData: CreateColorDetailsDataUseCase,
     private val createSubjectColorData: CreateSubjectColorDataUseCase,
@@ -54,6 +55,9 @@ class ColorDetailsViewModel @AssistedInject constructor(
 
     private val _dataStateFlow = MutableStateFlow<DataState>(DataState.Idle)
     val dataStateFlow = _dataStateFlow.asStateFlow()
+
+    private val _eventFlow = MutableViewModelEventFlow<ColorDetailsEvent>()
+    val eventFlow = _eventFlow.asSharedFlow()
 
     private val opRegistry = CoroutineRegistry<Operation>()
     private val session = AtomicReference<Session?>(null)
@@ -186,7 +190,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
     ) {
         coroutineScope.launch(defaultDispatcher) {
             val event = ColorDetailsEvent.ColorSelected(color, colorRole)
-            eventStore.send(event)
+            _eventFlow.emit(event)
         }
     }
 
@@ -201,7 +205,6 @@ class ColorDetailsViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            colorDetailsEventStore: ColorDetailsEventStore,
         ): ColorDetailsViewModel
     }
 

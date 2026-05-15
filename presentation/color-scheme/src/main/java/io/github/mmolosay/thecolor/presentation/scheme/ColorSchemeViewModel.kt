@@ -13,6 +13,7 @@ import io.github.mmolosay.thecolor.domain.color.IsColorLightUseCase
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.IoDispatcher
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
+import io.github.mmolosay.thecolor.presentation.common.viewmodel.MutableViewModelEventFlow
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Changes
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Swatch
@@ -29,6 +30,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -50,7 +52,6 @@ import io.github.mmolosay.thecolor.domain.color.ColorScheme as DomainColorScheme
  */
 class ColorSchemeViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted private val eventStore: ColorSchemeEventStore,
     private val colorRepository: ColorRepository,
     private val createData: CreateColorSchemeDataUseCase,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
@@ -72,6 +73,9 @@ class ColorSchemeViewModel @AssistedInject constructor(
             started = SharingStarted.Eagerly,
             initialValue = statefulDataFlow.value.toDataState(),
         )
+
+    private val _eventFlow = MutableViewModelEventFlow<ColorSchemeEvent>()
+    val eventFlow = _eventFlow.asSharedFlow()
 
     private val opRegistry = CoroutineRegistry<Operation>()
     private val dataEditor = ColorSchemeDataEditor(
@@ -148,7 +152,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
             lastDomainColorScheme.swatchDetails.getOrNull(indexOfSelectedSwatch) ?: return
         val event = ColorSchemeEvent.SwatchSelected(swatch, swatchColorDetails)
         coroutineScope.launch(defaultDispatcher) {
-            eventStore.send(event)
+            _eventFlow.emit(event)
         }
     }
 
@@ -219,7 +223,6 @@ class ColorSchemeViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            colorSchemeEventStore: ColorSchemeEventStore,
         ): ColorSchemeViewModel
     }
 

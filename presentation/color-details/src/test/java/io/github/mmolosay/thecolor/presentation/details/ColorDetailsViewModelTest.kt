@@ -12,7 +12,6 @@ import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntU
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ColorRoleData
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEvent
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEventStore
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel.DataState
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorRole
@@ -27,9 +26,7 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
-import io.mockk.just
 import io.mockk.mockk
-import io.mockk.runs
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -61,10 +58,6 @@ class ColorDetailsViewModelTest {
     @Suppress("unused")
     val mainDispatcherExtension = MainDispatcherExtension(testDispatcher)
 
-    val eventStoreMock: ColorDetailsEventStore = mockk {
-        coEvery { send(event = any()) } just runs
-    }
-    val eventStoreReal = ColorDetailsEventStore()
     val colorRepository: ColorRepository = mockk()
     val createDataMock: CreateColorDetailsDataUseCase = mockk {
         every {
@@ -231,15 +224,15 @@ class ColorDetailsViewModelTest {
                 createData = createDataReal,
             )
 
-            sut.setSeedColor(seedColor)
-            sut.data.selectExactColor()
+            sut.eventFlow.test {
+                sut.setSeedColor(seedColor)
+                sut.data.selectExactColor()
 
-            coVerify {
                 val expectedEvent = ColorDetailsEvent.ColorSelected(
                     color = exactColor,
                     colorRole = ColorRole.Exact,
                 )
-                eventStoreMock.send(expectedEvent)
+                expectMostRecentItem() shouldBe expectedEvent
             }
         }
 
@@ -269,18 +262,18 @@ class ColorDetailsViewModelTest {
                 createData = createDataReal,
             )
 
-            // WHEN
-            sut.setSeedColor(seedColor)
-            sut.selectColor(ColorRole.Exact)
-            sut.data.selectSeedColor()
+            sut.eventFlow.test {
+                // WHEN
+                sut.setSeedColor(seedColor)
+                sut.selectColor(ColorRole.Exact)
+                sut.data.selectSeedColor()
 
-            // THEN
-            coVerify {
+                // THEN
                 val expectedEvent = ColorDetailsEvent.ColorSelected(
                     color = seedColor,
                     colorRole = ColorRole.Seed,
                 )
-                eventStoreMock.send(expectedEvent)
+                expectMostRecentItem() shouldBe expectedEvent
             }
         }
 
@@ -466,30 +459,31 @@ class ColorDetailsViewModelTest {
                 Result.success(details)
             }
             createSut(
-                eventStore = eventStoreReal,
                 createData = createDataReal,
             )
 
             // WHEN
+            fun firstEvent() =
+                async { sut.eventFlow.first() }
             fun selectColor(event: ColorDetailsEvent) {
                 event.shouldBeInstanceOf<ColorDetailsEvent.ColorSelected>()
                 sut.selectColor(event.colorRole)
             }
             sut.setSeedColor(seedColor)
 
-            val event1 = async { eventStoreReal.eventFlow.first() }
+            val event1 = firstEvent()
             sut.data.selectExactColor()
             selectColor(event = event1.await())
 
-            val event2 = async { eventStoreReal.eventFlow.first() }
+            val event2 = firstEvent()
             sut.data.selectSeedColor()
             selectColor(event = event2.await())
 
-            val event3 = async { eventStoreReal.eventFlow.first() }
+            val event3 = firstEvent()
             sut.data.selectExactColor()
             selectColor(event = event3.await())
 
-            val event4 = async { eventStoreReal.eventFlow.first() }
+            val event4 = firstEvent()
             sut.data.selectSeedColor()
             selectColor(event = event4.await())
 
@@ -556,13 +550,11 @@ class ColorDetailsViewModelTest {
         }
 
     fun createSut(
-        eventStore: ColorDetailsEventStore = eventStoreMock,
         createData: CreateColorDetailsDataUseCase = createDataMock,
         coroutineDispatcher: CoroutineDispatcher = testDispatcher,
     ) =
         ColorDetailsViewModel(
             coroutineScope = CoroutineScope(context = coroutineDispatcher),
-            eventStore = eventStore,
             colorRepository = colorRepository,
             createData = createData,
             createSubjectColorData = createSubjectColorData,
