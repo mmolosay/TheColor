@@ -129,8 +129,9 @@ class HomeViewModelTest {
     )
 
     val userPreferencesRepository: UserPreferencesRepository = mockk {
-        val disabled = ResumeFromLastSearchedColorOnStartup(enabled = false)
-        every { flowOfResumeFromLastSearchedColorOnStartup } returns MutableStateFlow(disabled)
+        val value = ResumeFromLastSearchedColorOnStartup(enabled = false)
+        val dataState = UserPreferencesRepository.DataState.HasValueStored(value)
+        every { flowOfResumeFromLastSearchedColorOnStartup } returns MutableStateFlow(dataState)
     }
     val lastSearchedColorRepository: LastSearchedColorRepository = mockk {
         coEvery { setLastSearchedColor(color = any()) } just runs
@@ -1276,9 +1277,10 @@ class HomeViewModelTest {
         runTest(testDispatcher) {
             every {
                 userPreferencesRepository.flowOfResumeFromLastSearchedColorOnStartup
-            } returns kotlin.run {
-                val enabled = ResumeFromLastSearchedColorOnStartup(enabled = true)
-                MutableStateFlow(enabled)
+            } returns run {
+                val value = ResumeFromLastSearchedColorOnStartup(enabled = true)
+                val dataState = UserPreferencesRepository.DataState.HasValueStored(value)
+                MutableStateFlow(dataState)
             }
             val lastSearchedColor: Color = Color.Hex(0x1A803F)
             coEvery { lastSearchedColorRepository.getLastSearchedColor() } returns lastSearchedColor
@@ -1374,8 +1376,11 @@ class HomeViewModelTest {
             mockStoresWithEmptyFlows()
             val randomColor: Color.Hex = mockk()
             every { getPredictableRandomColor() } returns randomColor
-            val featureValue = DomainAutoProceedWithRandomizedColors(enabled = false)
-            every { userPreferencesRepository.flowOfAutoProceedWithRandomizedColors } returns MutableStateFlow(featureValue)
+            every { userPreferencesRepository.flowOfAutoProceedWithRandomizedColors } returns run {
+                val value = DomainAutoProceedWithRandomizedColors(enabled = false)
+                val dataState = UserPreferencesRepository.DataState.HasValueStored(value)
+                MutableStateFlow(dataState)
+            }
             createSut()
 
             data.randomizeColor()
@@ -1400,7 +1405,8 @@ class HomeViewModelTest {
 
             every { userPreferencesRepository.flowOfAutoProceedWithRandomizedColors } returns run {
                 val value = DomainAutoProceedWithRandomizedColors(enabled = true)
-                MutableStateFlow(value)
+                val dataState = UserPreferencesRepository.DataState.HasValueStored(value)
+                MutableStateFlow(dataState)
             }
             every { createColorData(color = any()) } returns mockk()
             createSut()

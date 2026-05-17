@@ -4,7 +4,7 @@ import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.HttpLogging
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.PredictableRandomColors
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.StrictMode
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository.DataState
-import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository.IllegalStoredValue
+import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository.IllegalStoredValueException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filter
@@ -28,7 +28,7 @@ interface DevOptionsRepository {
         data class HasValueStored<T>(val value: T) : DataState<T>
     }
 
-    class IllegalStoredValue(propertyName: String, value: Any?) : IllegalStateException(
+    class IllegalStoredValueException(propertyName: String, value: Any?) : IllegalStateException(
         "Property '$propertyName' has unsupported stored value: $value"
     )
 }
@@ -51,8 +51,8 @@ fun <T> Flow<DataState<T>>.filterOutBeingInitialized(): Flow<DataState<T>> =
     this.filter { it !is DataState.BeingInitialized }
 
 // syntactic sugar
-inline fun <reified T> IllegalStoredValue(value: Any?) =
-    IllegalStoredValue(
+inline fun <reified T> IllegalStoredValueException(value: Any?) =
+    IllegalStoredValueException(
         propertyName = T::class.simpleName!!,
         value = value,
     )

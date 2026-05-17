@@ -35,7 +35,11 @@ class ColorInputGroupViewModelTest {
     fun `initial data is set on initialization`() {
         every {
             userPreferencesRepository.flowOfColorInputType
-        } returns MutableStateFlow(DomainColorInputType.Hex)
+        } returns run {
+            val value = DomainColorInputType.Hex
+            val dataState = UserPreferencesRepository.DataState.HasValueStored(value)
+            MutableStateFlow(dataState)
+        }
 
         createSut()
 
@@ -46,7 +50,11 @@ class ColorInputGroupViewModelTest {
     fun `preferred input type is an initially selected one`() {
         every {
             userPreferencesRepository.flowOfColorInputType
-        } returns MutableStateFlow(DomainColorInputType.Rgb)
+        } returns run {
+            val value = DomainColorInputType.Rgb
+            val dataState = UserPreferencesRepository.DataState.HasValueStored(value)
+            MutableStateFlow(dataState)
+        }
 
         createSut()
 
@@ -57,7 +65,11 @@ class ColorInputGroupViewModelTest {
     fun `preferred input type is first in the ordered list of input types`() {
         every {
             userPreferencesRepository.flowOfColorInputType
-        } returns MutableStateFlow(DomainColorInputType.Rgb)
+        } returns run {
+            val value = DomainColorInputType.Rgb
+            val dataState = UserPreferencesRepository.DataState.HasValueStored(value)
+            MutableStateFlow(dataState)
+        }
 
         createSut()
 
@@ -65,10 +77,14 @@ class ColorInputGroupViewModelTest {
     }
 
     @Test
-    fun `changing input type to RGB updates data with RGB view type`() {
+    fun `changing input type to RGB updates data with RGB selected input type`() {
         every {
             userPreferencesRepository.flowOfColorInputType
-        } returns MutableStateFlow(DomainColorInputType.Hex)
+        } returns run {
+            val value = DomainColorInputType.Hex
+            val dataState = UserPreferencesRepository.DataState.HasValueStored(value)
+            MutableStateFlow(dataState)
+        }
         createSut()
 
         data.onInputTypeChange(DomainColorInputType.Rgb)

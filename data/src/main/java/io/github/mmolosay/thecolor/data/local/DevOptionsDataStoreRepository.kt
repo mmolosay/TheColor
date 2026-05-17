@@ -10,7 +10,7 @@ import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.PredictableRand
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.StrictMode
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository.DataState
-import io.github.mmolosay.thecolor.domain.dev.options.IllegalStoredValue
+import io.github.mmolosay.thecolor.domain.dev.options.IllegalStoredValueException
 import io.github.mmolosay.thecolor.main.di.qualifiers.AppCoroutineScope
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.IoDispatcher
 import io.github.mmolosay.thecolor.main.di.qualifiers.DataStoreDiQualifiers.DevOptions
@@ -48,7 +48,7 @@ class DevOptionsDataStoreRepository @Inject constructor(
             val value = with(PredictableRandomColorsMapper) { dtoValue.toPredictableRandomColors() }
             return DataState.HasValueStored(value)
         } else {
-            throw IllegalStoredValue<PredictableRandomColors>(value = dtoValue) // 'dtoValue' is null here
+            throw IllegalStoredValueException<PredictableRandomColors>(value = dtoValue) // 'dtoValue' is null here
         }
     }
 
@@ -74,7 +74,7 @@ class DevOptionsDataStoreRepository @Inject constructor(
             val value = StrictMode(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
             return DataState.HasValueStored(value)
         } else {
-            throw IllegalStoredValue<StrictMode>(value = dtoValue) // 'dtoValue' is null here
+            throw IllegalStoredValueException<StrictMode>(value = dtoValue) // 'dtoValue' is null here
         }
     }
 
@@ -100,7 +100,7 @@ class DevOptionsDataStoreRepository @Inject constructor(
             val value = HttpLogging(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
             return DataState.HasValueStored(value)
         } else {
-            throw IllegalStoredValue<HttpLogging>(value = dtoValue) // 'dtoValue' is null here
+            throw IllegalStoredValueException<HttpLogging>(value = dtoValue) // 'dtoValue' is null here
         }
     }
 

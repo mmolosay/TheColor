@@ -51,7 +51,8 @@ class ColorInputHexViewModelTest {
     val userPreferencesRepository: UserPreferencesRepository = mockk {
         every { flowOfSelectAllTextOnTextFieldFocus } returns run {
             val value = DomainSelectAllTextOnTextFieldFocus(enabled = false)
-            MutableStateFlow(value)
+            val dataState = UserPreferencesRepository.DataState.HasValueStored(value)
+            MutableStateFlow(dataState)
         }
     }
 

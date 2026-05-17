@@ -29,7 +29,8 @@ class TextFieldViewModelTest {
     val userPreferencesRepository: UserPreferencesRepository = mockk {
         every { flowOfSelectAllTextOnTextFieldFocus } returns run {
             val value = DomainSelectAllTextOnTextFieldFocus(enabled = false)
-            MutableStateFlow(value)
+            val dataState = UserPreferencesRepository.DataState.HasValueStored(value)
+            MutableStateFlow(dataState)
         }
     }
 
@@ -45,9 +46,11 @@ class TextFieldViewModelTest {
     }
 
     @Test
-    fun `initial data has the initial text even if 'select all text on text field focus' preference is 'null'`() {
-        every { userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus } returns
-                MutableStateFlow(null)
+    fun `when 'select all text on text field focus' preference is 'being initialized', then initial data has the initial text nonetheless`() {
+        every { userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus } returns run {
+            val dataState = UserPreferencesRepository.DataState.BeingInitialized
+            MutableStateFlow(dataState)
+        }
 
         createSut(
             initialText = "initial"
@@ -235,22 +238,25 @@ class TextFieldViewModelTest {
     @Test
     fun `emissions of 'select all text on text field focus' preference are reflected in the data`() =
         runTest(testDispatcher) {
-            val flowOfSelectAllTextOnTextFieldFocus =
-                MutableStateFlow<DomainSelectAllTextOnTextFieldFocus?>(null) // initially empty
-            every { userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus } returns
-                    flowOfSelectAllTextOnTextFieldFocus
+            val flowOfSelectAllTextOnTextFieldFocus = run {
+                val dataState = UserPreferencesRepository.DataState.BeingInitialized
+                MutableStateFlow<UserPreferencesRepository.DataState<DomainSelectAllTextOnTextFieldFocus>>(dataState)
+            }
+            every { userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus } returns flowOfSelectAllTextOnTextFieldFocus
             createSut()
             sut updateText Text("initial")
             data.shouldSelectAllTextOnFocus shouldBe DefaultUserPreferences.SelectAllTextOnTextFieldFocus.enabled
 
             run {
                 val value = DomainSelectAllTextOnTextFieldFocus(enabled = false)
-                flowOfSelectAllTextOnTextFieldFocus.emit(value)
+                val dataState = UserPreferencesRepository.DataState.HasValueStored(value)
+                flowOfSelectAllTextOnTextFieldFocus.emit(dataState)
             }
             data.shouldSelectAllTextOnFocus shouldBe false
             run {
                 val value = DomainSelectAllTextOnTextFieldFocus(enabled = true)
-                flowOfSelectAllTextOnTextFieldFocus.emit(value)
+                val dataState = UserPreferencesRepository.DataState.HasValueStored(value)
+                flowOfSelectAllTextOnTextFieldFocus.emit(dataState)
             }
             data.shouldSelectAllTextOnFocus shouldBe true
         }

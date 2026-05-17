@@ -7,7 +7,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import io.github.mmolosay.thecolor.data.local.utils.setOrRemoveValue
 import io.github.mmolosay.thecolor.domain.color.ColorInputType
-import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
+import io.github.mmolosay.thecolor.domain.user.preferences.IllegalStoredValueException
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.AutoProceedWithRandomizedColors
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.DynamicUiColors
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.ResumeFromLastSearchedColorOnStartup
@@ -16,6 +16,7 @@ import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.Smart
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.UiColorScheme
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.UiColorSchemeSet
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
+import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository.DataState
 import io.github.mmolosay.thecolor.main.di.qualifiers.AppCoroutineScope
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.IoDispatcher
 import io.github.mmolosay.thecolor.main.di.qualifiers.DataStoreDiQualifiers.UserPreferences
@@ -40,17 +41,20 @@ class UserPreferencesDataStoreRepository @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : UserPreferencesRepository {
 
-    override val flowOfColorInputType: StateFlow<ColorInputType?> =
+    override val flowOfColorInputType: StateFlow<DataState<ColorInputType>> =
         dataStore.data
             .map { it.getColorInputType() }
-            .stateEagerlyInAppScope()
+            .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
 
-    private fun Preferences.getColorInputType(): ColorInputType {
-        val dtoValue = this[DataStoreKeys.ColorInputType]
-        return if (dtoValue != null) {
-            with(ColorInputTypeMapper) { dtoValue.toColorInputType() }
+    private fun Preferences.getColorInputType(): DataState<ColorInputType> {
+        val key = DataStoreKeys.ColorInputType
+        if (key !in this) return DataState.NoValueStored
+        val dtoValue = this[key]
+        if (dtoValue != null) {
+            val value = with(ColorInputTypeMapper) { dtoValue.toColorInputType() }
+            return DataState.HasValueStored(value)
         } else {
-            DefaultUserPreferences.PreferredColorInputType
+            throw IllegalStoredValueException<ColorInputType>(value = dtoValue)
         }
     }
 
@@ -63,27 +67,33 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         }
     }
 
-    override val flowOfAppUiColorSchemeSet: StateFlow<UiColorSchemeSet?> =
+    override val flowOfAppUiColorSchemeSet: StateFlow<DataState<UiColorSchemeSet>> =
         dataStore.data
             .map { it.getAppUiColorSchemeSet() }
-            .stateEagerlyInAppScope()
+            .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
 
-    private fun Preferences.getAppUiColorSchemeSet(): UiColorSchemeSet {
-        fun defaultValue() = DefaultUserPreferences.AppUiColorSchemeSet
-        val domainLightColorScheme = kotlin.run {
-            val lightColorSchemeDtoValue = this[DataStoreKeys.AppUiColorSchemeLight]
-                ?: return defaultValue()
-            with(UiColorSchemeMapper) { lightColorSchemeDtoValue.toUiColorScheme() }
+    private fun Preferences.getAppUiColorSchemeSet(): DataState<UiColorSchemeSet> {
+        fun Preferences.getAppUiColorScheme(key: Preferences.Key<String>): DataState<UiColorScheme> {
+            if (key !in this) return DataState.NoValueStored
+            val dtoValue = this[key]
+            if (dtoValue != null) {
+                val value = with(UiColorSchemeMapper) { dtoValue.toUiColorScheme() }
+                return DataState.HasValueStored(value)
+            } else {
+                throw IllegalStoredValueException<UiColorSchemeSet>(value = dtoValue)
+            }
         }
-        val domainDarkColorScheme = kotlin.run {
-            val darkColorSchemeDtoValue = this[DataStoreKeys.AppUiColorSchemeDark]
-                ?: return defaultValue()
-            with(UiColorSchemeMapper) { darkColorSchemeDtoValue.toUiColorScheme() }
+        // DS — DataState
+        val lightDs = getAppUiColorScheme(key = DataStoreKeys.AppUiColorSchemeLight)
+        val darkDs = getAppUiColorScheme(key = DataStoreKeys.AppUiColorSchemeDark)
+        if (lightDs is DataState.HasValueStored && darkDs is DataState.HasValueStored) {
+            val value = UiColorSchemeSet(light = lightDs.value, dark = darkDs.value)
+            return DataState.HasValueStored(value)
         }
-        return UiColorSchemeSet(
-            light = domainLightColorScheme,
-            dark = domainDarkColorScheme,
-        )
+        if (lightDs is DataState.NoValueStored || darkDs is DataState.NoValueStored) {
+            return DataState.NoValueStored
+        }
+        error("unexpected DataState")
     }
 
     override suspend fun setAppUiColorSchemeSet(value: UiColorSchemeSet?) {
@@ -109,17 +119,20 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         }
     }
 
-    override val flowOfDynamicUiColors: StateFlow<DynamicUiColors?> =
+    override val flowOfDynamicUiColors: StateFlow<DataState<DynamicUiColors>> =
         dataStore.data
             .map { it.getDynamicUiColors() }
-            .stateEagerlyInAppScope()
+            .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
 
-    private fun Preferences.getDynamicUiColors(): DynamicUiColors {
-        val dtoValue = this[DataStoreKeys.DynamicUiColors]
-        return if (dtoValue != null) {
-            DynamicUiColors(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
+    private fun Preferences.getDynamicUiColors(): DataState<DynamicUiColors> {
+        val key = DataStoreKeys.DynamicUiColors
+        if (key !in this) return DataState.NoValueStored
+        val dtoValue = this[key]
+        if (dtoValue != null) {
+            val value = DynamicUiColors(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
+            return DataState.HasValueStored(value)
         } else {
-            DefaultUserPreferences.DynamicUiColors
+            throw IllegalStoredValueException<DynamicUiColors>(value = dtoValue)
         }
     }
 
@@ -132,19 +145,20 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         }
     }
 
-    override val flowOfResumeFromLastSearchedColorOnStartup: StateFlow<ResumeFromLastSearchedColorOnStartup?> =
+    override val flowOfResumeFromLastSearchedColorOnStartup: StateFlow<DataState<ResumeFromLastSearchedColorOnStartup>> =
         dataStore.data
             .map { it.getResumeFromLastSearchedColorOnStartup() }
-            .stateEagerlyInAppScope()
+            .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
 
-    private fun Preferences.getResumeFromLastSearchedColorOnStartup(): ResumeFromLastSearchedColorOnStartup {
-        val dtoValue = this[DataStoreKeys.ShouldResumeFromLastSearchedColorOnStartup]
-        return if (dtoValue != null) {
-            ResumeFromLastSearchedColorOnStartup(
-                enabled = dtoValue, // boolean stays boolean in both Data and Domain layers
-            )
+    private fun Preferences.getResumeFromLastSearchedColorOnStartup(): DataState<ResumeFromLastSearchedColorOnStartup> {
+        val key = DataStoreKeys.ShouldResumeFromLastSearchedColorOnStartup
+        if (key !in this) return DataState.NoValueStored
+        val dtoValue = this[key]
+        if (dtoValue != null) {
+            val value = ResumeFromLastSearchedColorOnStartup(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
+            return DataState.HasValueStored(value)
         } else {
-            DefaultUserPreferences.ResumeFromLastSearchedColorOnStartup
+            throw IllegalStoredValueException<ResumeFromLastSearchedColorOnStartup>(value = dtoValue)
         }
     }
 
@@ -157,19 +171,20 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         }
     }
 
-    override val flowOfSmartBackspace: StateFlow<SmartBackspace?> =
+    override val flowOfSmartBackspace: StateFlow<DataState<SmartBackspace>> =
         dataStore.data
             .map { it.getSmartBackspace() }
-            .stateEagerlyInAppScope()
+            .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
 
-    private fun Preferences.getSmartBackspace(): SmartBackspace {
-        val dtoValue = this[DataStoreKeys.SmartBackspace]
-        return if (dtoValue != null) {
-            SmartBackspace(
-                enabled = dtoValue, // boolean stays boolean in both Data and Domain layers
-            )
+    private fun Preferences.getSmartBackspace(): DataState<SmartBackspace> {
+        val key = DataStoreKeys.SmartBackspace
+        if (key !in this) return DataState.NoValueStored
+        val dtoValue = this[key]
+        if (dtoValue != null) {
+            val value = SmartBackspace(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
+            return DataState.HasValueStored(value)
         } else {
-            DefaultUserPreferences.SmartBackspace
+            throw IllegalStoredValueException<SmartBackspace>(value = dtoValue)
         }
     }
 
@@ -182,19 +197,20 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         }
     }
 
-    override val flowOfSelectAllTextOnTextFieldFocus: StateFlow<SelectAllTextOnTextFieldFocus?> =
+    override val flowOfSelectAllTextOnTextFieldFocus: StateFlow<DataState<SelectAllTextOnTextFieldFocus>> =
         dataStore.data
             .map { it.getSelectAllTextOnTextFieldFocus() }
-            .stateEagerlyInAppScope()
+            .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
 
-    private fun Preferences.getSelectAllTextOnTextFieldFocus(): SelectAllTextOnTextFieldFocus {
-        val dtoValue = this[DataStoreKeys.SelectAllTextOnTextFieldFocus]
-        return if (dtoValue != null) {
-            SelectAllTextOnTextFieldFocus(
-                enabled = dtoValue, // boolean stays boolean in both Data and Domain layers
-            )
+    private fun Preferences.getSelectAllTextOnTextFieldFocus(): DataState<SelectAllTextOnTextFieldFocus> {
+        val key = DataStoreKeys.SelectAllTextOnTextFieldFocus
+        if (key !in this) return DataState.NoValueStored
+        val dtoValue = this[key]
+        if (dtoValue != null) {
+            val value = SelectAllTextOnTextFieldFocus(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
+            return DataState.HasValueStored(value)
         } else {
-            DefaultUserPreferences.SelectAllTextOnTextFieldFocus
+            throw IllegalStoredValueException<SelectAllTextOnTextFieldFocus>(value = dtoValue)
         }
     }
 
@@ -207,19 +223,20 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         }
     }
 
-    override val flowOfAutoProceedWithRandomizedColors: StateFlow<AutoProceedWithRandomizedColors?> =
+    override val flowOfAutoProceedWithRandomizedColors: StateFlow<DataState<AutoProceedWithRandomizedColors>> =
         dataStore.data
             .map { it.getAutoProceedWithRandomizedColors() }
-            .stateEagerlyInAppScope()
+            .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
 
-    private fun Preferences.getAutoProceedWithRandomizedColors(): AutoProceedWithRandomizedColors {
-        val dtoValue = this[DataStoreKeys.AutoProceedWithRandomizedColors]
-        return if (dtoValue != null) {
-            AutoProceedWithRandomizedColors(
-                enabled = dtoValue, // boolean stays boolean in both Data and Domain layers
-            )
+    private fun Preferences.getAutoProceedWithRandomizedColors(): DataState<AutoProceedWithRandomizedColors> {
+        val key = DataStoreKeys.AutoProceedWithRandomizedColors
+        if (key !in this) return DataState.NoValueStored
+        val dtoValue = this[key]
+        if (dtoValue != null) {
+            val value = AutoProceedWithRandomizedColors(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
+            return DataState.HasValueStored(value)
         } else {
-            DefaultUserPreferences.AutoProceedWithRandomizedColors
+            throw IllegalStoredValueException<AutoProceedWithRandomizedColors>(value = dtoValue)
         }
     }
 
@@ -232,21 +249,23 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         }
     }
 
-    private fun <T> Flow<T>.stateEagerlyInAppScope(): StateFlow<T?> =
+    private fun <T> Flow<T>.stateEagerlyInAppScope(
+        initialValue: T,
+    ): StateFlow<T> =
         this.stateIn(
             scope = appScope,
-            started = SharingStarted.Eagerly, // will access DB immediately when class is created, 
+            started = SharingStarted.Eagerly, // will access DB immediately when class is created,
             // so that values are ready before first collection
-            initialValue = null,
+            initialValue = initialValue,
         )
 
     private object DataStoreKeys {
         val ColorInputType = stringPreferencesKey("color_input_type")
 
-        /** Key for a `light` [UserPreferences1.UiColorScheme] from the [UserPreferences1.UiColorSchemeSet]. */
+        /** Key for a `light` [UiColorScheme] from the [UiColorSchemeSet]. */
         val AppUiColorSchemeLight = stringPreferencesKey("app_ui_color_scheme_set_light_value")
 
-        /** Key for a `dark` [UserPreferences1.UiColorScheme] from the [UserPreferences1.UiColorSchemeSet]. */
+        /** Key for a `dark` [UiColorScheme] from the [UiColorSchemeSet]. */
         val AppUiColorSchemeDark = stringPreferencesKey("app_ui_color_scheme_set_dark_value")
 
         val DynamicUiColors = booleanPreferencesKey("dynamic_ui_colors")
@@ -265,7 +284,7 @@ class UserPreferencesDataStoreRepository @Inject constructor(
 }
 
 /**
- * Maps [ColorInputType] of domain layer to its representation in data layer (DTO)
+ * Maps [ColorInputType] of Domain layer to its representation in Data layer (DTO)
  * and vice versa.
  */
 private object ColorInputTypeMapper {
@@ -292,7 +311,7 @@ private object ColorInputTypeMapper {
 }
 
 /**
- * Maps [UserPreferences1.UiColorScheme] of domain layer to its representation in data layer (DTO)
+ * Maps [UiColorScheme] of Domain layer to its representation in Data layer (DTO)
  * and vice versa.
  */
 private object UiColorSchemeMapper {

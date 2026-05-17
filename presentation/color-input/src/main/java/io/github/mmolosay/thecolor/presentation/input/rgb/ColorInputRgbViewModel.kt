@@ -7,6 +7,7 @@ import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.domain.color.ColorConverter
 import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
+import io.github.mmolosay.thecolor.domain.user.preferences.valueOrElse
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.UiDataUpdateDispatcher
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
@@ -69,7 +70,8 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             rTextFieldVm.dataFlow,
             gTextFieldVm.dataFlow,
             bTextFieldVm.dataFlow,
-            userPreferencesRepository.flowOfSmartBackspace.map { it ?: DefaultUserPreferences.SmartBackspace },
+            userPreferencesRepository.flowOfSmartBackspace
+                .map { it.valueOrElse { DefaultUserPreferences.SmartBackspace } },
         ) { r, g, b, smartBackspace ->
             val colorInput = ColorInput.Rgb(
                 r = r.text.data.string,
