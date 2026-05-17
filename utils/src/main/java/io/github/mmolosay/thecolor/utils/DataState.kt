@@ -54,3 +54,17 @@ inline fun <T> DataState.Result<T>.getOrElse(
         is DataState.Result.InvalidValue -> block()
     }
 }
+
+@OptIn(ExperimentalContracts::class)
+inline fun <T, R> DataState.Result<T>.map(
+    transform: (T) -> R,
+): DataState.Result<R> {
+    contract {
+        callsInPlace(transform, InvocationKind.AT_MOST_ONCE)
+    }
+    return when (this) {
+        is DataState.Result.NoValue -> this
+        is DataState.Result.HasValue -> DataState.Result.HasValue(value = transform(this.value))
+        is DataState.Result.InvalidValue -> this
+    }
+}

@@ -4,6 +4,8 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import io.github.mmolosay.thecolor.data.local.utils.asDataStateResult
+import io.github.mmolosay.thecolor.data.local.utils.getAsResult
 import io.github.mmolosay.thecolor.data.local.utils.setOrRemoveValue
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.HttpLogging
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.PredictableRandomColors
@@ -13,6 +15,7 @@ import io.github.mmolosay.thecolor.main.di.qualifiers.AppCoroutineScope
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.IoDispatcher
 import io.github.mmolosay.thecolor.main.di.qualifiers.DataStoreDiQualifiers.DevOptions
 import io.github.mmolosay.thecolor.utils.DataState
+import io.github.mmolosay.thecolor.utils.map
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -40,17 +43,12 @@ class DevOptionsDataStoreRepository @Inject constructor(
             .map { DataState.Ready(it) }
             .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
 
-    private fun Preferences.getPredictableRandomColors(): DataState.Result<PredictableRandomColors> {
-        val key = DataStoreKeys.PredictableRandomColors
-        if (key !in this) return DataState.Result.NoValue
-        val dtoValue = this[key]
-        if (dtoValue != null) {
-            val value = with(PredictableRandomColorsMapper) { dtoValue.toPredictableRandomColors() }
-            return DataState.Result.HasValue(value)
-        } else {
-            return DataState.Result.InvalidValue
-        }
-    }
+    private fun Preferences.getPredictableRandomColors(): DataState.Result<PredictableRandomColors> =
+        getAsResult(DataStoreKeys.PredictableRandomColors)
+            .asDataStateResult()
+            .map { dtoValue ->
+                with(PredictableRandomColorsMapper) { dtoValue.toPredictableRandomColors() }
+            }
 
     override suspend fun setPredictableRandomColors(value: PredictableRandomColors?) {
         withContext(ioDispatcher) {
@@ -67,17 +65,12 @@ class DevOptionsDataStoreRepository @Inject constructor(
             .map { DataState.Ready(it) }
             .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
 
-    private fun Preferences.getStrictMode(): DataState.Result<StrictMode> {
-        val key = DataStoreKeys.StrictMode
-        if (key !in this) return DataState.Result.NoValue
-        val dtoValue = this[key]
-        if (dtoValue != null) {
-            val value = StrictMode(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
-            return DataState.Result.HasValue(value)
-        } else {
-            return DataState.Result.InvalidValue
-        }
-    }
+    private fun Preferences.getStrictMode(): DataState.Result<StrictMode> =
+        getAsResult(DataStoreKeys.StrictMode)
+            .asDataStateResult()
+            .map { dtoValue ->
+                StrictMode(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
+            }
 
     override suspend fun setStrictMode(value: StrictMode?) {
         withContext(ioDispatcher) {
@@ -94,17 +87,12 @@ class DevOptionsDataStoreRepository @Inject constructor(
             .map { DataState.Ready(it) }
             .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
 
-    private fun Preferences.getHttpLogging(): DataState.Result<HttpLogging> {
-        val key = DataStoreKeys.HttpLogging
-        if (key !in this) return DataState.Result.NoValue
-        val dtoValue = this[key]
-        if (dtoValue != null) {
-            val value = HttpLogging(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
-            return DataState.Result.HasValue(value)
-        } else {
-            return DataState.Result.InvalidValue
-        }
-    }
+    private fun Preferences.getHttpLogging(): DataState.Result<HttpLogging> =
+        getAsResult(DataStoreKeys.HttpLogging)
+            .asDataStateResult()
+            .map { dtoValue ->
+                HttpLogging(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
+            }
 
     override suspend fun setHttpLogging(value: HttpLogging?) {
         withContext(ioDispatcher) {
