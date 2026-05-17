@@ -7,8 +7,8 @@ import io.github.mmolosay.thecolor.domain.buildfeatures.BuildInfoRepository
 import io.github.mmolosay.thecolor.domain.dev.options.DefaultDevOptions
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository
 import io.github.mmolosay.thecolor.domain.dev.options.ResetDevOptionsToDefaultUseCase
-import io.github.mmolosay.thecolor.domain.dev.options.valueOrElse
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
+import io.github.mmolosay.thecolor.utils.getOrElse
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -21,6 +21,7 @@ import javax.inject.Inject
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.HttpLogging as DomainHttpLogging
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.PredictableRandomColors as DomainPredictableRandomColors
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.StrictMode as DomainStrictMode
+import io.github.mmolosay.thecolor.utils.DataState as RepoDataState
 
 @HiltViewModel
 class DevOptionsViewModel @Inject constructor(
@@ -82,22 +83,20 @@ class DevOptionsViewModel @Inject constructor(
         }
     }
 
-    // that's the only way to combine() more than 5 flows of different types
-    @Suppress("UNCHECKED_CAST")
+    // this is the only way to combine() more than 5 flows of different types
     private fun createData(
-        devOptions: Array<DevOptionsRepository.DataState<Any>>,
+        devOptions: Array<RepoDataState<Any>>,
     ): DevOptionsData {
         val iterator = devOptions.iterator()
+        fun <T> nextValue(default: T): T {
+            @Suppress("UNCHECKED_CAST")
+            val dataState = iterator.next() as RepoDataState<T>
+            return dataState.getOrElse { default }
+        }
         return createData(
-            predictableRandomColors = iterator.next()
-                .let { it as DevOptionsRepository.DataState<DomainPredictableRandomColors> }
-                .valueOrElse { defaultDevOptions.predictableRandomColors },
-            strictMode = iterator.next()
-                .let { it as DevOptionsRepository.DataState<DomainStrictMode> }
-                .valueOrElse { defaultDevOptions.strictMode },
-            httpLogging = iterator.next()
-                .let { it as DevOptionsRepository.DataState<DomainHttpLogging> }
-                .valueOrElse { defaultDevOptions.httpLogging },
+            predictableRandomColors = nextValue(defaultDevOptions.predictableRandomColors),
+            strictMode = nextValue(defaultDevOptions.strictMode),
+            httpLogging = nextValue(defaultDevOptions.httpLogging),
         )
     }
 

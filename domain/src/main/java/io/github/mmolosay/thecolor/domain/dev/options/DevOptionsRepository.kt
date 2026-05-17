@@ -3,14 +3,8 @@ package io.github.mmolosay.thecolor.domain.dev.options
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.HttpLogging
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.PredictableRandomColors
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.StrictMode
-import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository.DataState
-import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository.IllegalStoredValueException
-import kotlinx.coroutines.flow.Flow
+import io.github.mmolosay.thecolor.utils.DataState
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.filter
-import kotlin.contracts.ExperimentalContracts
-import kotlin.contracts.InvocationKind
-import kotlin.contracts.contract
 
 interface DevOptionsRepository {
     val flowOfPredictableRandomColors: StateFlow<DataState<PredictableRandomColors>>
@@ -21,38 +15,4 @@ interface DevOptionsRepository {
 
     val flowOfHttpLogging: StateFlow<DataState<HttpLogging>>
     suspend fun setHttpLogging(value: HttpLogging?)
-
-    sealed interface DataState<out T> {
-        data object BeingInitialized : DataState<Nothing>
-        data object NoValueStored : DataState<Nothing>
-        data class HasValueStored<T>(val value: T) : DataState<T>
-    }
-
-    class IllegalStoredValueException(propertyName: String, value: Any?) : IllegalStateException(
-        "Property '$propertyName' has unsupported stored value: $value"
-    )
 }
-
-@OptIn(ExperimentalContracts::class)
-inline fun <T> DataState<T>.valueOrElse(
-    block: () -> T,
-): T {
-    contract {
-        callsInPlace(block, InvocationKind.AT_MOST_ONCE)
-    }
-    return when (this) {
-        is DataState.BeingInitialized -> block()
-        is DataState.NoValueStored -> block()
-        is DataState.HasValueStored -> this.value
-    }
-}
-
-fun <T> Flow<DataState<T>>.filterOutBeingInitialized(): Flow<DataState<T>> =
-    this.filter { it !is DataState.BeingInitialized }
-
-// syntactic sugar
-inline fun <reified T> IllegalStoredValueException(value: Any?) =
-    IllegalStoredValueException(
-        propertyName = T::class.simpleName!!,
-        value = value,
-    )

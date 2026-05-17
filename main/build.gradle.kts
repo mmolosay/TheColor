@@ -13,6 +13,7 @@ android {
 dependencies {
     implementation(project(":domain"))
     implementation(project(":data"))
+    implementation(project(":utils"))
     implementation(project(":main:di-qualifiers"))
 
     // Data Remote

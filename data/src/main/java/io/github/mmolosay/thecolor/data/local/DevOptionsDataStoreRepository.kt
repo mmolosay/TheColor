@@ -9,11 +9,10 @@ import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.HttpLogging
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.PredictableRandomColors
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.StrictMode
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository
-import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository.DataState
-import io.github.mmolosay.thecolor.domain.dev.options.IllegalStoredValueException
 import io.github.mmolosay.thecolor.main.di.qualifiers.AppCoroutineScope
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.IoDispatcher
 import io.github.mmolosay.thecolor.main.di.qualifiers.DataStoreDiQualifiers.DevOptions
+import io.github.mmolosay.thecolor.utils.DataState
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -38,17 +37,18 @@ class DevOptionsDataStoreRepository @Inject constructor(
     override val flowOfPredictableRandomColors: StateFlow<DataState<PredictableRandomColors>> =
         dataStore.data
             .map { it.getPredictableRandomColors() }
+            .map { DataState.Ready(it) }
             .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
 
-    private fun Preferences.getPredictableRandomColors(): DataState<PredictableRandomColors> {
+    private fun Preferences.getPredictableRandomColors(): DataState.Result<PredictableRandomColors> {
         val key = DataStoreKeys.PredictableRandomColors
-        if (key !in this) return DataState.NoValueStored
+        if (key !in this) return DataState.Result.NoValue
         val dtoValue = this[key]
         if (dtoValue != null) {
             val value = with(PredictableRandomColorsMapper) { dtoValue.toPredictableRandomColors() }
-            return DataState.HasValueStored(value)
+            return DataState.Result.HasValue(value)
         } else {
-            throw IllegalStoredValueException<PredictableRandomColors>(value = dtoValue) // 'dtoValue' is null here
+            return DataState.Result.InvalidValue
         }
     }
 
@@ -64,17 +64,18 @@ class DevOptionsDataStoreRepository @Inject constructor(
     override val flowOfStrictMode: StateFlow<DataState<StrictMode>> =
         dataStore.data
             .map { it.getStrictMode() }
+            .map { DataState.Ready(it) }
             .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
 
-    private fun Preferences.getStrictMode(): DataState<StrictMode> {
+    private fun Preferences.getStrictMode(): DataState.Result<StrictMode> {
         val key = DataStoreKeys.StrictMode
-        if (key !in this) return DataState.NoValueStored
+        if (key !in this) return DataState.Result.NoValue
         val dtoValue = this[key]
         if (dtoValue != null) {
             val value = StrictMode(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
-            return DataState.HasValueStored(value)
+            return DataState.Result.HasValue(value)
         } else {
-            throw IllegalStoredValueException<StrictMode>(value = dtoValue) // 'dtoValue' is null here
+            return DataState.Result.InvalidValue
         }
     }
 
@@ -90,17 +91,18 @@ class DevOptionsDataStoreRepository @Inject constructor(
     override val flowOfHttpLogging: StateFlow<DataState<HttpLogging>> =
         dataStore.data
             .map { it.getHttpLogging() }
+            .map { DataState.Ready(it) }
             .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
 
-    private fun Preferences.getHttpLogging(): DataState<HttpLogging> {
+    private fun Preferences.getHttpLogging(): DataState.Result<HttpLogging> {
         val key = DataStoreKeys.HttpLogging
-        if (key !in this) return DataState.NoValueStored
+        if (key !in this) return DataState.Result.NoValue
         val dtoValue = this[key]
         if (dtoValue != null) {
             val value = HttpLogging(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
-            return DataState.HasValueStored(value)
+            return DataState.Result.HasValue(value)
         } else {
-            throw IllegalStoredValueException<HttpLogging>(value = dtoValue) // 'dtoValue' is null here
+            return DataState.Result.InvalidValue
         }
     }
 
