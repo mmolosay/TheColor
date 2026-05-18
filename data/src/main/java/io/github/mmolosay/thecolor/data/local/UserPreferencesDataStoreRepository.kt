@@ -7,7 +7,6 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import io.github.mmolosay.thecolor.data.local.utils.setOrRemoveValue
 import io.github.mmolosay.thecolor.domain.color.ColorInputType
-import io.github.mmolosay.thecolor.domain.user.preferences.IllegalStoredValueException
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.AutoProceedWithRandomizedColors
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.DynamicUiColors
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.ResumeFromLastSearchedColorOnStartup
@@ -16,10 +15,11 @@ import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.Smart
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.UiColorScheme
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.UiColorSchemeSet
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
-import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository.DataState
 import io.github.mmolosay.thecolor.main.di.qualifiers.AppCoroutineScope
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.IoDispatcher
 import io.github.mmolosay.thecolor.main.di.qualifiers.DataStoreDiQualifiers.UserPreferences
+import io.github.mmolosay.thecolor.utils.DataState
+import io.github.mmolosay.thecolor.utils.map
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -44,17 +44,18 @@ class UserPreferencesDataStoreRepository @Inject constructor(
     override val flowOfColorInputType: StateFlow<DataState<ColorInputType>> =
         dataStore.data
             .map { it.getColorInputType() }
+            .map { DataState.Ready(it) }
             .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
 
-    private fun Preferences.getColorInputType(): DataState<ColorInputType> {
+    private fun Preferences.getColorInputType(): DataState.Result<ColorInputType> {
         val key = DataStoreKeys.ColorInputType
-        if (key !in this) return DataState.NoValueStored
+        if (key !in this) return DataState.Result.NoValue
         val dtoValue = this[key]
         if (dtoValue != null) {
             val value = with(ColorInputTypeMapper) { dtoValue.toColorInputType() }
-            return DataState.HasValueStored(value)
+            return DataState.Result.HasValue(value)
         } else {
-            throw IllegalStoredValueException<ColorInputType>(value = dtoValue)
+            return DataState.Result.InvalidValue
         }
     }
 
@@ -70,30 +71,29 @@ class UserPreferencesDataStoreRepository @Inject constructor(
     override val flowOfAppUiColorSchemeSet: StateFlow<DataState<UiColorSchemeSet>> =
         dataStore.data
             .map { it.getAppUiColorSchemeSet() }
+            .map { DataState.Ready(it) }
             .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
 
-    private fun Preferences.getAppUiColorSchemeSet(): DataState<UiColorSchemeSet> {
-        fun Preferences.getAppUiColorScheme(key: Preferences.Key<String>): DataState<UiColorScheme> {
-            if (key !in this) return DataState.NoValueStored
+    private fun Preferences.getAppUiColorSchemeSet(): DataState.Result<UiColorSchemeSet> {
+        fun Preferences.getAppUiColorScheme(key: Preferences.Key<String>): DataState.Result<UiColorScheme> {
+            if (key !in this) return DataState.Result.NoValue
             val dtoValue = this[key]
             if (dtoValue != null) {
                 val value = with(UiColorSchemeMapper) { dtoValue.toUiColorScheme() }
-                return DataState.HasValueStored(value)
+                return DataState.Result.HasValue(value)
             } else {
-                throw IllegalStoredValueException<UiColorSchemeSet>(value = dtoValue)
+                return DataState.Result.InvalidValue
             }
         }
-        // DS — DataState
-        val lightDs = getAppUiColorScheme(key = DataStoreKeys.AppUiColorSchemeLight)
-        val darkDs = getAppUiColorScheme(key = DataStoreKeys.AppUiColorSchemeDark)
-        if (lightDs is DataState.HasValueStored && darkDs is DataState.HasValueStored) {
-            val value = UiColorSchemeSet(light = lightDs.value, dark = darkDs.value)
-            return DataState.HasValueStored(value)
+
+        val lightResult = getAppUiColorScheme(key = DataStoreKeys.AppUiColorSchemeLight)
+        val darkResult = getAppUiColorScheme(key = DataStoreKeys.AppUiColorSchemeDark)
+        if (lightResult is DataState.Result.HasValue && darkResult is DataState.Result.HasValue) {
+            val value = UiColorSchemeSet(light = lightResult.value, dark = darkResult.value)
+            return DataState.Result.HasValue(value)
         }
-        if (lightDs is DataState.NoValueStored || darkDs is DataState.NoValueStored) {
-            return DataState.NoValueStored
-        }
-        error("unexpected DataState")
+        // Result.HasValue has been checked above, so block with error() will never be executed
+        return lightResult.map { error("unexpected DataState") }
     }
 
     override suspend fun setAppUiColorSchemeSet(value: UiColorSchemeSet?) {
@@ -105,12 +105,12 @@ class UserPreferencesDataStoreRepository @Inject constructor(
                     return@edit
                 }
 
-                kotlin.run {
+                run {
                     val lightColorSchemeDtoValue =
                         with(UiColorSchemeMapper) { value.light.toDtoString() }
                     preferences[DataStoreKeys.AppUiColorSchemeLight] = lightColorSchemeDtoValue
                 }
-                kotlin.run {
+                run {
                     val darkColorSchemeDtoValue =
                         with(UiColorSchemeMapper) { value.dark.toDtoString() }
                     preferences[DataStoreKeys.AppUiColorSchemeDark] = darkColorSchemeDtoValue
@@ -122,17 +122,18 @@ class UserPreferencesDataStoreRepository @Inject constructor(
     override val flowOfDynamicUiColors: StateFlow<DataState<DynamicUiColors>> =
         dataStore.data
             .map { it.getDynamicUiColors() }
+            .map { DataState.Ready(it) }
             .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
 
-    private fun Preferences.getDynamicUiColors(): DataState<DynamicUiColors> {
+    private fun Preferences.getDynamicUiColors(): DataState.Result<DynamicUiColors> {
         val key = DataStoreKeys.DynamicUiColors
-        if (key !in this) return DataState.NoValueStored
+        if (key !in this) return DataState.Result.NoValue
         val dtoValue = this[key]
         if (dtoValue != null) {
             val value = DynamicUiColors(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
-            return DataState.HasValueStored(value)
+            return DataState.Result.HasValue(value)
         } else {
-            throw IllegalStoredValueException<DynamicUiColors>(value = dtoValue)
+            return DataState.Result.InvalidValue
         }
     }
 
@@ -148,17 +149,18 @@ class UserPreferencesDataStoreRepository @Inject constructor(
     override val flowOfResumeFromLastSearchedColorOnStartup: StateFlow<DataState<ResumeFromLastSearchedColorOnStartup>> =
         dataStore.data
             .map { it.getResumeFromLastSearchedColorOnStartup() }
+            .map { DataState.Ready(it) }
             .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
 
-    private fun Preferences.getResumeFromLastSearchedColorOnStartup(): DataState<ResumeFromLastSearchedColorOnStartup> {
+    private fun Preferences.getResumeFromLastSearchedColorOnStartup(): DataState.Result<ResumeFromLastSearchedColorOnStartup> {
         val key = DataStoreKeys.ShouldResumeFromLastSearchedColorOnStartup
-        if (key !in this) return DataState.NoValueStored
+        if (key !in this) return DataState.Result.NoValue
         val dtoValue = this[key]
         if (dtoValue != null) {
             val value = ResumeFromLastSearchedColorOnStartup(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
-            return DataState.HasValueStored(value)
+            return DataState.Result.HasValue(value)
         } else {
-            throw IllegalStoredValueException<ResumeFromLastSearchedColorOnStartup>(value = dtoValue)
+            return DataState.Result.InvalidValue
         }
     }
 
@@ -174,17 +176,18 @@ class UserPreferencesDataStoreRepository @Inject constructor(
     override val flowOfSmartBackspace: StateFlow<DataState<SmartBackspace>> =
         dataStore.data
             .map { it.getSmartBackspace() }
+            .map { DataState.Ready(it) }
             .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
 
-    private fun Preferences.getSmartBackspace(): DataState<SmartBackspace> {
+    private fun Preferences.getSmartBackspace(): DataState.Result<SmartBackspace> {
         val key = DataStoreKeys.SmartBackspace
-        if (key !in this) return DataState.NoValueStored
+        if (key !in this) return DataState.Result.NoValue
         val dtoValue = this[key]
         if (dtoValue != null) {
             val value = SmartBackspace(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
-            return DataState.HasValueStored(value)
+            return DataState.Result.HasValue(value)
         } else {
-            throw IllegalStoredValueException<SmartBackspace>(value = dtoValue)
+            return DataState.Result.InvalidValue
         }
     }
 
@@ -200,17 +203,18 @@ class UserPreferencesDataStoreRepository @Inject constructor(
     override val flowOfSelectAllTextOnTextFieldFocus: StateFlow<DataState<SelectAllTextOnTextFieldFocus>> =
         dataStore.data
             .map { it.getSelectAllTextOnTextFieldFocus() }
+            .map { DataState.Ready(it) }
             .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
 
-    private fun Preferences.getSelectAllTextOnTextFieldFocus(): DataState<SelectAllTextOnTextFieldFocus> {
+    private fun Preferences.getSelectAllTextOnTextFieldFocus(): DataState.Result<SelectAllTextOnTextFieldFocus> {
         val key = DataStoreKeys.SelectAllTextOnTextFieldFocus
-        if (key !in this) return DataState.NoValueStored
+        if (key !in this) return DataState.Result.NoValue
         val dtoValue = this[key]
         if (dtoValue != null) {
             val value = SelectAllTextOnTextFieldFocus(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
-            return DataState.HasValueStored(value)
+            return DataState.Result.HasValue(value)
         } else {
-            throw IllegalStoredValueException<SelectAllTextOnTextFieldFocus>(value = dtoValue)
+            return DataState.Result.InvalidValue
         }
     }
 
@@ -226,17 +230,18 @@ class UserPreferencesDataStoreRepository @Inject constructor(
     override val flowOfAutoProceedWithRandomizedColors: StateFlow<DataState<AutoProceedWithRandomizedColors>> =
         dataStore.data
             .map { it.getAutoProceedWithRandomizedColors() }
+            .map { DataState.Ready(it) }
             .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
 
-    private fun Preferences.getAutoProceedWithRandomizedColors(): DataState<AutoProceedWithRandomizedColors> {
+    private fun Preferences.getAutoProceedWithRandomizedColors(): DataState.Result<AutoProceedWithRandomizedColors> {
         val key = DataStoreKeys.AutoProceedWithRandomizedColors
-        if (key !in this) return DataState.NoValueStored
+        if (key !in this) return DataState.Result.NoValue
         val dtoValue = this[key]
         if (dtoValue != null) {
             val value = AutoProceedWithRandomizedColors(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
-            return DataState.HasValueStored(value)
+            return DataState.Result.HasValue(value)
         } else {
-            throw IllegalStoredValueException<AutoProceedWithRandomizedColors>(value = dtoValue)
+            return DataState.Result.InvalidValue
         }
     }
 

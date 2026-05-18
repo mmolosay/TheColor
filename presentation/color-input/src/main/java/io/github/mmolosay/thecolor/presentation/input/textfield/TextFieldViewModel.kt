@@ -6,8 +6,6 @@ import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
-import io.github.mmolosay.thecolor.domain.user.preferences.filterOutBeingInitialized
-import io.github.mmolosay.thecolor.domain.user.preferences.valueOrElse
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.UiDataUpdateDispatcher
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
@@ -15,6 +13,8 @@ import io.github.mmolosay.thecolor.presentation.input.model.WithSource
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.ClearTextFeature
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
+import io.github.mmolosay.thecolor.utils.filterReady
+import io.github.mmolosay.thecolor.utils.getOrElse
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -66,8 +66,8 @@ class TextFieldViewModel @AssistedInject constructor(
         }
         coroutineScope.launch(defaultDispatcher) {
             userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus
-                .filterOutBeingInitialized()
-                .map { it.valueOrElse { DefaultUserPreferences.SelectAllTextOnTextFieldFocus } }
+                .filterReady()
+                .map { it.result.getOrElse { DefaultUserPreferences.SelectAllTextOnTextFieldFocus } }
                 .collect(::updateData)
         }
     }
@@ -115,7 +115,7 @@ class TextFieldViewModel @AssistedInject constructor(
             clearText = clearTextFeatureOrNull(text = text.data),
             shouldSelectAllTextOnFocus = userPreferencesRepository
                 .flowOfSelectAllTextOnTextFieldFocus
-                .value.valueOrElse { DefaultUserPreferences.SelectAllTextOnTextFieldFocus }
+                .value.getOrElse { DefaultUserPreferences.SelectAllTextOnTextFieldFocus }
                 .enabled,
         )
 

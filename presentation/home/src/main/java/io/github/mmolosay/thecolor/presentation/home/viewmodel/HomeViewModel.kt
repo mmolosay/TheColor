@@ -10,8 +10,6 @@ import io.github.mmolosay.thecolor.domain.color.IsColorLightUseCase
 import io.github.mmolosay.thecolor.domain.color.LastSearchedColorRepository
 import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
-import io.github.mmolosay.thecolor.domain.user.preferences.filterOutBeingInitialized
-import io.github.mmolosay.thecolor.domain.user.preferences.valueOrElse
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
@@ -37,6 +35,8 @@ import io.github.mmolosay.thecolor.utils.CoroutineRegistry
 import io.github.mmolosay.thecolor.utils.MutableConsumableStore
 import io.github.mmolosay.thecolor.utils.OperationCounter
 import io.github.mmolosay.thecolor.utils.asConsumableStore
+import io.github.mmolosay.thecolor.utils.filterReady
+import io.github.mmolosay.thecolor.utils.getOrElse
 import io.github.mmolosay.thecolor.utils.removeAndCancelAll
 import io.github.mmolosay.thecolor.utils.trackThisAsSingleActive
 import kotlinx.coroutines.CompletableDeferred
@@ -203,8 +203,8 @@ class HomeViewModel @Inject constructor(
             opRegistry.trackAsProceed {
                 val resumeFromLastSearchedColorOnStartup = userPreferencesRepository
                     .flowOfResumeFromLastSearchedColorOnStartup
-                    .filterOutBeingInitialized()
-                    .first().valueOrElse { DefaultUserPreferences.ResumeFromLastSearchedColorOnStartup }
+                    .filterReady()
+                    .first().getOrElse { DefaultUserPreferences.ResumeFromLastSearchedColorOnStartup }
                 val enabled = resumeFromLastSearchedColorOnStartup.enabled
                 if (!enabled) return@launch
                 val color = lastSearchedColorRepository.getLastSearchedColor() ?: return@launch
@@ -275,8 +275,8 @@ class HomeViewModel @Inject constructor(
                 colorInputMediator.withLock { editor ->
                     val shouldProceed = userPreferencesRepository
                         .flowOfAutoProceedWithRandomizedColors
-                        .filterOutBeingInitialized()
-                        .first().valueOrElse { DefaultUserPreferences.AutoProceedWithRandomizedColors }
+                        .filterReady()
+                        .first().getOrElse { DefaultUserPreferences.AutoProceedWithRandomizedColors }
                         .enabled
                     dataUpdateCounter.withCounter {
                         if (shouldProceed) {

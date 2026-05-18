@@ -35,6 +35,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.SmartBackspace as DomainSmartBackspace
+import io.github.mmolosay.thecolor.utils.DataState as RepoDataState
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ColorInputRgbViewModelTest {
@@ -53,12 +54,14 @@ class ColorInputRgbViewModelTest {
     val userPreferencesRepository: UserPreferencesRepository = mockk {
         every { flowOfSelectAllTextOnTextFieldFocus } returns run {
             val value = SelectAllTextOnTextFieldFocus(enabled = false)
-            val dataState = UserPreferencesRepository.DataState.HasValueStored(value)
+            val result = RepoDataState.Result.HasValue(value)
+            val dataState = RepoDataState.Ready(result)
             MutableStateFlow(dataState)
         }
         every { flowOfSmartBackspace } returns run {
             val value = DomainSmartBackspace(enabled = false)
-            val dataState = UserPreferencesRepository.DataState.HasValueStored(value)
+            val result = RepoDataState.Result.HasValue(value)
+            val dataState = RepoDataState.Ready(result)
             MutableStateFlow(dataState)
         }
     }
@@ -288,7 +291,7 @@ class ColorInputRgbViewModelTest {
                 every { ColorInput.Rgb("", "", "").validate() } returns mockk<ColorInputValidationResult.Invalid>()
             }
             every { userPreferencesRepository.flowOfSmartBackspace } returns run {
-                val dataState = UserPreferencesRepository.DataState.BeingInitialized
+                val dataState = RepoDataState.BeingInitialized
                 MutableStateFlow(dataState)
             }
 
@@ -306,7 +309,7 @@ class ColorInputRgbViewModelTest {
                 every { ColorInput.Rgb("", "", "").validate() } returns mockk<ColorInputValidationResult.Invalid>()
             }
             every { userPreferencesRepository.flowOfSmartBackspace } returns run {
-                val dataState = UserPreferencesRepository.DataState.BeingInitialized
+                val dataState = RepoDataState.BeingInitialized
                 MutableStateFlow(dataState)
             }
 
@@ -324,8 +327,8 @@ class ColorInputRgbViewModelTest {
                 every { ColorInput.Rgb("", "", "").validate() } returns mockk<ColorInputValidationResult.Invalid>()
             }
             val flowOfSmartBackspace = run {
-                val dataState = UserPreferencesRepository.DataState.BeingInitialized
-                MutableStateFlow<UserPreferencesRepository.DataState<DomainSmartBackspace>>(dataState)
+                val dataState = RepoDataState.BeingInitialized
+                MutableStateFlow<RepoDataState<DomainSmartBackspace>>(dataState)
             }
             every { userPreferencesRepository.flowOfSmartBackspace } returns flowOfSmartBackspace
 
@@ -334,7 +337,8 @@ class ColorInputRgbViewModelTest {
             // WHEN-THEN #1
             run {
                 val value = DomainSmartBackspace(enabled = false)
-                val dataState = UserPreferencesRepository.DataState.HasValueStored(value)
+                val result = RepoDataState.Result.HasValue(value)
+                val dataState = RepoDataState.Ready(result)
                 flowOfSmartBackspace.emit(dataState)
                 data.isSmartBackspaceEnabled shouldBe false
             }
@@ -342,7 +346,8 @@ class ColorInputRgbViewModelTest {
             // WHEN-THEN #2
             run {
                 val value = DomainSmartBackspace(enabled = true)
-                val dataState = UserPreferencesRepository.DataState.HasValueStored(value)
+                val result = RepoDataState.Result.HasValue(value)
+                val dataState = RepoDataState.Ready(result)
                 flowOfSmartBackspace.emit(dataState)
                 data.isSmartBackspaceEnabled shouldBe true
             }

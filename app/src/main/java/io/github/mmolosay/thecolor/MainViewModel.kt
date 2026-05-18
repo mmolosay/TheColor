@@ -4,10 +4,10 @@ import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
-import io.github.mmolosay.thecolor.domain.user.preferences.filterOutBeingInitialized
-import io.github.mmolosay.thecolor.domain.user.preferences.valueOrElse
 import io.github.mmolosay.thecolor.presentation.design.ColorSchemeResolver
 import io.github.mmolosay.thecolor.presentation.design.toPresentation
+import io.github.mmolosay.thecolor.utils.filterReady
+import io.github.mmolosay.thecolor.utils.getOrElse
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -21,13 +21,13 @@ class MainViewModel @Inject constructor(
     val flowOfAppUiColorSchemeResolver: Flow<ColorSchemeResolver> =
         userPreferencesRepository
             .flowOfAppUiColorSchemeSet
-            .filterOutBeingInitialized()
-            .map { it.valueOrElse { DefaultUserPreferences.AppUiColorSchemeSet } }
+            .filterReady()
+            .map { it.result.getOrElse { DefaultUserPreferences.AppUiColorSchemeSet } }
             .map { it.toPresentation() }
 
     val flowOfDynamicUiColors: Flow<DomainDynamicUiColors> =
         userPreferencesRepository
             .flowOfDynamicUiColors
-            .filterOutBeingInitialized()
-            .map { it.valueOrElse { DefaultUserPreferences.DynamicUiColors } }
+            .filterReady()
+            .map { it.result.getOrElse { DefaultUserPreferences.DynamicUiColors } }
 }

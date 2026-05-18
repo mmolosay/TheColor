@@ -33,6 +33,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.SelectAllTextOnTextFieldFocus as DomainSelectAllTextOnTextFieldFocus
+import io.github.mmolosay.thecolor.utils.DataState as RepoDataState
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ColorInputHexViewModelTest {
@@ -51,7 +52,8 @@ class ColorInputHexViewModelTest {
     val userPreferencesRepository: UserPreferencesRepository = mockk {
         every { flowOfSelectAllTextOnTextFieldFocus } returns run {
             val value = DomainSelectAllTextOnTextFieldFocus(enabled = false)
-            val dataState = UserPreferencesRepository.DataState.HasValueStored(value)
+            val result = RepoDataState.Result.HasValue(value)
+            val dataState = RepoDataState.Ready(result)
             MutableStateFlow(dataState)
         }
     }

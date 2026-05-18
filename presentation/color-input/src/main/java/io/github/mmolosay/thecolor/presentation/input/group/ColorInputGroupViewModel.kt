@@ -5,8 +5,6 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
-import io.github.mmolosay.thecolor.domain.user.preferences.filterOutBeingInitialized
-import io.github.mmolosay.thecolor.domain.user.preferences.valueOrElse
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
@@ -15,6 +13,8 @@ import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexViewModel
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbViewModel
+import io.github.mmolosay.thecolor.utils.filterReady
+import io.github.mmolosay.thecolor.utils.getOrElse
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -84,8 +84,8 @@ class ColorInputGroupViewModel @AssistedInject constructor(
 
     private suspend fun initialData(): ColorInputGroupData {
         val preferredInputType = userPreferencesRepository.flowOfColorInputType
-            .filterOutBeingInitialized()
-            .first().valueOrElse { DefaultUserPreferences.PreferredColorInputType }
+            .filterReady()
+            .first().result.getOrElse { DefaultUserPreferences.PreferredColorInputType }
         // make list of all input types with the preferred one being first
         val orderedInputTypes = run {
             val allInputTypes = DomainColorInputType.entries

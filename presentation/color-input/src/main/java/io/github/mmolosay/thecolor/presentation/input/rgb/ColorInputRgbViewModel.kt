@@ -7,7 +7,6 @@ import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.domain.color.ColorConverter
 import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
-import io.github.mmolosay.thecolor.domain.user.preferences.valueOrElse
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.UiDataUpdateDispatcher
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
@@ -28,6 +27,7 @@ import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldViewMod
 import io.github.mmolosay.thecolor.presentation.input.textfield.updateText
 import io.github.mmolosay.thecolor.utils.MutableConsumableStore
 import io.github.mmolosay.thecolor.utils.asConsumableStore
+import io.github.mmolosay.thecolor.utils.getOrElse
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
@@ -71,7 +71,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             gTextFieldVm.dataFlow,
             bTextFieldVm.dataFlow,
             userPreferencesRepository.flowOfSmartBackspace
-                .map { it.valueOrElse { DefaultUserPreferences.SmartBackspace } },
+                .map { it.getOrElse { DefaultUserPreferences.SmartBackspace } },
         ) { r, g, b, smartBackspace ->
             val colorInput = ColorInput.Rgb(
                 r = r.text.data.string,

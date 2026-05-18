@@ -8,9 +8,9 @@ import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreference
 import io.github.mmolosay.thecolor.domain.user.preferences.ResetUserPreferencesToDefaultUseCase
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.asSingletonSet
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
-import io.github.mmolosay.thecolor.domain.user.preferences.filterOutBeingInitialized
-import io.github.mmolosay.thecolor.domain.user.preferences.valueOrElse
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
+import io.github.mmolosay.thecolor.utils.filterReady
+import io.github.mmolosay.thecolor.utils.getOrElse
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -28,7 +28,7 @@ import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.Selec
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.SmartBackspace as DomainSmartBackspace
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.UiColorScheme as DomainUiColorScheme
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.UiColorSchemeSet as DomainUiColorSchemeSet
-import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository.DataState as RepoDataState
+import io.github.mmolosay.thecolor.utils.DataState as RepoDataState
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
@@ -49,7 +49,7 @@ class SettingsViewModel @Inject constructor(
                 userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus,
                 userPreferencesRepository.flowOfAutoProceedWithRandomizedColors,
             ).map { flow ->
-                flow.filterOutBeingInitialized() // await for all flows to initialize and emit stored values
+                flow.filterReady() // await for all flows to initialize and emit stored values
             },
             transform = ::createData,
         )
@@ -122,7 +122,7 @@ class SettingsViewModel @Inject constructor(
         fun <T> nextValue(default: T): T {
             @Suppress("UNCHECKED_CAST")
             val dataState = iterator.next() as RepoDataState<T>
-            return dataState.valueOrElse { default }
+            return dataState.getOrElse { default }
         }
         return createData(
             preferredColorInputType = nextValue(DefaultUserPreferences.PreferredColorInputType),

@@ -16,6 +16,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
+import io.github.mmolosay.thecolor.utils.DataState as RepoDataState
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ColorInputGroupViewModelTest {
@@ -36,8 +37,8 @@ class ColorInputGroupViewModelTest {
         every {
             userPreferencesRepository.flowOfColorInputType
         } returns run {
-            val value = DomainColorInputType.Hex
-            val dataState = UserPreferencesRepository.DataState.HasValueStored(value)
+            val result = RepoDataState.Result.HasValue(DomainColorInputType.Hex)
+            val dataState = RepoDataState.Ready(result)
             MutableStateFlow(dataState)
         }
 
@@ -51,8 +52,8 @@ class ColorInputGroupViewModelTest {
         every {
             userPreferencesRepository.flowOfColorInputType
         } returns run {
-            val value = DomainColorInputType.Rgb
-            val dataState = UserPreferencesRepository.DataState.HasValueStored(value)
+            val result = RepoDataState.Result.HasValue(DomainColorInputType.Rgb)
+            val dataState = RepoDataState.Ready(result)
             MutableStateFlow(dataState)
         }
 
@@ -66,8 +67,8 @@ class ColorInputGroupViewModelTest {
         every {
             userPreferencesRepository.flowOfColorInputType
         } returns run {
-            val value = DomainColorInputType.Rgb
-            val dataState = UserPreferencesRepository.DataState.HasValueStored(value)
+            val result = RepoDataState.Result.HasValue(DomainColorInputType.Rgb)
+            val dataState = RepoDataState.Ready(result)
             MutableStateFlow(dataState)
         }
 
@@ -81,8 +82,8 @@ class ColorInputGroupViewModelTest {
         every {
             userPreferencesRepository.flowOfColorInputType
         } returns run {
-            val value = DomainColorInputType.Hex
-            val dataState = UserPreferencesRepository.DataState.HasValueStored(value)
+            val result = RepoDataState.Result.HasValue(DomainColorInputType.Hex)
+            val dataState = RepoDataState.Ready(result)
             MutableStateFlow(dataState)
         }
         createSut()
