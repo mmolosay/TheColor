@@ -24,7 +24,6 @@ import io.github.mmolosay.thecolor.utils.DataState
 import io.github.mmolosay.thecolor.utils.map
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -44,10 +43,9 @@ class UserPreferencesDataStoreRepository @Inject constructor(
 ) : UserPreferencesRepository {
 
     override val flowOfColorInputType: StateFlow<DataState<ColorInputType>> =
-        dataStore.data
-            .map { it.getColorInputType() }
-            .map { DataState.Ready(it) }
-            .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
+        StateFlowFromDataStore(
+            getValue = { it.getColorInputType() },
+        )
 
     private fun Preferences.getColorInputType(): DataState.Result<ColorInputType> =
         getAsResult(DataStoreKeys.ColorInputType)
@@ -66,10 +64,9 @@ class UserPreferencesDataStoreRepository @Inject constructor(
     }
 
     override val flowOfAppUiColorSchemeSet: StateFlow<DataState<UiColorSchemeSet>> =
-        dataStore.data
-            .map { it.getAppUiColorSchemeSet() }
-            .map { DataState.Ready(it) }
-            .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
+        StateFlowFromDataStore(
+            getValue = { it.getAppUiColorSchemeSet() },
+        )
 
     private fun Preferences.getAppUiColorSchemeSet(): DataState.Result<UiColorSchemeSet> {
         fun Preferences.getAppUiColorScheme(key: Preferences.Key<String>): DataState.Result<UiColorScheme> =
@@ -113,10 +110,9 @@ class UserPreferencesDataStoreRepository @Inject constructor(
     }
 
     override val flowOfDynamicUiColors: StateFlow<DataState<DynamicUiColors>> =
-        dataStore.data
-            .map { it.getDynamicUiColors() }
-            .map { DataState.Ready(it) }
-            .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
+        StateFlowFromDataStore(
+            getValue = { it.getDynamicUiColors() },
+        )
 
     private fun Preferences.getDynamicUiColors(): DataState.Result<DynamicUiColors> =
         getAsResult(DataStoreKeys.DynamicUiColors)
@@ -135,10 +131,9 @@ class UserPreferencesDataStoreRepository @Inject constructor(
     }
 
     override val flowOfResumeFromLastSearchedColorOnStartup: StateFlow<DataState<ResumeFromLastSearchedColorOnStartup>> =
-        dataStore.data
-            .map { it.getResumeFromLastSearchedColorOnStartup() }
-            .map { DataState.Ready(it) }
-            .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
+        StateFlowFromDataStore(
+            getValue = { it.getResumeFromLastSearchedColorOnStartup() },
+        )
 
     private fun Preferences.getResumeFromLastSearchedColorOnStartup(): DataState.Result<ResumeFromLastSearchedColorOnStartup> =
         getAsResult(DataStoreKeys.ShouldResumeFromLastSearchedColorOnStartup)
@@ -157,10 +152,9 @@ class UserPreferencesDataStoreRepository @Inject constructor(
     }
 
     override val flowOfSmartBackspace: StateFlow<DataState<SmartBackspace>> =
-        dataStore.data
-            .map { it.getSmartBackspace() }
-            .map { DataState.Ready(it) }
-            .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
+        StateFlowFromDataStore(
+            getValue = { it.getSmartBackspace() },
+        )
 
     private fun Preferences.getSmartBackspace(): DataState.Result<SmartBackspace> =
         getAsResult(DataStoreKeys.SmartBackspace)
@@ -179,10 +173,9 @@ class UserPreferencesDataStoreRepository @Inject constructor(
     }
 
     override val flowOfSelectAllTextOnTextFieldFocus: StateFlow<DataState<SelectAllTextOnTextFieldFocus>> =
-        dataStore.data
-            .map { it.getSelectAllTextOnTextFieldFocus() }
-            .map { DataState.Ready(it) }
-            .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
+        StateFlowFromDataStore(
+            getValue = { it.getSelectAllTextOnTextFieldFocus() },
+        )
 
     private fun Preferences.getSelectAllTextOnTextFieldFocus(): DataState.Result<SelectAllTextOnTextFieldFocus> =
         getAsResult(DataStoreKeys.SelectAllTextOnTextFieldFocus)
@@ -201,10 +194,9 @@ class UserPreferencesDataStoreRepository @Inject constructor(
     }
 
     override val flowOfAutoProceedWithRandomizedColors: StateFlow<DataState<AutoProceedWithRandomizedColors>> =
-        dataStore.data
-            .map { it.getAutoProceedWithRandomizedColors() }
-            .map { DataState.Ready(it) }
-            .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
+        StateFlowFromDataStore(
+            getValue = { it.getAutoProceedWithRandomizedColors() },
+        )
 
     private fun Preferences.getAutoProceedWithRandomizedColors(): DataState.Result<AutoProceedWithRandomizedColors> =
         getAsResult(DataStoreKeys.AutoProceedWithRandomizedColors)
@@ -222,15 +214,17 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         }
     }
 
-    private fun <T> Flow<T>.stateEagerlyInAppScope(
-        initialValue: T,
-    ): StateFlow<T> =
-        this.stateIn(
-            scope = appScope,
-            started = SharingStarted.Eagerly, // will access DB immediately when class is created,
-            // so that values are ready before first collection
-            initialValue = initialValue,
-        )
+    private fun <T> StateFlowFromDataStore(
+        getValue: (Preferences) -> DataState.Result<T>,
+    ): StateFlow<DataState<T>> =
+        dataStore.data
+            .map(getValue)
+            .map { DataState.Ready(it) }
+            .stateIn(
+                scope = appScope,
+                started = SharingStarted.Eagerly, // get values ready before first collection
+                initialValue = DataState.BeingInitialized,
+            )
 
     private object DataStoreKeys {
         val ColorInputType = stringPreferencesKey("color_input_type")

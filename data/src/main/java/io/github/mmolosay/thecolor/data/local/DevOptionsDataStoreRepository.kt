@@ -18,7 +18,6 @@ import io.github.mmolosay.thecolor.utils.DataState
 import io.github.mmolosay.thecolor.utils.map
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -38,10 +37,9 @@ class DevOptionsDataStoreRepository @Inject constructor(
 ) : DevOptionsRepository {
 
     override val flowOfPredictableRandomColors: StateFlow<DataState<PredictableRandomColors>> =
-        dataStore.data
-            .map { it.getPredictableRandomColors() }
-            .map { DataState.Ready(it) }
-            .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
+        StateFlowFromDataStore(
+            getValue = { it.getPredictableRandomColors() },
+        )
 
     private fun Preferences.getPredictableRandomColors(): DataState.Result<PredictableRandomColors> =
         getAsResult(DataStoreKeys.PredictableRandomColors)
@@ -60,10 +58,9 @@ class DevOptionsDataStoreRepository @Inject constructor(
     }
 
     override val flowOfStrictMode: StateFlow<DataState<StrictMode>> =
-        dataStore.data
-            .map { it.getStrictMode() }
-            .map { DataState.Ready(it) }
-            .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
+        StateFlowFromDataStore(
+            getValue = { it.getStrictMode() },
+        )
 
     private fun Preferences.getStrictMode(): DataState.Result<StrictMode> =
         getAsResult(DataStoreKeys.StrictMode)
@@ -82,10 +79,9 @@ class DevOptionsDataStoreRepository @Inject constructor(
     }
 
     override val flowOfHttpLogging: StateFlow<DataState<HttpLogging>> =
-        dataStore.data
-            .map { it.getHttpLogging() }
-            .map { DataState.Ready(it) }
-            .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
+        StateFlowFromDataStore(
+            getValue = { it.getHttpLogging() },
+        )
 
     private fun Preferences.getHttpLogging(): DataState.Result<HttpLogging> =
         getAsResult(DataStoreKeys.HttpLogging)
@@ -103,15 +99,17 @@ class DevOptionsDataStoreRepository @Inject constructor(
         }
     }
 
-    private fun <T> Flow<T>.stateEagerlyInAppScope(
-        initialValue: T,
-    ): StateFlow<T> =
-        this.stateIn(
-            scope = appScope,
-            started = SharingStarted.Eagerly, // will access DB immediately when class is created,
-            // so that values are ready before first collection
-            initialValue = initialValue,
-        )
+    private fun <T> StateFlowFromDataStore(
+        getValue: (Preferences) -> DataState.Result<T>,
+    ): StateFlow<DataState<T>> =
+        dataStore.data
+            .map(getValue)
+            .map { DataState.Ready(it) }
+            .stateIn(
+                scope = appScope,
+                started = SharingStarted.Eagerly, // get values ready before first collection
+                initialValue = DataState.BeingInitialized,
+            )
 
     private object DataStoreKeys {
         val PredictableRandomColors = stringPreferencesKey("predictable_random_colors")
