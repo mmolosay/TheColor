@@ -2,6 +2,7 @@ package io.github.mmolosay.thecolor.presentation.input
 
 import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
+import io.github.mmolosay.thecolor.domain.utils.PrefState
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldViewModel
@@ -18,7 +19,6 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.SelectAllTextOnTextFieldFocus as DomainSelectAllTextOnTextFieldFocus
-import io.github.mmolosay.thecolor.utils.DataState as RepoDataState
 
 class TextFieldViewModelTest {
 
@@ -30,9 +30,9 @@ class TextFieldViewModelTest {
     val userPreferencesRepository: UserPreferencesRepository = mockk {
         every { flowOfSelectAllTextOnTextFieldFocus } returns run {
             val value = DomainSelectAllTextOnTextFieldFocus(enabled = false)
-            val result = RepoDataState.Result.HasValue(value)
-            val dataState = RepoDataState.Ready(result)
-            MutableStateFlow(dataState)
+            val result = PrefState.Result.HasValue(value)
+            val prefState = PrefState.Ready(result)
+            MutableStateFlow(prefState)
         }
     }
 
@@ -50,8 +50,8 @@ class TextFieldViewModelTest {
     @Test
     fun `when 'select all text on text field focus' preference is 'being initialized', then initial data has the initial text nonetheless`() {
         every { userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus } returns run {
-            val dataState = RepoDataState.BeingInitialized
-            MutableStateFlow(dataState)
+            val prefState = PrefState.BeingInitialized
+            MutableStateFlow(prefState)
         }
 
         createSut(
@@ -241,8 +241,8 @@ class TextFieldViewModelTest {
     fun `emissions of 'select all text on text field focus' preference are reflected in the data`() =
         runTest(testDispatcher) {
             val flowOfSelectAllTextOnTextFieldFocus = run {
-                val dataState = RepoDataState.BeingInitialized
-                MutableStateFlow<RepoDataState<DomainSelectAllTextOnTextFieldFocus>>(dataState)
+                val prefState = PrefState.BeingInitialized
+                MutableStateFlow<PrefState<DomainSelectAllTextOnTextFieldFocus>>(prefState)
             }
             every { userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus } returns flowOfSelectAllTextOnTextFieldFocus
             createSut()
@@ -251,16 +251,16 @@ class TextFieldViewModelTest {
 
             run {
                 val value = DomainSelectAllTextOnTextFieldFocus(enabled = false)
-                val result = RepoDataState.Result.HasValue(value)
-                val dataState = RepoDataState.Ready(result)
-                flowOfSelectAllTextOnTextFieldFocus.emit(dataState)
+                val result = PrefState.Result.HasValue(value)
+                val prefState = PrefState.Ready(result)
+                flowOfSelectAllTextOnTextFieldFocus.emit(prefState)
             }
             data.shouldSelectAllTextOnFocus shouldBe false
             run {
                 val value = DomainSelectAllTextOnTextFieldFocus(enabled = true)
-                val result = RepoDataState.Result.HasValue(value)
-                val dataState = RepoDataState.Ready(result)
-                flowOfSelectAllTextOnTextFieldFocus.emit(dataState)
+                val result = PrefState.Result.HasValue(value)
+                val prefState = PrefState.Ready(result)
+                flowOfSelectAllTextOnTextFieldFocus.emit(prefState)
             }
             data.shouldSelectAllTextOnFocus shouldBe true
         }

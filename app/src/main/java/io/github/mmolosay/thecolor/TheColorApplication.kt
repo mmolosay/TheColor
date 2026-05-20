@@ -10,9 +10,9 @@ import dagger.hilt.android.HiltAndroidApp
 import io.github.mmolosay.thecolor.domain.buildfeatures.AreLogsEnabledUseCase
 import io.github.mmolosay.thecolor.domain.dev.options.DefaultDevOptions
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository
+import io.github.mmolosay.thecolor.domain.utils.filterReady
+import io.github.mmolosay.thecolor.domain.utils.getOrElse
 import io.github.mmolosay.thecolor.utils.ApplicationCoroutineScopeProvider
-import io.github.mmolosay.thecolor.utils.filterReady
-import io.github.mmolosay.thecolor.utils.getOrElse
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

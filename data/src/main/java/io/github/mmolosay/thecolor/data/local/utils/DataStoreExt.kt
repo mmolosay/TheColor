@@ -3,7 +3,7 @@ package io.github.mmolosay.thecolor.data.local.utils
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
-import io.github.mmolosay.thecolor.utils.DataState
+import io.github.mmolosay.thecolor.domain.utils.PrefState
 
 /**
  * Sets the specified [key]-[value] pair to the receiver [DataStore].
@@ -37,16 +37,16 @@ internal fun <T> Preferences.getAsResult(
     return PreferenceResult.HasValue(value)
 }
 
-// individual class to make 'getAsResult()' independent from 'utils.DataState'
+// individual class to make 'getAsResult()' independent from 'utils.PrefState'
 internal sealed interface PreferenceResult<out T> {
     data object NoValue : PreferenceResult<Nothing>
     data object InvalidValue : PreferenceResult<Nothing>
     data class HasValue<T>(val value: T) : PreferenceResult<T>
 }
 
-internal fun <T> PreferenceResult<T>.asDataStateResult(): DataState.Result<T> =
+internal fun <T> PreferenceResult<T>.asPrefStateResult(): PrefState.Result<T> =
     when (this) {
-        is PreferenceResult.NoValue -> DataState.Result.NoValue
-        is PreferenceResult.InvalidValue -> DataState.Result.InvalidValue
-        is PreferenceResult.HasValue -> DataState.Result.HasValue(this.value)
+        is PreferenceResult.NoValue -> PrefState.Result.NoValue
+        is PreferenceResult.InvalidValue -> PrefState.Result.InvalidValue
+        is PreferenceResult.HasValue -> PrefState.Result.HasValue(this.value)
     }

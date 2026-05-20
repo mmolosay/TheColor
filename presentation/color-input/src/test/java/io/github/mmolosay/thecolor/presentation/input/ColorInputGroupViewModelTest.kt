@@ -1,6 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.input
 
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
+import io.github.mmolosay.thecolor.domain.utils.PrefState
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupData
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupViewModel
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupViewModel.DataState
@@ -16,7 +17,6 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
-import io.github.mmolosay.thecolor.utils.DataState as RepoDataState
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ColorInputGroupViewModelTest {
@@ -37,9 +37,9 @@ class ColorInputGroupViewModelTest {
         every {
             userPreferencesRepository.flowOfColorInputType
         } returns run {
-            val result = RepoDataState.Result.HasValue(DomainColorInputType.Hex)
-            val dataState = RepoDataState.Ready(result)
-            MutableStateFlow(dataState)
+            val result = PrefState.Result.HasValue(DomainColorInputType.Hex)
+            val prefState = PrefState.Ready(result)
+            MutableStateFlow(prefState)
         }
 
         createSut()
@@ -52,9 +52,9 @@ class ColorInputGroupViewModelTest {
         every {
             userPreferencesRepository.flowOfColorInputType
         } returns run {
-            val result = RepoDataState.Result.HasValue(DomainColorInputType.Rgb)
-            val dataState = RepoDataState.Ready(result)
-            MutableStateFlow(dataState)
+            val result = PrefState.Result.HasValue(DomainColorInputType.Rgb)
+            val prefState = PrefState.Ready(result)
+            MutableStateFlow(prefState)
         }
 
         createSut()
@@ -67,9 +67,9 @@ class ColorInputGroupViewModelTest {
         every {
             userPreferencesRepository.flowOfColorInputType
         } returns run {
-            val result = RepoDataState.Result.HasValue(DomainColorInputType.Rgb)
-            val dataState = RepoDataState.Ready(result)
-            MutableStateFlow(dataState)
+            val result = PrefState.Result.HasValue(DomainColorInputType.Rgb)
+            val prefState = PrefState.Ready(result)
+            MutableStateFlow(prefState)
         }
 
         createSut()
@@ -82,9 +82,9 @@ class ColorInputGroupViewModelTest {
         every {
             userPreferencesRepository.flowOfColorInputType
         } returns run {
-            val result = RepoDataState.Result.HasValue(DomainColorInputType.Hex)
-            val dataState = RepoDataState.Ready(result)
-            MutableStateFlow(dataState)
+            val result = PrefState.Result.HasValue(DomainColorInputType.Hex)
+            val prefState = PrefState.Ready(result)
+            MutableStateFlow(prefState)
         }
         createSut()
 

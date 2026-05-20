@@ -5,6 +5,7 @@ import io.github.mmolosay.thecolor.domain.color.ColorConverter
 import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.SelectAllTextOnTextFieldFocus
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
+import io.github.mmolosay.thecolor.domain.utils.PrefState
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputValidationResult
@@ -35,7 +36,6 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.SmartBackspace as DomainSmartBackspace
-import io.github.mmolosay.thecolor.utils.DataState as RepoDataState
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ColorInputRgbViewModelTest {
@@ -54,15 +54,15 @@ class ColorInputRgbViewModelTest {
     val userPreferencesRepository: UserPreferencesRepository = mockk {
         every { flowOfSelectAllTextOnTextFieldFocus } returns run {
             val value = SelectAllTextOnTextFieldFocus(enabled = false)
-            val result = RepoDataState.Result.HasValue(value)
-            val dataState = RepoDataState.Ready(result)
-            MutableStateFlow(dataState)
+            val result = PrefState.Result.HasValue(value)
+            val prefState = PrefState.Ready(result)
+            MutableStateFlow(prefState)
         }
         every { flowOfSmartBackspace } returns run {
             val value = DomainSmartBackspace(enabled = false)
-            val result = RepoDataState.Result.HasValue(value)
-            val dataState = RepoDataState.Ready(result)
-            MutableStateFlow(dataState)
+            val result = PrefState.Result.HasValue(value)
+            val prefState = PrefState.Ready(result)
+            MutableStateFlow(prefState)
         }
     }
 
@@ -291,8 +291,8 @@ class ColorInputRgbViewModelTest {
                 every { ColorInput.Rgb("", "", "").validate() } returns mockk<ColorInputValidationResult.Invalid>()
             }
             every { userPreferencesRepository.flowOfSmartBackspace } returns run {
-                val dataState = RepoDataState.BeingInitialized
-                MutableStateFlow(dataState)
+                val prefState = PrefState.BeingInitialized
+                MutableStateFlow(prefState)
             }
 
             createSut()
@@ -309,8 +309,8 @@ class ColorInputRgbViewModelTest {
                 every { ColorInput.Rgb("", "", "").validate() } returns mockk<ColorInputValidationResult.Invalid>()
             }
             every { userPreferencesRepository.flowOfSmartBackspace } returns run {
-                val dataState = RepoDataState.BeingInitialized
-                MutableStateFlow(dataState)
+                val prefState = PrefState.BeingInitialized
+                MutableStateFlow(prefState)
             }
 
             createSut()
@@ -327,8 +327,8 @@ class ColorInputRgbViewModelTest {
                 every { ColorInput.Rgb("", "", "").validate() } returns mockk<ColorInputValidationResult.Invalid>()
             }
             val flowOfSmartBackspace = run {
-                val dataState = RepoDataState.BeingInitialized
-                MutableStateFlow<RepoDataState<DomainSmartBackspace>>(dataState)
+                val prefState = PrefState.BeingInitialized
+                MutableStateFlow<PrefState<DomainSmartBackspace>>(prefState)
             }
             every { userPreferencesRepository.flowOfSmartBackspace } returns flowOfSmartBackspace
 
@@ -337,18 +337,18 @@ class ColorInputRgbViewModelTest {
             // WHEN-THEN #1
             run {
                 val value = DomainSmartBackspace(enabled = false)
-                val result = RepoDataState.Result.HasValue(value)
-                val dataState = RepoDataState.Ready(result)
-                flowOfSmartBackspace.emit(dataState)
+                val result = PrefState.Result.HasValue(value)
+                val prefState = PrefState.Ready(result)
+                flowOfSmartBackspace.emit(prefState)
                 data.isSmartBackspaceEnabled shouldBe false
             }
 
             // WHEN-THEN #2
             run {
                 val value = DomainSmartBackspace(enabled = true)
-                val result = RepoDataState.Result.HasValue(value)
-                val dataState = RepoDataState.Ready(result)
-                flowOfSmartBackspace.emit(dataState)
+                val result = PrefState.Result.HasValue(value)
+                val prefState = PrefState.Ready(result)
+                flowOfSmartBackspace.emit(prefState)
                 data.isSmartBackspaceEnabled shouldBe true
             }
         }

@@ -17,7 +17,7 @@ import io.github.mmolosay.thecolor.domain.dev.options.DefaultDevOptions
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository
 import io.github.mmolosay.thecolor.domain.exception.HttpDomainFailureFactory
-import io.github.mmolosay.thecolor.utils.getOrElse
+import io.github.mmolosay.thecolor.domain.utils.getOrElse
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response

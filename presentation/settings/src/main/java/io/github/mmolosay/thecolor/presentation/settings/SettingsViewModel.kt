@@ -7,9 +7,10 @@ import io.github.mmolosay.thecolor.domain.buildfeatures.IsDevOptionsEnabledUseCa
 import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.asSingletonSet
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
+import io.github.mmolosay.thecolor.domain.utils.PrefState
+import io.github.mmolosay.thecolor.domain.utils.filterReady
+import io.github.mmolosay.thecolor.domain.utils.getOrElse
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
-import io.github.mmolosay.thecolor.utils.filterReady
-import io.github.mmolosay.thecolor.utils.getOrElse
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -27,7 +28,6 @@ import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.Selec
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.SmartBackspace as DomainSmartBackspace
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.UiColorScheme as DomainUiColorScheme
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.UiColorSchemeSet as DomainUiColorSchemeSet
-import io.github.mmolosay.thecolor.utils.DataState as RepoDataState
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
@@ -114,13 +114,13 @@ class SettingsViewModel @Inject constructor(
 
     // this is the only way to combine() more than 5 flows of different types
     private fun createData(
-        userSettings: Array<RepoDataState<Any>>,
+        userSettings: Array<PrefState<Any>>,
     ): SettingsData {
         val iterator = userSettings.iterator()
         fun <T> nextValue(default: T): T {
             @Suppress("UNCHECKED_CAST")
-            val dataState = iterator.next() as RepoDataState<T>
-            return dataState.getOrElse { default }
+            val prefState = iterator.next() as PrefState<T>
+            return prefState.getOrElse { default }
         }
         return createData(
             preferredColorInputType = nextValue(DefaultUserPreferences.PreferredColorInputType),

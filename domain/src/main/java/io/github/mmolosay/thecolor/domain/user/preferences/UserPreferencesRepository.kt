@@ -7,29 +7,29 @@ import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.Resum
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.SelectAllTextOnTextFieldFocus
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.SmartBackspace
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.UiColorSchemeSet
-import io.github.mmolosay.thecolor.utils.DataState
+import io.github.mmolosay.thecolor.domain.utils.PrefState
 import kotlinx.coroutines.flow.StateFlow
 
 interface UserPreferencesRepository {
-    val flowOfColorInputType: StateFlow<DataState<ColorInputType>>
+    val flowOfColorInputType: StateFlow<PrefState<ColorInputType>>
     suspend fun setColorInputType(value: ColorInputType?)
 
-    val flowOfAppUiColorSchemeSet: StateFlow<DataState<UiColorSchemeSet>>
+    val flowOfAppUiColorSchemeSet: StateFlow<PrefState<UiColorSchemeSet>>
     suspend fun setAppUiColorSchemeSet(value: UiColorSchemeSet?)
 
-    val flowOfDynamicUiColors: StateFlow<DataState<DynamicUiColors>>
+    val flowOfDynamicUiColors: StateFlow<PrefState<DynamicUiColors>>
     suspend fun setDynamicUiColors(value: DynamicUiColors?)
 
-    val flowOfResumeFromLastSearchedColorOnStartup: StateFlow<DataState<ResumeFromLastSearchedColorOnStartup>>
+    val flowOfResumeFromLastSearchedColorOnStartup: StateFlow<PrefState<ResumeFromLastSearchedColorOnStartup>>
     suspend fun setResumeFromLastSearchedColorOnStartup(value: ResumeFromLastSearchedColorOnStartup?)
 
-    val flowOfSmartBackspace: StateFlow<DataState<SmartBackspace>>
+    val flowOfSmartBackspace: StateFlow<PrefState<SmartBackspace>>
     suspend fun setSmartBackspace(value: SmartBackspace?)
 
-    val flowOfSelectAllTextOnTextFieldFocus: StateFlow<DataState<SelectAllTextOnTextFieldFocus>>
+    val flowOfSelectAllTextOnTextFieldFocus: StateFlow<PrefState<SelectAllTextOnTextFieldFocus>>
     suspend fun setSelectAllTextOnTextFieldFocus(value: SelectAllTextOnTextFieldFocus?)
 
-    val flowOfAutoProceedWithRandomizedColors: StateFlow<DataState<AutoProceedWithRandomizedColors>>
+    val flowOfAutoProceedWithRandomizedColors: StateFlow<PrefState<AutoProceedWithRandomizedColors>>
     suspend fun setAutoProceedWithRandomizedColors(value: AutoProceedWithRandomizedColors?)
 
     suspend fun clear()

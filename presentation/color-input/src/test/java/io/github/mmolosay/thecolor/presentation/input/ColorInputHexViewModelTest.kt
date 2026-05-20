@@ -3,6 +3,7 @@ package io.github.mmolosay.thecolor.presentation.input
 import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.domain.color.ColorConverter
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
+import io.github.mmolosay.thecolor.domain.utils.PrefState
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexData
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
@@ -33,7 +34,6 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.SelectAllTextOnTextFieldFocus as DomainSelectAllTextOnTextFieldFocus
-import io.github.mmolosay.thecolor.utils.DataState as RepoDataState
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ColorInputHexViewModelTest {
@@ -52,9 +52,9 @@ class ColorInputHexViewModelTest {
     val userPreferencesRepository: UserPreferencesRepository = mockk {
         every { flowOfSelectAllTextOnTextFieldFocus } returns run {
             val value = DomainSelectAllTextOnTextFieldFocus(enabled = false)
-            val result = RepoDataState.Result.HasValue(value)
-            val dataState = RepoDataState.Ready(result)
-            MutableStateFlow(dataState)
+            val result = PrefState.Result.HasValue(value)
+            val prefState = PrefState.Ready(result)
+            MutableStateFlow(prefState)
         }
     }
 

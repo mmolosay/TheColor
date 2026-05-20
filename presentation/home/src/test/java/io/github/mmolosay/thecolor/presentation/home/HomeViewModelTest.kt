@@ -8,6 +8,7 @@ import io.github.mmolosay.thecolor.domain.color.GetPredictableRandomColorUseCase
 import io.github.mmolosay.thecolor.domain.color.LastSearchedColorRepository
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.ResumeFromLastSearchedColorOnStartup
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
+import io.github.mmolosay.thecolor.domain.utils.PrefState
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.MutableViewModelEventFlow
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEvent
@@ -62,7 +63,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import io.github.mmolosay.thecolor.domain.color.ColorDetails as DomainColorDetails
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.AutoProceedWithRandomizedColors as DomainAutoProceedWithRandomizedColors
-import io.github.mmolosay.thecolor.utils.DataState as RepoDataState
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModelTest {
@@ -131,9 +131,9 @@ class HomeViewModelTest {
 
     val userPreferencesRepository: UserPreferencesRepository = mockk {
         val value = ResumeFromLastSearchedColorOnStartup(enabled = false)
-        val result = RepoDataState.Result.HasValue(value)
-        val dataState = RepoDataState.Ready(result)
-        every { flowOfResumeFromLastSearchedColorOnStartup } returns MutableStateFlow(dataState)
+        val result = PrefState.Result.HasValue(value)
+        val prefState = PrefState.Ready(result)
+        every { flowOfResumeFromLastSearchedColorOnStartup } returns MutableStateFlow(prefState)
     }
     val lastSearchedColorRepository: LastSearchedColorRepository = mockk {
         coEvery { setLastSearchedColor(color = any()) } just runs
@@ -1281,9 +1281,9 @@ class HomeViewModelTest {
                 userPreferencesRepository.flowOfResumeFromLastSearchedColorOnStartup
             } returns run {
                 val value = ResumeFromLastSearchedColorOnStartup(enabled = true)
-                val result = RepoDataState.Result.HasValue(value)
-                val dataState = RepoDataState.Ready(result)
-                MutableStateFlow(dataState)
+                val result = PrefState.Result.HasValue(value)
+                val prefState = PrefState.Ready(result)
+                MutableStateFlow(prefState)
             }
             val lastSearchedColor: Color = Color.Hex(0x1A803F)
             coEvery { lastSearchedColorRepository.getLastSearchedColor() } returns lastSearchedColor
@@ -1381,9 +1381,9 @@ class HomeViewModelTest {
             every { getPredictableRandomColor() } returns randomColor
             every { userPreferencesRepository.flowOfAutoProceedWithRandomizedColors } returns run {
                 val value = DomainAutoProceedWithRandomizedColors(enabled = false)
-                val result = RepoDataState.Result.HasValue(value)
-                val dataState = RepoDataState.Ready(result)
-                MutableStateFlow(dataState)
+                val result = PrefState.Result.HasValue(value)
+                val prefState = PrefState.Ready(result)
+                MutableStateFlow(prefState)
             }
             createSut()
 
@@ -1409,9 +1409,9 @@ class HomeViewModelTest {
 
             every { userPreferencesRepository.flowOfAutoProceedWithRandomizedColors } returns run {
                 val value = DomainAutoProceedWithRandomizedColors(enabled = true)
-                val result = RepoDataState.Result.HasValue(value)
-                val dataState = RepoDataState.Ready(result)
-                MutableStateFlow(dataState)
+                val result = PrefState.Result.HasValue(value)
+                val prefState = PrefState.Ready(result)
+                MutableStateFlow(prefState)
             }
             every { createColorData(color = any()) } returns mockk()
             createSut()

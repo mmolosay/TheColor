@@ -3,7 +3,7 @@ package io.github.mmolosay.thecolor.domain.color
 import io.github.mmolosay.thecolor.domain.dev.options.DefaultDevOptions
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.PredictableRandomColors
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository
-import io.github.mmolosay.thecolor.utils.getOrElse
+import io.github.mmolosay.thecolor.domain.utils.getOrElse
 import javax.inject.Inject
 import javax.inject.Singleton
 

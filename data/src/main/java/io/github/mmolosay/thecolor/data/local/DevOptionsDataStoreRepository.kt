@@ -5,18 +5,18 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import io.github.mmolosay.thecolor.data.local.utils.asDataStateResult
+import io.github.mmolosay.thecolor.data.local.utils.asPrefStateResult
 import io.github.mmolosay.thecolor.data.local.utils.getAsResult
 import io.github.mmolosay.thecolor.data.local.utils.setOrRemoveValue
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.HttpLogging
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.PredictableRandomColors
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.StrictMode
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository
+import io.github.mmolosay.thecolor.domain.utils.PrefState
+import io.github.mmolosay.thecolor.domain.utils.map
 import io.github.mmolosay.thecolor.main.di.qualifiers.AppCoroutineScope
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.IoDispatcher
 import io.github.mmolosay.thecolor.main.di.qualifiers.DataStoreDiQualifiers.DevOptions
-import io.github.mmolosay.thecolor.utils.DataState
-import io.github.mmolosay.thecolor.utils.map
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
@@ -37,14 +37,14 @@ class DevOptionsDataStoreRepository @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : DevOptionsRepository {
 
-    override val flowOfPredictableRandomColors: StateFlow<DataState<PredictableRandomColors>> =
+    override val flowOfPredictableRandomColors: StateFlow<PrefState<PredictableRandomColors>> =
         StateFlowFromDataStore(
             getValue = { it.getPredictableRandomColors() },
         )
 
-    private fun Preferences.getPredictableRandomColors(): DataState.Result<PredictableRandomColors> =
+    private fun Preferences.getPredictableRandomColors(): PrefState.Result<PredictableRandomColors> =
         getAsResult(DataStoreKeys.PredictableRandomColors)
-            .asDataStateResult()
+            .asPrefStateResult()
             .map { dtoValue ->
                 with(PredictableRandomColorsMapper) { dtoValue.toPredictableRandomColors() }
             }
@@ -58,14 +58,14 @@ class DevOptionsDataStoreRepository @Inject constructor(
         }
     }
 
-    override val flowOfStrictMode: StateFlow<DataState<StrictMode>> =
+    override val flowOfStrictMode: StateFlow<PrefState<StrictMode>> =
         StateFlowFromDataStore(
             getValue = { it.getStrictMode() },
         )
 
-    private fun Preferences.getStrictMode(): DataState.Result<StrictMode> =
+    private fun Preferences.getStrictMode(): PrefState.Result<StrictMode> =
         getAsResult(DataStoreKeys.StrictMode)
-            .asDataStateResult()
+            .asPrefStateResult()
             .map { dtoValue ->
                 StrictMode(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
             }
@@ -79,14 +79,14 @@ class DevOptionsDataStoreRepository @Inject constructor(
         }
     }
 
-    override val flowOfHttpLogging: StateFlow<DataState<HttpLogging>> =
+    override val flowOfHttpLogging: StateFlow<PrefState<HttpLogging>> =
         StateFlowFromDataStore(
             getValue = { it.getHttpLogging() },
         )
 
-    private fun Preferences.getHttpLogging(): DataState.Result<HttpLogging> =
+    private fun Preferences.getHttpLogging(): PrefState.Result<HttpLogging> =
         getAsResult(DataStoreKeys.HttpLogging)
-            .asDataStateResult()
+            .asPrefStateResult()
             .map { dtoValue ->
                 HttpLogging(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
             }
@@ -107,15 +107,15 @@ class DevOptionsDataStoreRepository @Inject constructor(
     }
 
     private fun <T> StateFlowFromDataStore(
-        getValue: (Preferences) -> DataState.Result<T>,
-    ): StateFlow<DataState<T>> =
+        getValue: (Preferences) -> PrefState.Result<T>,
+    ): StateFlow<PrefState<T>> =
         dataStore.data
             .map(getValue)
-            .map { DataState.Ready(it) }
+            .map { PrefState.Ready(it) }
             .stateIn(
                 scope = appScope,
                 started = SharingStarted.Eagerly, // get values ready before first collection
-                initialValue = DataState.BeingInitialized,
+                initialValue = PrefState.BeingInitialized,
             )
 
     private object DataStoreKeys {
