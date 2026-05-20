@@ -6,7 +6,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.buildfeatures.BuildInfoRepository
 import io.github.mmolosay.thecolor.domain.dev.options.DefaultDevOptions
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository
-import io.github.mmolosay.thecolor.domain.dev.options.ResetDevOptionsToDefaultUseCase
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.utils.getOrElse
 import kotlinx.coroutines.CoroutineDispatcher
@@ -28,7 +27,6 @@ class DevOptionsViewModel @Inject constructor(
     private val devOptionsRepository: DevOptionsRepository,
     private val defaultDevOptions: DefaultDevOptions,
     private val buildInfoRepository: BuildInfoRepository,
-    private val resetDevOptionsToDefault: ResetDevOptionsToDefaultUseCase,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -57,9 +55,9 @@ class DevOptionsViewModel @Inject constructor(
         )
     }
 
-    private fun resetValuesToDefault() {
+    private fun clearRepository() {
         viewModelScope.launch(defaultDispatcher) {
-            resetDevOptionsToDefault()
+            devOptionsRepository.clear()
         }
     }
 
@@ -106,7 +104,7 @@ class DevOptionsViewModel @Inject constructor(
         httpLogging: DomainHttpLogging,
     ): DevOptionsData {
         return DevOptionsData(
-            resetValuesToDefault = ::resetValuesToDefault,
+            resetValuesToDefault = ::clearRepository,
 
             predictableRandomColors = predictableRandomColors,
             predictableRandomColorsByDefault = defaultDevOptions.predictableRandomColors,

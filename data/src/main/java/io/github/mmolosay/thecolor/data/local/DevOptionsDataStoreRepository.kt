@@ -3,6 +3,7 @@ package io.github.mmolosay.thecolor.data.local
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import io.github.mmolosay.thecolor.data.local.utils.asDataStateResult
 import io.github.mmolosay.thecolor.data.local.utils.getAsResult
@@ -96,6 +97,12 @@ class DevOptionsDataStoreRepository @Inject constructor(
                 key = DataStoreKeys.HttpLogging,
                 value = value?.enabled,
             )
+        }
+    }
+
+    override suspend fun clear() {
+        withContext(ioDispatcher) {
+            dataStore.edit { it.clear() }
         }
     }
 

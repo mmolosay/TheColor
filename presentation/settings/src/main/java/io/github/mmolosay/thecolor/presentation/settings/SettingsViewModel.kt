@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.buildfeatures.IsDevOptionsEnabledUseCase
 import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
-import io.github.mmolosay.thecolor.domain.user.preferences.ResetUserPreferencesToDefaultUseCase
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.asSingletonSet
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
@@ -33,7 +32,6 @@ import io.github.mmolosay.thecolor.utils.DataState as RepoDataState
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val resetUserPreferencesToDefault: ResetUserPreferencesToDefaultUseCase,
     private val isDevOptionsEnabled: IsDevOptionsEnabledUseCase,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
@@ -61,9 +59,9 @@ class SettingsViewModel @Inject constructor(
                 initialValue = DataState.Loading,
             )
 
-    private fun resetPreferencesToDefault() {
+    private fun clearRepository() {
         viewModelScope.launch(defaultDispatcher) {
-            resetUserPreferencesToDefault()
+            userPreferencesRepository.clear()
         }
     }
 
@@ -145,7 +143,7 @@ class SettingsViewModel @Inject constructor(
         autoProceedWithRandomizedColors: DomainAutoProceedWithRandomizedColors,
     ): SettingsData {
         return SettingsData(
-            resetPreferencesToDefault = ::resetPreferencesToDefault,
+            resetValuesToDefault = ::clearRepository,
 
             preferredColorInputType = preferredColorInputType,
             changePreferredColorInputType = ::updatePreferredColorInputType,

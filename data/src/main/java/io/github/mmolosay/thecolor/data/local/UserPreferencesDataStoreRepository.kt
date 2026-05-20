@@ -214,6 +214,12 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         }
     }
 
+    override suspend fun clear() {
+        withContext(ioDispatcher) {
+            dataStore.edit { it.clear() }
+        }
+    }
+
     private fun <T> StateFlowFromDataStore(
         getValue: (Preferences) -> DataState.Result<T>,
     ): StateFlow<DataState<T>> =

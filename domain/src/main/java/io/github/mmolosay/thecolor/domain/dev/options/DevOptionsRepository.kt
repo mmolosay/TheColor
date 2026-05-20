@@ -15,4 +15,6 @@ interface DevOptionsRepository {
 
     val flowOfHttpLogging: StateFlow<DataState<HttpLogging>>
     suspend fun setHttpLogging(value: HttpLogging?)
+
+    suspend fun clear()
 }

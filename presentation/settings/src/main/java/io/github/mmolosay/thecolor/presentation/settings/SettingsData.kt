@@ -7,7 +7,7 @@ import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.UiCol
  * Platform-agnostic data provided by ViewModel to 'Settings' View.
  */
 data class SettingsData(
-    val resetPreferencesToDefault: () -> Unit,
+    val resetValuesToDefault: () -> Unit,
 
     val preferredColorInputType: DomainColorInputType, // it's OK to use some domain models (like enums) in presentation layer
     val changePreferredColorInputType: (DomainColorInputType) -> Unit,

@@ -104,11 +104,11 @@ fun SettingsScreen(
         showResetPreferencesToDefaultDialog = false
     }
     if (showResetPreferencesToDefaultDialog) {
-        ResetPreferencesToDefaultAlertDialog(
+        ResetValuesToDefaultAlertDialog(
             onDismissRequest = ::dismissResetPreferencesToDefaultDialog,
             strings = strings,
             onConfirmClick = {
-                data.resetPreferencesToDefault()
+                data.resetValuesToDefault()
                 dismissResetPreferencesToDefaultDialog()
             },
         )
@@ -374,7 +374,7 @@ private fun Preview() {
 
 private fun previewData() =
     SettingsData(
-        resetPreferencesToDefault = {},
+        resetValuesToDefault = {},
 
         preferredColorInputType = DomainColorInputType.Hex,
         changePreferredColorInputType = {},

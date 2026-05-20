@@ -31,4 +31,6 @@ interface UserPreferencesRepository {
 
     val flowOfAutoProceedWithRandomizedColors: StateFlow<DataState<AutoProceedWithRandomizedColors>>
     suspend fun setAutoProceedWithRandomizedColors(value: AutoProceedWithRandomizedColors?)
+
+    suspend fun clear()
 }
