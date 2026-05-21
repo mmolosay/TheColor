@@ -43,7 +43,7 @@ class UserPreferencesDataStoreRepository @Inject constructor(
 ) : UserPreferencesRepository {
 
     override val flowOfColorInputType: StateFlow<PrefState<ColorInputType>> =
-        StateFlowFromDataStore(
+        PrefStateFlow(
             getValue = { it.getColorInputType() },
         )
 
@@ -64,7 +64,7 @@ class UserPreferencesDataStoreRepository @Inject constructor(
     }
 
     override val flowOfAppUiColorSchemeSet: StateFlow<PrefState<UiColorSchemeSet>> =
-        StateFlowFromDataStore(
+        PrefStateFlow(
             getValue = { it.getAppUiColorSchemeSet() },
         )
 
@@ -110,7 +110,7 @@ class UserPreferencesDataStoreRepository @Inject constructor(
     }
 
     override val flowOfDynamicUiColors: StateFlow<PrefState<DynamicUiColors>> =
-        StateFlowFromDataStore(
+        PrefStateFlow(
             getValue = { it.getDynamicUiColors() },
         )
 
@@ -131,7 +131,7 @@ class UserPreferencesDataStoreRepository @Inject constructor(
     }
 
     override val flowOfResumeFromLastSearchedColorOnStartup: StateFlow<PrefState<ResumeFromLastSearchedColorOnStartup>> =
-        StateFlowFromDataStore(
+        PrefStateFlow(
             getValue = { it.getResumeFromLastSearchedColorOnStartup() },
         )
 
@@ -152,7 +152,7 @@ class UserPreferencesDataStoreRepository @Inject constructor(
     }
 
     override val flowOfSmartBackspace: StateFlow<PrefState<SmartBackspace>> =
-        StateFlowFromDataStore(
+        PrefStateFlow(
             getValue = { it.getSmartBackspace() },
         )
 
@@ -173,7 +173,7 @@ class UserPreferencesDataStoreRepository @Inject constructor(
     }
 
     override val flowOfSelectAllTextOnTextFieldFocus: StateFlow<PrefState<SelectAllTextOnTextFieldFocus>> =
-        StateFlowFromDataStore(
+        PrefStateFlow(
             getValue = { it.getSelectAllTextOnTextFieldFocus() },
         )
 
@@ -194,7 +194,7 @@ class UserPreferencesDataStoreRepository @Inject constructor(
     }
 
     override val flowOfAutoProceedWithRandomizedColors: StateFlow<PrefState<AutoProceedWithRandomizedColors>> =
-        StateFlowFromDataStore(
+        PrefStateFlow(
             getValue = { it.getAutoProceedWithRandomizedColors() },
         )
 
@@ -220,15 +220,15 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         }
     }
 
-    private fun <T> StateFlowFromDataStore(
+    internal fun <T> PrefStateFlow(
         getValue: (Preferences) -> PrefState.Result<T>,
     ): StateFlow<PrefState<T>> =
         dataStore.data
             .map(getValue)
-            .map { PrefState.Ready(it) }
+            .map { result -> PrefState.Ready(result) }
             .stateIn(
                 scope = appScope,
-                started = SharingStarted.Eagerly, // get values ready before first collection
+                started = SharingStarted.Eagerly, // fetch value eagerly before first subscriber
                 initialValue = PrefState.BeingInitialized,
             )
 

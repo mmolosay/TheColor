@@ -38,7 +38,7 @@ class DevOptionsDataStoreRepository @Inject constructor(
 ) : DevOptionsRepository {
 
     override val flowOfPredictableRandomColors: StateFlow<PrefState<PredictableRandomColors>> =
-        StateFlowFromDataStore(
+        PrefStateFlow(
             getValue = { it.getPredictableRandomColors() },
         )
 
@@ -59,7 +59,7 @@ class DevOptionsDataStoreRepository @Inject constructor(
     }
 
     override val flowOfStrictMode: StateFlow<PrefState<StrictMode>> =
-        StateFlowFromDataStore(
+        PrefStateFlow(
             getValue = { it.getStrictMode() },
         )
 
@@ -80,7 +80,7 @@ class DevOptionsDataStoreRepository @Inject constructor(
     }
 
     override val flowOfHttpLogging: StateFlow<PrefState<HttpLogging>> =
-        StateFlowFromDataStore(
+        PrefStateFlow(
             getValue = { it.getHttpLogging() },
         )
 
@@ -106,15 +106,15 @@ class DevOptionsDataStoreRepository @Inject constructor(
         }
     }
 
-    private fun <T> StateFlowFromDataStore(
+    internal fun <T> PrefStateFlow(
         getValue: (Preferences) -> PrefState.Result<T>,
     ): StateFlow<PrefState<T>> =
         dataStore.data
             .map(getValue)
-            .map { PrefState.Ready(it) }
+            .map { result -> PrefState.Ready(result) }
             .stateIn(
                 scope = appScope,
-                started = SharingStarted.Eagerly, // get values ready before first collection
+                started = SharingStarted.Eagerly, // fetch value eagerly before first subscriber
                 initialValue = PrefState.BeingInitialized,
             )
 

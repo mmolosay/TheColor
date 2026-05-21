@@ -37,7 +37,7 @@ internal fun <T> Preferences.getAsResult(
     return PreferenceResult.HasValue(value)
 }
 
-// individual class to make 'getAsResult()' independent from 'utils.PrefState'
+// individual class to make 'getAsResult()' independent from 'PrefState'
 internal sealed interface PreferenceResult<out T> {
     data object NoValue : PreferenceResult<Nothing>
     data object InvalidValue : PreferenceResult<Nothing>
