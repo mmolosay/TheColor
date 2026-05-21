@@ -5,8 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import io.github.mmolosay.thecolor.data.local.utils.asPrefStateResult
-import io.github.mmolosay.thecolor.data.local.utils.getAsResult
+import io.github.mmolosay.thecolor.data.local.utils.getAsPrefStateResult
 import io.github.mmolosay.thecolor.data.local.utils.setOrRemoveValue
 import io.github.mmolosay.thecolor.domain.color.ColorInputType
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.AutoProceedWithRandomizedColors
@@ -48,8 +47,7 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         )
 
     private fun Preferences.getColorInputType(): PrefState.Result<ColorInputType> =
-        getAsResult(DataStoreKeys.ColorInputType)
-            .asPrefStateResult()
+        getAsPrefStateResult(DataStoreKeys.ColorInputType)
             .map { dtoValue ->
                 with(ColorInputTypeMapper) { dtoValue.toColorInputType() }
             }
@@ -70,8 +68,7 @@ class UserPreferencesDataStoreRepository @Inject constructor(
 
     private fun Preferences.getAppUiColorSchemeSet(): PrefState.Result<UiColorSchemeSet> {
         fun Preferences.getAppUiColorScheme(key: Preferences.Key<String>): PrefState.Result<UiColorScheme> =
-            getAsResult(key)
-                .asPrefStateResult()
+            getAsPrefStateResult(key)
                 .map { dtoValue ->
                     with(UiColorSchemeMapper) { dtoValue.toUiColorScheme() }
                 }
@@ -115,8 +112,7 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         )
 
     private fun Preferences.getDynamicUiColors(): PrefState.Result<DynamicUiColors> =
-        getAsResult(DataStoreKeys.DynamicUiColors)
-            .asPrefStateResult()
+        getAsPrefStateResult(DataStoreKeys.DynamicUiColors)
             .map { dtoValue ->
                 DynamicUiColors(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
             }
@@ -136,8 +132,7 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         )
 
     private fun Preferences.getResumeFromLastSearchedColorOnStartup(): PrefState.Result<ResumeFromLastSearchedColorOnStartup> =
-        getAsResult(DataStoreKeys.ShouldResumeFromLastSearchedColorOnStartup)
-            .asPrefStateResult()
+        getAsPrefStateResult(DataStoreKeys.ShouldResumeFromLastSearchedColorOnStartup)
             .map { dtoValue ->
                 ResumeFromLastSearchedColorOnStartup(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
             }
@@ -157,8 +152,7 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         )
 
     private fun Preferences.getSmartBackspace(): PrefState.Result<SmartBackspace> =
-        getAsResult(DataStoreKeys.SmartBackspace)
-            .asPrefStateResult()
+        getAsPrefStateResult(DataStoreKeys.SmartBackspace)
             .map { dtoValue ->
                 SmartBackspace(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
             }
@@ -178,8 +172,7 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         )
 
     private fun Preferences.getSelectAllTextOnTextFieldFocus(): PrefState.Result<SelectAllTextOnTextFieldFocus> =
-        getAsResult(DataStoreKeys.SelectAllTextOnTextFieldFocus)
-            .asPrefStateResult()
+        getAsPrefStateResult(DataStoreKeys.SelectAllTextOnTextFieldFocus)
             .map { dtoValue ->
                 SelectAllTextOnTextFieldFocus(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
             }
@@ -199,8 +192,7 @@ class UserPreferencesDataStoreRepository @Inject constructor(
         )
 
     private fun Preferences.getAutoProceedWithRandomizedColors(): PrefState.Result<AutoProceedWithRandomizedColors> =
-        getAsResult(DataStoreKeys.AutoProceedWithRandomizedColors)
-            .asPrefStateResult()
+        getAsPrefStateResult(DataStoreKeys.AutoProceedWithRandomizedColors)
             .map { dtoValue ->
                 AutoProceedWithRandomizedColors(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
             }

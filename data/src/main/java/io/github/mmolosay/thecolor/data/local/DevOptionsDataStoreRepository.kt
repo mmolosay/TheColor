@@ -5,8 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import io.github.mmolosay.thecolor.data.local.utils.asPrefStateResult
-import io.github.mmolosay.thecolor.data.local.utils.getAsResult
+import io.github.mmolosay.thecolor.data.local.utils.getAsPrefStateResult
 import io.github.mmolosay.thecolor.data.local.utils.setOrRemoveValue
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.HttpLogging
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.PredictableRandomColors
@@ -43,8 +42,7 @@ class DevOptionsDataStoreRepository @Inject constructor(
         )
 
     private fun Preferences.getPredictableRandomColors(): PrefState.Result<PredictableRandomColors> =
-        getAsResult(DataStoreKeys.PredictableRandomColors)
-            .asPrefStateResult()
+        getAsPrefStateResult(DataStoreKeys.PredictableRandomColors)
             .map { dtoValue ->
                 with(PredictableRandomColorsMapper) { dtoValue.toPredictableRandomColors() }
             }
@@ -64,8 +62,7 @@ class DevOptionsDataStoreRepository @Inject constructor(
         )
 
     private fun Preferences.getStrictMode(): PrefState.Result<StrictMode> =
-        getAsResult(DataStoreKeys.StrictMode)
-            .asPrefStateResult()
+        getAsPrefStateResult(DataStoreKeys.StrictMode)
             .map { dtoValue ->
                 StrictMode(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
             }
@@ -85,8 +82,7 @@ class DevOptionsDataStoreRepository @Inject constructor(
         )
 
     private fun Preferences.getHttpLogging(): PrefState.Result<HttpLogging> =
-        getAsResult(DataStoreKeys.HttpLogging)
-            .asPrefStateResult()
+        getAsPrefStateResult(DataStoreKeys.HttpLogging)
             .map { dtoValue ->
                 HttpLogging(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
             }

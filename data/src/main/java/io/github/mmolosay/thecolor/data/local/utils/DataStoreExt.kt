@@ -24,29 +24,15 @@ internal suspend fun <T : Any> DataStore<Preferences>.setOrRemoveValue(
     }
 }
 
-internal fun <T> Preferences.getAsResult(
+internal fun <T> Preferences.getAsPrefStateResult(
     key: Preferences.Key<T>,
-): PreferenceResult<T> {
-    if (key !in this) return PreferenceResult.NoValue
+): PrefState.Result<T> {
+    if (key !in this) return PrefState.Result.NoValue
     @Suppress("UNCHECKED_CAST")
     val value = try {
         this.get(key) as T
     } catch (_: ClassCastException) {
-        return PreferenceResult.InvalidValue
+        return PrefState.Result.InvalidValue
     }
-    return PreferenceResult.HasValue(value)
+    return PrefState.Result.HasValue(value)
 }
-
-// individual class to make 'getAsResult()' independent from 'PrefState'
-internal sealed interface PreferenceResult<out T> {
-    data object NoValue : PreferenceResult<Nothing>
-    data object InvalidValue : PreferenceResult<Nothing>
-    data class HasValue<T>(val value: T) : PreferenceResult<T>
-}
-
-internal fun <T> PreferenceResult<T>.asPrefStateResult(): PrefState.Result<T> =
-    when (this) {
-        is PreferenceResult.NoValue -> PrefState.Result.NoValue
-        is PreferenceResult.InvalidValue -> PrefState.Result.InvalidValue
-        is PreferenceResult.HasValue -> PrefState.Result.HasValue(this.value)
-    }
