@@ -3,7 +3,10 @@ package io.github.mmolosay.thecolor.presentation.input.group
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
+import io.github.mmolosay.thecolor.domain.utils.filterReady
+import io.github.mmolosay.thecolor.domain.utils.getOrElse
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
@@ -16,7 +19,6 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -82,7 +84,8 @@ class ColorInputGroupViewModel @AssistedInject constructor(
 
     private suspend fun initialData(): ColorInputGroupData {
         val preferredInputType = userPreferencesRepository.flowOfColorInputType
-            .filterNotNull().first()
+            .filterReady()
+            .first().result.getOrElse { DefaultUserPreferences.PreferredColorInputType }
         // make list of all input types with the preferred one being first
         val orderedInputTypes = run {
             val allInputTypes = DomainColorInputType.entries

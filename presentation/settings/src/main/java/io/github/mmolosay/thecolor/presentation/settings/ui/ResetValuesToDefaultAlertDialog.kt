@@ -10,7 +10,7 @@ import androidx.compose.ui.res.vectorResource
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 @Composable
-internal fun ResetPreferencesToDefaultAlertDialog(
+internal fun ResetValuesToDefaultAlertDialog(
     strings: SettingsUiStrings,
     onConfirmClick: () -> Unit,
     onDismissRequest: () -> Unit,

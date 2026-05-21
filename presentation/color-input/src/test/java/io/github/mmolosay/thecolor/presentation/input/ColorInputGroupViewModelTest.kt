@@ -1,6 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.input
 
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
+import io.github.mmolosay.thecolor.domain.utils.PrefState
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupData
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupViewModel
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupViewModel.DataState
@@ -35,7 +36,11 @@ class ColorInputGroupViewModelTest {
     fun `initial data is set on initialization`() {
         every {
             userPreferencesRepository.flowOfColorInputType
-        } returns MutableStateFlow(DomainColorInputType.Hex)
+        } returns run {
+            val result = PrefState.Result.HasValue(DomainColorInputType.Hex)
+            val prefState = PrefState.Ready(result)
+            MutableStateFlow(prefState)
+        }
 
         createSut()
 
@@ -46,7 +51,11 @@ class ColorInputGroupViewModelTest {
     fun `preferred input type is an initially selected one`() {
         every {
             userPreferencesRepository.flowOfColorInputType
-        } returns MutableStateFlow(DomainColorInputType.Rgb)
+        } returns run {
+            val result = PrefState.Result.HasValue(DomainColorInputType.Rgb)
+            val prefState = PrefState.Ready(result)
+            MutableStateFlow(prefState)
+        }
 
         createSut()
 
@@ -57,7 +66,11 @@ class ColorInputGroupViewModelTest {
     fun `preferred input type is first in the ordered list of input types`() {
         every {
             userPreferencesRepository.flowOfColorInputType
-        } returns MutableStateFlow(DomainColorInputType.Rgb)
+        } returns run {
+            val result = PrefState.Result.HasValue(DomainColorInputType.Rgb)
+            val prefState = PrefState.Ready(result)
+            MutableStateFlow(prefState)
+        }
 
         createSut()
 
@@ -65,10 +78,14 @@ class ColorInputGroupViewModelTest {
     }
 
     @Test
-    fun `changing input type to RGB updates data with RGB view type`() {
+    fun `changing input type to RGB updates data with RGB selected input type`() {
         every {
             userPreferencesRepository.flowOfColorInputType
-        } returns MutableStateFlow(DomainColorInputType.Hex)
+        } returns run {
+            val result = PrefState.Result.HasValue(DomainColorInputType.Hex)
+            val prefState = PrefState.Ready(result)
+            MutableStateFlow(prefState)
+        }
         createSut()
 
         data.onInputTypeChange(DomainColorInputType.Rgb)

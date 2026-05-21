@@ -3,6 +3,7 @@ package io.github.mmolosay.thecolor.presentation.input
 import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.domain.color.ColorConverter
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
+import io.github.mmolosay.thecolor.domain.utils.PrefState
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexData
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
@@ -51,7 +52,9 @@ class ColorInputHexViewModelTest {
     val userPreferencesRepository: UserPreferencesRepository = mockk {
         every { flowOfSelectAllTextOnTextFieldFocus } returns run {
             val value = DomainSelectAllTextOnTextFieldFocus(enabled = false)
-            MutableStateFlow(value)
+            val result = PrefState.Result.HasValue(value)
+            val prefState = PrefState.Ready(result)
+            MutableStateFlow(prefState)
         }
     }
 

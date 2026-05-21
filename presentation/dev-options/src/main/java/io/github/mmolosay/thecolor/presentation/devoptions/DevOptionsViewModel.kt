@@ -6,8 +6,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.buildfeatures.BuildInfoRepository
 import io.github.mmolosay.thecolor.domain.dev.options.DefaultDevOptions
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository
-import io.github.mmolosay.thecolor.domain.dev.options.ResetDevOptionsToDefaultUseCase
-import io.github.mmolosay.thecolor.domain.dev.options.valueOrElse
+import io.github.mmolosay.thecolor.domain.utils.PrefState
+import io.github.mmolosay.thecolor.domain.utils.getOrElse
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
@@ -27,7 +27,6 @@ class DevOptionsViewModel @Inject constructor(
     private val devOptionsRepository: DevOptionsRepository,
     private val defaultDevOptions: DefaultDevOptions,
     private val buildInfoRepository: BuildInfoRepository,
-    private val resetDevOptionsToDefault: ResetDevOptionsToDefaultUseCase,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
@@ -56,9 +55,9 @@ class DevOptionsViewModel @Inject constructor(
         )
     }
 
-    private fun resetValuesToDefault() {
+    private fun clearRepository() {
         viewModelScope.launch(defaultDispatcher) {
-            resetDevOptionsToDefault()
+            devOptionsRepository.clear()
         }
     }
 
@@ -82,22 +81,20 @@ class DevOptionsViewModel @Inject constructor(
         }
     }
 
-    // that's the only way to combine() more than 5 flows of different types
-    @Suppress("UNCHECKED_CAST")
+    // this is the only way to combine() more than 5 flows of different types
     private fun createData(
-        devOptions: Array<DevOptionsRepository.DataState<Any>>,
+        devOptions: Array<PrefState<Any>>,
     ): DevOptionsData {
         val iterator = devOptions.iterator()
+        fun <T> nextValue(default: T): T {
+            @Suppress("UNCHECKED_CAST")
+            val prefState = iterator.next() as PrefState<T>
+            return prefState.getOrElse { default }
+        }
         return createData(
-            predictableRandomColors = iterator.next()
-                .let { it as DevOptionsRepository.DataState<DomainPredictableRandomColors> }
-                .valueOrElse { defaultDevOptions.predictableRandomColors },
-            strictMode = iterator.next()
-                .let { it as DevOptionsRepository.DataState<DomainStrictMode> }
-                .valueOrElse { defaultDevOptions.strictMode },
-            httpLogging = iterator.next()
-                .let { it as DevOptionsRepository.DataState<DomainHttpLogging> }
-                .valueOrElse { defaultDevOptions.httpLogging },
+            predictableRandomColors = nextValue(defaultDevOptions.predictableRandomColors),
+            strictMode = nextValue(defaultDevOptions.strictMode),
+            httpLogging = nextValue(defaultDevOptions.httpLogging),
         )
     }
 
@@ -107,7 +104,7 @@ class DevOptionsViewModel @Inject constructor(
         httpLogging: DomainHttpLogging,
     ): DevOptionsData {
         return DevOptionsData(
-            resetValuesToDefault = ::resetValuesToDefault,
+            resetValuesToDefault = ::clearRepository,
 
             predictableRandomColors = predictableRandomColors,
             predictableRandomColorsByDefault = defaultDevOptions.predictableRandomColors,

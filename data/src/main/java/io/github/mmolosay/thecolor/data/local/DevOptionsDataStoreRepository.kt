@@ -3,20 +3,21 @@ package io.github.mmolosay.thecolor.data.local
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import io.github.mmolosay.thecolor.data.local.utils.getAsPrefStateResult
 import io.github.mmolosay.thecolor.data.local.utils.setOrRemoveValue
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.HttpLogging
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.PredictableRandomColors
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.StrictMode
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository
-import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository.DataState
-import io.github.mmolosay.thecolor.domain.dev.options.IllegalStoredValue
+import io.github.mmolosay.thecolor.domain.utils.PrefState
+import io.github.mmolosay.thecolor.domain.utils.map
 import io.github.mmolosay.thecolor.main.di.qualifiers.AppCoroutineScope
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.IoDispatcher
 import io.github.mmolosay.thecolor.main.di.qualifiers.DataStoreDiQualifiers.DevOptions
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -35,22 +36,16 @@ class DevOptionsDataStoreRepository @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : DevOptionsRepository {
 
-    override val flowOfPredictableRandomColors: StateFlow<DataState<PredictableRandomColors>> =
-        dataStore.data
-            .map { it.getPredictableRandomColors() }
-            .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
+    override val flowOfPredictableRandomColors: StateFlow<PrefState<PredictableRandomColors>> =
+        PrefStateFlow(
+            getValue = { it.getPredictableRandomColors() },
+        )
 
-    private fun Preferences.getPredictableRandomColors(): DataState<PredictableRandomColors> {
-        val key = DataStoreKeys.PredictableRandomColors
-        if (key !in this) return DataState.NoValueStored
-        val dtoValue = this[key]
-        if (dtoValue != null) {
-            val value = with(PredictableRandomColorsMapper) { dtoValue.toPredictableRandomColors() }
-            return DataState.HasValueStored(value)
-        } else {
-            throw IllegalStoredValue<PredictableRandomColors>(value = dtoValue) // 'dtoValue' is null here
-        }
-    }
+    private fun Preferences.getPredictableRandomColors(): PrefState.Result<PredictableRandomColors> =
+        getAsPrefStateResult(DataStoreKeys.PredictableRandomColors)
+            .map { dtoValue ->
+                with(PredictableRandomColorsMapper) { dtoValue.toPredictableRandomColors() }
+            }
 
     override suspend fun setPredictableRandomColors(value: PredictableRandomColors?) {
         withContext(ioDispatcher) {
@@ -61,22 +56,16 @@ class DevOptionsDataStoreRepository @Inject constructor(
         }
     }
 
-    override val flowOfStrictMode: StateFlow<DataState<StrictMode>> =
-        dataStore.data
-            .map { it.getStrictMode() }
-            .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
+    override val flowOfStrictMode: StateFlow<PrefState<StrictMode>> =
+        PrefStateFlow(
+            getValue = { it.getStrictMode() },
+        )
 
-    private fun Preferences.getStrictMode(): DataState<StrictMode> {
-        val key = DataStoreKeys.StrictMode
-        if (key !in this) return DataState.NoValueStored
-        val dtoValue = this[key]
-        if (dtoValue != null) {
-            val value = StrictMode(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
-            return DataState.HasValueStored(value)
-        } else {
-            throw IllegalStoredValue<StrictMode>(value = dtoValue) // 'dtoValue' is null here
-        }
-    }
+    private fun Preferences.getStrictMode(): PrefState.Result<StrictMode> =
+        getAsPrefStateResult(DataStoreKeys.StrictMode)
+            .map { dtoValue ->
+                StrictMode(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
+            }
 
     override suspend fun setStrictMode(value: StrictMode?) {
         withContext(ioDispatcher) {
@@ -87,22 +76,16 @@ class DevOptionsDataStoreRepository @Inject constructor(
         }
     }
 
-    override val flowOfHttpLogging: StateFlow<DataState<HttpLogging>> =
-        dataStore.data
-            .map { it.getHttpLogging() }
-            .stateEagerlyInAppScope(initialValue = DataState.BeingInitialized)
+    override val flowOfHttpLogging: StateFlow<PrefState<HttpLogging>> =
+        PrefStateFlow(
+            getValue = { it.getHttpLogging() },
+        )
 
-    private fun Preferences.getHttpLogging(): DataState<HttpLogging> {
-        val key = DataStoreKeys.HttpLogging
-        if (key !in this) return DataState.NoValueStored
-        val dtoValue = this[key]
-        if (dtoValue != null) {
-            val value = HttpLogging(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
-            return DataState.HasValueStored(value)
-        } else {
-            throw IllegalStoredValue<HttpLogging>(value = dtoValue) // 'dtoValue' is null here
-        }
-    }
+    private fun Preferences.getHttpLogging(): PrefState.Result<HttpLogging> =
+        getAsPrefStateResult(DataStoreKeys.HttpLogging)
+            .map { dtoValue ->
+                HttpLogging(enabled = dtoValue) // boolean stays boolean in both Data and Domain layers
+            }
 
     override suspend fun setHttpLogging(value: HttpLogging?) {
         withContext(ioDispatcher) {
@@ -113,15 +96,23 @@ class DevOptionsDataStoreRepository @Inject constructor(
         }
     }
 
-    private fun <T> Flow<T>.stateEagerlyInAppScope(
-        initialValue: T,
-    ): StateFlow<T> =
-        this.stateIn(
-            scope = appScope,
-            started = SharingStarted.Eagerly, // will access DB immediately when class is created,
-            // so that values are ready before first collection
-            initialValue = initialValue,
-        )
+    override suspend fun clear() {
+        withContext(ioDispatcher) {
+            dataStore.edit { it.clear() }
+        }
+    }
+
+    internal fun <T> PrefStateFlow(
+        getValue: (Preferences) -> PrefState.Result<T>,
+    ): StateFlow<PrefState<T>> =
+        dataStore.data
+            .map(getValue)
+            .map { result -> PrefState.Ready(result) }
+            .stateIn(
+                scope = appScope,
+                started = SharingStarted.Eagerly, // fetch value eagerly before first subscriber
+                initialValue = PrefState.BeingInitialized,
+            )
 
     private object DataStoreKeys {
         val PredictableRandomColors = stringPreferencesKey("predictable_random_colors")

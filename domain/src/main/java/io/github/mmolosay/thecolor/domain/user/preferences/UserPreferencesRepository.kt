@@ -7,34 +7,30 @@ import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.Resum
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.SelectAllTextOnTextFieldFocus
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.SmartBackspace
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.UiColorSchemeSet
+import io.github.mmolosay.thecolor.domain.utils.PrefState
 import kotlinx.coroutines.flow.StateFlow
 
-/**
- * All Flows have nullable types.
- * If a particular flow emits null, that means that this flow is only being initialized yet.
- * If a particular flow emits not-null value, that means that either
- * a: this exact value is stored, or
- * b: there is no value stored for this feature, and the returned value is a default one.
- */
 interface UserPreferencesRepository {
-    val flowOfColorInputType: StateFlow<ColorInputType?>
+    val flowOfColorInputType: StateFlow<PrefState<ColorInputType>>
     suspend fun setColorInputType(value: ColorInputType?)
 
-    val flowOfAppUiColorSchemeSet: StateFlow<UiColorSchemeSet?>
+    val flowOfAppUiColorSchemeSet: StateFlow<PrefState<UiColorSchemeSet>>
     suspend fun setAppUiColorSchemeSet(value: UiColorSchemeSet?)
 
-    val flowOfDynamicUiColors: StateFlow<DynamicUiColors?>
+    val flowOfDynamicUiColors: StateFlow<PrefState<DynamicUiColors>>
     suspend fun setDynamicUiColors(value: DynamicUiColors?)
 
-    val flowOfResumeFromLastSearchedColorOnStartup: StateFlow<ResumeFromLastSearchedColorOnStartup?>
+    val flowOfResumeFromLastSearchedColorOnStartup: StateFlow<PrefState<ResumeFromLastSearchedColorOnStartup>>
     suspend fun setResumeFromLastSearchedColorOnStartup(value: ResumeFromLastSearchedColorOnStartup?)
 
-    val flowOfSmartBackspace: StateFlow<SmartBackspace?>
+    val flowOfSmartBackspace: StateFlow<PrefState<SmartBackspace>>
     suspend fun setSmartBackspace(value: SmartBackspace?)
 
-    val flowOfSelectAllTextOnTextFieldFocus: StateFlow<SelectAllTextOnTextFieldFocus?>
+    val flowOfSelectAllTextOnTextFieldFocus: StateFlow<PrefState<SelectAllTextOnTextFieldFocus>>
     suspend fun setSelectAllTextOnTextFieldFocus(value: SelectAllTextOnTextFieldFocus?)
 
-    val flowOfAutoProceedWithRandomizedColors: StateFlow<AutoProceedWithRandomizedColors?>
+    val flowOfAutoProceedWithRandomizedColors: StateFlow<PrefState<AutoProceedWithRandomizedColors>>
     suspend fun setAutoProceedWithRandomizedColors(value: AutoProceedWithRandomizedColors?)
+
+    suspend fun clear()
 }

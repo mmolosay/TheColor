@@ -10,8 +10,8 @@ import dagger.hilt.android.HiltAndroidApp
 import io.github.mmolosay.thecolor.domain.buildfeatures.AreLogsEnabledUseCase
 import io.github.mmolosay.thecolor.domain.dev.options.DefaultDevOptions
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository
-import io.github.mmolosay.thecolor.domain.dev.options.filterOutBeingInitialized
-import io.github.mmolosay.thecolor.domain.dev.options.valueOrElse
+import io.github.mmolosay.thecolor.domain.utils.filterReady
+import io.github.mmolosay.thecolor.domain.utils.getOrElse
 import io.github.mmolosay.thecolor.utils.ApplicationCoroutineScopeProvider
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -64,8 +64,8 @@ class TheColorApplication : Application(), ApplicationCoroutineScopeProvider {
     private fun maybeInitStrictMode() {
         applicationScope.launch {
             val enabled = devOptionsRepository.flowOfStrictMode
-                .filterOutBeingInitialized() // await for the first read value
-                .first().valueOrElse { defaultDevOptions.strictMode }
+                .filterReady()
+                .first().result.getOrElse { defaultDevOptions.strictMode }
                 .enabled
             if (enabled) {
                 withContext(Dispatchers.Main) { // StrictMode must be applied to the main thread

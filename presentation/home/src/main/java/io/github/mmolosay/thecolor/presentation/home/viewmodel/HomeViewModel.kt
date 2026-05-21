@@ -8,7 +8,10 @@ import io.github.mmolosay.thecolor.domain.color.ColorComparator
 import io.github.mmolosay.thecolor.domain.color.GetPredictableRandomColorUseCase
 import io.github.mmolosay.thecolor.domain.color.IsColorLightUseCase
 import io.github.mmolosay.thecolor.domain.color.LastSearchedColorRepository
+import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
+import io.github.mmolosay.thecolor.domain.utils.filterReady
+import io.github.mmolosay.thecolor.domain.utils.getOrElse
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
@@ -46,7 +49,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -201,7 +203,8 @@ class HomeViewModel @Inject constructor(
             opRegistry.trackAsProceed {
                 val resumeFromLastSearchedColorOnStartup = userPreferencesRepository
                     .flowOfResumeFromLastSearchedColorOnStartup
-                    .filterNotNull().first()
+                    .filterReady()
+                    .first().getOrElse { DefaultUserPreferences.ResumeFromLastSearchedColorOnStartup }
                 val enabled = resumeFromLastSearchedColorOnStartup.enabled
                 if (!enabled) return@launch
                 val color = lastSearchedColorRepository.getLastSearchedColor() ?: return@launch
@@ -272,7 +275,8 @@ class HomeViewModel @Inject constructor(
                 colorInputMediator.withLock { editor ->
                     val shouldProceed = userPreferencesRepository
                         .flowOfAutoProceedWithRandomizedColors
-                        .filterNotNull().first()
+                        .filterReady()
+                        .first().getOrElse { DefaultUserPreferences.AutoProceedWithRandomizedColors }
                         .enabled
                     dataUpdateCounter.withCounter {
                         if (shouldProceed) {

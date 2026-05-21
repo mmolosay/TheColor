@@ -3,7 +3,7 @@ package io.github.mmolosay.thecolor.domain.color
 import io.github.mmolosay.thecolor.domain.dev.options.DefaultDevOptions
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.PredictableRandomColors
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository
-import io.github.mmolosay.thecolor.domain.dev.options.valueOrElse
+import io.github.mmolosay.thecolor.domain.utils.getOrElse
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,8 +37,8 @@ class GetPredictableRandomColorUseCase @Inject constructor(
     }
 
     operator fun invoke(): Color {
-        val strategy = devOptionsRepository.flowOfPredictableRandomColors.value
-            .valueOrElse { defaultDevOptions.predictableRandomColors }
+        val strategy = devOptionsRepository.flowOfPredictableRandomColors
+            .value.getOrElse { defaultDevOptions.predictableRandomColors }
         return when (strategy) {
             PredictableRandomColors.Random -> colorFactory.random()
             PredictableRandomColors.CyclingRgb -> cyclingRgb.next()

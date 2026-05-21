@@ -6,6 +6,8 @@ import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
+import io.github.mmolosay.thecolor.domain.utils.filterReady
+import io.github.mmolosay.thecolor.domain.utils.getOrElse
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.UiDataUpdateDispatcher
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
@@ -17,7 +19,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -64,7 +66,8 @@ class TextFieldViewModel @AssistedInject constructor(
         }
         coroutineScope.launch(defaultDispatcher) {
             userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus
-                .filterNotNull()
+                .filterReady()
+                .map { it.result.getOrElse { DefaultUserPreferences.SelectAllTextOnTextFieldFocus } }
                 .collect(::updateData)
         }
     }
@@ -112,7 +115,7 @@ class TextFieldViewModel @AssistedInject constructor(
             clearText = clearTextFeatureOrNull(text = text.data),
             shouldSelectAllTextOnFocus = userPreferencesRepository
                 .flowOfSelectAllTextOnTextFieldFocus
-                .value.let { it ?: DefaultUserPreferences.SelectAllTextOnTextFieldFocus }
+                .value.getOrElse { DefaultUserPreferences.SelectAllTextOnTextFieldFocus }
                 .enabled,
         )
 
