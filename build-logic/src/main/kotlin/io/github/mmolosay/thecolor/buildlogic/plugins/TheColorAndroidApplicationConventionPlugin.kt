@@ -19,7 +19,7 @@ class TheColorAndroidApplicationConventionPlugin : Plugin<Project> {
 
         target.extensions.configure<AndroidApplicationExtension> {
             compileSdk = libs.compileSdk
-            defaultConfig {
+            defaultConfig.apply {
                 minSdk = libs.minSdk
                 targetSdk = libs.targetSdk
             }

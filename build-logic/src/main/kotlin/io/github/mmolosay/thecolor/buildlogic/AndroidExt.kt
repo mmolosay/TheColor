@@ -6,7 +6,8 @@ import com.android.build.api.dsl.ApplicationExtension as AndroidApplicationExten
 import com.android.build.api.dsl.CommonExtension as AndroidCommonExtension
 import com.android.build.api.dsl.LibraryExtension as AndroidLibraryExtension
 
-internal fun ExtensionContainer.findAndroidExtension(): AndroidCommonExtension<*, *, *, *, *, *>? =
+@Suppress("USELESS_ELVIS_LEFT_IS_NULL")
+internal fun ExtensionContainer.findAndroidExtension(): AndroidCommonExtension? =
     null
         ?: findByType<AndroidLibraryExtension>()
         ?: findByType<AndroidApplicationExtension>()

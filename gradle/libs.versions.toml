@@ -2,17 +2,17 @@
 
 [versions]
 # Gradle
-androidGradlePlugin = "8.13.1"
+androidGradlePlugin = "9.2.0"
 
 # Android
 compileSdk = "37"
 targetSdk = "35"
 minSdk = "24"
-tools = "31.9.0"
+tools = "32.0.0"
 
 # Kotlin
 kotlin = "2.2.21"
-ksp = "2.3.3"
+ksp = "2.3.8"
 java = "18"
 coroutines = "1.9.0"
 kotlinSerialization = "1.9.0"
@@ -27,7 +27,7 @@ compose-bom = "2025.10.00" # https://developer.android.com/jetpack/compose/bom/b
 # see: https://developer.android.com/develop/ui/compose/compiler
 
 # Dagger & Hilt
-hilt = "2.57.2"
+hilt = "2.59"
 hiltNavigationCompose = "1.2.0"
 
 # Remote
@@ -39,7 +39,7 @@ okhttp3-loggingInterceptor = "4.12.0"
 dataStore-preferences = "1.1.1"
 
 # Testing
-junit = "5.11.4"
+junit = "6.1.0"
 mockk = "1.14.9"
 kotestAssertions = "5.5.5"
 robolectric = "4.16"
@@ -47,7 +47,7 @@ robolectricJunit5Ext = "0.9.0"
 turbine = "1.2.1"
 
 # Misc (preserve alphabetical order)
-aboutLibraries = "13.1.0"
+aboutLibraries = "14.2.0"
 arrow-optics = "2.2.1.1"
 jakewhartonTimber = "5.0.1"
 mmolosayDebounce = "1.2.0"

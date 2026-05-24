@@ -11,11 +11,10 @@ dependencies {
     implementation("com.android.tools:common:${libs.versions.tools.get()}") // Android variant configuration helpers and other
 
     // Plugins
-    implementation("com.android.tools.build:gradle:${libs.versions.androidGradlePlugin.get()}") // "com.android.application" and "com.android.library"
+    implementation("com.android.tools.build:gradle-api:${libs.versions.androidGradlePlugin.get()}") // "com.android.application" and "com.android.library"
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:${libs.versions.kotlin.get()}") // "org.jetbrains.kotlin.android"
     implementation("org.jetbrains.kotlin:compose-compiler-gradle-plugin:${libs.versions.kotlin.get()}") // "org.jetbrains.kotlin.plugin.compose"
     implementation("com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:${libs.versions.ksp.get()}") // "com.google.devtools.ksp"
-    implementation("com.google.dagger:hilt-android-gradle-plugin:${libs.versions.hilt.get()}") // "com.google.dagger.hilt.android"
 }
 
 tasks {

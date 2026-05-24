@@ -7,7 +7,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.configure
-import com.android.build.gradle.LibraryExtension as AndroidLibraryExtension
+import com.android.build.api.dsl.LibraryExtension as AndroidLibraryExtension
 
 @Suppress("unused") // registered in 'build.gradle.kts'
 class TheColorAndroidLibraryConventionPlugin : Plugin<Project> {
@@ -18,7 +18,7 @@ class TheColorAndroidLibraryConventionPlugin : Plugin<Project> {
 
         target.extensions.configure<AndroidLibraryExtension> {
             compileSdk = libs.compileSdk
-            defaultConfig {
+            defaultConfig.apply {
                 minSdk = libs.minSdk
                 // unspecified targetSdk in library modules will inherit the targetSdk of the application
             }
