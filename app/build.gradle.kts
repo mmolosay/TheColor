@@ -4,6 +4,7 @@ plugins {
     id("thecolor.common")
     id("thecolor.hilt")
     id("thecolor.compose")
+    id("org.jetbrains.kotlin.plugin.serialization")
 }
 
 android {
@@ -46,8 +47,11 @@ dependencies {
 
     // Compose
     implementation("androidx.compose.material3:material3")
-    implementation("androidx.activity:activity-compose:1.8.2")
-    implementation("androidx.navigation:navigation-compose:2.7.7")
+    implementation("androidx.activity:activity-compose:1.13.0")
+    val nav3CoreVersion = "1.1.2"
+    implementation("androidx.navigation3:navigation3-runtime:$nav3CoreVersion")
+    implementation("androidx.navigation3:navigation3-ui:$nav3CoreVersion")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-navigation3:2.11.0-beta02")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:${libs.versions.androidx.lifecycle.get()}")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:${libs.versions.androidx.lifecycle.get()}")
     implementation("androidx.lifecycle:lifecycle-process:${libs.versions.androidx.lifecycle.get()}")
@@ -55,4 +59,5 @@ dependencies {
 
     // Misc (preserve alphabetical order)
     implementation("com.jakewharton.timber:timber:${libs.versions.jakewhartonTimber.get()}")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:${libs.versions.kotlinSerialization.get()}")
 }

@@ -5,7 +5,7 @@
 androidGradlePlugin = "8.13.1"
 
 # Android
-compileSdk = "36"
+compileSdk = "37"
 targetSdk = "35"
 minSdk = "24"
 tools = "31.9.0"
@@ -15,6 +15,7 @@ kotlin = "2.2.21"
 ksp = "2.3.3"
 java = "18"
 coroutines = "1.9.0"
+kotlinSerialization = "1.9.0"
 
 # AndroidX
 androidx-appcompat = "1.7.0"

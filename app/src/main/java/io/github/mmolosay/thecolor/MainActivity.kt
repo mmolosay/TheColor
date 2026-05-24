@@ -2,11 +2,11 @@ package io.github.mmolosay.thecolor
 
 import android.graphics.Color
 import android.os.Bundle
+import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -30,7 +30,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity() {
+class MainActivity : ComponentActivity() {
 
     private val splashViewModel: SplashViewModel by viewModels()
     private var splashScreen: SplashScreen? = null
