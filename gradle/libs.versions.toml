@@ -15,7 +15,8 @@ kotlin = "2.2.21"
 ksp = "2.3.8"
 java = "18"
 coroutines = "1.9.0"
-kotlinSerialization = "1.9.0"
+kotlinSerializationPlugin = "1.9.25"
+kotlinSerializationCore = "1.9.0"
 
 # AndroidX
 androidx-appcompat = "1.7.0"

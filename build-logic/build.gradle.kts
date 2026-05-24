@@ -13,6 +13,7 @@ dependencies {
     // Plugins
     implementation("com.android.tools.build:gradle-api:${libs.versions.androidGradlePlugin.get()}") // "com.android.application" and "com.android.library"
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:${libs.versions.kotlin.get()}") // "org.jetbrains.kotlin.android"
+    implementation("org.jetbrains.kotlin.plugin.serialization:org.jetbrains.kotlin.plugin.serialization.gradle.plugin:${libs.versions.kotlinSerializationPlugin.get()}")
     implementation("org.jetbrains.kotlin:compose-compiler-gradle-plugin:${libs.versions.kotlin.get()}") // "org.jetbrains.kotlin.plugin.compose"
     implementation("com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:${libs.versions.ksp.get()}") // "com.google.devtools.ksp"
 }
@@ -37,6 +38,10 @@ gradlePlugin {
         register("TheColorKotlinAndroid") {
             id = "thecolor.kotlin.android"
             implementationClass = "io.github.mmolosay.thecolor.buildlogic.plugins.TheColorKotlinAndroidConventionPlugin"
+        }
+        register("TheColorKotlinSerialization") {
+            id = "thecolor.kotlin.serialization"
+            implementationClass = "io.github.mmolosay.thecolor.buildlogic.plugins.TheColorKotlinSerializationConventionPlugin"
         }
         register("TheColorAndroidApplication") {
             id = "thecolor.android.application"

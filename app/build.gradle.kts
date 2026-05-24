@@ -1,10 +1,10 @@
 plugins {
     id("thecolor.android.application")
     id("thecolor.kotlin.android")
+    id("thecolor.kotlin.serialization")
     id("thecolor.common")
     id("thecolor.hilt")
     id("thecolor.compose")
-    id("org.jetbrains.kotlin.plugin.serialization")
 }
 
 android {
@@ -59,5 +59,4 @@ dependencies {
 
     // Misc (preserve alphabetical order)
     implementation("com.jakewharton.timber:timber:${libs.versions.jakewhartonTimber.get()}")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:${libs.versions.kotlinSerialization.get()}")
 }
