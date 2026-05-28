@@ -34,11 +34,14 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
 import io.github.mmolosay.thecolor.utils.CoroutineRegistry
+import io.github.mmolosay.thecolor.utils.Latch
 import io.github.mmolosay.thecolor.utils.MutableConsumableStore
-import io.github.mmolosay.thecolor.utils.OperationCounter
+import io.github.mmolosay.thecolor.utils.OpCounter
 import io.github.mmolosay.thecolor.utils.asConsumableStore
 import io.github.mmolosay.thecolor.utils.removeAndCancelAll
+import io.github.mmolosay.thecolor.utils.totalAsLatch
 import io.github.mmolosay.thecolor.utils.trackThisAsSingleActive
+import io.github.mmolosay.thecolor.utils.withCounter
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -82,15 +85,14 @@ class HomeViewModel @Inject constructor(
     private val _dataFlow = MutableStateFlow(initialData())
     val dataFlow = _dataFlow.asStateFlow()
 
-    private val _flowOfIsDataBeingUpdated = MutableStateFlow(false)
-    val flowOfIsDataBeingUpdated: StateFlow<Boolean> = _flowOfIsDataBeingUpdated.asStateFlow()
-    private val dataUpdateCounter = OperationCounter { counter, _ ->
-        val areThereAnyOngoingUpdates = (counter > 0)
-        _flowOfIsDataBeingUpdated.value = areThereAnyOngoingUpdates
-    }
-
     private val _navEventStore = MutableConsumableStore<HomeNavEvent>()
     val navEventStore = _navEventStore.asConsumableStore()
+
+    private val _flowOfDataUpdateLatch = MutableStateFlow<Latch>(Latch(isOpen = true))
+    val flowOfDataUpdateLatch = _flowOfDataUpdateLatch.asStateFlow()
+    private val dataUpdateCounter = OpCounter { newState ->
+        _flowOfDataUpdateLatch.value = newState.totalAsLatch()
+    }
 
     val colorInputGroupViewModel: ColorInputGroupViewModel =
         colorInputGroupViewModelFactory.create(

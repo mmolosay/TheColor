@@ -106,10 +106,11 @@ import io.github.mmolosay.thecolor.utils.cache.PruneOnSizeThreshold
 import io.github.mmolosay.thecolor.utils.collectConsuming
 import io.github.mmolosay.thecolor.utils.doNothing
 import io.github.mmolosay.thecolor.utils.pendingAsFlow
-import io.github.mmolosay.thecolor.utils.stabilize
+import io.github.mmolosay.thecolor.utils.produce
+import io.github.mmolosay.thecolor.utils.through
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
@@ -151,7 +152,7 @@ fun HomeScreen(
             val upstream = viewModel.colorCenterViewModelFlow
             val flowOfColorCenterViewModel = remember {
                 upstream
-                    .stabilize(viewModel.flowOfIsDataBeingUpdated)
+                    .through(viewModel.flowOfDataUpdateLatch)
                     .distinctUntilChanged()
             }
             flowOfColorCenterViewModel
@@ -182,16 +183,9 @@ fun HomeScreen(
             }
             return HomeUiState(isColorPreviewVisible, isColorCenterVisible)
         }
-        combineTransform(
-            flowOfColorPreviewData,
-            flowOfHomeData,
-            viewModel.flowOfIsDataBeingUpdated,
-        ) { _, _, isBeingUpdated ->
-            // impl of 'stabilize()' that takes actual value of the flow instead of last collected
-            if (!isBeingUpdated) {
-                actualUiState()?.let { emit(it) }
-            }
-        }
+        viewModel.flowOfDataUpdateLatch
+            .produce { actualUiState() }
+            .filterNotNull()
             .distinctUntilChanged()
             // make it hot to allow replaying last value when creating 'animController'
             .shareIn(coroutineScope, SharingStarted.Eagerly, replay = 1)
@@ -214,7 +208,7 @@ fun HomeScreen(
 
     val data = run {
         val flowOfData = remember {
-            viewModel.dataFlow.stabilize(viewModel.flowOfIsDataBeingUpdated)
+            viewModel.dataFlow.through(viewModel.flowOfDataUpdateLatch)
         }
         flowOfData.collectAsStateWithLifecycle(initialValue = viewModel.dataFlow.value).value
     }
