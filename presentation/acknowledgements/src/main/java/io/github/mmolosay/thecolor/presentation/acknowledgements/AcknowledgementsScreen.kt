@@ -44,8 +44,6 @@ import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import com.mikepenz.aboutlibraries.ui.compose.util.htmlReadyLicenseContent
 import io.github.mmolosay.debounce.debounced
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.persistentSetOf
 import kotlin.time.Duration.Companion.milliseconds
 import com.mikepenz.aboutlibraries.ui.compose.android.produceLibraries as produceLibrariesByDefault
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
@@ -228,14 +226,14 @@ private fun previewLibraries(): Libs {
         hash = "Apache-2.0",
     )
     return Libs(
-        libraries = persistentListOf(
+        libraries = listOf(
             Library(
                 uniqueId = "io.github.mmolosay:debounce",
                 artifactVersion = "1.2.0",
                 name = "debounce",
                 description = "Debounce your lambdas.",
                 website = "https://github.com/mmolosay/debounce",
-                developers = persistentListOf(
+                developers = listOf(
                     Developer(name = "Misha Malasai", organisationUrl = ""),
                 ),
                 organization = null,
@@ -244,8 +242,8 @@ private fun previewLibraries(): Libs {
                     developerConnection = "scm:git:ssh://github.com/mmolosay/debounce.git",
                     url = "https://github.com/mmolosay/debounce",
                 ),
-                licenses = persistentSetOf(apacheLicense),
-                funding = persistentSetOf(),
+                licenses = setOf(apacheLicense),
+                funding = setOf(),
             ),
             Library(
                 uniqueId = "org.jetbrains.kotlin:kotlin-stdlib",
@@ -253,7 +251,7 @@ private fun previewLibraries(): Libs {
                 name = "Kotlin Stdlib",
                 description = "Kotlin Standard Library",
                 website = "https://kotlinlang.org/",
-                developers = persistentListOf(
+                developers = listOf(
                     Developer(name = "Kotlin Team", organisationUrl = "https://www.jetbrains.com"),
                 ),
                 organization = null,
@@ -262,10 +260,10 @@ private fun previewLibraries(): Libs {
                     developerConnection = "scm:git:https://github.com/JetBrains/kotlin.git",
                     url = "https://github.com/JetBrains/kotlin",
                 ),
-                licenses = persistentSetOf(apacheLicense),
-                funding = persistentSetOf(),
+                licenses = setOf(apacheLicense),
+                funding = setOf(),
             ),
         ),
-        licenses = persistentSetOf(apacheLicense),
+        licenses = setOf(apacheLicense),
     )
 }

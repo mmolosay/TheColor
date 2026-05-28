@@ -17,7 +17,7 @@ class TheColorComposeConventionPlugin : Plugin<Project> {
 
         val androidExtension = requireNotNull(target.extensions.findAndroidExtension())
         androidExtension.apply {
-            buildFeatures {
+            buildFeatures.apply {
                 compose = true
             }
         }
