@@ -103,9 +103,8 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState
 import io.github.mmolosay.thecolor.presentation.preview.toUiState
 import io.github.mmolosay.thecolor.utils.cache.DequeCache
 import io.github.mmolosay.thecolor.utils.cache.PruneOnSizeThreshold
-import io.github.mmolosay.thecolor.utils.collectConsuming
+import io.github.mmolosay.thecolor.utils.consumePendingAsFlow
 import io.github.mmolosay.thecolor.utils.doNothing
-import io.github.mmolosay.thecolor.utils.pendingAsFlow
 import io.github.mmolosay.thecolor.utils.produce
 import io.github.mmolosay.thecolor.utils.through
 import kotlinx.coroutines.flow.SharingStarted
@@ -152,8 +151,8 @@ fun HomeScreen(
             val upstream = viewModel.colorCenterViewModelFlow
             val flowOfColorCenterViewModel = remember {
                 upstream
-                    .through(viewModel.flowOfDataUpdateLatch)
-                    .distinctUntilChanged()
+//                    .through(viewModel.flowOfDataUpdateLatch)
+//                    .distinctUntilChanged()
             }
             flowOfColorCenterViewModel
                 .collectAsStateWithLifecycle(initialValue = upstream.value)
@@ -230,7 +229,7 @@ fun HomeScreen(
 
     val navEventStore = viewModel.navEventStore
     LaunchedEffect(navEventStore) {
-        navEventStore.pendingAsFlow().collectConsuming(navEventStore) { (_, event) ->
+        navEventStore.consumePendingAsFlow process@{ (_, event) ->
             when (event) {
                 is HomeNavEvent.GoToSettings -> {
                     focusManager.clearFocus()

@@ -183,11 +183,13 @@ fun <T> ConsumableStore<T>.pendingAsFlow(): Flow<Entry<T>> {
     }
 }
 
-suspend fun <T> Flow<Entry<T>>.collectConsuming(
-    store: ConsumableStore<T>,
-    block: suspend (Entry<T>) -> Unit,
-) =
-    this.collect { pendingEntry ->
-        block(pendingEntry)
+suspend inline fun <T> ConsumableStore<T>.consumePendingAsFlow(
+    crossinline process: (Entry<T>) -> Unit,
+) {
+    val store = this
+    val pendingAsFlow = store.pendingAsFlow()
+    pendingAsFlow.collect { pendingEntry ->
+        process(pendingEntry)
         store.consume(id = pendingEntry.id)
     }
+}
