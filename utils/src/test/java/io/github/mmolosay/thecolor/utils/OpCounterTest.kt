@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.utils
 
+import io.github.mmolosay.thecolor.utils.OpCounter.OnStateChangeListener
 import io.github.mmolosay.thecolor.utils.OpCounter.State
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -43,7 +44,9 @@ class OpCounterTest {
         val listener = OnStateChangeListener { newState ->
             latestStateFromListener = newState
         }
-        val counter = OpCounter(listener = listener)
+        val counter = OpCounter().apply {
+            addListener(listener)
+        }
 
         counter.update { it + 1 }
 

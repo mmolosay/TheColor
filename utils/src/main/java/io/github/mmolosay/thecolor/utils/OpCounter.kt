@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.utils
 
+import io.github.mmolosay.thecolor.utils.OpCounter.OnStateChangeListener
 import io.github.mmolosay.thecolor.utils.OpCounter.State
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,11 +16,17 @@ sealed interface OpCounter {
     val children: List<OpCounter>
 
     fun update(newCount: (current: Int) -> Int)
+    fun addListener(l: OnStateChangeListener)
+    fun removeListener(l: OnStateChangeListener): Boolean
 
     data class State(
         val ownCount: Int,
         val totalCount: Int,
     )
+
+    fun interface OnStateChangeListener {
+        operator fun invoke(newState: State)
+    }
 }
 
 val OpCounter.state: State
@@ -33,22 +40,15 @@ fun State.totalAsLatch(): Latch {
 fun OpCounter(
     name: String? = null,
     vararg children: OpCounter,
-    listener: OnStateChangeListener? = null,
 ): OpCounter =
     OpCounterImpl(
         name = name,
         children = listOf(*children),
-        listener = listener,
     )
-
-fun interface OnStateChangeListener {
-    operator fun invoke(newState: State)
-}
 
 private class OpCounterImpl(
     @Suppress("unused") private val name: String?,
     override val children: List<OpCounter>,
-    listener: OnStateChangeListener?,
 ) : OpCounter {
 
     private val _stateFlow = run {
@@ -57,13 +57,14 @@ private class OpCounterImpl(
     }
     override val stateFlow: StateFlow<State> = _stateFlow.asStateFlow()
 
-    private val listeners = CopyOnWriteArrayList(listOfNotNull(listener))
+    private val parentListeners = CopyOnWriteArrayList<OnStateChangeListener>()
+    private val customListeners = CopyOnWriteArrayList<OnStateChangeListener>()
 
     init {
         run registerChildren@{
             val listener = ParentPropagationListener()
             for (child in children) {
-                (child as OpCounterImpl).listeners.add(listener)
+                (child as OpCounterImpl).parentListeners.add(listener)
             }
             recount()
         }
@@ -77,8 +78,16 @@ private class OpCounterImpl(
             val newTotalCount = countTotal(ownCount = newOwnCount)
             State(ownCount = newOwnCount, totalCount = newTotalCount)
         }
-        listeners.forEach { it.invoke(newState) }
+        parentListeners.forEach { it.invoke(newState) }
+        customListeners.forEach { it.invoke(newState) }
     }
+
+    override fun addListener(l: OnStateChangeListener) {
+        customListeners.add(l)
+    }
+
+    override fun removeListener(l: OnStateChangeListener): Boolean =
+        customListeners.remove(l)
 
     private fun recount() =
         update(newCount = { /*current*/it })

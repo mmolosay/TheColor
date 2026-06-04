@@ -39,6 +39,7 @@ import io.github.mmolosay.thecolor.utils.MutableConsumableStore
 import io.github.mmolosay.thecolor.utils.OpCounter
 import io.github.mmolosay.thecolor.utils.asConsumableStore
 import io.github.mmolosay.thecolor.utils.removeAndCancelAll
+import io.github.mmolosay.thecolor.utils.state
 import io.github.mmolosay.thecolor.utils.totalAsLatch
 import io.github.mmolosay.thecolor.utils.trackThisAsSingleActive
 import io.github.mmolosay.thecolor.utils.withCounter
@@ -88,11 +89,16 @@ class HomeViewModel @Inject constructor(
     private val _effectStore = MutableConsumableStore<HomeEffect>()
     val effectStore = _effectStore.asConsumableStore()
 
-    private val _flowOfDataUpdateLatch = MutableStateFlow<Latch>(Latch(isOpen = true))
-    val flowOfDataUpdateLatch = _flowOfDataUpdateLatch.asStateFlow()
-    private val dataUpdateCounter = OpCounter { newState ->
-        _flowOfDataUpdateLatch.value = newState.totalAsLatch()
+    private val dataUpdateCounter = OpCounter().apply {
+        addListener { newState ->
+            _flowOfDataUpdateLatch.value = newState.totalAsLatch()
+        }
     }
+    private val _flowOfDataUpdateLatch: MutableStateFlow<Latch> = run {
+        val value = dataUpdateCounter.state.totalAsLatch()
+        MutableStateFlow(value)
+    }
+    val flowOfDataUpdateLatch = _flowOfDataUpdateLatch.asStateFlow()
 
     val colorInputGroupViewModel: ColorInputGroupViewModel =
         colorInputGroupViewModelFactory.create(
