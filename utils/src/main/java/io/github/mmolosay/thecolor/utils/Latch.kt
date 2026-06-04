@@ -15,6 +15,9 @@ value class Latch(val isOpen: Boolean)
 val Latch.isClosed: Boolean
     get() = !this.isOpen
 
+val OpenLatch by lazy { Latch(isOpen = true) }
+val ClosedLatch by lazy { Latch(isOpen = false) }
+
 /**
  * This operator suppresses any emissions of the source flow while [Latch.isClosed] (data is not being updated).
  * Once the [Latch] becomes [open][Latch.isOpen] (update has finished), it emits the most recent value from the source flow.

@@ -34,6 +34,8 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
 import io.github.mmolosay.thecolor.testing.MainDispatcherExtension
 import io.github.mmolosay.thecolor.utils.ClosableSuspendGate
+import io.github.mmolosay.thecolor.utils.ClosedLatch
+import io.github.mmolosay.thecolor.utils.OpenLatch
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
@@ -305,10 +307,10 @@ class HomeViewModelTest {
                 val value = ColorInputMediator.ColorState(color = color, source = null, id = 1)
                 colorStateFlow.emit(value)
             }
-            sut.flowOfIsDataBeingUpdated.value shouldBe true // data transaction has started and is ongoing
+            sut.flowOfDataUpdateLatch.value shouldBe ClosedLatch // data transaction has started and is ongoing
 
             gateForSetColorMethod.open()
-            sut.flowOfIsDataBeingUpdated.value shouldBe false // data transaction has finished
+            sut.flowOfDataUpdateLatch.value shouldBe OpenLatch // data transaction has finished
         }
 
     @Test
