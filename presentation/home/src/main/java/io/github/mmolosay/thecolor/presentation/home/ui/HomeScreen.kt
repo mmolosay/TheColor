@@ -95,12 +95,14 @@ import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeNavEvent
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeEffect
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroup
 import io.github.mmolosay.thecolor.presentation.preview.AnimatedColorPreview
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState
 import io.github.mmolosay.thecolor.presentation.preview.toUiState
+import io.github.mmolosay.thecolor.utils.ConsumableStore
+import io.github.mmolosay.thecolor.utils.MutableConsumableStore
 import io.github.mmolosay.thecolor.utils.cache.DequeCache
 import io.github.mmolosay.thecolor.utils.cache.PruneOnSizeThreshold
 import io.github.mmolosay.thecolor.utils.consumePendingAsFlow
@@ -124,7 +126,6 @@ fun HomeScreen(
     navBarAppearanceController: NavBarAppearanceController,
 ) {
     val context = LocalContext.current
-    val focusManager = LocalFocusManager.current
     val coroutineScope = rememberCoroutineScope()
 
     val strings = remember(context) { HomeUiStrings(context) }
@@ -215,10 +216,12 @@ fun HomeScreen(
     HomeScreen(
         data = data,
         strings = strings,
+        effectStore = viewModel.effectStore,
         colorInput = colorInput,
         colorPreview = colorPreview,
         colorCenter = colorCenter,
         animController = animController,
+        navigateToSettings = navigateToSettings,
         navBarAppearanceController = navBarAppearanceController,
     )
 
@@ -226,18 +229,6 @@ fun HomeScreen(
         data = data.colorSchemeSelectedSwatchData,
         navBarAppearanceController = selectedSwatchDetailsDialogController,
     )
-
-    val navEventStore = viewModel.navEventStore
-    LaunchedEffect(navEventStore) {
-        navEventStore.consumePendingAsFlow process@{ (_, event) ->
-            when (event) {
-                is HomeNavEvent.GoToSettings -> {
-                    focusManager.clearFocus()
-                    navigateToSettings()
-                }
-            }
-        }
-    }
 }
 
 /** Describes UI state of 'Home' View. Used to infer appropriate animation sequence / state. */
@@ -259,10 +250,12 @@ private typealias ColorCenterComposable = @Composable () -> Unit
 private fun HomeScreen(
     data: HomeData,
     strings: HomeUiStrings,
+    effectStore: ConsumableStore<HomeEffect>,
     colorInput: @Composable () -> Unit,
     colorPreview: ColorPreviewWithDependencies,
     colorCenter: ColorCenterComposable?,
     animController: HomeAnimController?,
+    navigateToSettings: () -> Unit,
     navBarAppearanceController: NavBarAppearanceController,
 ) {
     Scaffold(
@@ -274,10 +267,12 @@ private fun HomeScreen(
                 .consumeWindowInsets(contentPadding), // ensures correct height of 'TopAppBar()'
             data = data,
             strings = strings,
+            effectStore = effectStore,
             colorInput = colorInput,
             colorPreview = colorPreview,
             colorCenter = colorCenter,
             animController = animController,
+            navigateToSettings = navigateToSettings,
             navBarAppearanceController = navBarAppearanceController,
         )
     }
@@ -287,14 +282,15 @@ private fun HomeScreen(
 private fun Home(
     data: HomeData,
     strings: HomeUiStrings,
+    effectStore: ConsumableStore<HomeEffect>,
     colorInput: @Composable () -> Unit,
     colorPreview: ColorPreviewWithDependencies,
     colorCenter: ColorCenterComposable?,
     animController: HomeAnimController?,
+    navigateToSettings: () -> Unit,
     navBarAppearanceController: NavBarAppearanceController,
     modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
     val proceedResult = data.proceedResult
@@ -399,23 +395,15 @@ private fun Home(
         }
     }
 
-    val softwareKeyboardController = LocalSoftwareKeyboardController.current
-    LaunchedEffect(proceedResult) {
-        when (proceedResult) {
-            is ProceedResult.Success -> {
-                // keyboard blinks when hidden, similar issue: https://stackoverflow.com/q/76901241/8862499
-                // the issue is somewhere in 'Color Input', probably in the internals of TextField()
-                softwareKeyboardController?.hide()
-            }
-            is ProceedResult.InvalidSubmittedColor -> {
-                Toast
-                    .makeText(context, strings.invalidSubmittedColorMessage, Toast.LENGTH_SHORT)
-                    .show()
-                proceedResult.discard()
-            }
-            null -> doNothing()
-        }
-    }
+    ProcessEffectsAsSideEffect(
+        effectStore = effectStore,
+        navigateToSettings = navigateToSettings,
+    )
+
+    ProcessProceedResultAsSideEffect(
+        proceedResult = proceedResult,
+        strings = strings,
+    )
 
     ScrollToTopOnNullProceedResultAsSideEffect(
         proceedResult = proceedResult,
@@ -647,6 +635,49 @@ private fun SelectedSwatchDetailsDialogContainer(
 }
 
 @Composable
+private fun ProcessEffectsAsSideEffect(
+    effectStore: ConsumableStore<HomeEffect>,
+    navigateToSettings: () -> Unit,
+) {
+    val focusManager = LocalFocusManager.current
+    LaunchedEffect(effectStore) {
+        effectStore.consumePendingAsFlow process@{ (_, effect) ->
+            when (effect) {
+                HomeEffect.GoToSettings -> {
+                    focusManager.clearFocus()
+                    navigateToSettings()
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProcessProceedResultAsSideEffect(
+    proceedResult: ProceedResult?,
+    strings: HomeUiStrings,
+) {
+    val context = LocalContext.current
+    val softwareKeyboardController = LocalSoftwareKeyboardController.current
+    LaunchedEffect(proceedResult) {
+        when (proceedResult) {
+            is ProceedResult.Success -> {
+                // keyboard blinks when hidden, similar issue: https://stackoverflow.com/q/76901241/8862499
+                // the issue is somewhere in 'Color Input', probably in the internals of TextField()
+                softwareKeyboardController?.hide()
+            }
+            is ProceedResult.InvalidSubmittedColor -> {
+                Toast
+                    .makeText(context, strings.invalidSubmittedColorMessage, Toast.LENGTH_SHORT)
+                    .show()
+                proceedResult.discard()
+            }
+            null -> doNothing()
+        }
+    }
+}
+
+@Composable
 private fun ScrollToTopOnNullProceedResultAsSideEffect(
     proceedResult: ProceedResult?,
     scrollState: ScrollState,
@@ -742,6 +773,7 @@ private fun Preview() {
         HomeScreen(
             data = previewData(),
             strings = previewUiStrings(),
+            effectStore = remember { MutableConsumableStore() },
             colorInput = {
                 Text(
                     modifier = Modifier
@@ -778,6 +810,7 @@ private fun Preview() {
                 )
                 HomeAnimController(currentState)
             },
+            navigateToSettings = {},
             navBarAppearanceController = remember { RootNavBarAppearanceController() },
         )
     }

@@ -85,8 +85,8 @@ class HomeViewModel @Inject constructor(
     private val _dataFlow = MutableStateFlow(initialData())
     val dataFlow = _dataFlow.asStateFlow()
 
-    private val _navEventStore = MutableConsumableStore<HomeNavEvent>()
-    val navEventStore = _navEventStore.asConsumableStore()
+    private val _effectStore = MutableConsumableStore<HomeEffect>()
+    val effectStore = _effectStore.asConsumableStore()
 
     private val _flowOfDataUpdateLatch = MutableStateFlow<Latch>(Latch(isOpen = true))
     val flowOfDataUpdateLatch = _flowOfDataUpdateLatch.asStateFlow()
@@ -300,14 +300,14 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun sendGoToSettingsNavEvent() {
+    private fun onRequestToGoToSettings() {
         /*
          * Right now there's no logic in ViewModel that accompanies navigating to Settings.
          * In a real app, here would've been a logic for accepting / denying UI's navigation request
          * depending on the business logic. Here may also be sending data to analytics or logging.
          */
-        val event = HomeNavEvent.GoToSettings
-        _navEventStore.publish(event)
+        val effect = HomeEffect.GoToSettings
+        _effectStore.publish(effect)
     }
 
     private fun clearProceedResult() {
@@ -332,7 +332,7 @@ class HomeViewModel @Inject constructor(
             proceedResult = null, // 'proceed' action wasn't invoked yet
             randomizeColor = ::randomizeColor,
             colorSchemeSelectedSwatchData = null, // no selected swatch initially
-            requestToGoToSettings = ::sendGoToSettingsNavEvent,
+            requestToGoToSettings = ::onRequestToGoToSettings,
         )
     }
 
