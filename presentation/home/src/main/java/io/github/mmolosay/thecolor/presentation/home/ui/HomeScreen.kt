@@ -99,6 +99,7 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeEffect
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroup
 import io.github.mmolosay.thecolor.presentation.preview.AnimatedColorPreview
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState
 import io.github.mmolosay.thecolor.presentation.preview.toUiState
 import io.github.mmolosay.thecolor.utils.ConsumableStore
@@ -107,9 +108,10 @@ import io.github.mmolosay.thecolor.utils.cache.DequeCache
 import io.github.mmolosay.thecolor.utils.cache.PruneOnSizeThreshold
 import io.github.mmolosay.thecolor.utils.consumePendingAsFlow
 import io.github.mmolosay.thecolor.utils.doNothing
-import io.github.mmolosay.thecolor.utils.produce
 import io.github.mmolosay.thecolor.utils.through
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -170,22 +172,28 @@ fun HomeScreen(
     }
 
     val flowOfUiState = remember {
-        val flowOfColorPreviewData = viewModel.colorPreviewViewModel.dataFlow
-        val flowOfHomeData = viewModel.dataFlow
-        fun actualUiState(): HomeUiState? {
+        fun actualUiState(
+            colorPreviewData: ColorPreviewData?,
+            homeData: HomeData?,
+        ): HomeUiState? {
             val isColorPreviewVisible = run {
-                val data = flowOfColorPreviewData.value ?: return null
+                val data = colorPreviewData ?: return null
                 return@run data.toUiState() is ColorPreviewUiState.Visible
             }
             val isColorCenterVisible = run {
-                val data = flowOfHomeData.value
+                val data = homeData ?: return null
                 return@run data.proceedResult is ProceedResult.Success
             }
             return HomeUiState(isColorPreviewVisible, isColorCenterVisible)
         }
-        viewModel.flowOfDataUpdateLatch
-            .produce { actualUiState() }
+        combine(
+            viewModel.colorPreviewViewModel.dataFlow,
+            viewModel.dataFlow,
+            transform = ::actualUiState,
+        )
             .filterNotNull()
+            .conflate() // skip transient values to avoid unnecessary UI updates
+            .through(viewModel.flowOfDataUpdateLatch)
             .distinctUntilChanged()
             // make it hot to allow replaying last value when creating 'animController'
             .shareIn(coroutineScope, SharingStarted.Eagerly, replay = 1)

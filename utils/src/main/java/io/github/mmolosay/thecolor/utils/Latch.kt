@@ -3,7 +3,6 @@ package io.github.mmolosay.thecolor.utils
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.transform
 
 /**
  * Represents the state of a latch: either open or closed.
@@ -35,11 +34,5 @@ val ClosedLatch by lazy { Latch(isOpen = false) }
 fun <T> Flow<T>.through(latchFlow: Flow<Latch>): Flow<T> {
     return combineTransform(this, latchFlow) { value, latch ->
         if (latch.isOpen) emit(value)
-    }
-}
-
-fun <T> Flow<Latch>.produce(value: () -> T): Flow<T> {
-    return this.transform { latch ->
-        if (latch.isOpen) emit(value())
     }
 }
