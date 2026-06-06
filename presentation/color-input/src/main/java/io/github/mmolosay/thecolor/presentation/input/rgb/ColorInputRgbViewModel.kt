@@ -16,9 +16,9 @@ import io.github.mmolosay.thecolor.presentation.input.ColorInputMapper
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.ColorInputValidator
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
+import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmissionResult
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputValidationResult
-import io.github.mmolosay.thecolor.presentation.input.model.ColorSubmissionResult
 import io.github.mmolosay.thecolor.presentation.input.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.model.getColorOrNull
 import io.github.mmolosay.thecolor.presentation.input.plus
@@ -107,7 +107,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                 initialValue = DataState.BeingInitialized,
             )
 
-    private val _submissionResultStore = MutableConsumableStore<ColorSubmissionResult>()
+    private val _submissionResultStore = MutableConsumableStore<ColorInputSubmissionResult>()
     val submissionResultStore = _submissionResultStore.asConsumableStore()
 
     init {
@@ -157,7 +157,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             colorInput = colorInput,
             validationResult = validationResult,
         )
-        val result = ColorSubmissionResult(wasAccepted)
+        val result = ColorInputSubmissionResult(wasAccepted)
         _submissionResultStore.publish(result)
     }
 

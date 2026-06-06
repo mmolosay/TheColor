@@ -227,7 +227,10 @@ private fun previewHexData() =
             clearText = TextFieldData.NoOpClearTextFeature,
             shouldSelectAllTextOnFocus = false,
         ),
-        submitInput = {},
+        submission = ColorInputHexData.SubmissionData(
+            submitInput = {},
+            result = null,
+        ),
     )
 
 private fun previewHexUiStrings() =

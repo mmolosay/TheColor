@@ -11,10 +11,11 @@ import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCorout
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMapper
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.ColorInputValidator
+import io.github.mmolosay.thecolor.presentation.input.hex.StatefulData.State
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
+import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmissionResult
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputValidationResult
-import io.github.mmolosay.thecolor.presentation.input.model.ColorSubmissionResult
 import io.github.mmolosay.thecolor.presentation.input.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.model.getColorOrNull
 import io.github.mmolosay.thecolor.presentation.input.plus
@@ -22,16 +23,21 @@ import io.github.mmolosay.thecolor.presentation.input.set
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldViewModel
 import io.github.mmolosay.thecolor.presentation.input.textfield.updateText
-import io.github.mmolosay.thecolor.utils.MutableConsumableStore
-import io.github.mmolosay.thecolor.utils.asConsumableStore
+import io.github.mmolosay.thecolor.utils.AckValue
+import io.github.mmolosay.thecolor.utils.Maybe
+import io.github.mmolosay.thecolor.utils.asDelegate
+import io.github.mmolosay.thecolor.utils.requireValue
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 
@@ -62,37 +68,30 @@ class ColorInputHexViewModel @AssistedInject constructor(
         enableClearTextFeature = true,
     )
 
-    val dataStateFlow: StateFlow<DataState<ColorInputHexData>> =
-        textFieldVm.dataFlow
-            .map { textField ->
-                val colorInput = ColorInput.Hex(string = textField.text.data.string)
-                val validationResult = with(colorInputValidator) { colorInput.validate() }
-                FullData(
-                    textField = textField,
-                    submitInput = { submitInput(colorInput, validationResult) },
-                    colorInput = colorInput,
-                    colorInputValidationResult = validationResult,
-                )
-            }
-            .onEach { fullData ->
-                // don't synchronize this data with other Views to avoid update loop
-                if (!fullData.textField.text.causedByUser) return@onEach
-                val parsedColor = fullData.colorInputValidationResult.getColorOrNull()
-                mediator.set(color = parsedColor, source = DomainColorInputType.Hex)
-            }
-            .map { fullData -> fullData.reduce() }
-            .map { data -> DataState(data) }
-            .flowOn(defaultDispatcher)
-            .stateIn(
-                scope = coroutineScope,
-                started = SharingStarted.Eagerly + SharingStarted.WhileSubscribed(5000), // start eagerly to pre-compute first value before UI starts collecting
-                initialValue = DataState.BeingInitialized,
-            )
+    private val statefulDataFlow: MutableStateFlow<StatefulData> = run {
+        val value = StatefulData(
+            textField = Maybe.None,
+            colorInput = Maybe.None,
+            validationResult = Maybe.None,
+            submitInput = ::submitInput,
+            submitInputResult = null,
+            state = State.BeingInitialized,
+        )
+        MutableStateFlow(value)
+    }
+    private val statefulData: StatefulData by statefulDataFlow.asDelegate()
 
-    private val _submissionResultStore = MutableConsumableStore<ColorSubmissionResult>()
-    val submissionResultStore = _submissionResultStore.asConsumableStore()
+    val dataStateFlow: StateFlow<DataState<ColorInputHexData>> = statefulDataFlow
+        .map { it.toDataState() }
+        .flowOn(defaultDispatcher)
+        .stateIn(
+            scope = coroutineScope,
+            started = SharingStarted.Eagerly + SharingStarted.WhileSubscribed(5000), // start eagerly to pre-compute first value before UI starts collecting
+            initialValue = DataState.BeingInitialized,
+        )
 
     init {
+        collectTextFieldData()
         collectMediatorUpdates()
     }
 
@@ -112,6 +111,31 @@ class ColorInputHexViewModel @AssistedInject constructor(
         }
     }
 
+    private fun collectTextFieldData() {
+        coroutineScope.launch(defaultDispatcher) {
+            textFieldVm.dataFlow
+                .onEach { textField ->
+                    val colorInput = ColorInput.Hex(string = textField.text.data.string)
+                    val validationResult = with(colorInputValidator) { colorInput.validate() }
+                    statefulDataFlow.update {
+                        it.copy(
+                            state = State.Ready,
+                            textField = Maybe.Some(textField),
+                            colorInput = Maybe.Some(colorInput),
+                            validationResult = Maybe.Some(validationResult),
+                        )
+                    }
+                }
+                .onEach { textField ->
+                    // don't synchronize this data with other Views to avoid update loop
+                    if (!textField.text.causedByUser) return@onEach
+                    val parsedColor = statefulData.validationResult.requireValue().getColorOrNull()
+                    mediator.set(color = parsedColor, source = DomainColorInputType.Hex)
+                }
+                .collect()
+        }
+    }
+
     private fun filterUserInput(input: String): TextFieldData.Text =
         input
             .uppercase()
@@ -120,15 +144,24 @@ class ColorInputHexViewModel @AssistedInject constructor(
             .let { TextFieldData.Text(it) }
 
     private fun submitInput(
-        colorInput: ColorInput.Hex,
-        validationResult: ColorInputValidationResult,
+        colorInput: ColorInput.Hex = statefulData.colorInput.requireValue(),
+        validationResult: ColorInputValidationResult = statefulData.validationResult.requireValue(),
     ) {
         val wasAccepted = submitAction.invoke(
             colorInput = colorInput,
             validationResult = validationResult,
         )
-        val result = ColorSubmissionResult(wasAccepted)
-        _submissionResultStore.publish(result)
+        val ackResult = AckValue(
+            value = ColorInputSubmissionResult(wasAccepted),
+            ack = {
+                statefulDataFlow.update {
+                    it.copy(submitInputResult = null)
+                }
+            },
+        )
+        statefulDataFlow.update {
+            it.copy(submitInputResult = ackResult)
+        }
     }
 
     override fun dispose() {
@@ -155,20 +188,34 @@ class ColorInputHexViewModel @AssistedInject constructor(
  * derived from the exposed data, or used to produce it.
  *
  * @param colorInput contains data from the [textField].
- * @param colorInputValidationResult is a result of [colorInput] validation.
+ * @param validationResult is a result of [colorInput] validation.
  */
-private data class FullData(
-    val textField: TextFieldData,
+private data class StatefulData(
+    val textField: Maybe<TextFieldData>,
+    val colorInput: Maybe<ColorInput.Hex>,
+    val validationResult: Maybe<ColorInputValidationResult>,
     val submitInput: () -> Unit,
-    val colorInput: ColorInput.Hex,
-    val colorInputValidationResult: ColorInputValidationResult,
-)
+    val submitInputResult: AckValue<ColorInputSubmissionResult>?,
+    val state: State,
+) {
 
-/**
- * Reduces [FullData] to the [ColorInputHexData] which is exposed from the ViewModel.
- */
-private fun FullData.reduce(): ColorInputHexData =
-    ColorInputHexData(
-        textField = textField,
-        submitInput = submitInput,
+    enum class State {
+        BeingInitialized, Ready,
+    }
+}
+
+private fun StatefulData.toDataState(): DataState<ColorInputHexData> =
+    when (this.state) {
+        State.BeingInitialized -> DataState.BeingInitialized
+        State.Ready -> DataState.Ready(data = this.toData())
+    }
+
+private fun StatefulData.toData(): ColorInputHexData {
+    return ColorInputHexData(
+        textField = this.textField.requireValue(),
+        submission = ColorInputHexData.SubmissionData(
+            submitInput = this.submitInput,
+            result = this.submitInputResult,
+        ),
     )
+}
