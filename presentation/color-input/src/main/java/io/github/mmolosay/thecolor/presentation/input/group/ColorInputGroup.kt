@@ -44,6 +44,7 @@ import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbData
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbUiStrings
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldUiStrings
+import io.github.mmolosay.thecolor.utils.NoOpActionWithResult
 import io.github.mmolosay.thecolor.utils.doNothing
 import io.github.mmolosay.thecolor.domain.color.Color as DomainColor
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
@@ -227,10 +228,7 @@ private fun previewHexData() =
             clearText = TextFieldData.NoOpClearTextFeature,
             shouldSelectAllTextOnFocus = false,
         ),
-        submission = ColorInputHexData.SubmissionData(
-            submitInput = {},
-            result = null,
-        ),
+        submitInput = NoOpActionWithResult(),
     )
 
 private fun previewHexUiStrings() =

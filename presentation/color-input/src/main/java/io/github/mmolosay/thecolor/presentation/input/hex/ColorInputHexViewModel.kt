@@ -24,6 +24,7 @@ import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldViewModel
 import io.github.mmolosay.thecolor.presentation.input.textfield.updateText
 import io.github.mmolosay.thecolor.utils.AckValue
+import io.github.mmolosay.thecolor.utils.ActionWithResult
 import io.github.mmolosay.thecolor.utils.Maybe
 import io.github.mmolosay.thecolor.utils.asDelegate
 import io.github.mmolosay.thecolor.utils.requireValue
@@ -213,8 +214,8 @@ private fun StatefulData.toDataState(): DataState<ColorInputHexData> =
 private fun StatefulData.toData(): ColorInputHexData {
     return ColorInputHexData(
         textField = this.textField.requireValue(),
-        submission = ColorInputHexData.SubmissionData(
-            submitInput = this.submitInput,
+        submitInput = ActionWithResult(
+            action = this.submitInput,
             result = this.submitInputResult,
         ),
     )

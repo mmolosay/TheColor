@@ -21,13 +21,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.input.UiComponents.DataStateCrossfade
 import io.github.mmolosay.thecolor.presentation.input.UiComponents.ProcessColorSubmissionResultAsSideEffect
-import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexData.SubmissionData
 import io.github.mmolosay.thecolor.presentation.input.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextField
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldUiStrings
+import io.github.mmolosay.thecolor.utils.NoOpActionWithResult
+import io.github.mmolosay.thecolor.utils.invoke
 
 @Composable
 fun ColorInputHex(
@@ -80,12 +81,12 @@ fun ColorInputHex(
             capitalization = KeyboardCapitalization.Characters,
         ),
         keyboardActions = KeyboardActions(
-            onDone = { data.submission.submitInput() },
+            onDone = { data.submitInput() },
         ),
     )
 
     ProcessColorSubmissionResultAsSideEffect(
-        ackResult = data.submission.result,
+        ackResult = data.submitInput.result,
     )
 }
 
@@ -109,10 +110,7 @@ private fun previewData() =
             clearText = TextFieldData.NoOpClearTextFeature,
             shouldSelectAllTextOnFocus = false,
         ),
-        submission = SubmissionData(
-            submitInput = {},
-            result = null,
-        ),
+        submitInput = NoOpActionWithResult(),
     )
 
 private fun previewUiStrings() =
