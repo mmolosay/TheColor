@@ -19,9 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.input.UiComponents.DataStateCrossfade
 import io.github.mmolosay.thecolor.presentation.input.UiComponents.ProcessColorSubmissionResultAsSideEffect
-import io.github.mmolosay.thecolor.presentation.input.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextField
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
@@ -36,22 +34,12 @@ fun ColorInputHex(
 ) {
     val context = LocalContext.current
     val strings = remember(context) { ColorInputHexUiStrings(context) }
-    val dataState = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
+    val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
 
-    DataStateCrossfade(
-        actualDataState = dataState,
-    ) { state ->
-        when (state) {
-            is DataState.BeingInitialized ->
-                ColorInputHexLoading()
-            is DataState.Ready -> {
-                ColorInputHex(
-                    data = state.data,
-                    strings = strings,
-                )
-            }
-        }
-    }
+    ColorInputHex(
+        data = data,
+        strings = strings,
+    )
 }
 
 @Composable

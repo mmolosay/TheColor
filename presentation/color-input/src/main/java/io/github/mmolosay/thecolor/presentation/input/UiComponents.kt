@@ -25,6 +25,7 @@ import io.github.mmolosay.thecolor.utils.consumePendingAsFlow
  */
 internal object UiComponents {
 
+    // TODO: remove me when migration is finished and it is no longer used
     @OptIn(ExperimentalAnimationApi::class)
     @Composable
     fun <T> DataStateCrossfade(
