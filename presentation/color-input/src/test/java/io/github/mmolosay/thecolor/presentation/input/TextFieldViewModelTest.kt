@@ -3,9 +3,9 @@ package io.github.mmolosay.thecolor.presentation.input
 import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
 import io.github.mmolosay.thecolor.domain.utils.PrefState
-import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldViewModel
+import io.github.mmolosay.thecolor.presentation.input.textfield.data
 import io.github.mmolosay.thecolor.presentation.input.textfield.updateText
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -44,7 +44,7 @@ class TextFieldViewModelTest {
             initialText = "initial",
         )
 
-        data.text.data shouldBe Text("initial")
+        sut.data.text.data shouldBe Text("initial")
     }
 
     @Test
@@ -58,7 +58,7 @@ class TextFieldViewModelTest {
             initialText = "initial"
         )
 
-        data.text.data shouldBe Text("initial")
+        sut.data.text.data shouldBe Text("initial")
     }
 
     @Test
@@ -69,7 +69,7 @@ class TextFieldViewModelTest {
 
         sut updateText Text("new")
 
-        data.text.data shouldBe Text("new")
+        sut.data.text.data shouldBe Text("new")
     }
 
     @Test
@@ -80,7 +80,7 @@ class TextFieldViewModelTest {
 
         sut updateText Text("new")
 
-        data.text.causedByUser shouldBe false
+        sut.data.text.causedByUser shouldBe false
     }
 
     @Test
@@ -89,9 +89,9 @@ class TextFieldViewModelTest {
             initialText = "initial",
         )
 
-        data.onTextChange(Text("new"))
+        sut.data.onTextChange(Text("new"))
 
-        data.text.data shouldBe Text("new")
+        sut.data.text.data shouldBe Text("new")
     }
 
     @Test
@@ -100,9 +100,9 @@ class TextFieldViewModelTest {
             initialText = "initial",
         )
 
-        data.onTextChange(Text("new"))
+        sut.data.onTextChange(Text("new"))
 
-        data.text.causedByUser shouldBe true
+        sut.data.text.causedByUser shouldBe true
     }
 
     @Test // ANCHOR:Label=0
@@ -112,7 +112,7 @@ class TextFieldViewModelTest {
             enableClearTextFeature = true,
         )
 
-        data.clearText shouldNotBe null
+        sut.data.clearText shouldNotBe null
     }
 
     @Test // ANCHOR:Label=1
@@ -122,7 +122,7 @@ class TextFieldViewModelTest {
             enableClearTextFeature = true,
         )
 
-        data.clearText shouldNotBe null
+        sut.data.clearText shouldNotBe null
     }
 
     @Test
@@ -133,10 +133,10 @@ class TextFieldViewModelTest {
                 initialText = initialText,
                 enableClearTextFeature = true,
             )
-            val firstClearTextFeature = data.clearText
+            val firstClearTextFeature = sut.data.clearText
 
             sut.updateText(Text(""))
-            val secondClearTextFeature = data.clearText
+            val secondClearTextFeature = sut.data.clearText
 
             firstClearTextFeature shouldBe secondClearTextFeature
         }
@@ -148,7 +148,7 @@ class TextFieldViewModelTest {
             enableClearTextFeature = false,
         )
 
-        data.clearText shouldBe null
+        sut.data.clearText shouldBe null
     }
 
     @Test
@@ -160,7 +160,7 @@ class TextFieldViewModelTest {
 
         sut updateText Text("non-empty text")
 
-        data.clearText shouldBe null
+        sut.data.clearText shouldBe null
     }
 
     @Test
@@ -171,7 +171,7 @@ class TextFieldViewModelTest {
         )
 
         // REFERENCE:Label=0
-        data.clearText.shouldNotBeNull().willBeIdempotent shouldBe true
+        sut.data.clearText.shouldNotBeNull().willBeIdempotent shouldBe true
     }
 
     @Test
@@ -182,7 +182,7 @@ class TextFieldViewModelTest {
         )
 
         // REFERENCE:Label=1
-        data.clearText.shouldNotBeNull().willBeIdempotent shouldBe false
+        sut.data.clearText.shouldNotBeNull().willBeIdempotent shouldBe false
     }
 
     @Test
@@ -192,10 +192,10 @@ class TextFieldViewModelTest {
             enableClearTextFeature = true,
         )
 
-        data.onTextChange(Text(""))
+        sut.data.onTextChange(Text(""))
 
         // REFERENCE:Label=0
-        data.clearText.shouldNotBeNull().willBeIdempotent shouldBe true
+        sut.data.clearText.shouldNotBeNull().willBeIdempotent shouldBe true
     }
 
     @Test
@@ -205,10 +205,10 @@ class TextFieldViewModelTest {
             enableClearTextFeature = true,
         )
 
-        data.onTextChange(Text("non-empty text"))
+        sut.data.onTextChange(Text("non-empty text"))
 
         // REFERENCE:Label=1
-        data.clearText.shouldNotBeNull().willBeIdempotent shouldBe false
+        sut.data.clearText.shouldNotBeNull().willBeIdempotent shouldBe false
     }
 
     @Test
@@ -219,9 +219,9 @@ class TextFieldViewModelTest {
         )
 
         // REFERENCE:Label=1
-        data.clearText.shouldNotBeNull().invoke()
+        sut.data.clearText.shouldNotBeNull().invoke()
 
-        data.text.data shouldBe Text("")
+        sut.data.text.data shouldBe Text("")
     }
 
     @Test
@@ -232,9 +232,9 @@ class TextFieldViewModelTest {
         )
 
         // REFERENCE:Label=1
-        data.clearText.shouldNotBeNull().invoke()
+        sut.data.clearText.shouldNotBeNull().invoke()
 
-        data.text.causedByUser shouldBe true
+        sut.data.text.causedByUser shouldBe true
     }
 
     @Test
@@ -247,7 +247,7 @@ class TextFieldViewModelTest {
             every { userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus } returns flowOfSelectAllTextOnTextFieldFocus
             createSut()
             sut updateText Text("initial")
-            data.shouldSelectAllTextOnFocus shouldBe DefaultUserPreferences.SelectAllTextOnTextFieldFocus.enabled
+            sut.data.shouldSelectAllTextOnFocus shouldBe DefaultUserPreferences.SelectAllTextOnTextFieldFocus.enabled
 
             run {
                 val value = DomainSelectAllTextOnTextFieldFocus(enabled = false)
@@ -255,14 +255,14 @@ class TextFieldViewModelTest {
                 val prefState = PrefState.Ready(result)
                 flowOfSelectAllTextOnTextFieldFocus.emit(prefState)
             }
-            data.shouldSelectAllTextOnFocus shouldBe false
+            sut.data.shouldSelectAllTextOnFocus shouldBe false
             run {
                 val value = DomainSelectAllTextOnTextFieldFocus(enabled = true)
                 val result = PrefState.Result.HasValue(value)
                 val prefState = PrefState.Ready(result)
                 flowOfSelectAllTextOnTextFieldFocus.emit(prefState)
             }
-            data.shouldSelectAllTextOnFocus shouldBe true
+            sut.data.shouldSelectAllTextOnFocus shouldBe true
         }
 
     fun createSut(
@@ -280,7 +280,4 @@ class TextFieldViewModelTest {
         ).also {
             sut = it
         }
-
-    val data: TextFieldData
-        get() = sut.dataFlow.value
 }

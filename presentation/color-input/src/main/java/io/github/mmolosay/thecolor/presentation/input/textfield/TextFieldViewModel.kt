@@ -149,6 +149,9 @@ class TextFieldViewModel @AssistedInject constructor(
     }
 }
 
+val TextFieldViewModel.data: TextFieldData
+    get() = this.dataFlow.value
+
 /**
  * Update text when it comes not from UI or user input.
  */
