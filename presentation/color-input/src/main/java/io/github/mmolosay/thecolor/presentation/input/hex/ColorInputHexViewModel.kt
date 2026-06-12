@@ -31,9 +31,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 
@@ -64,46 +65,22 @@ class ColorInputHexViewModel @AssistedInject constructor(
         enableClearTextFeature = true,
     )
 
-    private val textFieldDerivedFlow: MutableStateFlow<TextFieldDerived> = run {
-        val value = TextFieldDerived(textField = textFieldVm.data)
+    private val stateFlow: MutableStateFlow<State> = run {
+        val value = State(
+            textFieldDerived = TextFieldDerived(textField = textFieldVm.data),
+            submitInputResult = null,
+        )
         MutableStateFlow(value)
     }
-    private val textFieldDerived by textFieldDerivedFlow.asDelegate()
+    private val state by stateFlow.asDelegate()
 
-    private val submitInputResultFlow: MutableStateFlow<ColorInputSubmissionResult?> =
-        MutableStateFlow(null)
-    private val submitInputResult by submitInputResultFlow.asDelegate()
-
-    val dataFlow: StateFlow<ColorInputHexData> =
-        combine(
-            textFieldDerivedFlow,
-            submitInputResultFlow,
-        ) { textFieldDerived, submitInputResult ->
-            ColorInputHexData(textFieldDerived, submitInputResult)
-        }
-            .stateIn(
-                scope = coroutineScope,
-                started = SharingStarted.Eagerly + SharingStarted.WhileSubscribed(5000), // start eagerly to pre-compute first value before UI starts collecting
-                initialValue = ColorInputHexData(textFieldDerived, submitInputResult),
-            )
-
-    private fun ColorInputHexData(
-        textFieldDerived: TextFieldDerived,
-        submitInputResult: ColorInputSubmissionResult?,
-    ): ColorInputHexData {
-        return ColorInputHexData(
-            textField = textFieldDerived.textField,
-            submitInput = ActionWithResult(
-                result = submitInputResult?.let { result ->
-                    AckValue(
-                        value = result,
-                        ack = { submitInputResultFlow.value = null },
-                    )
-                },
-                action = ::submitInput,
-            ),
+    val dataFlow: StateFlow<ColorInputHexData> = stateFlow
+        .map { state -> ColorInputHexData(state) }
+        .stateIn(
+            scope = coroutineScope,
+            started = SharingStarted.Eagerly + SharingStarted.WhileSubscribed(5000), // start eagerly to pre-compute first value before UI starts collecting
+            initialValue = ColorInputHexData(state),
         )
-    }
 
     init {
         collectTextFieldData()
@@ -130,12 +107,15 @@ class ColorInputHexViewModel @AssistedInject constructor(
         coroutineScope.launch(defaultDispatcher) {
             textFieldVm.dataFlow
                 .onEach { textField ->
-                    textFieldDerivedFlow.value = TextFieldDerived(textField)
+                    stateFlow.update {
+                        it.copy(textFieldDerived = TextFieldDerived(textField))
+                    }
                 }
                 .onEach { textField ->
                     // don't synchronize this data with other Views to avoid update loop
                     if (!textField.text.causedByUser) return@onEach
-                    val parsedColor = textFieldDerived.validationResult.getColorOrNull()
+                    check(state.textFieldDerived.textField == textField)
+                    val parsedColor = state.textFieldDerived.validationResult.getColorOrNull()
                     mediator.set(color = parsedColor, source = DomainColorInputType.Hex)
                 }
                 .collect()
@@ -151,15 +131,41 @@ class ColorInputHexViewModel @AssistedInject constructor(
 
     private fun submitInput() {
         val wasAccepted = submitAction.invoke(
-            colorInput = textFieldDerived.colorInput,
-            validationResult = textFieldDerived.validationResult,
+            colorInput = state.textFieldDerived.colorInput,
+            validationResult = state.textFieldDerived.validationResult,
         )
-        submitInputResultFlow.value = ColorInputSubmissionResult(wasAccepted)
+        val result = ColorInputSubmissionResult(wasAccepted)
+        stateFlow.update { it.copy(submitInputResult = result) }
     }
 
     override fun dispose() {
         super.dispose()
         textFieldVm.dispose()
+    }
+
+    /**
+     * A snapshot of all mutable values that are exposed via [ColorInputHexData].
+     */
+    private data class State(
+        val textFieldDerived: TextFieldDerived,
+        val submitInputResult: ColorInputSubmissionResult?,
+    )
+
+    private fun ColorInputHexData(
+        state: State,
+    ): ColorInputHexData {
+        return ColorInputHexData(
+            textField = state.textFieldDerived.textField,
+            submitInput = ActionWithResult(
+                result = state.submitInputResult?.let { result ->
+                    AckValue(
+                        value = result,
+                        ack = { stateFlow.update { it.copy(submitInputResult = null) } },
+                    )
+                },
+                action = ::submitInput,
+            ),
+        )
     }
 
     private fun TextFieldDerived(
