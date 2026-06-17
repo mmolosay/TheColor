@@ -74,15 +74,7 @@ class TextFieldViewModel @AssistedInject constructor(
 
     fun updateText(textWithSource: WithSource<Text>) {
         coroutineScope.launch(defaultDispatcher) {
-            /*
-             * MutableStateFlow.update() is NOT fair. If we:
-             * 1. call MutableStateFlow.update() that will set value to X
-             * 2. call MutableStateFlow.update() that will set value to Y
-             * So may happen that the second update() finishes first, and flow will emit [Y, X]
-             * instead of [X, Y], which is expected according to the order of calling update()s.
-             * We need a mutex (which IS fair) to prevent other coroutines from entering update()
-             * and thus potentially messing up the order of emissions.
-             */
+            // concurrent MutableStateFlow.update() is not fair; a fair Mutex preserves update() order
             dataUpdateMutex.withLock {
                 withContext(uiDataUpdateDispatcher) {
                     _dataFlow.update {
