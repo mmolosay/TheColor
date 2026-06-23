@@ -13,9 +13,13 @@ import java.util.concurrent.CopyOnWriteArrayList
 
 sealed interface CompositionNode<T> {
 
+    val id: Id
     val dataFlow: StateFlow<T>
 
     suspend fun update(function: (current: T) -> T)
+
+    @JvmInline
+    value class Id internal constructor(internal val int: Int)
 }
 
 val <T> CompositionNode<T>.data: T
@@ -23,6 +27,7 @@ val <T> CompositionNode<T>.data: T
 
 internal class CompositionNodeImpl<T>(
     initialValue: T,
+    override val id: CompositionNode.Id,
     private val recompute: (current: T) -> T,
     private val dispatcher: CoroutineDispatcher,
     children: List<CompositionNode<*>>,
@@ -66,15 +71,30 @@ internal class CompositionNodeImpl<T>(
 class CompositionScope(
     val dispatcher: CoroutineDispatcher = Dispatchers.Default.limitedParallelism(1),
 ) {
+    private val nodeRegistry = mutableListOf<CompositionNode<*>>()
+
+    @Synchronized
     fun <T> node(
         initialValue: T,
         recompute: (current: T) -> T = { it },
-        children: List<CompositionNode<*>> = emptyList(),
-    ): CompositionNode<T> =
-        CompositionNodeImpl(
+        children: List<CompositionNode.Id> = emptyList(),
+    ): CompositionNode<T> {
+        val childrenNodes = children.map { childId ->
+            nodeRegistry.first { it.id == childId }
+        }
+        return CompositionNodeImpl(
             initialValue = initialValue,
+            id = CompositionNodeIdFactory.get(),
             recompute = recompute,
             dispatcher = dispatcher,
-            children = children,
-        )
+            children = childrenNodes,
+        ).also {
+            nodeRegistry += it
+        }
+    }
+}
+
+private object CompositionNodeIdFactory {
+    private var nextInt = 0
+    fun get() = CompositionNode.Id(nextInt++)
 }
