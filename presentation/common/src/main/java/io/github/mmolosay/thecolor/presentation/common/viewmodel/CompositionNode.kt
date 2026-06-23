@@ -69,12 +69,12 @@ class CompositionScope(
     fun <T> node(
         initialValue: T,
         recompute: (current: T) -> T = { it },
-        vararg children: CompositionNode<*>,
+        children: List<CompositionNode<*>> = emptyList(),
     ): CompositionNode<T> =
         CompositionNodeImpl(
             initialValue = initialValue,
             recompute = recompute,
             dispatcher = dispatcher,
-            children = children.toList(),
+            children = children,
         )
 }
