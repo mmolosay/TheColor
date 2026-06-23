@@ -8,6 +8,7 @@ import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesReposi
 import io.github.mmolosay.thecolor.domain.utils.filterReady
 import io.github.mmolosay.thecolor.domain.utils.getOrElse
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
+import io.github.mmolosay.thecolor.presentation.common.viewmodel.CompositionScope
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
@@ -46,9 +47,12 @@ class ColorInputGroupViewModel @AssistedInject constructor(
     private val _dataStateFlow = MutableStateFlow<DataState>(DataState.Loading)
     val dataStateFlow = _dataStateFlow.asStateFlow()
 
+    private val compositionScope = CompositionScope() // TODO: inject in constructor
+
     val hexViewModel: ColorInputHexViewModel =
         hexViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
+            compositionScope = compositionScope,
             mediator = mediator,
             submitAction = submitAction,
         )
@@ -56,6 +60,7 @@ class ColorInputGroupViewModel @AssistedInject constructor(
     val rgbViewModel: ColorInputRgbViewModel =
         rgbViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
+            compositionScope = compositionScope,
             mediator = mediator,
             submitAction = submitAction,
         )

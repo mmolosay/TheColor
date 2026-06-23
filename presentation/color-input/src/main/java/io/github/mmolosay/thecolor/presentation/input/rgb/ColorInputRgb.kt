@@ -23,15 +23,15 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.common.compose.thenIf
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.input.UiComponents.DataStateCrossfade
-import io.github.mmolosay.thecolor.presentation.input.UiComponents.ProcessColorSubmissionResultsAsSideEffect
+import io.github.mmolosay.thecolor.presentation.input.UiComponents.ProcessColorSubmissionResultAsSideEffect
 import io.github.mmolosay.thecolor.presentation.input.UiComponents.onBackspace
-import io.github.mmolosay.thecolor.presentation.input.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextField
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldUiStrings
+import io.github.mmolosay.thecolor.utils.NoOpActionWithResult
+import io.github.mmolosay.thecolor.utils.invoke
 
 @Composable
 fun ColorInputRgb(
@@ -39,25 +39,11 @@ fun ColorInputRgb(
 ) {
     val context = LocalContext.current
     val strings = remember(context) { ColorInputRgbUiStrings(context) }
-    val dataState = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
+    val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
 
-    DataStateCrossfade(
-        actualDataState = dataState,
-    ) { state ->
-        when (state) {
-            is DataState.BeingInitialized ->
-                ColorInputRgbLoading()
-            is DataState.Ready -> {
-                ColorInputRgb(
-                    data = state.data,
-                    strings = strings,
-                )
-            }
-        }
-    }
-
-    ProcessColorSubmissionResultsAsSideEffect(
-        resultStore = viewModel.submissionResultStore,
+    ColorInputRgb(
+        data = data,
+        strings = strings,
     )
 }
 
@@ -109,6 +95,10 @@ fun ColorInputRgb(
             enableSmartBackspace = isSmartBackspaceEnabled,
         )
     }
+
+    ProcessColorSubmissionResultAsSideEffect(
+        ackResult = data.submitInput.result,
+    )
 }
 
 /**
@@ -209,7 +199,7 @@ private fun previewData() =
             clearText = null,
             shouldSelectAllTextOnFocus = false,
         ),
-        submitInput = {},
+        submitInput = NoOpActionWithResult(),
         isSmartBackspaceEnabled = true,
     )
 

@@ -264,7 +264,7 @@ private fun previewRgbData() =
             clearText = null,
             shouldSelectAllTextOnFocus = false,
         ),
-        submitInput = {},
+        submitInput = NoOpActionWithResult(),
         isSmartBackspaceEnabled = true,
     )
 

@@ -4,12 +4,13 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
-import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
 import io.github.mmolosay.thecolor.domain.utils.filterReady
 import io.github.mmolosay.thecolor.domain.utils.getOrElse
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.UiDataUpdateDispatcher
+import io.github.mmolosay.thecolor.presentation.common.viewmodel.CompositionNode
+import io.github.mmolosay.thecolor.presentation.common.viewmodel.CompositionScope
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.WithSource
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
@@ -17,14 +18,10 @@ import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Cl
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 
 /**
  * Handles presentation logic of a single text field inside a 'Color Input' feature.
@@ -37,6 +34,7 @@ import kotlinx.coroutines.withContext
 class TextFieldViewModel @AssistedInject constructor(
     @Assisted initialText: String,
     @Assisted coroutineScope: CoroutineScope,
+    @Assisted compositionScope: CompositionScope,
     @Assisted private val filterUserInput: (String) -> Text,
     @Assisted private val enableClearTextFeature: Boolean,
     private val userPreferencesRepository: UserPreferencesRepository,
@@ -44,44 +42,55 @@ class TextFieldViewModel @AssistedInject constructor(
     @UiDataUpdateDispatcher private val uiDataUpdateDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
-    private val dataUpdateMutex = Mutex()
+    private val orderedUpdates = defaultDispatcher.limitedParallelism(1)
     private val clearTextAction: () -> Unit = { updateTextByUser(Text("")) }
 
-    private val _dataFlow: MutableStateFlow<TextFieldData> = run {
-        val textWithSource = Text(initialText) causedByUser false // coerce initial data to be caused by not a user
-        val data = makeInitialData(textWithSource)
-        MutableStateFlow(data)
-    }
-    val dataFlow = _dataFlow.asStateFlow()
+    val compositionNode = compositionScope.node(
+        initialValue = run {
+            val text = Text(initialText)
+            TextFieldData(
+                text = text causedByUser false, // coerce initial data to be caused by not a user,
+                onTextChange = ::updateTextByUser, // the client of this ViewModel is a View, all text changes come from View (user)
+                filterUserInput = filterUserInput,
+                clearText = clearTextFeatureOrNull(text = text),
+                shouldSelectAllTextOnFocus = userPreferencesRepository
+                    .flowOfSelectAllTextOnTextFieldFocus
+                    .value.getOrElse { DefaultUserPreferences.SelectAllTextOnTextFieldFocus }
+                    .enabled,
+            )
+        },
+    )
+    val compositionNodeId: CompositionNode.Id
+        get() = compositionNode.id
+    val dataFlow: StateFlow<TextFieldData>
+        get() = compositionNode.dataFlow
 
     init {
         collectSelectAllTextOnTextFieldFocusPreference()
     }
 
     private fun collectSelectAllTextOnTextFieldFocusPreference() {
-        fun updateData(preference: UserPreferences.SelectAllTextOnTextFieldFocus) {
-            _dataFlow.update {
-                it.copy(shouldSelectAllTextOnFocus = preference.enabled)
-            }
-        }
         coroutineScope.launch(defaultDispatcher) {
             userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus
                 .filterReady()
                 .map { it.result.getOrElse { DefaultUserPreferences.SelectAllTextOnTextFieldFocus } }
-                .collect(::updateData)
+                .collectLatest { preference ->
+                    compositionNode.update {
+                        it.copy(shouldSelectAllTextOnFocus = preference.enabled)
+                    }
+                }
         }
     }
 
     fun updateText(textWithSource: WithSource<Text>) {
-        coroutineScope.launch(defaultDispatcher) {
-            // concurrent MutableStateFlow.update() is not fair; a fair Mutex preserves update() order
-            dataUpdateMutex.withLock {
-                withContext(uiDataUpdateDispatcher) {
-                    _dataFlow.update {
-                        it.smartCopy(textWithSource)
-                    }
-                }
+        // Launching on the confined dispatcher schedules and applies updates in call order,
+        // thus making this method fair
+        coroutineScope.launch(orderedUpdates) {
+//                withContext(uiDataUpdateDispatcher) { // TODO: is still needed? Test rapid text field changes
+            compositionNode.update {
+                it.smartCopy(textWithSource)
             }
+//            }
         }
     }
 
@@ -98,18 +107,6 @@ class TextFieldViewModel @AssistedInject constructor(
             invoke = clearTextAction,
         )
     }
-
-    private fun makeInitialData(text: WithSource<Text>) =
-        TextFieldData(
-            text = text,
-            onTextChange = ::updateTextByUser, // the client of this ViewModel is a View, all text changes come from View (user)
-            filterUserInput = filterUserInput,
-            clearText = clearTextFeatureOrNull(text = text.data),
-            shouldSelectAllTextOnFocus = userPreferencesRepository
-                .flowOfSelectAllTextOnTextFieldFocus
-                .value.getOrElse { DefaultUserPreferences.SelectAllTextOnTextFieldFocus }
-                .enabled,
-        )
 
     /** An implementation of the [ClearTextFeature] that supports meaningful equality check. */
     private data class ClearTextFeatureImpl(
@@ -135,6 +132,7 @@ class TextFieldViewModel @AssistedInject constructor(
         fun create(
             initialText: String = "",
             coroutineScope: CoroutineScope,
+            compositionScope: CompositionScope,
             filterUserInput: (String) -> Text,
             enableClearTextFeature: Boolean,
         ): TextFieldViewModel

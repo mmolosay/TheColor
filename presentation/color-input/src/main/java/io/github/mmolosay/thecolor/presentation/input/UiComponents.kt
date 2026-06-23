@@ -17,8 +17,6 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmissionResult
 import io.github.mmolosay.thecolor.presentation.input.model.DataState
 import io.github.mmolosay.thecolor.utils.AckValue
-import io.github.mmolosay.thecolor.utils.ConsumableStore
-import io.github.mmolosay.thecolor.utils.consumePendingAsFlow
 
 /**
  * Reusable UI components for 'Color Input' Views.
@@ -45,22 +43,6 @@ internal object UiComponents {
             contentKey = { it::class }, // don't animate when 'DataState' type stays the same,
             content = content,
         )
-    }
-
-    // TODO: remove me when migration is finished and it is no longer used
-    @Composable
-    fun ProcessColorSubmissionResultsAsSideEffect(
-        resultStore: ConsumableStore<ColorInputSubmissionResult>,
-    ) {
-        val keyboardController = LocalSoftwareKeyboardController.current
-        LaunchedEffect(resultStore) {
-            resultStore.consumePendingAsFlow process@{ (_, result) ->
-                // color input was rejected, thus user will probably want to correct it and needs keyboard
-                if (result.wasAccepted.not()) return@process
-                // color input was accepted, thus user probably won't change it and doesn't need keyboard
-                keyboardController?.hide()
-            }
-        }
     }
 
     @Composable
