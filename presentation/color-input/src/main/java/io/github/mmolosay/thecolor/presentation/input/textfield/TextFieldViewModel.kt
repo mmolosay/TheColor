@@ -18,6 +18,7 @@ import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Cl
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
@@ -43,14 +44,14 @@ class TextFieldViewModel @AssistedInject constructor(
 ) : SimpleViewModel(coroutineScope) {
 
     private val orderedUpdates = defaultDispatcher.limitedParallelism(1)
-    private val clearTextAction: () -> Unit = { updateTextByUser(Text("")) }
+    private val clearTextAction: () -> Unit = { updateText(Text("") causedByUser true) }
 
     val compositionNode = compositionScope.node(
         initialValue = run {
             val text = Text(initialText)
             TextFieldData(
                 text = text causedByUser false, // coerce initial data to be caused by not a user,
-                onTextChange = ::updateTextByUser, // the client of this ViewModel is a View, all text changes come from View (user)
+                onTextChange = { text -> updateText(text causedByUser false) }, // the client of this ViewModel is a View, all text changes come from View (user)
                 filterUserInput = filterUserInput,
                 clearText = clearTextFeatureOrNull(text = text),
                 shouldSelectAllTextOnFocus = userPreferencesRepository
@@ -82,7 +83,7 @@ class TextFieldViewModel @AssistedInject constructor(
         }
     }
 
-    fun updateText(textWithSource: WithSource<Text>) {
+    fun updateText(textWithSource: WithSource<Text>): Job =
         // Launching on the confined dispatcher schedules and applies updates in call order,
         // thus making this method fair
         coroutineScope.launch(orderedUpdates) {
@@ -90,9 +91,7 @@ class TextFieldViewModel @AssistedInject constructor(
             compositionNode.update {
                 it.smartCopy(textWithSource)
             }
-//            }
         }
-    }
 
     private fun TextFieldData.smartCopy(text: WithSource<Text>) =
         this.copy(
@@ -141,12 +140,3 @@ class TextFieldViewModel @AssistedInject constructor(
 
 val TextFieldViewModel.data: TextFieldData
     get() = this.dataFlow.value
-
-/**
- * Update text when it comes not from UI or user input.
- */
-internal infix fun TextFieldViewModel.updateText(text: Text) =
-    updateText(text causedByUser false)
-
-private fun TextFieldViewModel.updateTextByUser(text: Text) =
-    updateText(text causedByUser true)

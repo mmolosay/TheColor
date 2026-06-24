@@ -10,7 +10,6 @@ import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesReposi
 import io.github.mmolosay.thecolor.domain.utils.filterReady
 import io.github.mmolosay.thecolor.domain.utils.getOrElse
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
-import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.UiDataUpdateDispatcher
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.CompositionNode
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.CompositionScope
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
@@ -22,12 +21,12 @@ import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmissionResult
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputValidationResult
+import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.model.getColorOrNull
 import io.github.mmolosay.thecolor.presentation.input.set
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldViewModel
 import io.github.mmolosay.thecolor.presentation.input.textfield.data
-import io.github.mmolosay.thecolor.presentation.input.textfield.updateText
 import io.github.mmolosay.thecolor.utils.ActionWithResult
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -57,7 +56,6 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     private val colorConverter: ColorConverter,
     private val userPreferencesRepository: UserPreferencesRepository,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
-    @UiDataUpdateDispatcher private val uiDataUpdateDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
     private val rTextFieldVm = createTextFieldViewModel()
@@ -104,7 +102,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     }
 
     private fun collectMediatorUpdates() {
-        coroutineScope.launch(uiDataUpdateDispatcher) {
+        coroutineScope.launch(defaultDispatcher) {
             mediator.colorStateFlow.collect { (color, source) ->
                 // don't update text fields to avoid update loop if the color was set from this 'Color Input' type
                 if (source == DomainColorInputType.Rgb) return@collect
@@ -114,9 +112,18 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                 } else {
                     EmptyColorInput
                 }
-                rTextFieldVm updateText TextFieldData.Text(colorInput.r)
-                gTextFieldVm updateText TextFieldData.Text(colorInput.g)
-                bTextFieldVm updateText TextFieldData.Text(colorInput.b)
+                run {
+                    val textWithSource = TextFieldData.Text(colorInput.r) causedByUser false
+                    rTextFieldVm.updateText(textWithSource)
+                }
+                run {
+                    val textWithSource = TextFieldData.Text(colorInput.g) causedByUser false
+                    gTextFieldVm.updateText(textWithSource)
+                }
+                run {
+                    val textWithSource = TextFieldData.Text(colorInput.b) causedByUser false
+                    bTextFieldVm.updateText(textWithSource)
+                }
             }
         }
     }
