@@ -17,6 +17,7 @@ sealed interface CompositionNode<T> {
     val dataFlow: StateFlow<T>
 
     suspend fun update(function: (current: T) -> T)
+    suspend fun recompute()
 
     @JvmInline
     value class Id internal constructor(internal val int: Int)
@@ -53,6 +54,12 @@ internal class CompositionNodeImpl<T>(
             updateAndNotify(function)
         }
     }
+
+    override suspend fun recompute() =
+        withContext(dispatcher) {
+            ensureActive()
+            updateAndNotify(recompute)
+        }
 
     private fun updateAndNotify(function: (T) -> T) {
         val before = _dataFlow.value
