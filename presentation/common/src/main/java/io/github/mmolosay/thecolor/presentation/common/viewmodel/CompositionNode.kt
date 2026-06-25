@@ -15,6 +15,7 @@ sealed interface CompositionNode<T> {
     val dataFlow: StateFlow<T>
 
     fun update(function: (current: T) -> T)
+    fun batch(function: () -> Unit)
     fun recompute()
 
     @JvmInline
@@ -36,10 +37,13 @@ internal class CompositionNodeImpl<T>(
     override val dataFlow: StateFlow<T> = _dataFlow.asStateFlow()
 
     private val listeners = CopyOnWriteArrayList<OnDataUpdateListener>()
+    private var batchDepth = 0
 
     init {
         val listener = OnDataUpdateListener {
-            updateAndNotify(recompute)
+            if (batchDepth == 0) {
+                updateAndNotify(recompute)
+            }
         }
         for (child in children) {
             (child as CompositionNodeImpl<*>).listeners += listener
@@ -49,6 +53,19 @@ internal class CompositionNodeImpl<T>(
     override fun update(function: (T) -> T) =
         lock.withLock {
             updateAndNotify(function)
+        }
+
+    override fun batch(function: () -> Unit) =
+        lock.withLock {
+            try {
+                batchDepth++
+                function()
+            } finally {
+                batchDepth--
+                if (batchDepth == 0) {
+                    updateAndNotify(recompute)
+                }
+            }
         }
 
     override fun recompute() =
@@ -94,9 +111,6 @@ class CompositionScope(
             nodeRegistry += it
         }
     }
-
-    fun transaction(function: () -> Unit) =
-        lock.withLock(function)
 }
 
 private object CompositionNodeIdFactory {
