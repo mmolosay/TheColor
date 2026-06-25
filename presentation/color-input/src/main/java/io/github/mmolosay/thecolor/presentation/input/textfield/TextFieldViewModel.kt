@@ -51,7 +51,7 @@ class TextFieldViewModel @AssistedInject constructor(
             val text = Text(initialText)
             TextFieldData(
                 text = text causedByUser false, // coerce initial data to be caused by not a user,
-                onTextChange = { text -> updateText(text causedByUser false) }, // the client of this ViewModel is a View, all text changes come from View (user)
+                onTextChange = { text -> updateText(text causedByUser true) }, // the client of this ViewModel is a View, all text changes come from View (user)
                 filterUserInput = filterUserInput,
                 clearText = clearTextFeatureOrNull(text = text),
                 shouldSelectAllTextOnFocus = userPreferencesRepository
