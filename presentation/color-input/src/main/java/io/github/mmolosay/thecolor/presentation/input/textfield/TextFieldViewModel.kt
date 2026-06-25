@@ -8,7 +8,6 @@ import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesReposi
 import io.github.mmolosay.thecolor.domain.utils.filterReady
 import io.github.mmolosay.thecolor.domain.utils.getOrElse
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
-import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.UiDataUpdateDispatcher
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.CompositionNode
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.CompositionScope
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
@@ -40,7 +39,6 @@ class TextFieldViewModel @AssistedInject constructor(
     @Assisted private val enableClearTextFeature: Boolean,
     private val userPreferencesRepository: UserPreferencesRepository,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
-    @UiDataUpdateDispatcher private val uiDataUpdateDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
     private val orderedUpdates = defaultDispatcher.limitedParallelism(1)
@@ -87,7 +85,6 @@ class TextFieldViewModel @AssistedInject constructor(
         // Launching on the confined dispatcher schedules and applies updates in call order,
         // thus making this method fair
         coroutineScope.launch(orderedUpdates) {
-//                withContext(uiDataUpdateDispatcher) { // TODO: is still needed? Test rapid text field changes
             setText(textWithSource)
         }
 

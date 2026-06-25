@@ -15,7 +15,8 @@ import kotlinx.coroutines.flow.merge
  * because it wasn't extensively tested.
  *
  * Will probably be gone once TODO: BasicTextField2 migration
- * is done.
+ * is done:
+ * https://medium.com/androiddevelopers/effective-state-management-for-textfield-in-compose-d6e5b070fbe5
  */
 internal operator fun SharingStarted.plus(other: SharingStarted): SharingStarted =
     SharingStarted { subscriptionCount ->
