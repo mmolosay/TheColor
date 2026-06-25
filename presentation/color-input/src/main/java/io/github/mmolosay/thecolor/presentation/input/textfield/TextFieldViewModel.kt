@@ -88,9 +88,12 @@ class TextFieldViewModel @AssistedInject constructor(
         // thus making this method fair
         coroutineScope.launch(orderedUpdates) {
 //                withContext(uiDataUpdateDispatcher) { // TODO: is still needed? Test rapid text field changes
-            compositionNode.update {
-                it.smartCopy(textWithSource)
-            }
+            setText(textWithSource)
+        }
+
+    suspend fun setText(textWithSource: WithSource<Text>) =
+        compositionNode.update {
+            it.smartCopy(textWithSource)
         }
 
     private fun TextFieldData.smartCopy(text: WithSource<Text>) =

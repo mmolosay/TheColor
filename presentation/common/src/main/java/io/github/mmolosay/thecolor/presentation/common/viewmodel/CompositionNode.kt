@@ -3,6 +3,7 @@ package io.github.mmolosay.thecolor.presentation.common.viewmodel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -10,6 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.withContext
 import java.util.concurrent.CopyOnWriteArrayList
+import kotlin.coroutines.ContinuationInterceptor
 
 sealed interface CompositionNode<T> {
 
@@ -18,6 +20,7 @@ sealed interface CompositionNode<T> {
 
     suspend fun update(function: (current: T) -> T)
     suspend fun recompute()
+    suspend fun batch(function: suspend () -> Unit)
 
     @JvmInline
     value class Id internal constructor(internal val int: Int)
@@ -38,10 +41,13 @@ internal class CompositionNodeImpl<T>(
     override val dataFlow: StateFlow<T> = _dataFlow.asStateFlow()
 
     private val listeners = CopyOnWriteArrayList<OnDataUpdateListener>()
+    private var batchDepth = 0
 
     init {
         val listener = OnDataUpdateListener {
-            updateAndNotify(recompute)
+            if (batchDepth == 0) {
+                updateAndNotify(recompute)
+            }
         }
         for (child in children) {
             (child as CompositionNodeImpl<*>).listeners += listener
@@ -49,17 +55,37 @@ internal class CompositionNodeImpl<T>(
     }
 
     override suspend fun update(function: (T) -> T) {
-        withContext(dispatcher) {
-            ensureActive()
+        confine {
             updateAndNotify(function)
         }
     }
 
     override suspend fun recompute() =
-        withContext(dispatcher) {
-            ensureActive()
+        confine {
             updateAndNotify(recompute)
         }
+
+    override suspend fun batch(function: suspend () -> Unit) =
+        confine {
+            try {
+                batchDepth++
+                function()
+            } finally {
+                batchDepth--
+                if (batchDepth == 0) {
+                    updateAndNotify(recompute)
+                }
+            }
+        }
+
+    private suspend fun confine(block: suspend () -> Unit) {
+        currentCoroutineContext().ensureActive()
+        if (currentCoroutineContext()[ContinuationInterceptor] === dispatcher) {
+            block()
+        } else {
+            withContext(dispatcher) { block() }
+        }
+    }
 
     private fun updateAndNotify(function: (T) -> T) {
         val before = _dataFlow.value

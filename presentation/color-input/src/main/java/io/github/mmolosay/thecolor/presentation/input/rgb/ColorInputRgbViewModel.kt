@@ -112,17 +112,19 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                 } else {
                     EmptyColorInput
                 }
-                run {
-                    val textWithSource = TextFieldData.Text(colorInput.r) causedByUser false
-                    rTextFieldVm.updateText(textWithSource)
-                }
-                run {
-                    val textWithSource = TextFieldData.Text(colorInput.g) causedByUser false
-                    gTextFieldVm.updateText(textWithSource)
-                }
-                run {
-                    val textWithSource = TextFieldData.Text(colorInput.b) causedByUser false
-                    bTextFieldVm.updateText(textWithSource)
+                compositionNode.batch {
+                    run {
+                        val textWithSource = TextFieldData.Text(colorInput.r) causedByUser false
+                        rTextFieldVm.setText(textWithSource)
+                    }
+                    run {
+                        val textWithSource = TextFieldData.Text(colorInput.g) causedByUser false
+                        gTextFieldVm.setText(textWithSource)
+                    }
+                    run {
+                        val textWithSource = TextFieldData.Text(colorInput.b) causedByUser false
+                        bTextFieldVm.setText(textWithSource)
+                    }
                 }
             }
         }
