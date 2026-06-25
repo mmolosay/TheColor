@@ -88,7 +88,7 @@ class TextFieldViewModel @AssistedInject constructor(
             setText(textWithSource)
         }
 
-    suspend fun setText(textWithSource: WithSource<Text>) =
+    fun setText(textWithSource: WithSource<Text>) =
         compositionNode.update {
             it.smartCopy(textWithSource)
         }

@@ -112,7 +112,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                 } else {
                     EmptyColorInput
                 }
-                compositionNode.batch {
+                compositionScope.transaction {
                     run {
                         val textWithSource = TextFieldData.Text(colorInput.r) causedByUser false
                         rTextFieldVm.setText(textWithSource)

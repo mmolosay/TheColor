@@ -1,26 +1,21 @@
 package io.github.mmolosay.thecolor.presentation.common.viewmodel
 
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.updateAndGet
-import kotlinx.coroutines.withContext
 import java.util.concurrent.CopyOnWriteArrayList
-import kotlin.coroutines.ContinuationInterceptor
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 sealed interface CompositionNode<T> {
 
     val id: Id
     val dataFlow: StateFlow<T>
 
-    suspend fun update(function: (current: T) -> T)
-    suspend fun recompute()
-    suspend fun batch(function: suspend () -> Unit)
+    fun update(function: (current: T) -> T)
+    fun recompute()
 
     @JvmInline
     value class Id internal constructor(internal val int: Int)
@@ -33,7 +28,7 @@ internal class CompositionNodeImpl<T>(
     initialValue: T,
     override val id: CompositionNode.Id,
     private val recompute: (current: T) -> T,
-    private val dispatcher: CoroutineDispatcher,
+    private val lock: ReentrantLock,
     children: List<CompositionNode<*>>,
 ) : CompositionNode<T> {
 
@@ -41,51 +36,25 @@ internal class CompositionNodeImpl<T>(
     override val dataFlow: StateFlow<T> = _dataFlow.asStateFlow()
 
     private val listeners = CopyOnWriteArrayList<OnDataUpdateListener>()
-    private var batchDepth = 0
 
     init {
         val listener = OnDataUpdateListener {
-            if (batchDepth == 0) {
-                updateAndNotify(recompute)
-            }
+            updateAndNotify(recompute)
         }
         for (child in children) {
             (child as CompositionNodeImpl<*>).listeners += listener
         }
     }
 
-    override suspend fun update(function: (T) -> T) {
-        confine {
+    override fun update(function: (T) -> T) =
+        lock.withLock {
             updateAndNotify(function)
         }
-    }
 
-    override suspend fun recompute() =
-        confine {
+    override fun recompute() =
+        lock.withLock {
             updateAndNotify(recompute)
         }
-
-    override suspend fun batch(function: suspend () -> Unit) =
-        confine {
-            try {
-                batchDepth++
-                function()
-            } finally {
-                batchDepth--
-                if (batchDepth == 0) {
-                    updateAndNotify(recompute)
-                }
-            }
-        }
-
-    private suspend fun confine(block: suspend () -> Unit) {
-        currentCoroutineContext().ensureActive()
-        if (currentCoroutineContext()[ContinuationInterceptor] === dispatcher) {
-            block()
-        } else {
-            withContext(dispatcher) { block() }
-        }
-    }
 
     private fun updateAndNotify(function: (T) -> T) {
         val before = _dataFlow.value
@@ -102,7 +71,7 @@ internal class CompositionNodeImpl<T>(
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class CompositionScope(
-    val dispatcher: CoroutineDispatcher = Dispatchers.Default.limitedParallelism(1),
+    private val lock: ReentrantLock = ReentrantLock(),
 ) {
     private val nodeRegistry = mutableListOf<CompositionNode<*>>()
 
@@ -119,12 +88,15 @@ class CompositionScope(
             initialValue = initialValue,
             id = CompositionNodeIdFactory.get(),
             recompute = recompute,
-            dispatcher = dispatcher,
+            lock = lock,
             children = childrenNodes,
         ).also {
             nodeRegistry += it
         }
     }
+
+    fun transaction(function: () -> Unit) =
+        lock.withLock(function)
 }
 
 private object CompositionNodeIdFactory {
