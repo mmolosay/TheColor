@@ -17,13 +17,115 @@ import kotlinx.coroutines.withContext
 import kotlin.coroutines.AbstractCoroutineContextElement
 import kotlin.coroutines.CoroutineContext
 
+/**
+ * A reactive, observable handle to a single value [T] within a tree of composable state.
+ *
+ * A `Store` may be the root of a tree or a [focus]ed view onto part of a larger one; callers
+ * cannot distinguish the two and should not depend on which they hold. Every store in a tree
+ * shares one underlying source of truth, so a change made through any store is reflected by
+ * every other store whose value overlaps it.
+ *
+ * ### Consistency
+ * Every value ever exposed by [flow] or returned by [current] is a fully-aggregated, internally
+ * consistent snapshot of the tree. A change originating anywhere in the tree becomes visible as a
+ * single transition; there is no observable intermediate state in which part of the tree has
+ * updated and the rest has not.
+ *
+ * ### Mutual exclusion
+ * Writes across the entire tree are totally ordered: at most one [update] or [transaction] is in
+ * progress at a time, and a write never interleaves with another. Reads ([flow], [current]) are
+ * never blocked by an in-progress write and never observe a partially-applied one.
+ *
+ * Implementations are safe to use from multiple coroutines on any dispatcher.
+ *
+ * @param T the type of value this store exposes.
+ */
 interface Store<T> {
+
+    /**
+     * The current value as an observable stream.
+     *
+     * Always holds a fully-aggregated, consistent snapshot. Emits a new value only when this
+     * store's value actually changes; a change elsewhere in the tree that does not affect this
+     * store's value produces no emission. Collectors observe a glitch-free sequence and never see
+     * a partially-applied change.
+     *
+     * This stream is eventually consistent with respect to writes: immediately after an [update]
+     * or [transaction] completes, it reflects the new value after a brief propagation delay. For an
+     * authoritative, immediate read — in particular the read step of a read-modify-write — use
+     * [current] instead.
+     */
     val flow: StateFlow<T>
 
+    /**
+     * Returns this store's value authoritatively and without delay.
+     *
+     * Outside a [transaction] this is the committed value.
+     * Inside a [transaction] it reflects the changes made so far within that same transaction,
+     * including ones not yet visible to [flow] or to readers outside the transaction.
+     *
+     * Prefer this over [flow]'s value for the read step of a read-modify-write, since it is never
+     * stale with respect to writes already applied in the current context.
+     */
     suspend fun current(): T
+
+    /**
+     * Atomically replaces this store's value with the result of applying [transform] function to it.
+     *
+     * [transform] receives the current value and must return the new one; express changes as a
+     * function of the received value (rather than a value captured earlier) so the update composes
+     * correctly with concurrent writes. The change is published as a single consistent transition.
+     *
+     * When called outside a [transaction], the update is committed on its own and becomes visible
+     * immediately. When called inside a [transaction], it instead contributes to that transaction
+     * and becomes visible only when the transaction completes.
+     *
+     * Runs under the tree's mutual exclusion: it does not interleave with any other write.
+     *
+     * @param transform a pure function mapping a current value to a new one.
+     */
     suspend fun update(transform: (T) -> T)
+
+    /**
+     * Runs [block] as a single atomic, isolated unit of work over the tree, then commits.
+     *
+     * For the duration of the transaction no other write to the tree may begin or commit, so values
+     * read via [current] are stable and every change made by [block] — through this store or any
+     * other store in the tree — is applied together as one consistent transition when [block]
+     * returns. Callers outside the transaction observe none of its intermediate changes, only the
+     * final result.
+     *
+     * Use this to make several changes that must take effect together, or a read-modify-write whose
+     * read must not be invalidated by another writer before the write lands. [block] may suspend;
+     * the isolation holds across suspension points.
+     *
+     * If [block] throws or is canceled, the transaction is abandoned and no change is published;
+     * the tree is left as if the transaction never ran.
+     *
+     * Transactions may be nested: a transaction started while one is already in progress joins the
+     * outer one and commits with it.
+     *
+     * @param block the body of the transaction.
+     * @return the result of [block] execution.
+     */
     suspend fun <R> transaction(block: suspend () -> R): R
 
+    /**
+     * Returns a [Store] onto the part of this store's value selected by [lens].
+     *
+     * The returned store reads and writes the same underlying state through [lens]: reading it
+     * projects this store's value, and updating it writes the change back into this store (and
+     * thus the whole tree). It participates in the same consistency and mutual-exclusion guarantees
+     * and the same [transaction]s as this store.
+     *
+     * Use this to give a component a handle to only its own view of a larger state, without
+     * exposing the rest of the tree.
+     *
+     * @param lens selects the sub-value to expose and defines how to write it back.
+     * @param scope the [CoroutineScope] that bounds the returned store's [flow];
+     * when it is canceled the projection stops.
+     * @param V the type of the focused sub-value.
+     */
     fun <V> focus(lens: Lens<T, V>, scope: CoroutineScope): Store<V>
 }
 
