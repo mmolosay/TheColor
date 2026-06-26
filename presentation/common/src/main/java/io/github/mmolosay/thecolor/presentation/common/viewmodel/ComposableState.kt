@@ -49,23 +49,14 @@ private class CompoundLens<A, B, C>(
 /**
  * A single source of truth for one composition tree.
  */
-class Store<T> private constructor() {
+class Store<T> private constructor(initial: T) {
 
-    private var _state: MutableStateFlow<T>? = null
-    val state: StateFlow<T>
-        get() = primed().asStateFlow() // TODO: is creating a new instance every time OK?
-
-    private fun primed(): MutableStateFlow<T> =
-        checkNotNull(_state) { "Store can't be used before it is primed" }
+    private val _state = MutableStateFlow(initial)
+    val state: StateFlow<T> = _state.asStateFlow()
 
     private val writeMutex = Mutex()
     private var working: Maybe<T> = Maybe.None
     private val txId = Any()
-
-    fun prime(initial: T) {
-        check(_state == null) { "Store is already primed" }
-        _state = MutableStateFlow(initial)
-    }
 
     /**
      * Authoritative read: working copy inside a transaction, else committed.
@@ -74,7 +65,7 @@ class Store<T> private constructor() {
         if (inMyTransaction()) {
             working.requireValue()
         } else {
-            primed().value
+            _state.value
         }
 
     /**
@@ -87,7 +78,7 @@ class Store<T> private constructor() {
             working = Maybe.Some(newValue)
         } else {
             writeMutex.withLock {
-                primed().update(transform)
+                _state.update(transform)
             }
         }
 
@@ -102,13 +93,13 @@ class Store<T> private constructor() {
             block()
         } else {
             writeMutex.withLock {
-                working = Maybe.Some(primed().value)
+                working = Maybe.Some(_state.value)
                 try {
                     val newTxMarker = TxMarker(txId)
                     val result = withContext(newTxMarker) {
                         block()
                     }
-                    primed().value = working.requireValue()
+                    _state.value = working.requireValue()
                     return@withLock result
                 } finally {
                     working = Maybe.None
@@ -155,11 +146,10 @@ private class StateHostImpl<S, T>(
     private val scope: CoroutineScope,
 ) : StateHost<T> {
 
-    override val state: StateFlow<T> by lazy {
+    override val state: StateFlow<T> =
         store.state
             .map { lens.get(it) }
             .stateIn(scope, SharingStarted.Eagerly, lens.get(store.state.value))
-    }
 
     override suspend fun current(): T =
         lens.get(source = store.snapshot())
