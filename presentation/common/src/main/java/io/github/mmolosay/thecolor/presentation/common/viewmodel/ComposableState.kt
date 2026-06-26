@@ -164,10 +164,10 @@ private class StateHostImpl<S, T>(
     override suspend fun <R> transaction(block: suspend () -> R): R =
         store.transaction(block)
 
-    override fun <S> sub(
-        inner: Lens<T, S>,
+    override fun <V> sub(
+        inner: Lens<T, V>,
         scope: CoroutineScope,
-    ): StateHost<S> =
+    ): StateHost<V> =
         StateHostImpl(
             store = store,
             lens = lens.then(inner),
