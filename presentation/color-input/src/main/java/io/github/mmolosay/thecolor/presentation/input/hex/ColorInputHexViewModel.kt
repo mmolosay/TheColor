@@ -5,9 +5,9 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.color.ColorConverter
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
-import io.github.mmolosay.thecolor.presentation.common.viewmodel.CompositionNode
-import io.github.mmolosay.thecolor.presentation.common.viewmodel.CompositionScope
+import io.github.mmolosay.thecolor.presentation.common.viewmodel.Lens
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
+import io.github.mmolosay.thecolor.presentation.common.viewmodel.StateHost
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMapper
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
@@ -21,7 +21,6 @@ import io.github.mmolosay.thecolor.presentation.input.model.getColorOrNull
 import io.github.mmolosay.thecolor.presentation.input.set
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldViewModel
-import io.github.mmolosay.thecolor.presentation.input.textfield.data
 import io.github.mmolosay.thecolor.utils.ActionWithResult
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -40,7 +39,7 @@ import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInp
  */
 class ColorInputHexViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted compositionScope: CompositionScope,
+    @Assisted private val stateHost: StateHost<ColorInputHexData?>,
     @Assisted private val mediator: ColorInputMediator,
     @Assisted private val submitAction: ColorInputSubmitAction,
     textFieldViewModelFactory: TextFieldViewModel.Factory,
@@ -50,41 +49,42 @@ class ColorInputHexViewModel @AssistedInject constructor(
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
-    private val textFieldVm = textFieldViewModelFactory.create(
-        // TODO: pass current color from the mediator as "initialText"?
-        coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
-        compositionScope = compositionScope,
-        filterUserInput = ::filterUserInput,
-        enableClearTextFeature = true,
-    )
+    private val orderedUpdates = defaultDispatcher.limitedParallelism(1)
 
-    private val compositionNode = compositionScope.node(
-        initialValue = run {
-            ColorInputHexData(
-                textField = textFieldVm.data,
-                submitInput = ActionWithResult(
-                    result = null,
-                    action = ::submitInput,
+    private val textFieldVm = run {
+        val coroutineScope = ViewModelCoroutineScope(parent = coroutineScope)
+        textFieldViewModelFactory.create(
+            // TODO: pass current color from the mediator as "initialText"?
+            coroutineScope = coroutineScope,
+            stateHost = stateHost.sub(
+                inner = Lens(
+                    get = { s -> s?.textField },
+                    set = { s, v -> s?.copy(textField = v) },
                 ),
-            )
-        },
-        recompute = { current ->
-            val textField = textFieldVm.data
-            current.copy(
-                textField = textField,
-            )
-        },
-        children = listOf(textFieldVm.compositionNodeId),
-    )
-    val compositionNodeId: CompositionNode.Id
-        get() = compositionNode.id
-    val dataFlow: StateFlow<ColorInputHexData>
-        get() = compositionNode.dataFlow
+                scope = coroutineScope,
+            ),
+            filterUserInput = ::filterUserInput,
+            enableClearTextFeature = true,
+        )
+    }
+
+    val dataFlow: StateFlow<ColorInputHexData?> = stateHost.state
 
     init {
         collectMediatorUpdates()
         collectTextFieldData()
     }
+
+    fun initialData() =
+        ColorInputHexData(
+            textField = textFieldVm.initialData(
+                textWithSource = TextFieldData.Text("") causedByUser false,
+            ),
+            submitInput = ActionWithResult(
+                result = null,
+                action = ::submitInput,
+            ),
+        )
 
     private fun collectMediatorUpdates() {
         coroutineScope.launch(defaultDispatcher) {
@@ -108,6 +108,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
     private fun collectTextFieldData() {
         coroutineScope.launch(defaultDispatcher) {
             textFieldVm.dataFlow.collectLatest collect@{ textField ->
+                textField ?: return@collect
                 // don't synchronize this data with other Views to avoid update loop
                 if (!textField.text.causedByUser) return@collect
                 val parsedColor = TextFieldDerived(textField).validationResult.getColorOrNull()
@@ -124,15 +125,16 @@ class ColorInputHexViewModel @AssistedInject constructor(
             .let { TextFieldData.Text(it) }
 
     private fun submitInput() {
-        val derived = TextFieldDerived(textFieldVm.data)
-        val wasAccepted = submitAction.invoke(
-            colorInput = derived.colorInput,
-            validationResult = derived.validationResult,
-        )
-        val result = ColorInputSubmissionResult(wasAccepted)
-        coroutineScope.launch {
-            compositionNode.update {
-                it.copy(
+        coroutineScope.launch(orderedUpdates) {
+            val textField = stateHost.current()?.textField ?: return@launch
+            val derived = TextFieldDerived(textField)
+            val wasAccepted = submitAction.invoke(
+                colorInput = derived.colorInput,
+                validationResult = derived.validationResult,
+            )
+            val result = ColorInputSubmissionResult(wasAccepted)
+            stateHost.update {
+                it?.copy(
                     submitInput = ActionWithResult(
                         result = result,
                         resultAck = ::clearSubmitInputResult,
@@ -144,11 +146,10 @@ class ColorInputHexViewModel @AssistedInject constructor(
     }
 
     private fun clearSubmitInputResult() {
-        coroutineScope.launch {
-            compositionNode.update {
-                it.copy(
-                    submitInput = it.submitInput.copy(result = null),
-                )
+        coroutineScope.launch(orderedUpdates) {
+            stateHost.update {
+                it ?: return@update it
+                it.copy(submitInput = it.submitInput.copy(result = null))
             }
         }
     }
@@ -174,7 +175,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            compositionScope: CompositionScope,
+            stateHost: StateHost<ColorInputHexData?>,
             mediator: ColorInputMediator,
             submitAction: ColorInputSubmitAction,
         ): ColorInputHexViewModel

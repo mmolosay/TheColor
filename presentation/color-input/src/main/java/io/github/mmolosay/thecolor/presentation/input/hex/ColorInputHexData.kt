@@ -8,6 +8,6 @@ import io.github.mmolosay.thecolor.utils.ActionWithResult
  * Platform-agnostic data provided by ViewModel to 'HEX Color Input' View.
  */
 data class ColorInputHexData(
-    val textField: TextFieldData,
+    val textField: TextFieldData?,
     val submitInput: ActionWithResult<ColorInputSubmissionResult>,
 )
