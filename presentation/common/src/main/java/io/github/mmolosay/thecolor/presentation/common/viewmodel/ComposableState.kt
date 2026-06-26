@@ -17,33 +17,40 @@ import kotlinx.coroutines.withContext
 import kotlin.coroutines.AbstractCoroutineContextElement
 import kotlin.coroutines.CoroutineContext
 
+interface Store<T> {
+    val flow: StateFlow<T>
+
+    suspend fun current(): T
+    suspend fun update(transform: (T) -> T)
+    suspend fun <R> transaction(block: suspend () -> R): R
+
+    fun <V> focus(lens: Lens<T, V>, scope: CoroutineScope): Store<V>
+}
+
+fun <T> Store(initial: T): Store<T> =
+    RootStore(initial)
+
 /**
  * A single source of truth for one composition tree.
  */
-class Store<T> private constructor(initial: T) {
+private class RootStore<T>(initial: T) : Store<T> {
 
     private val _flow = MutableStateFlow(initial)
-    val flow: StateFlow<T> = _flow.asStateFlow()
+    override val flow: StateFlow<T> = _flow.asStateFlow()
 
     private val writeMutex = Mutex()
     private var working: Maybe<T> = Maybe.None
     private val txId = Any()
 
-    /**
-     * Authoritative read: working copy inside a transaction, else committed.
-     */
-    internal suspend fun snapshot(): T =
-        if (inMyTransaction()) {
+    override suspend fun current(): T =
+        if (inTransaction()) {
             working.requireValue()
         } else {
             _flow.value
         }
 
-    /**
-     * Fold into the active transaction, or commit atomically.
-     */
-    internal suspend fun submit(transform: (T) -> T) =
-        if (inMyTransaction()) {
+    override suspend fun update(transform: (T) -> T) =
+        if (inTransaction()) {
             val value = working.requireValue()
             val newValue = transform(value)
             working = Maybe.Some(newValue)
@@ -53,14 +60,8 @@ class Store<T> private constructor(initial: T) {
             }
         }
 
-    /**
-     * Serializable transaction: the write lock is held for the entire block
-     * (including suspending I/O inside it), and everything touched commits as
-     * one emission at the end. Nested transactions on this store join the outer
-     * one (no re-lock), so the non-reentrant Mutex never deadlocks.
-     */
-    internal suspend fun <R> transaction(block: suspend () -> R): R =
-        if (inMyTransaction()) {
+    override suspend fun <R> transaction(block: suspend () -> R): R =
+        if (inTransaction()) {
             block()
         } else {
             writeMutex.withLock {
@@ -78,70 +79,57 @@ class Store<T> private constructor(initial: T) {
             }
         }
 
+    override fun <V> focus(
+        lens: Lens<T, V>,
+        scope: CoroutineScope,
+    ): Store<V> =
+        StoreView(
+            store = this,
+            lens = lens,
+            scope = scope,
+        )
+
     private class TxMarker(val id: Any) : AbstractCoroutineContextElement(Key) {
         companion object Key : CoroutineContext.Key<TxMarker>
     }
 
-    private suspend fun inMyTransaction(): Boolean {
+    private suspend fun inTransaction(): Boolean {
         val txMarker = currentCoroutineContext()[TxMarker.Key] ?: return false
         return (txMarker.id === txId)
     }
 }
 
-fun <T> Store<T>.rootFocus(
+private class StoreView<Source, T>(
+    private val store: Store<Source>,
+    private val lens: Lens<Source, T>,
     scope: CoroutineScope,
-): Focus<T> {
-    return FocusImpl(
-        store = this,
-        lens = Lens(
-            get = { s -> s },
-            set = { s, v -> v },
-        ),
-        scope = scope,
-    )
-}
+) : Store<T> {
 
-interface Focus<T> {
-    val state: StateFlow<T>
-
-    suspend fun current(): T
-    suspend fun update(transform: (T) -> T)
-    suspend fun <R> transaction(block: suspend () -> R): R
-
-    fun <S> child(lens: Lens<T, S>, scope: CoroutineScope): Focus<S>
-}
-
-private class FocusImpl<S, T>(
-    private val store: Store<S>,
-    private val lens: Lens<S, T>,
-    private val scope: CoroutineScope,
-) : Focus<T> {
-
-    override val state: StateFlow<T> =
+    override val flow: StateFlow<T> =
         store.flow
             .map { lens.get(it) }
             .stateIn(scope, SharingStarted.Eagerly, lens.get(store.flow.value))
 
     override suspend fun current(): T =
-        lens.get(source = store.snapshot())
+        lens.get(source = store.current())
 
     override suspend fun update(transform: (T) -> T) =
-        store.submit { root ->
-            val value = lens.get(root)
+        store.update { current ->
+            val value = lens.get(current)
             val newValue = transform(value)
-            lens.set(root, newValue)
+            lens.set(current, newValue)
         }
 
     override suspend fun <R> transaction(block: suspend () -> R): R =
         store.transaction(block)
 
-    override fun <V> child(
+    override fun <V> focus(
         lens: Lens<T, V>,
         scope: CoroutineScope,
-    ): Focus<V> =
-        FocusImpl(
-            store = store,
-            lens = this.lens then lens,
+    ): Store<V> =
+        StoreView(
+            store = this,
+            lens = lens,
             scope = scope,
         )
 }
