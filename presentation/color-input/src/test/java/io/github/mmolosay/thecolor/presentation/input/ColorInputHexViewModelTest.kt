@@ -202,12 +202,12 @@ class ColorInputHexViewModelTest {
             every { submitAction.invoke(colorInput = colorAsColorInput, validationResult = any()) } returns true
             createSut()
 
-            sut.data.submitInput()
+            sut.data.inputSubmissionResult()
 
             coVerify(exactly = 1) {
                 submitAction.invoke(colorInput = colorAsColorInput, validationResult = any())
             }
-            val ackResult = sut.data.submitInput.result.shouldNotBeNull()
+            val ackResult = sut.data.inputSubmissionResult.result.shouldNotBeNull()
             ackResult.value.wasAccepted shouldBe true
         }
 
@@ -233,11 +233,11 @@ class ColorInputHexViewModelTest {
             every { submitAction.invoke(colorInput = colorAsColorInput, validationResult = any()) } returns true
             createSut()
 
-            sut.data.submitInput()
-            val ackResult = sut.data.submitInput.result.shouldNotBeNull() // REFERENCE:Label=0
+            sut.data.inputSubmissionResult()
+            val ackResult = sut.data.inputSubmissionResult.result.shouldNotBeNull() // REFERENCE:Label=0
             ackResult.ack()
 
-            sut.data.submitInput.result shouldBe null
+            sut.data.inputSubmissionResult.result shouldBe null
         }
 
     @ParameterizedTest

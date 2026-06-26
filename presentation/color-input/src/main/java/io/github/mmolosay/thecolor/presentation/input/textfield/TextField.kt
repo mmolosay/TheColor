@@ -24,7 +24,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,12 +31,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
-import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.NoOpClearTextFeature
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
+import androidx.compose.ui.text.input.TextFieldValue as MaterialTextFieldValue
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 /**
@@ -48,8 +46,9 @@ import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 internal fun TextField(
     data: TextFieldData,
     strings: TextFieldUiStrings,
-    value: TextFieldValue,
-    onValueChange: (TextFieldValue) -> Unit,
+    execute: (TextFieldAction) -> Unit,
+    value: MaterialTextFieldValue,
+    onValueChange: (MaterialTextFieldValue) -> Unit,
     keyboardOptions: KeyboardOptions,
     keyboardActions: KeyboardActions,
     modifier: Modifier = Modifier,
@@ -70,10 +69,11 @@ internal fun TextField(
             val current = value
             if (current.text != new.text) {
                 // can't just pass new.text to ViewModel for filtering: TextFieldValue.selection will be lost
-                val filteredText = data.filterUserInput(new.text)
-                val filteredValue = new.copy(text = filteredText.string)
-                onValueChange(filteredValue)
-                data.onTextChange(filteredText)
+                val newInput = new.text
+                val newText = data.inputProcessor(newInput)
+                val newValue = new.copy(text = newText.string)
+                onValueChange(newValue)
+                execute(TextFieldAction.SetText(newText))
             } else {
                 onValueChange(new)
             }
@@ -82,8 +82,10 @@ internal fun TextField(
         label = { Label(text = strings.label) },
         placeholder = { Placeholder(text = strings.placeholder) },
         trailingIcon = icon@{
-            TrailingButton(
-                feature = data.clearText ?: return@icon,
+            if (!data.isClearTextFeatureEnabled) return@icon
+            ClearTextTrailingButton(
+                visible = value.text.isNotEmpty(),
+                onClick = { execute(TextFieldAction.ClearText) },
                 iconContentDesc = strings.trailingIconContentDesc ?: return@icon,
             )
         },
@@ -95,7 +97,7 @@ internal fun TextField(
         singleLine = true,
         interactionSource = interactionSource,
     )
-    // for when text is cleared with trailing button or set programmatically
+    // for when text is changed programmatically
     LaunchedEffect(data.text) {
         @Suppress("UnnecessaryVariable")
         val oldValue = value
@@ -131,19 +133,19 @@ private fun Placeholder(text: String) =
     )
 
 @Composable
-private fun TrailingButton(
-    feature: TextFieldData.ClearTextFeature,
+private fun ClearTextTrailingButton(
+    visible: Boolean,
+    onClick: () -> Unit,
     iconContentDesc: String,
 ) {
-    val updatedFeature by rememberUpdatedState(feature)
     val resizingAlignment = Alignment.Center
     AnimatedVisibility(
-        visible = !feature.willBeIdempotent,
+        visible = visible,
         enter = fadeIn() + expandIn(expandFrom = resizingAlignment),
         exit = fadeOut() + shrinkOut(shrinkTowards = resizingAlignment),
     ) {
         IconButton(
-            onClick = { updatedFeature.invoke() }, // skip recomposition by creating a lambda that captures the same State object instead of changing feature
+            onClick = onClick,
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(DesignR.drawable.ic_cross),
@@ -162,8 +164,8 @@ private fun Prefix(text: String) =
 @Composable
 private fun SelectAllTextOnFocusAsSideEffect(
     interactionSource: InteractionSource,
-    value: TextFieldValue,
-    onValueChange: (TextFieldValue) -> Unit,
+    value: MaterialTextFieldValue,
+    onValueChange: (MaterialTextFieldValue) -> Unit,
 ) {
     val isFocused by interactionSource.collectIsFocusedAsState()
     LaunchedEffect(isFocused) {
@@ -186,15 +188,14 @@ private fun Preview() {
         Surface {
             var text by remember { mutableStateOf(Text("1801FF")) }
             var value by remember {
-                mutableStateOf(TextFieldValue(text = text.string))
+                mutableStateOf(MaterialTextFieldValue(text = text.string))
             }
             TextField(
                 data = TextFieldData(
                     text = text causedByUser false,
-                    onTextChange = { newText -> text = newText },
-                    filterUserInput = { Text(it) },
-                    clearText = NoOpClearTextFeature,
+                    inputProcessor = { Text(it) },
                     shouldSelectAllTextOnFocus = true,
+                    isClearTextFeatureEnabled = true,
                 ),
                 strings = TextFieldUiStrings(
                     label = "HEX",
@@ -202,6 +203,7 @@ private fun Preview() {
                     prefix = "#",
                     trailingIconContentDesc = "Clear text field",
                 ),
+                execute = {},
                 value = value,
                 onValueChange = { newValue -> value = newValue },
                 keyboardOptions = KeyboardOptions.Default,

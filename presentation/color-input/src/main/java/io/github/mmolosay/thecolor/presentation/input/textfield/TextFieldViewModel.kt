@@ -8,19 +8,18 @@ import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesReposi
 import io.github.mmolosay.thecolor.domain.utils.filterReady
 import io.github.mmolosay.thecolor.domain.utils.getOrElse
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
-import io.github.mmolosay.thecolor.presentation.common.viewmodel.Focus
+import io.github.mmolosay.thecolor.presentation.common.viewmodel.RequiresWriteOrdering
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
+import io.github.mmolosay.thecolor.presentation.common.viewmodel.Store
 import io.github.mmolosay.thecolor.presentation.input.model.WithSource
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
-import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.ClearTextFeature
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /**
  * Handles presentation logic of a single text field inside a 'Color Input' feature.
@@ -32,35 +31,16 @@ import kotlinx.coroutines.launch
  */
 class TextFieldViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted private val focus: Focus<TextFieldData?>,
-    @Assisted private val filterUserInput: (String) -> Text,
-    @Assisted private val enableClearTextFeature: Boolean,
+    @Assisted private val store: Store<TextFieldData>,
     private val userPreferencesRepository: UserPreferencesRepository,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
     private val orderedUpdates = defaultDispatcher.limitedParallelism(1)
-    private val clearTextAction: () -> Unit = { updateText(Text("") causedByUser true) }
-
-    val dataFlow: StateFlow<TextFieldData?> = focus.state
 
     init {
         collectSelectAllTextOnTextFieldFocusPreference()
     }
-
-    fun initialData(
-        textWithSource: WithSource<Text>,
-    ) =
-        TextFieldData(
-            text = textWithSource,
-            onTextChange = { text -> updateText(text causedByUser true) }, // the client of this ViewModel is a View, all text changes come from View (user)
-            filterUserInput = filterUserInput,
-            clearText = clearTextFeatureOrNull(text = textWithSource.data),
-            shouldSelectAllTextOnFocus = userPreferencesRepository
-                .flowOfSelectAllTextOnTextFieldFocus
-                .value.getOrElse { DefaultUserPreferences.SelectAllTextOnTextFieldFocus }
-                .enabled,
-        )
 
     private fun collectSelectAllTextOnTextFieldFocusPreference() {
         coroutineScope.launch(defaultDispatcher) {
@@ -68,55 +48,61 @@ class TextFieldViewModel @AssistedInject constructor(
                 .filterReady()
                 .map { it.result.getOrElse { DefaultUserPreferences.SelectAllTextOnTextFieldFocus } }
                 .collectLatest { preference ->
-                    focus.update {
-                        it?.copy(shouldSelectAllTextOnFocus = preference.enabled)
+                    store.update {
+                        it.copy(shouldSelectAllTextOnFocus = preference.enabled)
                     }
                 }
         }
     }
 
-    fun updateText(textWithSource: WithSource<Text>): Job =
-        // Launching on the confined dispatcher schedules and applies updates in call order,
-        // thus making this method fair
+    fun execute(action: TextFieldAction) {
+        @OptIn(RequiresWriteOrdering::class)
         coroutineScope.launch(orderedUpdates) {
-            focus.update {
-                it?.smartCopy(textWithSource)
+            when (action) {
+                is TextFieldAction.SetText -> {
+                    setText(action.newText causedByUser true)
+                }
+                is TextFieldAction.ClearText -> {
+                    val isFeatureEnabled = store.current().isClearTextFeatureEnabled
+                    if (isFeatureEnabled) {
+                        setText(Text("") causedByUser true)
+                    }
+                }
             }
         }
-
-    private fun TextFieldData.smartCopy(text: WithSource<Text>) =
-        this.copy(
-            text = text,
-            clearText = clearTextFeatureOrNull(text = text.data),
-        )
-
-    private fun clearTextFeatureOrNull(text: Text): ClearTextFeature? {
-        if (!enableClearTextFeature) return null
-        return ClearTextFeatureImpl(
-            willBeIdempotent = text.string.isEmpty(),
-            invoke = clearTextAction,
-        )
     }
 
-    /** An implementation of the [ClearTextFeature] that supports meaningful equality check. */
-    private data class ClearTextFeatureImpl(
-        override val willBeIdempotent: Boolean,
-        private val invoke: () -> Unit,
-    ) : ClearTextFeature {
-        override fun invoke() = this.invoke.invoke()
-    }
+    /** For ordinary UI-driven edits, use [TextFieldAction.SetText]. */
+    @RequiresWriteOrdering
+    suspend fun setText(textWithSource: WithSource<Text>) =
+        store.update {
+            it.copy(text = textWithSource)
+        }
 
     @AssistedFactory
     fun interface Factory {
-
         fun create(
             coroutineScope: CoroutineScope,
-            focus: Focus<TextFieldData?>,
-            filterUserInput: (String) -> Text,
-            enableClearTextFeature: Boolean,
+            store: Store<TextFieldData>,
         ): TextFieldViewModel
     }
 }
 
-val TextFieldViewModel.data: TextFieldData?
-    get() = this.dataFlow.value
+class TextFieldDataFactory @Inject constructor(
+    private val userPreferencesRepository: UserPreferencesRepository,
+) {
+    fun create(
+        text: WithSource<Text> = Text("") causedByUser false, // TODO: pass current color from the mediator as "initialText"?
+        inputProcessor: TextFieldInputProcessor,
+        isClearTextFeatureEnabled: Boolean,
+    ): TextFieldData =
+        TextFieldData(
+            text = text,
+            inputProcessor = inputProcessor,
+            shouldSelectAllTextOnFocus = userPreferencesRepository
+                .flowOfSelectAllTextOnTextFieldFocus
+                .value.getOrElse { DefaultUserPreferences.SelectAllTextOnTextFieldFocus }
+                .enabled,
+            isClearTextFeatureEnabled = isClearTextFeatureEnabled,
+        )
+}

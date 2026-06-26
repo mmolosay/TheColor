@@ -8,13 +8,15 @@ import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesReposi
 import io.github.mmolosay.thecolor.domain.utils.filterReady
 import io.github.mmolosay.thecolor.domain.utils.getOrElse
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
-import io.github.mmolosay.thecolor.presentation.common.viewmodel.CompositionScope
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
+import io.github.mmolosay.thecolor.presentation.common.viewmodel.Store
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
+import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexDataFactory
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexViewModel
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
+import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbDataFactory
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -41,26 +43,34 @@ class ColorInputGroupViewModel @AssistedInject constructor(
     rgbViewModelFactory: ColorInputRgbViewModel.Factory,
     hsvViewModelFactory: ColorInputHsvViewModel.Factory,
     private val userPreferencesRepository: UserPreferencesRepository,
+    private val colorInputHexDataFactory: ColorInputHexDataFactory,
+    private val colorInputRgbDataFactory: ColorInputRgbDataFactory,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
     private val _dataStateFlow = MutableStateFlow<DataState>(DataState.Loading)
     val dataStateFlow = _dataStateFlow.asStateFlow()
 
-    private val compositionScope = CompositionScope() // TODO: inject in constructor
-
+    private val hexStore = run {
+        val value = colorInputHexDataFactory.create()
+        Store(value)
+    }
     val hexViewModel: ColorInputHexViewModel =
         hexViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
-            compositionScope = compositionScope,
+            store = hexStore,
             mediator = mediator,
             submitAction = submitAction,
         )
 
+    private val rgbStore = run {
+        val value = colorInputRgbDataFactory.create()
+        Store(value)
+    }
     val rgbViewModel: ColorInputRgbViewModel =
         rgbViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
-            compositionScope = compositionScope,
+            store = rgbStore,
             mediator = mediator,
             submitAction = submitAction,
         )

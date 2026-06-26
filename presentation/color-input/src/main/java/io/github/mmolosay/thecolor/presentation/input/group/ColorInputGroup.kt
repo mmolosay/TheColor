@@ -44,7 +44,6 @@ import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbData
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbUiStrings
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldUiStrings
-import io.github.mmolosay.thecolor.utils.NoOpActionWithResult
 import io.github.mmolosay.thecolor.utils.doNothing
 import io.github.mmolosay.thecolor.domain.color.Color as DomainColor
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
@@ -184,12 +183,14 @@ private fun Preview() {
                     ColorInputHex(
                         data = previewHexData(),
                         strings = previewHexUiStrings(),
+                        execute = {},
                     )
                 },
                 rgbInput = {
                     ColorInputRgb(
                         data = previewRgbData(),
                         strings = previewRgbUiStrings(),
+                        execute = {},
                     )
                 },
                 hsvInput = {
@@ -223,12 +224,11 @@ private fun previewHexData() =
     ColorInputHexData(
         textField = TextFieldData(
             text = TextFieldData.Text("") causedByUser false,
-            onTextChange = {},
-            filterUserInput = { TextFieldData.Text(it) },
-            clearText = TextFieldData.NoOpClearTextFeature,
+            inputProcessor = { TextFieldData.Text(it) },
             shouldSelectAllTextOnFocus = false,
+            isClearTextFeatureEnabled = true,
         ),
-        submitInput = NoOpActionWithResult(),
+        inputSubmissionResult = null,
     )
 
 private fun previewHexUiStrings() =
@@ -245,26 +245,23 @@ private fun previewRgbData() =
     ColorInputRgbData(
         rTextField = TextFieldData(
             text = TextFieldData.Text("") causedByUser false,
-            onTextChange = {},
-            filterUserInput = { TextFieldData.Text(it) },
-            clearText = null,
+            inputProcessor = { TextFieldData.Text(it) },
             shouldSelectAllTextOnFocus = false,
+            isClearTextFeatureEnabled = false,
         ),
         gTextField = TextFieldData(
             text = TextFieldData.Text("") causedByUser false,
-            onTextChange = {},
-            filterUserInput = { TextFieldData.Text(it) },
-            clearText = null,
+            inputProcessor = { TextFieldData.Text(it) },
             shouldSelectAllTextOnFocus = false,
+            isClearTextFeatureEnabled = false,
         ),
         bTextField = TextFieldData(
             text = TextFieldData.Text("") causedByUser false,
-            onTextChange = {},
-            filterUserInput = { TextFieldData.Text(it) },
-            clearText = null,
+            inputProcessor = { TextFieldData.Text(it) },
             shouldSelectAllTextOnFocus = false,
+            isClearTextFeatureEnabled = false,
         ),
-        submitInput = NoOpActionWithResult(),
+        inputSubmissionResult = null,
         isSmartBackspaceEnabled = true,
     )
 

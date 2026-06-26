@@ -27,11 +27,10 @@ import io.github.mmolosay.thecolor.presentation.input.UiComponents.ProcessColorS
 import io.github.mmolosay.thecolor.presentation.input.UiComponents.onBackspace
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextField
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldAction
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldUiStrings
-import io.github.mmolosay.thecolor.utils.NoOpActionWithResult
-import io.github.mmolosay.thecolor.utils.invoke
 
 @Composable
 fun ColorInputRgb(
@@ -44,6 +43,7 @@ fun ColorInputRgb(
     ColorInputRgb(
         data = data,
         strings = strings,
+        execute = viewModel::execute,
     )
 }
 
@@ -51,6 +51,7 @@ fun ColorInputRgb(
 fun ColorInputRgb(
     data: ColorInputRgbData,
     strings: ColorInputRgbUiStrings,
+    execute: (ColorInputRgbAction) -> Unit,
 ) {
     Row {
         @Composable
@@ -58,12 +59,25 @@ fun ColorInputRgb(
 
         val modifier = Modifier.weight(1f)
         val isSmartBackspaceEnabled = data.isSmartBackspaceEnabled
+        fun execute(
+            textFieldAction: TextFieldAction,
+            component: RgbComponent,
+        ) {
+            val action = ColorInputRgbAction.TextField(
+                wrapped = textFieldAction,
+                component = component,
+            )
+            execute(action)
+        }
 
         // R
         ComponentAdvancedTextField(
             modifier = modifier,
             data = data.rTextField,
             strings = strings.rTextField,
+            execute = { textFieldAction ->
+                execute(textFieldAction, RgbComponent.R)
+            },
             imeAction = ImeAction.Next,
             hasPreviousComponent = false, // for R there's no previous
             enableSmartBackspace = isSmartBackspaceEnabled,
@@ -75,6 +89,9 @@ fun ColorInputRgb(
             modifier = modifier,
             data = data.gTextField,
             strings = strings.gTextField,
+            execute = { textFieldAction ->
+                execute(textFieldAction, RgbComponent.G)
+            },
             imeAction = ImeAction.Next,
             hasPreviousComponent = true, // for G previous is R
             enableSmartBackspace = isSmartBackspaceEnabled,
@@ -87,9 +104,12 @@ fun ColorInputRgb(
             modifier = modifier,
             data = data.bTextField,
             strings = strings.bTextField,
+            execute = { textFieldAction ->
+                execute(textFieldAction, RgbComponent.B)
+            },
             imeAction = ImeAction.Done,
             keyboardActions = KeyboardActions(
-                onDone = { data.submitInput() },
+                onDone = { execute(ColorInputRgbAction.SubmitInput) },
             ),
             hasPreviousComponent = true, // for B previous is G
             enableSmartBackspace = isSmartBackspaceEnabled,
@@ -97,7 +117,7 @@ fun ColorInputRgb(
     }
 
     ProcessColorSubmissionResultAsSideEffect(
-        ackResult = data.submitInput.result,
+        ackResult = data.inputSubmissionResult,
     )
 }
 
@@ -108,6 +128,7 @@ fun ColorInputRgb(
 private fun ComponentAdvancedTextField(
     data: TextFieldData,
     strings: TextFieldUiStrings,
+    execute: (TextFieldAction) -> Unit,
     imeAction: ImeAction,
     hasPreviousComponent: Boolean,
     enableSmartBackspace: Boolean,
@@ -127,6 +148,7 @@ private fun ComponentAdvancedTextField(
         },
         data = data,
         strings = strings,
+        execute = execute,
         imeAction = imeAction,
         keyboardActions = keyboardActions,
     )
@@ -140,6 +162,7 @@ private fun ComponentBasicTextField(
     modifier: Modifier = Modifier,
     data: TextFieldData,
     strings: TextFieldUiStrings,
+    execute: (TextFieldAction) -> Unit,
     imeAction: ImeAction,
     keyboardActions: KeyboardActions = KeyboardActions(),
 ) {
@@ -155,6 +178,7 @@ private fun ComponentBasicTextField(
         modifier = modifier,
         data = data,
         strings = strings,
+        execute = execute,
         value = value,
         onValueChange = { new -> value = new },
         keyboardOptions = KeyboardOptions(
@@ -172,6 +196,7 @@ private fun Preview() {
         ColorInputRgb(
             data = previewData(),
             strings = previewUiStrings(),
+            execute = {},
         )
     }
 }
@@ -180,26 +205,23 @@ private fun previewData() =
     ColorInputRgbData(
         rTextField = TextFieldData(
             text = Text("12") causedByUser false,
-            onTextChange = {},
-            filterUserInput = { Text(it) },
-            clearText = null,
+            inputProcessor = { Text(it) },
             shouldSelectAllTextOnFocus = false,
+            isClearTextFeatureEnabled = false,
         ),
         gTextField = TextFieldData(
             text = Text("") causedByUser false,
-            onTextChange = {},
-            filterUserInput = { Text(it) },
-            clearText = null,
+            inputProcessor = { Text(it) },
             shouldSelectAllTextOnFocus = false,
+            isClearTextFeatureEnabled = false,
         ),
         bTextField = TextFieldData(
             text = Text("255") causedByUser false,
-            onTextChange = {},
-            filterUserInput = { Text(it) },
-            clearText = null,
+            inputProcessor = { Text(it) },
             shouldSelectAllTextOnFocus = false,
+            isClearTextFeatureEnabled = false,
         ),
-        submitInput = NoOpActionWithResult(),
+        inputSubmissionResult = null,
         isSmartBackspaceEnabled = true,
     )
 

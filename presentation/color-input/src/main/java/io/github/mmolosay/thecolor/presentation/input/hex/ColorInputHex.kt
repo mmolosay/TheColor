@@ -25,8 +25,6 @@ import io.github.mmolosay.thecolor.presentation.input.textfield.TextField
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldUiStrings
-import io.github.mmolosay.thecolor.utils.NoOpActionWithResult
-import io.github.mmolosay.thecolor.utils.invoke
 
 @Composable
 fun ColorInputHex(
@@ -39,6 +37,7 @@ fun ColorInputHex(
     ColorInputHex(
         data = data,
         strings = strings,
+        execute = viewModel::execute,
     )
 }
 
@@ -46,6 +45,7 @@ fun ColorInputHex(
 fun ColorInputHex(
     data: ColorInputHexData,
     strings: ColorInputHexUiStrings,
+    execute: (ColorInputHexAction) -> Unit,
 ) {
     var value by remember {
         val text = data.textField.text.data.string
@@ -62,6 +62,10 @@ fun ColorInputHex(
             .fillMaxWidth(0.5f),
         data = data.textField,
         strings = strings.textField,
+        execute = { textFieldAction ->
+            val action = ColorInputHexAction.TextField(textFieldAction)
+            execute(action)
+        },
         value = value,
         onValueChange = { new -> value = new },
         keyboardOptions = KeyboardOptions(
@@ -69,12 +73,12 @@ fun ColorInputHex(
             capitalization = KeyboardCapitalization.Characters,
         ),
         keyboardActions = KeyboardActions(
-            onDone = { data.submitInput() },
+            onDone = { execute(ColorInputHexAction.SubmitInput) },
         ),
     )
 
     ProcessColorSubmissionResultAsSideEffect(
-        ackResult = data.submitInput.result,
+        ackResult = data.inputSubmissionResult,
     )
 }
 
@@ -85,6 +89,7 @@ private fun Preview() {
         ColorInputHex(
             data = previewData(),
             strings = previewUiStrings(),
+            execute = {},
         )
     }
 }
@@ -93,12 +98,11 @@ private fun previewData() =
     ColorInputHexData(
         textField = TextFieldData(
             text = Text("") causedByUser false,
-            onTextChange = {},
-            filterUserInput = { Text(it) },
-            clearText = TextFieldData.NoOpClearTextFeature,
-            shouldSelectAllTextOnFocus = false,
+            inputProcessor = { Text(it) },
+            shouldSelectAllTextOnFocus = true,
+            isClearTextFeatureEnabled = true,
         ),
-        submitInput = NoOpActionWithResult(),
+        inputSubmissionResult = null,
     )
 
 private fun previewUiStrings() =
