@@ -8,8 +8,8 @@ import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesReposi
 import io.github.mmolosay.thecolor.domain.utils.filterReady
 import io.github.mmolosay.thecolor.domain.utils.getOrElse
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
+import io.github.mmolosay.thecolor.presentation.common.viewmodel.Focus
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
-import io.github.mmolosay.thecolor.presentation.common.viewmodel.StateHost
 import io.github.mmolosay.thecolor.presentation.input.model.WithSource
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.ClearTextFeature
@@ -32,7 +32,7 @@ import kotlinx.coroutines.launch
  */
 class TextFieldViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted private val stateHost: StateHost<TextFieldData?>,
+    @Assisted private val focus: Focus<TextFieldData?>,
     @Assisted private val filterUserInput: (String) -> Text,
     @Assisted private val enableClearTextFeature: Boolean,
     private val userPreferencesRepository: UserPreferencesRepository,
@@ -42,7 +42,7 @@ class TextFieldViewModel @AssistedInject constructor(
     private val orderedUpdates = defaultDispatcher.limitedParallelism(1)
     private val clearTextAction: () -> Unit = { updateText(Text("") causedByUser true) }
 
-    val dataFlow: StateFlow<TextFieldData?> = stateHost.state
+    val dataFlow: StateFlow<TextFieldData?> = focus.state
 
     init {
         collectSelectAllTextOnTextFieldFocusPreference()
@@ -68,7 +68,7 @@ class TextFieldViewModel @AssistedInject constructor(
                 .filterReady()
                 .map { it.result.getOrElse { DefaultUserPreferences.SelectAllTextOnTextFieldFocus } }
                 .collectLatest { preference ->
-                    stateHost.update {
+                    focus.update {
                         it?.copy(shouldSelectAllTextOnFocus = preference.enabled)
                     }
                 }
@@ -79,7 +79,7 @@ class TextFieldViewModel @AssistedInject constructor(
         // Launching on the confined dispatcher schedules and applies updates in call order,
         // thus making this method fair
         coroutineScope.launch(orderedUpdates) {
-            stateHost.update {
+            focus.update {
                 it?.smartCopy(textWithSource)
             }
         }
@@ -111,7 +111,7 @@ class TextFieldViewModel @AssistedInject constructor(
 
         fun create(
             coroutineScope: CoroutineScope,
-            stateHost: StateHost<TextFieldData?>,
+            focus: Focus<TextFieldData?>,
             filterUserInput: (String) -> Text,
             enableClearTextFeature: Boolean,
         ): TextFieldViewModel
