@@ -34,15 +34,18 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupViewModel.DataState
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHex
-import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexData
+import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexFacade
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexUiStrings
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsv
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvData
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgb
-import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbData
+import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbFacade
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbUiStrings
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFacade
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldInputProcessor
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldUiStrings
 import io.github.mmolosay.thecolor.utils.doNothing
 import io.github.mmolosay.thecolor.domain.color.Color as DomainColor
@@ -181,16 +184,14 @@ private fun Preview() {
                 strings = previewUiStrings(),
                 hexInput = {
                     ColorInputHex(
-                        data = previewHexData(),
+                        facade = previewHexFacade(),
                         strings = previewHexUiStrings(),
-                        execute = {},
                     )
                 },
                 rgbInput = {
                     ColorInputRgb(
-                        data = previewRgbData(),
+                        facade = previewRgbFacade(),
                         strings = previewRgbUiStrings(),
-                        execute = {},
                     )
                 },
                 hsvInput = {
@@ -220,16 +221,22 @@ private fun previewUiStrings() =
         hsvLabel = "HSV",
     )
 
-private fun previewHexData() =
-    ColorInputHexData(
-        textField = TextFieldData(
-            text = TextFieldData.Text("") causedByUser false,
-            inputProcessor = { TextFieldData.Text(it) },
-            shouldSelectAllTextOnFocus = false,
-            isClearTextFeatureEnabled = true,
-        ),
-        inputSubmissionResult = null,
-    )
+private fun previewHexFacade() =
+    object : ColorInputHexFacade {
+        override val textField = object : TextFieldFacade {
+            override val text = TextFieldData.Text("") causedByUser true
+            override fun setText(text: Text) {}
+
+            override val inputProcessor = TextFieldInputProcessor { TextFieldData.Text(it) }
+            override val shouldSelectAllTextOnFocus = true
+            override val clearTextFeature = object : TextFieldFacade.ClearTextFeature {
+                override fun invoke() {}
+            }
+        }
+
+        override fun submitInput() {}
+        override val inputSubmissionResult = null
+    }
 
 private fun previewHexUiStrings() =
     ColorInputHexUiStrings(
@@ -241,29 +248,44 @@ private fun previewHexUiStrings() =
         ),
     )
 
-private fun previewRgbData() =
-    ColorInputRgbData(
-        rTextField = TextFieldData(
-            text = TextFieldData.Text("") causedByUser false,
-            inputProcessor = { TextFieldData.Text(it) },
-            shouldSelectAllTextOnFocus = false,
-            isClearTextFeatureEnabled = false,
-        ),
-        gTextField = TextFieldData(
-            text = TextFieldData.Text("") causedByUser false,
-            inputProcessor = { TextFieldData.Text(it) },
-            shouldSelectAllTextOnFocus = false,
-            isClearTextFeatureEnabled = false,
-        ),
-        bTextField = TextFieldData(
-            text = TextFieldData.Text("") causedByUser false,
-            inputProcessor = { TextFieldData.Text(it) },
-            shouldSelectAllTextOnFocus = false,
-            isClearTextFeatureEnabled = false,
-        ),
-        inputSubmissionResult = null,
-        isSmartBackspaceEnabled = true,
-    )
+private fun previewRgbFacade() =
+    object : ColorInputRgbFacade {
+        override val rTextField = object : TextFieldFacade {
+            override val text = Text("12") causedByUser true
+            override fun setText(text: Text) {}
+
+            override val inputProcessor = TextFieldInputProcessor { Text(it) }
+            override val shouldSelectAllTextOnFocus = true
+            override val clearTextFeature = object : TextFieldFacade.ClearTextFeature {
+                override fun invoke() {}
+            }
+        }
+        override val gTextField = object : TextFieldFacade {
+            override val text = Text("") causedByUser true
+            override fun setText(text: Text) {}
+
+            override val inputProcessor = TextFieldInputProcessor { Text(it) }
+            override val shouldSelectAllTextOnFocus = true
+            override val clearTextFeature = object : TextFieldFacade.ClearTextFeature {
+                override fun invoke() {}
+            }
+        }
+        override val bTextField = object : TextFieldFacade {
+            override val text = Text("255") causedByUser true
+            override fun setText(text: Text) {}
+
+            override val inputProcessor = TextFieldInputProcessor { Text(it) }
+            override val shouldSelectAllTextOnFocus = true
+            override val clearTextFeature = object : TextFieldFacade.ClearTextFeature {
+                override fun invoke() {}
+            }
+        }
+
+        override val isSmartBackspaceEnabled = true
+
+        override fun submitInput() {}
+        override val inputSubmissionResult = null
+    }
 
 private fun previewRgbUiStrings() =
     ColorInputRgbUiStrings(

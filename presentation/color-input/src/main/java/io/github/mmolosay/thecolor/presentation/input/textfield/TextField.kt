@@ -44,9 +44,8 @@ import io.github.mmolosay.thecolor.presentation.design.R as DesignR
  */
 @Composable
 internal fun TextField(
-    data: TextFieldData,
+    facade: TextFieldFacade,
     strings: TextFieldUiStrings,
-    execute: (TextFieldAction) -> Unit,
     value: MaterialTextFieldValue,
     onValueChange: (MaterialTextFieldValue) -> Unit,
     keyboardOptions: KeyboardOptions,
@@ -54,7 +53,7 @@ internal fun TextField(
     modifier: Modifier = Modifier,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
-    if (data.shouldSelectAllTextOnFocus) {
+    if (facade.shouldSelectAllTextOnFocus) {
         SelectAllTextOnFocusAsSideEffect(
             interactionSource = interactionSource,
             value = value,
@@ -70,10 +69,10 @@ internal fun TextField(
             if (current.text != new.text) {
                 // can't just pass new.text to ViewModel for filtering: TextFieldValue.selection will be lost
                 val newInput = new.text
-                val newText = data.inputProcessor(newInput)
+                val newText = facade.inputProcessor(newInput)
                 val newValue = new.copy(text = newText.string)
                 onValueChange(newValue)
-                execute(TextFieldAction.SetText(newText))
+                facade.setText(newText)
             } else {
                 onValueChange(new)
             }
@@ -82,10 +81,10 @@ internal fun TextField(
         label = { Label(text = strings.label) },
         placeholder = { Placeholder(text = strings.placeholder) },
         trailingIcon = icon@{
-            if (!data.isClearTextFeatureEnabled) return@icon
+            val clearTextFeature = facade.clearTextFeature ?: return@icon
             ClearTextTrailingButton(
                 visible = value.text.isNotEmpty(),
-                onClick = { execute(TextFieldAction.ClearText) },
+                onClick = clearTextFeature::invoke,
                 iconContentDesc = strings.trailingIconContentDesc ?: return@icon,
             )
         },
@@ -98,10 +97,10 @@ internal fun TextField(
         interactionSource = interactionSource,
     )
     // for when text is changed programmatically
-    LaunchedEffect(data.text) {
+    LaunchedEffect(facade.text) {
         @Suppress("UnnecessaryVariable")
         val oldValue = value
-        val newText = data.text.data.string
+        val newText = facade.text.data.string
         val newSelection = run {
             val hadSelectionAtTheEnd = (oldValue.selection.end == oldValue.text.length)
             val isNewTextLongerThanOld = (newText.length > oldValue.text.length)
@@ -186,24 +185,31 @@ private fun SelectAllTextOnFocusAsSideEffect(
 private fun Preview() {
     TheColorTheme {
         Surface {
-            var text by remember { mutableStateOf(Text("1801FF")) }
+            val textState = remember { mutableStateOf(Text("1801FF")) }
             var value by remember {
-                mutableStateOf(MaterialTextFieldValue(text = text.string))
+                mutableStateOf(MaterialTextFieldValue(text = textState.value.string))
             }
             TextField(
-                data = TextFieldData(
-                    text = text causedByUser false,
-                    inputProcessor = { Text(it) },
-                    shouldSelectAllTextOnFocus = true,
-                    isClearTextFeatureEnabled = true,
-                ),
+                facade = object : TextFieldFacade {
+                    override val text = textState.value causedByUser true
+                    override fun setText(text: Text) {
+                        textState.value = text
+                    }
+
+                    override val inputProcessor = TextFieldInputProcessor { Text(it) }
+                    override val shouldSelectAllTextOnFocus = true
+                    override val clearTextFeature = object : TextFieldFacade.ClearTextFeature {
+                        override fun invoke() {
+                            textState.value = Text("")
+                        }
+                    }
+                },
                 strings = TextFieldUiStrings(
                     label = "HEX",
                     placeholder = "000000",
                     prefix = "#",
                     trailingIconContentDesc = "Clear text field",
                 ),
-                execute = {},
                 value = value,
                 onValueChange = { newValue -> value = newValue },
                 keyboardOptions = KeyboardOptions.Default,

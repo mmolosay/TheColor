@@ -22,6 +22,7 @@ import io.github.mmolosay.thecolor.presentation.input.model.getColorOrNull
 import io.github.mmolosay.thecolor.presentation.input.set
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldDataFactory
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFacade
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldInputProcessor
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldViewModel
 import io.github.mmolosay.thecolor.utils.AckValue
@@ -30,6 +31,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 
@@ -66,6 +68,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
                 ),
                 scope = coroutineScope,
             ),
+            inputProcessor = TextFieldInputProcessorImpl(),
         )
     }
 
@@ -77,7 +80,6 @@ class ColorInputHexViewModel @AssistedInject constructor(
     }
 
     private fun collectMediatorUpdates() {
-        @OptIn(RequiresWriteOrdering::class)
         coroutineScope.launch(defaultDispatcher) {
             mediator.colorStateFlow.collect { (color, source) ->
                 // don't update text fields to avoid update loop if the color was set from this 'Color Input' type
@@ -88,7 +90,8 @@ class ColorInputHexViewModel @AssistedInject constructor(
                 } else {
                     EmptyColorInput
                 }
-                run {
+                @OptIn(RequiresWriteOrdering::class)
+                withContext(orderedUpdates) {
                     val textWithSource = TextFieldData.Text(colorInput.string) causedByUser false
                     textFieldVm.setText(textWithSource)
                 }
@@ -108,14 +111,14 @@ class ColorInputHexViewModel @AssistedInject constructor(
         }
     }
 
-    fun execute(action: ColorInputHexAction) {
-        when (action) {
-            is ColorInputHexAction.SubmitInput -> submitInput()
-            is ColorInputHexAction.TextField -> textFieldVm.execute(action.wrapped)
-        }
-    }
+    fun facade(data: ColorInputHexData): ColorInputHexFacade =
+        ColorInputHexFacadeImpl(
+            data = data,
+            viewModel = this,
+            textField = textFieldVm.facade(data.textField),
+        )
 
-    private fun submitInput() {
+    fun submitInput() {
         coroutineScope.launch(orderedUpdates) {
             val textField = store.current().textField
             val derived = TextFieldDerived(textField)
@@ -128,7 +131,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
                 it.copy(
                     inputSubmissionResult = AckValue(
                         value = result,
-                        ack = ::clearInputSubmissionResult
+                        ack = ::clearInputSubmissionResult,
                     ),
                 )
             }
@@ -158,6 +161,15 @@ class ColorInputHexViewModel @AssistedInject constructor(
             colorInput = colorInput,
             validationResult = validationResult,
         )
+    }
+
+    private class TextFieldInputProcessorImpl : TextFieldInputProcessor {
+        override fun invoke(input: String): TextFieldData.Text =
+            input
+                .uppercase()
+                .filter { it.isDigit() || it in 'A'..'F' }
+                .take(6) // hex color can be up to 6 symbols long
+                .let { TextFieldData.Text(it) }
     }
 
     @AssistedFactory
@@ -191,18 +203,29 @@ class ColorInputHexDataFactory @Inject constructor(
         ColorInputHexData(
             textField = textFieldDataFactory.create(
                 text = TextFieldData.Text("") causedByUser false,
-                inputProcessor = HexTextFieldInputProcessor(),
                 isClearTextFeatureEnabled = true,
             ),
             inputSubmissionResult = null,
         )
 }
 
-private class HexTextFieldInputProcessor : TextFieldInputProcessor {
-    override fun invoke(input: String): TextFieldData.Text =
-        input
-            .uppercase()
-            .filter { it.isDigit() || it in 'A'..'F' }
-            .take(6) // hex color can be up to 6 symbols long
-            .let { TextFieldData.Text(it) }
+private class ColorInputHexFacadeImpl(
+    private val data: ColorInputHexData,
+    private val viewModel: ColorInputHexViewModel,
+    override val textField: TextFieldFacade,
+) : ColorInputHexFacade {
+
+    override fun submitInput() =
+        viewModel.submitInput()
+
+    override val inputSubmissionResult = data.inputSubmissionResult
+
+    override fun equals(other: Any?): Boolean =
+        other is ColorInputHexFacadeImpl && this.data == other.data && this.viewModel === other.viewModel
+
+    override fun hashCode(): Int {
+        var result = data.hashCode()
+        result = 31 * result + System.identityHashCode(viewModel)
+        return result
+    }
 }

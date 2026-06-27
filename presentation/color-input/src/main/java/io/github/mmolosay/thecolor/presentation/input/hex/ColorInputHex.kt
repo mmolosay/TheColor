@@ -22,8 +22,9 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.input.UiComponents.ProcessColorSubmissionResultAsSideEffect
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextField
-import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFacade
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldInputProcessor
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldUiStrings
 
 @Composable
@@ -33,22 +34,21 @@ fun ColorInputHex(
     val context = LocalContext.current
     val strings = remember(context) { ColorInputHexUiStrings(context) }
     val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
+    val facade = remember(data, viewModel) { viewModel.facade(data) }
 
     ColorInputHex(
-        data = data,
+        facade = facade,
         strings = strings,
-        execute = viewModel::execute,
     )
 }
 
 @Composable
 fun ColorInputHex(
-    data: ColorInputHexData,
+    facade: ColorInputHexFacade,
     strings: ColorInputHexUiStrings,
-    execute: (ColorInputHexAction) -> Unit,
 ) {
     var value by remember {
-        val text = data.textField.text.data.string
+        val text = facade.textField.text.data.string
         val value = TextFieldValue(
             text = text,
             selection = TextRange(index = text.length), // cursor at the end of the text
@@ -60,12 +60,8 @@ fun ColorInputHex(
         modifier = Modifier
             .defaultMinSize(minWidth = 180.dp)
             .fillMaxWidth(0.5f),
-        data = data.textField,
+        facade = facade.textField,
         strings = strings.textField,
-        execute = { textFieldAction ->
-            val action = ColorInputHexAction.TextField(textFieldAction)
-            execute(action)
-        },
         value = value,
         onValueChange = { new -> value = new },
         keyboardOptions = KeyboardOptions(
@@ -73,12 +69,12 @@ fun ColorInputHex(
             capitalization = KeyboardCapitalization.Characters,
         ),
         keyboardActions = KeyboardActions(
-            onDone = { execute(ColorInputHexAction.SubmitInput) },
+            onDone = { facade.submitInput() },
         ),
     )
 
     ProcessColorSubmissionResultAsSideEffect(
-        ackResult = data.inputSubmissionResult,
+        ackResult = facade.inputSubmissionResult,
     )
 }
 
@@ -87,23 +83,28 @@ fun ColorInputHex(
 private fun Preview() {
     TheColorTheme {
         ColorInputHex(
-            data = previewData(),
+            facade = previewFacade(),
             strings = previewUiStrings(),
-            execute = {},
         )
     }
 }
 
-private fun previewData() =
-    ColorInputHexData(
-        textField = TextFieldData(
-            text = Text("") causedByUser false,
-            inputProcessor = { Text(it) },
-            shouldSelectAllTextOnFocus = true,
-            isClearTextFeatureEnabled = true,
-        ),
-        inputSubmissionResult = null,
-    )
+private fun previewFacade() =
+    object : ColorInputHexFacade {
+        override val textField = object : TextFieldFacade {
+            override val text = Text("") causedByUser true
+            override fun setText(text: Text) {}
+
+            override val inputProcessor = TextFieldInputProcessor { Text(it) }
+            override val shouldSelectAllTextOnFocus = true
+            override val clearTextFeature = object : TextFieldFacade.ClearTextFeature {
+                override fun invoke() {}
+            }
+        }
+
+        override fun submitInput() {}
+        override val inputSubmissionResult = null
+    }
 
 private fun previewUiStrings() =
     ColorInputHexUiStrings(

@@ -27,6 +27,7 @@ import io.github.mmolosay.thecolor.presentation.input.model.getColorOrNull
 import io.github.mmolosay.thecolor.presentation.input.set
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldDataFactory
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFacade
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldInputProcessor
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldViewModel
 import io.github.mmolosay.thecolor.utils.AckValue
@@ -138,26 +139,19 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         }
     }
 
-    fun execute(action: ColorInputRgbAction) {
-        when (action) {
-            is ColorInputRgbAction.SubmitInput -> submitInput()
-            is ColorInputRgbAction.TextField -> {
-                val textFieldVm = when (action.component) {
-                    RgbComponent.R -> rTextFieldVm
-                    RgbComponent.G -> gTextFieldVm
-                    RgbComponent.B -> bTextFieldVm
-                }
-                textFieldVm.execute(action.wrapped)
-            }
-        }
-    }
+    fun facade(data: ColorInputRgbData): ColorInputRgbFacade =
+        ColorInputRgbFacadeImpl(
+            data = data,
+            viewModel = this,
+            rTextField = rTextFieldVm.facade(data.rTextField),
+            gTextField = gTextFieldVm.facade(data.gTextField),
+            bTextField = bTextFieldVm.facade(data.bTextField),
+        )
 
-    private fun submitInput() {
+    fun submitInput() {
         coroutineScope.launch {
-            val r = store.current().rTextField
-            val g = store.current().gTextField
-            val b = store.current().bTextField
-            val derived = TextFieldsDerived(r, g, b)
+            val data = store.current()
+            val derived = TextFieldsDerived(data.rTextField, data.gTextField, data.bTextField)
             val wasAccepted = submitAction.invoke(
                 colorInput = derived.colorInput,
                 validationResult = derived.validationResult,
@@ -192,6 +186,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                 lens = lens,
                 scope = coroutineScope,
             ),
+            inputProcessor = TextFieldInputProcessorImpl(),
         )
     }
 
@@ -220,6 +215,25 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             colorInput = colorInput,
             validationResult = validationResult,
         )
+    }
+
+    private class TextFieldInputProcessorImpl : TextFieldInputProcessor {
+        override fun invoke(input: String): TextFieldData.Text =
+            input
+                .filter { it.isDigit() }
+                .take(3) // rgb component can be up to 3 digits long
+                .let { string ->
+                    if (string.isEmpty()) return@let ""
+                    val rgbComponentMinValue = Color.Rgb.ComponentRange.first
+                    val rgbComponentMaxValue = Color.Rgb.ComponentRange.last
+                    var int = string.toIntOrNull() ?: rgbComponentMinValue // remove leading zeros
+                    // reduce int from right until it's in range
+                    while (int > rgbComponentMaxValue) {
+                        int /= 10
+                    }
+                    int.toString()
+                }
+                .let { TextFieldData.Text(it) }
     }
 
     @AssistedFactory
@@ -256,17 +270,14 @@ class ColorInputRgbDataFactory @Inject constructor(
         ColorInputRgbData(
             rTextField = textFieldDataFactory.create(
                 text = TextFieldData.Text("") causedByUser false,
-                inputProcessor = RgbTextFieldInputProcessor(),
                 isClearTextFeatureEnabled = false,
             ),
             gTextField = textFieldDataFactory.create(
                 text = TextFieldData.Text("") causedByUser false,
-                inputProcessor = RgbTextFieldInputProcessor(),
                 isClearTextFeatureEnabled = false,
             ),
             bTextField = textFieldDataFactory.create(
                 text = TextFieldData.Text("") causedByUser false,
-                inputProcessor = RgbTextFieldInputProcessor(),
                 isClearTextFeatureEnabled = false,
             ),
             inputSubmissionResult = null,
@@ -276,21 +287,27 @@ class ColorInputRgbDataFactory @Inject constructor(
         )
 }
 
-private class RgbTextFieldInputProcessor : TextFieldInputProcessor {
-    override fun invoke(input: String): TextFieldData.Text =
-        input
-            .filter { it.isDigit() }
-            .take(3) // rgb component can be up to 3 digits long
-            .let { string ->
-                if (string.isEmpty()) return@let ""
-                val rgbComponentMinValue = Color.Rgb.ComponentRange.first
-                val rgbComponentMaxValue = Color.Rgb.ComponentRange.last
-                var int = string.toIntOrNull() ?: rgbComponentMinValue // remove leading zeros
-                // reduce int from right until it's in range
-                while (int > rgbComponentMaxValue) {
-                    int /= 10
-                }
-                int.toString()
-            }
-            .let { TextFieldData.Text(it) }
+private class ColorInputRgbFacadeImpl(
+    private val data: ColorInputRgbData,
+    private val viewModel: ColorInputRgbViewModel,
+    override val rTextField: TextFieldFacade,
+    override val gTextField: TextFieldFacade,
+    override val bTextField: TextFieldFacade,
+) : ColorInputRgbFacade {
+
+    override val isSmartBackspaceEnabled = data.isSmartBackspaceEnabled
+
+    override fun submitInput() =
+        viewModel.submitInput()
+
+    override val inputSubmissionResult = data.inputSubmissionResult
+
+    override fun equals(other: Any?): Boolean =
+        other is ColorInputRgbFacadeImpl && this.data == other.data && this.viewModel === other.viewModel
+
+    override fun hashCode(): Int {
+        var result = data.hashCode()
+        result = 31 * result + System.identityHashCode(viewModel)
+        return result
+    }
 }

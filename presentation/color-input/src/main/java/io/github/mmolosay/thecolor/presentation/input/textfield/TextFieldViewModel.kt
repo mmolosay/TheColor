@@ -14,6 +14,7 @@ import io.github.mmolosay.thecolor.presentation.common.viewmodel.Store
 import io.github.mmolosay.thecolor.presentation.input.model.WithSource
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFacade.ClearTextFeature
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collectLatest
@@ -32,6 +33,7 @@ import javax.inject.Inject
 class TextFieldViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     @Assisted private val store: Store<TextFieldData>,
+    @Assisted val inputProcessor: TextFieldInputProcessor,
     private val userPreferencesRepository: UserPreferencesRepository,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
@@ -55,24 +57,19 @@ class TextFieldViewModel @AssistedInject constructor(
         }
     }
 
-    fun execute(action: TextFieldAction) {
+    fun facade(data: TextFieldData): TextFieldFacade =
+        TextFieldFacadeImpl(
+            data = data,
+            viewModel = this,
+        )
+
+    fun updateText(textWithSource: WithSource<Text>) {
         @OptIn(RequiresWriteOrdering::class)
         coroutineScope.launch(orderedUpdates) {
-            when (action) {
-                is TextFieldAction.SetText -> {
-                    setText(action.newText causedByUser true)
-                }
-                is TextFieldAction.ClearText -> {
-                    val isFeatureEnabled = store.current().isClearTextFeatureEnabled
-                    if (isFeatureEnabled) {
-                        setText(Text("") causedByUser true)
-                    }
-                }
-            }
+            setText(textWithSource)
         }
     }
 
-    /** For ordinary UI-driven edits, use [TextFieldAction.SetText]. */
     @RequiresWriteOrdering
     suspend fun setText(textWithSource: WithSource<Text>) =
         store.update {
@@ -84,6 +81,7 @@ class TextFieldViewModel @AssistedInject constructor(
         fun create(
             coroutineScope: CoroutineScope,
             store: Store<TextFieldData>,
+            inputProcessor: TextFieldInputProcessor,
         ): TextFieldViewModel
     }
 }
@@ -92,17 +90,47 @@ class TextFieldDataFactory @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
 ) {
     fun create(
-        text: WithSource<Text> = Text("") causedByUser false, // TODO: pass current color from the mediator as "initialText"?
-        inputProcessor: TextFieldInputProcessor,
+        text: WithSource<Text> = Text("") causedByUser false,
         isClearTextFeatureEnabled: Boolean,
     ): TextFieldData =
         TextFieldData(
             text = text,
-            inputProcessor = inputProcessor,
             shouldSelectAllTextOnFocus = userPreferencesRepository
                 .flowOfSelectAllTextOnTextFieldFocus
                 .value.getOrElse { DefaultUserPreferences.SelectAllTextOnTextFieldFocus }
                 .enabled,
             isClearTextFeatureEnabled = isClearTextFeatureEnabled,
         )
+}
+
+private class TextFieldFacadeImpl(
+    private val data: TextFieldData,
+    private val viewModel: TextFieldViewModel,
+) : TextFieldFacade {
+
+    override val text = data.text
+    override fun setText(text: Text) {
+        viewModel.updateText(text causedByUser true)
+    }
+
+    override val inputProcessor = viewModel.inputProcessor
+    override val shouldSelectAllTextOnFocus = data.shouldSelectAllTextOnFocus
+    override val clearTextFeature = run {
+        if (data.isClearTextFeatureEnabled) {
+            object : ClearTextFeature {
+                override fun invoke() {
+                    viewModel.updateText(Text("") causedByUser true)
+                }
+            }
+        } else null
+    }
+
+    override fun equals(other: Any?): Boolean =
+        other is TextFieldFacadeImpl && this.data == other.data && this.viewModel === other.viewModel
+
+    override fun hashCode(): Int {
+        var result = data.hashCode()
+        result = 31 * result + System.identityHashCode(viewModel)
+        return result
+    }
 }

@@ -6,14 +6,11 @@ import io.github.mmolosay.thecolor.presentation.input.model.WithSource
  * Platform-agnostic data provided by ViewModel to 'Text Field' View.
  *
  * @param text a current text in this 'Text Field'.
- * Change it using [TextFieldAction.SetText].
  *
- * @param isClearTextFeatureEnabled depicts whether a 'clear text' feature is enabled in this 'Text Field'
- * Invoke it using [TextFieldAction.ClearText].
+ * @param isClearTextFeatureEnabled depicts whether a 'clear text' feature is enabled in this 'Text Field'.
  */
 data class TextFieldData(
     val text: WithSource<Text>,
-    val inputProcessor: TextFieldInputProcessor,
     val shouldSelectAllTextOnFocus: Boolean,
     val isClearTextFeatureEnabled: Boolean,
 ) {

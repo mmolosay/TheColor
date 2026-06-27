@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
@@ -27,9 +28,9 @@ import io.github.mmolosay.thecolor.presentation.input.UiComponents.ProcessColorS
 import io.github.mmolosay.thecolor.presentation.input.UiComponents.onBackspace
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextField
-import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldAction
-import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFacade
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldInputProcessor
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldUiStrings
 
 @Composable
@@ -39,45 +40,31 @@ fun ColorInputRgb(
     val context = LocalContext.current
     val strings = remember(context) { ColorInputRgbUiStrings(context) }
     val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
+    val facade = remember(data, viewModel) { viewModel.facade(data) }
 
     ColorInputRgb(
-        data = data,
+        facade = facade,
         strings = strings,
-        execute = viewModel::execute,
     )
 }
 
 @Composable
 fun ColorInputRgb(
-    data: ColorInputRgbData,
+    facade: ColorInputRgbFacade,
     strings: ColorInputRgbUiStrings,
-    execute: (ColorInputRgbAction) -> Unit,
 ) {
     Row {
         @Composable
         fun SpacerInBetween() = Spacer(modifier = Modifier.width(16.dp))
 
         val modifier = Modifier.weight(1f)
-        val isSmartBackspaceEnabled = data.isSmartBackspaceEnabled
-        fun execute(
-            textFieldAction: TextFieldAction,
-            component: RgbComponent,
-        ) {
-            val action = ColorInputRgbAction.TextField(
-                wrapped = textFieldAction,
-                component = component,
-            )
-            execute(action)
-        }
+        val isSmartBackspaceEnabled = facade.isSmartBackspaceEnabled
 
         // R
         ComponentAdvancedTextField(
             modifier = modifier,
-            data = data.rTextField,
+            facade = facade.rTextField,
             strings = strings.rTextField,
-            execute = { textFieldAction ->
-                execute(textFieldAction, RgbComponent.R)
-            },
             imeAction = ImeAction.Next,
             hasPreviousComponent = false, // for R there's no previous
             enableSmartBackspace = isSmartBackspaceEnabled,
@@ -87,11 +74,8 @@ fun ColorInputRgb(
         SpacerInBetween()
         ComponentAdvancedTextField(
             modifier = modifier,
-            data = data.gTextField,
+            facade = facade.gTextField,
             strings = strings.gTextField,
-            execute = { textFieldAction ->
-                execute(textFieldAction, RgbComponent.G)
-            },
             imeAction = ImeAction.Next,
             hasPreviousComponent = true, // for G previous is R
             enableSmartBackspace = isSmartBackspaceEnabled,
@@ -102,22 +86,22 @@ fun ColorInputRgb(
         SpacerInBetween()
         ComponentAdvancedTextField(
             modifier = modifier,
-            data = data.bTextField,
+            facade = facade.bTextField,
             strings = strings.bTextField,
-            execute = { textFieldAction ->
-                execute(textFieldAction, RgbComponent.B)
-            },
             imeAction = ImeAction.Done,
-            keyboardActions = KeyboardActions(
-                onDone = { execute(ColorInputRgbAction.SubmitInput) },
-            ),
+            keyboardActions = run {
+                val submitInput by rememberUpdatedState(facade::submitInput)
+                KeyboardActions(
+                    onDone = { submitInput() },
+                )
+            },
             hasPreviousComponent = true, // for B previous is G
             enableSmartBackspace = isSmartBackspaceEnabled,
         )
     }
 
     ProcessColorSubmissionResultAsSideEffect(
-        ackResult = data.inputSubmissionResult,
+        ackResult = facade.inputSubmissionResult,
     )
 }
 
@@ -126,9 +110,8 @@ fun ColorInputRgb(
  */
 @Composable
 private fun ComponentAdvancedTextField(
-    data: TextFieldData,
+    facade: TextFieldFacade,
     strings: TextFieldUiStrings,
-    execute: (TextFieldAction) -> Unit,
     imeAction: ImeAction,
     hasPreviousComponent: Boolean,
     enableSmartBackspace: Boolean,
@@ -140,15 +123,14 @@ private fun ComponentAdvancedTextField(
         modifier = modifier
             .thenIf(enableSmartBackspace) {
                 onBackspace {
-                    val text = data.text.data.string
+                    val text = facade.text.data.string
                     if (text.isEmpty() && hasPreviousComponent) {
                         focusManager.moveFocus(FocusDirection.Previous)
                     }
             }
         },
-        data = data,
+        facade = facade,
         strings = strings,
-        execute = execute,
         imeAction = imeAction,
         keyboardActions = keyboardActions,
     )
@@ -160,14 +142,13 @@ private fun ComponentAdvancedTextField(
 @Composable
 private fun ComponentBasicTextField(
     modifier: Modifier = Modifier,
-    data: TextFieldData,
+    facade: TextFieldFacade,
     strings: TextFieldUiStrings,
-    execute: (TextFieldAction) -> Unit,
     imeAction: ImeAction,
     keyboardActions: KeyboardActions = KeyboardActions(),
 ) {
     var value by remember {
-        val text = data.text.data.string
+        val text = facade.text.data.string
         val value = TextFieldValue(
             text = text,
             selection = TextRange(index = text.length), // cursor at the end of the text
@@ -176,9 +157,8 @@ private fun ComponentBasicTextField(
     }
     TextField(
         modifier = modifier,
-        data = data,
+        facade = facade,
         strings = strings,
-        execute = execute,
         value = value,
         onValueChange = { new -> value = new },
         keyboardOptions = KeyboardOptions(
@@ -194,36 +174,50 @@ private fun ComponentBasicTextField(
 private fun Preview() {
     TheColorTheme {
         ColorInputRgb(
-            data = previewData(),
+            facade = previewFacade(),
             strings = previewUiStrings(),
-            execute = {},
         )
     }
 }
 
-private fun previewData() =
-    ColorInputRgbData(
-        rTextField = TextFieldData(
-            text = Text("12") causedByUser false,
-            inputProcessor = { Text(it) },
-            shouldSelectAllTextOnFocus = false,
-            isClearTextFeatureEnabled = false,
-        ),
-        gTextField = TextFieldData(
-            text = Text("") causedByUser false,
-            inputProcessor = { Text(it) },
-            shouldSelectAllTextOnFocus = false,
-            isClearTextFeatureEnabled = false,
-        ),
-        bTextField = TextFieldData(
-            text = Text("255") causedByUser false,
-            inputProcessor = { Text(it) },
-            shouldSelectAllTextOnFocus = false,
-            isClearTextFeatureEnabled = false,
-        ),
-        inputSubmissionResult = null,
-        isSmartBackspaceEnabled = true,
-    )
+private fun previewFacade() =
+    object : ColorInputRgbFacade {
+        override val rTextField = object : TextFieldFacade {
+            override val text = Text("12") causedByUser true
+            override fun setText(text: Text) {}
+
+            override val inputProcessor = TextFieldInputProcessor { Text(it) }
+            override val shouldSelectAllTextOnFocus = true
+            override val clearTextFeature = object : TextFieldFacade.ClearTextFeature {
+                override fun invoke() {}
+            }
+        }
+        override val gTextField = object : TextFieldFacade {
+            override val text = Text("") causedByUser true
+            override fun setText(text: Text) {}
+
+            override val inputProcessor = TextFieldInputProcessor { Text(it) }
+            override val shouldSelectAllTextOnFocus = true
+            override val clearTextFeature = object : TextFieldFacade.ClearTextFeature {
+                override fun invoke() {}
+            }
+        }
+        override val bTextField = object : TextFieldFacade {
+            override val text = Text("255") causedByUser true
+            override fun setText(text: Text) {}
+
+            override val inputProcessor = TextFieldInputProcessor { Text(it) }
+            override val shouldSelectAllTextOnFocus = true
+            override val clearTextFeature = object : TextFieldFacade.ClearTextFeature {
+                override fun invoke() {}
+            }
+        }
+
+        override val isSmartBackspaceEnabled = true
+
+        override fun submitInput() {}
+        override val inputSubmissionResult = null
+    }
 
 private fun previewUiStrings() =
     ColorInputRgbUiStrings(
