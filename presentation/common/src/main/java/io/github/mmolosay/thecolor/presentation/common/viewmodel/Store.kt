@@ -236,21 +236,6 @@ fun <S, V> Lens(
         override fun set(source: S, value: V): S = set(source, value)
     }
 
-infix fun <A, B, C> Lens<A, B>.then(other: Lens<B, C>): Lens<A, C> =
-    CompoundLens<A, B, C>(outer = this, inner = other)
-
-private class CompoundLens<A, B, C>(
-    private val outer: Lens<A, B>,
-    private val inner: Lens<B, C>,
-) : Lens<A, C> {
-
-    override fun get(source: A): C =
-        inner.get(outer.get(source))
-
-    override fun set(source: A, value: C): A =
-        outer.set(source, inner.set(outer.get(source), value))
-}
-
 @RequiresOptIn(
     level = RequiresOptIn.Level.ERROR,
     message = "This write does not impose its own call-ordering. " +
