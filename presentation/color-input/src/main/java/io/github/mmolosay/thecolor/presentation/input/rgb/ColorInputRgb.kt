@@ -1,8 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.input.rgb
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
@@ -51,10 +50,9 @@ fun ColorInputRgb(
     facade: ColorInputRgbFacade,
     strings: ColorInputRgbUiStrings = rememberColorInputRgbUiStrings(),
 ) {
-    Row {
-        @Composable
-        fun SpacerInBetween() = Spacer(modifier = Modifier.width(16.dp))
-
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
         val modifier = Modifier.weight(1f)
         val isSmartBackspaceEnabled = facade.isSmartBackspaceEnabled
 
@@ -69,7 +67,6 @@ fun ColorInputRgb(
         )
 
         // G
-        SpacerInBetween()
         ComponentAdvancedTextField(
             modifier = modifier,
             facade = facade.gTextField,
@@ -81,7 +78,6 @@ fun ColorInputRgb(
 
 
         // B
-        SpacerInBetween()
         ComponentAdvancedTextField(
             modifier = modifier,
             facade = facade.bTextField,
