@@ -1,10 +1,5 @@
 package io.github.mmolosay.thecolor.presentation.input
 
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.updateTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
@@ -15,35 +10,12 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmissionResult
-import io.github.mmolosay.thecolor.presentation.input.model.DataState
 import io.github.mmolosay.thecolor.utils.AckValue
 
 /**
  * Reusable UI components for 'Color Input' Views.
  */
 internal object UiComponents {
-
-    // TODO: remove me when migration is finished and it is no longer used
-    @OptIn(ExperimentalAnimationApi::class)
-    @Composable
-    fun <T> DataStateCrossfade(
-        actualDataState: DataState<T>,
-        content: @Composable (targetState: DataState<T>) -> Unit,
-    ) {
-        val transition = updateTransition(
-            targetState = actualDataState,
-            label = "data state cross-fade",
-        )
-        val animationSpec = tween<Float>(
-            durationMillis = 500,
-            easing = FastOutSlowInEasing,
-        )
-        transition.Crossfade(
-            animationSpec = animationSpec,
-            contentKey = { it::class }, // don't animate when 'DataState' type stays the same,
-            content = content,
-        )
-    }
 
     @Composable
     fun ProcessColorSubmissionResultAsSideEffect(

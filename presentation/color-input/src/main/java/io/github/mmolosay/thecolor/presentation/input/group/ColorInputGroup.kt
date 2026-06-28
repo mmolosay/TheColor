@@ -36,7 +36,7 @@ import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHex
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexFacade
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexUiStrings
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsv
-import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvData
+import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvFacade
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgb
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbFacade
@@ -72,7 +72,9 @@ fun ColorInputGroup(
             )
         },
         hsvInput = {
-            ColorInputHsv(viewModel = viewModel.hsvViewModel)
+            ColorInputHsv(
+                facade = facade.hsv,
+            )
         },
     )
 }
@@ -196,7 +198,7 @@ private fun Preview() {
                 },
                 hsvInput = {
                     ColorInputHsv(
-                        data = previewHsvData(),
+                        facade = previewHsvFacade(),
                     )
                 },
             )
@@ -208,6 +210,7 @@ private fun previewFacade() =
     object : ColorInputGroupFacade {
         override val hex = previewHexFacade()
         override val rgb = previewRgbFacade()
+        override val hsv = previewHsvFacade()
         override val orderedInputTypes = listOf(
             DomainColorInputType.Hex,
             DomainColorInputType.Rgb,
@@ -311,8 +314,8 @@ private fun previewRgbUiStrings() =
         ),
     )
 
-private fun previewHsvData() =
-    ColorInputHsvData(
-        color = DomainColor.Hsv(hue = 259f, saturation = 0.65f, value = 0.82f),
-        onColorChanged = {},
-    )
+private fun previewHsvFacade() =
+    object : ColorInputHsvFacade {
+        override val color = DomainColor.Hsv(hue = 117f, saturation = 0.59f, value = 0.31f)
+        override fun setColor(color: DomainColor.Hsv) {}
+    }

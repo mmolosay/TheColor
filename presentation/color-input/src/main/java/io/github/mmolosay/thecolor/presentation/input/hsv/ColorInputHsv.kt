@@ -15,49 +15,43 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.input.UiComponents.DataStateCrossfade
 import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvHueRange
 import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvSaturationRange
 import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvValueRange
-import io.github.mmolosay.thecolor.presentation.input.model.DataState
 import io.github.mmolosay.thecolor.domain.color.Color as DomainColor
 
+@Suppress("unused") // example of how Facade is obtained from ViewModel
 @Composable
 fun ColorInputHsv(
     viewModel: ColorInputHsvViewModel,
 ) {
-    val dataState = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
+    val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
+    val facade = remember(data, viewModel) { viewModel.facade(data) }
 
-    DataStateCrossfade(
-        actualDataState = dataState,
-    ) { state ->
-        when (state) {
-            is DataState.BeingInitialized ->
-                ColorInputHsvLoading()
-            is DataState.Ready ->
-                ColorInputHsv(
-                    data = state.data,
-                )
-        }
-    }
+    ColorInputHsv(
+        facade = facade,
+    )
 }
 
 @Composable
 fun ColorInputHsv(
-    data: ColorInputHsvData,
+    facade: ColorInputHsvFacade,
 ) {
     val hue = run {
-        if (data.color != null) HueValue(data.color)
+        val color = facade.color
+        if (color != null) HueValue(color)
         else HueValue(HsvHueRange.start)
     }
     val sv = run {
-        if (data.color != null) SaturationAndValue(data.color)
+        val color = facade.color
+        if (color != null) SaturationAndValue(color)
         else SaturationAndValue(saturation = HsvSaturationRange.endInclusive, value = HsvValueRange.endInclusive)
     }
     fun HsvColor(hue: HueValue, sv: SaturationAndValue): DomainColor.Hsv =
@@ -81,7 +75,7 @@ fun ColorInputHsv(
             sv = sv,
             onChange = { newSv ->
                 val newColor = HsvColor(hue, newSv)
-                data.onColorChanged(newColor)
+                facade.setColor(newColor)
             },
         )
 
@@ -95,7 +89,7 @@ fun ColorInputHsv(
                 hue = hue,
                 onChange = { newHue ->
                     val newColor = HsvColor(newHue, sv)
-                    data.onColorChanged(newColor)
+                    facade.setColor(newColor)
                 },
             )
         }
@@ -109,14 +103,14 @@ private fun Preview() {
     TheColorTheme {
         Surface(color = MaterialTheme.colorScheme.background) {
             ColorInputHsv(
-                data = previewData(),
+                facade = previewFacade(),
             )
         }
     }
 }
 
-private fun previewData() =
-    ColorInputHsvData(
-        color = DomainColor.Hsv(hue = 117f, saturation = 0.59f, value = 0.31f),
-        onColorChanged = {},
-    )
+private fun previewFacade() =
+    object : ColorInputHsvFacade {
+        override val color = DomainColor.Hsv(hue = 117f, saturation = 0.59f, value = 0.31f)
+        override fun setColor(color: DomainColor.Hsv) {}
+    }

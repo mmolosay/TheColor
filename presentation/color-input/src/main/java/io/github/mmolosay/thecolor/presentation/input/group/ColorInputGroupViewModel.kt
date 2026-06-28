@@ -14,6 +14,8 @@ import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexDataFactory
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexFacade
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexViewModel
+import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvDataFactory
+import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvFacade
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbDataFactory
@@ -76,9 +78,15 @@ class ColorInputGroupViewModel @AssistedInject constructor(
             mediator = mediator,
             submitAction = submitAction,
         )
-    val hsvViewModel: ColorInputHsvViewModel =
+    private val hsvViewModel: ColorInputHsvViewModel =
         hsvViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
+            store = store.focus(
+                lens = Lens(
+                    get = { s -> s.hsv },
+                    set = { s, v -> s.copy(hsv = v) },
+                ),
+            ),
             mediator = mediator,
         )
 
@@ -88,6 +96,7 @@ class ColorInputGroupViewModel @AssistedInject constructor(
             viewModel = this,
             hex = hexViewModel.facade(data.hex),
             rgb = rgbViewModel.facade(data.rgb),
+            hsv = hsvViewModel.facade(data.hsv),
         )
 
     fun changeInputType(type: DomainColorInputType) {
@@ -119,6 +128,7 @@ class ColorInputGroupViewModel @AssistedInject constructor(
 class ColorInputGroupDataFactory @Inject constructor(
     private val colorInputHexDataFactory: ColorInputHexDataFactory,
     private val colorInputRgbDataFactory: ColorInputRgbDataFactory,
+    private val colorInputHsvDataFactory: ColorInputHsvDataFactory,
     private val userPreferencesRepository: UserPreferencesRepository,
 ) {
     fun create(): ColorInputGroupData {
@@ -133,6 +143,7 @@ class ColorInputGroupDataFactory @Inject constructor(
         return ColorInputGroupData(
             hex = colorInputHexDataFactory.create(),
             rgb = colorInputRgbDataFactory.create(),
+            hsv = colorInputHsvDataFactory.create(),
             selectedInputType = preferredInputType,
             orderedInputTypes = orderedInputTypes,
         )
@@ -144,6 +155,7 @@ private class ColorInputGroupFacadeImpl(
     private val viewModel: ColorInputGroupViewModel,
     override val hex: ColorInputHexFacade,
     override val rgb: ColorInputRgbFacade,
+    override val hsv: ColorInputHsvFacade,
 ) : ColorInputGroupFacade {
 
     override val orderedInputTypes = data.orderedInputTypes
