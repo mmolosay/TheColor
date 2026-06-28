@@ -33,9 +33,11 @@ import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldViewMod
 import io.github.mmolosay.thecolor.utils.AckValue
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
@@ -80,7 +82,8 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         ),
     )
 
-    val dataFlow: StateFlow<ColorInputRgbData> = store.flow
+    val dataFlow: StateFlow<ColorInputRgbData> =
+        store.flow.stateIn(coroutineScope, SharingStarted.Lazily, store.value)
 
     init {
         collectMediatorUpdates()
@@ -178,17 +181,12 @@ class ColorInputRgbViewModel @AssistedInject constructor(
 
     private fun createTextFieldViewModel(
         lens: Lens<ColorInputRgbData, TextFieldData>,
-    ): TextFieldViewModel {
-        val coroutineScope = ViewModelCoroutineScope(parent = coroutineScope)
-        return textFieldViewModelFactory.create(
-            coroutineScope = coroutineScope,
-            store = store.focus(
-                lens = lens,
-                scope = coroutineScope,
-            ),
+    ): TextFieldViewModel =
+        textFieldViewModelFactory.create(
+            coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
+            store = store.focus(lens),
             inputProcessor = TextFieldInputProcessorImpl(),
         )
-    }
 
     override fun dispose() {
         super.dispose()

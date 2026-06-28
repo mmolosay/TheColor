@@ -21,7 +21,9 @@ import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbFacade
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
@@ -47,38 +49,33 @@ class ColorInputGroupViewModel @AssistedInject constructor(
 
     private val orderedUpdates = defaultDispatcher.limitedParallelism(1)
 
-    val dataFlow: StateFlow<ColorInputGroupData> = store.flow
+    val dataFlow: StateFlow<ColorInputGroupData> =
+        store.flow.stateIn(coroutineScope, SharingStarted.Lazily, store.value)
 
-    private val hexViewModel: ColorInputHexViewModel = run {
-        val coroutineScope = ViewModelCoroutineScope(parent = coroutineScope)
+    private val hexViewModel: ColorInputHexViewModel =
         hexViewModelFactory.create(
-            coroutineScope = coroutineScope,
+            coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
             store = store.focus(
                 lens = Lens(
                     get = { s -> s.hex },
                     set = { s, v -> s.copy(hex = v) },
                 ),
-                scope = coroutineScope,
             ),
             mediator = mediator,
             submitAction = submitAction,
         )
-    }
-    private val rgbViewModel: ColorInputRgbViewModel = run {
-        val coroutineScope = ViewModelCoroutineScope(parent = coroutineScope)
+    private val rgbViewModel: ColorInputRgbViewModel =
         rgbViewModelFactory.create(
-            coroutineScope = coroutineScope,
+            coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
             store = store.focus(
                 lens = Lens(
                     get = { s -> s.rgb },
                     set = { s, v -> s.copy(rgb = v) },
                 ),
-                scope = coroutineScope,
             ),
             mediator = mediator,
             submitAction = submitAction,
         )
-    }
     val hsvViewModel: ColorInputHsvViewModel =
         hsvViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
