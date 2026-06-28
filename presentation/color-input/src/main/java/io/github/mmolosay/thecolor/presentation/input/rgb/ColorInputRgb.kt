@@ -33,25 +33,23 @@ import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFacade
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldInputProcessor
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldUiStrings
 
+@Suppress("unused") // example of how Facade is obtained from ViewModel
 @Composable
 fun ColorInputRgb(
     viewModel: ColorInputRgbViewModel,
 ) {
-    val context = LocalContext.current
-    val strings = remember(context) { ColorInputRgbUiStrings(context) }
     val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
     val facade = remember(data, viewModel) { viewModel.facade(data) }
 
     ColorInputRgb(
         facade = facade,
-        strings = strings,
     )
 }
 
 @Composable
 fun ColorInputRgb(
     facade: ColorInputRgbFacade,
-    strings: ColorInputRgbUiStrings,
+    strings: ColorInputRgbUiStrings = rememberColorInputRgbUiStrings(),
 ) {
     Row {
         @Composable
@@ -167,6 +165,12 @@ private fun ComponentBasicTextField(
         ),
         keyboardActions = keyboardActions,
     )
+}
+
+@Composable
+private fun rememberColorInputRgbUiStrings(): ColorInputRgbUiStrings {
+    val context = LocalContext.current
+    return remember(context) { ColorInputRgbUiStrings(context) }
 }
 
 @Preview(showBackground = true)

@@ -32,7 +32,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupViewModel.DataState
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHex
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexFacade
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexUiStrings
@@ -47,7 +46,6 @@ import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Te
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFacade
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldInputProcessor
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldUiStrings
-import io.github.mmolosay.thecolor.utils.doNothing
 import io.github.mmolosay.thecolor.domain.color.Color as DomainColor
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 
@@ -57,33 +55,31 @@ fun ColorInputGroup(
 ) {
     val context = LocalContext.current
     val strings = remember(context) { ColorInputGroupUiStrings(context) }
-    val dataState = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
-    when (dataState) {
-        is DataState.Loading -> {
-            // should promptly change to 'Ready', don't show loading indicator to avoid flashing
-            doNothing()
-        }
-        is DataState.Ready -> {
-            ColorInputGroup(
-                data = dataState.data,
-                strings = strings,
-                hexInput = {
-                    ColorInputHex(viewModel = viewModel.hexViewModel)
-                },
-                rgbInput = {
-                    ColorInputRgb(viewModel = viewModel.rgbViewModel)
-                },
-                hsvInput = {
-                    ColorInputHsv(viewModel = viewModel.hsvViewModel)
-                },
+    val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
+    val facade = remember(data, viewModel) { viewModel.facade(data) }
+
+    ColorInputGroup(
+        facade = facade,
+        strings = strings,
+        hexInput = {
+            ColorInputHex(
+                facade = facade.hex,
             )
-        }
-    }
+        },
+        rgbInput = {
+            ColorInputRgb(
+                facade = facade.rgb,
+            )
+        },
+        hsvInput = {
+            ColorInputHsv(viewModel = viewModel.hsvViewModel)
+        },
+    )
 }
 
 @Composable
 fun ColorInputGroup(
-    data: ColorInputGroupData,
+    facade: ColorInputGroupFacade,
     strings: ColorInputGroupUiStrings,
     hexInput: @Composable () -> Unit,
     rgbInput: @Composable () -> Unit,
@@ -94,7 +90,7 @@ fun ColorInputGroup(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         AnimatedContent(
-            targetState = data.selectedInputType,
+            targetState = facade.selectedInputType,
             transitionSpec = {
                 fadeIn() togetherWith fadeOut() using SizeTransform(clip = false)
             },
@@ -115,7 +111,9 @@ fun ColorInputGroup(
 
         Spacer(modifier = Modifier.height(12.dp))
         InputSelector(
-            data = data,
+            orderedInputTypes = facade.orderedInputTypes,
+            selectedInputType = facade.selectedInputType,
+            changeInputType = facade::changeInputType,
             strings = strings,
         )
     }
@@ -124,14 +122,16 @@ fun ColorInputGroup(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun InputSelector(
-    data: ColorInputGroupData,
+    orderedInputTypes: List<DomainColorInputType>,
+    selectedInputType: DomainColorInputType,
+    changeInputType: (DomainColorInputType) -> Unit,
     strings: ColorInputGroupUiStrings,
 ) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        data.orderedInputTypes.forEach { type ->
-            val isSelected = (type == data.selectedInputType)
+        orderedInputTypes.forEach { type ->
+            val isSelected = (type == selectedInputType)
             val contentColor = LocalContentColor.current
             val colors = FilterChipDefaults.filterChipColors(
                 labelColor = contentColor.copy(alpha = 0.60f),
@@ -145,7 +145,7 @@ private fun InputSelector(
             )
             FilterChip(
                 selected = isSelected,
-                onClick = { data.onInputTypeChange(type) },
+                onClick = { changeInputType(type) },
                 label = {
                     val labelText = type.label(strings)
                     ChipLabel(text = labelText)
@@ -180,7 +180,7 @@ private fun Preview() {
     TheColorTheme {
         Surface {
             ColorInputGroup(
-                data = previewData(),
+                facade = previewFacade(),
                 strings = previewUiStrings(),
                 hexInput = {
                     ColorInputHex(
@@ -204,15 +204,17 @@ private fun Preview() {
     }
 }
 
-private fun previewData() =
-    ColorInputGroupData(
-        selectedInputType = DomainColorInputType.Hex,
-        orderedInputTypes = listOf(
+private fun previewFacade() =
+    object : ColorInputGroupFacade {
+        override val hex = previewHexFacade()
+        override val rgb = previewRgbFacade()
+        override val orderedInputTypes = listOf(
             DomainColorInputType.Hex,
             DomainColorInputType.Rgb,
-        ),
-        onInputTypeChange = {},
-    )
+        )
+        override val selectedInputType = DomainColorInputType.Hex
+        override fun changeInputType(type: DomainColorInputType) {}
+    }
 
 private fun previewUiStrings() =
     ColorInputGroupUiStrings(

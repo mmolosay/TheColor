@@ -27,25 +27,23 @@ import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFacade
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldInputProcessor
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldUiStrings
 
+@Suppress("unused") // example of how Facade is obtained from ViewModel
 @Composable
 fun ColorInputHex(
     viewModel: ColorInputHexViewModel,
 ) {
-    val context = LocalContext.current
-    val strings = remember(context) { ColorInputHexUiStrings(context) }
     val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
     val facade = remember(data, viewModel) { viewModel.facade(data) }
 
     ColorInputHex(
         facade = facade,
-        strings = strings,
     )
 }
 
 @Composable
 fun ColorInputHex(
     facade: ColorInputHexFacade,
-    strings: ColorInputHexUiStrings,
+    strings: ColorInputHexUiStrings = rememberColorInputHexUiStrings(),
 ) {
     var value by remember {
         val text = facade.textField.text.data.string
@@ -76,6 +74,12 @@ fun ColorInputHex(
     ProcessColorSubmissionResultAsSideEffect(
         ackResult = facade.inputSubmissionResult,
     )
+}
+
+@Composable
+private fun rememberColorInputHexUiStrings(): ColorInputHexUiStrings {
+    val context = LocalContext.current
+    return remember(context) { ColorInputHexUiStrings(context) }
 }
 
 @Preview(showBackground = true)

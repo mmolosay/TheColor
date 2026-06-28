@@ -15,6 +15,7 @@ import io.github.mmolosay.thecolor.domain.utils.getOrElse
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
+import io.github.mmolosay.thecolor.presentation.common.viewmodel.Store
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEvent
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
@@ -25,6 +26,7 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel.Cor
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel.CoroutineRegistryRules.trackAsProceed
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.colorState
+import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupDataFactory
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
@@ -71,6 +73,7 @@ import io.github.mmolosay.thecolor.domain.color.ColorDetails as DomainColorDetai
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModel @Inject constructor(
     private val colorInputMediator: ColorInputMediator,
+    colorInputGroupDataFactory: ColorInputGroupDataFactory,
     colorInputGroupViewModelFactory: ColorInputGroupViewModel.Factory,
     colorPreviewViewModelFactory: ColorPreviewViewModel.Factory,
     colorCenterComponentsStoreFactory: ColorCenterComponentsStore.Factory,
@@ -100,12 +103,16 @@ class HomeViewModel @Inject constructor(
     }
     val flowOfDataUpdateLatch = _flowOfDataUpdateLatch.asStateFlow()
 
-    val colorInputGroupViewModel: ColorInputGroupViewModel =
+    val colorInputGroupViewModel: ColorInputGroupViewModel = run {
+        val data = colorInputGroupDataFactory.create()
+        val store = Store(data)
         colorInputGroupViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
+            store = store,
             mediator = colorInputMediator,
             submitAction = ColorInputSubmitActionImpl(),
         )
+    }
 
     val colorPreviewViewModel: ColorPreviewViewModel =
         colorPreviewViewModelFactory.create(

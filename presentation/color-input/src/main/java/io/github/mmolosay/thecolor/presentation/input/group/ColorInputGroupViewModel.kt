@@ -3,28 +3,27 @@ package io.github.mmolosay.thecolor.presentation.input.group
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
-import io.github.mmolosay.thecolor.domain.utils.filterReady
 import io.github.mmolosay.thecolor.domain.utils.getOrElse
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
+import io.github.mmolosay.thecolor.presentation.common.viewmodel.Lens
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.Store
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexDataFactory
+import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexFacade
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexViewModel
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbDataFactory
+import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbFacade
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 
 /**
@@ -37,81 +36,69 @@ import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInp
  */
 class ColorInputGroupViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
+    @Assisted private val store: Store<ColorInputGroupData>,
     @Assisted mediator: ColorInputMediator,
     @Assisted submitAction: ColorInputSubmitAction,
     hexViewModelFactory: ColorInputHexViewModel.Factory,
     rgbViewModelFactory: ColorInputRgbViewModel.Factory,
     hsvViewModelFactory: ColorInputHsvViewModel.Factory,
-    private val userPreferencesRepository: UserPreferencesRepository,
-    private val colorInputHexDataFactory: ColorInputHexDataFactory,
-    private val colorInputRgbDataFactory: ColorInputRgbDataFactory,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
-    private val _dataStateFlow = MutableStateFlow<DataState>(DataState.Loading)
-    val dataStateFlow = _dataStateFlow.asStateFlow()
+    private val orderedUpdates = defaultDispatcher.limitedParallelism(1)
 
-    private val hexStore = run {
-        val value = colorInputHexDataFactory.create()
-        Store(value)
-    }
-    val hexViewModel: ColorInputHexViewModel =
+    val dataFlow: StateFlow<ColorInputGroupData> = store.flow
+
+    private val hexViewModel: ColorInputHexViewModel = run {
+        val coroutineScope = ViewModelCoroutineScope(parent = coroutineScope)
         hexViewModelFactory.create(
-            coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
-            store = hexStore,
+            coroutineScope = coroutineScope,
+            store = store.focus(
+                lens = Lens(
+                    get = { s -> s.hex },
+                    set = { s, v -> s.copy(hex = v) },
+                ),
+                scope = coroutineScope,
+            ),
             mediator = mediator,
             submitAction = submitAction,
         )
-
-    private val rgbStore = run {
-        val value = colorInputRgbDataFactory.create()
-        Store(value)
     }
-    val rgbViewModel: ColorInputRgbViewModel =
+    private val rgbViewModel: ColorInputRgbViewModel = run {
+        val coroutineScope = ViewModelCoroutineScope(parent = coroutineScope)
         rgbViewModelFactory.create(
-            coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
-            store = rgbStore,
+            coroutineScope = coroutineScope,
+            store = store.focus(
+                lens = Lens(
+                    get = { s -> s.rgb },
+                    set = { s, v -> s.copy(rgb = v) },
+                ),
+                scope = coroutineScope,
+            ),
             mediator = mediator,
             submitAction = submitAction,
         )
-
+    }
     val hsvViewModel: ColorInputHsvViewModel =
         hsvViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
             mediator = mediator,
         )
 
-    init {
-        coroutineScope.launch(defaultDispatcher) {
-            _dataStateFlow.value = DataState.Ready(data = initialData())
-        }
-    }
-
-    private fun onInputTypeChange(type: DomainColorInputType) {
-        _dataStateFlow.update { dataState ->
-            val currentData = (dataState as? DataState.Ready)?.data ?: return@update dataState
-            val newData = currentData.copy(
-                selectedInputType = type,
-            )
-            DataState.Ready(newData)
-        }
-    }
-
-    private suspend fun initialData(): ColorInputGroupData {
-        val preferredInputType = userPreferencesRepository.flowOfColorInputType
-            .filterReady()
-            .first().result.getOrElse { DefaultUserPreferences.PreferredColorInputType }
-        // make list of all input types with the preferred one being first
-        val orderedInputTypes = run {
-            val allInputTypes = DomainColorInputType.entries
-            val allInputTypesWithoutPreferredOne = allInputTypes.filter { it != preferredInputType }
-            listOf(preferredInputType) + allInputTypesWithoutPreferredOne
-        }
-        return ColorInputGroupData(
-            selectedInputType = preferredInputType,
-            orderedInputTypes = orderedInputTypes,
-            onInputTypeChange = ::onInputTypeChange,
+    fun facade(data: ColorInputGroupData): ColorInputGroupFacade =
+        ColorInputGroupFacadeImpl(
+            data = data,
+            viewModel = this,
+            hex = hexViewModel.facade(data.hex),
+            rgb = rgbViewModel.facade(data.rgb),
         )
+
+    fun changeInputType(type: DomainColorInputType) {
+        coroutineScope.launch(orderedUpdates) {
+            store.update {
+                it.copy(selectedInputType = type)
+            }
+        }
     }
 
     override fun dispose() {
@@ -121,17 +108,58 @@ class ColorInputGroupViewModel @AssistedInject constructor(
         hsvViewModel.dispose()
     }
 
-    interface DataState {
-        data object Loading : DataState
-        data class Ready(val data: ColorInputGroupData) : DataState
-    }
-
     @AssistedFactory
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
+            store: Store<ColorInputGroupData>,
             mediator: ColorInputMediator,
             submitAction: ColorInputSubmitAction,
         ): ColorInputGroupViewModel
+    }
+}
+
+class ColorInputGroupDataFactory @Inject constructor(
+    private val colorInputHexDataFactory: ColorInputHexDataFactory,
+    private val colorInputRgbDataFactory: ColorInputRgbDataFactory,
+    private val userPreferencesRepository: UserPreferencesRepository,
+) {
+    fun create(): ColorInputGroupData {
+        val preferredInputType = userPreferencesRepository.flowOfColorInputType
+            .value.getOrElse { error("must be ready") }
+        // make list of all input types with the preferred one being first
+        val orderedInputTypes = run {
+            val allInputTypes = DomainColorInputType.entries
+            val allInputTypesWithoutPreferredOne = allInputTypes.filter { it != preferredInputType }
+            listOf(preferredInputType) + allInputTypesWithoutPreferredOne
+        }
+        return ColorInputGroupData(
+            hex = colorInputHexDataFactory.create(),
+            rgb = colorInputRgbDataFactory.create(),
+            selectedInputType = preferredInputType,
+            orderedInputTypes = orderedInputTypes,
+        )
+    }
+}
+
+private class ColorInputGroupFacadeImpl(
+    private val data: ColorInputGroupData,
+    private val viewModel: ColorInputGroupViewModel,
+    override val hex: ColorInputHexFacade,
+    override val rgb: ColorInputRgbFacade,
+) : ColorInputGroupFacade {
+
+    override val orderedInputTypes = data.orderedInputTypes
+    override val selectedInputType = data.selectedInputType
+    override fun changeInputType(type: DomainColorInputType) =
+        viewModel.changeInputType(type)
+
+    override fun equals(other: Any?): Boolean =
+        other is ColorInputGroupFacadeImpl && this.data == other.data && this.viewModel === other.viewModel
+
+    override fun hashCode(): Int {
+        var result = data.hashCode()
+        result = 31 * result + System.identityHashCode(viewModel)
+        return result
     }
 }
