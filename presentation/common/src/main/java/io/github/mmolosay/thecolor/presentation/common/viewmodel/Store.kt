@@ -16,129 +16,107 @@ import kotlin.coroutines.AbstractCoroutineContextElement
 import kotlin.coroutines.CoroutineContext
 
 /**
- * A reactive, observable handle to a single value [T] within a tree of composable state.
+ * A handle to a single value [T] within a tree of aggregated state.
  *
  * A `Store` may be the root of a tree or a [focus]ed view onto part of a larger one; callers
- * cannot distinguish the two and should not depend on which they hold. Every store in a tree
- * shares one underlying source of truth, so a change made through any store is reflected by
- * every other store whose value overlaps it.
+ * cannot tell which they hold and should not depend on it. Every store in a tree shares one source
+ * of truth, so a change made through any store is reflected by every other store whose value
+ * overlaps it.
  *
  * ### Consistency
- * Every value ever exposed by [flow], read from [value], or returned by [current] is a
- * fully-aggregated, internally consistent snapshot of the tree. A change originating anywhere in
- * the tree becomes visible as a single transition; there is no observable intermediate state in
- * which part of the tree has updated and the rest has not.
+ * Every value the tree exposes is a fully-aggregated, consistent snapshot: a change anywhere in the
+ * tree becomes visible as a single transition, with no observable state in which part of the tree
+ * has updated and the rest has not.
  *
  * ### Mutual exclusion
- * Writes across the entire tree are totally ordered: at most one [update] or [transaction] is in
- * progress at a time, and a write never interleaves with another. Reads ([value], [flow],
- * [current]) are never blocked by an in-progress write and never observe a partially-applied one.
+ * Writes across the tree are totally ordered: at most one write runs at a time, and writes never
+ * interleave. Reads are never blocked by a write and never observe a partially-applied one.
  *
- * ### Observation
- * [flow] is a *cold* stream: it carries no value of its own and does not conflate. Collect it
- * through [stateIn][kotlinx.coroutines.flow.stateIn] (or another conflating, hot terminal) to
- * obtain a de-duplicated [StateFlow][kotlinx.coroutines.flow.StateFlow] bound to a scope; that
- * `StateFlow` collapses consecutive equal values. For a synchronous read of the current value
- * without collecting, use [value].
- *
- * Implementations are safe to use from multiple coroutines on any dispatcher.
+ * Safe to use from concurrent coroutines on any dispatcher.
  *
  * @param T the type of value this store exposes.
  */
-interface Store<T> { // TODO: refine Store's KDoc above and show the file to Claude to check for any issues
+interface Store<T> {
 
     /**
-     * The current committed value, read synchronously.
+     * The current committed value.
      *
-     * This is the latest committed value and is **not** transaction-aware: inside a [transaction]
-     * it still reflects the committed state, not the changes made so far within that transaction.
-     * For the read step of a read-modify-write, or any read that must observe in-flight
-     * transaction changes, use [current] instead.
-     *
-     * Suitable as the initial value when collecting [flow] via
-     * [stateIn][kotlinx.coroutines.flow.stateIn], and for fire-and-forget reads that tolerate the
-     * eventually-consistent, non-transactional view.
+     * Not transaction-aware: inside a [transaction] it reflects the committed state, not changes
+     * made so far within that transaction. For a read that observes in-flight transaction changes,
+     * or the read step of a read-modify-write, see [current].
      */
-    val value: T // TODO: rename to "snapshot" to indicate that it is only commited values?
+    val value: T
 
     /**
-     * The store's value as an observable stream.
+     * The store's value as a stream of its changes over time.
      *
-     * Cold and non-conflating: collecting it restarts observation from the current value, and it may
-     * emit consecutive equal values. Each value it emits is a fully-aggregated, consistent snapshot;
-     * collectors never observe a partially-applied change.
+     * Cold and non-conflating: each collection observes from the current value onward and may
+     * receive consecutive equal values. Every emitted value is a fully-aggregated, consistent
+     * snapshot.
      *
      * Eventually consistent with respect to writes: after an [update] or [transaction] completes, a
-     * corresponding value follows after a brief propagation delay (because [Flow] is an asynchronous stream).
-     * For an authoritative, immediate read — in particular the read step of a read-modify-write — use [current];
-     * for a synchronous read of the current value, use [value].
+     * corresponding value follows after a brief delay. [current] is immediate and authoritative;
+     * [value] is the synchronous committed read.
      */
     val flow: Flow<T>
 
     /**
-     * Returns this store's value authoritatively, awaiting any consistency the calling context
-     * requires.
+     * The store's value, authoritative for the calling context.
      *
-     * Outside a [transaction] this is the committed value. Inside a [transaction] it reflects the
-     * changes already made within that same transaction — including ones not yet committed, and so
-     * not yet observable through [value] or [flow].
+     * Outside a [transaction] this is the committed value. Inside one it reflects the changes made
+     * so far within that same transaction — including uncommitted ones, not yet observable through
+     * [value] or [flow].
      *
-     * This is the only read that is never stale with respect to writes already applied in the calling
-     * context. Use it for the read step of a read-modify-write, where reading a committed-only value
-     * (via [value]) could miss an uncommitted change made earlier in the same transaction.
+     * The only read never stale with respect to writes already applied in the calling context;
+     * [value] can miss an uncommitted change made earlier in the same transaction.
      */
     suspend fun current(): T
 
     /**
-     * Atomically replaces this store's value with the result of applying [transform] to it.
+     * Atomically replaces the value with the result of applying [transform] to it.
      *
-     * [transform] must derive the new value from the value it receives, not from one captured earlier,
-     * so that it composes correctly when other writes interleave; it may be invoked against a value
-     * newer than the caller last observed.
+     * [transform] must derive its result from the value it receives, not from one captured earlier,
+     * so it composes correctly when writes interleave; it may run against a value newer than the
+     * caller last observed.
      *
-     * Outside a [transaction] the change is committed on its own and becomes visible as a single
-     * consistent transition. Inside a [transaction] it instead contributes to that transaction and
-     * becomes visible only when the transaction commits. Either way it does not interleave with any
-     * other write to the tree.
+     * Outside a [transaction] the change commits on its own, as a single consistent transition.
+     * Inside one it contributes to the transaction and commits with it. It never interleaves with
+     * another write.
      *
-     * @param transform maps the current value to the new one.
+     * @param transform maps the received value to the new one.
      */
     suspend fun update(transform: (T) -> T)
 
     /**
-     * Runs [block] as a single atomic, isolated unit of work over the tree.
+     * Runs [block] as a single atomic, isolated unit of work.
      *
-     * While it runs, no other write to the tree begins or commits: every value [block] reads through
-     * [current] is stable, and every change it makes commits together as one consistent transition
-     * that outside readers observe only once [block] returns. They never see an intermediate state.
-     *
-     * If [block] throws or is canceled, the transaction is abandoned: no change is published and the
+     * While it runs, no other write begins or commits: values [block] reads through [current] are
+     * stable, and every change it makes commits together as one transition, observable to others
+     * only after [block] returns. If [block] throws or is canceled, nothing is published and the
      * tree is left as if it never ran.
      *
-     * A transaction started while another is already in progress joins it and commits with it, rather
-     * than starting a separate one. [block] may suspend; all of these guarantees hold across its
-     * suspension points.
+     * Concurrent transactions on the tree are serialized: one runs to completion and commits before
+     * the next begins, each as its own transition. A transaction begun while one is already in
+     * progress *on the same coroutine* instead joins it and commits with it, rather than deadlocking.
      *
-     * Writes that participate in the transaction must run inline within [block].
-     * A write spawned in a separate coroutine (e.g. via `launch`/`async`) does not join the transaction
-     * and commits on its own, and awaiting such a write from within [block] deadlocks against the
-     * transaction's own exclusion.
-     * Make every change you want included a direct, inline [update] call.
+     * [block] may suspend, including switching context via `withContext`; the guarantees hold across
+     * suspension and context switches. Only writes run inline within [block] participate: a write
+     * spawned in a separate coroutine (via `launch`/`async`) does not join the transaction and commits
+     * on its own, and awaiting one from within [block] deadlocks against the transaction's exclusion.
      *
-     * @param block the work to run; whatever it returns is returned by this call.
+     * @param block the work to run.
      * @return the result of [block].
      */
     suspend fun <R> transaction(block: suspend () -> R): R
 
     /**
-     * Returns a [Store] onto the part of this store's value selected by [lens].
+     * A [Store] view onto the part of this store's value selected by [lens].
      *
-     * The returned store is another view of the same underlying state: reading it projects this
-     * store's value through [lens], and writing it applies the change back through [lens] into this
-     * store and thus the whole tree. It shares this store's consistency and mutual-exclusion
-     * guarantees and participates in the same [transaction]s.
+     * Another view of the same state: reads project through [lens]; writes apply back through
+     * [lens] into this store and the whole tree. It shares this store's consistency and
+     * mutual-exclusion guarantees and participates in its [transaction]s.
      *
-     * @param lens selects the sub-value to expose and defines how to write it back.
+     * @param lens selects the sub-value and defines how to write it back.
      * @param V the type of the focused sub-value.
      */
     fun <V> focus(lens: Lens<T, V>): Store<V>
@@ -147,16 +125,10 @@ interface Store<T> { // TODO: refine Store's KDoc above and show the file to Cla
 fun <T> Store(initial: T): Store<T> =
     RootStore(initial)
 
-/**
- * A single source of truth for one composition tree.
- */
 private class RootStore<T>(initial: T) : Store<T> {
 
-    override var value: T
+    override val value: T
         get() = _flow.value
-        set(value) {
-            _flow.value = value
-        }
 
     private val _flow = MutableStateFlow(initial)
     override val flow: StateFlow<T> = _flow.asStateFlow()
@@ -194,7 +166,7 @@ private class RootStore<T>(initial: T) : Store<T> {
                     val result = withContext(newTxMarker) {
                         block()
                     }
-                    value = working.requireValue()
+                    _flow.value = working.requireValue()
                     return@withLock result
                 } finally {
                     working = Maybe.None
