@@ -210,7 +210,7 @@ private class StoreView<Source, T>(
     override val flow: StateFlow<T> =
         store.flow
             .map { lens.get(it) }
-            .stateIn(scope, SharingStarted.Eagerly, lens.get(store.flow.value))
+            .stateIn(scope, SharingStarted.Lazily, lens.get(store.flow.value))
 
     override suspend fun current(): T =
         lens.get(source = store.current())
