@@ -126,7 +126,7 @@ interface Store<T> {
      * when it is canceled the projection stops.
      * @param V the type of the focused sub-value.
      */
-    fun <V> focus(lens: Lens<T, V>, scope: CoroutineScope): Store<V> // TODO: abolish scope?
+    fun <V> focus(lens: Lens<T, V>, scope: CoroutineScope): Store<V>
 }
 
 fun <T> Store(initial: T): Store<T> =
