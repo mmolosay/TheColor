@@ -24,6 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -82,9 +83,10 @@ internal fun TextField(
         placeholder = { Placeholder(text = strings.placeholder) },
         trailingIcon = icon@{
             val clearTextFeature = facade.clearTextFeature ?: return@icon
+            val action by rememberUpdatedState(clearTextFeature::invoke)
             ClearTextTrailingButton(
                 visible = value.text.isNotEmpty(),
-                onClick = clearTextFeature::invoke,
+                onClick = { action() },
                 iconContentDesc = strings.trailingIconContentDesc ?: return@icon,
             )
         },

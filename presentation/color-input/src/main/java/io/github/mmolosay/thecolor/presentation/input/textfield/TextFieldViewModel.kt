@@ -116,13 +116,12 @@ private class TextFieldFacadeImpl(
     override val inputProcessor = viewModel.inputProcessor
     override val shouldSelectAllTextOnFocus = data.shouldSelectAllTextOnFocus
     override val clearTextFeature = run {
-        if (data.isClearTextFeatureEnabled) {
-            object : ClearTextFeature {
-                override fun invoke() {
-                    viewModel.updateText(Text("") causedByUser true)
-                }
+        if (!data.isClearTextFeatureEnabled) return@run null
+        object : ClearTextFeature {
+            override fun invoke() {
+                viewModel.updateText(Text("") causedByUser true)
             }
-        } else null
+        }
     }
 
     override fun equals(other: Any?): Boolean =
