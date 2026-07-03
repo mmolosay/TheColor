@@ -24,7 +24,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -65,7 +64,6 @@ internal fun TextField(
         modifier = modifier,
         value = value,
         onValueChange = { new ->
-            @Suppress("UnnecessaryVariable")
             val current = value
             if (current.text != new.text) {
                 // can't just pass new.text to ViewModel for filtering: TextFieldValue.selection will be lost
@@ -83,10 +81,9 @@ internal fun TextField(
         placeholder = { Placeholder(text = strings.placeholder) },
         trailingIcon = icon@{
             val clearTextFeature = facade.clearTextFeature ?: return@icon
-            val action by rememberUpdatedState(clearTextFeature::invoke)
             ClearTextTrailingButton(
                 visible = value.text.isNotEmpty(),
-                onClick = { action() },
+                onClick = clearTextFeature::invoke,
                 iconContentDesc = strings.trailingIconContentDesc ?: return@icon,
             )
         },
@@ -100,7 +97,6 @@ internal fun TextField(
     )
     // for when text is changed programmatically
     LaunchedEffect(facade.text) {
-        @Suppress("UnnecessaryVariable")
         val oldValue = value
         val newText = facade.text.data.string
         val newSelection = run {

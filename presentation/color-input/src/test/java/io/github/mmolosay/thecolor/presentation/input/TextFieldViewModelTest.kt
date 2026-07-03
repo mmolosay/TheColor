@@ -6,7 +6,6 @@ import io.github.mmolosay.thecolor.domain.utils.PrefState
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldViewModel
 import io.github.mmolosay.thecolor.presentation.input.textfield.data
-import io.github.mmolosay.thecolor.presentation.input.textfield.updateText
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -67,7 +66,7 @@ class TextFieldViewModelTest {
             initialText = "initial"
         )
 
-        sut updateText Text("new")
+        sut launchSetText Text("new")
 
         sut.data.text.data shouldBe Text("new")
     }
@@ -78,7 +77,7 @@ class TextFieldViewModelTest {
             initialText = "initial",
         )
 
-        sut updateText Text("new")
+        sut launchSetText Text("new")
 
         sut.data.text.causedByUser shouldBe false
     }
@@ -135,7 +134,7 @@ class TextFieldViewModelTest {
             )
             val firstClearTextFeature = sut.data.clearText
 
-            sut.updateText(Text(""))
+            sut.launchSetText(Text(""))
             val secondClearTextFeature = sut.data.clearText
 
             firstClearTextFeature shouldBe secondClearTextFeature
@@ -158,7 +157,7 @@ class TextFieldViewModelTest {
             enableClearTextFeature = false,
         )
 
-        sut updateText Text("non-empty text")
+        sut launchSetText Text("non-empty text")
 
         sut.data.clearText shouldBe null
     }
@@ -246,7 +245,7 @@ class TextFieldViewModelTest {
             }
             every { userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus } returns flowOfSelectAllTextOnTextFieldFocus
             createSut()
-            sut updateText Text("initial")
+            sut launchSetText Text("initial")
             sut.data.shouldSelectAllTextOnFocus shouldBe DefaultUserPreferences.SelectAllTextOnTextFieldFocus.enabled
 
             run {

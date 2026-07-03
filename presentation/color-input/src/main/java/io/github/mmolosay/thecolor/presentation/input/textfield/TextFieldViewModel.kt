@@ -17,6 +17,7 @@ import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Te
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFacade.ClearTextFeature
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -63,12 +64,19 @@ class TextFieldViewModel @AssistedInject constructor(
             viewModel = this,
         )
 
-    fun updateText(textWithSource: WithSource<Text>) {
+    fun execute(action: TextFieldAction): Job =
         @OptIn(RequiresWriteOrdering::class)
         coroutineScope.launch(orderedUpdates) {
-            setText(textWithSource)
+            when (action) {
+                is TextFieldAction.SetText -> {
+                    setText(action.text causedByUser true)
+                }
+                is TextFieldAction.InvokeClearTextFeature -> {
+                    require(store.value.isClearTextFeatureEnabled)
+                    setText(Text("") causedByUser true)
+                }
+            }
         }
-    }
 
     @RequiresWriteOrdering
     suspend fun setText(textWithSource: WithSource<Text>) =
@@ -110,26 +118,46 @@ private class TextFieldFacadeImpl(
 
     override val text = data.text
     override fun setText(text: Text) {
-        viewModel.updateText(text causedByUser true)
+        val action = TextFieldAction.SetText(text)
+        viewModel.execute(action)
     }
 
     override val inputProcessor = viewModel.inputProcessor
     override val shouldSelectAllTextOnFocus = data.shouldSelectAllTextOnFocus
-    override val clearTextFeature = run {
-        if (!data.isClearTextFeatureEnabled) return@run null
-        object : ClearTextFeature {
-            override fun invoke() {
-                viewModel.updateText(Text("") causedByUser true)
-            }
-        }
+    override val clearTextFeature: ClearTextFeature? = run {
+        if (data.isClearTextFeatureEnabled) {
+            ClearTextFeatureImpl(viewModel)
+        } else null
     }
 
     override fun equals(other: Any?): Boolean =
-        other is TextFieldFacadeImpl && this.data == other.data && this.viewModel === other.viewModel
+        other is TextFieldFacadeImpl
+                && this.data == other.data
+                && this.viewModel === other.viewModel
 
     override fun hashCode(): Int {
         var result = data.hashCode()
         result = 31 * result + System.identityHashCode(viewModel)
         return result
+    }
+
+    private class ClearTextFeatureImpl(
+        private val viewModel: TextFieldViewModel,
+    ) : ClearTextFeature {
+
+        override fun invoke() {
+            val action = TextFieldAction.InvokeClearTextFeature
+            viewModel.execute(action)
+        }
+
+        override fun equals(other: Any?): Boolean =
+            other is ClearTextFeatureImpl
+                    && this.viewModel == other.viewModel
+
+        override fun hashCode(): Int {
+            var result = 1
+            result = 31 * result + System.identityHashCode(viewModel)
+            return result
+        }
     }
 }
