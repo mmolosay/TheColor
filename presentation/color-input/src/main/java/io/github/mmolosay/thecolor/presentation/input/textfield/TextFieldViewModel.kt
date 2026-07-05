@@ -14,7 +14,6 @@ import io.github.mmolosay.thecolor.presentation.common.viewmodel.Store
 import io.github.mmolosay.thecolor.presentation.input.model.WithSource
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
-import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFacade.ClearTextFeature
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -40,6 +39,7 @@ class TextFieldViewModel @AssistedInject constructor(
 ) : SimpleViewModel(coroutineScope) {
 
     private val orderedUpdates = defaultDispatcher.limitedParallelism(1)
+    private val executeRef: (TextFieldAction) -> Unit = ::execute
 
     init {
         collectSelectAllTextOnTextFieldFocusPreference()
@@ -59,9 +59,10 @@ class TextFieldViewModel @AssistedInject constructor(
     }
 
     fun facade(data: TextFieldData): TextFieldFacade =
-        TextFieldFacadeImpl(
+        TextFieldFacade(
             data = data,
-            viewModel = this,
+            execute = executeRef,
+            inputProcessor = inputProcessor,
         )
 
     fun execute(action: TextFieldAction): Job =
@@ -71,8 +72,7 @@ class TextFieldViewModel @AssistedInject constructor(
                 is TextFieldAction.SetText -> {
                     setText(action.text causedByUser true)
                 }
-                is TextFieldAction.InvokeClearTextFeature -> {
-                    require(store.value.isClearTextFeatureEnabled)
+                is TextFieldAction.ClearTextFeature.Invoke -> {
                     setText(Text("") causedByUser true)
                 }
             }
@@ -109,55 +109,4 @@ class TextFieldDataFactory @Inject constructor(
                 .enabled,
             isClearTextFeatureEnabled = isClearTextFeatureEnabled,
         )
-}
-
-private class TextFieldFacadeImpl(
-    private val data: TextFieldData,
-    private val viewModel: TextFieldViewModel,
-) : TextFieldFacade {
-
-    override val text = data.text
-    override fun setText(text: Text) {
-        val action = TextFieldAction.SetText(text)
-        viewModel.execute(action)
-    }
-
-    override val inputProcessor = viewModel.inputProcessor
-    override val shouldSelectAllTextOnFocus = data.shouldSelectAllTextOnFocus
-    override val clearTextFeature: ClearTextFeature? = run {
-        if (data.isClearTextFeatureEnabled) {
-            ClearTextFeatureImpl(viewModel)
-        } else null
-    }
-
-    override fun equals(other: Any?): Boolean =
-        other is TextFieldFacadeImpl
-                && this.data == other.data
-                && this.viewModel === other.viewModel
-
-    override fun hashCode(): Int {
-        var result = data.hashCode()
-        result = 31 * result + System.identityHashCode(viewModel)
-        return result
-    }
-
-    private class ClearTextFeatureImpl(
-        private val viewModel: TextFieldViewModel,
-    ) : ClearTextFeature {
-
-        override fun invoke() {
-            val action = TextFieldAction.InvokeClearTextFeature
-            viewModel.execute(action)
-        }
-
-        override fun equals(other: Any?): Boolean =
-            other is ClearTextFeatureImpl
-                    && this.viewModel == other.viewModel
-
-        override fun hashCode(): Int {
-            var result = 1
-            result = 31 * result + System.identityHashCode(viewModel)
-            return result
-        }
-    }
 }

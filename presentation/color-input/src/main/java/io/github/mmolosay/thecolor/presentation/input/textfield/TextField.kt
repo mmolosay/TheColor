@@ -53,7 +53,7 @@ internal fun TextField(
     modifier: Modifier = Modifier,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
-    if (facade.shouldSelectAllTextOnFocus) {
+    if (facade.data.shouldSelectAllTextOnFocus) {
         SelectAllTextOnFocusAsSideEffect(
             interactionSource = interactionSource,
             value = value,
@@ -71,7 +71,10 @@ internal fun TextField(
                 val newText = facade.inputProcessor(newInput)
                 val newValue = new.copy(text = newText.string)
                 onValueChange(newValue)
-                facade.setText(newText)
+                run {
+                    val action = TextFieldAction.SetText(newText)
+                    facade.execute(action)
+                }
             } else {
                 onValueChange(new)
             }
@@ -80,10 +83,16 @@ internal fun TextField(
         label = { Label(text = strings.label) },
         placeholder = { Placeholder(text = strings.placeholder) },
         trailingIcon = icon@{
-            val clearTextFeature = facade.clearTextFeature ?: return@icon
+            if (facade.data.isClearTextFeatureEnabled.not()) return@icon
             ClearTextTrailingButton(
                 visible = value.text.isNotEmpty(),
-                onClick = clearTextFeature::invoke,
+                onClick = run {
+                    val execute = facade.execute // 'Facade' instance may change, but 'execute' won't
+                    return@run {
+                        val action = TextFieldAction.ClearTextFeature.Invoke
+                        execute(action)
+                    }
+                },
                 iconContentDesc = strings.trailingIconContentDesc ?: return@icon,
             )
         },
@@ -96,9 +105,9 @@ internal fun TextField(
         interactionSource = interactionSource,
     )
     // for when text is changed programmatically
-    LaunchedEffect(facade.text) {
+    LaunchedEffect(facade.data.text) {
         val oldValue = value
-        val newText = facade.text.data.string
+        val newText = facade.data.text.data.string
         val newSelection = run {
             val hadSelectionAtTheEnd = (oldValue.selection.end == oldValue.text.length)
             val isNewTextLongerThanOld = (newText.length > oldValue.text.length)
@@ -188,20 +197,15 @@ private fun Preview() {
                 mutableStateOf(MaterialTextFieldValue(text = textState.value.string))
             }
             TextField(
-                facade = object : TextFieldFacade {
-                    override val text = textState.value causedByUser true
-                    override fun setText(text: Text) {
-                        textState.value = text
-                    }
-
-                    override val inputProcessor = TextFieldInputProcessor { Text(it) }
-                    override val shouldSelectAllTextOnFocus = true
-                    override val clearTextFeature = object : TextFieldFacade.ClearTextFeature {
-                        override fun invoke() {
-                            textState.value = Text("")
-                        }
-                    }
-                },
+                facade = TextFieldFacade(
+                    data = TextFieldData(
+                        text = textState.value causedByUser true,
+                        shouldSelectAllTextOnFocus = true,
+                        isClearTextFeatureEnabled = true,
+                    ),
+                    execute = {},
+                    inputProcessor = TextFieldInputProcessor { Text(it) },
+                ),
                 strings = TextFieldUiStrings(
                     label = "HEX",
                     placeholder = "000000",

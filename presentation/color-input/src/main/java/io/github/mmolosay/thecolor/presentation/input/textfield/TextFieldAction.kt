@@ -8,5 +8,7 @@ sealed interface TextFieldAction {
         val text: Text,
     ) : TextFieldAction
 
-    data object InvokeClearTextFeature : TextFieldAction
+    object ClearTextFeature {
+        data object Invoke : TextFieldAction
+    }
 }
