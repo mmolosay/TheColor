@@ -73,6 +73,7 @@ class TextFieldViewModel @AssistedInject constructor(
                     setText(action.text causedByUser true)
                 }
                 is TextFieldAction.ClearTextFeature.Invoke -> {
+                    if (store.value.isClearTextFeatureEnabled.not()) return@launch
                     setText(Text("") causedByUser true)
                 }
             }
