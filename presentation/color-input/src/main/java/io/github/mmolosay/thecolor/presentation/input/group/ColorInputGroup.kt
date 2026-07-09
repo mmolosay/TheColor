@@ -44,7 +44,6 @@ import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgb
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbFacade
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbUiStrings
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
-import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFacade
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldInputProcessor
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldUiStrings
@@ -58,7 +57,7 @@ fun ColorInputGroup(
     val context = LocalContext.current
     val strings = remember(context) { ColorInputGroupUiStrings(context) }
     val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
-    val facade = remember(data, viewModel) { viewModel.facade(data) }
+    val facade = remember(data, viewModel) { viewModel.facadeFactory.create(data) }
 
     ColorInputGroup(
         facade = facade,
@@ -89,6 +88,7 @@ fun ColorInputGroup(
     rgbInput: @Composable () -> Unit,
     hsvInput: @Composable () -> Unit,
 ) {
+    val execute by rememberUpdatedState(facade.execute) // reference 'execute' directly to enable lambda memoization
     Column(
         modifier = Modifier.padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -117,9 +117,9 @@ fun ColorInputGroup(
         InputSelector(
             orderedInputTypes = facade.orderedInputTypes,
             selectedInputType = facade.selectedInputType,
-            changeInputType = run {
-                val changeInputType by rememberUpdatedState(facade::changeInputType)
-                return@run { changeInputType(it) }
+            changeInputType = {
+                val action = ColorInputGroupAction.ChangeInputType(it)
+                execute(action)
             },
             strings = strings,
         )
@@ -142,10 +142,10 @@ private fun InputSelector(
             val contentColor = LocalContentColor.current
             val colors = FilterChipDefaults.filterChipColors(
                 labelColor = contentColor.copy(alpha = 0.60f),
-                // selectedLabelColor as default
+                selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
             )
             val border = FilterChipDefaults.filterChipBorder(
-                enabled = true, // constant
+                enabled = true,
                 selected = isSelected,
                 borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.60f),
                 // selectedBorderColor doesn't matter because it has 0 width
@@ -212,17 +212,18 @@ private fun Preview() {
 }
 
 private fun previewFacade() =
-    object : ColorInputGroupFacade {
-        override val hex = previewHexFacade()
-        override val rgb = previewRgbFacade()
-        override val hsv = previewHsvFacade()
-        override val orderedInputTypes = listOf(
+    ColorInputGroupFacade(
+        hex = previewHexFacade(),
+        rgb = previewRgbFacade(),
+        hsv = previewHsvFacade(),
+        execute = {},
+        selectedInputType = DomainColorInputType.Hex,
+        orderedInputTypes = listOf(
             DomainColorInputType.Hex,
             DomainColorInputType.Rgb,
-        )
-        override val selectedInputType = DomainColorInputType.Hex
-        override fun changeInputType(type: DomainColorInputType) {}
-    }
+            DomainColorInputType.Hsv,
+        ),
+    )
 
 private fun previewUiStrings() =
     ColorInputGroupUiStrings(
@@ -232,21 +233,17 @@ private fun previewUiStrings() =
     )
 
 private fun previewHexFacade() =
-    object : ColorInputHexFacade {
-        override val textField = object : TextFieldFacade {
-            override val text = TextFieldData.Text("") causedByUser true
-            override fun setText(text: Text) {}
-
-            override val inputProcessor = TextFieldInputProcessor { TextFieldData.Text(it) }
-            override val shouldSelectAllTextOnFocus = true
-            override val clearTextFeature = object : TextFieldFacade.ClearTextFeature {
-                override fun invoke() {}
-            }
-        }
-
-        override fun submitInput() {}
-        override val inputSubmissionResult = null
-    }
+    ColorInputHexFacade(
+        textField = TextFieldFacade(
+            execute = {},
+            text = TextFieldData.Text("1A803F") causedByUser true,
+            shouldSelectAllTextOnFocus = true,
+            isClearTextFeatureEnabled = true,
+            inputProcessor = TextFieldInputProcessor { TextFieldData.Text(it) },
+        ),
+        execute = {},
+        inputSubmissionResult = null,
+    )
 
 private fun previewHexUiStrings() =
     ColorInputHexUiStrings(
@@ -259,43 +256,32 @@ private fun previewHexUiStrings() =
     )
 
 private fun previewRgbFacade() =
-    object : ColorInputRgbFacade {
-        override val rTextField = object : TextFieldFacade {
-            override val text = Text("12") causedByUser true
-            override fun setText(text: Text) {}
-
-            override val inputProcessor = TextFieldInputProcessor { Text(it) }
-            override val shouldSelectAllTextOnFocus = true
-            override val clearTextFeature = object : TextFieldFacade.ClearTextFeature {
-                override fun invoke() {}
-            }
-        }
-        override val gTextField = object : TextFieldFacade {
-            override val text = Text("") causedByUser true
-            override fun setText(text: Text) {}
-
-            override val inputProcessor = TextFieldInputProcessor { Text(it) }
-            override val shouldSelectAllTextOnFocus = true
-            override val clearTextFeature = object : TextFieldFacade.ClearTextFeature {
-                override fun invoke() {}
-            }
-        }
-        override val bTextField = object : TextFieldFacade {
-            override val text = Text("255") causedByUser true
-            override fun setText(text: Text) {}
-
-            override val inputProcessor = TextFieldInputProcessor { Text(it) }
-            override val shouldSelectAllTextOnFocus = true
-            override val clearTextFeature = object : TextFieldFacade.ClearTextFeature {
-                override fun invoke() {}
-            }
-        }
-
-        override val isSmartBackspaceEnabled = true
-
-        override fun submitInput() {}
-        override val inputSubmissionResult = null
-    }
+    ColorInputRgbFacade(
+        rTextField = TextFieldFacade(
+            execute = {},
+            text = TextFieldData.Text("12") causedByUser true,
+            shouldSelectAllTextOnFocus = true,
+            isClearTextFeatureEnabled = false,
+            inputProcessor = TextFieldInputProcessor { TextFieldData.Text(it) },
+        ),
+        gTextField = TextFieldFacade(
+            execute = {},
+            text = TextFieldData.Text("") causedByUser true,
+            shouldSelectAllTextOnFocus = true,
+            isClearTextFeatureEnabled = false,
+            inputProcessor = TextFieldInputProcessor { TextFieldData.Text(it) },
+        ),
+        bTextField = TextFieldFacade(
+            execute = {},
+            text = TextFieldData.Text("255") causedByUser true,
+            shouldSelectAllTextOnFocus = true,
+            isClearTextFeatureEnabled = false,
+            inputProcessor = TextFieldInputProcessor { TextFieldData.Text(it) },
+        ),
+        execute = {},
+        inputSubmissionResult = null,
+        isSmartBackspaceEnabled = true,
+    )
 
 private fun previewRgbUiStrings() =
     ColorInputRgbUiStrings(
@@ -320,7 +306,7 @@ private fun previewRgbUiStrings() =
     )
 
 private fun previewHsvFacade() =
-    object : ColorInputHsvFacade {
-        override val color = DomainColor.Hsv(hue = 117f, saturation = 0.59f, value = 0.31f)
-        override fun setColor(color: DomainColor.Hsv) {}
-    }
+    ColorInputHsvFacade(
+        execute = {},
+        color = DomainColor.Hsv(hue = 117f, saturation = 0.59f, value = 0.31f),
+    )

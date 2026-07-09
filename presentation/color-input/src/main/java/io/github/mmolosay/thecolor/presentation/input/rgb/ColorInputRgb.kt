@@ -38,7 +38,7 @@ fun ColorInputRgb(
     viewModel: ColorInputRgbViewModel,
 ) {
     val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
-    val facade = remember(data, viewModel) { viewModel.facade(data) }
+    val facade = remember(data, viewModel) { viewModel.facadeFactory.create(data) }
 
     ColorInputRgb(
         facade = facade,
@@ -50,6 +50,7 @@ fun ColorInputRgb(
     facade: ColorInputRgbFacade,
     strings: ColorInputRgbUiStrings = rememberColorInputRgbUiStrings(),
 ) {
+    val execute by rememberUpdatedState(facade.execute) // reference 'execute' directly to enable lambda memoization
     Row(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -83,19 +84,20 @@ fun ColorInputRgb(
             facade = facade.bTextField,
             strings = strings.bTextField,
             imeAction = ImeAction.Done,
-            keyboardActions = run {
-                val submitInput by rememberUpdatedState(facade::submitInput)
-                KeyboardActions(
-                    onDone = { submitInput() },
-                )
-            },
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    val action = ColorInputRgbAction.SubmitInput
+                    execute(action)
+                },
+            ),
             hasPreviousComponent = true, // for B previous is G
             enableSmartBackspace = isSmartBackspaceEnabled,
         )
     }
 
     ProcessColorSubmissionResultAsSideEffect(
-        ackResult = facade.inputSubmissionResult,
+        result = facade.inputSubmissionResult,
+        ack = { execute(ColorInputRgbAction.AckInputSubmissionResult) },
     )
 }
 
@@ -181,43 +183,32 @@ private fun Preview() {
 }
 
 private fun previewFacade() =
-    object : ColorInputRgbFacade {
-        override val rTextField = object : TextFieldFacade {
-            override val text = Text("12") causedByUser true
-            override fun setText(text: Text) {}
-
-            override val inputProcessor = TextFieldInputProcessor { Text(it) }
-            override val shouldSelectAllTextOnFocus = true
-            override val clearTextFeature = object : TextFieldFacade.ClearTextFeature {
-                override fun invoke() {}
-            }
-        }
-        override val gTextField = object : TextFieldFacade {
-            override val text = Text("") causedByUser true
-            override fun setText(text: Text) {}
-
-            override val inputProcessor = TextFieldInputProcessor { Text(it) }
-            override val shouldSelectAllTextOnFocus = true
-            override val clearTextFeature = object : TextFieldFacade.ClearTextFeature {
-                override fun invoke() {}
-            }
-        }
-        override val bTextField = object : TextFieldFacade {
-            override val text = Text("255") causedByUser true
-            override fun setText(text: Text) {}
-
-            override val inputProcessor = TextFieldInputProcessor { Text(it) }
-            override val shouldSelectAllTextOnFocus = true
-            override val clearTextFeature = object : TextFieldFacade.ClearTextFeature {
-                override fun invoke() {}
-            }
-        }
-
-        override val isSmartBackspaceEnabled = true
-
-        override fun submitInput() {}
-        override val inputSubmissionResult = null
-    }
+    ColorInputRgbFacade(
+        rTextField = TextFieldFacade(
+            execute = {},
+            text = Text("12") causedByUser true,
+            shouldSelectAllTextOnFocus = true,
+            isClearTextFeatureEnabled = false,
+            inputProcessor = TextFieldInputProcessor { Text(it) },
+        ),
+        gTextField = TextFieldFacade(
+            execute = {},
+            text = Text("") causedByUser true,
+            shouldSelectAllTextOnFocus = true,
+            isClearTextFeatureEnabled = false,
+            inputProcessor = TextFieldInputProcessor { Text(it) },
+        ),
+        bTextField = TextFieldFacade(
+            execute = {},
+            text = Text("255") causedByUser true,
+            shouldSelectAllTextOnFocus = true,
+            isClearTextFeatureEnabled = false,
+            inputProcessor = TextFieldInputProcessor { Text(it) },
+        ),
+        execute = {},
+        inputSubmissionResult = null,
+        isSmartBackspaceEnabled = true,
+    )
 
 private fun previewUiStrings() =
     ColorInputRgbUiStrings(

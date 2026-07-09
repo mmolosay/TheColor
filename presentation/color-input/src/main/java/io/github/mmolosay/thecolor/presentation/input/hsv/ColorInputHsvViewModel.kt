@@ -40,6 +40,10 @@ class ColorInputHsvViewModel @AssistedInject constructor(
 
     private val orderedUpdates = defaultDispatcher.limitedParallelism(1)
 
+    val facadeFactory = ColorInputHsvFacadeFactory(
+        execute = ::execute,
+    )
+
     val dataFlow: StateFlow<ColorInputHsvData> =
         store.flow.stateIn(coroutineScope, SharingStarted.Lazily, store.value)
 
@@ -75,20 +79,22 @@ class ColorInputHsvViewModel @AssistedInject constructor(
         }
     }
 
-    fun facade(data: ColorInputHsvData): ColorInputHsvFacade =
-        ColorInputHsvFacadeImpl(
-            data = data,
-            viewModel = this,
-        )
-
-    fun setColor(newColor: Color.Hsv) {
+    fun execute(action: ColorInputHsvAction) {
         coroutineScope.launch(orderedUpdates) {
-            store.update {
-                it.copy(color = newColor)
+            when (action) {
+                is ColorInputHsvAction.SetColor -> {
+                    setColor(action.color)
+                }
             }
-            val colorWithId = ColorWithId(color = newColor, mediatorStateId = mediator.colorState.id)
-            samplerForNewColors.offer(colorWithId)
         }
+    }
+
+    private suspend fun setColor(newColor: Color.Hsv) {
+        store.update {
+            it.copy(color = newColor)
+        }
+        val colorWithId = ColorWithId(color = newColor, mediatorStateId = mediator.colorState.id)
+        samplerForNewColors.offer(colorWithId)
     }
 
     /**
@@ -125,22 +131,12 @@ class ColorInputHsvDataFactory @Inject constructor(
         with(colorConverter) { mediator.colorState.color?.toHsv() }
 }
 
-private class ColorInputHsvFacadeImpl(
-    private val data: ColorInputHsvData,
-    private val viewModel: ColorInputHsvViewModel,
-) : ColorInputHsvFacade {
-
-    override val color = data.color
-
-    override fun setColor(color: Color.Hsv) =
-        viewModel.setColor(color)
-
-    override fun equals(other: Any?): Boolean =
-        other is ColorInputHsvFacadeImpl && this.data == other.data && this.viewModel === other.viewModel
-
-    override fun hashCode(): Int {
-        var result = data.hashCode()
-        result = 31 * result + System.identityHashCode(viewModel)
-        return result
-    }
+class ColorInputHsvFacadeFactory(
+    private val execute: (ColorInputHsvAction) -> Unit,
+) {
+    fun create(data: ColorInputHsvData): ColorInputHsvFacade =
+        ColorInputHsvFacade(
+            execute = this.execute,
+            color = data.color,
+        )
 }

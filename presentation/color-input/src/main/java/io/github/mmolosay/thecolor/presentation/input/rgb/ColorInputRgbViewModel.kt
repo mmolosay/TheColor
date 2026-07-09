@@ -27,10 +27,9 @@ import io.github.mmolosay.thecolor.presentation.input.model.getColorOrNull
 import io.github.mmolosay.thecolor.presentation.input.set
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldDataFactory
-import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFacade
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFacadeFactory
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldInputProcessor
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldViewModel
-import io.github.mmolosay.thecolor.utils.AckValue
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
@@ -63,6 +62,8 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
+    private val orderedUpdates = defaultDispatcher.limitedParallelism(1)
+
     private val rTextFieldVm = createTextFieldViewModel(
         lens = Lens(
             get = { s -> s.rTextField },
@@ -80,6 +81,13 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             get = { s -> s.bTextField },
             set = { s, v -> s.copy(bTextField = v) },
         ),
+    )
+
+    val facadeFactory = ColorInputRgbFacadeFactory(
+        rTextFieldFacadeFactory = rTextFieldVm.facadeFactory,
+        gTextFieldFacadeFactory = gTextFieldVm.facadeFactory,
+        bTextFieldFacadeFactory = bTextFieldVm.facadeFactory,
+        execute = ::execute,
     )
 
     val dataFlow: StateFlow<ColorInputRgbData> =
@@ -142,40 +150,35 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         }
     }
 
-    fun facade(data: ColorInputRgbData): ColorInputRgbFacade =
-        ColorInputRgbFacadeImpl(
-            data = data,
-            viewModel = this,
-            rTextField = rTextFieldVm.facade(data.rTextField),
-            gTextField = gTextFieldVm.facade(data.gTextField),
-            bTextField = bTextFieldVm.facade(data.bTextField),
-        )
-
-    fun submitInput() {
-        coroutineScope.launch {
-            val data = store.current()
-            val derived = TextFieldsDerived(data.rTextField, data.gTextField, data.bTextField)
-            val wasAccepted = submitAction.invoke(
-                colorInput = derived.colorInput,
-                validationResult = derived.validationResult,
-            )
-            val result = ColorInputSubmissionResult(wasAccepted)
-            store.update {
-                it.copy(
-                    inputSubmissionResult = AckValue(
-                        value = result,
-                        ack = ::clearInputSubmissionResult
-                    ),
-                )
+    fun execute(action: ColorInputRgbAction) {
+        coroutineScope.launch(orderedUpdates) {
+            when (action) {
+                is ColorInputRgbAction.SubmitInput -> {
+                    submitInput()
+                }
+                is ColorInputRgbAction.AckInputSubmissionResult -> {
+                    clearInputSubmissionResult()
+                }
             }
         }
     }
 
-    private fun clearInputSubmissionResult() {
-        coroutineScope.launch {
-            store.update {
-                it.copy(inputSubmissionResult = null)
-            }
+    private suspend fun submitInput() {
+        val data = store.current()
+        val derived = TextFieldsDerived(data.rTextField, data.gTextField, data.bTextField)
+        val wasAccepted = submitAction.invoke(
+            colorInput = derived.colorInput,
+            validationResult = derived.validationResult,
+        )
+        val result = ColorInputSubmissionResult(wasAccepted)
+        store.update {
+            it.copy(inputSubmissionResult = result)
+        }
+    }
+
+    private suspend fun clearInputSubmissionResult() {
+        store.update {
+            it.copy(inputSubmissionResult = null)
         }
     }
 
@@ -285,27 +288,19 @@ class ColorInputRgbDataFactory @Inject constructor(
         )
 }
 
-private class ColorInputRgbFacadeImpl(
-    private val data: ColorInputRgbData,
-    private val viewModel: ColorInputRgbViewModel,
-    override val rTextField: TextFieldFacade,
-    override val gTextField: TextFieldFacade,
-    override val bTextField: TextFieldFacade,
-) : ColorInputRgbFacade {
-
-    override val isSmartBackspaceEnabled = data.isSmartBackspaceEnabled
-
-    override fun submitInput() =
-        viewModel.submitInput()
-
-    override val inputSubmissionResult = data.inputSubmissionResult
-
-    override fun equals(other: Any?): Boolean =
-        other is ColorInputRgbFacadeImpl && this.data == other.data && this.viewModel === other.viewModel
-
-    override fun hashCode(): Int {
-        var result = data.hashCode()
-        result = 31 * result + System.identityHashCode(viewModel)
-        return result
-    }
+class ColorInputRgbFacadeFactory(
+    private val rTextFieldFacadeFactory: TextFieldFacadeFactory,
+    private val gTextFieldFacadeFactory: TextFieldFacadeFactory,
+    private val bTextFieldFacadeFactory: TextFieldFacadeFactory,
+    private val execute: (ColorInputRgbAction) -> Unit,
+) {
+    fun create(data: ColorInputRgbData): ColorInputRgbFacade =
+        ColorInputRgbFacade(
+            rTextField = rTextFieldFacadeFactory.create(data.rTextField),
+            gTextField = gTextFieldFacadeFactory.create(data.gTextField),
+            bTextField = bTextFieldFacadeFactory.create(data.bTextField),
+            execute = this.execute,
+            inputSubmissionResult = data.inputSubmissionResult,
+            isSmartBackspaceEnabled = data.isSmartBackspaceEnabled,
+        )
 }

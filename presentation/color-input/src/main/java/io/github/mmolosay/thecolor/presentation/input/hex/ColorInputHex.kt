@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -33,7 +34,7 @@ fun ColorInputHex(
     viewModel: ColorInputHexViewModel,
 ) {
     val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
-    val facade = remember(data, viewModel) { viewModel.facade(data) }
+    val facade = remember(data, viewModel) { viewModel.facadeFactory.create(data) }
 
     ColorInputHex(
         facade = facade,
@@ -45,6 +46,7 @@ fun ColorInputHex(
     facade: ColorInputHexFacade,
     strings: ColorInputHexUiStrings = rememberColorInputHexUiStrings(),
 ) {
+    val execute by rememberUpdatedState(facade.execute) // reference 'execute' directly to enable lambda memoization
     var value by remember {
         val text = facade.textField.text.data.string
         val value = TextFieldValue(
@@ -67,12 +69,16 @@ fun ColorInputHex(
             capitalization = KeyboardCapitalization.Characters,
         ),
         keyboardActions = KeyboardActions(
-            onDone = { facade.submitInput() },
+            onDone = {
+                val action = ColorInputHexAction.SubmitInput
+                execute(action)
+            },
         ),
     )
 
     ProcessColorSubmissionResultAsSideEffect(
-        ackResult = facade.inputSubmissionResult,
+        result = facade.inputSubmissionResult,
+        ack = { execute(ColorInputHexAction.AckInputSubmissionResult) },
     )
 }
 
@@ -94,21 +100,17 @@ private fun Preview() {
 }
 
 private fun previewFacade() =
-    object : ColorInputHexFacade {
-        override val textField = object : TextFieldFacade {
-            override val text = Text("") causedByUser true
-            override fun setText(text: Text) {}
-
-            override val inputProcessor = TextFieldInputProcessor { Text(it) }
-            override val shouldSelectAllTextOnFocus = true
-            override val clearTextFeature = object : TextFieldFacade.ClearTextFeature {
-                override fun invoke() {}
-            }
-        }
-
-        override fun submitInput() {}
-        override val inputSubmissionResult = null
-    }
+    ColorInputHexFacade(
+        textField = TextFieldFacade(
+            execute = {},
+            text = Text("1A803F") causedByUser true,
+            shouldSelectAllTextOnFocus = true,
+            isClearTextFeatureEnabled = true,
+            inputProcessor = TextFieldInputProcessor { Text(it) },
+        ),
+        execute = {},
+        inputSubmissionResult = null,
+    )
 
 private fun previewUiStrings() =
     ColorInputHexUiStrings(

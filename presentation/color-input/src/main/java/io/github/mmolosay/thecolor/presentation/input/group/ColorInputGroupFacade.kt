@@ -7,12 +7,11 @@ import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbFacade
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 
 @Immutable
-interface ColorInputGroupFacade {
-    val hex: ColorInputHexFacade
-    val rgb: ColorInputRgbFacade
-    val hsv: ColorInputHsvFacade
-
-    val orderedInputTypes: List<DomainColorInputType>
-    val selectedInputType: DomainColorInputType
-    fun changeInputType(type: DomainColorInputType)
-}
+data class ColorInputGroupFacade(
+    val hex: ColorInputHexFacade,
+    val rgb: ColorInputRgbFacade,
+    val hsv: ColorInputHsvFacade,
+    val execute: (ColorInputGroupAction) -> Unit,
+    val selectedInputType: DomainColorInputType,
+    val orderedInputTypes: List<DomainColorInputType>,
+)

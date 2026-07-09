@@ -24,6 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,8 +53,9 @@ internal fun TextField(
     keyboardActions: KeyboardActions,
     modifier: Modifier = Modifier,
 ) {
+    val execute by rememberUpdatedState(facade.execute) // reference 'execute' directly to enable lambda memoization
     val interactionSource = remember { MutableInteractionSource() }
-    if (facade.data.shouldSelectAllTextOnFocus) {
+    if (facade.shouldSelectAllTextOnFocus) {
         SelectAllTextOnFocusAsSideEffect(
             interactionSource = interactionSource,
             value = value,
@@ -73,7 +75,7 @@ internal fun TextField(
                 onValueChange(newValue)
                 run {
                     val action = TextFieldAction.SetText(newText)
-                    facade.execute(action)
+                    execute(action)
                 }
             } else {
                 onValueChange(new)
@@ -83,15 +85,12 @@ internal fun TextField(
         label = { Label(text = strings.label) },
         placeholder = { Placeholder(text = strings.placeholder) },
         trailingIcon = icon@{
-            if (facade.data.isClearTextFeatureEnabled.not()) return@icon
+            if (facade.isClearTextFeatureEnabled.not()) return@icon
             ClearTextTrailingButton(
                 visible = value.text.isNotEmpty(),
-                onClick = run {
-                    val execute = facade.execute // 'Facade' instance may change, but 'execute' won't
-                    return@run {
-                        val action = TextFieldAction.ClearTextFeature.Invoke
-                        execute(action)
-                    }
+                onClick = {
+                    val action = TextFieldAction.ClearTextFeature.Invoke
+                    execute(action)
                 },
                 iconContentDesc = strings.trailingIconContentDesc ?: return@icon,
             )
@@ -105,9 +104,9 @@ internal fun TextField(
         interactionSource = interactionSource,
     )
     // for when text is changed programmatically
-    LaunchedEffect(facade.data.text) {
+    LaunchedEffect(facade.text) {
         val oldValue = value
-        val newText = facade.data.text.data.string
+        val newText = facade.text.data.string
         val newSelection = run {
             val hadSelectionAtTheEnd = (oldValue.selection.end == oldValue.text.length)
             val isNewTextLongerThanOld = (newText.length > oldValue.text.length)
@@ -198,12 +197,10 @@ private fun Preview() {
             }
             TextField(
                 facade = TextFieldFacade(
-                    data = TextFieldData(
-                        text = textState.value causedByUser true,
-                        shouldSelectAllTextOnFocus = true,
-                        isClearTextFeatureEnabled = true,
-                    ),
                     execute = {},
+                    text = textState.value causedByUser true,
+                    shouldSelectAllTextOnFocus = true,
+                    isClearTextFeatureEnabled = true,
                     inputProcessor = TextFieldInputProcessor { Text(it) },
                 ),
                 strings = TextFieldUiStrings(

@@ -15,7 +15,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
@@ -33,7 +35,7 @@ fun ColorInputHsv(
     viewModel: ColorInputHsvViewModel,
 ) {
     val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
-    val facade = remember(data, viewModel) { viewModel.facade(data) }
+    val facade = remember(data, viewModel) { viewModel.facadeFactory.create(data) }
 
     ColorInputHsv(
         facade = facade,
@@ -44,6 +46,7 @@ fun ColorInputHsv(
 fun ColorInputHsv(
     facade: ColorInputHsvFacade,
 ) {
+    val execute by rememberUpdatedState(facade.execute) // reference 'execute' directly to enable lambda memoization
     val hue = run {
         val color = facade.color
         if (color != null) HueValue(color)
@@ -62,8 +65,7 @@ fun ColorInputHsv(
         )
 
     Row(
-        modifier = Modifier
-            .height(IntrinsicSize.Min),
+        modifier = Modifier.height(IntrinsicSize.Min),
         horizontalArrangement = Arrangement.Center,
     ) {
         SaturationAndValuePicker(
@@ -75,7 +77,8 @@ fun ColorInputHsv(
             sv = sv,
             onChange = { newSv ->
                 val newColor = HsvColor(hue, newSv)
-                facade.setColor(newColor)
+                val action = ColorInputHsvAction.SetColor(newColor)
+                execute(action)
             },
         )
 
@@ -89,7 +92,8 @@ fun ColorInputHsv(
                 hue = hue,
                 onChange = { newHue ->
                     val newColor = HsvColor(newHue, sv)
-                    facade.setColor(newColor)
+                    val action = ColorInputHsvAction.SetColor(newColor)
+                    execute(action)
                 },
             )
         }
@@ -110,7 +114,7 @@ private fun Preview() {
 }
 
 private fun previewFacade() =
-    object : ColorInputHsvFacade {
-        override val color = DomainColor.Hsv(hue = 117f, saturation = 0.59f, value = 0.31f)
-        override fun setColor(color: DomainColor.Hsv) {}
-    }
+    ColorInputHsvFacade(
+        execute = {},
+        color = DomainColor.Hsv(hue = 117f, saturation = 0.59f, value = 0.31f),
+    )

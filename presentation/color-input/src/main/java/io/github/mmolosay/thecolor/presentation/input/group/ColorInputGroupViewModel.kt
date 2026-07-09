@@ -12,14 +12,14 @@ import io.github.mmolosay.thecolor.presentation.common.viewmodel.Store
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexDataFactory
-import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexFacade
+import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexFacadeFactory
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexViewModel
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvDataFactory
-import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvFacade
+import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvFacadeFactory
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbDataFactory
-import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbFacade
+import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbFacadeFactory
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -50,9 +50,6 @@ class ColorInputGroupViewModel @AssistedInject constructor(
 ) : SimpleViewModel(coroutineScope) {
 
     private val orderedUpdates = defaultDispatcher.limitedParallelism(1)
-
-    val dataFlow: StateFlow<ColorInputGroupData> =
-        store.flow.stateIn(coroutineScope, SharingStarted.Lazily, store.value)
 
     private val hexViewModel: ColorInputHexViewModel =
         hexViewModelFactory.create(
@@ -90,20 +87,29 @@ class ColorInputGroupViewModel @AssistedInject constructor(
             mediator = mediator,
         )
 
-    fun facade(data: ColorInputGroupData): ColorInputGroupFacade =
-        ColorInputGroupFacadeImpl(
-            data = data,
-            viewModel = this,
-            hex = hexViewModel.facade(data.hex),
-            rgb = rgbViewModel.facade(data.rgb),
-            hsv = hsvViewModel.facade(data.hsv),
-        )
+    val facadeFactory = ColorInputGroupFacadeFactory(
+        hexFacadeFactory = hexViewModel.facadeFactory,
+        rgbFacadeFactory = rgbViewModel.facadeFactory,
+        hsvFacadeFactory = hsvViewModel.facadeFactory,
+        execute = ::execute,
+    )
 
-    fun changeInputType(type: DomainColorInputType) {
+    val dataFlow: StateFlow<ColorInputGroupData> =
+        store.flow.stateIn(coroutineScope, SharingStarted.Lazily, store.value)
+
+    fun execute(action: ColorInputGroupAction) {
         coroutineScope.launch(orderedUpdates) {
-            store.update {
-                it.copy(selectedInputType = type)
+            when (action) {
+                is ColorInputGroupAction.ChangeInputType -> {
+                    changeInputType(action.type)
+                }
             }
+        }
+    }
+
+    private suspend fun changeInputType(type: DomainColorInputType) {
+        store.update {
+            it.copy(selectedInputType = type)
         }
     }
 
@@ -150,25 +156,19 @@ class ColorInputGroupDataFactory @Inject constructor(
     }
 }
 
-private class ColorInputGroupFacadeImpl(
-    private val data: ColorInputGroupData,
-    private val viewModel: ColorInputGroupViewModel,
-    override val hex: ColorInputHexFacade,
-    override val rgb: ColorInputRgbFacade,
-    override val hsv: ColorInputHsvFacade,
-) : ColorInputGroupFacade {
-
-    override val orderedInputTypes = data.orderedInputTypes
-    override val selectedInputType = data.selectedInputType
-    override fun changeInputType(type: DomainColorInputType) =
-        viewModel.changeInputType(type)
-
-    override fun equals(other: Any?): Boolean =
-        other is ColorInputGroupFacadeImpl && this.data == other.data && this.viewModel === other.viewModel
-
-    override fun hashCode(): Int {
-        var result = data.hashCode()
-        result = 31 * result + System.identityHashCode(viewModel)
-        return result
-    }
+class ColorInputGroupFacadeFactory(
+    private val hexFacadeFactory: ColorInputHexFacadeFactory,
+    private val rgbFacadeFactory: ColorInputRgbFacadeFactory,
+    private val hsvFacadeFactory: ColorInputHsvFacadeFactory,
+    private val execute: (ColorInputGroupAction) -> Unit,
+) {
+    fun create(data: ColorInputGroupData): ColorInputGroupFacade =
+        ColorInputGroupFacade(
+            hex = hexFacadeFactory.create(data.hex),
+            rgb = rgbFacadeFactory.create(data.rgb),
+            hsv = hsvFacadeFactory.create(data.hsv),
+            execute = this.execute,
+            selectedInputType = data.selectedInputType,
+            orderedInputTypes = data.orderedInputTypes,
+        )
 }

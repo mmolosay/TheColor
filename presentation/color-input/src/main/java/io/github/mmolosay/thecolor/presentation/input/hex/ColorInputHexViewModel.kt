@@ -22,10 +22,9 @@ import io.github.mmolosay.thecolor.presentation.input.model.getColorOrNull
 import io.github.mmolosay.thecolor.presentation.input.set
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldDataFactory
-import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFacade
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFacadeFactory
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldInputProcessor
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldViewModel
-import io.github.mmolosay.thecolor.utils.AckValue
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
@@ -71,6 +70,11 @@ class ColorInputHexViewModel @AssistedInject constructor(
             inputProcessor = TextFieldInputProcessorImpl(),
         )
 
+    val facadeFactory = ColorInputHexFacadeFactory(
+        textFieldFacadeFactory = textFieldVm.facadeFactory,
+        execute = ::execute,
+    )
+
     val dataFlow: StateFlow<ColorInputHexData> =
         store.flow.stateIn(coroutineScope, SharingStarted.Lazily, store.value)
 
@@ -111,38 +115,35 @@ class ColorInputHexViewModel @AssistedInject constructor(
         }
     }
 
-    fun facade(data: ColorInputHexData): ColorInputHexFacade =
-        ColorInputHexFacadeImpl(
-            data = data,
-            viewModel = this,
-            textField = textFieldVm.facade(data.textField),
-        )
-
-    fun submitInput() {
+    fun execute(action: ColorInputHexAction) {
         coroutineScope.launch(orderedUpdates) {
-            val textField = store.current().textField
-            val derived = TextFieldDerived(textField)
-            val wasAccepted = submitAction.invoke(
-                colorInput = derived.colorInput,
-                validationResult = derived.validationResult,
-            )
-            val result = ColorInputSubmissionResult(wasAccepted)
-            store.update {
-                it.copy(
-                    inputSubmissionResult = AckValue(
-                        value = result,
-                        ack = ::clearInputSubmissionResult,
-                    ),
-                )
+            when (action) {
+                is ColorInputHexAction.SubmitInput -> {
+                    submitInput()
+                }
+                is ColorInputHexAction.AckInputSubmissionResult -> {
+                    clearInputSubmissionResult()
+                }
             }
         }
     }
 
-    private fun clearInputSubmissionResult() {
-        coroutineScope.launch(orderedUpdates) {
-            store.update {
-                it.copy(inputSubmissionResult = null)
-            }
+    private suspend fun submitInput() {
+        val textField = store.current().textField
+        val derived = TextFieldDerived(textField)
+        val wasAccepted = submitAction.invoke(
+            colorInput = derived.colorInput,
+            validationResult = derived.validationResult,
+        )
+        val result = ColorInputSubmissionResult(wasAccepted)
+        store.update {
+            it.copy(inputSubmissionResult = result)
+        }
+    }
+
+    private suspend fun clearInputSubmissionResult() {
+        store.update {
+            it.copy(inputSubmissionResult = null)
         }
     }
 
@@ -209,23 +210,14 @@ class ColorInputHexDataFactory @Inject constructor(
         )
 }
 
-private class ColorInputHexFacadeImpl(
-    private val data: ColorInputHexData,
-    private val viewModel: ColorInputHexViewModel,
-    override val textField: TextFieldFacade,
-) : ColorInputHexFacade {
-
-    override fun submitInput() =
-        viewModel.submitInput()
-
-    override val inputSubmissionResult = data.inputSubmissionResult
-
-    override fun equals(other: Any?): Boolean =
-        other is ColorInputHexFacadeImpl && this.data == other.data && this.viewModel === other.viewModel
-
-    override fun hashCode(): Int {
-        var result = data.hashCode()
-        result = 31 * result + System.identityHashCode(viewModel)
-        return result
-    }
+class ColorInputHexFacadeFactory(
+    private val textFieldFacadeFactory: TextFieldFacadeFactory,
+    private val execute: (ColorInputHexAction) -> Unit,
+) {
+    fun create(data: ColorInputHexData): ColorInputHexFacade =
+        ColorInputHexFacade(
+            textField = textFieldFacadeFactory.create(data.textField),
+            execute = this.execute,
+            inputSubmissionResult = data.inputSubmissionResult,
+        )
 }
