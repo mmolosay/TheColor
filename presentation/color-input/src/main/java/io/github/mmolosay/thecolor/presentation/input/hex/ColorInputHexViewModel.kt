@@ -76,7 +76,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
     )
 
     val dataFlow: StateFlow<ColorInputHexData> =
-        store.flow.stateIn(coroutineScope, SharingStarted.Lazily, store.value)
+        store.flow.stateIn(coroutineScope, SharingStarted.Eagerly, store.value)
 
     init {
         collectMediatorUpdates()

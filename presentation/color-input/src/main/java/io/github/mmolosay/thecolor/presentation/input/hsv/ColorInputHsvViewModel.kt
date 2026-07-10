@@ -45,7 +45,7 @@ class ColorInputHsvViewModel @AssistedInject constructor(
     )
 
     val dataFlow: StateFlow<ColorInputHsvData> =
-        store.flow.stateIn(coroutineScope, SharingStarted.Lazily, store.value)
+        store.flow.stateIn(coroutineScope, SharingStarted.Eagerly, store.value)
 
     private var sampleProcessingJob: Job? = null // 'onSampleProduced' is never invoked concurrently
     private val samplerForNewColors = Sampler<ColorWithId>(
