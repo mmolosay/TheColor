@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.sync.Mutex
@@ -50,9 +51,7 @@ interface Store<T> {
     /**
      * The store's value as a stream of its changes over time.
      *
-     * Cold and non-conflating: each collection observes from the current value onward and may
-     * receive consecutive equal values. Every emitted value is a fully-aggregated, consistent
-     * snapshot.
+     * Cold and conflating. Every emitted value is a fully-aggregated, committed snapshot.
      *
      * Eventually consistent with respect to writes: after an [update] or [transaction] completes, a
      * corresponding value follows after a brief delay. [current] is immediate and authoritative;
@@ -201,6 +200,7 @@ private class StoreView<Source, T>(
     override val flow: Flow<T> =
         store.flow
             .map { lens.get(it) }
+            .distinctUntilChanged()
 
     override suspend fun current(): T =
         lens.get(source = store.current())
