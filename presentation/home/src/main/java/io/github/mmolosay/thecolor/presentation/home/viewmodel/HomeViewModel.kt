@@ -36,15 +36,11 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
 import io.github.mmolosay.thecolor.utils.CoroutineRegistry
-import io.github.mmolosay.thecolor.utils.Latch
 import io.github.mmolosay.thecolor.utils.MutableConsumableStore
-import io.github.mmolosay.thecolor.utils.OpCounter
+import io.github.mmolosay.thecolor.utils.OperationCounter
 import io.github.mmolosay.thecolor.utils.asConsumableStore
 import io.github.mmolosay.thecolor.utils.removeAndCancelAll
-import io.github.mmolosay.thecolor.utils.state
-import io.github.mmolosay.thecolor.utils.totalAsLatch
 import io.github.mmolosay.thecolor.utils.trackThisAsSingleActive
-import io.github.mmolosay.thecolor.utils.withCounter
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -92,16 +88,12 @@ class HomeViewModel @Inject constructor(
     private val _effectStore = MutableConsumableStore<HomeEffect>()
     val effectStore = _effectStore.asConsumableStore()
 
-    private val dataUpdateCounter = OpCounter().apply {
-        addListener { newState ->
-            _flowOfDataUpdateLatch.value = newState.totalAsLatch()
-        }
+    private val _flowOfIsDataBeingUpdated = MutableStateFlow(false)
+    val flowOfIsDataBeingUpdated: StateFlow<Boolean> = _flowOfIsDataBeingUpdated.asStateFlow()
+    private val dataUpdateCounter = OperationCounter { counter, _ ->
+        val areThereAnyOngoingUpdates = (counter > 0)
+        _flowOfIsDataBeingUpdated.value = areThereAnyOngoingUpdates
     }
-    private val _flowOfDataUpdateLatch: MutableStateFlow<Latch> = run {
-        val value = dataUpdateCounter.state.totalAsLatch()
-        MutableStateFlow(value)
-    }
-    val flowOfDataUpdateLatch = _flowOfDataUpdateLatch.asStateFlow()
 
     val colorInputGroupViewModel: ColorInputGroupViewModel = run {
         val data = colorInputGroupDataFactory.create()

@@ -99,7 +99,6 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeEffect
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroup
 import io.github.mmolosay.thecolor.presentation.preview.AnimatedColorPreview
-import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState
 import io.github.mmolosay.thecolor.presentation.preview.toUiState
 import io.github.mmolosay.thecolor.utils.ConsumableStore
@@ -108,12 +107,10 @@ import io.github.mmolosay.thecolor.utils.cache.DequeCache
 import io.github.mmolosay.thecolor.utils.cache.PruneOnSizeThreshold
 import io.github.mmolosay.thecolor.utils.consumePendingAsFlow
 import io.github.mmolosay.thecolor.utils.doNothing
-import io.github.mmolosay.thecolor.utils.through
+import io.github.mmolosay.thecolor.utils.stabilize
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
@@ -154,8 +151,8 @@ fun HomeScreen(
             val upstream = viewModel.colorCenterViewModelFlow
             val flowOfColorCenterViewModel = remember {
                 upstream
-//                    .through(viewModel.flowOfDataUpdateLatch)
-//                    .distinctUntilChanged()
+                    .stabilize(viewModel.flowOfIsDataBeingUpdated)
+                    .distinctUntilChanged()
             }
             flowOfColorCenterViewModel
                 .collectAsStateWithLifecycle(initialValue = upstream.value)
@@ -172,28 +169,29 @@ fun HomeScreen(
     }
 
     val flowOfUiState = remember {
-        fun actualUiState(
-            colorPreviewData: ColorPreviewData?,
-            homeData: HomeData?,
-        ): HomeUiState? {
+        val flowOfColorPreviewData = viewModel.colorPreviewViewModel.dataFlow
+        val flowOfHomeData = viewModel.dataFlow
+        fun actualUiState(): HomeUiState? {
             val isColorPreviewVisible = run {
-                val data = colorPreviewData ?: return null
+                val data = flowOfColorPreviewData.value ?: return null
                 return@run data.toUiState() is ColorPreviewUiState.Visible
             }
             val isColorCenterVisible = run {
-                val data = homeData ?: return null
+                val data = flowOfHomeData.value
                 return@run data.proceedResult is ProceedResult.Success
             }
             return HomeUiState(isColorPreviewVisible, isColorCenterVisible)
         }
-        combine(
-            viewModel.colorPreviewViewModel.dataFlow,
-            viewModel.dataFlow,
-            transform = ::actualUiState,
-        )
-            .filterNotNull()
-            .conflate() // skip transient values to avoid unnecessary UI updates
-            .through(viewModel.flowOfDataUpdateLatch)
+        combineTransform(
+            flowOfColorPreviewData,
+            flowOfHomeData,
+            viewModel.flowOfIsDataBeingUpdated,
+        ) { _, _, isBeingUpdated ->
+            // impl of 'stabilize()' that takes actual value of the flow instead of last collected
+            if (!isBeingUpdated) {
+                actualUiState()?.let { emit(it) }
+            }
+        }
             .distinctUntilChanged()
             // make it hot to allow replaying last value when creating 'animController'
             .shareIn(coroutineScope, SharingStarted.Eagerly, replay = 1)
@@ -216,7 +214,7 @@ fun HomeScreen(
 
     val data = run {
         val flowOfData = remember {
-            viewModel.dataFlow.through(viewModel.flowOfDataUpdateLatch)
+            viewModel.dataFlow.stabilize(viewModel.flowOfIsDataBeingUpdated)
         }
         flowOfData.collectAsStateWithLifecycle(initialValue = viewModel.dataFlow.value).value
     }
