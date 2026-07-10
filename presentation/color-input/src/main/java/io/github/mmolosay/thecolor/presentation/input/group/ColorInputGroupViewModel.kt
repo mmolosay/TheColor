@@ -6,20 +6,16 @@ import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
 import io.github.mmolosay.thecolor.domain.utils.getOrElse
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
-import io.github.mmolosay.thecolor.presentation.common.viewmodel.Lens
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.Store
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexDataFactory
-import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexFacadeFactory
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexViewModel
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvDataFactory
-import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvFacadeFactory
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbDataFactory
-import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbFacadeFactory
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -43,54 +39,50 @@ class ColorInputGroupViewModel @AssistedInject constructor(
     @Assisted private val store: Store<ColorInputGroupData>,
     @Assisted mediator: ColorInputMediator,
     @Assisted submitAction: ColorInputSubmitAction,
+    hexDataFactory: ColorInputHexDataFactory,
     hexViewModelFactory: ColorInputHexViewModel.Factory,
+    rgbDataFactory: ColorInputRgbDataFactory,
     rgbViewModelFactory: ColorInputRgbViewModel.Factory,
+    hsvDataFactory: ColorInputHsvDataFactory,
     hsvViewModelFactory: ColorInputHsvViewModel.Factory,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
     private val orderedUpdates = defaultDispatcher.limitedParallelism(1)
 
-    private val hexViewModel: ColorInputHexViewModel =
+    val hexViewModel: ColorInputHexViewModel =
         hexViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
-            store = store.focus(
-                lens = Lens(
-                    get = { s -> s.hex },
-                    set = { s, v -> s.copy(hex = v) },
-                ),
-            ),
+            store = run {
+                val data = hexDataFactory.create()
+                Store(data)
+            },
             mediator = mediator,
             submitAction = submitAction,
         )
-    private val rgbViewModel: ColorInputRgbViewModel =
+
+    val rgbViewModel: ColorInputRgbViewModel =
         rgbViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
-            store = store.focus(
-                lens = Lens(
-                    get = { s -> s.rgb },
-                    set = { s, v -> s.copy(rgb = v) },
-                ),
-            ),
+            store = run {
+                val data = rgbDataFactory.create()
+                Store(data)
+            },
             mediator = mediator,
             submitAction = submitAction,
         )
-    private val hsvViewModel: ColorInputHsvViewModel =
+
+    val hsvViewModel: ColorInputHsvViewModel =
         hsvViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
-            store = store.focus(
-                lens = Lens(
-                    get = { s -> s.hsv },
-                    set = { s, v -> s.copy(hsv = v) },
-                ),
-            ),
+            store = run {
+                val data = hsvDataFactory.create()
+                Store(data)
+            },
             mediator = mediator,
         )
 
     val facadeFactory = ColorInputGroupFacadeFactory(
-        hexFacadeFactory = hexViewModel.facadeFactory,
-        rgbFacadeFactory = rgbViewModel.facadeFactory,
-        hsvFacadeFactory = hsvViewModel.facadeFactory,
         execute = ::execute,
     )
 
@@ -132,9 +124,6 @@ class ColorInputGroupViewModel @AssistedInject constructor(
 }
 
 class ColorInputGroupDataFactory @Inject constructor(
-    private val colorInputHexDataFactory: ColorInputHexDataFactory,
-    private val colorInputRgbDataFactory: ColorInputRgbDataFactory,
-    private val colorInputHsvDataFactory: ColorInputHsvDataFactory,
     private val userPreferencesRepository: UserPreferencesRepository,
 ) {
     fun create(): ColorInputGroupData {
@@ -147,9 +136,6 @@ class ColorInputGroupDataFactory @Inject constructor(
             listOf(preferredInputType) + allInputTypesWithoutPreferredOne
         }
         return ColorInputGroupData(
-            hex = colorInputHexDataFactory.create(),
-            rgb = colorInputRgbDataFactory.create(),
-            hsv = colorInputHsvDataFactory.create(),
             selectedInputType = preferredInputType,
             orderedInputTypes = orderedInputTypes,
         )
@@ -157,16 +143,10 @@ class ColorInputGroupDataFactory @Inject constructor(
 }
 
 class ColorInputGroupFacadeFactory(
-    private val hexFacadeFactory: ColorInputHexFacadeFactory,
-    private val rgbFacadeFactory: ColorInputRgbFacadeFactory,
-    private val hsvFacadeFactory: ColorInputHsvFacadeFactory,
     private val execute: (ColorInputGroupAction) -> Unit,
 ) {
     fun create(data: ColorInputGroupData): ColorInputGroupFacade =
         ColorInputGroupFacade(
-            hex = hexFacadeFactory.create(data.hex),
-            rgb = rgbFacadeFactory.create(data.rgb),
-            hsv = hsvFacadeFactory.create(data.hsv),
             execute = this.execute,
             selectedInputType = data.selectedInputType,
             orderedInputTypes = data.orderedInputTypes,

@@ -64,17 +64,17 @@ fun ColorInputGroup(
         strings = strings,
         hexInput = {
             ColorInputHex(
-                facade = facade.hex,
+                viewModel = viewModel.hexViewModel,
             )
         },
         rgbInput = {
             ColorInputRgb(
-                facade = facade.rgb,
+                viewModel = viewModel.rgbViewModel,
             )
         },
         hsvInput = {
             ColorInputHsv(
-                facade = facade.hsv,
+                viewModel = viewModel.hsvViewModel,
             )
         },
     )
@@ -213,9 +213,6 @@ private fun Preview() {
 
 private fun previewFacade() =
     ColorInputGroupFacade(
-        hex = previewHexFacade(),
-        rgb = previewRgbFacade(),
-        hsv = previewHsvFacade(),
         execute = {},
         selectedInputType = DomainColorInputType.Hex,
         orderedInputTypes = listOf(
