@@ -11,6 +11,7 @@ import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
+import io.github.mmolosay.thecolor.presentation.common.viewmodel.Store
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModelDiModule.GateForDataFlow
 import io.github.mmolosay.thecolor.utils.CoroutineRegistry
 import io.github.mmolosay.thecolor.utils.OpenSuspendGate
@@ -19,9 +20,9 @@ import io.github.mmolosay.thecolor.utils.trackThisAsSingleActive
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Qualifier
 
@@ -35,13 +36,14 @@ import javax.inject.Qualifier
  */
 class ColorPreviewViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
+    @Assisted private val store: Store<ColorPreviewData?>,
     @GateForDataFlow private val gateForDataFlow: SuspendGate,
     private val colorToColorInt: ColorToColorIntUseCase,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
-    private val _dataFlow = MutableStateFlow<ColorPreviewData?>(null)
-    val dataFlow: StateFlow<ColorPreviewData?> = _dataFlow.asStateFlow()
+    val dataFlow: StateFlow<ColorPreviewData?> =
+        store.flow.stateIn(coroutineScope, SharingStarted.Eagerly, store.value)
 
     private val opRegistry = CoroutineRegistry<Operation>()
 
@@ -59,10 +61,14 @@ class ColorPreviewViewModel @AssistedInject constructor(
                 value = Operation.SetColor(color),
             ) {
                 gateForDataFlow.awaitOpen()
-                val data = ColorPreviewData(
-                    color = with(colorToColorInt) { color?.toColorInt() },
-                )
-                _dataFlow.emit(data)
+                store.update {
+                    val color = with(colorToColorInt) { color?.toColorInt() }
+                    if (it == null) {
+                        ColorPreviewData(color)
+                    } else {
+                        it.copy(color = color)
+                    }
+                }
             }
         }
 
@@ -70,6 +76,7 @@ class ColorPreviewViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
+            store: Store<ColorPreviewData?>,
         ): ColorPreviewViewModel
     }
 

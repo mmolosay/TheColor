@@ -32,6 +32,7 @@ import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputValidationResult
 import io.github.mmolosay.thecolor.presentation.input.set
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
@@ -109,6 +110,7 @@ class HomeViewModel @Inject constructor(
     val colorPreviewViewModel: ColorPreviewViewModel =
         colorPreviewViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
+            store = Store<ColorPreviewData?>(null)
         )
 
     private val colorCenterComponentsStore: ColorCenterComponentsStore =
