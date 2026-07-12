@@ -124,7 +124,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
 
     private fun collectTextFieldsData() {
         coroutineScope.launch(defaultDispatcher) {
-            store.flow.collectLatest collect@{ data ->
+            dataFlow.collectLatest collect@{ data ->
                 val r = data.rTextField
                 val g = data.gTextField
                 val b = data.bTextField
