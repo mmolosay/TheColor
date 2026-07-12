@@ -87,7 +87,7 @@ class ColorInputGroupViewModel @AssistedInject constructor(
     )
 
     val dataFlow: StateFlow<ColorInputGroupData> =
-        store.flow.stateIn(coroutineScope, SharingStarted.Lazily, store.value)
+        store.flow.stateIn(coroutineScope, SharingStarted.Eagerly, store.value)
 
     fun execute(action: ColorInputGroupAction) {
         coroutineScope.launch(orderedUpdates) {
