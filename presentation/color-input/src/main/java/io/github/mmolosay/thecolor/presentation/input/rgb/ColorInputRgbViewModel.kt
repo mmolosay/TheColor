@@ -153,6 +153,14 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     fun execute(action: ColorInputRgbAction) {
         coroutineScope.launch(orderedUpdates) {
             when (action) {
+                is ColorInputRgbAction.TextField -> {
+                    val viewModel = when (action.component) {
+                        ColorInputRgbAction.TextField.RgbComponent.R -> rTextFieldViewModel
+                        ColorInputRgbAction.TextField.RgbComponent.G -> gTextFieldViewModel
+                        ColorInputRgbAction.TextField.RgbComponent.B -> bTextFieldViewModel
+                    }
+                    viewModel.execute(action.action)
+                }
                 is ColorInputRgbAction.SubmitInput -> {
                     submitInput()
                 }

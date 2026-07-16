@@ -118,6 +118,9 @@ class ColorInputHexViewModel @AssistedInject constructor(
     fun execute(action: ColorInputHexAction) {
         coroutineScope.launch(orderedUpdates) {
             when (action) {
+                is ColorInputHexAction.TextField -> {
+                    textFieldViewModel.execute(action.action)
+                }
                 is ColorInputHexAction.SubmitInput -> {
                     submitInput()
                 }
