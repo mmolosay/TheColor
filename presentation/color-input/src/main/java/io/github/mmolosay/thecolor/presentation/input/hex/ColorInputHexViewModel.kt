@@ -58,7 +58,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
 
     private val orderedUpdates = defaultDispatcher.limitedParallelism(1)
 
-    private val textFieldVm =
+    private val textFieldViewModel =
         textFieldViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
             store = store.focus(
@@ -71,7 +71,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
         )
 
     val facadeFactory = ColorInputHexFacadeFactory(
-        textFieldFacadeFactory = textFieldVm.facadeFactory,
+        textFieldFacadeFactory = textFieldViewModel.facadeFactory,
         execute = ::execute,
     )
 
@@ -97,7 +97,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
                 @OptIn(RequiresWriteOrdering::class)
                 withContext(orderedUpdates) {
                     val textWithSource = TextFieldData.Text(colorInput.string) causedByUser false
-                    textFieldVm.setText(textWithSource)
+                    textFieldViewModel.setText(textWithSource)
                 }
             }
         }
@@ -149,7 +149,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
 
     override fun dispose() {
         super.dispose()
-        textFieldVm.dispose()
+        textFieldViewModel.dispose()
     }
 
     private fun TextFieldDerived(

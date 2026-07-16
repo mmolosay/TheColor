@@ -64,19 +64,19 @@ class ColorInputRgbViewModel @AssistedInject constructor(
 
     private val orderedUpdates = defaultDispatcher.limitedParallelism(1)
 
-    private val rTextFieldVm = createTextFieldViewModel(
+    private val rTextFieldViewModel = createTextFieldViewModel(
         lens = Lens(
             get = { s -> s.rTextField },
             set = { s, v -> s.copy(rTextField = v) },
         ),
     )
-    private val gTextFieldVm = createTextFieldViewModel(
+    private val gTextFieldViewModel = createTextFieldViewModel(
         lens = Lens(
             get = { s -> s.gTextField },
             set = { s, v -> s.copy(gTextField = v) },
         ),
     )
-    private val bTextFieldVm = createTextFieldViewModel(
+    private val bTextFieldViewModel = createTextFieldViewModel(
         lens = Lens(
             get = { s -> s.bTextField },
             set = { s, v -> s.copy(bTextField = v) },
@@ -84,9 +84,9 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     )
 
     val facadeFactory = ColorInputRgbFacadeFactory(
-        rTextFieldFacadeFactory = rTextFieldVm.facadeFactory,
-        gTextFieldFacadeFactory = gTextFieldVm.facadeFactory,
-        bTextFieldFacadeFactory = bTextFieldVm.facadeFactory,
+        rTextFieldFacadeFactory = rTextFieldViewModel.facadeFactory,
+        gTextFieldFacadeFactory = gTextFieldViewModel.facadeFactory,
+        bTextFieldFacadeFactory = bTextFieldViewModel.facadeFactory,
         execute = ::execute,
     )
 
@@ -114,9 +114,9 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                 store.transaction {
                     fun String.toTextWithSource() =
                         TextFieldData.Text(this) causedByUser false
-                    rTextFieldVm.setText(colorInput.r.toTextWithSource())
-                    gTextFieldVm.setText(colorInput.g.toTextWithSource())
-                    bTextFieldVm.setText(colorInput.b.toTextWithSource())
+                    rTextFieldViewModel.setText(colorInput.r.toTextWithSource())
+                    gTextFieldViewModel.setText(colorInput.g.toTextWithSource())
+                    bTextFieldViewModel.setText(colorInput.b.toTextWithSource())
                 }
             }
         }
@@ -193,9 +193,9 @@ class ColorInputRgbViewModel @AssistedInject constructor(
 
     override fun dispose() {
         super.dispose()
-        rTextFieldVm.dispose()
-        gTextFieldVm.dispose()
-        bTextFieldVm.dispose()
+        rTextFieldViewModel.dispose()
+        gTextFieldViewModel.dispose()
+        bTextFieldViewModel.dispose()
     }
 
     private fun TextFieldsDerived(
