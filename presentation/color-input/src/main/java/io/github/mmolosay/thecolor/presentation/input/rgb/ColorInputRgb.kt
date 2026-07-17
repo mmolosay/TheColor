@@ -31,14 +31,16 @@ import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Te
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFacade
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldInputProcessor
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldUiStrings
+import kotlinx.coroutines.Job
 
-@Suppress("unused") // example of how Facade is obtained from ViewModel
+@Suppress("unused") // example of having 'ViewModel' as entry point
 @Composable
 fun ColorInputRgb(
     viewModel: ColorInputRgbViewModel,
 ) {
+    val handle = remember(viewModel) { ColorInputRgbHandle(viewModel) }
     val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
-    val facade = remember(data, viewModel) { viewModel.facadeFactory.create(data) }
+    val facade = handle.facade(data)
 
     ColorInputRgb(
         facade = facade,
@@ -50,7 +52,7 @@ fun ColorInputRgb(
     facade: ColorInputRgbFacade,
     strings: ColorInputRgbUiStrings = rememberColorInputRgbUiStrings(),
 ) {
-    val execute by rememberUpdatedState(facade.execute) // reference 'execute' directly to enable lambda memoization
+    val execute by rememberUpdatedState(facade.execute) // stable across recompositions
     Row(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -76,7 +78,6 @@ fun ColorInputRgb(
             hasPreviousComponent = true, // for G previous is R
             enableSmartBackspace = isSmartBackspaceEnabled,
         )
-
 
         // B
         ComponentAdvancedTextField(
@@ -185,29 +186,29 @@ private fun Preview() {
 private fun previewFacade() =
     ColorInputRgbFacade(
         rTextField = TextFieldFacade(
-            execute = {},
             text = Text("12") causedByUser true,
             shouldSelectAllTextOnFocus = true,
             isClearTextFeatureEnabled = false,
             inputProcessor = TextFieldInputProcessor { Text(it) },
+            execute = { Job() },
         ),
         gTextField = TextFieldFacade(
-            execute = {},
             text = Text("") causedByUser true,
             shouldSelectAllTextOnFocus = true,
             isClearTextFeatureEnabled = false,
             inputProcessor = TextFieldInputProcessor { Text(it) },
+            execute = { Job() },
         ),
         bTextField = TextFieldFacade(
-            execute = {},
             text = Text("255") causedByUser true,
             shouldSelectAllTextOnFocus = true,
             isClearTextFeatureEnabled = false,
             inputProcessor = TextFieldInputProcessor { Text(it) },
+            execute = { Job() },
         ),
-        execute = {},
         inputSubmissionResult = null,
         isSmartBackspaceEnabled = true,
+        execute = { Job() },
     )
 
 private fun previewUiStrings() =

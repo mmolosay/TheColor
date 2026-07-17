@@ -39,10 +39,6 @@ class TextFieldViewModel @AssistedInject constructor(
 ) : SimpleViewModel(coroutineScope) {
 
     private val orderedUpdates = defaultDispatcher.limitedParallelism(1)
-    val facadeFactory = TextFieldFacadeFactory(
-        execute = ::execute,
-        inputProcessor = inputProcessor,
-    )
 
     init {
         collectSelectAllTextOnTextFieldFocusPreference()
@@ -105,19 +101,5 @@ class TextFieldDataFactory @Inject constructor(
                 .value.getOrElse { DefaultUserPreferences.SelectAllTextOnTextFieldFocus }
                 .enabled,
             isClearTextFeatureEnabled = isClearTextFeatureEnabled,
-        )
-}
-
-class TextFieldFacadeFactory(
-    private val execute: (TextFieldAction) -> Unit,
-    private val inputProcessor: TextFieldInputProcessor,
-) {
-    fun create(data: TextFieldData): TextFieldFacade =
-        TextFieldFacade(
-            execute = this.execute,
-            text = data.text,
-            shouldSelectAllTextOnFocus = data.shouldSelectAllTextOnFocus,
-            isClearTextFeatureEnabled = data.isClearTextFeatureEnabled,
-            inputProcessor = this.inputProcessor,
         )
 }

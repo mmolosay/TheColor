@@ -19,6 +19,7 @@ import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbDataFacto
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -82,14 +83,10 @@ class ColorInputGroupViewModel @AssistedInject constructor(
             mediator = mediator,
         )
 
-    val facadeFactory = ColorInputGroupFacadeFactory(
-        execute = ::execute,
-    )
-
     val dataFlow: StateFlow<ColorInputGroupData> =
         store.flow.stateIn(coroutineScope, SharingStarted.Eagerly, store.value)
 
-    fun execute(action: ColorInputGroupAction) {
+    fun execute(action: ColorInputGroupAction): Job =
         coroutineScope.launch(orderedUpdates) {
             when (action) {
                 is ColorInputGroupAction.ChangeInputType -> {
@@ -97,7 +94,6 @@ class ColorInputGroupViewModel @AssistedInject constructor(
                 }
             }
         }
-    }
 
     private suspend fun changeInputType(type: DomainColorInputType) {
         store.update {
@@ -140,15 +136,4 @@ class ColorInputGroupDataFactory @Inject constructor(
             orderedInputTypes = orderedInputTypes,
         )
     }
-}
-
-class ColorInputGroupFacadeFactory(
-    private val execute: (ColorInputGroupAction) -> Unit,
-) {
-    fun create(data: ColorInputGroupData): ColorInputGroupFacade =
-        ColorInputGroupFacade(
-            execute = this.execute,
-            selectedInputType = data.selectedInputType,
-            orderedInputTypes = data.orderedInputTypes,
-        )
 }

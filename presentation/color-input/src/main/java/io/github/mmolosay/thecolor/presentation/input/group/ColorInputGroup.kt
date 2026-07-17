@@ -47,6 +47,7 @@ import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFacade
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldInputProcessor
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldUiStrings
+import kotlinx.coroutines.Job
 import io.github.mmolosay.thecolor.domain.color.Color as DomainColor
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 
@@ -56,8 +57,16 @@ fun ColorInputGroup(
 ) {
     val context = LocalContext.current
     val strings = remember(context) { ColorInputGroupUiStrings(context) }
+
     val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
-    val facade = remember(data, viewModel) { viewModel.facadeFactory.create(data) }
+    val execute by rememberUpdatedState(viewModel::execute) // stable across recompositions
+    val facade = remember(data, execute) {
+        ColorInputGroupFacade(
+            selectedInputType = data.selectedInputType,
+            orderedInputTypes = data.orderedInputTypes,
+            execute = execute,
+        )
+    }
 
     ColorInputGroup(
         facade = facade,
@@ -213,13 +222,13 @@ private fun Preview() {
 
 private fun previewFacade() =
     ColorInputGroupFacade(
-        execute = {},
         selectedInputType = DomainColorInputType.Hex,
         orderedInputTypes = listOf(
             DomainColorInputType.Hex,
             DomainColorInputType.Rgb,
             DomainColorInputType.Hsv,
         ),
+        execute = { Job() },
     )
 
 private fun previewUiStrings() =
@@ -232,14 +241,14 @@ private fun previewUiStrings() =
 private fun previewHexFacade() =
     ColorInputHexFacade(
         textField = TextFieldFacade(
-            execute = {},
             text = TextFieldData.Text("1A803F") causedByUser true,
             shouldSelectAllTextOnFocus = true,
             isClearTextFeatureEnabled = true,
             inputProcessor = TextFieldInputProcessor { TextFieldData.Text(it) },
+            execute = { Job() },
         ),
-        execute = {},
         inputSubmissionResult = null,
+        execute = { Job() },
     )
 
 private fun previewHexUiStrings() =
@@ -255,29 +264,29 @@ private fun previewHexUiStrings() =
 private fun previewRgbFacade() =
     ColorInputRgbFacade(
         rTextField = TextFieldFacade(
-            execute = {},
             text = TextFieldData.Text("12") causedByUser true,
             shouldSelectAllTextOnFocus = true,
             isClearTextFeatureEnabled = false,
             inputProcessor = TextFieldInputProcessor { TextFieldData.Text(it) },
+            execute = { Job() },
         ),
         gTextField = TextFieldFacade(
-            execute = {},
             text = TextFieldData.Text("") causedByUser true,
             shouldSelectAllTextOnFocus = true,
             isClearTextFeatureEnabled = false,
             inputProcessor = TextFieldInputProcessor { TextFieldData.Text(it) },
+            execute = { Job() },
         ),
         bTextField = TextFieldFacade(
-            execute = {},
             text = TextFieldData.Text("255") causedByUser true,
             shouldSelectAllTextOnFocus = true,
             isClearTextFeatureEnabled = false,
             inputProcessor = TextFieldInputProcessor { TextFieldData.Text(it) },
+            execute = { Job() },
         ),
-        execute = {},
         inputSubmissionResult = null,
         isSmartBackspaceEnabled = true,
+        execute = { Job() },
     )
 
 private fun previewRgbUiStrings() =
@@ -304,6 +313,6 @@ private fun previewRgbUiStrings() =
 
 private fun previewHsvFacade() =
     ColorInputHsvFacade(
-        execute = {},
         color = DomainColor.Hsv(hue = 117f, saturation = 0.59f, value = 0.31f),
+        execute = { Job() },
     )

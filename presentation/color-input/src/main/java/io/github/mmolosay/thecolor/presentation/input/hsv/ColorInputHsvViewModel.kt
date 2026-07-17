@@ -40,10 +40,6 @@ class ColorInputHsvViewModel @AssistedInject constructor(
 
     private val orderedUpdates = defaultDispatcher.limitedParallelism(1)
 
-    val facadeFactory = ColorInputHsvFacadeFactory(
-        execute = ::execute,
-    )
-
     val dataFlow: StateFlow<ColorInputHsvData> =
         store.flow.stateIn(coroutineScope, SharingStarted.Eagerly, store.value)
 
@@ -79,7 +75,7 @@ class ColorInputHsvViewModel @AssistedInject constructor(
         }
     }
 
-    fun execute(action: ColorInputHsvAction) {
+    fun execute(action: ColorInputHsvAction): Job =
         coroutineScope.launch(orderedUpdates) {
             when (action) {
                 is ColorInputHsvAction.SetColor -> {
@@ -87,7 +83,6 @@ class ColorInputHsvViewModel @AssistedInject constructor(
                 }
             }
         }
-    }
 
     private suspend fun setColor(newColor: Color.Hsv) {
         store.update {
@@ -129,14 +124,4 @@ class ColorInputHsvDataFactory @Inject constructor(
 
     fun colorFromMediator(): Color.Hsv? =
         with(colorConverter) { mediator.colorState.color?.toHsv() }
-}
-
-class ColorInputHsvFacadeFactory(
-    private val execute: (ColorInputHsvAction) -> Unit,
-) {
-    fun create(data: ColorInputHsvData): ColorInputHsvFacade =
-        ColorInputHsvFacade(
-            execute = this.execute,
-            color = data.color,
-        )
 }

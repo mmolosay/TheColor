@@ -22,11 +22,12 @@ import io.github.mmolosay.thecolor.presentation.input.model.getColorOrNull
 import io.github.mmolosay.thecolor.presentation.input.set
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldDataFactory
-import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFacadeFactory
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldHandle
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldInputProcessor
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -69,11 +70,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
             ),
             inputProcessor = TextFieldInputProcessorImpl(),
         )
-
-    val facadeFactory = ColorInputHexFacadeFactory(
-        textFieldFacadeFactory = textFieldViewModel.facadeFactory,
-        execute = ::execute,
-    )
+    val textFieldHandle = TextFieldHandle(textFieldViewModel)
 
     val dataFlow: StateFlow<ColorInputHexData> =
         store.flow.stateIn(coroutineScope, SharingStarted.Eagerly, store.value)
@@ -115,12 +112,9 @@ class ColorInputHexViewModel @AssistedInject constructor(
         }
     }
 
-    fun execute(action: ColorInputHexAction) {
+    fun execute(action: ColorInputHexAction): Job =
         coroutineScope.launch(orderedUpdates) {
             when (action) {
-                is ColorInputHexAction.TextField -> {
-                    textFieldViewModel.execute(action.action)
-                }
                 is ColorInputHexAction.SubmitInput -> {
                     submitInput()
                 }
@@ -129,7 +123,6 @@ class ColorInputHexViewModel @AssistedInject constructor(
                 }
             }
         }
-    }
 
     private suspend fun submitInput() {
         val textField = store.current().textField
@@ -210,17 +203,5 @@ class ColorInputHexDataFactory @Inject constructor(
                 isClearTextFeatureEnabled = true,
             ),
             inputSubmissionResult = null,
-        )
-}
-
-class ColorInputHexFacadeFactory(
-    private val textFieldFacadeFactory: TextFieldFacadeFactory,
-    private val execute: (ColorInputHexAction) -> Unit,
-) {
-    fun create(data: ColorInputHexData): ColorInputHexFacade =
-        ColorInputHexFacade(
-            textField = textFieldFacadeFactory.create(data.textField),
-            execute = this.execute,
-            inputSubmissionResult = data.inputSubmissionResult,
         )
 }

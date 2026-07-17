@@ -27,11 +27,12 @@ import io.github.mmolosay.thecolor.presentation.input.model.getColorOrNull
 import io.github.mmolosay.thecolor.presentation.input.set
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldDataFactory
-import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFacadeFactory
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldHandle
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldInputProcessor
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -70,25 +71,23 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             set = { s, v -> s.copy(rTextField = v) },
         ),
     )
+    val rTextFieldHandle = TextFieldHandle(rTextFieldViewModel)
+
     private val gTextFieldViewModel = createTextFieldViewModel(
         lens = Lens(
             get = { s -> s.gTextField },
             set = { s, v -> s.copy(gTextField = v) },
         ),
     )
+    val gTextFieldHandle = TextFieldHandle(gTextFieldViewModel)
+
     private val bTextFieldViewModel = createTextFieldViewModel(
         lens = Lens(
             get = { s -> s.bTextField },
             set = { s, v -> s.copy(bTextField = v) },
         ),
     )
-
-    val facadeFactory = ColorInputRgbFacadeFactory(
-        rTextFieldFacadeFactory = rTextFieldViewModel.facadeFactory,
-        gTextFieldFacadeFactory = gTextFieldViewModel.facadeFactory,
-        bTextFieldFacadeFactory = bTextFieldViewModel.facadeFactory,
-        execute = ::execute,
-    )
+    val bTextFieldHandle = TextFieldHandle(bTextFieldViewModel)
 
     val dataFlow: StateFlow<ColorInputRgbData> =
         store.flow.stateIn(coroutineScope, SharingStarted.Eagerly, store.value)
@@ -150,17 +149,9 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         }
     }
 
-    fun execute(action: ColorInputRgbAction) {
+    fun execute(action: ColorInputRgbAction): Job =
         coroutineScope.launch(orderedUpdates) {
             when (action) {
-                is ColorInputRgbAction.TextField -> {
-                    val viewModel = when (action.component) {
-                        ColorInputRgbAction.TextField.RgbComponent.R -> rTextFieldViewModel
-                        ColorInputRgbAction.TextField.RgbComponent.G -> gTextFieldViewModel
-                        ColorInputRgbAction.TextField.RgbComponent.B -> bTextFieldViewModel
-                    }
-                    viewModel.execute(action.action)
-                }
                 is ColorInputRgbAction.SubmitInput -> {
                     submitInput()
                 }
@@ -169,7 +160,6 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                 }
             }
         }
-    }
 
     private suspend fun submitInput() {
         val data = store.current()
@@ -293,22 +283,5 @@ class ColorInputRgbDataFactory @Inject constructor(
             isSmartBackspaceEnabled = userPreferencesRepository.flowOfSmartBackspace
                 .value.getOrElse { DefaultUserPreferences.SmartBackspace }
                 .enabled,
-        )
-}
-
-class ColorInputRgbFacadeFactory(
-    private val rTextFieldFacadeFactory: TextFieldFacadeFactory,
-    private val gTextFieldFacadeFactory: TextFieldFacadeFactory,
-    private val bTextFieldFacadeFactory: TextFieldFacadeFactory,
-    private val execute: (ColorInputRgbAction) -> Unit,
-) {
-    fun create(data: ColorInputRgbData): ColorInputRgbFacade =
-        ColorInputRgbFacade(
-            rTextField = rTextFieldFacadeFactory.create(data.rTextField),
-            gTextField = gTextFieldFacadeFactory.create(data.gTextField),
-            bTextField = bTextFieldFacadeFactory.create(data.bTextField),
-            execute = this.execute,
-            inputSubmissionResult = data.inputSubmissionResult,
-            isSmartBackspaceEnabled = data.isSmartBackspaceEnabled,
         )
 }

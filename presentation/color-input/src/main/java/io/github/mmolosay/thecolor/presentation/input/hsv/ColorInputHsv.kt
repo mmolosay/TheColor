@@ -27,15 +27,17 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvHueRange
 import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvSaturationRange
 import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvValueRange
+import kotlinx.coroutines.Job
 import io.github.mmolosay.thecolor.domain.color.Color as DomainColor
 
-@Suppress("unused") // example of how Facade is obtained from ViewModel
+@Suppress("unused") // example of having 'ViewModel' as entry point
 @Composable
 fun ColorInputHsv(
     viewModel: ColorInputHsvViewModel,
 ) {
+    val handle = remember(viewModel) { ColorInputHsvHandle(viewModel) }
     val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
-    val facade = remember(data, viewModel) { viewModel.facadeFactory.create(data) }
+    val facade = handle.facade(data)
 
     ColorInputHsv(
         facade = facade,
@@ -46,7 +48,7 @@ fun ColorInputHsv(
 fun ColorInputHsv(
     facade: ColorInputHsvFacade,
 ) {
-    val execute by rememberUpdatedState(facade.execute) // reference 'execute' directly to enable lambda memoization
+    val execute by rememberUpdatedState(facade.execute) // stable across recompositions
     val hue = run {
         val color = facade.color
         if (color != null) HueValue(color)
@@ -115,6 +117,6 @@ private fun Preview() {
 
 private fun previewFacade() =
     ColorInputHsvFacade(
-        execute = {},
         color = DomainColor.Hsv(hue = 117f, saturation = 0.59f, value = 0.31f),
+        execute = { Job() },
     )

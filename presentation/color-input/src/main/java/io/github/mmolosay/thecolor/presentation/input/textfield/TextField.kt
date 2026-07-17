@@ -36,6 +36,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
+import kotlinx.coroutines.Job
 import androidx.compose.ui.text.input.TextFieldValue as MaterialTextFieldValue
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
@@ -53,7 +54,9 @@ internal fun TextField(
     keyboardActions: KeyboardActions,
     modifier: Modifier = Modifier,
 ) {
-    val execute by rememberUpdatedState(facade.execute) // reference 'execute' directly to enable lambda memoization
+    val inputProcessor = facade.inputProcessor
+    val execute by rememberUpdatedState(facade.execute) // stable across recompositions
+
     val interactionSource = remember { MutableInteractionSource() }
     if (facade.shouldSelectAllTextOnFocus) {
         SelectAllTextOnFocusAsSideEffect(
@@ -70,7 +73,7 @@ internal fun TextField(
             if (current.text != new.text) {
                 // can't just pass new.text to ViewModel for filtering: TextFieldValue.selection will be lost
                 val newInput = new.text
-                val newText = facade.inputProcessor(newInput)
+                val newText = inputProcessor(newInput)
                 val newValue = new.copy(text = newText.string)
                 onValueChange(newValue)
                 run {
@@ -197,11 +200,11 @@ private fun Preview() {
             }
             TextField(
                 facade = TextFieldFacade(
-                    execute = {},
                     text = textState.value causedByUser true,
                     shouldSelectAllTextOnFocus = true,
                     isClearTextFeatureEnabled = true,
                     inputProcessor = TextFieldInputProcessor { Text(it) },
+                    execute = { Job() },
                 ),
                 strings = TextFieldUiStrings(
                     label = "HEX",

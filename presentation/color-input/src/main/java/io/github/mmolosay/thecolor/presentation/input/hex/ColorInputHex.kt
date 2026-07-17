@@ -27,14 +27,16 @@ import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Te
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFacade
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldInputProcessor
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldUiStrings
+import kotlinx.coroutines.Job
 
-@Suppress("unused") // example of how Facade is obtained from ViewModel
+@Suppress("unused") // example of having 'ViewModel' as entry point
 @Composable
 fun ColorInputHex(
     viewModel: ColorInputHexViewModel,
 ) {
+    val handle = remember(viewModel) { ColorInputHexHandle(viewModel) }
     val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
-    val facade = remember(data, viewModel) { viewModel.facadeFactory.create(data) }
+    val facade = handle.facade(data)
 
     ColorInputHex(
         facade = facade,
@@ -46,7 +48,8 @@ fun ColorInputHex(
     facade: ColorInputHexFacade,
     strings: ColorInputHexUiStrings = rememberColorInputHexUiStrings(),
 ) {
-    val execute by rememberUpdatedState(facade.execute) // reference 'execute' directly to enable lambda memoization
+    val execute by rememberUpdatedState(facade.execute) // stable across recompositions
+
     var value by remember {
         val text = facade.textField.text.data.string
         val value = TextFieldValue(
@@ -102,14 +105,14 @@ private fun Preview() {
 private fun previewFacade() =
     ColorInputHexFacade(
         textField = TextFieldFacade(
-            execute = {},
             text = Text("1A803F") causedByUser true,
             shouldSelectAllTextOnFocus = true,
             isClearTextFeatureEnabled = true,
             inputProcessor = TextFieldInputProcessor { Text(it) },
+            execute = { Job() },
         ),
-        execute = {},
         inputSubmissionResult = null,
+        execute = { Job() },
     )
 
 private fun previewUiStrings() =
