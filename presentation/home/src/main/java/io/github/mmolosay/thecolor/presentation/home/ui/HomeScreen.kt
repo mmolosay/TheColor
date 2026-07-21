@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.home.ui
 
+import android.content.res.Configuration
 import android.widget.Toast
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
@@ -108,6 +109,7 @@ import io.github.mmolosay.thecolor.utils.cache.PruneOnSizeThreshold
 import io.github.mmolosay.thecolor.utils.consumePendingAsFlow
 import io.github.mmolosay.thecolor.utils.doNothing
 import io.github.mmolosay.thecolor.utils.stabilize
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -141,13 +143,14 @@ fun HomeScreen(
     }
     val colorPreview: ColorPreviewWithDependencies = remember {
         ColorPreviewWithDependencies(
-            viewModel = viewModel.colorPreviewViewModel,
-        ) { animController, onUiStateReached ->
-            AnimatedColorPreview(
-                animController = animController,
-                onUiStateReached = onUiStateReached,
-            )
-        }
+            dataFlow = viewModel.colorPreviewViewModel.dataFlow,
+            composable = {
+                AnimatedColorPreview(
+                    animController = it.animController,
+                    onUiStateReached = it.onUiStateReached,
+                )
+            },
+        )
     }
     val colorCenter: ColorCenterComposable? = run {
         val viewModel = run {
@@ -775,7 +778,8 @@ private class ColorCenterLifecycleObserver(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(uiMode = Configuration.UI_MODE_TYPE_NORMAL)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL)
 @Composable
 private fun Preview() {
     TheColorTheme {
@@ -794,12 +798,15 @@ private fun Preview() {
                 )
             },
             colorPreview = remember {
-                NoopColorPreviewWithDependencies { _, _ ->
-                    Text(
-                        modifier = Modifier.background(Color.LightGray),
-                        text = "Color Preview",
-                    )
-                }
+                ColorPreviewWithDependencies(
+                    dataFlow = MutableStateFlow(null),
+                    composable = {
+                        Text(
+                            modifier = Modifier.background(Color.LightGray),
+                            text = "Color Preview",
+                        )
+                    },
+                )
             },
             colorCenter = {
                 Text(

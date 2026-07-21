@@ -101,7 +101,7 @@ internal fun AnimatedColorPreview(
 
     val flowOfAnimatedUiState = remember {
         FlowOfAnimatedUiState(
-            flowOfOriginalData = colorPreview.viewModel.dataFlow,
+            flowOfOriginalData = colorPreview.dataFlow,
             flowOfVisibilityAnimDest = flowOfVisibilityAnimDest,
             coroutineScope = coroutineScope,
         )
@@ -135,20 +135,21 @@ internal fun AnimatedColorPreview(
                     IntOffset(x = 0, y = offsetAnimatable?.value ?: 0)
                 },
         ) {
-            colorPreview.composable.invoke(
+            val params = ColorPreviewComposable.Params(
                 animController = animController!!,
                 onUiStateReached = { reachedUiState ->
                     val reachedAnimState = reachedUiState.toAnimState()
                     onVisibilityReached(reachedAnimState)
                 },
             )
+            colorPreview.composable.invoke(params)
         }
     }
 
     LaunchedEffect(Unit) {
         flowOfPositionAnimDest.collectLatest collect@{ animDest ->
             val offsetAnimatable = offsetAnimatable ?: return@collect
-            val targetValue = kotlin.run {
+            val targetValue = run {
                 val params = verticalOffsetParams ?: return@collect
                 VerticalOffset.calc(animDest, params, density)
             }
@@ -255,14 +256,17 @@ private fun Preview() {
     TheColorTheme {
         AnimatedColorPreview(
             colorPreview = remember {
-                NoopColorPreviewWithDependencies { _, _ ->
-                    Box(
-                        modifier = Modifier
-                            .size(50.dp)
-                            .clip(shape = CircleShape)
-                            .background(Color.DarkGray)
-                    )
-                }
+                ColorPreviewWithDependencies(
+                    dataFlow = MutableStateFlow(null),
+                    composable = {
+                        Box(
+                            modifier = Modifier
+                                .size(50.dp)
+                                .clip(shape = CircleShape)
+                                .background(Color.DarkGray)
+                        )
+                    },
+                )
             },
             flowOfPositionAnimDest = remember { MutableStateFlow(AnimState.Position.NotDived) },
             flowOfVisibilityAnimDest = remember { MutableStateFlow(AnimState.Visibility.Visible) },
