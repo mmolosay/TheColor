@@ -8,11 +8,8 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -24,9 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
@@ -34,7 +29,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.dp
 import io.github.mmolosay.thecolor.presentation.common.compose.drawIf
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController
@@ -54,21 +48,18 @@ import kotlinx.coroutines.flow.stateIn
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPreview as AnimState
 
 /**
- * Animates 'Color Preview' position (dive) and manipulates its data to display [colorPreview]
+ * Animates 'Color Preview' position (dive) and manipulates its data to display [content]
  * in an appropriate (relative to 'Home's animation) state.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 internal fun AnimatedColorPreview(
-    colorPreview: ColorPreviewWithDependencies,
     flowOfPositionAnimDest: StateFlow<AnimState.Position>,
-    flowOfVisibilityAnimDest: StateFlow<AnimState.Visibility>,
     onPositionReached: (reached: AnimState.Position) -> Unit,
-    onVisibilityReached: (reached: AnimState.Visibility) -> Unit,
     stateOfContainerViewportHeight: State<Int?>,
     stateOfContainerPosInRoot: State<Offset?>,
+    content: @Composable () -> Unit,
 ) {
-    val coroutineScope = rememberCoroutineScope()
     val density = LocalDensity.current
 
     var posInContainer by remember { mutableStateOf<Offset?>(null) }
@@ -99,51 +90,25 @@ internal fun AnimatedColorPreview(
         )
     }
 
-    val flowOfAnimatedUiState = remember {
-        FlowOfAnimatedUiState(
-            flowOfOriginalData = colorPreview.dataFlow,
-            flowOfVisibilityAnimDest = flowOfVisibilityAnimDest,
-            coroutineScope = coroutineScope,
-        )
-    }
-    val animController by produceState<ColorPreviewAnimController?>(initialValue = null) {
-        val uiState = flowOfAnimatedUiState.filterNotNull().first()
-        value = ColorPreviewAnimController(uiState)
-    }
-    LaunchedEffect(Unit) {
-        flowOfAnimatedUiState.filterNotNull().collect { uiState ->
-            animController?.onNewUiState(uiState)
-        }
-    }
-
-    if (animController != null) {
-        val isReadyToBeDrawn = (offsetAnimatable != null)
-        Box(
-            modifier = Modifier
-                .drawIf(isReadyToBeDrawn)
-                .onGloballyPositioned { coordinates ->
-                    size = coordinates.size
-                }
-                // 'posInContainer' should be calculated before applying 'dive' animation offset (modifier)
-                .onGloballyPositioned l@{ coordinates ->
-                    val containerPosInRoot = stateOfContainerPosInRoot.value
-                    if (containerPosInRoot == null) return@l
-                    val ownPosInRoot = coordinates.positionInRoot()
-                    posInContainer = ownPosInRoot - containerPosInRoot
-                }
-                .offset {
-                    IntOffset(x = 0, y = offsetAnimatable?.value ?: 0)
-                },
-        ) {
-            val params = ColorPreviewComposable.Params(
-                animController = animController!!,
-                onUiStateReached = { reachedUiState ->
-                    val reachedAnimState = reachedUiState.toAnimState()
-                    onVisibilityReached(reachedAnimState)
-                },
-            )
-            colorPreview.composable.invoke(params)
-        }
+    val isReadyToBeDrawn = (offsetAnimatable != null)
+    Box(
+        modifier = Modifier
+            .drawIf(isReadyToBeDrawn)
+            .onGloballyPositioned { coordinates ->
+                size = coordinates.size
+            }
+            // 'posInContainer' should be calculated before applying 'dive' animation offset (modifier)
+            .onGloballyPositioned l@{ coordinates ->
+                val containerPosInRoot = stateOfContainerPosInRoot.value
+                if (containerPosInRoot == null) return@l
+                val ownPosInRoot = coordinates.positionInRoot()
+                posInContainer = ownPosInRoot - containerPosInRoot
+            }
+            .offset {
+                IntOffset(x = 0, y = offsetAnimatable?.value ?: 0)
+            },
+    ) {
+        content()
     }
 
     LaunchedEffect(Unit) {
@@ -218,9 +183,42 @@ private object VerticalOffset {
     }
 }
 
+// TODO: doesn't feel like it belongs here; address
+@Composable
+internal fun rememberColorPreviewAnimController(
+    flowOfData: StateFlow<ColorPreviewData?>,
+    flowOfVisibilityAnimDest: StateFlow<AnimState.Visibility>,
+): ColorPreviewAnimController? {
+    val coroutineScope = rememberCoroutineScope()
+    val flowOfAnimatedUiState = remember {
+        FlowOfAnimatedUiState(
+            flowOfData = flowOfData,
+            flowOfVisibilityAnimDest = flowOfVisibilityAnimDest,
+            coroutineScope = coroutineScope,
+        )
+    }
+    val animController by produceState<ColorPreviewAnimController?>(initialValue = null) {
+        val uiState = flowOfAnimatedUiState.filterNotNull().first()
+        value = ColorPreviewAnimController(uiState)
+    }
+    LaunchedEffect(Unit) {
+        flowOfAnimatedUiState.filterNotNull().collect { uiState ->
+            animController?.onNewUiState(uiState)
+        }
+    }
+    return animController
+}
+
+// TODO: doesn't feel like it belongs here; address
+internal fun ColorPreviewUiState.toAnimState(): AnimState.Visibility =
+    when (this) {
+        is ColorPreviewUiState.Hidden -> AnimState.Visibility.Hidden
+        is ColorPreviewUiState.Visible -> AnimState.Visibility.Visible
+    }
+
 @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
 internal fun FlowOfAnimatedUiState(
-    flowOfOriginalData: StateFlow<ColorPreviewData?>,
+    flowOfData: StateFlow<ColorPreviewData?>,
     flowOfVisibilityAnimDest: StateFlow<AnimState.Visibility>,
     coroutineScope: CoroutineScope,
 ): StateFlow<ColorPreviewUiState?> {
@@ -229,7 +227,7 @@ internal fun FlowOfAnimatedUiState(
      * and new anim dest (if any) will be emitted second.
      */
     return combineTransform(
-        flowOfOriginalData,
+        flowOfData,
         flowOfVisibilityAnimDest,
     ) { data, animDest ->
         data ?: return@combineTransform
@@ -241,12 +239,6 @@ internal fun FlowOfAnimatedUiState(
         .stateIn(coroutineScope, SharingStarted.Eagerly, initialValue = null)
 }
 
-private fun ColorPreviewUiState.toAnimState(): AnimState.Visibility =
-    when (this) {
-        is ColorPreviewUiState.Hidden -> AnimState.Visibility.Hidden
-        is ColorPreviewUiState.Visible -> AnimState.Visibility.Visible
-    }
-
 @Preview(
     showBackground = true,
     backgroundColor = 0xFF_FFFFFF,
@@ -255,25 +247,12 @@ private fun ColorPreviewUiState.toAnimState(): AnimState.Visibility =
 private fun Preview() {
     TheColorTheme {
         AnimatedColorPreview(
-            colorPreview = remember {
-                ColorPreviewWithDependencies(
-                    dataFlow = MutableStateFlow(null),
-                    composable = {
-                        Box(
-                            modifier = Modifier
-                                .size(50.dp)
-                                .clip(shape = CircleShape)
-                                .background(Color.DarkGray)
-                        )
-                    },
-                )
-            },
             flowOfPositionAnimDest = remember { MutableStateFlow(AnimState.Position.NotDived) },
-            flowOfVisibilityAnimDest = remember { MutableStateFlow(AnimState.Visibility.Visible) },
             onPositionReached = {},
-            onVisibilityReached = {},
             stateOfContainerViewportHeight = remember { mutableIntStateOf(400) },
             stateOfContainerPosInRoot = remember { mutableStateOf(Offset.Zero) },
-        )
+        ) {
+            // TODO: placeholder
+        }
     }
 }

@@ -100,6 +100,8 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeEffect
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroup
 import io.github.mmolosay.thecolor.presentation.preview.AnimatedColorPreview
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState
 import io.github.mmolosay.thecolor.presentation.preview.toUiState
 import io.github.mmolosay.thecolor.utils.ConsumableStore
@@ -111,6 +113,7 @@ import io.github.mmolosay.thecolor.utils.doNothing
 import io.github.mmolosay.thecolor.utils.stabilize
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -141,16 +144,14 @@ fun HomeScreen(
             viewModel = viewModel.colorInputGroupViewModel,
         )
     }
-    val colorPreview: ColorPreviewWithDependencies = remember {
-        ColorPreviewWithDependencies(
-            dataFlow = viewModel.colorPreviewViewModel.dataFlow,
-            composable = {
-                AnimatedColorPreview(
-                    animController = it.animController,
-                    onUiStateReached = it.onUiStateReached,
-                )
-            },
-        )
+    val colorPreviewDataFlow = viewModel.colorPreviewViewModel.dataFlow
+    val colorPreview: ColorPreviewComposable = remember {
+        ColorPreviewComposable { animController, onUiStateReached ->
+            AnimatedColorPreview(
+                animController = animController,
+                onUiStateReached = onUiStateReached,
+            )
+        }
     }
     val colorCenter: ColorCenterComposable? = run {
         val viewModel = run {
@@ -230,6 +231,7 @@ fun HomeScreen(
         strings = strings,
         effectStore = viewModel.effectStore,
         colorInput = colorInput,
+        colorPreviewDataFlow = colorPreviewDataFlow,
         colorPreview = colorPreview,
         colorCenter = colorCenter,
         animController = animController,
@@ -255,6 +257,14 @@ private fun HomeUiState.toAnimState(): HomeAnimState? =
         isColorCenterVisible = this.isColorCenterVisible,
     )
 
+private fun interface ColorPreviewComposable {
+    @Composable
+    operator fun invoke(
+        animController: ColorPreviewAnimController,
+        onUiStateReached: (ColorPreviewUiState) -> Unit,
+    )
+}
+
 // syntactic sugar that makes nullable types easier to read
 private typealias ColorCenterComposable = @Composable () -> Unit
 
@@ -264,7 +274,8 @@ private fun HomeScreen(
     strings: HomeUiStrings,
     effectStore: ConsumableStore<HomeEffect>,
     colorInput: @Composable () -> Unit,
-    colorPreview: ColorPreviewWithDependencies,
+    colorPreviewDataFlow: StateFlow<ColorPreviewData?>,
+    colorPreview: ColorPreviewComposable,
     colorCenter: ColorCenterComposable?,
     animController: HomeAnimController?,
     navigateToSettings: () -> Unit,
@@ -281,6 +292,7 @@ private fun HomeScreen(
             strings = strings,
             effectStore = effectStore,
             colorInput = colorInput,
+            colorPreviewDataFlow = colorPreviewDataFlow,
             colorPreview = colorPreview,
             colorCenter = colorCenter,
             animController = animController,
@@ -296,7 +308,8 @@ private fun Home(
     strings: HomeUiStrings,
     effectStore: ConsumableStore<HomeEffect>,
     colorInput: @Composable () -> Unit,
-    colorPreview: ColorPreviewWithDependencies,
+    colorPreviewDataFlow: StateFlow<ColorPreviewData?>,
+    colorPreview: ColorPreviewComposable,
     colorCenter: ColorCenterComposable?,
     animController: HomeAnimController?,
     navigateToSettings: () -> Unit,
@@ -356,9 +369,8 @@ private fun Home(
         Spacer(modifier = Modifier.height(8.dp))
 
         if (animController != null) {
-            AnimatedColorPreview(
-                colorPreview = colorPreview,
-                flowOfPositionAnimDest = kotlin.run {
+            run ColorPreview@{
+                val flowOfPositionAnimDest = run {
                     val upstream = animController.flowOfDestState
                     remember(upstream) {
                         fun value(animState: HomeAnimState) = animState.colorPreviewPosition
@@ -366,8 +378,8 @@ private fun Home(
                             .map(::value)
                             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), value(upstream.value))
                     }
-                },
-                flowOfVisibilityAnimDest = kotlin.run {
+                }
+                val flowOfVisibilityAnimDest = run {
                     val upstream = animController.flowOfDestState
                     remember(upstream) {
                         fun value(animState: HomeAnimState) = animState.colorPreviewVisibility
@@ -375,35 +387,52 @@ private fun Home(
                             .map(::value)
                             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), value(upstream.value))
                     }
-                },
-                onPositionReached = animController::onValueReached,
-                onVisibilityReached = animController::onValueReached,
-                stateOfContainerViewportHeight = stateOfViewportHeight,
-                stateOfContainerPosInRoot = stateOfPosInRoot,
-            )
-            val decoratedColorCenter = remember(colorCenter, proceedResult) {
-                decoratedColorCenterComposable(
-                    colorCenter = colorCenter,
-                    proceededColorData = (proceedResult as? ProceedResult.Success)?.colorData,
-                    navBarAppearanceController = navBarAppearanceController,
+                }
+                val colorPreviewAnimController = rememberColorPreviewAnimController(
+                    flowOfData = colorPreviewDataFlow,
+                    flowOfVisibilityAnimDest = flowOfVisibilityAnimDest,
+                )
+                if (colorPreviewAnimController != null) {
+                    AnimatedColorPreview(
+                        flowOfPositionAnimDest = flowOfPositionAnimDest,
+                        onPositionReached = animController::onValueReached,
+                        stateOfContainerViewportHeight = stateOfViewportHeight,
+                        stateOfContainerPosInRoot = stateOfPosInRoot,
+                    ) {
+                        colorPreview.invoke(
+                            animController = colorPreviewAnimController,
+                            onUiStateReached = { reached ->
+                                animController.onValueReached(reached.toAnimState())
+                            },
+                        )
+                    }
+                }
+            }
+            run ColorCenter@{
+                val decoratedColorCenter = remember(colorCenter, proceedResult) {
+                    decoratedColorCenterComposable(
+                        colorCenter = colorCenter,
+                        proceededColorData = (proceedResult as? ProceedResult.Success)?.colorData,
+                        navBarAppearanceController = navBarAppearanceController,
+                        containerScrollState = scrollState,
+                        stateOfContainerPosInRoot = stateOfPosInRoot,
+                    )
+                }
+                AnimatedColorCenter(
+                    colorCenter = decoratedColorCenter,
+                    flowOfAnimDest = run {
+                        val upstream = animController.flowOfDestState
+                        remember(upstream) {
+                            fun value(animState: HomeAnimState) = animState.colorCenter
+                            upstream
+                                .map(::value)
+                                .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), value(upstream.value))
+                        }
+                    },
+                    onReached = animController::onValueReached,
                     containerScrollState = scrollState,
-                    stateOfContainerPosInRoot = stateOfPosInRoot,
                 )
             }
-            AnimatedColorCenter(
-                colorCenter = decoratedColorCenter,
-                flowOfAnimDest = kotlin.run {
-                    val upstream = animController.flowOfDestState
-                    remember(upstream) {
-                        fun value(animState: HomeAnimState) = animState.colorCenter
-                        upstream
-                            .map(::value)
-                            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), value(upstream.value))
-                    }
-                },
-                onReached = animController::onValueReached,
-                containerScrollState = scrollState,
-            )
         }
     }
 
@@ -797,16 +826,14 @@ private fun Preview() {
                     text = "Color Input",
                 )
             },
+            colorPreviewDataFlow = remember { MutableStateFlow(null) },
             colorPreview = remember {
-                ColorPreviewWithDependencies(
-                    dataFlow = MutableStateFlow(null),
-                    composable = {
-                        Text(
-                            modifier = Modifier.background(Color.LightGray),
-                            text = "Color Preview",
-                        )
-                    },
-                )
+                ColorPreviewComposable { _, _ ->
+                    Text(
+                        modifier = Modifier.background(Color.LightGray),
+                        text = "Color Preview",
+                    )
+                }
             },
             colorCenter = {
                 Text(

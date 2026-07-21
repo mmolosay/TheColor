@@ -27,7 +27,7 @@ internal class FlowOfAnimatedUiStateTest {
 
     fun sut(): StateFlow<UiState?> =
         FlowOfAnimatedUiState(
-            flowOfOriginalData = flowOfOriginalData,
+            flowOfData = flowOfOriginalData,
             flowOfVisibilityAnimDest = flowOfVisibilityAnimDest,
             coroutineScope = coroutineScope,
         )
