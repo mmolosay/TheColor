@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -44,6 +43,7 @@ import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInp
 @Composable
 fun ColorInputGroup(
     viewModel: ColorInputGroupViewModel,
+    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val strings = remember(context) { ColorInputGroupUiStrings(context) }
@@ -59,6 +59,7 @@ fun ColorInputGroup(
     }
 
     ColorInputGroup(
+        modifier = modifier,
         facade = facade,
         strings = strings,
         hexInput = {
@@ -86,10 +87,11 @@ fun ColorInputGroup(
     hexInput: @Composable () -> Unit,
     rgbInput: @Composable () -> Unit,
     hsvInput: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val execute by rememberUpdatedState(facade.execute) // reference 'execute' directly to enable lambda memoization
     Column(
-        modifier = Modifier.padding(horizontal = 16.dp),
+        modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         AnimatedContent(

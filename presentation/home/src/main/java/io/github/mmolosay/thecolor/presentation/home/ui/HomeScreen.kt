@@ -133,6 +133,9 @@ fun HomeScreen(
     }
     val colorInput: @Composable () -> Unit = {
         ColorInputGroup(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
             viewModel = viewModel.colorInputGroupViewModel,
         )
     }
