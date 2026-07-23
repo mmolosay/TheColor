@@ -58,7 +58,7 @@ import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPrevi
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable
-internal fun AnimatedColorPreview(
+internal fun DivingColorPreview(
     flowOfPositionAnimDest: StateFlow<AnimState.Position>,
     onPositionReached: (reached: AnimState.Position) -> Unit,
     stateOfContainerViewportHeight: State<Int?>,
@@ -251,7 +251,7 @@ internal fun FlowOfAnimatedUiState(
 @Composable
 private fun Preview() {
     TheColorTheme {
-        AnimatedColorPreview(
+        DivingColorPreview(
             flowOfPositionAnimDest = remember { MutableStateFlow(AnimState.Position.NotDived) },
             onPositionReached = {},
             stateOfContainerViewportHeight = remember { mutableIntStateOf(400) },

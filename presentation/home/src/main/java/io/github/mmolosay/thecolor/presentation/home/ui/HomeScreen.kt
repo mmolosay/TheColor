@@ -1,36 +1,18 @@
 package io.github.mmolosay.thecolor.presentation.home.ui
 
 import android.content.res.Configuration
-import android.widget.Toast
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -39,61 +21,31 @@ import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.debounce.debounced
 import io.github.mmolosay.thecolor.presentation.center.ColorCenter
-import io.github.mmolosay.thecolor.presentation.center.ColorCenterShape
-import io.github.mmolosay.thecolor.presentation.common.ExtendedLifecycleEventObserver
-import io.github.mmolosay.thecolor.presentation.common.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
-import io.github.mmolosay.thecolor.presentation.common.colorint.toCompose
-import io.github.mmolosay.thecolor.presentation.common.compose.TintedSurface
-import io.github.mmolosay.thecolor.presentation.common.compose.onlyBottom
 import io.github.mmolosay.thecolor.presentation.common.compose.withoutBottom
-import io.github.mmolosay.thecolor.presentation.common.navbar.NavBarAppearance
 import io.github.mmolosay.thecolor.presentation.common.navbar.NavBarAppearanceController
 import io.github.mmolosay.thecolor.presentation.common.navbar.RootNavBarAppearanceController
-import io.github.mmolosay.thecolor.presentation.common.navbar.navBarAppearance
-import io.github.mmolosay.thecolor.presentation.common.toLifecycleEventObserver
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.design.animate
-import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
-import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeEffect
@@ -106,9 +58,6 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState
 import io.github.mmolosay.thecolor.presentation.preview.toUiState
 import io.github.mmolosay.thecolor.utils.ConsumableStore
 import io.github.mmolosay.thecolor.utils.MutableConsumableStore
-import io.github.mmolosay.thecolor.utils.cache.DequeCache
-import io.github.mmolosay.thecolor.utils.cache.PruneOnSizeThreshold
-import io.github.mmolosay.thecolor.utils.consumePendingAsFlow
 import io.github.mmolosay.thecolor.utils.doNothing
 import io.github.mmolosay.thecolor.utils.stabilize
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -120,7 +69,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
-import kotlin.random.Random
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 @Composable
@@ -393,7 +341,7 @@ private fun Home(
                     flowOfVisibilityAnimDest = flowOfVisibilityAnimDest,
                 )
                 if (colorPreviewAnimController != null) {
-                    AnimatedColorPreview(
+                    DivingColorPreview(
                         flowOfPositionAnimDest = flowOfPositionAnimDest,
                         onPositionReached = animController::onValueReached,
                         stateOfContainerViewportHeight = stateOfViewportHeight,
@@ -419,7 +367,6 @@ private fun Home(
                     )
                 }
                 AnimatedColorCenter(
-                    colorCenter = decoratedColorCenter,
                     flowOfAnimDest = run {
                         val upstream = animController.flowOfDestState
                         remember(upstream) {
@@ -431,6 +378,7 @@ private fun Home(
                     },
                     onReached = animController::onValueReached,
                     containerScrollState = scrollState,
+                    colorCenter = decoratedColorCenter,
                 )
             }
         }
@@ -450,176 +398,6 @@ private fun Home(
         proceedResult = proceedResult,
         scrollState = scrollState,
     )
-}
-
-@Composable
-private fun ButtonSection(
-    proceedButton: @Composable () -> Unit,
-    randomizeColorButton: @Composable () -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = ButtonSectionHorizontalArrangement,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        proceedButton()
-        randomizeColorButton()
-    }
-}
-
-@Composable
-private fun ProceedButton(
-    onClick: () -> Unit,
-    enabled: Boolean,
-    text: String,
-) {
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val wrappedOnClick: () -> Unit = {
-        onClick()
-        keyboardController?.hide()
-    }
-    val colors = ButtonDefaults.buttonColors()
-    val colorsAnimationProgress by animateFloatAsState(
-        targetValue = if (enabled) 1f else 0f,
-        // animationSpec is kept default to be the same as in Color Preview
-        label = "proceed button colors",
-    )
-    val animatedColors = ButtonColors(
-        containerColor = lerp(colors.disabledContainerColor, colors.containerColor, colorsAnimationProgress),
-        contentColor = lerp(colors.disabledContentColor, colors.contentColor, colorsAnimationProgress),
-        disabledContainerColor = lerp(colors.disabledContainerColor, colors.containerColor, colorsAnimationProgress),
-        disabledContentColor = lerp(colors.disabledContentColor, colors.contentColor, colorsAnimationProgress),
-    )
-    Button(
-        onClick = wrappedOnClick,
-        enabled = enabled,
-        colors = animatedColors
-    ) {
-        Text(text = text)
-    }
-}
-
-@Composable
-private fun RandomizeColorButton(
-    onClick: () -> Unit,
-    iconContentDesc: String,
-) {
-    var rotationDest by remember { mutableFloatStateOf(0f) } // degrees
-    val animatedRotation by animateFloatAsState(
-        targetValue = rotationDest,
-        animationSpec = spring(
-            stiffness = Spring.StiffnessMediumLow,
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-        ),
-        label = "randomize color button icon rotation",
-    )
-    fun rotate() {
-        val clockwise = Random.nextBoolean()
-        val rotationMult = if (clockwise) +1 else -1 // see 'rotate()' Modifier
-        rotationDest += (90 * rotationMult)
-    }
-    val wrappedOnClick: () -> Unit = {
-        onClick()
-        rotate()
-    }
-    FilledTonalIconButton(
-        onClick = wrappedOnClick,
-    ) {
-        Icon(
-            modifier = Modifier
-                .size(20.dp)
-                .rotate(animatedRotation),
-            imageVector = ImageVector.vectorResource(DesignR.drawable.ic_dice),
-            contentDescription = iconContentDesc,
-        )
-    }
-}
-
-private fun decoratedColorCenterComposable(
-    colorCenter: ColorCenterComposable?,
-    proceededColorData: ProceedResult.Success.ColorData?,
-    navBarAppearanceController: NavBarAppearanceController,
-    containerScrollState: ScrollState,
-    stateOfContainerPosInRoot: State<Offset?>,
-): ColorCenterComposable? {
-    if (colorCenter == null) return null
-    if (proceededColorData == null) return null
-    return {
-        val density = LocalDensity.current
-        val stateOfMinHeight = remember { mutableStateOf<Dp>(Dp.Unspecified) }
-        DecoratedColorCenter(
-            modifier = Modifier
-                .onPlaced { coordinates ->
-                    // calculate min height of Color Center so that its bottom matches bottom of the parent Column
-                    val containerPosInRoot = stateOfContainerPosInRoot.value ?: return@onPlaced
-                    val containerHeight = containerScrollState.viewportSize
-                    val ownPosInRoot = coordinates.positionInRoot()
-                    val ownYPosInContainer = (ownPosInRoot - containerPosInRoot).y
-                    stateOfMinHeight.value =
-                        with(density) { (containerHeight - ownYPosInContainer).toDp() }
-                },
-            surfaceColor = proceededColorData.color.toCompose(),
-            isSurfaceColorDark = proceededColorData.isDark,
-            colorCenter = colorCenter,
-            navBarAppearanceController = navBarAppearanceController,
-            stateOfMinHeight = stateOfMinHeight,
-        )
-    }
-}
-
-/** Decorates bare [colorCenter] in a way that's specific for this screen. */
-@Composable
-private fun DecoratedColorCenter(
-    surfaceColor: Color,
-    isSurfaceColorDark: Boolean,
-    colorCenter: ColorCenterComposable,
-    navBarAppearanceController: NavBarAppearanceController,
-    modifier: Modifier = Modifier,
-    stateOfMinHeight: State<Dp>, // wrapped in State to avoid recompositions
-) {
-    fun <T> animationSpec() = spring<T>(stiffness = 100f)
-    val contentColors = if (isSurfaceColorDark) colorsOnDarkSurface() else colorsOnLightSurface()
-    val animatedContentColors = contentColors.animate(animationSpec())
-    val animatedSurfaceColor by animateColorAsState(
-        targetValue = surfaceColor,
-        animationSpec = animationSpec(),
-        label = "surface color",
-    )
-    TintedSurface(
-        modifier = modifier
-            .graphicsLayer {
-                clip = true
-                shape = ColorCenterShape
-            },
-        surfaceColor = animatedSurfaceColor,
-        contentColors = animatedContentColors,
-    ) {
-        val windowInsets = WindowInsets.systemBars.onlyBottom()
-        Box(
-            modifier = Modifier
-                .sizeIn(minHeight = stateOfMinHeight.value) // it's important to set size before paddings
-                .padding(windowInsets.asPaddingValues())
-                .consumeWindowInsets(windowInsets)
-                .padding(top = 24.dp), // to accommodate to convex 'ColorCenterShape'
-            propagateMinConstraints = true,
-        ) {
-            colorCenter()
-        }
-    }
-
-    val lifecycleOwner = LocalLifecycleOwner.current
-    val lifecycle = lifecycleOwner.lifecycle
-    DisposableEffect(lifecycleOwner, surfaceColor, isSurfaceColorDark) {
-        val observer = ColorCenterLifecycleObserver(
-            navBarAppearanceController = navBarAppearanceController,
-            appearance = navBarAppearance(useLightTintForControls = isSurfaceColorDark),
-        ).toLifecycleEventObserver()
-        lifecycle.addObserver(observer)
-        onDispose {
-            lifecycle.removeObserver(observer)
-            navBarAppearanceController.clear()
-        }
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -643,168 +421,6 @@ private fun TopBar(
             }
         },
     )
-}
-
-/**
- * Contains "container" in name to convey that this Composable may or
- * may not display [SelectedSwatchDetailsDialog], which is its primary content.
- */
-@Composable
-private fun SelectedSwatchDetailsDialogContainer(
-    data: HomeData.ColorSchemeSelectedSwatchData?,
-    navBarAppearanceController: NavBarAppearanceController,
-) {
-    var showSelectedSwatchDetailsDialog by remember { mutableStateOf(false) }
-
-    LaunchedEffect(data) {
-        if (data != null) {
-            showSelectedSwatchDetailsDialog = true
-        }
-    }
-    if (showSelectedSwatchDetailsDialog) {
-        @Suppress("NAME_SHADOWING")
-        val data = requireNotNull(data)
-        SelectedSwatchDetailsDialog(
-            viewModel = data.colorDetailsViewModel,
-            navBarAppearanceController = navBarAppearanceController,
-            onDismissRequest = {
-                showSelectedSwatchDetailsDialog = false
-                data.discard()
-            },
-        )
-    }
-}
-
-@Composable
-private fun ProcessEffectsAsSideEffect(
-    effectStore: ConsumableStore<HomeEffect>,
-    navigateToSettings: () -> Unit,
-) {
-    val focusManager = LocalFocusManager.current
-    LaunchedEffect(effectStore) {
-        effectStore.consumePendingAsFlow process@{ (_, effect) ->
-            when (effect) {
-                HomeEffect.GoToSettings -> {
-                    focusManager.clearFocus()
-                    navigateToSettings()
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ProcessProceedResultAsSideEffect(
-    proceedResult: ProceedResult?,
-    strings: HomeUiStrings,
-) {
-    val context = LocalContext.current
-    val softwareKeyboardController = LocalSoftwareKeyboardController.current
-    LaunchedEffect(proceedResult) {
-        when (proceedResult) {
-            is ProceedResult.Success -> {
-                // keyboard blinks when hidden, similar issue: https://stackoverflow.com/q/76901241/8862499
-                // the issue is somewhere in 'Color Input', probably in the internals of TextField()
-                softwareKeyboardController?.hide()
-            }
-            is ProceedResult.InvalidSubmittedColor -> {
-                Toast
-                    .makeText(context, strings.invalidSubmittedColorMessage, Toast.LENGTH_SHORT)
-                    .show()
-                proceedResult.discard()
-            }
-            null -> doNothing()
-        }
-    }
-}
-
-@Composable
-private fun ScrollToTopOnNullProceedResultAsSideEffect(
-    proceedResult: ProceedResult?,
-    scrollState: ScrollState,
-) {
-    val cacheOfProceedResult = remember {
-        DequeCache<ProceedResult?>(
-            mutationListener = PruneOnSizeThreshold(cacheSizeThreshold = 2),
-        )
-    }
-    LaunchedEffect(proceedResult) {
-        val current = proceedResult
-        // previous may be present but equal to 'null'
-        if (cacheOfProceedResult.isNotEmpty()) {
-            val previous = cacheOfProceedResult.last()
-            val wasSuccessButBecameNull = (previous is ProceedResult.Success && current == null)
-            if (wasSuccessButBecameNull && scrollState.value != 0) {
-                scrollState.animateScrollTo(0)
-            }
-        }
-        cacheOfProceedResult += proceedResult
-    }
-}
-
-/**
- * An [Arrangement] for [ButtonSection].
- * Places first element right in the center of the container.
- * Places rest elements after the first one.
- */
-@Immutable
-private object ButtonSectionHorizontalArrangement : Arrangement.Horizontal {
-
-    override val spacing = 8.dp
-
-    override fun Density.arrange(
-        totalSize: Int,
-        sizes: IntArray,
-        layoutDirection: LayoutDirection,
-        outPositions: IntArray,
-    ) {
-        val firstChildSize = sizes.firstOrNull() ?: return
-        val firstChildPos = (totalSize / 2) - (firstChildSize / 2)
-        outPositions[0] = firstChildPos
-        if (sizes.size == 1) return
-        val sizesWithIndices = sizes.mapIndexed { index, size ->
-            index to size
-        }
-        val sizesWithIndicesWithoutFirstChild = sizesWithIndices.drop(1)
-        val spacingPx = spacing.roundToPx()
-        var endOfLastPlacedChild = when (layoutDirection) {
-            LayoutDirection.Ltr -> firstChildPos + firstChildSize
-            LayoutDirection.Rtl -> firstChildPos
-        }
-        sizesWithIndicesWithoutFirstChild.forEach { (index, size) ->
-            val pos = when (layoutDirection) {
-                LayoutDirection.Ltr -> endOfLastPlacedChild + spacingPx
-                LayoutDirection.Rtl -> endOfLastPlacedChild - spacingPx - size
-            }
-            outPositions[index] = pos
-            endOfLastPlacedChild = when (layoutDirection) {
-                LayoutDirection.Ltr -> pos + size
-                LayoutDirection.Rtl -> pos
-            }
-        }
-    }
-}
-
-private class ColorCenterLifecycleObserver(
-    private val navBarAppearanceController: NavBarAppearanceController,
-    private val appearance: NavBarAppearance,
-) : ExtendedLifecycleEventObserver {
-
-    override fun onStateChanged(
-        source: LifecycleOwner,
-        event: Lifecycle.Event,
-        directionChange: LifecycleDirectionChangeEvent?,
-    ) {
-        when (directionChange) {
-            LifecycleDirectionChangeEvent.EnteringForeground -> {
-                navBarAppearanceController.push(appearance)
-            }
-            LifecycleDirectionChangeEvent.LeavingForeground -> {
-                navBarAppearanceController.clear()
-            }
-            null -> doNothing()
-        }
-    }
 }
 
 @Preview(uiMode = Configuration.UI_MODE_TYPE_NORMAL)

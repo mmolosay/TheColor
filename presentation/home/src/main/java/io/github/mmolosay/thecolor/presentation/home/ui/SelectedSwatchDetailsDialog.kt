@@ -7,6 +7,11 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
@@ -34,10 +39,41 @@ import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCrossfade
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.SubjectColorData
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
 import io.github.mmolosay.thecolor.utils.doNothing
 
+/**
+ * Contains "container" in name to convey that this Composable may or
+ * may not display [SelectedSwatchDetailsDialog], which is its primary content.
+ */
 @Composable
-internal fun SelectedSwatchDetailsDialog(
+internal fun SelectedSwatchDetailsDialogContainer(
+    data: HomeData.ColorSchemeSelectedSwatchData?,
+    navBarAppearanceController: NavBarAppearanceController,
+) {
+    var showSelectedSwatchDetailsDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(data) {
+        if (data != null) {
+            showSelectedSwatchDetailsDialog = true
+        }
+    }
+    if (showSelectedSwatchDetailsDialog) {
+        @Suppress("NAME_SHADOWING")
+        val data = requireNotNull(data)
+        SelectedSwatchDetailsDialog(
+            viewModel = data.colorDetailsViewModel,
+            navBarAppearanceController = navBarAppearanceController,
+            onDismissRequest = {
+                showSelectedSwatchDetailsDialog = false
+                data.discard()
+            },
+        )
+    }
+}
+
+@Composable
+private fun SelectedSwatchDetailsDialog(
     viewModel: ColorDetailsViewModel,
     navBarAppearanceController: NavBarAppearanceController,
     onDismissRequest: () -> Unit,
@@ -52,7 +88,7 @@ internal fun SelectedSwatchDetailsDialog(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun SelectedSwatchDetailsDialog(
+private fun SelectedSwatchDetailsDialog(
     subjectColorData: SubjectColorData,
     colorDetailsDataState: ColorDetailsViewModel.DataState,
     navBarAppearanceController: NavBarAppearanceController,

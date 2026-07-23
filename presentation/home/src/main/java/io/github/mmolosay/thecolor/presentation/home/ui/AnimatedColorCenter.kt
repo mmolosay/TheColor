@@ -32,10 +32,10 @@ import kotlinx.coroutines.flow.collectLatest
  */
 @Composable
 internal fun AnimatedColorCenter(
-    colorCenter: (@Composable () -> Unit)?,
     flowOfAnimDest: StateFlow<HomeAnimState.ColorCenter>,
     onReached: (reached: HomeAnimState.ColorCenter) -> Unit,
     containerScrollState: ScrollState,
+    colorCenter: (@Composable () -> Unit)?,
 ) {
     val density = LocalDensity.current
     val stateOfRetainedColorCenter = retainedNotNull(colorCenter)
