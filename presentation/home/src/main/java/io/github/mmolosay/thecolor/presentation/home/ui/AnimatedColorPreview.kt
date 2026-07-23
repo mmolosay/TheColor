@@ -10,6 +10,9 @@ import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.TextAutoSize
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -29,6 +32,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
+import io.github.mmolosay.thecolor.presentation.common.compose.Placeholder
 import io.github.mmolosay.thecolor.presentation.common.compose.drawIf
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController
@@ -252,7 +257,14 @@ private fun Preview() {
             stateOfContainerViewportHeight = remember { mutableIntStateOf(400) },
             stateOfContainerPosInRoot = remember { mutableStateOf(Offset.Zero) },
         ) {
-            // TODO: placeholder
+            Placeholder(
+                Modifier.size(64.dp),
+            ) {
+                Text(
+                    text = "Color Preview",
+                    autoSize = TextAutoSize.StepBased(),
+                )
+            }
         }
     }
 }
