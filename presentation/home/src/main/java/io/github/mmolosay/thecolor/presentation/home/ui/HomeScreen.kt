@@ -78,12 +78,9 @@ fun HomeScreen(
     navBarAppearanceController: NavBarAppearanceController,
 ) {
     val context = LocalContext.current
+    val strings = remember(context) { HomeUiStrings(context) }
     val coroutineScope = rememberCoroutineScope()
 
-    val strings = remember(context) { HomeUiStrings(context) }
-    val selectedSwatchDetailsDialogController = remember(navBarAppearanceController) {
-        navBarAppearanceController.branch("Selected Swatch Details Dialog")
-    }
     val colorInput: @Composable () -> Unit = {
         ColorInputGroup(
             modifier = Modifier
@@ -187,6 +184,9 @@ fun HomeScreen(
         navBarAppearanceController = navBarAppearanceController,
     )
 
+    val selectedSwatchDetailsDialogController = remember(navBarAppearanceController) {
+        navBarAppearanceController.branch("Selected Swatch Details Dialog")
+    }
     SelectedSwatchDetailsDialogContainer(
         data = data.colorSchemeSelectedSwatchData,
         navBarAppearanceController = selectedSwatchDetailsDialogController,

@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -19,17 +18,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.onPlaced
-import androidx.compose.ui.layout.positionInRoot
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -50,6 +44,8 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.animate
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
+import io.github.mmolosay.thecolor.presentation.home.ui.StretchToContainerBottomUtils.rememberContainerPosInRoot
+import io.github.mmolosay.thecolor.presentation.home.ui.StretchToContainerBottomUtils.rememberContainerViewportHeight
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
 import io.github.mmolosay.thecolor.utils.doNothing
 
@@ -63,22 +59,12 @@ internal fun decoratedColorCenterComposable(
     if (colorCenter == null) return null
     if (proceededColorData == null) return null
     return {
-        val density = LocalDensity.current
-        val stateOfMinHeight = remember { mutableStateOf<Dp>(Dp.Unspecified) }
         DecoratedColorCenter(
-            modifier = Modifier
-                .onPlaced { coordinates ->
-                    // calculate min height of Color Center so that its bottom matches bottom of the parent Column
-                    val containerPosInRoot = stateOfContainerPosInRoot.value ?: return@onPlaced
-                    val containerHeight = containerScrollState.viewportSize
-                    val ownPosInRoot = coordinates.positionInRoot()
-                    val ownYPosInContainer = (ownPosInRoot - containerPosInRoot).y
-                    stateOfMinHeight.value = with(density) { (containerHeight - ownYPosInContainer).toDp() }
-                },
             surfaceColor = proceededColorData.color.toCompose(),
             isSurfaceColorDark = proceededColorData.isDark,
             navBarAppearanceController = navBarAppearanceController,
-            stateOfMinHeight = stateOfMinHeight,
+            containerViewportHeight = rememberContainerViewportHeight(containerScrollState),
+            containerPosInRoot = rememberContainerPosInRoot(stateOfContainerPosInRoot),
             content = colorCenter,
         )
     }
@@ -93,7 +79,8 @@ internal fun DecoratedColorCenter(
     surfaceColor: Color,
     isSurfaceColorDark: Boolean,
     navBarAppearanceController: NavBarAppearanceController,
-    stateOfMinHeight: State<Dp>, // wrapped in State to avoid recompositions
+    containerViewportHeight: () -> Int?,
+    containerPosInRoot: () -> Offset?,
     content: @Composable () -> Unit,
 ) {
     fun <T> animationSpec() = spring<T>(stiffness = 100f)
@@ -109,14 +96,17 @@ internal fun DecoratedColorCenter(
             .graphicsLayer {
                 clip = true
                 shape = ColorCenterShape
-            },
+            }
+            .stretchToContainerBottom(
+                containerViewportHeight = containerViewportHeight,
+                containerPosInRoot = containerPosInRoot,
+            ),
         surfaceColor = animatedSurfaceColor,
         contentColors = animatedContentColors,
     ) {
         val windowInsets = WindowInsets.systemBars.onlyBottom()
         Box(
             modifier = Modifier
-                .sizeIn(minHeight = stateOfMinHeight.value) // it's important to set size before paddings
                 .padding(windowInsets.asPaddingValues())
                 .consumeWindowInsets(windowInsets)
                 .padding(top = 24.dp), // to accommodate to convex 'ColorCenterShape'
@@ -173,7 +163,8 @@ private fun Preview() {
                 surfaceColor = Color(0xFF_1A803F),
                 isSurfaceColorDark = false,
                 navBarAppearanceController = remember { RootNavBarAppearanceController() },
-                stateOfMinHeight = remember { mutableStateOf(196.dp) },
+                containerViewportHeight = remember { { null } },
+                containerPosInRoot = remember { { null } },
             ) {
                 Placeholder(
                     modifier = Modifier
