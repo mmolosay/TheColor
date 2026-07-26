@@ -2,16 +2,12 @@ package io.github.mmolosay.thecolor.presentation.home.ui
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,12 +23,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
@@ -254,63 +248,61 @@ private fun Home(
     val scrollState = rememberScrollState()
     val stateOfPosInRoot = remember { mutableStateOf<Offset?>(null) }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(state = scrollState)
-            .onGloballyPositioned { coordinates ->
-                stateOfPosInRoot.value = coordinates.positionInRoot()
-            },
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        TopBar(
-            onSettingsClick = data.requestToGoToSettings,
-            settingsIconContentDesc = strings.settingsIconContentDesc,
-        )
-
-        Spacer(modifier = Modifier.height(160.dp))
-        Text(
-            text = strings.headline,
-            style = MaterialTheme.typography.titleLarge,
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-        colorInput()
-
-        Spacer(modifier = Modifier.height(8.dp))
-        ButtonSection(
-            proceedButton = {
-                ProceedButton(
-                    onClick = (data.canProceed as? HomeData.CanProceed.Yes)?.proceed ?: ::doNothing,
-                    enabled = (data.canProceed is HomeData.CanProceed.Yes),
-                    text = strings.proceedButtonText,
-                )
-            },
-            randomizeColorButton = {
-                RandomizeColorButton(
-                    onClick = data.randomizeColor,
-                    iconContentDesc = strings.randomizeButtonIconContentDesc,
-                )
-            },
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-        ColorPreviewInHome(
-            flowOfData = colorPreviewDataFlow,
-            homeAnimController = animController,
-            containerScrollState = scrollState,
-            stateOfContainerPosInRoot = stateOfPosInRoot,
-            colorPreview = colorPreview,
-        )
-        ColorCenterInHome(
-            proceedResult = data.proceedResult,
-            homeAnimController = animController,
-            navBarAppearanceController = navBarAppearanceController,
-            containerScrollState = scrollState,
-            stateOfContainerPosInRoot = stateOfPosInRoot,
-            colorCenter = colorCenter,
-        )
-    }
+    HomeLayout(
+        modifier = modifier,
+        scrollState = scrollState,
+        onGloballyPositioned = { coords -> stateOfPosInRoot.value = coords.positionInRoot() },
+        topBar = {
+            TopBar(
+                onSettingsClick = data.requestToGoToSettings,
+                settingsIconContentDesc = strings.settingsIconContentDesc,
+            )
+        },
+        headline = {
+            Text(
+                text = strings.headline,
+                style = MaterialTheme.typography.titleLarge,
+            )
+        },
+        buttonSection = {
+            ButtonSection(
+                proceedButton = {
+                    ProceedButton(
+                        onClick = (data.canProceed as? HomeData.CanProceed.Yes)?.proceed
+                            ?: ::doNothing,
+                        enabled = (data.canProceed is HomeData.CanProceed.Yes),
+                        text = strings.proceedButtonText,
+                    )
+                },
+                randomizeColorButton = {
+                    RandomizeColorButton(
+                        onClick = data.randomizeColor,
+                        iconContentDesc = strings.randomizeButtonIconContentDesc,
+                    )
+                },
+            )
+        },
+        colorInput = colorInput,
+        colorPreview = {
+            ColorPreviewInHome(
+                flowOfData = colorPreviewDataFlow,
+                homeAnimController = animController,
+                containerScrollState = scrollState,
+                stateOfContainerPosInRoot = stateOfPosInRoot,
+                colorPreview = colorPreview,
+            )
+        },
+        colorCenter = {
+            ColorCenterInHome(
+                proceedResult = data.proceedResult,
+                homeAnimController = animController,
+                navBarAppearanceController = navBarAppearanceController,
+                containerScrollState = scrollState,
+                stateOfContainerPosInRoot = stateOfPosInRoot,
+                colorCenter = colorCenter,
+            )
+        },
+    )
 
     ProcessEffectsAsSideEffect(
         effectStore = effectStore,
