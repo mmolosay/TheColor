@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.home.ui
+package io.github.mmolosay.thecolor.presentation.home.ui.center
 
 import android.content.res.Configuration
 import androidx.compose.animation.animateColorAsState
@@ -44,17 +44,17 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.animate
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
-import io.github.mmolosay.thecolor.presentation.home.ui.StretchToContainerBottomUtils.rememberContainerPosInRoot
-import io.github.mmolosay.thecolor.presentation.home.ui.StretchToContainerBottomUtils.rememberContainerViewportHeight
+import io.github.mmolosay.thecolor.presentation.home.ui.center.StretchToContainerBottomUtils.rememberContainerPosInRoot
+import io.github.mmolosay.thecolor.presentation.home.ui.center.StretchToContainerBottomUtils.rememberContainerViewportHeight
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
 import io.github.mmolosay.thecolor.utils.doNothing
 
 internal fun decoratedColorCenterComposable(
-    colorCenter: (@Composable () -> Unit)?,
     proceededColorData: ProceedResult.Success.ColorData?,
     navBarAppearanceController: NavBarAppearanceController,
     containerScrollState: ScrollState,
     stateOfContainerPosInRoot: State<Offset?>,
+    colorCenter: (@Composable () -> Unit)?,
 ): (@Composable () -> Unit)? {
     if (colorCenter == null) return null
     if (proceededColorData == null) return null

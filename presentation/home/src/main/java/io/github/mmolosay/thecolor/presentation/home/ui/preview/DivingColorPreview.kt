@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.home.ui
+package io.github.mmolosay.thecolor.presentation.home.ui.preview
 
 import androidx.annotation.VisibleForTesting
 import androidx.compose.animation.core.Animatable
@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import io.github.mmolosay.thecolor.presentation.common.compose.Placeholder
 import io.github.mmolosay.thecolor.presentation.common.compose.drawIf
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
+import io.github.mmolosay.thecolor.presentation.home.ui.ColorCenterFocalPointBottomOffset
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState

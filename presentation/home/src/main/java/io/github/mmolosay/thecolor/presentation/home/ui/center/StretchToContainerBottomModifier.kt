@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.home.ui
+package io.github.mmolosay.thecolor.presentation.home.ui.center
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.runtime.Composable

@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.home.ui
+package io.github.mmolosay.thecolor.presentation.home.ui.center
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationSpec
@@ -24,6 +24,8 @@ import io.github.mmolosay.thecolor.presentation.common.compose.calcVisibleHeight
 import io.github.mmolosay.thecolor.presentation.common.compose.clipCircle
 import io.github.mmolosay.thecolor.presentation.common.compose.retainedNotNull
 import io.github.mmolosay.thecolor.presentation.common.compose.thenIf
+import io.github.mmolosay.thecolor.presentation.home.ui.ColorCenterFocalPointBottomOffset
+import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 
@@ -31,14 +33,14 @@ import kotlinx.coroutines.flow.collectLatest
  * Animates 'Color Center's circular reveal.
  */
 @Composable
-internal fun AnimatedColorCenter(
+internal fun CircularRevealColorCenter(
     flowOfAnimDest: StateFlow<HomeAnimState.ColorCenter>,
     onReached: (reached: HomeAnimState.ColorCenter) -> Unit,
     containerScrollState: ScrollState,
-    colorCenter: (@Composable () -> Unit)?,
+    content: (@Composable () -> Unit)?,
 ) {
     val density = LocalDensity.current
-    val stateOfRetainedColorCenter = retainedNotNull(colorCenter)
+    val stateOfRetainedContent = retainedNotNull(content)
 
     fun HomeAnimState.ColorCenter.targetValue() =
         when (this) {
@@ -66,7 +68,7 @@ internal fun AnimatedColorCenter(
                 animationSpec = animSpec,
             )
             if (progressAnimatable.value == 0f) {
-                stateOfRetainedColorCenter.value = null // free for GC
+                stateOfRetainedContent.value = null // free for GC
             }
             onReached(animDest)
         }
@@ -112,8 +114,8 @@ internal fun AnimatedColorCenter(
                     )
                 },
         ) {
-            val colorCenter = stateOfRetainedColorCenter.value
-            colorCenter?.invoke()
+            val content = stateOfRetainedContent.value
+            content?.invoke()
         }
     }
 }
