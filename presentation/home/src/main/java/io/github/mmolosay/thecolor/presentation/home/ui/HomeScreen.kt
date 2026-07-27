@@ -175,14 +175,6 @@ fun HomeScreen(
         navigateToSettings = navigateToSettings,
         navBarAppearanceController = navBarAppearanceController,
     )
-
-    val selectedSwatchDetailsDialogController = remember(navBarAppearanceController) {
-        navBarAppearanceController.branch("Selected Swatch Details Dialog")
-    }
-    SelectedSwatchDetailsDialogContainer(
-        data = data.colorSchemeSelectedSwatchData,
-        navBarAppearanceController = selectedSwatchDetailsDialogController,
-    )
 }
 
 /** Describes UI state of 'Home' View. Used to infer appropriate animation sequence / state. */
@@ -302,6 +294,14 @@ private fun Home(
                 colorCenter = colorCenter,
             )
         },
+    )
+
+    val selectedSwatchDetailsDialogController = remember(navBarAppearanceController) {
+        navBarAppearanceController.branch("Selected Swatch Details Dialog")
+    }
+    SelectedSwatchDetailsDialogContainer(
+        data = data.colorSchemeSelectedSwatchData,
+        navBarAppearanceController = selectedSwatchDetailsDialogController,
     )
 
     ProcessEffectsAsSideEffect(
