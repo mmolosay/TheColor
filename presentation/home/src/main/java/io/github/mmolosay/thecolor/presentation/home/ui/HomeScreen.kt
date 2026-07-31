@@ -120,11 +120,9 @@ fun HomeScreen(
         }
     }
 
-    val colorInput: @Composable () -> Unit = {
+    val colorInput: BareColorInput = { modifier ->
         ColorInputGroup(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+            modifier = modifier,
             viewModel = viewModel.colorInputGroupViewModel,
         )
     }
@@ -194,7 +192,7 @@ private fun HomeScreen(
     data: HomeData,
     strings: HomeUiStrings,
     effectStore: ConsumableStore<HomeEffect>,
-    colorInput: @Composable () -> Unit,
+    colorInput: BareColorInput,
     colorPreview: BareColorPreview,
     colorPreviewDataFlow: StateFlow<ColorPreviewData?>,
     colorCenter: BareColorCenter?,
@@ -228,7 +226,7 @@ private fun Home(
     data: HomeData,
     strings: HomeUiStrings,
     effectStore: ConsumableStore<HomeEffect>,
-    colorInput: @Composable () -> Unit,
+    colorInput: BareColorInput,
     colorPreview: BareColorPreview,
     colorPreviewDataFlow: StateFlow<ColorPreviewData?>,
     colorCenter: BareColorCenter?,
@@ -274,7 +272,11 @@ private fun Home(
                 },
             )
         },
-        colorInput = colorInput,
+        colorInput = {
+            ColorInputInHome(
+                colorInput = colorInput,
+            )
+        },
         colorPreview = {
             ColorPreviewInHome(
                 flowOfData = colorPreviewDataFlow,
