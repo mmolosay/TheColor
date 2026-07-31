@@ -1,17 +1,31 @@
 package io.github.mmolosay.thecolor.presentation.home.ui.preview
 
+import android.content.res.Configuration
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.TextAutoSize
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
+import io.github.mmolosay.thecolor.presentation.common.compose.Placeholder
+import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimController
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -79,6 +93,44 @@ internal fun ColorPreviewInHome(
                 animController,
                 { reached -> homeAnimController.onValueReached(reached.toAnimState()) },
             )
+        }
+    }
+}
+
+@Suppress("unused") // params of 'BareColorPreview' lambda
+@Preview(uiMode = Configuration.UI_MODE_TYPE_NORMAL)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL)
+@Composable
+private fun Preview() {
+    TheColorTheme {
+        Surface {
+            ColorPreviewInHome(
+                flowOfData = remember {
+                    val value = ColorPreviewData(
+                        color = ColorInt(0x1A803F),
+                    )
+                    MutableStateFlow(value)
+                },
+                homeAnimController = remember {
+                    val currentState = HomeAnimState(
+                        colorPreviewPosition = HomeAnimState.ColorPreview.Position.NotDived,
+                        colorPreviewVisibility = HomeAnimState.ColorPreview.Visibility.Visible,
+                        colorCenter = HomeAnimState.ColorCenter.Collapsed,
+                    )
+                    HomeAnimController(currentState)
+                },
+                containerScrollState = rememberScrollState(),
+                stateOfContainerPosInRoot = remember { mutableStateOf(Offset.Zero) },
+            ) { animController, onUiStateReached ->
+                Placeholder(
+                    modifier = Modifier.size(48.dp),
+                ) {
+                    Text(
+                        text = "Bare Color Preview",
+                        autoSize = TextAutoSize.StepBased(),
+                    )
+                }
+            }
         }
     }
 }

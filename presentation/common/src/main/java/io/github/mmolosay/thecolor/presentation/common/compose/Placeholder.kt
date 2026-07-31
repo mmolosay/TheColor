@@ -24,13 +24,14 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 @Composable
 fun Placeholder(
     modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.primary,
     contentPadding: PaddingValues = PaddingValues(all = 8.dp),
     content: @Composable () -> Unit,
 ) {
     Box(
         modifier = modifier
             .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
-            .hazardStripes(color = MaterialTheme.colorScheme.primary.copy(alpha = 0.50f)),
+            .hazardStripes(color = color.copy(alpha = 0.50f)),
         contentAlignment = Alignment.Center,
     ) {
         Box(
