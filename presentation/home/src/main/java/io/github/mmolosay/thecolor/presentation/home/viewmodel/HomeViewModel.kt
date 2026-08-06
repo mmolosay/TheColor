@@ -84,16 +84,17 @@ class HomeViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _dataFlow = MutableStateFlow(initialData())
+    private val _workingDataFlow = MutableStateFlow(_dataFlow.value)
     val dataFlow = _dataFlow.asStateFlow()
 
     private val _effectStore = MutableConsumableStore<HomeEffect>()
     val effectStore = _effectStore.asConsumableStore()
 
-    private val _flowOfIsDataBeingUpdated = MutableStateFlow(false)
-    val flowOfIsDataBeingUpdated: StateFlow<Boolean> = _flowOfIsDataBeingUpdated.asStateFlow()
     private val dataUpdateCounter = OperationCounter { counter, _ ->
-        val areThereAnyOngoingUpdates = (counter > 0)
-        _flowOfIsDataBeingUpdated.value = areThereAnyOngoingUpdates
+        val areAllUpdatesFinished = (counter == 0)
+        if (areAllUpdatesFinished) {
+            _dataFlow.value = _workingDataFlow.value
+        }
     }
 
     val colorInputGroupViewModel: ColorInputGroupViewModel = run {
@@ -139,7 +140,7 @@ class HomeViewModel @Inject constructor(
     private suspend fun onColorFromColorInput(colorState: ColorInputMediator.ColorState) {
         val color = colorState.color
         dataUpdateCounter.withCounter {
-            _dataFlow.update {
+            _workingDataFlow.update {
                 val canProceed = CanProceed(colorFromColorInput = color)
                 it.copy(canProceed = canProceed)
             }
@@ -183,7 +184,7 @@ class HomeViewModel @Inject constructor(
                     val selectedSwatchColorDetailsViewModel = colorCenterComponentsStore.components
                         ?.selectedSwatchColorDetailsViewModel
                         ?: return@launch
-                    _dataFlow.update {
+                    _workingDataFlow.update {
                         val data = ColorSchemeSelectedSwatchData(
                             colorDetailsViewModel = selectedSwatchColorDetailsViewModel,
                             discard = ::clearColorSchemeSwatchSelectedData,
@@ -271,7 +272,7 @@ class HomeViewModel @Inject constructor(
             val proceedResult = HomeData.ProceedResult.Success(
                 colorData = colorData,
             )
-            _dataFlow.update {
+            _workingDataFlow.update {
                 it.copy(proceedResult = proceedResult)
             }
         }
@@ -318,13 +319,13 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun clearProceedResult() {
-        _dataFlow.update {
+        _workingDataFlow.update {
             it.copy(proceedResult = null)
         }
     }
 
     private fun clearColorSchemeSwatchSelectedData() {
-        _dataFlow.update {
+        _workingDataFlow.update {
             it.copy(colorSchemeSelectedSwatchData = null)
         }
     }
@@ -445,7 +446,7 @@ class HomeViewModel @Inject constructor(
                     return true
                 }
                 is ColorInputValidationResult.Invalid -> {
-                    _dataFlow.update {
+                    _workingDataFlow.update {
                         val result = HomeData.ProceedResult.InvalidSubmittedColor(
                             discard = ::clearProceedResult,
                         )
