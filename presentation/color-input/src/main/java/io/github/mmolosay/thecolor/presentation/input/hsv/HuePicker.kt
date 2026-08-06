@@ -36,6 +36,7 @@ import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvColor
 import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvHueRange
 import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvSaturationRange
 import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvValueRange
+import kotlinx.coroutines.flow.drop
 import kotlin.math.nextDown
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -81,9 +82,11 @@ internal fun HuePicker(
         sliderState.value = hue.value
     }
     LaunchedEffect(sliderState) {
-        snapshotFlow { sliderState.value }.collect { newHue ->
-            onChange(HueValue(newHue))
-        }
+        snapshotFlow { sliderState.value }
+            .drop(1) // replayed value
+            .collect { newHue ->
+                onChange(HueValue(newHue))
+            }
     }
 }
 
