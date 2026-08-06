@@ -36,7 +36,6 @@ import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvColor
 import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvHueRange
 import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvSaturationRange
 import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvValueRange
-import kotlinx.coroutines.flow.drop
 import kotlin.math.nextDown
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -47,7 +46,9 @@ internal fun HuePicker(
     onChange: (HueValue) -> Unit,
     trackShape: Shape = RoundedCornerShape(size = 4.dp),
 ) {
-    @Suppress("NAME_SHADOWING") // intentional name shadowing to enforce using this wrapped lambda instead of the one passed in arguments
+    @Suppress("NAME_SHADOWING") // intentional name shadowing to enforce the use of updated state
+    val hue by rememberUpdatedState(hue)
+    @Suppress("NAME_SHADOWING") // intentional name shadowing to enforce the use of updated state
     val onChange by rememberUpdatedState(onChange) // preventive measure to avoid possible redraws due to new lambda
     val sliderState = rememberSliderState(
         value = hue.value,
@@ -82,11 +83,11 @@ internal fun HuePicker(
         sliderState.value = hue.value
     }
     LaunchedEffect(sliderState) {
-        snapshotFlow { sliderState.value }
-            .drop(1) // replayed value
-            .collect { newHue ->
+        snapshotFlow { sliderState.value }.collect { newHue ->
+            if (newHue != hue.value) {
                 onChange(HueValue(newHue))
             }
+        }
     }
 }
 
