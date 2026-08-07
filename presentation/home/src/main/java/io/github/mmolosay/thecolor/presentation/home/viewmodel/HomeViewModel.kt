@@ -19,7 +19,6 @@ import io.github.mmolosay.thecolor.presentation.common.viewmodel.Store
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEvent
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterSessionStore.SessionState
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.CanProceed
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ColorSchemeSelectedSwatchData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel.CoroutineRegistryRules.trackAsConsumeColorCenterComponents
@@ -36,9 +35,11 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
+import io.github.mmolosay.thecolor.utils.BatchScope
 import io.github.mmolosay.thecolor.utils.CoroutineRegistry
 import io.github.mmolosay.thecolor.utils.MutableConsumableStore
 import io.github.mmolosay.thecolor.utils.asConsumableStore
+import io.github.mmolosay.thecolor.utils.batch
 import io.github.mmolosay.thecolor.utils.removeAndCancelAll
 import io.github.mmolosay.thecolor.utils.trackThisAsSingleActive
 import kotlinx.coroutines.CompletableDeferred
@@ -77,7 +78,6 @@ class HomeViewModel @Inject constructor(
     colorCenterComponentsStoreFactory: ColorCenterComponentsStore.Factory,
     private val createColorData: CreateColorDataUseCase,
     private val colorComparator: ColorComparator,
-    private val doesColorBelongToSession: DoesColorBelongToSessionUseCase,
     private val userPreferencesRepository: UserPreferencesRepository,
     private val lastSearchedColorRepository: LastSearchedColorRepository,
     private val getPredictableRandomColor: GetPredictableRandomColorUseCase,
@@ -133,9 +133,11 @@ class HomeViewModel @Inject constructor(
         }
 
     private suspend fun onColorFromColorInput(colorState: ColorInputMediator.ColorState) {
-        val color = colorState.color
-        endColorCenterSession() // assuming any new color from Color Input is a new session
-        onColorBecameCurrent(color)
+        _dataFlow.batch {
+            val color = colorState.color
+            endColorCenterSession() // assuming any new color from Color Input is a new session
+            onColorBecameCurrent(color)
+        }
     }
 
     private fun onEventFromColorDetailsOfColorCenter(event: ColorDetailsEvent) {
@@ -143,14 +145,16 @@ class HomeViewModel @Inject constructor(
             is ColorDetailsEvent.ColorSelected ->
                 viewModelScope.launch(defaultDispatcher) {
                     opRegistry.trackAsProceed {
-                        ccSessionStore.sessionState.mustBeOngoing()
-                        val color = event.color
-                        colorInputMediator.set(color)
-                        onColorBecameCurrent(color)
-                        // assuming any color selected belongs to ongoing session
-                        proceed(color) { colorDetails, colorScheme ->
-                            colorDetails.selectColor(event.colorRole)
-                            colorScheme.fetchColorScheme(color)
+                        _dataFlow.batch {
+                            ccSessionStore.sessionState.mustBeOngoing()
+                            val color = event.color
+                            colorInputMediator.set(color)
+                            onColorBecameCurrent(color)
+                            // assuming any color selected belongs to ongoing session
+                            proceed(color) { colorDetails, colorScheme ->
+                                colorDetails.selectColor(event.colorRole)
+                                colorScheme.fetchColorScheme(color)
+                            }
                         }
                     }
                 }
@@ -196,24 +200,26 @@ class HomeViewModel @Inject constructor(
     private fun maybeProceedWithLastSearchedColor() {
         viewModelScope.launch(defaultDispatcher) {
             opRegistry.trackAsProceed {
-                val resumeFromLastSearchedColorOnStartup = userPreferencesRepository
-                    .flowOfResumeFromLastSearchedColorOnStartup
-                    .filterReady()
-                    .first().getOrElse { DefaultUserPreferences.ResumeFromLastSearchedColorOnStartup }
-                val enabled = resumeFromLastSearchedColorOnStartup.enabled
-                if (!enabled) return@launch
-                val color = lastSearchedColorRepository.getLastSearchedColor() ?: return@launch
-                createAndConsumeNewColorCenterComponents()
-                val deferredDetails = CompletableDeferred<DomainColorDetails>()
-                startColorCenterSession(
-                    seed = color,
-                    deferredDetails = deferredDetails,
-                )
-                colorInputMediator.set(color)
-                onColorBecameCurrent(color)
-                proceed(color) { colorDetails, colorScheme ->
-                    colorDetails.setSeedColor(color, deferredDetails)
-                    colorScheme.fetchColorScheme(color)
+                _dataFlow.batch {
+                    val resumeFromLastSearchedColorOnStartup = userPreferencesRepository
+                        .flowOfResumeFromLastSearchedColorOnStartup
+                        .filterReady()
+                        .first().getOrElse { DefaultUserPreferences.ResumeFromLastSearchedColorOnStartup }
+                    val enabled = resumeFromLastSearchedColorOnStartup.enabled
+                    if (!enabled) return@launch
+                    val color = lastSearchedColorRepository.getLastSearchedColor() ?: return@launch
+                    createAndConsumeNewColorCenterComponents()
+                    val deferredDetails = CompletableDeferred<DomainColorDetails>()
+                    startColorCenterSession(
+                        seed = color,
+                        deferredDetails = deferredDetails,
+                    )
+                    colorInputMediator.set(color)
+                    onColorBecameCurrent(color)
+                    proceed(color) { colorDetails, colorScheme ->
+                        colorDetails.setSeedColor(color, deferredDetails)
+                        colorScheme.fetchColorScheme(color)
+                    }
                 }
             }
         }
@@ -223,22 +229,27 @@ class HomeViewModel @Inject constructor(
     private fun proceed() {
         viewModelScope.launch(defaultDispatcher) {
             opRegistry.trackAsProceed {
-                endColorCenterSession() // end current session (if any)
-                val color = requireNotNull(colorInputMediator.colorState.color)
-                createAndConsumeNewColorCenterComponents()
-                val deferredDetails = CompletableDeferred<DomainColorDetails>()
-                startColorCenterSession(
-                    seed = color,
-                    deferredDetails = deferredDetails,
-                )
-                proceed(color) { colorDetails, colorScheme ->
-                    colorDetails.setSeedColor(color, deferredDetails)
-                    colorScheme.fetchColorScheme(color)
+                _dataFlow.batch {
+                    endColorCenterSession() // end current session (if any)
+                    val color = requireNotNull(colorInputMediator.colorState.color)
+                    createAndConsumeNewColorCenterComponents()
+                    val deferredDetails = CompletableDeferred<DomainColorDetails>()
+                    startColorCenterSession(
+                        seed = color,
+                        deferredDetails = deferredDetails,
+                    )
+                    colorInputMediator.set(color)
+                    onColorBecameCurrent(color)
+                    proceed(color) { colorDetails, colorScheme ->
+                        colorDetails.setSeedColor(color, deferredDetails)
+                        colorScheme.fetchColorScheme(color)
+                    }
                 }
             }
         }
     }
 
+    context(batchScope: BatchScope<HomeData>)
     private suspend fun proceed(
         color: Color,
         colorCenterAction: suspend (ColorDetailsViewModel, ColorSchemeViewModel) -> Unit,
@@ -254,14 +265,15 @@ class HomeViewModel @Inject constructor(
             val proceedResult = HomeData.ProceedResult.Success(
                 colorData = colorData,
             )
-            _dataFlow.update {
+            batchScope.update {
                 it.copy(proceedResult = proceedResult)
             }
         }
     }
 
+    context(batchScope: BatchScope<HomeData>)
     private suspend fun onColorBecameCurrent(color: Color?) {
-        _dataFlow.update {
+        batchScope.update {
             val canProceed = CanProceed(colorFromColorInput = color)
             it.copy(canProceed = canProceed)
         }
@@ -271,26 +283,28 @@ class HomeViewModel @Inject constructor(
     private fun randomizeColor() {
         viewModelScope.launch(defaultDispatcher) {
             opRegistry.trackAsProceed {
-                colorInputMediator.withLock { editor ->
-                    val color = getPredictableRandomColor()
-                    endColorCenterSession()
-                    editor.set(color) // continue to hold mediator lock until the execution flow is finished
-                    onColorBecameCurrent(color)
-                    val shouldProceed = userPreferencesRepository
-                        .flowOfAutoProceedWithRandomizedColors
-                        .filterReady()
-                        .first().getOrElse { DefaultUserPreferences.AutoProceedWithRandomizedColors }
-                        .enabled
-                    if (shouldProceed) {
-                        createAndConsumeNewColorCenterComponents()
-                        val deferredDetails = CompletableDeferred<DomainColorDetails>()
-                        startColorCenterSession(
-                            seed = color,
-                            deferredDetails = deferredDetails,
-                        )
-                        proceed(color) { colorDetails, colorScheme ->
-                            colorDetails.setSeedColor(color, deferredDetails)
-                            colorScheme.fetchColorScheme(color)
+                _dataFlow.batch {
+                    colorInputMediator.withLock { editor ->
+                        val color = getPredictableRandomColor()
+                        endColorCenterSession()
+                        editor.set(color) // continue to hold mediator lock until the execution flow is finished
+                        onColorBecameCurrent(color)
+                        val shouldProceed = userPreferencesRepository
+                            .flowOfAutoProceedWithRandomizedColors
+                            .filterReady()
+                            .first().getOrElse { DefaultUserPreferences.AutoProceedWithRandomizedColors }
+                            .enabled
+                        if (shouldProceed) {
+                            createAndConsumeNewColorCenterComponents()
+                            val deferredDetails = CompletableDeferred<DomainColorDetails>()
+                            startColorCenterSession(
+                                seed = color,
+                                deferredDetails = deferredDetails,
+                            )
+                            proceed(color) { colorDetails, colorScheme ->
+                                colorDetails.setSeedColor(color, deferredDetails)
+                                colorScheme.fetchColorScheme(color)
+                            }
                         }
                     }
                 }
@@ -387,23 +401,13 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    context(batchScope: BatchScope<HomeData>)
     private suspend fun endColorCenterSession() {
         ccSessionStore.clear()
         colorCenterComponentsStore.disposeComponents()
         opRegistry.removeAndCancelAll { it.value is Operation.ConsumeColorCenterComponents }
-        _dataFlow.update {
+        batchScope.update {
             it.copy(proceedResult = null)
-        }
-    }
-
-    // TODO: remove me?
-    private fun Color.doesBelongToCurrentSession(): Boolean {
-        val color = this
-        val sessionState = ccSessionStore.sessionState
-        return when (sessionState) {
-            is SessionState.NoSession -> false // no session -> nothing to belong to
-            is SessionState.BeingBuilt -> with(colorComparator) { color isSameAs sessionState.seed } // started this session
-            is SessionState.Ongoing -> with(doesColorBelongToSession) { color doesBelongTo sessionState.session }
         }
     }
 
@@ -416,16 +420,18 @@ class HomeViewModel @Inject constructor(
                 is ColorInputValidationResult.Valid -> {
                     viewModelScope.launch(defaultDispatcher) {
                         opRegistry.trackAsProceed {
-                            val color = validationResult.color
-                            createAndConsumeNewColorCenterComponents()
-                            val deferredDetails = CompletableDeferred<DomainColorDetails>()
-                            startColorCenterSession(
-                                seed = color,
-                                deferredDetails = deferredDetails,
-                            )
-                            proceed(color) { colorDetails, colorScheme ->
-                                colorDetails.setSeedColor(color, deferredDetails)
-                                colorScheme.fetchColorScheme(color)
+                            _dataFlow.batch {
+                                val color = validationResult.color
+                                createAndConsumeNewColorCenterComponents()
+                                val deferredDetails = CompletableDeferred<DomainColorDetails>()
+                                startColorCenterSession(
+                                    seed = color,
+                                    deferredDetails = deferredDetails,
+                                )
+                                proceed(color) { colorDetails, colorScheme ->
+                                    colorDetails.setSeedColor(color, deferredDetails)
+                                    colorScheme.fetchColorScheme(color)
+                                }
                             }
                         }
                     }
