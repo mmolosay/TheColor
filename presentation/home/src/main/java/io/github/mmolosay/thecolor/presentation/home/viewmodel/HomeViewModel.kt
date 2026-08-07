@@ -48,6 +48,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -56,6 +58,7 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -377,9 +380,12 @@ class HomeViewModel @Inject constructor(
         seed: Color,
         deferredDetails: Deferred<DomainColorDetails>,
     ) {
-        val deferredSessionBuildingScope = CompletableDeferred<ColorCenterSessionStore.SessionBuildingScope>()
-        val sessionBuildingJob = launch {
-            val sessionBuilding = deferredSessionBuildingScope.await()
+        val job = Job(parent = currentCoroutineContext().job)
+        // start building a new session inline suspending to guarantee that
+        // by the time this function returns the session store has a new 'building' state
+        val sessionBuilding = ccSessionStore.startBuilding(seed, job)
+        @Suppress("CoroutineContextWithJob") // job is created correctly with the parent specified
+        launch(job) {
             val session = run {
                 val seedDetails = runCatching { deferredDetails.await() }.getOrElse {
                     sessionBuilding.cancel() // will also cancel this coroutine
@@ -391,10 +397,6 @@ class HomeViewModel @Inject constructor(
             }
             sessionBuilding.complete(session)
         }
-        // start building a new session inline suspending to guarantee that
-        // by the time this function returns the session store has a new 'building' state
-        val sessionBuilding = ccSessionStore.startBuilding(seed, sessionBuildingJob)
-        deferredSessionBuildingScope.complete(sessionBuilding)
 
         launch {
             lastSearchedColorRepository.setLastSearchedColor(seed)
