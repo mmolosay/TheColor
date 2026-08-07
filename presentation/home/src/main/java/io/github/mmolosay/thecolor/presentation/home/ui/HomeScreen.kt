@@ -51,18 +51,14 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroup
 import io.github.mmolosay.thecolor.presentation.preview.AnimatedColorPreview
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
-import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState
-import io.github.mmolosay.thecolor.presentation.preview.toUiState
 import io.github.mmolosay.thecolor.utils.ConsumableStore
 import io.github.mmolosay.thecolor.utils.MutableConsumableStore
 import io.github.mmolosay.thecolor.utils.doNothing
-import io.github.mmolosay.thecolor.utils.stabilize
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combineTransform
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
@@ -77,36 +73,17 @@ fun HomeScreen(
     val coroutineScope = rememberCoroutineScope()
 
     val flowOfUiState = remember {
-        val flowOfColorPreviewData = viewModel.colorPreviewViewModel.dataFlow
-        val flowOfHomeData = viewModel.dataFlow
-        fun actualUiState(): HomeUiState? {
-            val isColorPreviewVisible = run {
-                val data = flowOfColorPreviewData.value ?: return null
-                return@run data.toUiState() is ColorPreviewUiState.Visible
-            }
-            val isColorCenterVisible = run {
-                val data = flowOfHomeData.value
-                return@run data.proceedResult is ProceedResult.Success
-            }
-            return HomeUiState(isColorPreviewVisible, isColorCenterVisible)
-        }
-        combineTransform(
-            flowOfColorPreviewData,
-            flowOfHomeData,
-            viewModel.flowOfIsDataBeingUpdated,
-        ) { _, _, isBeingUpdated ->
-            // impl of 'stabilize()' that takes actual value of the flow instead of last collected
-            if (!isBeingUpdated) {
-                actualUiState()?.let { emit(it) }
-            }
-        }
-            .distinctUntilChanged()
+        FlowOfHomeUiState(
+            flowOfColorPreviewData = viewModel.colorPreviewViewModel.dataFlow,
+            flowOfHomeData = viewModel.dataFlow,
+        )
             // make it hot to allow replaying last value when creating 'animController'
             .shareIn(coroutineScope, SharingStarted.Eagerly, replay = 1)
     }
     val animController by produceState<HomeAnimController?>(initialValue = null) {
-        val uiState = flowOfUiState.first()
-        val animState = requireNotNull(uiState.toAnimState()) { "Invalid initial UI state" }
+        val animState = flowOfUiState
+            .mapNotNull { it.toAnimState() }
+            .first()
         value = HomeAnimController(animState)
     }
     LaunchedEffect(Unit) {
@@ -133,17 +110,7 @@ fun HomeScreen(
         )
     }
     val colorCenter: BareColorCenter? = run {
-        val viewModel = run {
-            val upstream = viewModel.colorCenterViewModelFlow
-            val flowOfColorCenterViewModel = remember {
-                upstream
-                    .stabilize(viewModel.flowOfIsDataBeingUpdated)
-                    .distinctUntilChanged()
-            }
-            flowOfColorCenterViewModel
-                .collectAsStateWithLifecycle(initialValue = upstream.value)
-                .value
-        }
+        val viewModel = viewModel.colorCenterViewModelFlow.collectAsStateWithLifecycle().value
         remember(viewModel) {
             if (viewModel == null) return@remember null
             return@remember {
@@ -154,12 +121,7 @@ fun HomeScreen(
         }
     }
 
-    val data = run {
-        val flowOfData = remember {
-            viewModel.dataFlow.stabilize(viewModel.flowOfIsDataBeingUpdated)
-        }
-        flowOfData.collectAsStateWithLifecycle(initialValue = viewModel.dataFlow.value).value
-    }
+    val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
 
     HomeScreen(
         data = data,
@@ -174,18 +136,6 @@ fun HomeScreen(
         navBarAppearanceController = navBarAppearanceController,
     )
 }
-
-/** Describes UI state of 'Home' View. Used to infer appropriate animation sequence / state. */
-private data class HomeUiState(
-    val isColorPreviewVisible: Boolean,
-    val isColorCenterVisible: Boolean,
-)
-
-private fun HomeUiState.toAnimState(): HomeAnimState? =
-    HomeAnimState(
-        isColorPreviewVisible = this.isColorPreviewVisible,
-        isColorCenterVisible = this.isColorCenterVisible,
-    )
 
 @Composable
 private fun HomeScreen(
