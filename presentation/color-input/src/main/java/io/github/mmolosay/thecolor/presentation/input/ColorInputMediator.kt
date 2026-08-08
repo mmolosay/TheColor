@@ -1,6 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.input
 
 import io.github.mmolosay.thecolor.domain.color.Color
+import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator.ColorState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -49,15 +50,16 @@ class ColorInputMediator @Inject constructor() {
      * State of the color across the 'Color Input' feature.
      *
      * @param color the current color. `null` means that the color is absent or invalid.
-     * @param source the type of the 'Color Input' this [color] originates from.
-     * `null` means that this [color] didn't come from any particular type of the 'Color Input' but was set programmatically.
+     * @param source the place this update of the [ColorState] originates from.
      * @param id a unique ID to distinguish between different [ColorState]s with the same values.
      */
     data class ColorState(
         val color: Color?,
-        val source: DomainColorInputType?,
+        val source: Source?,
         val id: Int,
-    )
+    ) {
+        interface Source
+    }
 
     /**
      * Allows mutating [colorStateFlow] in a thread-safe, synchronized context under the lock
@@ -73,7 +75,7 @@ class ColorInputMediator @Inject constructor() {
          * @param source The type of 'Color Input' that triggered this update, or `null` if the
          * update was triggered programmatically.
          */
-        fun set(color: Color?, source: DomainColorInputType? = null) {
+        fun set(color: Color?, source: ColorState.Source? = null) {
             check(mutex.isLocked) { "Must be called under the mutex's lock" }
             check(mutex.holdsLock(lockOwner)) { "This editor doesn't belong to the current mutex's lock" }
             _colorStateFlow.value = ColorState(color = color, source = source, id = nextId++)
@@ -85,10 +87,17 @@ class ColorInputMediator @Inject constructor() {
     }
 }
 
-val ColorInputMediator.colorState: ColorInputMediator.ColorState
+val ColorInputMediator.colorState: ColorState
     get() = this.colorStateFlow.value
 
-suspend fun ColorInputMediator.set(color: Color?, source: DomainColorInputType? = null) =
+suspend fun ColorInputMediator.set(color: Color?, source: ColorState.Source? = null) =
     this.withLock { editor ->
         editor.set(color = color, source = source)
     }
+
+/**
+ * A [ColorState.Source] that is 'Color Input' feature of the specified [type].
+ */
+data class ColorInputSource(
+    val type: DomainColorInputType,
+) : ColorState.Source

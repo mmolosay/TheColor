@@ -12,6 +12,7 @@ import io.github.mmolosay.thecolor.presentation.common.viewmodel.Store
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMapper
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
+import io.github.mmolosay.thecolor.presentation.input.ColorInputSource
 import io.github.mmolosay.thecolor.presentation.input.ColorInputValidator
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmissionResult
@@ -84,7 +85,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
         coroutineScope.launch(defaultDispatcher) {
             mediator.colorStateFlow.collect { (color, source) ->
                 // don't update text fields to avoid update loop if the color was set from this 'Color Input' type
-                if (source == DomainColorInputType.Hex) return@collect
+                if (source is ColorInputSource && source.type == DomainColorInputType.Hex) return@collect
                 val colorInput = if (color != null) {
                     val hexColor = with(colorConverter) { color.toHex() }
                     with(colorInputMapper) { hexColor.toColorInput() }
@@ -107,7 +108,10 @@ class ColorInputHexViewModel @AssistedInject constructor(
                 // don't synchronize this data with other Views to avoid update loop
                 if (!textField.text.causedByUser) return@collect
                 val parsedColor = TextFieldDerived(textField).validationResult.getColorOrNull()
-                mediator.set(color = parsedColor, source = DomainColorInputType.Hex)
+                mediator.set(
+                    color = parsedColor,
+                    source = ColorInputSource(DomainColorInputType.Hex),
+                )
             }
         }
     }

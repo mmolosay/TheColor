@@ -9,6 +9,7 @@ import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQuali
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.Store
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
+import io.github.mmolosay.thecolor.presentation.input.ColorInputSource
 import io.github.mmolosay.thecolor.presentation.input.colorState
 import io.github.mmolosay.thecolor.utils.Sampler
 import kotlinx.coroutines.CoroutineDispatcher
@@ -54,7 +55,10 @@ class ColorInputHsvViewModel @AssistedInject constructor(
                 val idThen = colorWithId.mediatorStateId
                 val idNow = mediator.colorState.id
                 if (idNow == idThen) {
-                    editor.set(color = colorWithId.color, source = DomainColorInputType.Hsv)
+                    editor.set(
+                        color = colorWithId.color,
+                        source = ColorInputSource(DomainColorInputType.Hsv),
+                    )
                 }
             }
         }

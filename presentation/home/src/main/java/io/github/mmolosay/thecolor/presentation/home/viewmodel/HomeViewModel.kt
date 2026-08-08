@@ -24,6 +24,7 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ColorSch
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel.CoroutineRegistryRules.trackAsConsumeColorCenterComponents
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel.CoroutineRegistryRules.trackAsProceed
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
+import io.github.mmolosay.thecolor.presentation.input.ColorInputSource
 import io.github.mmolosay.thecolor.presentation.input.colorState
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupDataFactory
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupViewModel
@@ -130,7 +131,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch(defaultDispatcher) {
             colorInputMediator.colorStateFlow
                 .drop(1) // replayed value
-                .filter { it.source != null } // genuinely comes from Color Input // TODO: refine how the color set from Color Input is inferred
+                .filter { it.source is ColorInputSource }
                 .conflate()
                 .collect(::onColorFromColorInput)
         }

@@ -17,6 +17,7 @@ import io.github.mmolosay.thecolor.presentation.common.viewmodel.Store
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMapper
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
+import io.github.mmolosay.thecolor.presentation.input.ColorInputSource
 import io.github.mmolosay.thecolor.presentation.input.ColorInputValidator
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmissionResult
@@ -102,7 +103,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         coroutineScope.launch(defaultDispatcher) {
             mediator.colorStateFlow.collect { (color, source) ->
                 // don't update text fields to avoid update loop if the color was set from this 'Color Input' type
-                if (source == DomainColorInputType.Rgb) return@collect
+                if (source is ColorInputSource && source.type == DomainColorInputType.Rgb) return@collect
                 val colorInput = if (color != null) {
                     val hexColor = with(colorConverter) { color.toRgb() }
                     with(colorInputMapper) { hexColor.toColorInput() }
@@ -131,7 +132,10 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                 val isAnyCausedByUser = listOf(r, g, b).any { it.text.causedByUser }
                 if (!isAnyCausedByUser) return@collect // none caused by user
                 val parsedColor = TextFieldsDerived(r, g, b).validationResult.getColorOrNull()
-                mediator.set(color = parsedColor, source = DomainColorInputType.Rgb)
+                mediator.set(
+                    color = parsedColor,
+                    source = ColorInputSource(DomainColorInputType.Rgb),
+                )
             }
         }
     }
