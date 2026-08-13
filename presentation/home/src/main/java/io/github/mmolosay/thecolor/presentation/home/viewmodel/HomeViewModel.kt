@@ -21,6 +21,7 @@ import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEv
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.CanProceed
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ColorSchemeSelectedSwatchData
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.SideEffect
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel.CoroutineRegistryRules.trackAsConsumeColorCenterComponents
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel.CoroutineRegistryRules.trackAsProceed
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
@@ -38,8 +39,7 @@ import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
 import io.github.mmolosay.thecolor.utils.BatchScope
 import io.github.mmolosay.thecolor.utils.CoroutineRegistry
-import io.github.mmolosay.thecolor.utils.MutableConsumableStore
-import io.github.mmolosay.thecolor.utils.asConsumableStore
+import io.github.mmolosay.thecolor.utils.SideEffectIdFactory
 import io.github.mmolosay.thecolor.utils.batch
 import io.github.mmolosay.thecolor.utils.removeAndCancelAll
 import io.github.mmolosay.thecolor.utils.trackThisAsSingleActive
@@ -88,11 +88,10 @@ class HomeViewModel @Inject constructor(
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
+    private val seFactory = SideEffectFactory()
+
     private val _dataFlow = MutableStateFlow(initialData())
     val dataFlow = _dataFlow.asStateFlow()
-
-    private val _effectStore = MutableConsumableStore<HomeEffect>()
-    val effectStore = _effectStore.asConsumableStore()
 
     val colorInputGroupViewModel: ColorInputGroupViewModel = run {
         val data = colorInputGroupDataFactory.create()
@@ -322,8 +321,10 @@ class HomeViewModel @Inject constructor(
          * In a real app, here would've been a logic for accepting / denying UI's navigation request
          * depending on the business logic. Here may also be sending data to analytics or logging.
          */
-        val effect = HomeEffect.GoToSettings
-        _effectStore.publish(effect)
+        val se = seFactory.goToSettings()
+        _dataFlow.update {
+            it.copy(sideEffects = it.sideEffects + se)
+        }
     }
 
     private fun clearColorSchemeSwatchSelectedData() {
@@ -343,6 +344,8 @@ class HomeViewModel @Inject constructor(
             randomizeColor = ::randomizeColor,
             colorSchemeSelectedSwatchData = null, // no selected swatch initially
             requestToGoToSettings = ::onRequestToGoToSettings,
+            sideEffects = emptyList(),
+            onSideEffectProcessed = ::onSideEffectProcessed,
         )
     }
 
@@ -411,6 +414,13 @@ class HomeViewModel @Inject constructor(
         opRegistry.removeAndCancelAll { it.value is Operation.ConsumeColorCenterComponents }
         batchScope.update {
             it.copy(proceedResult = null)
+        }
+    }
+
+    private fun onSideEffectProcessed(se: SideEffect) {
+        _dataFlow.update {
+            val newSideEffects = it.sideEffects - se
+            it.copy(sideEffects = newSideEffects)
         }
     }
 
@@ -484,6 +494,16 @@ class HomeViewModel @Inject constructor(
                 block = block,
             )
     }
+}
+
+private class SideEffectFactory {
+
+    private val idFactory = SideEffectIdFactory()
+
+    fun goToSettings(): SideEffect.GoToSettings =
+        SideEffect.GoToSettings(
+            id = idFactory.get(),
+        )
 }
 
 /**

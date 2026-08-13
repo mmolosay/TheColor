@@ -4,30 +4,34 @@ import android.widget.Toast
 import androidx.compose.foundation.ScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeEffect
-import io.github.mmolosay.thecolor.utils.ConsumableStore
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.SideEffect
 import io.github.mmolosay.thecolor.utils.cache.DequeCache
 import io.github.mmolosay.thecolor.utils.cache.PruneOnSizeThreshold
-import io.github.mmolosay.thecolor.utils.consumePendingAsFlow
 import io.github.mmolosay.thecolor.utils.doNothing
 
 @Composable
-internal fun ProcessEffectsAsSideEffect(
-    effectStore: ConsumableStore<HomeEffect>,
+internal fun ProcessSideEffectsAsSideEffect(
+    sideEffects: List<SideEffect>,
+    onSideEffectProcessed: (SideEffect) -> Unit,
     navigateToSettings: () -> Unit,
 ) {
     val focusManager = LocalFocusManager.current
-    LaunchedEffect(effectStore) {
-        effectStore.consumePendingAsFlow process@{ (_, effect) ->
-            when (effect) {
-                HomeEffect.GoToSettings -> {
-                    focusManager.clearFocus()
-                    navigateToSettings()
+    fun process(se: SideEffect.GoToSettings) {
+        focusManager.clearFocus()
+        navigateToSettings()
+        onSideEffectProcessed(se)
+    }
+    for (se in sideEffects) {
+        key(se.id) {
+            LaunchedEffect(Unit) {
+                when (se) {
+                    is SideEffect.GoToSettings -> process(se)
                 }
             }
         }

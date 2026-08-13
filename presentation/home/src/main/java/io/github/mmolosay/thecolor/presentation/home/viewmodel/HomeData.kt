@@ -2,6 +2,7 @@ package io.github.mmolosay.thecolor.presentation.home.viewmodel
 
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
+import io.github.mmolosay.thecolor.utils.SideEffect as UtilsSideEffect
 
 /**
  * Platform-agnostic data provided by ViewModel to 'Home' View.
@@ -12,6 +13,8 @@ data class HomeData(
     val randomizeColor: () -> Unit,
     val colorSchemeSelectedSwatchData: ColorSchemeSelectedSwatchData?,
     val requestToGoToSettings: () -> Unit,
+    val sideEffects: List<SideEffect>,
+    val onSideEffectProcessed: (HomeData.SideEffect) -> Unit,
 ) {
 
     sealed interface CanProceed {
@@ -43,4 +46,11 @@ data class HomeData(
         val colorDetailsViewModel: ColorDetailsViewModel,
         val discard: () -> Unit, // aka onConsumed()
     )
+
+    sealed interface SideEffect : UtilsSideEffect {
+
+        data class GoToSettings(
+            override val id: UtilsSideEffect.Id,
+        ) : SideEffect
+    }
 }

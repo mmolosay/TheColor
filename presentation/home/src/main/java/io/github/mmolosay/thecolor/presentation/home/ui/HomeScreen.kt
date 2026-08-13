@@ -46,13 +46,10 @@ import io.github.mmolosay.thecolor.presentation.home.ui.preview.BareColorPreview
 import io.github.mmolosay.thecolor.presentation.home.ui.preview.ColorPreviewInHome
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeEffect
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroup
 import io.github.mmolosay.thecolor.presentation.preview.AnimatedColorPreview
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
-import io.github.mmolosay.thecolor.utils.ConsumableStore
-import io.github.mmolosay.thecolor.utils.MutableConsumableStore
 import io.github.mmolosay.thecolor.utils.doNothing
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -126,7 +123,6 @@ fun HomeScreen(
     HomeScreen(
         data = data,
         strings = strings,
-        effectStore = viewModel.effectStore,
         colorInput = colorInput,
         colorPreview = colorPreview,
         colorPreviewDataFlow = viewModel.colorPreviewViewModel.dataFlow,
@@ -141,7 +137,6 @@ fun HomeScreen(
 private fun HomeScreen(
     data: HomeData,
     strings: HomeUiStrings,
-    effectStore: ConsumableStore<HomeEffect>,
     colorInput: BareColorInput,
     colorPreview: BareColorPreview,
     colorPreviewDataFlow: StateFlow<ColorPreviewData?>,
@@ -159,7 +154,6 @@ private fun HomeScreen(
                 .consumeWindowInsets(contentPadding), // ensures correct height of 'TopAppBar()'
             data = data,
             strings = strings,
-            effectStore = effectStore,
             colorInput = colorInput,
             colorPreview = colorPreview,
             colorPreviewDataFlow = colorPreviewDataFlow,
@@ -175,7 +169,6 @@ private fun HomeScreen(
 private fun Home(
     data: HomeData,
     strings: HomeUiStrings,
-    effectStore: ConsumableStore<HomeEffect>,
     colorInput: BareColorInput,
     colorPreview: BareColorPreview,
     colorPreviewDataFlow: StateFlow<ColorPreviewData?>,
@@ -256,8 +249,9 @@ private fun Home(
         navBarAppearanceController = selectedSwatchDetailsDialogController,
     )
 
-    ProcessEffectsAsSideEffect(
-        effectStore = effectStore,
+    ProcessSideEffectsAsSideEffect(
+        sideEffects = data.sideEffects,
+        onSideEffectProcessed = data.onSideEffectProcessed,
         navigateToSettings = navigateToSettings,
     )
 
@@ -303,7 +297,6 @@ private fun Preview() {
         HomeScreen(
             data = previewData(),
             strings = previewUiStrings(),
-            effectStore = remember { MutableConsumableStore() },
             colorInput = {
                 Text(
                     modifier = Modifier
@@ -357,6 +350,8 @@ private fun previewData() =
         randomizeColor = {},
         colorSchemeSelectedSwatchData = null,
         requestToGoToSettings = {},
+        sideEffects = emptyList(),
+        onSideEffectProcessed = {},
     )
 
 private fun previewUiStrings() =
