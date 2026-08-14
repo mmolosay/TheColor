@@ -58,7 +58,6 @@ import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -88,10 +87,11 @@ class HomeViewModel @Inject constructor(
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
-    private val seFactory = SideEffectFactory()
+    private val store = Store(initialData())
+    val dataFlow: StateFlow<HomeData> = store.flow
 
-    private val _dataFlow = MutableStateFlow(initialData())
-    val dataFlow = _dataFlow.asStateFlow()
+    private val orderedUpdates = defaultDispatcher.limitedParallelism(1)
+    private val seFactory = SideEffectFactory()
 
     val colorInputGroupViewModel: ColorInputGroupViewModel = run {
         val data = colorInputGroupDataFactory.create()
@@ -136,7 +136,7 @@ class HomeViewModel @Inject constructor(
         }
 
     private suspend fun onColorFromColorInput(colorState: ColorInputMediator.ColorState) {
-        _dataFlow.batch {
+        store.batch {
             val color = colorState.color
             endColorCenterSession() // assuming any new color from Color Input is a new session
             onColorBecameCurrent(color)
@@ -148,7 +148,7 @@ class HomeViewModel @Inject constructor(
             is ColorDetailsEvent.ColorSelected ->
                 viewModelScope.launch(defaultDispatcher) {
                     opRegistry.trackAsProceed {
-                        _dataFlow.batch {
+                        store.batch {
                             ccSessionStore.sessionState.mustBeOngoing()
                             val color = event.color
                             colorInputMediator.set(color)
@@ -176,7 +176,7 @@ class HomeViewModel @Inject constructor(
                     val selectedSwatchColorDetailsViewModel = colorCenterComponentsStore.components
                         ?.selectedSwatchColorDetailsViewModel
                         ?: return@launch
-                    _dataFlow.update {
+                    store.update {
                         val data = ColorSchemeSelectedSwatchData(
                             colorDetailsViewModel = selectedSwatchColorDetailsViewModel,
                             discard = ::clearColorSchemeSwatchSelectedData,
@@ -203,7 +203,7 @@ class HomeViewModel @Inject constructor(
     private fun maybeProceedWithLastSearchedColor() {
         viewModelScope.launch(defaultDispatcher) {
             opRegistry.trackAsProceed {
-                _dataFlow.batch {
+                store.batch {
                     val resumeFromLastSearchedColorOnStartup = userPreferencesRepository
                         .flowOfResumeFromLastSearchedColorOnStartup
                         .filterReady()
@@ -232,7 +232,7 @@ class HomeViewModel @Inject constructor(
     private fun proceed() {
         viewModelScope.launch(defaultDispatcher) {
             opRegistry.trackAsProceed {
-                _dataFlow.batch {
+                store.batch {
                     endColorCenterSession() // end current session (if any)
                     val color = requireNotNull(colorInputMediator.colorState.color)
                     createAndConsumeNewColorCenterComponents()
@@ -286,7 +286,7 @@ class HomeViewModel @Inject constructor(
     private fun randomizeColor() {
         viewModelScope.launch(defaultDispatcher) {
             opRegistry.trackAsProceed {
-                _dataFlow.batch {
+                store.batch {
                     colorInputMediator.withLock { editor ->
                         val color = getPredictableRandomColor()
                         endColorCenterSession()
@@ -321,15 +321,19 @@ class HomeViewModel @Inject constructor(
          * In a real app, here would've been a logic for accepting / denying UI's navigation request
          * depending on the business logic. Here may also be sending data to analytics or logging.
          */
-        val se = seFactory.goToSettings()
-        _dataFlow.update {
-            it.copy(sideEffects = it.sideEffects + se)
+        viewModelScope.launch(orderedUpdates) {
+            val se = seFactory.goToSettings()
+            store.update {
+                it.copy(sideEffects = it.sideEffects + se)
+            }
         }
     }
 
     private fun clearColorSchemeSwatchSelectedData() {
-        _dataFlow.update {
-            it.copy(colorSchemeSelectedSwatchData = null)
+        viewModelScope.launch(orderedUpdates) {
+            store.update {
+                it.copy(colorSchemeSelectedSwatchData = null)
+            }
         }
     }
 
@@ -418,9 +422,11 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun onSideEffectProcessed(se: SideEffect) {
-        _dataFlow.update {
-            val newSideEffects = it.sideEffects - se
-            it.copy(sideEffects = newSideEffects)
+        viewModelScope.launch(orderedUpdates) {
+            store.update {
+                val newSideEffects = it.sideEffects - se
+                it.copy(sideEffects = newSideEffects)
+            }
         }
     }
 
@@ -433,7 +439,7 @@ class HomeViewModel @Inject constructor(
                 is ColorInputValidationResult.Valid -> {
                     viewModelScope.launch(defaultDispatcher) {
                         opRegistry.trackAsProceed {
-                            _dataFlow.batch {
+                            store.batch {
                                 val color = validationResult.color
                                 createAndConsumeNewColorCenterComponents()
                                 val deferredDetails = CompletableDeferred<DomainColorDetails>()
@@ -451,15 +457,20 @@ class HomeViewModel @Inject constructor(
                     return true
                 }
                 is ColorInputValidationResult.Invalid -> {
-                    _dataFlow.update {
-                        val result = HomeData.ProceedResult.InvalidSubmittedColor(
-                            discard = {
-                                _dataFlow.update {
-                                    it.copy(proceedResult = null)
+                    viewModelScope.launch(orderedUpdates) {
+                        store.update {
+                            val discard: () -> Unit = {
+                                viewModelScope.launch(orderedUpdates) {
+                                    store.update {
+                                        it.copy(proceedResult = null)
+                                    }
                                 }
-                            },
-                        )
-                        it.copy(proceedResult = result)
+                            }
+                            val result = HomeData.ProceedResult.InvalidSubmittedColor(
+                                discard = discard,
+                            )
+                            it.copy(proceedResult = result)
+                        }
                     }
                     return false
                 }
