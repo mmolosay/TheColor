@@ -1,7 +1,5 @@
-package io.github.mmolosay.thecolor.presentation.common.viewmodel
+package io.github.mmolosay.thecolor.utils
 
-import io.github.mmolosay.thecolor.utils.Maybe
-import io.github.mmolosay.thecolor.utils.requireValue
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
