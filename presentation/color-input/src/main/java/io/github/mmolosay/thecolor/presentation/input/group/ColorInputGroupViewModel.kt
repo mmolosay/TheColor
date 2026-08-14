@@ -20,9 +20,7 @@ import io.github.mmolosay.thecolor.utils.Store
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
@@ -83,8 +81,7 @@ class ColorInputGroupViewModel @AssistedInject constructor(
             mediator = mediator,
         )
 
-    val dataFlow: StateFlow<ColorInputGroupData> =
-        store.flow.stateIn(coroutineScope, SharingStarted.Eagerly, store.value)
+    val dataFlow: StateFlow<ColorInputGroupData> = store.flow
 
     fun execute(action: ColorInputGroupAction): Job =
         coroutineScope.launch(orderedUpdates) {

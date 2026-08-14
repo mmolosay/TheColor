@@ -15,9 +15,7 @@ import io.github.mmolosay.thecolor.utils.Store
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
@@ -41,8 +39,7 @@ class ColorInputHsvViewModel @AssistedInject constructor(
 
     private val orderedUpdates = defaultDispatcher.limitedParallelism(1)
 
-    val dataFlow: StateFlow<ColorInputHsvData> =
-        store.flow.stateIn(coroutineScope, SharingStarted.Eagerly, store.value)
+    val dataFlow: StateFlow<ColorInputHsvData> = store.flow
 
     private var sampleProcessingJob: Job? = null // 'onSampleProduced' is never invoked concurrently
     private val samplerForNewColors = Sampler<ColorWithId>(

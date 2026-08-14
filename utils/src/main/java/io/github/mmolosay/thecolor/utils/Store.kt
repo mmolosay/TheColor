@@ -1,7 +1,8 @@
 package io.github.mmolosay.thecolor.utils
 
+import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -49,13 +50,14 @@ interface Store<T> {
     /**
      * The store's value as a stream of its changes over time.
      *
-     * Cold and conflating. Every emitted value is a fully-aggregated, committed snapshot.
+     * Reflects writes as soon as they commit.
+     * Once an [update] or [transaction] returns, this flow's [value][StateFlow.value] is the new one.
+     * Delivery to collectors follows normal coroutine dispatch.
      *
-     * Eventually consistent with respect to writes: after an [update] or [transaction] completes, a
-     * corresponding value follows after a brief delay. [current] is immediate and authoritative;
-     * [value] is the synchronous committed read.
+     * Not transaction-aware: while a [transaction] is in progress its changes are not reflected here until it commits.
+     * For a read that observes them, see [current]; [value] is the synchronously committed read.
      */
-    val flow: Flow<T>
+    val flow: StateFlow<T>
 
     /**
      * The store's value, authoritative for the calling context.
@@ -195,10 +197,10 @@ private class StoreView<Source, T>(
     override val value: T
         get() = lens.get(store.value)
 
-    override val flow: Flow<T> =
-        store.flow
-            .map { lens.get(it) }
-            .distinctUntilChanged()
+    override val flow: StateFlow<T> = MappedStateFlow(
+        source = store.flow,
+        transform = lens::get,
+    )
 
     override suspend fun current(): T =
         lens.get(source = store.current())
@@ -218,6 +220,27 @@ private class StoreView<Source, T>(
             store = this,
             lens = lens,
         )
+
+    @OptIn(ExperimentalForInheritanceCoroutinesApi::class)
+    private class MappedStateFlow<Source, T>(
+        private val source: StateFlow<Source>,
+        private val transform: (Source) -> T,
+    ) : StateFlow<T> {
+
+        override val value: T
+            get() = transform(source.value)
+
+        override val replayCache: List<T>
+            get() = listOf(value)
+
+        override suspend fun collect(collector: FlowCollector<T>): Nothing {
+            source
+                .map(transform)
+                .distinctUntilChanged()
+                .collect(collector)
+            error("StateFlow.collect() never completes")
+        }
+    }
 }
 
 interface Lens<Source, Value> {

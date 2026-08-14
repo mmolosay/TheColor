@@ -25,3 +25,11 @@ inline fun <T> MutableStateFlow<T>.batch(
     with(scope) { block() }
     this.update { scope.apply(it) }
 }
+
+suspend inline fun <T> Store<T>.batch(
+    block: BatchScope<T>.() -> Unit,
+) {
+    val scope = BatchScope<T>()
+    with(scope) { block() }
+    this.update { scope.apply(it) }
+}

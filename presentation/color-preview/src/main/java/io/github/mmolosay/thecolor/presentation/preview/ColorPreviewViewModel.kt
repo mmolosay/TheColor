@@ -20,9 +20,7 @@ import io.github.mmolosay.thecolor.utils.trackThisAsSingleActive
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Qualifier
 
@@ -42,8 +40,7 @@ class ColorPreviewViewModel @AssistedInject constructor(
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
-    val dataFlow: StateFlow<ColorPreviewData?> =
-        store.flow.stateIn(coroutineScope, SharingStarted.Eagerly, store.value)
+    val dataFlow: StateFlow<ColorPreviewData?> = store.flow
 
     private val opRegistry = CoroutineRegistry<Operation>()
 

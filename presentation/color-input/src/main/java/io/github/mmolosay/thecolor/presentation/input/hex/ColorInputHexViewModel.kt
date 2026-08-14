@@ -29,10 +29,8 @@ import io.github.mmolosay.thecolor.utils.Store
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -73,8 +71,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
         )
     val textFieldHandle = TextFieldHandle(textFieldViewModel)
 
-    val dataFlow: StateFlow<ColorInputHexData> =
-        store.flow.stateIn(coroutineScope, SharingStarted.Eagerly, store.value)
+    val dataFlow: StateFlow<ColorInputHexData> = store.flow
 
     init {
         collectMediatorUpdates()
