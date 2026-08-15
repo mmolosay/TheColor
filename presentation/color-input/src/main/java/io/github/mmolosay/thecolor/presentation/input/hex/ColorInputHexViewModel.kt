@@ -56,7 +56,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
-    private val orderedUpdates = defaultDispatcher.limitedParallelism(1)
+    private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
 
     private val textFieldViewModel =
         textFieldViewModelFactory.create(
@@ -90,7 +90,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
                     EmptyColorInput
                 }
                 @OptIn(RequiresWriteOrdering::class)
-                withContext(orderedUpdates) {
+                withContext(exclusiveLane) {
                     val textWithSource = TextFieldData.Text(colorInput.string) causedByUser false
                     textFieldViewModel.setText(textWithSource)
                 }
@@ -114,7 +114,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
     }
 
     fun execute(action: ColorInputHexAction): Job =
-        coroutineScope.launch(orderedUpdates) {
+        coroutineScope.launch(exclusiveLane) {
             when (action) {
                 is ColorInputHexAction.SubmitInput -> {
                     submitInput()

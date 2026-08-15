@@ -38,7 +38,7 @@ class TextFieldViewModel @AssistedInject constructor(
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
-    private val orderedUpdates = defaultDispatcher.limitedParallelism(1)
+    private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
 
     init {
         collectSelectAllTextOnTextFieldFocusPreference()
@@ -59,7 +59,7 @@ class TextFieldViewModel @AssistedInject constructor(
 
     fun execute(action: TextFieldAction): Job =
         @OptIn(RequiresWriteOrdering::class)
-        coroutineScope.launch(orderedUpdates) {
+        coroutineScope.launch(exclusiveLane) {
             when (action) {
                 is TextFieldAction.SetText -> {
                     setText(action.text causedByUser true)

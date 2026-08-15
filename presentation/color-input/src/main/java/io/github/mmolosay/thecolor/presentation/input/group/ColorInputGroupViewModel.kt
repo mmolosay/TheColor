@@ -47,7 +47,7 @@ class ColorInputGroupViewModel @AssistedInject constructor(
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
-    private val orderedUpdates = defaultDispatcher.limitedParallelism(1)
+    private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
 
     val hexViewModel: ColorInputHexViewModel =
         hexViewModelFactory.create(
@@ -84,7 +84,7 @@ class ColorInputGroupViewModel @AssistedInject constructor(
     val dataFlow: StateFlow<ColorInputGroupData> = store.flow
 
     fun execute(action: ColorInputGroupAction): Job =
-        coroutineScope.launch(orderedUpdates) {
+        coroutineScope.launch(exclusiveLane) {
             when (action) {
                 is ColorInputGroupAction.ChangeInputType -> {
                     changeInputType(action.type)

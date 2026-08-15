@@ -37,7 +37,7 @@ class ColorInputHsvViewModel @AssistedInject constructor(
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
-    private val orderedUpdates = defaultDispatcher.limitedParallelism(1)
+    private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
 
     val dataFlow: StateFlow<ColorInputHsvData> = store.flow
 
@@ -77,7 +77,7 @@ class ColorInputHsvViewModel @AssistedInject constructor(
     }
 
     fun execute(action: ColorInputHsvAction): Job =
-        coroutineScope.launch(orderedUpdates) {
+        coroutineScope.launch(exclusiveLane) {
             when (action) {
                 is ColorInputHsvAction.SetColor -> {
                     setColor(action.color)

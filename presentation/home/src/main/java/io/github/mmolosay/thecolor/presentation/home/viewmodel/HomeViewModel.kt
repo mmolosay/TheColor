@@ -90,7 +90,7 @@ class HomeViewModel @Inject constructor(
     private val store = Store(initialData())
     val dataFlow: StateFlow<HomeData> = store.flow
 
-    private val orderedUpdates = defaultDispatcher.limitedParallelism(1)
+    private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
     private val seFactory = SideEffectFactory()
 
     val colorInputGroupViewModel: ColorInputGroupViewModel = run {
@@ -228,7 +228,7 @@ class HomeViewModel @Inject constructor(
     }
 
     fun execute(action: HomeAction): Job =
-        viewModelScope.launch(orderedUpdates) {
+        viewModelScope.launch(exclusiveLane) {
             when (action) {
                 is HomeAction.Proceed -> proceed()
                 is HomeAction.RandomizeColor -> randomizeColor()
@@ -440,7 +440,7 @@ class HomeViewModel @Inject constructor(
         ): Boolean {
             when (validationResult) {
                 is ColorInputValidationResult.Valid -> {
-                    viewModelScope.launch(orderedUpdates) {
+                    viewModelScope.launch(exclusiveLane) {
                         // TODO: merge with proceed() ?
                         opRegistry.trackAsProceed {
                             withContext(defaultDispatcher) {
@@ -463,7 +463,7 @@ class HomeViewModel @Inject constructor(
                     return true
                 }
                 is ColorInputValidationResult.Invalid -> {
-                    viewModelScope.launch(orderedUpdates) {
+                    viewModelScope.launch(exclusiveLane) {
                         store.update {
                             val result = HomeData.ProceedResult.InvalidSubmittedColor
                             it.copy(proceedResult = result)

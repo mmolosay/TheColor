@@ -62,7 +62,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
-    private val orderedUpdates = defaultDispatcher.limitedParallelism(1)
+    private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
 
     private val rTextFieldViewModel = createTextFieldViewModel(
         lens = Lens(
@@ -151,7 +151,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     }
 
     fun execute(action: ColorInputRgbAction): Job =
-        coroutineScope.launch(orderedUpdates) {
+        coroutineScope.launch(exclusiveLane) {
             when (action) {
                 is ColorInputRgbAction.SubmitInput -> {
                     submitInput()
