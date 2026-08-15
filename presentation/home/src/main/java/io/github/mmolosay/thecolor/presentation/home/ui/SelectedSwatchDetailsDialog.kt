@@ -49,6 +49,7 @@ import io.github.mmolosay.thecolor.utils.doNothing
 @Composable
 internal fun SelectedSwatchDetailsDialogContainer(
     data: HomeData.ColorSchemeSelectedSwatchData?,
+    onDismissed: () -> Unit,
     navBarAppearanceController: NavBarAppearanceController,
 ) {
     var showSelectedSwatchDetailsDialog by remember { mutableStateOf(false) }
@@ -66,7 +67,7 @@ internal fun SelectedSwatchDetailsDialogContainer(
             navBarAppearanceController = navBarAppearanceController,
             onDismissRequest = {
                 showSelectedSwatchDetailsDialog = false
-                data.discard()
+                onDismissed()
             },
         )
     }

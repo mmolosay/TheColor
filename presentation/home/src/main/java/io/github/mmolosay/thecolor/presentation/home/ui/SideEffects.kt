@@ -42,6 +42,7 @@ internal fun ProcessSideEffectsAsSideEffect(
 internal fun ProcessProceedResultAsSideEffect(
     proceedResult: ProceedResult?,
     strings: HomeUiStrings,
+    clearProceedResult: () -> Unit,
 ) {
     val context = LocalContext.current
     val softwareKeyboardController = LocalSoftwareKeyboardController.current
@@ -56,7 +57,7 @@ internal fun ProcessProceedResultAsSideEffect(
                 Toast
                     .makeText(context, strings.invalidSubmittedColorMessage, Toast.LENGTH_SHORT)
                     .show()
-                proceedResult.discard()
+                clearProceedResult()
             }
             null -> doNothing()
         }

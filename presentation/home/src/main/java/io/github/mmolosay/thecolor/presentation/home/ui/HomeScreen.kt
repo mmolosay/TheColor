@@ -44,13 +44,15 @@ import io.github.mmolosay.thecolor.presentation.home.ui.center.BareColorCenter
 import io.github.mmolosay.thecolor.presentation.home.ui.center.ColorCenterInHome
 import io.github.mmolosay.thecolor.presentation.home.ui.preview.BareColorPreview
 import io.github.mmolosay.thecolor.presentation.home.ui.preview.ColorPreviewInHome
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.ExecuteHomeAction
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeAction
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroup
 import io.github.mmolosay.thecolor.presentation.preview.AnimatedColorPreview
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
-import io.github.mmolosay.thecolor.utils.doNothing
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -123,6 +125,7 @@ fun HomeScreen(
     HomeScreen(
         data = data,
         strings = strings,
+        execute = viewModel::execute,
         colorInput = colorInput,
         colorPreview = colorPreview,
         colorPreviewDataFlow = viewModel.colorPreviewViewModel.dataFlow,
@@ -137,6 +140,7 @@ fun HomeScreen(
 private fun HomeScreen(
     data: HomeData,
     strings: HomeUiStrings,
+    execute: ExecuteHomeAction,
     colorInput: BareColorInput,
     colorPreview: BareColorPreview,
     colorPreviewDataFlow: StateFlow<ColorPreviewData?>,
@@ -154,6 +158,7 @@ private fun HomeScreen(
                 .consumeWindowInsets(contentPadding), // ensures correct height of 'TopAppBar()'
             data = data,
             strings = strings,
+            execute = execute,
             colorInput = colorInput,
             colorPreview = colorPreview,
             colorPreviewDataFlow = colorPreviewDataFlow,
@@ -169,6 +174,7 @@ private fun HomeScreen(
 private fun Home(
     data: HomeData,
     strings: HomeUiStrings,
+    execute: ExecuteHomeAction,
     colorInput: BareColorInput,
     colorPreview: BareColorPreview,
     colorPreviewDataFlow: StateFlow<ColorPreviewData?>,
@@ -187,7 +193,7 @@ private fun Home(
         onGloballyPositioned = { coords -> stateOfPosInRoot.value = coords.positionInRoot() },
         topBar = {
             TopBar(
-                onSettingsClick = data.requestToGoToSettings,
+                onSettingsClick = { execute(HomeAction.RequestToGoToSettings) },
                 settingsIconContentDesc = strings.settingsIconContentDesc,
             )
         },
@@ -201,15 +207,14 @@ private fun Home(
             ButtonSection(
                 proceedButton = {
                     ProceedButton(
-                        onClick = (data.canProceed as? HomeData.CanProceed.Yes)?.proceed
-                            ?: ::doNothing,
-                        enabled = (data.canProceed is HomeData.CanProceed.Yes),
+                        onClick = { execute(HomeAction.Proceed) },
+                        enabled = data.canProceed,
                         text = strings.proceedButtonText,
                     )
                 },
                 randomizeColorButton = {
                     RandomizeColorButton(
-                        onClick = data.randomizeColor,
+                        onClick = { execute(HomeAction.RandomizeColor) },
                         iconContentDesc = strings.randomizeButtonIconContentDesc,
                     )
                 },
@@ -246,18 +251,23 @@ private fun Home(
     }
     SelectedSwatchDetailsDialogContainer(
         data = data.colorSchemeSelectedSwatchData,
+        onDismissed = { execute(HomeAction.ClearColorSchemeSelectedSwatchData) },
         navBarAppearanceController = selectedSwatchDetailsDialogController,
     )
 
     ProcessSideEffectsAsSideEffect(
         sideEffects = data.sideEffects,
-        onSideEffectProcessed = data.onSideEffectProcessed,
+        onSideEffectProcessed = { se ->
+            val action = HomeAction.OnSideEffectProcessed(se)
+            execute(action)
+        },
         navigateToSettings = navigateToSettings,
     )
 
     ProcessProceedResultAsSideEffect(
         proceedResult = data.proceedResult,
         strings = strings,
+        clearProceedResult = { execute(HomeAction.ClearProceedResult) },
     )
 
     ScrollToTopOnNullProceedResultAsSideEffect(
@@ -297,6 +307,7 @@ private fun Preview() {
         HomeScreen(
             data = previewData(),
             strings = previewUiStrings(),
+            execute = { Job() },
             colorInput = {
                 Text(
                     modifier = Modifier
@@ -340,18 +351,15 @@ private fun Preview() {
 
 private fun previewData() =
     HomeData(
-        canProceed = HomeData.CanProceed.No,
+        canProceed = true,
         proceedResult = ProceedResult.Success(
             colorData = ProceedResult.Success.ColorData(
                 color = ColorInt(0x1A803F),
                 isDark = true,
             ),
         ),
-        randomizeColor = {},
         colorSchemeSelectedSwatchData = null,
-        requestToGoToSettings = {},
         sideEffects = emptyList(),
-        onSideEffectProcessed = {},
     )
 
 private fun previewUiStrings() =

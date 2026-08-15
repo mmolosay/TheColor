@@ -18,7 +18,6 @@ import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntU
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEvent
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.CanProceed
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ColorSchemeSelectedSwatchData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.SideEffect
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel.CoroutineRegistryRules.trackAsConsumeColorCenterComponents
@@ -60,6 +59,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 import io.github.mmolosay.thecolor.domain.color.ColorDetails as DomainColorDetails
@@ -179,7 +179,6 @@ class HomeViewModel @Inject constructor(
                     store.update {
                         val data = ColorSchemeSelectedSwatchData(
                             colorDetailsViewModel = selectedSwatchColorDetailsViewModel,
-                            discard = ::clearColorSchemeSwatchSelectedData,
                         )
                         it.copy(colorSchemeSelectedSwatchData = data)
                     }
@@ -228,13 +227,25 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    /** Variation that takes the current color of Color Input. */
-    private fun proceed() {
-        viewModelScope.launch(defaultDispatcher) {
-            opRegistry.trackAsProceed {
+    fun execute(action: HomeAction): Job =
+        viewModelScope.launch(orderedUpdates) {
+            when (action) {
+                is HomeAction.Proceed -> proceed()
+                is HomeAction.RandomizeColor -> randomizeColor()
+                is HomeAction.RequestToGoToSettings -> onRequestToGoToSettings()
+                is HomeAction.ClearProceedResult -> clearProceedResult()
+                is HomeAction.OnSideEffectProcessed -> onSideEffectProcessed(action.se)
+                is HomeAction.ClearColorSchemeSelectedSwatchData -> clearColorSchemeSelectedSwatchData()
+            }
+        }
+
+    context(coroutineScope: CoroutineScope)
+    private suspend fun proceed() {
+        val color = colorInputMediator.colorState.color ?: return // invalid state
+        opRegistry.trackAsProceed {
+            withContext(defaultDispatcher) {
                 store.batch {
-                    endColorCenterSession() // end current session (if any)
-                    val color = requireNotNull(colorInputMediator.colorState.color)
+                    endColorCenterSession()
                     createAndConsumeNewColorCenterComponents()
                     val deferredDetails = CompletableDeferred<DomainColorDetails>()
                     startColorCenterSession(
@@ -274,18 +285,10 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    context(batchScope: BatchScope<HomeData>)
-    private suspend fun onColorBecameCurrent(color: Color?) {
-        batchScope.update {
-            val canProceed = CanProceed(colorFromColorInput = color)
-            it.copy(canProceed = canProceed)
-        }
-        colorPreviewViewModel.setColor(color).join()
-    }
-
-    private fun randomizeColor() {
-        viewModelScope.launch(defaultDispatcher) {
-            opRegistry.trackAsProceed {
+    context(coroutineScope: CoroutineScope)
+    private suspend fun randomizeColor() {
+        opRegistry.trackAsProceed {
+            withContext(defaultDispatcher) {
                 store.batch {
                     colorInputMediator.withLock { editor ->
                         val color = getPredictableRandomColor()
@@ -295,7 +298,8 @@ class HomeViewModel @Inject constructor(
                         val shouldProceed = userPreferencesRepository
                             .flowOfAutoProceedWithRandomizedColors
                             .filterReady()
-                            .first().getOrElse { DefaultUserPreferences.AutoProceedWithRandomizedColors }
+                            .first()
+                            .getOrElse { DefaultUserPreferences.AutoProceedWithRandomizedColors }
                             .enabled
                         if (shouldProceed) {
                             createAndConsumeNewColorCenterComponents()
@@ -315,50 +319,48 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun onRequestToGoToSettings() {
+    private suspend fun onRequestToGoToSettings() {
         /*
          * Right now there's no logic in ViewModel that accompanies navigating to Settings.
          * In a real app, here would've been a logic for accepting / denying UI's navigation request
          * depending on the business logic. Here may also be sending data to analytics or logging.
          */
-        viewModelScope.launch(orderedUpdates) {
-            val se = seFactory.goToSettings()
-            store.update {
-                it.copy(sideEffects = it.sideEffects + se)
-            }
+        val se = seFactory.goToSettings()
+        store.update {
+            it.copy(sideEffects = it.sideEffects + se)
         }
     }
 
-    private fun clearColorSchemeSwatchSelectedData() {
-        viewModelScope.launch(orderedUpdates) {
-            store.update {
-                it.copy(colorSchemeSelectedSwatchData = null)
-            }
+    private suspend fun clearProceedResult() {
+        store.update {
+            it.copy(proceedResult = null)
         }
     }
 
-    private fun initialData(): HomeData {
-        val canProceed = kotlin.run {
-            val color = colorInputMediator.colorState.color
-            CanProceed(colorFromColorInput = color)
+    private suspend fun onSideEffectProcessed(se: SideEffect) {
+        store.update {
+            val newSideEffects = it.sideEffects - se
+            it.copy(sideEffects = newSideEffects)
         }
-        return HomeData(
-            canProceed = canProceed,
+    }
+
+    private suspend fun clearColorSchemeSelectedSwatchData() {
+        store.update {
+            it.copy(colorSchemeSelectedSwatchData = null)
+        }
+    }
+
+    private fun initialData(): HomeData =
+        HomeData(
+            canProceed = CanProceed(colorFromColorInput = colorInputMediator.colorState.color),
             proceedResult = null, // 'proceed' action wasn't invoked yet
-            randomizeColor = ::randomizeColor,
             colorSchemeSelectedSwatchData = null, // no selected swatch initially
-            requestToGoToSettings = ::onRequestToGoToSettings,
             sideEffects = emptyList(),
-            onSideEffectProcessed = ::onSideEffectProcessed,
         )
-    }
 
-    private fun CanProceed(colorFromColorInput: Color?): CanProceed {
+    private fun CanProceed(colorFromColorInput: Color?): Boolean {
         val hasColorInColorInput = (colorFromColorInput != null)
-        return when (hasColorInColorInput) {
-            true -> CanProceed.Yes(proceed = this::proceed)
-            false -> CanProceed.No
-        }
+        return hasColorInColorInput
     }
 
     private suspend fun createAndConsumeNewColorCenterComponents() {
@@ -384,7 +386,8 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private suspend fun CoroutineScope.startColorCenterSession(
+    context(coroutineScope: CoroutineScope)
+    private suspend fun startColorCenterSession(
         seed: Color,
         deferredDetails: Deferred<DomainColorDetails>,
     ) {
@@ -393,7 +396,7 @@ class HomeViewModel @Inject constructor(
         // by the time this function returns the session store has a new 'building' state
         val sessionBuilding = ccSessionStore.startBuilding(seed, job)
         @Suppress("CoroutineContextWithJob") // job is created correctly with the parent specified
-        launch(job) {
+        coroutineScope.launch(job) {
             val session = run {
                 val seedDetails = runCatching { deferredDetails.await() }.getOrElse {
                     sessionBuilding.cancel() // will also cancel this coroutine
@@ -406,7 +409,7 @@ class HomeViewModel @Inject constructor(
             sessionBuilding.complete(session)
         }
 
-        launch {
+        coroutineScope.launch {
             lastSearchedColorRepository.setLastSearchedColor(seed)
         }
     }
@@ -421,13 +424,13 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun onSideEffectProcessed(se: SideEffect) {
-        viewModelScope.launch(orderedUpdates) {
-            store.update {
-                val newSideEffects = it.sideEffects - se
-                it.copy(sideEffects = newSideEffects)
-            }
+    context(batchScope: BatchScope<HomeData>)
+    private suspend fun onColorBecameCurrent(color: Color?) {
+        batchScope.update {
+            val canProceed = CanProceed(colorFromColorInput = color)
+            it.copy(canProceed = canProceed)
         }
+        colorPreviewViewModel.setColor(color).join()
     }
 
     private inner class ColorInputSubmitActionImpl : ColorInputSubmitAction {
@@ -437,19 +440,22 @@ class HomeViewModel @Inject constructor(
         ): Boolean {
             when (validationResult) {
                 is ColorInputValidationResult.Valid -> {
-                    viewModelScope.launch(defaultDispatcher) {
+                    viewModelScope.launch(orderedUpdates) {
+                        // TODO: merge with proceed() ?
                         opRegistry.trackAsProceed {
-                            store.batch {
-                                val color = validationResult.color
-                                createAndConsumeNewColorCenterComponents()
-                                val deferredDetails = CompletableDeferred<DomainColorDetails>()
-                                startColorCenterSession(
-                                    seed = color,
-                                    deferredDetails = deferredDetails,
-                                )
-                                proceed(color) { colorDetails, colorScheme ->
-                                    colorDetails.setSeedColor(color, deferredDetails)
-                                    colorScheme.fetchColorScheme(color)
+                            withContext(defaultDispatcher) {
+                                store.batch {
+                                    val color = validationResult.color
+                                    createAndConsumeNewColorCenterComponents()
+                                    val deferredDetails = CompletableDeferred<DomainColorDetails>()
+                                    startColorCenterSession(
+                                        seed = color,
+                                        deferredDetails = deferredDetails,
+                                    )
+                                    proceed(color) { colorDetails, colorScheme ->
+                                        colorDetails.setSeedColor(color, deferredDetails)
+                                        colorScheme.fetchColorScheme(color)
+                                    }
                                 }
                             }
                         }
@@ -459,16 +465,7 @@ class HomeViewModel @Inject constructor(
                 is ColorInputValidationResult.Invalid -> {
                     viewModelScope.launch(orderedUpdates) {
                         store.update {
-                            val discard: () -> Unit = {
-                                viewModelScope.launch(orderedUpdates) {
-                                    store.update {
-                                        it.copy(proceedResult = null)
-                                    }
-                                }
-                            }
-                            val result = HomeData.ProceedResult.InvalidSubmittedColor(
-                                discard = discard,
-                            )
+                            val result = HomeData.ProceedResult.InvalidSubmittedColor
                             it.copy(proceedResult = result)
                         }
                     }
