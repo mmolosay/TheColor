@@ -52,6 +52,7 @@ class DevOptionsViewModel @Inject constructor(
             appBuildType = buildInfoRepository.getAppBuildType(),
             appVersionName = buildInfoRepository.getAppBuildVersionName(),
             appVersionCode = buildInfoRepository.getAppBuildVersionCode(),
+            gitHeadCommitHash = buildInfoRepository.getGitHeadCommitShortHash().toString(),
         )
     }
 
