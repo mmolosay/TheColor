@@ -11,7 +11,6 @@ import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCorout
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexDataFactory
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexViewModel
-import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvData
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvDataFactory
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
@@ -76,9 +75,7 @@ class ColorInputGroupViewModel @AssistedInject constructor(
         hsvViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
             store = run {
-                val data = ColorInputHsvData(
-                    color = hsvDataFactory.colorFromMediator(mediator),
-                )
+                val data = hsvDataFactory.create()
                 Store(data)
             },
             mediator = mediator,

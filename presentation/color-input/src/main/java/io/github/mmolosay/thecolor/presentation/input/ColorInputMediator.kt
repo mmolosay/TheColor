@@ -1,5 +1,10 @@
 package io.github.mmolosay.thecolor.presentation.input
 
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.android.components.ViewModelComponent
+import dagger.hilt.android.scopes.ViewModelScoped
 import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator.ColorState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -7,7 +12,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import javax.inject.Inject
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -21,7 +25,7 @@ import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInp
  * This helps to synchronize the data between all types of 'Color Input'.
  * This class may also be used to set a specific color to all 'Color Input' types.
  */
-class ColorInputMediator @Inject constructor() {
+class ColorInputMediator {
 
     private val _colorStateFlow = MutableStateFlow(InitialColorState)
     val colorStateFlow: StateFlow<ColorState> = _colorStateFlow.asStateFlow()
@@ -101,3 +105,11 @@ suspend fun ColorInputMediator.set(color: Color?, source: ColorState.Source? = n
 data class ColorInputSource(
     val type: DomainColorInputType,
 ) : ColorState.Source
+
+@Module
+@InstallIn(ViewModelComponent::class)
+object ColorInputMediatorModule {
+    @Provides
+    @ViewModelScoped
+    fun provideColorInputMediator() = ColorInputMediator()
+}
