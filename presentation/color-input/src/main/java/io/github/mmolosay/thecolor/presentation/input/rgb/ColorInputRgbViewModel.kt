@@ -36,6 +36,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -121,19 +122,19 @@ class ColorInputRgbViewModel @AssistedInject constructor(
 
     private fun collectTextFieldsData() {
         coroutineScope.launch(defaultDispatcher) {
-            dataFlow.collectLatest collect@{ data ->
-                val r = data.rTextField
-                val g = data.gTextField
-                val b = data.bTextField
-                // don't synchronize this data with other Views to avoid update loop
-                val isAnyCausedByUser = listOf(r, g, b).any { it.text.causedByUser }
-                if (!isAnyCausedByUser) return@collect // none caused by user
-                val parsedColor = TextFieldsDerived(r, g, b).validationResult.getColorOrNull()
-                mediator.set(
-                    color = parsedColor,
-                    source = ColorInputSource(DomainColorInputType.Rgb),
-                )
-            }
+            store.flow
+                .map { data -> TextFieldsDerived(data.rTextField, data.gTextField, data.bTextField) }
+                .distinctUntilChangedBy { derived -> derived.color } // only update mediator when color changes
+                .collectLatest collect@{ derived ->
+                    val r = derived.r; val g = derived.g; val b = derived.b
+                    // don't synchronize this data with other Views to avoid update loop
+                    val isAnyCausedByUser = listOf(r, g, b).any { it.text.causedByUser }
+                    if (!isAnyCausedByUser) return@collect // none caused by user
+                    mediator.set(
+                        color = derived.color,
+                        source = ColorInputSource(DomainColorInputType.Rgb),
+                    )
+                }
         }
     }
 
@@ -261,6 +262,9 @@ private data class TextFieldsDerived(
     val colorInput: ColorInput.Rgb,
     val validationResult: ColorInputValidationResult,
 )
+
+private val TextFieldsDerived.color: Color?
+    get() = this.validationResult.getColorOrNull()
 
 class ColorInputRgbDataFactory @Inject constructor(
     private val textFieldDataFactory: TextFieldDataFactory,

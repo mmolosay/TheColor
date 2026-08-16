@@ -3,6 +3,7 @@ package io.github.mmolosay.thecolor.presentation.input.hex
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.domain.color.ColorConverter
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
@@ -31,6 +32,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -100,16 +103,17 @@ class ColorInputHexViewModel @AssistedInject constructor(
 
     private fun collectTextFieldData() {
         coroutineScope.launch(defaultDispatcher) {
-            store.flow.collectLatest collect@{ data ->
-                val textField = data.textField
-                // don't synchronize this data with other Views to avoid update loop
-                if (!textField.text.causedByUser) return@collect
-                val parsedColor = TextFieldDerived(textField).validationResult.getColorOrNull()
-                mediator.set(
-                    color = parsedColor,
-                    source = ColorInputSource(DomainColorInputType.Hex),
-                )
-            }
+            store.flow
+                .map { data -> TextFieldDerived(data.textField) }
+                .distinctUntilChangedBy { derived -> derived.color } // only update mediator when color changes
+                .collectLatest collect@{ derived ->
+                    // don't synchronize this data with other Views to avoid update loop
+                    if (!derived.textField.text.causedByUser) return@collect
+                    mediator.set(
+                        color = derived.color,
+                        source = ColorInputSource(DomainColorInputType.Hex),
+                    )
+                }
         }
     }
 
@@ -193,6 +197,9 @@ private data class TextFieldDerived(
     val colorInput: ColorInput.Hex,
     val validationResult: ColorInputValidationResult,
 )
+
+private val TextFieldDerived.color: Color?
+    get() = this.validationResult.getColorOrNull()
 
 class ColorInputHexDataFactory @Inject constructor(
     private val textFieldDataFactory: TextFieldDataFactory,

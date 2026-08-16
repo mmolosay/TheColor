@@ -14,6 +14,7 @@ import io.github.mmolosay.thecolor.utils.Sampler
 import io.github.mmolosay.thecolor.utils.Store
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -47,7 +48,7 @@ class ColorInputHsvViewModel @AssistedInject constructor(
         coroutineScope = CoroutineScope(coroutineScope.coroutineContext + defaultDispatcher),
     ) { colorWithId ->
         sampleProcessingJob?.cancel()
-        sampleProcessingJob = coroutineScope.launch(defaultDispatcher) {
+        coroutineScope.launch(defaultDispatcher, CoroutineStart.UNDISPATCHED) {
             mediator.withLock { editor ->
                 val idThen = colorWithId.mediatorStateId
                 val idNow = mediator.colorState.id
@@ -58,7 +59,7 @@ class ColorInputHsvViewModel @AssistedInject constructor(
                     )
                 }
             }
-        }
+        }.also { sampleProcessingJob = it }
     }
 
     init {
