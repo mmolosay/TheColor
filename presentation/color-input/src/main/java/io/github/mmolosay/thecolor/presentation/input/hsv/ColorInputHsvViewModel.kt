@@ -114,16 +114,9 @@ class ColorInputHsvViewModel @AssistedInject constructor(
 }
 
 class ColorInputHsvDataFactory @Inject constructor(
-    private val mediator: ColorInputMediator,
     private val colorConverter: ColorConverter,
 ) {
-    fun create(
-        color: Color.Hsv? = colorFromMediator(),
-    ) =
-        ColorInputHsvData(
-            color = color,
-        )
 
-    fun colorFromMediator(): Color.Hsv? =
+    fun colorFromMediator(mediator: ColorInputMediator): Color.Hsv? =
         with(colorConverter) { mediator.colorState.color?.toHsv() }
 }
