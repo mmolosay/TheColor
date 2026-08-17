@@ -32,7 +32,7 @@ import kotlinx.coroutines.flow.stateIn
 /**
  * The "bare" 'Color Center' [Composable], free of any 'Home'-specific logic.
  */
-typealias BareColorCenter = @Composable () -> Unit
+internal typealias BareColorCenter = @Composable () -> Unit
 
 /**
  * 'Color Center' as the 'Home' feature presents it.

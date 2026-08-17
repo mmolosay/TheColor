@@ -16,7 +16,7 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 /**
  * The "bare" 'Color Input' [Composable], free of any 'Home'-specific logic.
  */
-typealias BareColorInput =
+internal typealias BareColorInput =
         @Composable (Modifier) -> Unit
 
 /**
