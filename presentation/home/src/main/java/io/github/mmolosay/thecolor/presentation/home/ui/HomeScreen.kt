@@ -40,6 +40,9 @@ import io.github.mmolosay.thecolor.presentation.common.compose.withoutBottom
 import io.github.mmolosay.thecolor.presentation.common.navbar.NavBarAppearanceController
 import io.github.mmolosay.thecolor.presentation.common.navbar.RootNavBarAppearanceController
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
+import io.github.mmolosay.thecolor.presentation.details.ColorDetails
+import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCrossfade
+import io.github.mmolosay.thecolor.presentation.details.viewmodel.SubjectColorData
 import io.github.mmolosay.thecolor.presentation.home.ui.center.BareColorCenter
 import io.github.mmolosay.thecolor.presentation.home.ui.center.ColorCenterInHome
 import io.github.mmolosay.thecolor.presentation.home.ui.preview.BareColorPreview
@@ -70,6 +73,8 @@ fun HomeScreen(
     val context = LocalContext.current
     val strings = remember(context) { HomeUiStrings(context) }
     val coroutineScope = rememberCoroutineScope()
+
+    val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
 
     val flowOfUiState = remember {
         FlowOfHomeUiState(
@@ -108,19 +113,35 @@ fun HomeScreen(
             onUiStateReached = onUiStateReached,
         )
     }
+    val colorPreviewDataFlow = viewModel.colorPreviewViewModel.dataFlow
     val colorCenter: BareColorCenter? = run {
-        val viewModel = viewModel.colorCenterViewModelFlow.collectAsStateWithLifecycle().value
-        remember(viewModel) {
-            if (viewModel == null) return@remember null
+        val vm = viewModel.colorCenterViewModelFlow.collectAsStateWithLifecycle().value
+        remember(vm) {
+            if (vm == null) return@remember null
             return@remember {
                 ColorCenter(
-                    viewModel = viewModel,
+                    viewModel = vm,
                 )
             }
         }
     }
-
-    val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
+    val selectedSwatchDetailsVm = viewModel.colorSchemeSwatchDetailsViewModelFlow
+        .collectAsStateWithLifecycle().value
+    val selectedSwatchDetails: BareSelectedSwatchDetails? = remember(selectedSwatchDetailsVm) {
+        if (selectedSwatchDetailsVm == null) return@remember null
+        return@remember { modifier ->
+            ColorDetailsCrossfade(
+                modifier = modifier,
+                actualDataState = selectedSwatchDetailsVm.dataStateFlow.collectAsStateWithLifecycle().value,
+            ) { state ->
+                ColorDetails(
+                    dataState = state,
+                )
+            }
+        }
+    }
+    val selectedSwatchData = selectedSwatchDetailsVm?.subjectColorDataFlow
+        ?.collectAsStateWithLifecycle()?.value
 
     HomeScreen(
         data = data,
@@ -128,8 +149,10 @@ fun HomeScreen(
         execute = viewModel::execute,
         colorInput = colorInput,
         colorPreview = colorPreview,
-        colorPreviewDataFlow = viewModel.colorPreviewViewModel.dataFlow,
+        colorPreviewDataFlow = colorPreviewDataFlow,
         colorCenter = colorCenter,
+        selectedSwatchDetails = selectedSwatchDetails,
+        selectedSwatchData = selectedSwatchData,
         animController = animController,
         navigateToSettings = navigateToSettings,
         navBarAppearanceController = navBarAppearanceController,
@@ -145,6 +168,8 @@ private fun HomeScreen(
     colorPreview: BareColorPreview,
     colorPreviewDataFlow: StateFlow<ColorPreviewData?>,
     colorCenter: BareColorCenter?,
+    selectedSwatchDetails: BareSelectedSwatchDetails?,
+    selectedSwatchData: SubjectColorData?,
     animController: HomeAnimController?,
     navigateToSettings: () -> Unit,
     navBarAppearanceController: NavBarAppearanceController,
@@ -163,6 +188,8 @@ private fun HomeScreen(
             colorPreview = colorPreview,
             colorPreviewDataFlow = colorPreviewDataFlow,
             colorCenter = colorCenter,
+            selectedSwatchDetails = selectedSwatchDetails,
+            selectedSwatchData = selectedSwatchData,
             animController = animController,
             navigateToSettings = navigateToSettings,
             navBarAppearanceController = navBarAppearanceController,
@@ -179,6 +206,8 @@ private fun Home(
     colorPreview: BareColorPreview,
     colorPreviewDataFlow: StateFlow<ColorPreviewData?>,
     colorCenter: BareColorCenter?,
+    selectedSwatchDetails: BareSelectedSwatchDetails?,
+    selectedSwatchData: SubjectColorData?,
     animController: HomeAnimController?,
     navigateToSettings: () -> Unit,
     navBarAppearanceController: NavBarAppearanceController,
@@ -246,13 +275,15 @@ private fun Home(
         },
     )
 
-    val selectedSwatchDetailsDialogController = remember(navBarAppearanceController) {
-        navBarAppearanceController.branch("Selected Swatch Details Dialog")
-    }
-    SelectedSwatchDetailsDialogContainer(
-        data = data.colorSchemeSelectedSwatchData,
-        onDismissed = { execute(HomeAction.ClearColorSchemeSelectedSwatchData) },
-        navBarAppearanceController = selectedSwatchDetailsDialogController,
+    SelectedSwatchDetailsInHome(
+        selectedSwatchDetails = selectedSwatchDetails,
+        subjectColorData = selectedSwatchData,
+        navBarAppearanceController = remember(navBarAppearanceController) {
+            navBarAppearanceController.branch("Selected Swatch Details Dialog")
+        },
+        onDismissRequest = {
+            execute(HomeAction.ClearColorSchemeSelectedSwatch)
+        },
     )
 
     ProcessSideEffectsAsSideEffect(
@@ -335,6 +366,8 @@ private fun Preview() {
                     text = "Color Center",
                 )
             },
+            selectedSwatchDetails = null,
+            selectedSwatchData = null,
             animController = remember {
                 val currentState = HomeAnimState(
                     colorPreviewPosition = HomeAnimState.ColorPreview.Position.NotDived,
@@ -358,7 +391,6 @@ private fun previewData() =
                 isDark = true,
             ),
         ),
-        colorSchemeSelectedSwatchData = null,
         sideEffects = emptyList(),
     )
 

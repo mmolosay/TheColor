@@ -18,7 +18,6 @@ import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntU
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEvent
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ColorSchemeSelectedSwatchData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.SideEffect
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel.CoroutineRegistryRules.trackAsConsumeColorCenterComponents
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel.CoroutineRegistryRules.trackAsProceed
@@ -118,6 +117,9 @@ class HomeViewModel @Inject constructor(
     private val _colorCenterViewModelFlow = MutableStateFlow<ColorCenterViewModel?>(null)
     val colorCenterViewModelFlow: StateFlow<ColorCenterViewModel?> = _colorCenterViewModelFlow.asStateFlow()
 
+    private val _colorSchemeSwatchDetailsViewModelFlow = MutableStateFlow<ColorDetailsViewModel?>(null)
+    val colorSchemeSwatchDetailsViewModelFlow = _colorSchemeSwatchDetailsViewModelFlow.asStateFlow()
+
     private val opRegistry = CoroutineRegistry<Operation>()
     private val ccSessionStore = ColorCenterSessionStore()
 
@@ -173,15 +175,7 @@ class HomeViewModel @Inject constructor(
                         ?.selectedSwatchColorDetailsViewModel
                         ?: return@launch
                     viewModel.setSeedDetails(event.swatchColorDetails)
-                    val selectedSwatchColorDetailsViewModel = colorCenterComponentsStore.components
-                        ?.selectedSwatchColorDetailsViewModel
-                        ?: return@launch
-                    store.update {
-                        val data = ColorSchemeSelectedSwatchData(
-                            colorDetailsViewModel = selectedSwatchColorDetailsViewModel,
-                        )
-                        it.copy(colorSchemeSelectedSwatchData = data)
-                    }
+                    _colorSchemeSwatchDetailsViewModelFlow.value = viewModel
                 }
             }
         }
@@ -235,7 +229,7 @@ class HomeViewModel @Inject constructor(
                 is HomeAction.RequestToGoToSettings -> onRequestToGoToSettings()
                 is HomeAction.ClearProceedResult -> clearProceedResult()
                 is HomeAction.OnSideEffectProcessed -> onSideEffectProcessed(action.se)
-                is HomeAction.ClearColorSchemeSelectedSwatchData -> clearColorSchemeSelectedSwatchData()
+                is HomeAction.ClearColorSchemeSelectedSwatch -> clearColorSchemeSelectedSwatch()
             }
         }
 
@@ -344,17 +338,14 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private suspend fun clearColorSchemeSelectedSwatchData() {
-        store.update {
-            it.copy(colorSchemeSelectedSwatchData = null)
-        }
+    private fun clearColorSchemeSelectedSwatch() {
+        _colorSchemeSwatchDetailsViewModelFlow.value = null
     }
 
     private fun initialData(): HomeData =
         HomeData(
             canProceed = CanProceed(colorFromColorInput = colorInputMediator.colorState.color),
             proceedResult = null, // 'proceed' action wasn't invoked yet
-            colorSchemeSelectedSwatchData = null, // no selected swatch initially
             sideEffects = emptyList(),
         )
 

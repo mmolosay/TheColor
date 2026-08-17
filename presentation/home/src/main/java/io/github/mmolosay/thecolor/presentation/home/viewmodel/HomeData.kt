@@ -1,7 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.home.viewmodel
 
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.utils.SideEffect as UtilsSideEffect
 
 /**
@@ -10,7 +9,6 @@ import io.github.mmolosay.thecolor.utils.SideEffect as UtilsSideEffect
 data class HomeData(
     val canProceed: Boolean,
     val proceedResult: ProceedResult?,
-    val colorSchemeSelectedSwatchData: ColorSchemeSelectedSwatchData?,
     val sideEffects: List<SideEffect>,
 ) {
 
@@ -30,11 +28,6 @@ data class HomeData(
             )
         }
     }
-
-    /** Data for currently selected swatch on 'Color Scheme'. */
-    data class ColorSchemeSelectedSwatchData(
-        val colorDetailsViewModel: ColorDetailsViewModel,
-    )
 
     sealed interface SideEffect : UtilsSideEffect {
 

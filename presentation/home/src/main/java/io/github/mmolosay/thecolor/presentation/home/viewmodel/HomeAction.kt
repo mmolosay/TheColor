@@ -16,7 +16,7 @@ sealed interface HomeAction {
         val se: HomeData.SideEffect,
     ) : HomeAction
 
-    data object ClearColorSchemeSelectedSwatchData : HomeAction
+    data object ClearColorSchemeSelectedSwatch : HomeAction
 }
 
 internal typealias ExecuteHomeAction = (HomeAction) -> Job

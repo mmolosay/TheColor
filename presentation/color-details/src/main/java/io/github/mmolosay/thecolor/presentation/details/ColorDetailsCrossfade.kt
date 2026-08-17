@@ -7,11 +7,13 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel.DataState
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun ColorDetailsCrossfade(
+    modifier: Modifier = Modifier,
     actualDataState: DataState,
     animationSpec: FiniteAnimationSpec<Float> = ColorDetailsCrossfadeDefaults.animationSpec(),
     colorDetails: @Composable (dataState: DataState) -> Unit,
@@ -21,6 +23,7 @@ fun ColorDetailsCrossfade(
         label = "Color Details cross-fade",
     )
     transition.Crossfade(
+        modifier = modifier,
         animationSpec = animationSpec,
         content = colorDetails,
     )
