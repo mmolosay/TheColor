@@ -54,9 +54,9 @@ internal fun decoratedColorCenterComposable(
     navBarAppearanceController: NavBarAppearanceController,
     containerScrollState: ScrollState,
     stateOfContainerPosInRoot: State<Offset?>,
-    colorCenter: (@Composable () -> Unit)?,
+    content: (@Composable () -> Unit)?,
 ): (@Composable () -> Unit)? {
-    if (colorCenter == null) return null
+    if (content == null) return null
     if (proceededColorData == null) return null
     return {
         DecoratedColorCenter(
@@ -65,7 +65,7 @@ internal fun decoratedColorCenterComposable(
             navBarAppearanceController = navBarAppearanceController,
             containerViewportHeight = rememberContainerViewportHeight(containerScrollState),
             containerPosInRoot = rememberContainerPosInRoot(stateOfContainerPosInRoot),
-            content = colorCenter,
+            content = content,
         )
     }
 }

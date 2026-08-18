@@ -251,7 +251,7 @@ private fun Home(
         },
         colorInput = {
             ColorInputInHome(
-                colorInput = colorInput,
+                content = colorInput,
             )
         },
         colorPreview = {
@@ -260,7 +260,7 @@ private fun Home(
                 homeAnimController = animController,
                 containerScrollState = scrollState,
                 stateOfContainerPosInRoot = stateOfPosInRoot,
-                colorPreview = colorPreview,
+                content = colorPreview,
             )
         },
         colorCenter = {
@@ -270,13 +270,12 @@ private fun Home(
                 navBarAppearanceController = navBarAppearanceController,
                 containerScrollState = scrollState,
                 stateOfContainerPosInRoot = stateOfPosInRoot,
-                colorCenter = colorCenter,
+                content = colorCenter,
             )
         },
     )
 
     SelectedSwatchDetailsInHome(
-        selectedSwatchDetails = selectedSwatchDetails,
         subjectColorData = selectedSwatchData,
         navBarAppearanceController = remember(navBarAppearanceController) {
             navBarAppearanceController.branch("Selected Swatch Details Dialog")
@@ -284,6 +283,7 @@ private fun Home(
         onDismissRequest = {
             execute(HomeAction.ClearColorSchemeSelectedSwatch)
         },
+        content = selectedSwatchDetails,
     )
 
     ProcessSideEffectsAsSideEffect(

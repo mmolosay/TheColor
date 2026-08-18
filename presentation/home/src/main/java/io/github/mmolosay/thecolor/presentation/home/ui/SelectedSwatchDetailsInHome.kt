@@ -53,12 +53,12 @@ internal typealias BareSelectedSwatchDetailsComposable =
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SelectedSwatchDetailsInHome(
-    selectedSwatchDetails: BareSelectedSwatchDetailsComposable?,
     subjectColorData: SubjectColorData?,
     navBarAppearanceController: NavBarAppearanceController,
     onDismissRequest: () -> Unit,
+    content: BareSelectedSwatchDetailsComposable?,
 ) {
-    if (selectedSwatchDetails == null) return
+    if (content == null) return
     if (subjectColorData == null) return
 
     val surfaceColor = subjectColorData.color.toCompose()
@@ -81,7 +81,7 @@ internal fun SelectedSwatchDetailsInHome(
             surfaceColor = Color.Unspecified, // already has a background due to ModalBottomSheet's 'containerColor'
             contentColors = colorsOnTintedSurface,
         ) {
-            selectedSwatchDetails(
+            content(
                 Modifier.padding(bottom = 24.dp), // just looks better this way
             )
         }
@@ -135,7 +135,13 @@ private fun Preview() {
             modifier = Modifier.fillMaxSize(),
         ) {
             SelectedSwatchDetailsInHome(
-                selectedSwatchDetails = { modifier ->
+                subjectColorData = SubjectColorData(
+                    color = ColorInt(0x1A803F),
+                    isDark = true,
+                ),
+                navBarAppearanceController = remember { RootNavBarAppearanceController() },
+                onDismissRequest = {},
+                content = { modifier ->
                     Placeholder(
                         modifier = modifier
                             .fillMaxWidth()
@@ -145,12 +151,6 @@ private fun Preview() {
                         Text("Bare selected swatch details")
                     }
                 },
-                subjectColorData = SubjectColorData(
-                    color = ColorInt(0x1A803F),
-                    isDark = true,
-                ),
-                navBarAppearanceController = remember { RootNavBarAppearanceController() },
-                onDismissRequest = {},
             )
         }
     }

@@ -24,12 +24,12 @@ internal typealias BareColorInputComposable =
  */
 @Composable
 internal fun ColorInputInHome(
-    colorInput: BareColorInputComposable,
+    content: BareColorInputComposable,
 ) {
     val modifier = Modifier
         .fillMaxWidth()
         .padding(horizontal = 16.dp)
-    colorInput(modifier)
+    content(modifier)
 }
 
 @Preview(uiMode = Configuration.UI_MODE_TYPE_NORMAL)

@@ -49,7 +49,7 @@ internal fun ColorPreviewInHome(
     homeAnimController: HomeAnimController?,
     containerScrollState: ScrollState,
     stateOfContainerPosInRoot: State<Offset?>,
-    colorPreview: BareColorPreviewComposable,
+    content: BareColorPreviewComposable,
 ) {
     if (homeAnimController == null) return
     val coroutineScope = rememberCoroutineScope()
@@ -89,7 +89,7 @@ internal fun ColorPreviewInHome(
             stateOfContainerPosInRoot = stateOfContainerPosInRoot,
         ) {
             @Suppress("MoveLambdaOutsideParentheses")
-            colorPreview(
+            content(
                 animController,
                 { reached -> homeAnimController.onValueReached(reached.toAnimState()) },
             )

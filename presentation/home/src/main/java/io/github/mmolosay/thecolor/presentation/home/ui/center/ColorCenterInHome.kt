@@ -45,17 +45,17 @@ internal fun ColorCenterInHome(
     navBarAppearanceController: NavBarAppearanceController,
     containerScrollState: ScrollState,
     stateOfContainerPosInRoot: State<Offset?>,
-    colorCenter: BareColorCenterComposable?,
+    content: BareColorCenterComposable?,
 ) {
     if (homeAnimController == null) return
     val coroutineScope = rememberCoroutineScope()
-    val decoratedColorCenter = remember(colorCenter, proceedResult) {
+    val decoratedColorCenter = remember(content, proceedResult) {
         decoratedColorCenterComposable(
             proceededColorData = (proceedResult as? HomeData.ProceedResult.Success)?.colorData,
             navBarAppearanceController = navBarAppearanceController,
             containerScrollState = containerScrollState,
             stateOfContainerPosInRoot = stateOfContainerPosInRoot,
-            colorCenter = colorCenter,
+            content = content,
         )
     }
     CircularRevealColorCenter(
