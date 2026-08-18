@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.home.ui
 
+import android.content.res.Configuration
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,7 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -119,8 +120,13 @@ private class ModalBottomSheetLifecycleObserver(
     }
 }
 
+/*
+ * May render blank or blank out on tab switch — 'ModalBottomSheet' draws into its
+ * own window, which 'Layoutlib' doesn't reliably capture. 'Build & Refresh' to restore.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview
+@Preview(uiMode = Configuration.UI_MODE_TYPE_NORMAL)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL)
 @Composable
 private fun Preview() {
     TheColorTheme {
@@ -134,7 +140,7 @@ private fun Preview() {
                         modifier = modifier
                             .fillMaxWidth()
                             .height(512.dp),
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = LocalContentColor.current,
                     ) {
                         Text("Bare selected swatch details")
                     }
