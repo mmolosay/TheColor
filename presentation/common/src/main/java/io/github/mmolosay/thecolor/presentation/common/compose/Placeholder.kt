@@ -24,14 +24,14 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 @Composable
 fun Placeholder(
     modifier: Modifier = Modifier,
-    color: Color = MaterialTheme.colorScheme.primary,
+    color: Color = PlaceholderDefaults.adjustedColor(MaterialTheme.colorScheme.primary),
     contentPadding: PaddingValues = PaddingValues(all = 8.dp),
     content: @Composable () -> Unit,
 ) {
     Box(
         modifier = modifier
             .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
-            .hazardStripes(color = color.copy(alpha = 0.50f)),
+            .hazardStripes(color = color),
         contentAlignment = Alignment.Center,
     ) {
         Box(
@@ -48,6 +48,12 @@ fun Placeholder(
             content()
         }
     }
+}
+
+object PlaceholderDefaults {
+
+    fun adjustedColor(color: Color): Color =
+        color.copy(alpha = 0.50f)
 }
 
 @Preview(uiMode = Configuration.UI_MODE_TYPE_NORMAL)

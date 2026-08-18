@@ -29,6 +29,7 @@ import io.github.mmolosay.thecolor.presentation.common.ExtendedLifecycleEventObs
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
 import io.github.mmolosay.thecolor.presentation.common.colorint.toCompose
 import io.github.mmolosay.thecolor.presentation.common.compose.Placeholder
+import io.github.mmolosay.thecolor.presentation.common.compose.PlaceholderDefaults
 import io.github.mmolosay.thecolor.presentation.common.compose.TintedSurface
 import io.github.mmolosay.thecolor.presentation.common.navbar.NavBarAppearance
 import io.github.mmolosay.thecolor.presentation.common.navbar.NavBarAppearanceController
@@ -146,7 +147,7 @@ private fun Preview() {
                         modifier = modifier
                             .fillMaxWidth()
                             .height(512.dp),
-                        color = LocalContentColor.current,
+                        color = PlaceholderDefaults.adjustedColor(LocalContentColor.current),
                     ) {
                         Text("Bare selected swatch details")
                     }

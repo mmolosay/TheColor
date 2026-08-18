@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,6 +34,7 @@ import io.github.mmolosay.thecolor.presentation.common.ExtendedLifecycleEventObs
 import io.github.mmolosay.thecolor.presentation.common.ExtendedLifecycleEventObserver.LifecycleDirectionChangeEvent
 import io.github.mmolosay.thecolor.presentation.common.colorint.toCompose
 import io.github.mmolosay.thecolor.presentation.common.compose.Placeholder
+import io.github.mmolosay.thecolor.presentation.common.compose.PlaceholderDefaults
 import io.github.mmolosay.thecolor.presentation.common.compose.TintedSurface
 import io.github.mmolosay.thecolor.presentation.common.compose.onlyBottom
 import io.github.mmolosay.thecolor.presentation.common.navbar.NavBarAppearance
@@ -161,7 +163,7 @@ private fun Preview() {
         Surface {
             DecoratedColorCenter(
                 surfaceColor = Color(0xFF_1A803F),
-                isSurfaceColorDark = false,
+                isSurfaceColorDark = true,
                 navBarAppearanceController = remember { RootNavBarAppearanceController() },
                 containerViewportHeight = remember { { null } },
                 containerPosInRoot = remember { { null } },
@@ -170,6 +172,7 @@ private fun Preview() {
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(196.dp),
+                    color = PlaceholderDefaults.adjustedColor(LocalContentColor.current),
                 ) {
                     Text("Color Center")
                 }
