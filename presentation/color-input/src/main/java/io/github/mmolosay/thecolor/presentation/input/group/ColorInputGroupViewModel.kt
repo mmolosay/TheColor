@@ -3,8 +3,10 @@ package io.github.mmolosay.thecolor.presentation.input.group
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
 import io.github.mmolosay.thecolor.domain.utils.getOrElse
+import io.github.mmolosay.thecolor.domain.utils.readyOrElse
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
@@ -120,8 +122,9 @@ class ColorInputGroupDataFactory @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
 ) {
     fun create(): ColorInputGroupData {
-        val preferredInputType = userPreferencesRepository.flowOfColorInputType
-            .value.getOrElse { error("must be ready") }
+        val preferredInputType = userPreferencesRepository.flowOfColorInputType.value
+            .readyOrElse { error("must be ready") }
+            .getOrElse { DefaultUserPreferences.PreferredColorInputType }
         // make list of all input types with the preferred one being first
         val orderedInputTypes = run {
             val allInputTypes = DomainColorInputType.entries
