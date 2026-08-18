@@ -44,7 +44,7 @@ import io.github.mmolosay.thecolor.utils.doNothing
 /**
  * The "bare" 'Color Details' [Composable] of the selected swatch, free of any 'Home'-specific logic.
  */
-internal typealias BareSelectedSwatchDetails =
+internal typealias BareSelectedSwatchDetailsComposable =
         @Composable (Modifier) -> Unit
 
 /**
@@ -53,7 +53,7 @@ internal typealias BareSelectedSwatchDetails =
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SelectedSwatchDetailsInHome(
-    selectedSwatchDetails: BareSelectedSwatchDetails?,
+    selectedSwatchDetails: BareSelectedSwatchDetailsComposable?,
     subjectColorData: SubjectColorData?,
     navBarAppearanceController: NavBarAppearanceController,
     onDismissRequest: () -> Unit,

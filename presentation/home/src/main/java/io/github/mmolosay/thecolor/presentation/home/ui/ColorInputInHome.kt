@@ -16,7 +16,7 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 /**
  * The "bare" 'Color Input' [Composable], free of any 'Home'-specific logic.
  */
-internal typealias BareColorInput =
+internal typealias BareColorInputComposable =
         @Composable (Modifier) -> Unit
 
 /**
@@ -24,7 +24,7 @@ internal typealias BareColorInput =
  */
 @Composable
 internal fun ColorInputInHome(
-    colorInput: BareColorInput,
+    colorInput: BareColorInputComposable,
 ) {
     val modifier = Modifier
         .fillMaxWidth()

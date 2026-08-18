@@ -43,9 +43,9 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.details.ColorDetails
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCrossfade
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.SubjectColorData
-import io.github.mmolosay.thecolor.presentation.home.ui.center.BareColorCenter
+import io.github.mmolosay.thecolor.presentation.home.ui.center.BareColorCenterComposable
 import io.github.mmolosay.thecolor.presentation.home.ui.center.ColorCenterInHome
-import io.github.mmolosay.thecolor.presentation.home.ui.preview.BareColorPreview
+import io.github.mmolosay.thecolor.presentation.home.ui.preview.BareColorPreviewComposable
 import io.github.mmolosay.thecolor.presentation.home.ui.preview.ColorPreviewInHome
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ExecuteHomeAction
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeAction
@@ -101,20 +101,20 @@ fun HomeScreen(
         }
     }
 
-    val colorInput: BareColorInput = { modifier ->
+    val colorInput: BareColorInputComposable = { modifier ->
         ColorInputGroup(
             modifier = modifier,
             viewModel = viewModel.colorInputGroupViewModel,
         )
     }
-    val colorPreview: BareColorPreview = { animController, onUiStateReached ->
+    val colorPreview: BareColorPreviewComposable = { animController, onUiStateReached ->
         AnimatedColorPreview(
             animController = animController,
             onUiStateReached = onUiStateReached,
         )
     }
     val colorPreviewDataFlow = viewModel.colorPreviewViewModel.dataFlow
-    val colorCenter: BareColorCenter? = run {
+    val colorCenter: BareColorCenterComposable? = run {
         val vm = viewModel.colorCenterViewModelFlow.collectAsStateWithLifecycle().value
         remember(vm) {
             if (vm == null) return@remember null
@@ -127,7 +127,7 @@ fun HomeScreen(
     }
     val selectedSwatchDetailsVm = viewModel.colorSchemeSwatchDetailsViewModelFlow
         .collectAsStateWithLifecycle().value
-    val selectedSwatchDetails: BareSelectedSwatchDetails? = remember(selectedSwatchDetailsVm) {
+    val selectedSwatchDetails: BareSelectedSwatchDetailsComposable? = remember(selectedSwatchDetailsVm) {
         if (selectedSwatchDetailsVm == null) return@remember null
         return@remember { modifier ->
             ColorDetailsCrossfade(
@@ -164,11 +164,11 @@ private fun HomeScreen(
     data: HomeData,
     strings: HomeUiStrings,
     execute: ExecuteHomeAction,
-    colorInput: BareColorInput,
-    colorPreview: BareColorPreview,
+    colorInput: BareColorInputComposable,
+    colorPreview: BareColorPreviewComposable,
     colorPreviewDataFlow: StateFlow<ColorPreviewData?>,
-    colorCenter: BareColorCenter?,
-    selectedSwatchDetails: BareSelectedSwatchDetails?,
+    colorCenter: BareColorCenterComposable?,
+    selectedSwatchDetails: BareSelectedSwatchDetailsComposable?,
     selectedSwatchData: SubjectColorData?,
     animController: HomeAnimController?,
     navigateToSettings: () -> Unit,
@@ -202,11 +202,11 @@ private fun Home(
     data: HomeData,
     strings: HomeUiStrings,
     execute: ExecuteHomeAction,
-    colorInput: BareColorInput,
-    colorPreview: BareColorPreview,
+    colorInput: BareColorInputComposable,
+    colorPreview: BareColorPreviewComposable,
     colorPreviewDataFlow: StateFlow<ColorPreviewData?>,
-    colorCenter: BareColorCenter?,
-    selectedSwatchDetails: BareSelectedSwatchDetails?,
+    colorCenter: BareColorCenterComposable?,
+    selectedSwatchDetails: BareSelectedSwatchDetailsComposable?,
     selectedSwatchData: SubjectColorData?,
     animController: HomeAnimController?,
     navigateToSettings: () -> Unit,

@@ -34,7 +34,7 @@ import kotlinx.coroutines.flow.stateIn
 /**
  * The "bare" 'Color Preview' [Composable], free of any 'Home'-specific logic.
  */
-internal typealias BareColorPreview =
+internal typealias BareColorPreviewComposable =
         @Composable (
             animController: ColorPreviewAnimController,
             onUiStateReached: (reached: ColorPreviewUiState) -> Unit,
@@ -49,7 +49,7 @@ internal fun ColorPreviewInHome(
     homeAnimController: HomeAnimController?,
     containerScrollState: ScrollState,
     stateOfContainerPosInRoot: State<Offset?>,
-    colorPreview: BareColorPreview,
+    colorPreview: BareColorPreviewComposable,
 ) {
     if (homeAnimController == null) return
     val coroutineScope = rememberCoroutineScope()
@@ -97,7 +97,7 @@ internal fun ColorPreviewInHome(
     }
 }
 
-@Suppress("unused") // params of 'BareColorPreview' lambda
+@Suppress("unused") // params of 'BareColorPreviewComposable' lambda
 @Preview(uiMode = Configuration.UI_MODE_TYPE_NORMAL)
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL)
 @Composable

@@ -32,7 +32,8 @@ import kotlinx.coroutines.flow.stateIn
 /**
  * The "bare" 'Color Center' [Composable], free of any 'Home'-specific logic.
  */
-internal typealias BareColorCenter = @Composable () -> Unit
+internal typealias BareColorCenterComposable =
+        @Composable () -> Unit
 
 /**
  * 'Color Center' as the 'Home' feature presents it.
@@ -44,7 +45,7 @@ internal fun ColorCenterInHome(
     navBarAppearanceController: NavBarAppearanceController,
     containerScrollState: ScrollState,
     stateOfContainerPosInRoot: State<Offset?>,
-    colorCenter: BareColorCenter?,
+    colorCenter: BareColorCenterComposable?,
 ) {
     if (homeAnimController == null) return
     val coroutineScope = rememberCoroutineScope()
