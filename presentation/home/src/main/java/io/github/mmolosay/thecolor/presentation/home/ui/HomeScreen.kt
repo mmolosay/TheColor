@@ -1,16 +1,16 @@
 package io.github.mmolosay.thecolor.presentation.home.ui
 
 import android.content.res.Configuration
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
@@ -25,7 +25,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalContext
@@ -36,6 +35,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.debounce.debounced
 import io.github.mmolosay.thecolor.presentation.center.ColorCenter
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
+import io.github.mmolosay.thecolor.presentation.common.compose.Placeholder
+import io.github.mmolosay.thecolor.presentation.common.compose.PlaceholderDefaults
 import io.github.mmolosay.thecolor.presentation.common.compose.withoutBottom
 import io.github.mmolosay.thecolor.presentation.common.navbar.NavBarAppearanceController
 import io.github.mmolosay.thecolor.presentation.common.navbar.RootNavBarAppearanceController
@@ -339,40 +340,40 @@ private fun Preview() {
             data = previewData(),
             strings = previewUiStrings(),
             execute = { Job() },
-            colorInput = {
-                Text(
-                    modifier = Modifier
-                        .background(Color.LightGray)
+            colorInput = { modifier ->
+                Placeholder(
+                    modifier = modifier
                         .fillMaxWidth()
-                        .height(100.dp)
-                        .wrapContentSize(),
-                    text = "Color Input",
-                )
+                        .height(100.dp),
+                ) {
+                    Text("Color Input")
+                }
             },
             colorPreview = { _, _ ->
-                Text(
-                    modifier = Modifier.background(Color.LightGray),
-                    text = "Color Preview",
-                )
+                Placeholder(
+                    Modifier.size(48.dp),
+                ) {
+                    Text("Color Preview")
+                }
             },
             colorPreviewDataFlow = remember { MutableStateFlow(null) },
             colorCenter = {
-                Text(
+                Placeholder(
                     modifier = Modifier
-                        .background(Color.LightGray)
                         .fillMaxWidth()
-                        .height(300.dp)
-                        .wrapContentSize(),
-                    text = "Color Center",
-                )
+                        .height(300.dp),
+                    color = PlaceholderDefaults.adjustedColor(LocalContentColor.current),
+                ) {
+                    Text("Color Center")
+                }
             },
             selectedSwatchDetails = null,
             selectedSwatchData = null,
             animController = remember {
                 val currentState = HomeAnimState(
-                    colorPreviewPosition = HomeAnimState.ColorPreview.Position.NotDived,
-                    colorPreviewVisibility = HomeAnimState.ColorPreview.Visibility.Hidden,
-                    colorCenter = HomeAnimState.ColorCenter.Collapsed,
+                    colorPreviewPosition = HomeAnimState.ColorPreview.Position.Dived,
+                    colorPreviewVisibility = HomeAnimState.ColorPreview.Visibility.Visible,
+                    colorCenter = HomeAnimState.ColorCenter.Expanded,
                 )
                 HomeAnimController(currentState)
             },
