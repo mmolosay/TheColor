@@ -6,14 +6,14 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,6 +33,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.mmolosay.thecolor.presentation.common.compose.Placeholder
+import io.github.mmolosay.thecolor.presentation.common.compose.PlaceholderDefaults
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
@@ -194,26 +196,30 @@ fun ColorCenter(
 private fun Preview() {
     @Composable
     fun Page(text: String) =
-        Text(
-            text = text,
+        Placeholder(
             modifier = Modifier
-                .background(Color.LightGray)
                 .fillMaxWidth()
-                .height(400.dp)
-                .wrapContentSize(),
-        )
+                .height(400.dp),
+            color = PlaceholderDefaults.adjustedColor(LocalContentColor.current),
+        ) {
+            Text(text)
+        }
     TheColorTheme {
-        ProvideColorsOnTintedSurface(colors = colorsOnLightSurface()) {
-            ColorCenter(
-                data = previewData(),
-                strings = previewUiStrings(),
-                colorDetails = {
-                    Page("Color details")
-                },
-                colorScheme = {
-                    Page("Color scheme")
-                },
-            )
+        Surface(
+            color = Color(0xFF_1A803F),
+        ) {
+            ProvideColorsOnTintedSurface(colors = colorsOnLightSurface()) {
+                ColorCenter(
+                    data = previewData(),
+                    strings = previewUiStrings(),
+                    colorDetails = {
+                        Page("Color details")
+                    },
+                    colorScheme = {
+                        Page("Color scheme")
+                    },
+                )
+            }
         }
     }
 }
