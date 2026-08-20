@@ -76,7 +76,7 @@ class HomeViewModel @Inject constructor(
     private val colorInputMediator: ColorInputMediator,
     colorInputGroupDataFactory: ColorInputGroupDataFactory,
     colorInputGroupViewModelFactory: ColorInputGroupViewModel.Factory,
-    colorPreviewViewModelFactory: ColorPreviewViewModel.Factory,
+    private val colorPreviewViewModelFactory: ColorPreviewViewModel.Factory,
     colorCenterComponentsStoreFactory: ColorCenterComponentsStore.Factory,
     private val createColorData: CreateColorDataUseCase,
     private val colorComparator: ColorComparator,
@@ -106,7 +106,7 @@ class HomeViewModel @Inject constructor(
     val colorPreviewViewModel: ColorPreviewViewModel =
         colorPreviewViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
-            store = Store<ColorPreviewData?>(null)
+            store = Store<ColorPreviewData?>(null),
         )
 
     private val colorCenterComponentsStore: ColorCenterComponentsStore =
@@ -124,8 +124,36 @@ class HomeViewModel @Inject constructor(
     private val ccSessionStore = ColorCenterSessionStore()
 
     init {
-        collectColorsFromColorInput()
         maybeProceedWithLastSearchedColor()
+        collectColorsFromColorInput()
+    }
+
+    private fun maybeProceedWithLastSearchedColor() {
+        viewModelScope.launch(defaultDispatcher) {
+            opRegistry.trackAsProceed {
+                store.batch {
+                    val resumeFromLastSearchedColorOnStartup = userPreferencesRepository
+                        .flowOfResumeFromLastSearchedColorOnStartup
+                        .filterReady()
+                        .first().getOrElse { DefaultUserPreferences.ResumeFromLastSearchedColorOnStartup }
+                    val enabled = resumeFromLastSearchedColorOnStartup.enabled
+                    if (!enabled) return@launch
+                    val color = lastSearchedColorRepository.getLastSearchedColor() ?: return@launch
+                    createAndConsumeNewColorCenterComponents()
+                    val deferredDetails = CompletableDeferred<DomainColorDetails>()
+                    startColorCenterSession(
+                        seed = color,
+                        deferredDetails = deferredDetails,
+                    )
+                    colorInputMediator.set(color)
+                    onColorBecameCurrent(color)
+                    proceed(color) { colorDetails, colorScheme ->
+                        colorDetails.setSeedColor(color, deferredDetails)
+                        colorScheme.fetchColorScheme(color)
+                    }
+                }
+            }
+        }
     }
 
     private fun collectColorsFromColorInput() =
@@ -189,34 +217,6 @@ class HomeViewModel @Inject constructor(
                     ?.selectedSwatchColorDetailsViewModel
                     ?: return
                 viewModel.selectColor(event.colorRole)
-            }
-        }
-    }
-
-    private fun maybeProceedWithLastSearchedColor() {
-        viewModelScope.launch(defaultDispatcher) {
-            opRegistry.trackAsProceed {
-                store.batch {
-                    val resumeFromLastSearchedColorOnStartup = userPreferencesRepository
-                        .flowOfResumeFromLastSearchedColorOnStartup
-                        .filterReady()
-                        .first().getOrElse { DefaultUserPreferences.ResumeFromLastSearchedColorOnStartup }
-                    val enabled = resumeFromLastSearchedColorOnStartup.enabled
-                    if (!enabled) return@launch
-                    val color = lastSearchedColorRepository.getLastSearchedColor() ?: return@launch
-                    createAndConsumeNewColorCenterComponents()
-                    val deferredDetails = CompletableDeferred<DomainColorDetails>()
-                    startColorCenterSession(
-                        seed = color,
-                        deferredDetails = deferredDetails,
-                    )
-                    colorInputMediator.set(color)
-                    onColorBecameCurrent(color)
-                    proceed(color) { colorDetails, colorScheme ->
-                        colorDetails.setSeedColor(color, deferredDetails)
-                        colorScheme.fetchColorScheme(color)
-                    }
-                }
             }
         }
     }

@@ -22,6 +22,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Qualifier
 
 /**
@@ -35,13 +36,14 @@ import javax.inject.Qualifier
 class ColorPreviewViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     @Assisted private val store: Store<ColorPreviewData?>,
-    @GateForDataFlow private val gateForDataFlow: SuspendGate,
     private val colorToColorInt: ColorToColorIntUseCase,
+    @GateForDataFlow private val gateForDataFlow: SuspendGate,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
     val dataFlow: StateFlow<ColorPreviewData?> = store.flow
 
+    private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
     private val opRegistry = CoroutineRegistry<Operation>()
 
     /**
@@ -52,18 +54,20 @@ class ColorPreviewViewModel @AssistedInject constructor(
      * then when it's invoked again the ongoing job will be canceled.
      */
     fun setColor(color: Color?): Job =
-        coroutineScope.launch(defaultDispatcher) {
+        coroutineScope.launch(exclusiveLane) {
             opRegistry.trackThisAsSingleActive(
                 predicate = { it.value is Operation.SetColor },
                 value = Operation.SetColor(color),
             ) {
-                gateForDataFlow.awaitOpen()
-                store.update {
-                    val color = with(colorToColorInt) { color?.toColorInt() }
-                    if (it == null) {
-                        ColorPreviewData(color)
-                    } else {
-                        it.copy(color = color)
+                withContext(defaultDispatcher) {
+                    gateForDataFlow.awaitOpen()
+                    val colorInt = with(colorToColorInt) { color?.toColorInt() }
+                    store.update {
+                        if (it == null) {
+                            ColorPreviewData(color = colorInt)
+                        } else {
+                            it.copy(color = colorInt)
+                        }
                     }
                 }
             }
