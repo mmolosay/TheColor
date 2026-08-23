@@ -30,8 +30,8 @@ import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsError
+import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsState
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel.DataState
 import io.github.mmolosay.thecolor.presentation.errors.ErrorMessageWithButton
 import io.github.mmolosay.thecolor.presentation.errors.messageOrUnknown
 import io.github.mmolosay.thecolor.presentation.errors.rememberDefaultErrorsUiStrings
@@ -42,36 +42,36 @@ fun ColorDetails(
     viewModel: ColorDetailsViewModel,
     modifier: Modifier = Modifier,
 ) {
-    val dataState = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
+    val state = viewModel.stateFlow.collectAsStateWithLifecycle().value
     ColorDetails(
-        dataState = dataState,
+        state = state,
         modifier = modifier,
     )
 }
 
 @Composable
 fun ColorDetails(
-    dataState: DataState,
+    state: ColorDetailsState,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val strings = remember(context) { ColorDetailsUiStrings(context) }
-    when (dataState) {
-        is DataState.Idle -> {
+    when (state) {
+        is ColorDetailsState.Idle -> {
             doNothing() // Color Details shouldn't be visible at Home at this point
         }
-        is DataState.Loading -> {
+        is ColorDetailsState.Loading -> {
             ColorDetailsLoading()
         }
-        is DataState.Ready -> {
+        is ColorDetailsState.Ready -> {
             ColorDetails(
-                data = dataState.data,
+                data = state.data,
                 strings = strings,
                 modifier = modifier,
             )
         }
-        is DataState.Error -> {
-            Error(error = dataState.error)
+        is ColorDetailsState.Error -> {
+            Error(error = state.error)
         }
     }
 }

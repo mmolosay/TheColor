@@ -14,14 +14,14 @@ import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ColorRoleData
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ExactMatch
 import io.github.mmolosay.thecolor.utils.CoroutineRegistry
+import io.github.mmolosay.thecolor.utils.Store
 import io.github.mmolosay.thecolor.utils.trackThisAsSingleActive
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.completeWith
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -41,6 +41,7 @@ import io.github.mmolosay.thecolor.domain.color.ColorDetails as DomainColorDetai
  */
 class ColorDetailsViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
+    @Assisted private val store: Store<ColorDetailsState>,
     @Assisted private val eventHandler: ColorDetailsEventHandler,
     private val colorRepository: ColorRepository,
     private val createData: CreateColorDetailsDataUseCase,
@@ -50,11 +51,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
-    private val _subjectColorDataFlow = MutableStateFlow<SubjectColorData?>(null)
-    val subjectColorDataFlow = _subjectColorDataFlow.asStateFlow()
-
-    private val _dataStateFlow = MutableStateFlow<DataState>(DataState.Idle)
-    val dataStateFlow = _dataStateFlow.asStateFlow()
+    val stateFlow: StateFlow<ColorDetailsState> = store.flow
 
     private val opRegistry = CoroutineRegistry<Operation>()
     private val session = AtomicReference<Session?>(null)
@@ -63,7 +60,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
     /**
      * Sets the specified [color] as the "seed" color of this ViewModel.
      * Fetches [DomainColorDetails] for this [color] and sets them into [deferredDetails].
-     * Exposes the details (or an error) via [dataStateFlow].
+     * Exposes the details (or an error) via [stateFlow].
      */
     fun setSeedColor(
         color: Color,
@@ -75,8 +72,13 @@ class ColorDetailsViewModel @AssistedInject constructor(
                 value = Operation.SetSeedColor(color),
             ) {
                 session.set(null)
-                _subjectColorDataFlow.value = createSubjectColorData(color)
-                val detailsResult = fetchOrFindColorDetails(color)
+                val subjectColor = createSubjectColorData(color)
+                val detailsResult = colorDetailsStore.findWithColor(color)
+                    ?.let { Result.success(it) }
+                    ?: run {
+                        store.update { ColorDetailsState.Loading(subjectColor) }
+                        fetchColorDetails(color)
+                    }
                 deferredDetails?.completeWith(detailsResult)
                 val details = detailsResult.getOrElse { exception ->
                     val tryAgain: () -> Unit = {
@@ -86,11 +88,16 @@ class ColorDetailsViewModel @AssistedInject constructor(
                         cause = exception,
                         tryAgain = tryAgain,
                     )
-                    _dataStateFlow.value = DataState.Error(error)
+                    store.update {
+                        ColorDetailsState.Error(
+                            subjectColor = subjectColor,
+                            error = error,
+                        )
+                    }
                     return@launch
                 }
                 session.set(Session.fromSeedDetails(seedDetails = details))
-                setColorDetails(details)
+                setColorDetails(details, subjectColor)
             }
         }
 
@@ -104,16 +111,16 @@ class ColorDetailsViewModel @AssistedInject constructor(
                 value = Operation.SetSeedDetails(details),
             ) {
                 session.set(null)
-                _subjectColorDataFlow.value = createSubjectColorData(details.color)
+                val subjectColor = createSubjectColorData(details.color)
                 session.set(Session.fromSeedDetails(seedDetails = details))
-                setColorDetails(details)
+                setColorDetails(details, subjectColor)
             }
         }
 
     /**
      * Infers a color with the specified [role] in the ongoing color session.
      * Fetches [DomainColorDetails] for that color and sets them into [deferredDetails].
-     * Exposes the details (or an error) via [dataStateFlow].
+     * Exposes the details (or an error) via [stateFlow].
      *
      * Requires the "seed" color to be set.
      */
@@ -128,7 +135,13 @@ class ColorDetailsViewModel @AssistedInject constructor(
             ) {
                 val session = requireNotNull(session.get()) { "Session must be initialized" }
                 val color = session.getByRole(role)
-                val detailsResult = fetchOrFindColorDetails(color)
+                val subjectColor = createSubjectColorData(session.seed)
+                val detailsResult = colorDetailsStore.findWithColor(color)
+                    ?.let { Result.success(it) }
+                    ?: run {
+                        store.update { ColorDetailsState.Loading(subjectColor) }
+                        fetchColorDetails(color)
+                    }
                 deferredDetails?.completeWith(detailsResult)
                 val details = detailsResult.getOrElse { exception ->
                     val tryAgain: () -> Unit = {
@@ -138,24 +151,26 @@ class ColorDetailsViewModel @AssistedInject constructor(
                         cause = exception,
                         tryAgain = tryAgain,
                     )
-                    _dataStateFlow.value = DataState.Error(error)
+                    store.update {
+                        ColorDetailsState.Error(
+                            subjectColor = subjectColor,
+                            error = error,
+                        )
+                    }
                     return@launch
                 }
-                setColorDetails(details)
+                setColorDetails(details, subjectColor)
             }
         }
 
-    private suspend fun fetchOrFindColorDetails(color: Color): Result<DomainColorDetails> {
-        val cached = colorDetailsStore.findWithColor(color)
-        if (cached != null) return Result.success(cached)
-        _dataStateFlow.value = DataState.Loading
-        return withContext(ioDispatcher) {
+    private suspend fun fetchColorDetails(color: Color): Result<DomainColorDetails> =
+        withContext(ioDispatcher) {
             colorRepository.getColorDetails(color)
         }
-    }
 
-    private fun setColorDetails(
+    private suspend fun setColorDetails(
         details: DomainColorDetails,
+        subjectColor: SubjectColorData,
     ) {
         val colorRole = details.color.inferColorRole() ?: error("ColorRole cannot be null here")
         val data = createData(
@@ -171,7 +186,12 @@ class ColorDetailsViewModel @AssistedInject constructor(
             },
             getSeedColor = { exactColor -> colorDetailsStore.findWithExactColor(exactColor)?.color },
         )
-        _dataStateFlow.value = DataState.Ready(data)
+        store.update {
+            ColorDetailsState.Ready(
+                subjectColor = subjectColor,
+                data = data,
+            )
+        }
         colorDetailsStore.add(details)
     }
 
@@ -192,17 +212,11 @@ class ColorDetailsViewModel @AssistedInject constructor(
         this.invoke(event)
     }
 
-    sealed interface DataState {
-        data object Idle : DataState
-        data object Loading : DataState
-        data class Ready(val data: ColorDetailsData) : DataState
-        data class Error(val error: ColorDetailsError) : DataState
-    }
-
     @AssistedFactory
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
+            store: Store<ColorDetailsState>,
             eventHandler: ColorDetailsEventHandler,
         ): ColorDetailsViewModel
     }

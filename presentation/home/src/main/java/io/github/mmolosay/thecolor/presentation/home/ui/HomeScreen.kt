@@ -44,6 +44,7 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.details.ColorDetails
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCrossfade
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.SubjectColorData
+import io.github.mmolosay.thecolor.presentation.details.viewmodel.subjectColorOrNull
 import io.github.mmolosay.thecolor.presentation.home.ui.center.BareColorCenterComposable
 import io.github.mmolosay.thecolor.presentation.home.ui.center.ColorCenterInHome
 import io.github.mmolosay.thecolor.presentation.home.ui.preview.BareColorPreviewComposable
@@ -133,16 +134,17 @@ fun HomeScreen(
         return@remember { modifier ->
             ColorDetailsCrossfade(
                 modifier = modifier,
-                actualDataState = selectedSwatchDetailsVm.dataStateFlow.collectAsStateWithLifecycle().value,
+                actualState = selectedSwatchDetailsVm.stateFlow.collectAsStateWithLifecycle().value,
             ) { state ->
                 ColorDetails(
-                    dataState = state,
+                    state = state,
                 )
             }
         }
     }
-    val selectedSwatchData = selectedSwatchDetailsVm?.subjectColorDataFlow
+    val selectedSwatchData = selectedSwatchDetailsVm?.stateFlow
         ?.collectAsStateWithLifecycle()?.value
+        ?.subjectColorOrNull()
 
     HomeScreen(
         data = data,

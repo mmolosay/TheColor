@@ -6,9 +6,11 @@ import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEventHandler
+import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsState
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEventHandler
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
+import io.github.mmolosay.thecolor.utils.Store
 import kotlinx.coroutines.CoroutineScope
 import javax.inject.Inject
 
@@ -75,6 +77,7 @@ class ColorCenterComponentsFactory @Inject constructor(
             val coroutineScope = ViewModelCoroutineScope(parent = viewModelScope)
             val colorDetailsViewModel = colorDetailsViewModelFactory.create(
                 coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
+                store = Store(ColorDetailsState.Idle),
                 eventHandler = colorDetailsEventHandler,
             )
             colorSchemeViewModelCoroutineScope = ViewModelCoroutineScope(parent = coroutineScope)
@@ -90,6 +93,7 @@ class ColorCenterComponentsFactory @Inject constructor(
         }
         val selectedSwatchColorDetailsViewModel = colorDetailsViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = colorSchemeViewModelCoroutineScope),
+            store = Store(ColorDetailsState.Idle),
             eventHandler = selectedSwatchColorDetailsEventHandler,
         )
         return ColorCenterComponents(

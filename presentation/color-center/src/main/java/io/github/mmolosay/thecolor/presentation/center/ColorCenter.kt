@@ -61,10 +61,10 @@ fun ColorCenter(
             @Suppress("NAME_SHADOWING")
             val viewModel = viewModel.colorDetailsViewModel
             ColorDetailsCrossfade(
-                actualDataState = viewModel.dataStateFlow.collectAsStateWithLifecycle().value,
+                actualState = viewModel.stateFlow.collectAsStateWithLifecycle().value,
                 animationSpec = crossfadeSpec,
             ) { state ->
-                ColorDetails(dataState = state)
+                ColorDetails(state = state)
             }
         },
         scheme = {
