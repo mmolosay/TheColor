@@ -13,7 +13,6 @@ import io.github.mmolosay.thecolor.domain.color.IsColorLightUseCase
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.IoDispatcher
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
-import io.github.mmolosay.thecolor.presentation.common.viewmodel.MutableViewModelEventFlow
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Changes
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Swatch
@@ -30,11 +29,11 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
@@ -52,6 +51,7 @@ import io.github.mmolosay.thecolor.domain.color.ColorScheme as DomainColorScheme
  */
 class ColorSchemeViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
+    @Assisted private val eventHandler: ColorSchemeEventHandler,
     private val colorRepository: ColorRepository,
     private val createData: CreateColorSchemeDataUseCase,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
@@ -73,9 +73,6 @@ class ColorSchemeViewModel @AssistedInject constructor(
             started = SharingStarted.Eagerly,
             initialValue = statefulDataFlow.value.toDataState(),
         )
-
-    private val _eventFlow = MutableViewModelEventFlow<ColorSchemeEvent>()
-    val eventFlow = _eventFlow.asSharedFlow()
 
     private val opRegistry = CoroutineRegistry<Operation>()
     private val dataEditor = ColorSchemeDataEditor(
@@ -146,14 +143,10 @@ class ColorSchemeViewModel @AssistedInject constructor(
     private fun sendSwatchSelectedEvent(indexOfSelectedSwatch: Int) {
         val dataSession = statefulData.dataSession
         val lastDomainColorScheme = requireNotNull(dataSession.domainColorScheme)
-        val swatch =
-            dataSession.data?.swatches?.getOrNull(indexOfSelectedSwatch) ?: return
-        val swatchColorDetails =
-            lastDomainColorScheme.swatchDetails.getOrNull(indexOfSelectedSwatch) ?: return
+        val swatch = dataSession.data?.swatches?.getOrNull(indexOfSelectedSwatch) ?: return
+        val swatchColorDetails = lastDomainColorScheme.swatchDetails.getOrNull(indexOfSelectedSwatch) ?: return
         val event = ColorSchemeEvent.SwatchSelected(swatch, swatchColorDetails)
-        coroutineScope.launch(defaultDispatcher) {
-            _eventFlow.emit(event)
-        }
+        eventHandler.offer(event)
     }
 
     private fun selectMode(mode: Mode) {
@@ -182,6 +175,24 @@ class ColorSchemeViewModel @AssistedInject constructor(
         fetchColorScheme(seed)
     }
 
+    private fun ColorSchemeEventHandler.offer(event: ColorSchemeEvent) {
+        if (!coroutineScope.isActive) return
+        this.invoke(event)
+    }
+
+    /** [GetColorSchemeRequest] mapped to presentation layer model. */
+    data class Config(
+        val mode: Mode,
+        val swatchCount: SwatchCount,
+    )
+
+    private fun Config.toDomainRequest(seed: Color): GetColorSchemeRequest =
+        GetColorSchemeRequest(
+            seed = seed,
+            mode = this.mode,
+            swatchCount = this.swatchCount.value,
+        )
+
     private fun assembleRequestConfig(): Config {
         fun ColorSchemeData.toConfig() =
             Config(
@@ -199,19 +210,6 @@ class ColorSchemeViewModel @AssistedInject constructor(
         return data?.toConfig() ?: defaultConfig()
     }
 
-    private fun Config.toDomainRequest(seed: Color): GetColorSchemeRequest =
-        GetColorSchemeRequest(
-            seed = seed,
-            mode = this.mode,
-            swatchCount = this.swatchCount.value,
-        )
-
-    /** [GetColorSchemeRequest] mapped to presentation layer model. */
-    data class Config(
-        val mode: Mode,
-        val swatchCount: SwatchCount,
-    )
-
     sealed interface DataState {
         data object Idle : DataState
         data object Loading : DataState
@@ -223,6 +221,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
+            eventHandler: ColorSchemeEventHandler,
         ): ColorSchemeViewModel
     }
 

@@ -17,9 +17,9 @@ import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEvent
+import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEventHandler
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.SideEffect
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel.CoroutineRegistryRules.trackAsConsumeColorCenterComponents
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel.CoroutineRegistryRules.trackAsProceed
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.ColorInputSource
@@ -33,18 +33,17 @@ import io.github.mmolosay.thecolor.presentation.input.set
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEventHandler
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
 import io.github.mmolosay.thecolor.utils.BatchScope
 import io.github.mmolosay.thecolor.utils.CoroutineRegistry
 import io.github.mmolosay.thecolor.utils.SideEffectIdFactory
 import io.github.mmolosay.thecolor.utils.Store
 import io.github.mmolosay.thecolor.utils.batch
-import io.github.mmolosay.thecolor.utils.removeAndCancelAll
 import io.github.mmolosay.thecolor.utils.trackThisAsSingleActive
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -170,54 +169,6 @@ class HomeViewModel @Inject constructor(
             val color = colorState.color
             endColorCenterSession() // assuming any new color from Color Input is a new session
             onColorBecameCurrent(color)
-        }
-    }
-
-    private fun onEventFromColorDetailsOfColorCenter(event: ColorDetailsEvent) {
-        when (event) {
-            is ColorDetailsEvent.ColorSelected ->
-                viewModelScope.launch(defaultDispatcher) {
-                    opRegistry.trackAsProceed {
-                        store.batch {
-                            ccSessionStore.sessionState.mustBeOngoing()
-                            val color = event.color
-                            colorInputMediator.set(color)
-                            onColorBecameCurrent(color)
-                            // assuming any color selected belongs to ongoing session
-                            proceed(color) { colorDetails, colorScheme ->
-                                colorDetails.selectColor(event.colorRole)
-                                colorScheme.fetchColorScheme(color)
-                            }
-                        }
-                    }
-                }
-        }
-    }
-
-    @Suppress("RedundantSuspendModifier")
-    private suspend fun onEventFromColorScheme(event: ColorSchemeEvent) {
-        viewModelScope.launch(defaultDispatcher) {
-            when (event) {
-                is ColorSchemeEvent.SwatchSelected -> {
-                    val viewModel = colorCenterComponentsStore.components
-                        ?.selectedSwatchColorDetailsViewModel
-                        ?: return@launch
-                    viewModel.setSeedDetails(event.swatchColorDetails)
-                    _colorSchemeSwatchDetailsViewModelFlow.value = viewModel
-                }
-            }
-        }
-    }
-
-    @Suppress("RedundantSuspendModifier")
-    private suspend fun onEventFromColorDetailsOfSelectedSwatch(event: ColorDetailsEvent) {
-        when (event) {
-            is ColorDetailsEvent.ColorSelected -> {
-                val viewModel = colorCenterComponentsStore.components
-                    ?.selectedSwatchColorDetailsViewModel
-                    ?: return
-                viewModel.selectColor(event.colorRole)
-            }
         }
     }
 
@@ -355,26 +306,13 @@ class HomeViewModel @Inject constructor(
     }
 
     private suspend fun createAndConsumeNewColorCenterComponents() {
-        colorCenterComponentsStore.createNewComponents()
+        colorCenterComponentsStore.createNewComponents(
+            colorDetailsEventHandler = ColorCenterColorDetailsEventHandlerImpl(),
+            colorSchemeEventHandler = ColorSchemeEventHandlerImpl(),
+            selectedSwatchColorDetailsEventHandler = SelectedSwatchColorDetailsEventHandlerImpl(),
+        )
         val newComponents = colorCenterComponentsStore.components
         _colorCenterViewModelFlow.emit(newComponents?.colorCenterViewModel)
-        viewModelScope.launch(defaultDispatcher) {
-            opRegistry.trackAsConsumeColorCenterComponents {
-                if (newComponents == null) return@launch
-                launch(start = CoroutineStart.UNDISPATCHED) {
-                    newComponents.colorCenterViewModel.colorDetailsViewModel.eventFlow
-                        .collect(::onEventFromColorDetailsOfColorCenter)
-                }
-                launch(start = CoroutineStart.UNDISPATCHED) {
-                    newComponents.colorCenterViewModel.colorSchemeViewModel.eventFlow
-                        .collect(::onEventFromColorScheme)
-                }
-                launch(start = CoroutineStart.UNDISPATCHED) {
-                    newComponents.selectedSwatchColorDetailsViewModel.eventFlow
-                        .collect(::onEventFromColorDetailsOfSelectedSwatch)
-                }
-            }
-        }
     }
 
     context(coroutineScope: CoroutineScope)
@@ -409,7 +347,6 @@ class HomeViewModel @Inject constructor(
     private suspend fun endColorCenterSession() {
         ccSessionStore.clear()
         colorCenterComponentsStore.disposeComponents()
-        opRegistry.removeAndCancelAll { it.value is Operation.ConsumeColorCenterComponents }
         batchScope.update {
             it.copy(proceedResult = null)
         }
@@ -466,9 +403,58 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    private inner class ColorCenterColorDetailsEventHandlerImpl : ColorDetailsEventHandler {
+        override fun invoke(event: ColorDetailsEvent) {
+            when (event) {
+                is ColorDetailsEvent.ColorSelected ->
+                    viewModelScope.launch(defaultDispatcher) {
+                        opRegistry.trackAsProceed {
+                            store.batch {
+                                ccSessionStore.sessionState.mustBeOngoing()
+                                val color = event.color
+                                colorInputMediator.set(color)
+                                onColorBecameCurrent(color)
+                                // assuming any color selected belongs to ongoing session
+                                proceed(color) { colorDetails, colorScheme ->
+                                    colorDetails.selectColor(event.colorRole)
+                                    colorScheme.fetchColorScheme(color)
+                                }
+                            }
+                        }
+                    }
+            }
+        }
+    }
+
+    private inner class SelectedSwatchColorDetailsEventHandlerImpl : ColorDetailsEventHandler {
+        override fun invoke(event: ColorDetailsEvent) {
+            when (event) {
+                is ColorDetailsEvent.ColorSelected -> {
+                    val viewModel = colorCenterComponentsStore.components
+                        ?.selectedSwatchColorDetailsViewModel
+                        ?: return
+                    viewModel.selectColor(event.colorRole)
+                }
+            }
+        }
+    }
+
+    private inner class ColorSchemeEventHandlerImpl : ColorSchemeEventHandler {
+        override fun invoke(event: ColorSchemeEvent) {
+            when (event) {
+                is ColorSchemeEvent.SwatchSelected -> {
+                    val viewModel = colorCenterComponentsStore.components
+                        ?.selectedSwatchColorDetailsViewModel
+                        ?: return
+                    viewModel.setSeedDetails(event.swatchColorDetails)
+                    _colorSchemeSwatchDetailsViewModelFlow.value = viewModel
+                }
+            }
+        }
+    }
+
     private sealed interface Operation {
         data object Proceed : Operation
-        data object ConsumeColorCenterComponents : Operation
     }
 
     private object CoroutineRegistryRules {
@@ -480,16 +466,6 @@ class HomeViewModel @Inject constructor(
             this.trackThisAsSingleActive(
                 predicate = { it.value is Operation.Proceed },
                 value = Operation.Proceed,
-                block = block,
-            )
-
-        context(coroutineScope: CoroutineScope)
-        suspend inline fun CoroutineRegistry<Operation>.trackAsConsumeColorCenterComponents(
-            block: () -> Unit,
-        ): Unit =
-            this.trackThisAsSingleActive(
-                predicate = { it.value is Operation.ConsumeColorCenterComponents },
-                value = Operation.ConsumeColorCenterComponents,
                 block = block,
             )
     }

@@ -10,7 +10,6 @@ import io.github.mmolosay.thecolor.domain.color.IsColorLightUseCase
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.IoDispatcher
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
-import io.github.mmolosay.thecolor.presentation.common.viewmodel.MutableViewModelEventFlow
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ColorRoleData
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ExactMatch
@@ -22,8 +21,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.completeWith
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.CopyOnWriteArraySet
@@ -42,6 +41,7 @@ import io.github.mmolosay.thecolor.domain.color.ColorDetails as DomainColorDetai
  */
 class ColorDetailsViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
+    @Assisted private val eventHandler: ColorDetailsEventHandler,
     private val colorRepository: ColorRepository,
     private val createData: CreateColorDetailsDataUseCase,
     private val createSubjectColorData: CreateSubjectColorDataUseCase,
@@ -55,9 +55,6 @@ class ColorDetailsViewModel @AssistedInject constructor(
 
     private val _dataStateFlow = MutableStateFlow<DataState>(DataState.Idle)
     val dataStateFlow = _dataStateFlow.asStateFlow()
-
-    private val _eventFlow = MutableViewModelEventFlow<ColorDetailsEvent>()
-    val eventFlow = _eventFlow.asSharedFlow()
 
     private val opRegistry = CoroutineRegistry<Operation>()
     private val session = AtomicReference<Session?>(null)
@@ -164,8 +161,14 @@ class ColorDetailsViewModel @AssistedInject constructor(
         val data = createData(
             details = details,
             colorRole = colorRole,
-            selectSeedColor = { seedColor -> sendColorSelectedEvent(seedColor, ColorRole.Seed) },
-            selectExactColor = { exactColor -> sendColorSelectedEvent(exactColor, ColorRole.Exact) },
+            selectSeedColor = { seedColor ->
+                val event = ColorDetailsEvent.ColorSelected(seedColor, ColorRole.Seed)
+                eventHandler.offer(event)
+            },
+            selectExactColor = { exactColor ->
+                val event = ColorDetailsEvent.ColorSelected(exactColor, ColorRole.Exact)
+                eventHandler.offer(event)
+            },
             getSeedColor = { exactColor -> colorDetailsStore.findWithExactColor(exactColor)?.color },
         )
         _dataStateFlow.value = DataState.Ready(data)
@@ -184,14 +187,9 @@ class ColorDetailsViewModel @AssistedInject constructor(
         return null
     }
 
-    private fun sendColorSelectedEvent(
-        color: Color,
-        colorRole: ColorRole,
-    ) {
-        coroutineScope.launch(defaultDispatcher) {
-            val event = ColorDetailsEvent.ColorSelected(color, colorRole)
-            _eventFlow.emit(event)
-        }
+    private fun ColorDetailsEventHandler.offer(event: ColorDetailsEvent) {
+        if (!coroutineScope.isActive) return
+        this.invoke(event)
     }
 
     sealed interface DataState {
@@ -205,6 +203,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
+            eventHandler: ColorDetailsEventHandler,
         ): ColorDetailsViewModel
     }
 

@@ -5,7 +5,9 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
+import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEventHandler
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEventHandler
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
 import kotlinx.coroutines.CoroutineScope
 import javax.inject.Inject
@@ -25,15 +27,25 @@ class ColorCenterComponentsStore @AssistedInject constructor(
         private set
 
     @Synchronized
-    fun createNewComponents() {
+    fun createNewComponents(
+        colorDetailsEventHandler: ColorDetailsEventHandler,
+        colorSchemeEventHandler: ColorSchemeEventHandler,
+        selectedSwatchColorDetailsEventHandler: ColorDetailsEventHandler,
+    ) {
         disposeComponents() // dispose of current components if there are any
-        this.components = factory.create(viewModelScope)
+        this.components = factory.create(
+            viewModelScope = viewModelScope,
+            colorDetailsEventHandler = colorDetailsEventHandler,
+            colorSchemeEventHandler = colorSchemeEventHandler,
+            selectedSwatchColorDetailsEventHandler = selectedSwatchColorDetailsEventHandler,
+        )
     }
 
     @Synchronized
     fun disposeComponents() {
         val components = components ?: return
         components.colorCenterViewModel.dispose() // will also dispose of its child ViewModels
+        components.selectedSwatchColorDetailsViewModel.dispose()
         this.components = null
     }
 
@@ -52,16 +64,23 @@ class ColorCenterComponentsFactory @Inject constructor(
     private val colorCenterViewModelFactory: ColorCenterViewModel.Factory,
 ) {
 
-    fun create(viewModelScope: CoroutineScope): ColorCenterComponents {
+    fun create(
+        viewModelScope: CoroutineScope,
+        colorDetailsEventHandler: ColorDetailsEventHandler,
+        colorSchemeEventHandler: ColorSchemeEventHandler,
+        selectedSwatchColorDetailsEventHandler: ColorDetailsEventHandler,
+    ): ColorCenterComponents {
         val colorSchemeViewModelCoroutineScope: CoroutineScope
         val colorCenterViewModel = run {
             val coroutineScope = ViewModelCoroutineScope(parent = viewModelScope)
             val colorDetailsViewModel = colorDetailsViewModelFactory.create(
                 coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
+                eventHandler = colorDetailsEventHandler,
             )
             colorSchemeViewModelCoroutineScope = ViewModelCoroutineScope(parent = coroutineScope)
             val colorSchemeViewModel = colorSchemeViewModelFactory.create(
                 coroutineScope = colorSchemeViewModelCoroutineScope,
+                eventHandler = colorSchemeEventHandler,
             )
             return@run colorCenterViewModelFactory.create(
                 coroutineScope = coroutineScope,
@@ -71,6 +90,7 @@ class ColorCenterComponentsFactory @Inject constructor(
         }
         val selectedSwatchColorDetailsViewModel = colorDetailsViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = colorSchemeViewModelCoroutineScope),
+            eventHandler = selectedSwatchColorDetailsEventHandler,
         )
         return ColorCenterComponents(
             colorCenterViewModel = colorCenterViewModel,
