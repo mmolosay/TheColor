@@ -43,6 +43,7 @@ import io.github.mmolosay.thecolor.presentation.common.navbar.RootNavBarAppearan
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.details.ColorDetails
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCrossfade
+import io.github.mmolosay.thecolor.presentation.details.rememberColorDetailsFacade
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.SubjectColorData
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.subjectColorOrNull
 import io.github.mmolosay.thecolor.presentation.home.ui.center.BareColorCenterComposable
@@ -132,12 +133,13 @@ fun HomeScreen(
     val selectedSwatchDetails: BareSelectedSwatchDetailsComposable? = remember(selectedSwatchDetailsVm) {
         if (selectedSwatchDetailsVm == null) return@remember null
         return@remember { modifier ->
+            val actualFacade = rememberColorDetailsFacade(selectedSwatchDetailsVm)
             ColorDetailsCrossfade(
                 modifier = modifier,
-                actualState = selectedSwatchDetailsVm.stateFlow.collectAsStateWithLifecycle().value,
-            ) { state ->
+                actualFacade = actualFacade,
+            ) { facade ->
                 ColorDetails(
-                    state = state,
+                    facade = facade,
                 )
             }
         }

@@ -53,9 +53,30 @@ class ColorDetailsViewModel @AssistedInject constructor(
 
     val stateFlow: StateFlow<ColorDetailsState> = store.flow
 
+    private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
     private val opRegistry = CoroutineRegistry<Operation>()
     private val session = AtomicReference<Session?>(null)
     private val colorDetailsStore = ColorDetailsStore()
+
+    fun execute(action: ColorDetailsAction): Job =
+        coroutineScope.launch(exclusiveLane) {
+            when (action) {
+                is ColorDetailsAction.SelectColor -> {
+                    val session = session.get() ?: return@launch
+                    val color = session.getByRole(action.role)
+                    val event = ColorDetailsEvent.ColorSelected(color, action.role)
+                    eventHandler.offer(event)
+                }
+                is ColorDetailsAction.RetryOnError -> {
+                    val state = store.current()
+                    if (state !is ColorDetailsState.Error) return@launch
+                    when (val target = state.error.origin) {
+                        is ColorDetailsError.Origin.SetSeedColor -> setSeedColor(target.color)
+                        is ColorDetailsError.Origin.SelectColor -> selectColor(target.role)
+                    }
+                }
+            }
+        }
 
     /**
      * Sets the specified [color] as the "seed" color of this ViewModel.
@@ -81,12 +102,9 @@ class ColorDetailsViewModel @AssistedInject constructor(
                     }
                 deferredDetails?.completeWith(detailsResult)
                 val details = detailsResult.getOrElse { exception ->
-                    val tryAgain: () -> Unit = {
-                        setSeedColor(color)
-                    }
                     val error = ColorDetailsError(
                         cause = exception,
-                        tryAgain = tryAgain,
+                        origin = ColorDetailsError.Origin.SetSeedColor(color),
                     )
                     store.update {
                         ColorDetailsState.Error(
@@ -144,12 +162,9 @@ class ColorDetailsViewModel @AssistedInject constructor(
                     }
                 deferredDetails?.completeWith(detailsResult)
                 val details = detailsResult.getOrElse { exception ->
-                    val tryAgain: () -> Unit = {
-                        selectColor(role)
-                    }
                     val error = ColorDetailsError(
                         cause = exception,
-                        tryAgain = tryAgain,
+                        origin = ColorDetailsError.Origin.SelectColor(role),
                     )
                     store.update {
                         ColorDetailsState.Error(
@@ -176,14 +191,6 @@ class ColorDetailsViewModel @AssistedInject constructor(
         val data = createData(
             details = details,
             colorRole = colorRole,
-            selectSeedColor = { seedColor ->
-                val event = ColorDetailsEvent.ColorSelected(seedColor, ColorRole.Seed)
-                eventHandler.offer(event)
-            },
-            selectExactColor = { exactColor ->
-                val event = ColorDetailsEvent.ColorSelected(exactColor, ColorRole.Exact)
-                eventHandler.offer(event)
-            },
             getSeedColor = { exactColor -> colorDetailsStore.findWithExactColor(exactColor)?.color },
         )
         store.update {
@@ -300,8 +307,6 @@ class CreateColorDetailsDataUseCase @Inject constructor(
     operator fun invoke(
         details: DomainColorDetails,
         colorRole: ColorRole,
-        selectSeedColor: SelectSeedColorAction,
-        selectExactColor: SelectExactColorAction,
         getSeedColor: GetSeedColorAction,
     ) =
         ColorDetailsData(
@@ -334,8 +339,6 @@ class CreateColorDetailsDataUseCase @Inject constructor(
             colorRoleData = ColorRoleData(
                 details = details,
                 colorRole = colorRole,
-                selectSeedColor = selectSeedColor,
-                selectExactColor = selectExactColor,
                 getSeedColor = getSeedColor,
             ),
         )
@@ -356,8 +359,6 @@ class CreateColorDetailsDataUseCase @Inject constructor(
     private fun ColorRoleData(
         details: DomainColorDetails,
         colorRole: ColorRole,
-        selectSeedColor: SelectSeedColorAction,
-        selectExactColor: SelectExactColorAction,
         getSeedColor: GetSeedColorAction,
     ): ColorRoleData =
         when (colorRole) {
@@ -365,7 +366,6 @@ class CreateColorDetailsDataUseCase @Inject constructor(
                 val exactColor = details.exact.color
                 ColorRoleData.Seed(
                     exactColor = with(colorToColorInt) { exactColor.toColorInt() },
-                    selectExactColor = { selectExactColor(exactColor) },
                 )
             }
             ColorRole.Exact -> {
@@ -373,18 +373,9 @@ class CreateColorDetailsDataUseCase @Inject constructor(
                     .let { requireNotNull(it) }
                 ColorRoleData.Exact(
                     seedColor = with(colorToColorInt) { seedColor.toColorInt() },
-                    selectSeedColor = { selectSeedColor(seedColor) },
                 )
             }
         }
-
-    fun interface SelectSeedColorAction {
-        operator fun invoke(seedColor: Color)
-    }
-
-    fun interface SelectExactColorAction {
-        operator fun invoke(exactColor: Color)
-    }
 
     fun interface GetSeedColorAction {
         operator fun invoke(exactColor: Color): Color?

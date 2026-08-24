@@ -49,6 +49,8 @@ internal fun ColorSpecs(
     exactMatch: ColorDetailsData.ExactMatch,
     colorRoleData: ColorDetailsData.ColorRoleData,
     strings: ColorDetailsUiStrings,
+    onSelectSeedColorClick: () -> Unit,
+    onSelectExactColorClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -64,6 +66,7 @@ internal fun ColorSpecs(
             exactMatch = exactMatch,
             colorRoleData = colorRoleData,
             strings = strings,
+            onSelectSeedColorClick = onSelectSeedColorClick,
         )
 
         val isNotExactMatch = (exactMatch is ColorDetailsData.ExactMatch.No)
@@ -73,6 +76,7 @@ internal fun ColorSpecs(
                 exactMatch = exactMatch,
                 colorRoleData = colorRoleData,
                 strings = strings,
+                onSelectExactColorClick = onSelectExactColorClick,
             )
             Deviation(
                 label = strings.deviationLabel,
@@ -98,6 +102,7 @@ private fun ExactMatch(
     exactMatch: ColorDetailsData.ExactMatch,
     colorRoleData: ColorDetailsData.ColorRoleData,
     strings: ColorDetailsUiStrings,
+    onSelectSeedColorClick: () -> Unit,
 ) {
     val value = when (exactMatch) {
         is ColorDetailsData.ExactMatch.Yes -> strings.exactMatchYes
@@ -112,7 +117,7 @@ private fun ExactMatch(
         if (showSelectSeedColorButton) {
             Spacer(modifier = Modifier.weight(1f))
             SelectSeedColorButton(
-                onClick = colorRoleData.selectSeedColor,
+                onClick = onSelectSeedColorClick,
                 text = strings.goBackToSeedColorButtonText,
                 seedColor = colorRoleData.seedColor.toCompose(),
             )
@@ -153,11 +158,12 @@ private fun ExactValue(
     exactMatch: ColorDetailsData.ExactMatch.No,
     colorRoleData: ColorDetailsData.ColorRoleData.Seed,
     strings: ColorDetailsUiStrings,
+    onSelectExactColorClick: () -> Unit,
 ) {
     ExactValue(
         label = strings.exactValueLabel,
         exactColorValue = exactMatch.exactValue,
-        selectExactColor = colorRoleData.selectExactColor,
+        selectExactColor = onSelectExactColorClick,
         exactColor = colorRoleData.exactColor.toCompose(),
     )
 }
@@ -309,7 +315,6 @@ private fun PreviewContentSeed() {
         ),
         colorRoleData = ColorDetailsData.ColorRoleData.Seed(
             exactColor = ColorInt(0x126B40),
-            selectExactColor = {},
         ),
         strings = ColorDetailsUiStrings(
             hexLabel = "_",
@@ -325,6 +330,8 @@ private fun PreviewContentSeed() {
             exactValueLabel = "EXACT VALUE",
             deviationLabel = "DEVIATION",
         ),
+        onSelectSeedColorClick = {},
+        onSelectExactColorClick = {},
     )
 }
 
@@ -335,7 +342,6 @@ private fun PreviewContentExact() {
         exactMatch = ColorDetailsData.ExactMatch.Yes,
         colorRoleData = ColorDetailsData.ColorRoleData.Exact(
             seedColor = ColorInt(0x1A803F),
-            selectSeedColor = {},
         ),
         strings = ColorDetailsUiStrings(
             hexLabel = "_",
@@ -351,5 +357,7 @@ private fun PreviewContentExact() {
             exactValueLabel = "EXACT VALUE",
             deviationLabel = "DEVIATION",
         ),
+        onSelectSeedColorClick = {},
+        onSelectExactColorClick = {},
     )
 }

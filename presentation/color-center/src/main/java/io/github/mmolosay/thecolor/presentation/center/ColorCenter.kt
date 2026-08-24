@@ -40,6 +40,7 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.details.ColorDetails
 import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCrossfade
+import io.github.mmolosay.thecolor.presentation.details.rememberColorDetailsFacade
 import io.github.mmolosay.thecolor.presentation.scheme.ColorScheme
 import kotlin.math.max
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
@@ -60,11 +61,12 @@ fun ColorCenter(
         details = {
             @Suppress("NAME_SHADOWING")
             val viewModel = viewModel.colorDetailsViewModel
+            val actualFacade = rememberColorDetailsFacade(viewModel)
             ColorDetailsCrossfade(
-                actualState = viewModel.stateFlow.collectAsStateWithLifecycle().value,
+                actualFacade = actualFacade,
                 animationSpec = crossfadeSpec,
-            ) { state ->
-                ColorDetails(state = state)
+            ) { facade ->
+                ColorDetails(facade = facade)
             }
         },
         scheme = {
