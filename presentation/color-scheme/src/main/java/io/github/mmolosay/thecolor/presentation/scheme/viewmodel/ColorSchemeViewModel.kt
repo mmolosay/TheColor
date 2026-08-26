@@ -12,13 +12,13 @@ import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQuali
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.IoDispatcher
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
-import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeData.Changes
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeData.Swatch
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeData.SwatchCount
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeState.Request
 import io.github.mmolosay.thecolor.utils.CoroutineRegistry
 import io.github.mmolosay.thecolor.utils.Store
 import io.github.mmolosay.thecolor.utils.trackThisAsSingleActive
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -51,14 +51,30 @@ class ColorSchemeViewModel @AssistedInject constructor(
 
     val stateFlow: StateFlow<ColorSchemeState> = store.flow
 
+    private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
     private val opRegistry = CoroutineRegistry<Operation>()
-    private val dataEditor = ColorSchemeDataEditor(
-        applyChanges = {
-            coroutineScope.launch(defaultDispatcher) {
-                applyChanges()
+    private val dataEditor = ColorSchemeDataEditor()
+
+    fun execute(action: ColorSchemeAction): Job =
+        coroutineScope.launch(exclusiveLane) {
+            when (action) {
+                is ColorSchemeAction.OnSwatchSelect -> {
+                    sendSwatchSelectedEvent(indexOfSelectedSwatch = action.index)
+                }
+                is ColorSchemeAction.SelectMode -> {
+                    selectMode(mode = action.mode)
+                }
+                is ColorSchemeAction.SelectSwatchCount -> {
+                    selectSwatchCount(count = action.count)
+                }
+                is ColorSchemeAction.ApplyChanges -> {
+                    applyChanges()
+                }
+                is ColorSchemeAction.RetryOnError -> {
+                    retryOnError()
+                }
             }
-        },
-    )
+        }
 
     /**
      * Fetches [DomainColorScheme] for the specified "[seed]" color of the color scheme.
@@ -70,7 +86,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
                 predicate = { it.value is Operation.FetchColorScheme },
                 value = Operation.FetchColorScheme(seed),
             ) {
-                val request = assembleRequest(seed)
+                val request = store.current().request(seed)
                 val domainRequest = request.toDomainRequest()
                 store.update {
                     ColorSchemeState.Loading(request)
@@ -80,12 +96,8 @@ class ColorSchemeViewModel @AssistedInject constructor(
                     colorRepository.getColorScheme(domainRequest)
                 }
                 val colorScheme = schemeResult.getOrElse { exception ->
-                    val tryAgain: () -> Unit = {
-                        fetchColorScheme(seed)
-                    }
                     val error = ColorSchemeError(
                         cause = exception,
-                        tryAgain = tryAgain,
                     )
                     store.update {
                         ColorSchemeState.Error(
@@ -105,30 +117,6 @@ class ColorSchemeViewModel @AssistedInject constructor(
                 }
             }
         }
-
-    private fun createData(
-        scheme: DomainColorScheme,
-        request: Request,
-    ) =
-        createData.invoke(
-            scheme = scheme,
-            request = request,
-            onSwatchSelect = {
-                coroutineScope.launch(defaultDispatcher) {
-                    sendSwatchSelectedEvent(it)
-                }
-            },
-            onModeSelect = {
-                coroutineScope.launch(defaultDispatcher) {
-                    selectMode(it)
-                }
-            },
-            onSwatchCountSelect = {
-                coroutineScope.launch(defaultDispatcher) {
-                    selectSwatchCount(it)
-                }
-            },
-        )
 
     private suspend fun sendSwatchSelectedEvent(indexOfSelectedSwatch: Int) {
         val state = store.current()
@@ -163,7 +151,13 @@ class ColorSchemeViewModel @AssistedInject constructor(
     private suspend fun applyChanges() {
         val state = store.current()
         if (state !is ColorSchemeState.Ready) return // stale invocation
-        if (state.data.changes !is Changes.Present) return // nothing to apply
+        if (!state.data.hasChangesToApply) return // nothing to apply
+        fetchColorScheme(seed = state.request.seed)
+    }
+
+    private suspend fun retryOnError() {
+        val state = store.current()
+        if (state !is ColorSchemeState.Error) return // stale invocation
         fetchColorScheme(seed = state.request.seed)
     }
 
@@ -179,22 +173,22 @@ class ColorSchemeViewModel @AssistedInject constructor(
             swatchCount = this.swatchCount.value,
         )
 
-    private suspend fun assembleRequest(seed: Color): Request {
+    private fun ColorSchemeState.request(seed: Color): Request {
         val defaultMode = Mode.Monochrome
         val defaultSwatchCount = SwatchCount.Six
-        return when (val state = store.current()) {
+        return when (this) {
             is ColorSchemeState.Idle -> Request(
                 seed = seed,
                 mode = defaultMode,
                 swatchCount = defaultSwatchCount,
             )
-            is ColorSchemeState.Loading -> state.request.copy(seed = seed)
+            is ColorSchemeState.Loading -> this.request.copy(seed = seed)
             is ColorSchemeState.Ready -> Request(
                 seed = seed,
-                mode = state.data.selectedMode,
-                swatchCount = state.data.selectedSwatchCount,
+                mode = this.data.selectedMode,
+                swatchCount = this.data.selectedSwatchCount,
             )
-            is ColorSchemeState.Error -> state.request.copy(seed = seed)
+            is ColorSchemeState.Error -> this.request.copy(seed = seed)
         }
     }
 
@@ -232,22 +226,16 @@ class CreateColorSchemeDataUseCase @Inject constructor(
     operator fun invoke(
         scheme: DomainColorScheme,
         request: Request,
-        onSwatchSelect: (indexOfSwatch: Int) -> Unit,
-        onModeSelect: (Mode) -> Unit,
-        onSwatchCountSelect: (SwatchCount) -> Unit,
     ) =
         ColorSchemeData(
-            swatches = scheme.swatchDetails.map { details ->
-                details.color.toSwatch()
-            },
-            onSwatchSelect = onSwatchSelect,
+            swatches = scheme.swatchDetails
+                .map { details -> details.color.toSwatch() }
+                .toPersistentList(),
             activeMode = request.mode,
             selectedMode = request.mode,
-            onModeSelect = onModeSelect,
             activeSwatchCount = request.swatchCount,
             selectedSwatchCount = request.swatchCount,
-            onSwatchCountSelect = onSwatchCountSelect,
-            changes = Changes.None, // 'active' and 'selected' values are same initially
+            hasChangesToApply = false, // 'active' and 'selected' values are same initially
         )
 
     private fun Color.toSwatch() =
@@ -260,10 +248,7 @@ class CreateColorSchemeDataUseCase @Inject constructor(
 /**
  * Creates updated copies of [ColorSchemeData] while ensuring data consistency.
  */
-// 'private' but Dagger
-class ColorSchemeDataEditor(
-    private val applyChanges: () -> Unit,
-) {
+private class ColorSchemeDataEditor {
 
     fun ColorSchemeData.copyConsistently(
         selectedMode: Mode = this.selectedMode,
@@ -272,7 +257,7 @@ class ColorSchemeDataEditor(
         this.copy(
             selectedMode = selectedMode,
             selectedSwatchCount = selectedSwatchCount,
-            changes = Changes(
+            hasChangesToApply = hasChangesToApply(
                 selectedMode,
                 this.activeMode,
                 selectedSwatchCount,
@@ -280,15 +265,14 @@ class ColorSchemeDataEditor(
             ),
         )
 
-    private fun Changes(
+    private fun hasChangesToApply(
         selectedMode: Mode,
         activeMode: Mode,
         selectedSwatchCount: SwatchCount,
         activeSwatchCount: SwatchCount,
-    ): Changes {
+    ): Boolean {
         val hasModeChanged by lazy { selectedMode != activeMode }
         val hasSwatchCountChanged by lazy { selectedSwatchCount != activeSwatchCount }
-        val hasChanges = (hasModeChanged || hasSwatchCountChanged)
-        return if (hasChanges) Changes.Present(applyChanges) else Changes.None
+        return (hasModeChanged || hasSwatchCountChanged)
     }
 }

@@ -185,7 +185,7 @@ class ColorSchemeViewModelTest {
             sut.fetchColorScheme(seed = mockk())
             sut.data.onModeSelect(Mode.Analogic)
 
-            sut.data.changes should beOfType<Changes.Present>()
+            sut.data.hasChangesToApply should beOfType<Changes.Present>()
         }
 
     @Test
@@ -199,10 +199,10 @@ class ColorSchemeViewModelTest {
 
             sut.fetchColorScheme(seed = mockk())
             sut.data.onModeSelect(Mode.Triad)
-            sut.data.changes.asPresent().applyChanges()
+            sut.data.hasChangesToApply.asPresent().applyChanges()
             sut.data.onModeSelect(Mode.Triad)
 
-            sut.data.changes should beOfType<Changes.None>()
+            sut.data.hasChangesToApply should beOfType<Changes.None>()
         }
 
     @Test
@@ -232,7 +232,7 @@ class ColorSchemeViewModelTest {
             sut.fetchColorScheme(seed = mockk())
             sut.data.onSwatchCountSelect(SwatchCount.Thirteen)
 
-            sut.data.changes should beOfType<Changes.Present>()
+            sut.data.hasChangesToApply should beOfType<Changes.Present>()
         }
 
     @Test
@@ -246,10 +246,10 @@ class ColorSchemeViewModelTest {
 
             sut.fetchColorScheme(seed = mockk())
             sut.data.onSwatchCountSelect(SwatchCount.Thirteen)
-            sut.data.changes.asPresent().applyChanges()
+            sut.data.hasChangesToApply.asPresent().applyChanges()
             sut.data.onSwatchCountSelect(SwatchCount.Thirteen)
 
-            sut.data.changes should beOfType<Changes.None>()
+            sut.data.hasChangesToApply should beOfType<Changes.None>()
         }
 
     @Test
@@ -264,7 +264,7 @@ class ColorSchemeViewModelTest {
 
             sut.fetchColorScheme(seedColor)
             sut.data.onModeSelect(Mode.Triad)
-            sut.data.changes.asPresent().applyChanges()
+            sut.data.hasChangesToApply.asPresent().applyChanges()
 
             val requests = mutableListOf<GetColorSchemeRequest>()
             coVerify { colorRepository.getColorScheme(request = capture(requests)) }
@@ -326,7 +326,7 @@ class ColorSchemeViewModelTest {
                 )
                 Result.failure(exception)
             }
-            sut.data.changes.asPresent().applyChanges()
+            sut.data.hasChangesToApply.asPresent().applyChanges()
             mockGetColorSchemeReturnsSuccess()
 
             sut.dataStateFlow.value.shouldBeInstanceOf<DataState.Error>().error.tryAgain()

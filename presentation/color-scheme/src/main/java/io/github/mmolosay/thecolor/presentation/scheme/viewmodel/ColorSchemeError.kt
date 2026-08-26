@@ -5,5 +5,4 @@ package io.github.mmolosay.thecolor.presentation.scheme.viewmodel
  */
 data class ColorSchemeError(
     val cause: Throwable,
-    val tryAgain: () -> Unit,
 )

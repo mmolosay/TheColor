@@ -2,20 +2,18 @@ package io.github.mmolosay.thecolor.presentation.scheme.viewmodel
 
 import io.github.mmolosay.thecolor.domain.color.ColorScheme
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
+import kotlinx.collections.immutable.ImmutableList
 
 /**
  * Platform-agnostic data provided by ViewModel to 'Color Scheme' View.
  */
 data class ColorSchemeData(
-    val swatches: List<Swatch>,
-    val onSwatchSelect: (indexOfSwatch: Int) -> Unit,
+    val swatches: ImmutableList<Swatch>,
     val activeMode: ColorScheme.Mode,
     val selectedMode: ColorScheme.Mode,
-    val onModeSelect: (ColorScheme.Mode) -> Unit,
     val activeSwatchCount: SwatchCount,
     val selectedSwatchCount: SwatchCount,
-    val onSwatchCountSelect: (SwatchCount) -> Unit,
-    val changes: Changes,
+    val hasChangesToApply: Boolean,
 ) {
 
     data class Swatch(
@@ -41,10 +39,5 @@ data class ColorSchemeData(
         Nine(9),
         Thirteen(13),
         Eighteen(18),
-    }
-
-    sealed interface Changes {
-        data object None : Changes
-        data class Present(val applyChanges: () -> Unit) : Changes
     }
 }

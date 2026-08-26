@@ -43,6 +43,7 @@ import io.github.mmolosay.thecolor.presentation.errors.rememberDefaultErrorsUiSt
 import io.github.mmolosay.thecolor.utils.doNothing
 import kotlinx.coroutines.Job
 
+@Suppress("unused") // example of having 'ViewModel' as entry point
 @Composable
 fun ColorDetails(
     viewModel: ColorDetailsViewModel,
