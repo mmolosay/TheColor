@@ -1,13 +1,11 @@
 package io.github.mmolosay.thecolor.presentation.scheme
 
-import arrow.optics.optics
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
 import io.github.mmolosay.thecolor.domain.color.ColorScheme.Mode as DomainMode
 
 /**
  * Platform-agnostic data provided by ViewModel to 'Color Scheme' View.
  */
-@optics
 data class ColorSchemeData(
     val swatches: List<Swatch>,
     val onSwatchSelect: (indexOfSwatch: Int) -> Unit,
@@ -49,6 +47,4 @@ data class ColorSchemeData(
         data object None : Changes
         data class Present(val applyChanges: () -> Unit) : Changes
     }
-
-    companion object // required by Arrow's optics
 }

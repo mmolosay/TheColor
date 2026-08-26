@@ -9,6 +9,7 @@ import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEv
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsState
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEventHandler
+import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeState
 import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
 import io.github.mmolosay.thecolor.utils.Store
 import kotlinx.coroutines.CoroutineScope
@@ -83,6 +84,7 @@ class ColorCenterComponentsFactory @Inject constructor(
             colorSchemeViewModelCoroutineScope = ViewModelCoroutineScope(parent = coroutineScope)
             val colorSchemeViewModel = colorSchemeViewModelFactory.create(
                 coroutineScope = colorSchemeViewModelCoroutineScope,
+                store = Store(ColorSchemeState.Idle),
                 eventHandler = colorSchemeEventHandler,
             )
             return@run colorCenterViewModelFactory.create(

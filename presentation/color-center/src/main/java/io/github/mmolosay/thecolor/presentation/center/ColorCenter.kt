@@ -72,19 +72,19 @@ fun ColorCenter(
         scheme = {
             @Suppress("NAME_SHADOWING")
             val viewModel = viewModel.colorSchemeViewModel
-            val dataState = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
+            val actualState = viewModel.stateFlow.collectAsStateWithLifecycle().value
             val transition = updateTransition(
-                targetState = dataState,
+                targetState = actualState,
                 label = "Color Scheme cross-fade",
             )
-            // there's no 'ColorSchemeCrossfade()' as for Color Details yet.
-            // unlike Color Details, Color Scheme is only used in one place, here.
+            // there's no 'ColorSchemeCrossfade()' as for 'Color Details' yet.
+            // unlike 'Color Details', 'Color Scheme' is only used in one place, here.
             transition.Crossfade(
                 animationSpec = crossfadeSpec,
-                contentKey = { it::class }, // don't animate when 'DataState' type stays the same but only its values change
+                contentKey = { it::class }, // don't animate when 'ColorSchemeState' type stays the same but only its values change
             ) { state ->
                 ColorScheme(
-                    dataState = state,
+                    state = state,
                 )
             }
         },

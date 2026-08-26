@@ -63,30 +63,34 @@ import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.errors.ErrorMessageWithButton
 import io.github.mmolosay.thecolor.presentation.errors.messageOrUnknown
 import io.github.mmolosay.thecolor.presentation.errors.rememberDefaultErrorsUiStrings
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.DataState
 import io.github.mmolosay.thecolor.utils.doNothing
 import io.github.mmolosay.thecolor.domain.color.ColorScheme as DomainColorScheme
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 @Composable
 fun ColorScheme(
-    dataState: DataState,
+    state: ColorSchemeState,
 ) {
     val context = LocalContext.current
     val strings = remember(context) { ColorSchemeUiStrings(context) }
-    when (dataState) {
-        is DataState.Idle ->
-            doNothing() // Color Details shouldn't be visible at Home at this point
-        is DataState.Loading ->
+    when (state) {
+        is ColorSchemeState.Idle -> {
+            doNothing() // Color Scheme shouldn't be visible at Home at this point
+        }
+        is ColorSchemeState.Loading -> {
             ColorSchemeLoading()
-        is DataState.Ready -> {
+        }
+        is ColorSchemeState.Ready -> {
             ColorScheme(
-                data = dataState.data,
+                data = state.data,
                 strings = strings,
             )
         }
-        is DataState.Error ->
-            Error(error = dataState.error)
+        is ColorSchemeState.Error -> {
+            Error(
+                error = state.error,
+            )
+        }
     }
 }
 
@@ -493,7 +497,7 @@ private fun previewUiStrings(): ColorSchemeUiStrings {
             annotation(key = key, value = SectionTitleAnnotationValueForValue) { append(value) }
         }
     return ColorSchemeUiStrings(
-        modeTitle = sectionTitle(label = "Mode:", value = "%1\$s"),
+        modeTitle = sectionTitle(label = "Mode:", value = $$"%1$s"),
         modeMonochromeName = "monochrome",
         modeMonochromeDarkName = "monochrome-dark",
         modeMonochromeLightName = "monochrome-light",
@@ -502,7 +506,7 @@ private fun previewUiStrings(): ColorSchemeUiStrings {
         modeAnalogicComplementName = "analogic-complement",
         modeTriadName = "triad",
         modeQuadName = "quad",
-        swatchCountTitle = sectionTitle(label = "Swatch count:", value = "%1\$s"),
+        swatchCountTitle = sectionTitle(label = "Swatch count:", value = $$"%1$s"),
         applyChangesButtonText = "Apply changes",
     )
 }
