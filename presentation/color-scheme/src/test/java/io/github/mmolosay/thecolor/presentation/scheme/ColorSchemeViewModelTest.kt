@@ -12,9 +12,13 @@ import io.github.mmolosay.thecolor.domain.exception.DomainException
 import io.github.mmolosay.thecolor.domain.exception.DomainFailure
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Changes
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.SwatchCount
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel.DataState
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeData
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeData.Changes
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeData.SwatchCount
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeEvent
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeViewModel
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeViewModel.DataState
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.CreateColorSchemeDataUseCase
 import io.github.mmolosay.thecolor.testing.MainDispatcherExtension
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -35,11 +39,11 @@ import org.junit.jupiter.api.extension.RegisterExtension
 import io.github.mmolosay.thecolor.domain.color.ColorScheme as DomainColorScheme
 
 /**
- * In some cases SUT ViewModel will use mocked instance of [CreateColorSchemeDataUseCase].
+ * In some cases SUT ViewModel will use mocked instance of [io.github.mmolosay.thecolor.presentation.scheme.viewmodel.CreateColorSchemeDataUseCase].
  * It is done to simplify tests which don't check contents of returned data: we can just return mock from the use case.
  *
  * In other cases (majority), we want to check contents of returned data.
- * For that we pass real instance of [CreateColorSchemeDataUseCase] to ViewModel.
+ * For that we pass real instance of [io.github.mmolosay.thecolor.presentation.scheme.viewmodel.CreateColorSchemeDataUseCase] to ViewModel.
  * This way the code of use case is treated like internal private part of ViewModel.
  * This approach produces data as if it was in production, meaning that contents are plausible
  * and appropriate for tests that verify values.
@@ -293,7 +297,7 @@ class ColorSchemeViewModelTest {
      * 2. selected mode and swatch count are changed.
      * 3. changes are applied, but this time data fetching returns failure and data state
      * is set to [DataState.Error].
-     * 4. [ColorSchemeError.tryAgain] is invoked
+     * 4. [io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeError.tryAgain] is invoked
      *
      * THEN
      * data is fetched successfully and mode / swatch count that were set in WHEN #2 are used in request.

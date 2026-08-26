@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.scheme
+package io.github.mmolosay.thecolor.presentation.scheme.ui
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.Orientation
@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import io.github.mmolosay.thecolor.presentation.common.compose.drawIf
 import io.github.mmolosay.thecolor.presentation.common.compose.rememberSnapshotFlow
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeData
 import io.github.mmolosay.thecolor.utils.DebugOnly
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex

@@ -1,9 +1,7 @@
-package io.github.mmolosay.thecolor.presentation.scheme
+package io.github.mmolosay.thecolor.presentation.scheme.viewmodel
 
 import io.github.mmolosay.thecolor.domain.color.Color
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.SwatchCount
-import io.github.mmolosay.thecolor.domain.color.ColorScheme as DomainColorScheme
-import io.github.mmolosay.thecolor.domain.color.ColorScheme.Mode as DomainMode
+import io.github.mmolosay.thecolor.domain.color.ColorScheme
 
 sealed interface ColorSchemeState {
 
@@ -16,7 +14,7 @@ sealed interface ColorSchemeState {
     data class Ready(
         val request: Request,
         val data: ColorSchemeData,
-        val domainColorScheme: DomainColorScheme,
+        val domainColorScheme: ColorScheme,
     ) : ColorSchemeState
 
     data class Error(
@@ -26,7 +24,7 @@ sealed interface ColorSchemeState {
 
     data class Request(
         val seed: Color,
-        val mode: DomainMode,
-        val swatchCount: SwatchCount,
+        val mode: ColorScheme.Mode,
+        val swatchCount: ColorSchemeData.SwatchCount,
     )
 }

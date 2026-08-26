@@ -30,8 +30,8 @@ import io.github.mmolosay.thecolor.presentation.input.model.ColorInputValidation
 import io.github.mmolosay.thecolor.presentation.input.testing.MockColorInputMediatorComponents
 import io.github.mmolosay.thecolor.presentation.input.testing.mockSet
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeEvent
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeViewModel
 import io.github.mmolosay.thecolor.testing.MainDispatcherExtension
 import io.github.mmolosay.thecolor.utils.ClosableSuspendGate
 import io.github.mmolosay.thecolor.utils.ClosedLatch

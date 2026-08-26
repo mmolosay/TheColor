@@ -41,9 +41,9 @@ import io.github.mmolosay.thecolor.presentation.common.compose.withoutBottom
 import io.github.mmolosay.thecolor.presentation.common.navbar.NavBarAppearanceController
 import io.github.mmolosay.thecolor.presentation.common.navbar.RootNavBarAppearanceController
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.details.ColorDetails
-import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCrossfade
-import io.github.mmolosay.thecolor.presentation.details.rememberColorDetailsFacade
+import io.github.mmolosay.thecolor.presentation.details.ui.ColorDetails
+import io.github.mmolosay.thecolor.presentation.details.ui.ColorDetailsCrossfade
+import io.github.mmolosay.thecolor.presentation.details.ui.rememberColorDetailsFacade
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.SubjectColorData
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.subjectColorOrNull
 import io.github.mmolosay.thecolor.presentation.home.ui.center.BareColorCenterComposable

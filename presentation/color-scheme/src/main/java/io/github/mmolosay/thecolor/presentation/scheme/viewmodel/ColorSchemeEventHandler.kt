@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.scheme
+package io.github.mmolosay.thecolor.presentation.scheme.viewmodel
 
 /**
  * Handles [ColorSchemeEvent]s that originate in 'Color Scheme' feature.

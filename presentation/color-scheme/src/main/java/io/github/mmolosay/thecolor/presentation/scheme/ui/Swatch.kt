@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.scheme
+package io.github.mmolosay.thecolor.presentation.scheme.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,6 +11,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import io.github.mmolosay.thecolor.presentation.common.colorint.toCompose
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeData
 
 @Composable
 internal fun Swatch(
@@ -18,7 +19,8 @@ internal fun Swatch(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val colors = rememberContentColors(useLight = swatch.isDark) // light content on dark and vice versa
+    val colors =
+        rememberContentColors(useLight = swatch.isDark) // light content on dark and vice versa
     ProvideColorsOnTintedSurface(colors) { // provides correct ripple
         Box(
             modifier = modifier

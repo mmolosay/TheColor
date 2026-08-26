@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.scheme
+package io.github.mmolosay.thecolor.presentation.scheme.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

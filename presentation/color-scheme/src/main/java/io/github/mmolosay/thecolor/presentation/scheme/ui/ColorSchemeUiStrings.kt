@@ -1,7 +1,8 @@
-package io.github.mmolosay.thecolor.presentation.scheme
+package io.github.mmolosay.thecolor.presentation.scheme.ui
 
 import android.content.Context
 import android.text.Spanned
+import io.github.mmolosay.thecolor.presentation.scheme.R
 
 /**
  * Strings that are pre-defined in UI and don't come from ViewModel.

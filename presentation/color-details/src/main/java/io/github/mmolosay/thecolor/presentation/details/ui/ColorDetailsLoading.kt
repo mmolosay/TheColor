@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.details
+package io.github.mmolosay.thecolor.presentation.details.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -20,12 +20,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.valentinilk.shimmer.shimmer
+import io.github.mmolosay.thecolor.presentation.common.compose.clipFullyRounded
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
-import io.github.mmolosay.thecolor.presentation.common.compose.clipFullyRounded
 
 /**
  * Structurally repeats contents and arrangement of [ColorDetails].

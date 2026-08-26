@@ -38,10 +38,10 @@ import io.github.mmolosay.thecolor.presentation.common.compose.PlaceholderDefaul
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
-import io.github.mmolosay.thecolor.presentation.details.ColorDetails
-import io.github.mmolosay.thecolor.presentation.details.ColorDetailsCrossfade
-import io.github.mmolosay.thecolor.presentation.details.rememberColorDetailsFacade
-import io.github.mmolosay.thecolor.presentation.scheme.ColorScheme
+import io.github.mmolosay.thecolor.presentation.details.ui.ColorDetails
+import io.github.mmolosay.thecolor.presentation.details.ui.ColorDetailsCrossfade
+import io.github.mmolosay.thecolor.presentation.details.ui.rememberColorDetailsFacade
+import io.github.mmolosay.thecolor.presentation.scheme.ui.ColorScheme
 import kotlin.math.max
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 

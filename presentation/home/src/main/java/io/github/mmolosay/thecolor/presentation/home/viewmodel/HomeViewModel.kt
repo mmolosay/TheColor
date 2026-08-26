@@ -32,9 +32,9 @@ import io.github.mmolosay.thecolor.presentation.input.model.ColorInputValidation
 import io.github.mmolosay.thecolor.presentation.input.set
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEventHandler
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeEvent
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeEventHandler
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeViewModel
 import io.github.mmolosay.thecolor.utils.BatchScope
 import io.github.mmolosay.thecolor.utils.CoroutineRegistry
 import io.github.mmolosay.thecolor.utils.SideEffectIdFactory

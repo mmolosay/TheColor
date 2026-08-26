@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.scheme
+package io.github.mmolosay.thecolor.presentation.scheme.viewmodel
 
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -12,10 +12,10 @@ import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQuali
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.IoDispatcher
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Changes
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.Swatch
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeData.SwatchCount
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeState.Request
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeData.Changes
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeData.Swatch
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeData.SwatchCount
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeState.Request
 import io.github.mmolosay.thecolor.utils.CoroutineRegistry
 import io.github.mmolosay.thecolor.utils.Store
 import io.github.mmolosay.thecolor.utils.trackThisAsSingleActive

@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.scheme
+package io.github.mmolosay.thecolor.presentation.scheme.ui
 
 import android.text.Annotation
 import android.text.SpannableStringBuilder
@@ -63,6 +63,9 @@ import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.errors.ErrorMessageWithButton
 import io.github.mmolosay.thecolor.presentation.errors.messageOrUnknown
 import io.github.mmolosay.thecolor.presentation.errors.rememberDefaultErrorsUiStrings
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeData
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeError
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeState
 import io.github.mmolosay.thecolor.utils.doNothing
 import io.github.mmolosay.thecolor.domain.color.ColorScheme as DomainColorScheme
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR

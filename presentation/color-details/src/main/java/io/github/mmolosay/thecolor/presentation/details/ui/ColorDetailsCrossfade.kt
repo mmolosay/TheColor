@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.details
+package io.github.mmolosay.thecolor.presentation.details.ui
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi

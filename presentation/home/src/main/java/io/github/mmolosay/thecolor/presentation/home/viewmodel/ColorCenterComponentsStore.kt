@@ -8,9 +8,9 @@ import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCorout
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEventHandler
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsState
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEventHandler
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeState
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeEventHandler
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeState
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeViewModel
 import io.github.mmolosay.thecolor.utils.Store
 import kotlinx.coroutines.CoroutineScope
 import javax.inject.Inject
