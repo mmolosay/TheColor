@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -33,6 +34,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.mmolosay.thecolor.presentation.center.ColorCenterData.SideEffect
 import io.github.mmolosay.thecolor.presentation.common.compose.Placeholder
 import io.github.mmolosay.thecolor.presentation.common.compose.PlaceholderDefaults
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
@@ -43,6 +45,9 @@ import io.github.mmolosay.thecolor.presentation.details.ui.ColorDetailsCrossfade
 import io.github.mmolosay.thecolor.presentation.details.ui.rememberColorDetailsFacade
 import io.github.mmolosay.thecolor.presentation.scheme.ui.ColorScheme
 import io.github.mmolosay.thecolor.presentation.scheme.ui.rememberColorSchemeFacade
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.Job
 import kotlin.math.max
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
@@ -52,14 +57,15 @@ fun ColorCenter(
     viewModel: ColorCenterViewModel,
     modifier: Modifier = Modifier,
 ) {
+    val facade = rememberColorCenterFacade(viewModel)
     val crossfadeSpec = tween<Float>(
         durationMillis = 500,
         easing = FastOutSlowInEasing,
     )
     ColorCenter(
         modifier = modifier,
-        viewModel = viewModel,
-        details = {
+        facade = facade,
+        colorDetails = {
             @Suppress("NAME_SHADOWING")
             val viewModel = viewModel.colorDetailsViewModel
             val actualFacade = rememberColorDetailsFacade(viewModel)
@@ -70,7 +76,7 @@ fun ColorCenter(
                 ColorDetails(facade = facade)
             }
         },
-        scheme = {
+        colorScheme = {
             @Suppress("NAME_SHADOWING")
             val viewModel = viewModel.colorSchemeViewModel
             val actualFacade = rememberColorSchemeFacade(viewModel)
@@ -93,20 +99,27 @@ fun ColorCenter(
 }
 
 @Composable
+fun rememberColorCenterFacade(viewModel: ColorCenterViewModel): ColorCenterFacade {
+    val handle = remember(viewModel) { ColorCenterHandle(viewModel) }
+    val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
+    return remember(handle, data) { handle.facade(data) }
+}
+
+@Composable
 fun ColorCenter(
-    viewModel: ColorCenterViewModel,
-    details: @Composable () -> Unit,
-    scheme: @Composable () -> Unit,
+    facade: ColorCenterFacade,
+    colorDetails: @Composable () -> Unit,
+    colorScheme: @Composable () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val strings = remember(context) { ColorCenterUiStrings(context) }
-    val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
     ColorCenter(
-        data = data,
+        data = facade.data,
         strings = strings,
-        colorDetails = details,
-        colorScheme = scheme,
+        execute = facade.execute,
+        colorDetails = colorDetails,
+        colorScheme = colorScheme,
         modifier = modifier,
     )
 }
@@ -116,6 +129,7 @@ fun ColorCenter(
 fun ColorCenter(
     data: ColorCenterData,
     strings: ColorCenterUiStrings,
+    execute: ExecuteColorCenterAction,
     colorDetails: @Composable () -> Unit,
     colorScheme: @Composable () -> Unit,
     modifier: Modifier = Modifier,
@@ -135,7 +149,10 @@ fun ColorCenter(
             changePageButton = {
                 ChangePageButton(
                     text = strings.detailsPageChangePageButtonText,
-                    onClick = { data.changePage(1) },
+                    onClick = {
+                        val action = ColorCenterAction.ChangePage(pageIndex = 1)
+                        execute(action)
+                    },
                     icon = ImageVector.vectorResource(DesignR.drawable.ic_keyboard_arrow_right),
                     iconPlacement = IconPlacement.Trailing,
                 )
@@ -150,7 +167,10 @@ fun ColorCenter(
             changePageButton = {
                 ChangePageButton(
                     text = strings.schemePageChangePageButtonText,
-                    onClick = { data.changePage(0) },
+                    onClick = {
+                        val action = ColorCenterAction.ChangePage(pageIndex = 0)
+                        execute(action)
+                    },
                     icon = ImageVector.vectorResource(DesignR.drawable.ic_keyboard_arrow_left),
                     iconPlacement = IconPlacement.Leading,
                 )
@@ -182,14 +202,40 @@ fun ColorCenter(
         }
     }
 
-    LaunchedEffect(data.changePageEvent) {
-        val event = data.changePageEvent ?: return@LaunchedEffect
-        try {
-            userScrollEnabled = false
-            pagerState.animateScrollToPage(page = event.destPage)
-            event.onConsumed()
-        } finally {
-            userScrollEnabled = true // ensure re-enabled if LaunchedEffect() is cancelled
+    ProcessSideEffectsAsSideEffect(
+        sideEffects = data.sideEffects,
+        onSideEffectProcessed = { se ->
+            val action = ColorCenterAction.OnSideEffectProcessed(se)
+            execute(action)
+        },
+        changePage = { se ->
+            try {
+                userScrollEnabled = false
+                pagerState.animateScrollToPage(page = se.pageIndex)
+            } finally {
+                userScrollEnabled = true // ensure re-enabled if LaunchedEffect() is cancelled
+            }
+        },
+    )
+}
+
+@Composable
+private fun ProcessSideEffectsAsSideEffect(
+    sideEffects: ImmutableList<SideEffect>,
+    onSideEffectProcessed: (SideEffect) -> Unit,
+    changePage: suspend (SideEffect.ChangePage) -> Unit,
+) {
+    suspend fun process(se: SideEffect.ChangePage) {
+        changePage(se)
+        onSideEffectProcessed(se)
+    }
+    for (se in sideEffects) {
+        key(se.id) {
+            LaunchedEffect(Unit) {
+                when (se) {
+                    is SideEffect.ChangePage -> process(se)
+                }
+            }
         }
     }
 }
@@ -215,6 +261,7 @@ private fun Preview() {
                 ColorCenter(
                     data = previewData(),
                     strings = previewUiStrings(),
+                    execute = { Job() },
                     colorDetails = {
                         Page("Color details")
                     },
@@ -229,8 +276,7 @@ private fun Preview() {
 
 private fun previewData() =
     ColorCenterData(
-        changePage = {},
-        changePageEvent = null,
+        sideEffects = persistentListOf(),
     )
 
 private fun previewUiStrings() =

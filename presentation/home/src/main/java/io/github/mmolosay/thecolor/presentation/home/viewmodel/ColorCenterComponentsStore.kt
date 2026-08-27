@@ -3,6 +3,7 @@ package io.github.mmolosay.thecolor.presentation.home.viewmodel
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import io.github.mmolosay.thecolor.presentation.center.ColorCenterData
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEventHandler
@@ -12,6 +13,7 @@ import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeEven
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeState
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeViewModel
 import io.github.mmolosay.thecolor.utils.Store
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.CoroutineScope
 import javax.inject.Inject
 
@@ -89,6 +91,11 @@ class ColorCenterComponentsFactory @Inject constructor(
             )
             return@run colorCenterViewModelFactory.create(
                 coroutineScope = coroutineScope,
+                store = Store(
+                    ColorCenterData(
+                        sideEffects = persistentListOf(),
+                    )
+                ),
                 colorDetailsViewModel = colorDetailsViewModel,
                 colorSchemeViewModel = colorSchemeViewModel,
             )

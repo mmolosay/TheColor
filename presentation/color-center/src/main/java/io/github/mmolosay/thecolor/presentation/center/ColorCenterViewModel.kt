@@ -3,14 +3,21 @@ package io.github.mmolosay.thecolor.presentation.center
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.presentation.center.ColorCenterData.ChangePageEvent
+import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
+import io.github.mmolosay.thecolor.presentation.center.ColorCenterData.SideEffect
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeViewModel
+import io.github.mmolosay.thecolor.utils.SideEffectIdFactory
+import io.github.mmolosay.thecolor.utils.Store
+import kotlinx.collections.immutable.minus
+import kotlinx.collections.immutable.plus
+import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 /**
  * Handles presentation logic of the 'Color Center' feature.
@@ -22,34 +29,42 @@ import kotlinx.coroutines.flow.update
  */
 class ColorCenterViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
+    @Assisted private val store: Store<ColorCenterData>,
     @Assisted val colorDetailsViewModel: ColorDetailsViewModel,
     @Assisted val colorSchemeViewModel: ColorSchemeViewModel,
+    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
-    private val _dataFlow = MutableStateFlow(initialData())
-    val dataFlow = _dataFlow.asStateFlow()
+    val dataFlow: StateFlow<ColorCenterData> = store.flow
 
-    private fun changePage(destPage: Int) {
-        _dataFlow.update { data ->
-            val event = ChangePageEvent(
-                destPage = destPage,
-                onConsumed = ::clearChangePageEvent,
-            )
-            data.copy(changePageEvent = event)
+    private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
+    private val seFactory = SideEffectFactory()
+
+    fun execute(action: ColorCenterAction): Job =
+        coroutineScope.launch(exclusiveLane) {
+            when (action) {
+                is ColorCenterAction.ChangePage -> {
+                    changePage(action.pageIndex)
+                }
+                is ColorCenterAction.OnSideEffectProcessed -> {
+                    onSideEffectProcessed(action.se)
+                }
+            }
+        }
+
+    private suspend fun changePage(pageIndex: Int) {
+        val se = seFactory.changePage(pageIndex)
+        store.update {
+            it.copy(sideEffects = it.sideEffects.toPersistentList() + se)
         }
     }
 
-    private fun clearChangePageEvent() {
-        _dataFlow.update { data ->
-            data.copy(changePageEvent = null)
+    private suspend fun onSideEffectProcessed(se: SideEffect) {
+        store.update {
+            val newSideEffects = it.sideEffects.toPersistentList() - se
+            it.copy(sideEffects = newSideEffects)
         }
     }
-
-    private fun initialData(): ColorCenterData =
-        ColorCenterData(
-            changePage = ::changePage,
-            changePageEvent = null,
-        )
 
     override fun dispose() {
         super.dispose()
@@ -61,8 +76,20 @@ class ColorCenterViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
+            store: Store<ColorCenterData>,
             colorDetailsViewModel: ColorDetailsViewModel,
             colorSchemeViewModel: ColorSchemeViewModel,
         ): ColorCenterViewModel
     }
+}
+
+private class SideEffectFactory {
+
+    private val idFactory = SideEffectIdFactory()
+
+    fun changePage(pageIndex: Int): SideEffect.ChangePage =
+        SideEffect.ChangePage(
+            id = idFactory.get(),
+            pageIndex = pageIndex,
+        )
 }

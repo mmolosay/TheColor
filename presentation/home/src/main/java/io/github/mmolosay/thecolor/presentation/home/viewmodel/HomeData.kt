@@ -9,7 +9,7 @@ import io.github.mmolosay.thecolor.utils.SideEffect as UtilsSideEffect
 data class HomeData(
     val canProceed: Boolean,
     val proceedResult: ProceedResult?,
-    val sideEffects: List<SideEffect>,
+    val sideEffects: List<SideEffect>, // TODO: change to ImmutableList
 ) {
 
     /** Result of executing a 'proceed' action. */
