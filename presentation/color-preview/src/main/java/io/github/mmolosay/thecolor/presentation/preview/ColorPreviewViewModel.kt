@@ -8,21 +8,14 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
 import io.github.mmolosay.thecolor.domain.color.Color
-import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModelDiModule.GateForDataFlow
-import io.github.mmolosay.thecolor.utils.CoroutineRegistry
 import io.github.mmolosay.thecolor.utils.OpenSuspendGate
 import io.github.mmolosay.thecolor.utils.Store
 import io.github.mmolosay.thecolor.utils.SuspendGate
-import io.github.mmolosay.thecolor.utils.trackThisAsSingleActive
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Qualifier
 
 /**
@@ -38,40 +31,25 @@ class ColorPreviewViewModel @AssistedInject constructor(
     @Assisted private val store: Store<ColorPreviewData?>,
     private val colorToColorInt: ColorToColorIntUseCase,
     @GateForDataFlow private val gateForDataFlow: SuspendGate,
-    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
     val dataFlow: StateFlow<ColorPreviewData?> = store.flow
 
-    private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
-    private val opRegistry = CoroutineRegistry<Operation>()
-
     /**
      * Sets the new [color].
      * It will be transformed to the [ColorPreviewData] and exposed via [dataFlow].
-     *
-     * All calls to this method are conflated, meaning that if there is an ongoing job that belong to this method,
-     * then when it's invoked again the ongoing job will be canceled.
      */
-    fun setColor(color: Color?): Job =
-        coroutineScope.launch(exclusiveLane) {
-            opRegistry.trackThisAsSingleActive(
-                predicate = { it.value is Operation.SetColor },
-                value = Operation.SetColor(color),
-            ) {
-                withContext(defaultDispatcher) {
-                    gateForDataFlow.awaitOpen()
-                    val colorInt = with(colorToColorInt) { color?.toColorInt() }
-                    store.update {
-                        if (it == null) {
-                            ColorPreviewData(color = colorInt)
-                        } else {
-                            it.copy(color = colorInt)
-                        }
-                    }
-                }
+    suspend fun setColor(color: Color?) {
+        gateForDataFlow.awaitOpen()
+        val colorInt = with(colorToColorInt) { color?.toColorInt() }
+        store.update {
+            if (it == null) {
+                ColorPreviewData(color = colorInt)
+            } else {
+                it.copy(color = colorInt)
             }
         }
+    }
 
     @AssistedFactory
     fun interface Factory {
@@ -79,20 +57,6 @@ class ColorPreviewViewModel @AssistedInject constructor(
             coroutineScope: CoroutineScope,
             store: Store<ColorPreviewData?>,
         ): ColorPreviewViewModel
-    }
-
-    /**
-     * Directly maps to the public methods of the [ColorPreviewViewModel].
-     * Implements "Command" design pattern.
-     */
-    private sealed interface Operation {
-
-        /**
-         * Corresponds to the [ColorPreviewViewModel.setColor] method.
-         */
-        data class SetColor(
-            val color: Color?,
-        ) : Operation
     }
 }
 

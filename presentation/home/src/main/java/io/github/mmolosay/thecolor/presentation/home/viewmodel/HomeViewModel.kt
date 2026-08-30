@@ -358,7 +358,7 @@ class HomeViewModel @Inject constructor(
             val canProceed = CanProceed(colorFromColorInput = color)
             it.copy(canProceed = canProceed)
         }
-        colorPreviewViewModel.setColor(color).join()
+        colorPreviewViewModel.setColor(color)
     }
 
     private inner class ColorInputSubmitActionImpl : ColorInputSubmitAction {
