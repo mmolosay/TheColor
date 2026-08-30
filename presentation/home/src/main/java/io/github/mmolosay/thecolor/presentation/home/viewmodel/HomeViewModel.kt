@@ -48,7 +48,6 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -327,12 +326,10 @@ class HomeViewModel @Inject constructor(
         seed: Color,
         deferredDetails: Deferred<DomainColorDetails>,
     ) {
-        val job = Job(parent = currentCoroutineContext().job)
-        // start building a new session inline suspending to guarantee that
-        // by the time this function returns the session store has a new 'building' state
-        val sessionBuilding = ccSessionStore.startBuilding(seed, job)
-        @Suppress("CoroutineContextWithJob") // job is created correctly with the parent specified
-        coroutineScope.launch(job) {
+        val startedBuilding = CompletableDeferred<Unit>()
+        coroutineScope.launch {
+            val sessionBuilding = ccSessionStore.startBuilding(seed, coroutineContext.job)
+            startedBuilding.complete(Unit)
             val session = run {
                 val seedDetails = runCatching { deferredDetails.await() }.getOrElse {
                     sessionBuilding.cancel() // will also cancel this coroutine
@@ -344,6 +341,8 @@ class HomeViewModel @Inject constructor(
             }
             sessionBuilding.complete(session)
         }
+        // suspend inline until the state of session store is updated to 'BeingBuilt'
+        startedBuilding.await()
 
         coroutineScope.launch {
             lastSearchedColorRepository.setLastSearchedColor(seed)
