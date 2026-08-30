@@ -161,7 +161,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
         fetchColorScheme(seed = state.request.seed)
     }
 
-    private fun ColorSchemeEventHandler.offer(event: ColorSchemeEvent) {
+    private suspend fun ColorSchemeEventHandler.offer(event: ColorSchemeEvent) {
         if (!coroutineScope.isActive) return
         this.invoke(event)
     }

@@ -47,6 +47,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -147,8 +148,10 @@ class HomeViewModel @Inject constructor(
                     colorInputMediator.set(color)
                     onColorBecameCurrent(color)
                     proceed(color) { colorDetails, colorScheme ->
-                        colorDetails.setSeedColor(color, deferredDetails)
-                        colorScheme.fetchColorScheme(color)
+                        coroutineScope {
+                            launch { colorDetails.setSeedColor(color, deferredDetails) }
+                            launch { colorScheme.fetchColorScheme(color) }
+                        }
                     }
                 }
             }
@@ -200,8 +203,10 @@ class HomeViewModel @Inject constructor(
                     colorInputMediator.set(color)
                     onColorBecameCurrent(color)
                     proceed(color) { colorDetails, colorScheme ->
-                        colorDetails.setSeedColor(color, deferredDetails)
-                        colorScheme.fetchColorScheme(color)
+                        coroutineScope {
+                            launch { colorDetails.setSeedColor(color, deferredDetails) }
+                            launch { colorScheme.fetchColorScheme(color) }
+                        }
                     }
                 }
             }
@@ -254,8 +259,10 @@ class HomeViewModel @Inject constructor(
                                 deferredDetails = deferredDetails,
                             )
                             proceed(color) { colorDetails, colorScheme ->
-                                colorDetails.setSeedColor(color, deferredDetails)
-                                colorScheme.fetchColorScheme(color)
+                                coroutineScope {
+                                    launch { colorDetails.setSeedColor(color, deferredDetails) }
+                                    launch { colorScheme.fetchColorScheme(color) }
+                                }
                             }
                         }
                     }
@@ -381,8 +388,10 @@ class HomeViewModel @Inject constructor(
                                         deferredDetails = deferredDetails,
                                     )
                                     proceed(color) { colorDetails, colorScheme ->
-                                        colorDetails.setSeedColor(color, deferredDetails)
-                                        colorScheme.fetchColorScheme(color)
+                                        coroutineScope {
+                                            launch { colorDetails.setSeedColor(color, deferredDetails) }
+                                            launch { colorScheme.fetchColorScheme(color) }
+                                        }
                                     }
                                 }
                             }
@@ -404,7 +413,7 @@ class HomeViewModel @Inject constructor(
     }
 
     private inner class ColorCenterColorDetailsEventHandlerImpl : ColorDetailsEventHandler {
-        override fun invoke(event: ColorDetailsEvent) {
+        override suspend fun invoke(event: ColorDetailsEvent) {
             when (event) {
                 is ColorDetailsEvent.ColorSelected ->
                     viewModelScope.launch(defaultDispatcher) {
@@ -416,8 +425,10 @@ class HomeViewModel @Inject constructor(
                                 onColorBecameCurrent(color)
                                 // assuming any color selected belongs to ongoing session
                                 proceed(color) { colorDetails, colorScheme ->
-                                    colorDetails.selectColor(event.colorRole)
-                                    colorScheme.fetchColorScheme(color)
+                                    coroutineScope {
+                                        launch { colorDetails.selectColor(event.colorRole) }
+                                        launch { colorScheme.fetchColorScheme(color) }
+                                    }
                                 }
                             }
                         }
@@ -427,7 +438,7 @@ class HomeViewModel @Inject constructor(
     }
 
     private inner class SelectedSwatchColorDetailsEventHandlerImpl : ColorDetailsEventHandler {
-        override fun invoke(event: ColorDetailsEvent) {
+        override suspend fun invoke(event: ColorDetailsEvent) {
             when (event) {
                 is ColorDetailsEvent.ColorSelected -> {
                     val viewModel = colorCenterComponentsStore.components
@@ -440,7 +451,7 @@ class HomeViewModel @Inject constructor(
     }
 
     private inner class ColorSchemeEventHandlerImpl : ColorSchemeEventHandler {
-        override fun invoke(event: ColorSchemeEvent) {
+        override suspend fun invoke(event: ColorSchemeEvent) {
             when (event) {
                 is ColorSchemeEvent.SwatchSelected -> {
                     val viewModel = colorCenterComponentsStore.components
