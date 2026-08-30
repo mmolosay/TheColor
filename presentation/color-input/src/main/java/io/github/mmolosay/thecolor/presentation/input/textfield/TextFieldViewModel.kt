@@ -12,7 +12,6 @@ import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.WithSource
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
-import io.github.mmolosay.thecolor.utils.RequiresWriteOrdering
 import io.github.mmolosay.thecolor.utils.Store
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -58,7 +57,6 @@ class TextFieldViewModel @AssistedInject constructor(
     }
 
     fun execute(action: TextFieldAction): Job =
-        @OptIn(RequiresWriteOrdering::class)
         coroutineScope.launch(exclusiveLane) {
             when (action) {
                 is TextFieldAction.SetText -> {
@@ -71,7 +69,6 @@ class TextFieldViewModel @AssistedInject constructor(
             }
         }
 
-    @RequiresWriteOrdering
     suspend fun setText(textWithSource: WithSource<Text>) =
         store.update {
             it.copy(text = textWithSource)

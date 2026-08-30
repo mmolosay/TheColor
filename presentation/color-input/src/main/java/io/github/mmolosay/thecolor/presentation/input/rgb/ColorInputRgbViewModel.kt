@@ -29,7 +29,6 @@ import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldHandle
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldInputProcessor
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldViewModel
 import io.github.mmolosay.thecolor.utils.Lens
-import io.github.mmolosay.thecolor.utils.RequiresWriteOrdering
 import io.github.mmolosay.thecolor.utils.Store
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -108,7 +107,6 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                 } else {
                     EmptyColorInput
                 }
-                @OptIn(RequiresWriteOrdering::class)
                 store.transaction {
                     fun String.toTextWithSource() =
                         TextFieldData.Text(this) causedByUser false
