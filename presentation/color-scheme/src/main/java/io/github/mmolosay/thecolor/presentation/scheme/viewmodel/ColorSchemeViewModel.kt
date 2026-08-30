@@ -52,26 +52,51 @@ class ColorSchemeViewModel @AssistedInject constructor(
     val stateFlow: StateFlow<ColorSchemeState> = store.flow
 
     private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
-    private val opRegistry = CoroutineRegistry<Operation>()
+    private val opRegistry = CoroutineRegistry<ColorSchemeAction>()
     private val dataEditor = ColorSchemeDataEditor()
 
     fun execute(action: ColorSchemeAction): Job =
         coroutineScope.launch(exclusiveLane) {
             when (action) {
                 is ColorSchemeAction.OnSwatchSelect -> {
-                    sendSwatchSelectedEvent(indexOfSelectedSwatch = action.index)
+                    opRegistry.trackThisAsSingleActive(
+                        predicate = { it.value is ColorSchemeAction.OnSwatchSelect },
+                        value = action,
+                    ) {
+                        sendSwatchSelectedEvent(indexOfSelectedSwatch = action.index)
+                    }
                 }
                 is ColorSchemeAction.SelectMode -> {
-                    selectMode(mode = action.mode)
+                    opRegistry.trackThisAsSingleActive(
+                        predicate = { it.value is ColorSchemeAction.SelectMode },
+                        value = action,
+                    ) {
+                        selectMode(mode = action.mode)
+                    }
                 }
                 is ColorSchemeAction.SelectSwatchCount -> {
-                    selectSwatchCount(count = action.count)
+                    opRegistry.trackThisAsSingleActive(
+                        predicate = { it.value is ColorSchemeAction.SelectSwatchCount },
+                        value = action,
+                    ) {
+                        selectSwatchCount(count = action.count)
+                    }
                 }
                 is ColorSchemeAction.ApplyChanges -> {
-                    applyChanges()
+                    opRegistry.trackThisAsSingleActive(
+                        predicate = { it.value is ColorSchemeAction.ApplyChanges },
+                        value = action,
+                    ) {
+                        applyChanges()
+                    }
                 }
                 is ColorSchemeAction.RetryOnError -> {
-                    retryOnError()
+                    opRegistry.trackThisAsSingleActive(
+                        predicate = { it.value is ColorSchemeAction.RetryOnError },
+                        value = action,
+                    ) {
+                        retryOnError()
+                    }
                 }
             }
         }
@@ -80,43 +105,44 @@ class ColorSchemeViewModel @AssistedInject constructor(
      * Fetches [DomainColorScheme] for the specified "[seed]" color of the color scheme.
      * Exposes fetched color scheme from the [stateFlow].
      */
-    fun fetchColorScheme(seed: Color): Job =
-        coroutineScope.launch(defaultDispatcher) {
-            opRegistry.trackThisAsSingleActive(
-                predicate = { it.value is Operation.FetchColorScheme },
-                value = Operation.FetchColorScheme(seed),
-            ) {
-                val request = store.current().request(seed)
-                val domainRequest = request.toDomainRequest()
-                store.update {
-                    ColorSchemeState.Loading(request)
-                }
-                yield() // allow 'dataStateFlow' to emit 'Loading' state in unit tests // TODO: may not be needed anymore; debug unit tests and verify
-                val schemeResult = withContext(ioDispatcher) {
-                    colorRepository.getColorScheme(domainRequest)
-                }
-                val colorScheme = schemeResult.getOrElse { exception ->
-                    val error = ColorSchemeError(
-                        cause = exception,
-                    )
-                    store.update {
-                        ColorSchemeState.Error(
-                            request = request,
-                            error = error,
-                        )
-                    }
-                    return@launch
-                }
-                val data = createData(scheme = colorScheme, request = request)
-                store.update {
-                    ColorSchemeState.Ready(
-                        request = request,
-                        data = data,
-                        domainColorScheme = colorScheme,
-                    )
-                }
-            }
+    // TODO: invocations of this method are not coordinated with each other.
+    //  Fetches made by the outer caller (like parent ViewModel) and the ones from 'execute()' ('ApplyChanges', 'RetryOnError')
+    //  belong to different mechanisms and can overlap: each writes 'Loading' and then its own result, so the state settles
+    //  on whichever finishes last — possibly a scheme for a stale seed.
+    //  Repro: apply changes, then select a color on the 'Color Details' page while the fetch is in flight.
+    //  Tracking this method again is not an option: it would register the caller's job and let this ViewModel
+    //  cancel its caller's operation. Fix by coordinating all invocations in the caller.
+    suspend fun fetchColorScheme(seed: Color) {
+        val request = store.current().request(seed)
+        val domainRequest = request.toDomainRequest()
+        store.update {
+            ColorSchemeState.Loading(request)
         }
+        yield() // allow 'dataStateFlow' to emit 'Loading' state in unit tests // TODO: may not be needed anymore; debug unit tests and verify
+        val schemeResult = withContext(ioDispatcher) {
+            colorRepository.getColorScheme(domainRequest)
+        }
+        val colorScheme = schemeResult.getOrElse { exception ->
+            val error = ColorSchemeError(
+                cause = exception,
+            )
+            store.update {
+                ColorSchemeState.Error(
+                    request = request,
+                    error = error,
+                )
+            }
+            return
+        }
+        val data = createData(scheme = colorScheme, request = request)
+        store.update {
+            ColorSchemeState.Ready(
+                request = request,
+                data = data,
+                domainColorScheme = colorScheme,
+            )
+        }
+    }
 
     private suspend fun sendSwatchSelectedEvent(indexOfSelectedSwatch: Int) {
         val state = store.current()
@@ -199,20 +225,6 @@ class ColorSchemeViewModel @AssistedInject constructor(
             store: Store<ColorSchemeState>,
             eventHandler: ColorSchemeEventHandler,
         ): ColorSchemeViewModel
-    }
-
-    /**
-     * Directly maps to the public methods of the [ColorSchemeViewModel].
-     * Implements "Command" design pattern.
-     */
-    private sealed interface Operation {
-
-        /**
-         * Corresponds to the [ColorSchemeViewModel.fetchColorScheme] method.
-         */
-        data class FetchColorScheme(
-            val seed: Color,
-        ) : Operation
     }
 }
 
