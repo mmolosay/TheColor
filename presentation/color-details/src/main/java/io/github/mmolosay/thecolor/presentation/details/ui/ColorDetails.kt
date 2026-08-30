@@ -135,11 +135,11 @@ fun ColorDetails(
                 colorRoleData = data.colorRoleData,
                 strings = strings,
                 onSelectSeedColorClick = {
-                    val action = ColorDetailsAction.SelectColor(role = ColorRole.Seed)
+                    val action = ColorDetailsAction.OnSelectColor(role = ColorRole.Seed)
                     execute(action)
                 },
                 onSelectExactColorClick = {
-                    val action = ColorDetailsAction.SelectColor(role = ColorRole.Exact)
+                    val action = ColorDetailsAction.OnSelectColor(role = ColorRole.Exact)
                     execute(action)
                 },
             )

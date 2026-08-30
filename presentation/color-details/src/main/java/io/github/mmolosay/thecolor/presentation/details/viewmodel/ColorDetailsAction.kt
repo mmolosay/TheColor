@@ -4,7 +4,7 @@ import kotlinx.coroutines.Job
 
 sealed interface ColorDetailsAction {
 
-    data class SelectColor(
+    data class OnSelectColor(
         val role: ColorRole,
     ) : ColorDetailsAction
 

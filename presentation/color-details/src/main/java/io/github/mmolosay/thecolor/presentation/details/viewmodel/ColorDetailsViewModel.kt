@@ -61,22 +61,30 @@ class ColorDetailsViewModel @AssistedInject constructor(
     fun execute(action: ColorDetailsAction): Job =
         coroutineScope.launch(exclusiveLane) {
             when (action) {
-                is ColorDetailsAction.SelectColor -> {
-                    val session = session.get() ?: return@launch
-                    val color = session.getByRole(action.role)
-                    val event = ColorDetailsEvent.ColorSelected(color, action.role)
-                    eventHandler.offer(event)
+                is ColorDetailsAction.OnSelectColor -> {
+                    onSelectColor(role = action.role)
                 }
                 is ColorDetailsAction.RetryOnError -> {
-                    val state = store.current()
-                    if (state !is ColorDetailsState.Error) return@launch
-                    when (val target = state.error.origin) {
-                        is ColorDetailsError.Origin.SetSeedColor -> setSeedColor(target.color)
-                        is ColorDetailsError.Origin.SelectColor -> selectColor(target.role)
-                    }
+                    retryOnError()
                 }
             }
         }
+
+    fun onSelectColor(role: ColorRole) {
+        val session = session.get() ?: return
+        val color = session.getByRole(role)
+        val event = ColorDetailsEvent.ColorSelected(color, role)
+        eventHandler.offer(event)
+    }
+
+    suspend fun retryOnError() {
+        val state = store.current()
+        if (state !is ColorDetailsState.Error) return
+        when (val target = state.error.origin) {
+            is ColorDetailsError.Origin.SetSeedColor -> setSeedColor(target.color)
+            is ColorDetailsError.Origin.SelectColor -> selectColor(target.role)
+        }
+    }
 
     /**
      * Sets the specified [color] as the "seed" color of this ViewModel.
