@@ -47,7 +47,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -147,10 +146,8 @@ class HomeViewModel @Inject constructor(
                     colorInputMediator.set(color)
                     onColorBecameCurrent(color)
                     proceed(color) { colorDetails, colorScheme ->
-                        coroutineScope {
-                            launch { colorDetails.setSeedColor(color, deferredDetails) }
-                            launch { colorScheme.fetchColorScheme(color) }
-                        }
+                        launch { colorDetails.setSeedColor(color, deferredDetails) }
+                        launch { colorScheme.fetchColorScheme(color) }
                     }
                 }
             }
@@ -202,10 +199,8 @@ class HomeViewModel @Inject constructor(
                     colorInputMediator.set(color)
                     onColorBecameCurrent(color)
                     proceed(color) { colorDetails, colorScheme ->
-                        coroutineScope {
-                            launch { colorDetails.setSeedColor(color, deferredDetails) }
-                            launch { colorScheme.fetchColorScheme(color) }
-                        }
+                        launch { colorDetails.setSeedColor(color, deferredDetails) }
+                        launch { colorScheme.fetchColorScheme(color) }
                     }
                 }
             }
@@ -258,10 +253,8 @@ class HomeViewModel @Inject constructor(
                                 deferredDetails = deferredDetails,
                             )
                             proceed(color) { colorDetails, colorScheme ->
-                                coroutineScope {
-                                    launch { colorDetails.setSeedColor(color, deferredDetails) }
-                                    launch { colorScheme.fetchColorScheme(color) }
-                                }
+                                launch { colorDetails.setSeedColor(color, deferredDetails) }
+                                launch { colorScheme.fetchColorScheme(color) }
                             }
                         }
                     }
@@ -387,10 +380,8 @@ class HomeViewModel @Inject constructor(
                                         deferredDetails = deferredDetails,
                                     )
                                     proceed(color) { colorDetails, colorScheme ->
-                                        coroutineScope {
-                                            launch { colorDetails.setSeedColor(color, deferredDetails) }
-                                            launch { colorScheme.fetchColorScheme(color) }
-                                        }
+                                        launch { colorDetails.setSeedColor(color, deferredDetails) }
+                                        launch { colorScheme.fetchColorScheme(color) }
                                     }
                                 }
                             }
@@ -424,10 +415,8 @@ class HomeViewModel @Inject constructor(
                                 onColorBecameCurrent(color)
                                 // assuming any color selected belongs to ongoing session
                                 proceed(color) { colorDetails, colorScheme ->
-                                    coroutineScope {
-                                        launch { colorDetails.selectColor(event.colorRole) }
-                                        launch { colorScheme.fetchColorScheme(color) }
-                                    }
+                                    launch { colorDetails.selectColor(event.colorRole) }
+                                    launch { colorScheme.fetchColorScheme(color) }
                                 }
                             }
                         }
