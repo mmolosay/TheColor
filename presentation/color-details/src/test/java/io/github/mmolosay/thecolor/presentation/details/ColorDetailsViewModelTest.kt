@@ -228,7 +228,7 @@ class ColorDetailsViewModelTest {
                 sut.setSeedColor(seedColor)
                 sut.data.selectExactColor()
 
-                val expectedEvent = ColorDetailsEvent.ColorSelected(
+                val expectedEvent = ColorDetailsEvent.SelectColorAction(
                     color = exactColor,
                     colorRole = ColorRole.Exact,
                 )
@@ -269,7 +269,7 @@ class ColorDetailsViewModelTest {
                 sut.data.selectSeedColor()
 
                 // THEN
-                val expectedEvent = ColorDetailsEvent.ColorSelected(
+                val expectedEvent = ColorDetailsEvent.SelectColorAction(
                     color = seedColor,
                     colorRole = ColorRole.Seed,
                 )
@@ -466,7 +466,7 @@ class ColorDetailsViewModelTest {
             fun firstEvent() =
                 async { sut.eventFlow.first() }
             fun selectColor(event: ColorDetailsEvent) {
-                event.shouldBeInstanceOf<ColorDetailsEvent.ColorSelected>()
+                event.shouldBeInstanceOf<ColorDetailsEvent.SelectColorAction>()
                 sut.selectColor(event.colorRole)
             }
             sut.setSeedColor(seedColor)

@@ -6,8 +6,10 @@ import io.github.mmolosay.thecolor.domain.color.Color
 sealed interface ColorDetailsEvent {
 
     /** A [color] has been selected in 'Color Details' feature. */
-    data class ColorSelected(
+    data class SelectColorAction(
         val color: Color,
         val colorRole: ColorRole,
     ) : ColorDetailsEvent
+
+    data object RetryOnErrorAction : ColorDetailsEvent
 }

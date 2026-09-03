@@ -412,10 +412,10 @@ class HomeViewModel @Inject constructor(
     }
 
     private inner class ColorCenterColorDetailsEventHandlerImpl : ColorDetailsEventHandler {
-        override suspend fun invoke(event: ColorDetailsEvent) {
+        override fun invoke(event: ColorDetailsEvent) {
             when (event) {
-                is ColorDetailsEvent.ColorSelected ->
-                    viewModelScope.launch(defaultDispatcher) {
+                is ColorDetailsEvent.SelectColorAction ->
+                    viewModelScope.launch(exclusiveLane) {
                         opRegistry.trackAsProceed {
                             store.batch {
                                 ccSessionStore.sessionState.mustBeOngoing()
@@ -432,18 +432,38 @@ class HomeViewModel @Inject constructor(
                             }
                         }
                     }
+                is ColorDetailsEvent.RetryOnErrorAction ->
+                    viewModelScope.launch(exclusiveLane) {
+                        // TODO: coroutines orchestration
+                        val viewModel = colorCenterComponentsStore.components
+                            ?.colorCenterViewModel?.colorDetailsViewModel
+                            ?: return@launch
+                        viewModel.retryOnError()
+                    }
             }
         }
     }
 
     private inner class SelectedSwatchColorDetailsEventHandlerImpl : ColorDetailsEventHandler {
-        override suspend fun invoke(event: ColorDetailsEvent) {
+        override fun invoke(event: ColorDetailsEvent) {
             when (event) {
-                is ColorDetailsEvent.ColorSelected -> {
-                    val viewModel = colorCenterComponentsStore.components
-                        ?.selectedSwatchColorDetailsViewModel
-                        ?: return
-                    viewModel.selectColor(event.colorRole)
+                is ColorDetailsEvent.SelectColorAction -> {
+                    // TODO: coroutines orchestration
+                    viewModelScope.launch(exclusiveLane) {
+                        val viewModel = colorCenterComponentsStore.components
+                            ?.selectedSwatchColorDetailsViewModel
+                            ?: return@launch
+                        viewModel.selectColor(event.colorRole)
+                    }
+                }
+                is ColorDetailsEvent.RetryOnErrorAction -> {
+                    // TODO: coroutines orchestration
+                    viewModelScope.launch(exclusiveLane) {
+                        val viewModel = colorCenterComponentsStore.components
+                            ?.selectedSwatchColorDetailsViewModel
+                            ?: return@launch
+                        viewModel.retryOnError()
+                    }
                 }
             }
         }

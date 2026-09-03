@@ -13,9 +13,7 @@ import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntU
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ColorRoleData
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ExactMatch
-import io.github.mmolosay.thecolor.utils.CoroutineRegistry
 import io.github.mmolosay.thecolor.utils.Store
-import io.github.mmolosay.thecolor.utils.trackThisAsSingleActive
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -54,46 +52,31 @@ class ColorDetailsViewModel @AssistedInject constructor(
     val stateFlow: StateFlow<ColorDetailsState> = store.flow
 
     private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
-    private val actionRegistry = CoroutineRegistry<ColorDetailsAction>()
     private val session = AtomicReference<Session?>(null)
     private val colorDetailsStore = ColorDetailsStore()
 
     fun execute(action: ColorDetailsAction): Job =
         coroutineScope.launch(exclusiveLane) {
             when (action) {
-                is ColorDetailsAction.OnSelectColor -> {
-                    actionRegistry.trackThisAsSingleActive(
-                        predicate = { it.value is ColorDetailsAction.OnSelectColor },
-                        value = action,
-                    ) {
-                        onSelectColor(role = action.role)
-                    }
+                is ColorDetailsAction.SelectColor -> {
+                    onSelectColor(role = action.role)
                 }
                 is ColorDetailsAction.RetryOnError -> {
-                    actionRegistry.trackThisAsSingleActive(
-                        predicate = { it.value is ColorDetailsAction.RetryOnError },
-                        value = action,
-                    ) {
-                        retryOnError()
-                    }
+                    onRetryOnError()
                 }
             }
         }
 
-    suspend fun onSelectColor(role: ColorRole) {
+    private fun onSelectColor(role: ColorRole) {
         val session = session.get() ?: return
         val color = session.getByRole(role)
-        val event = ColorDetailsEvent.ColorSelected(color, role)
+        val event = ColorDetailsEvent.SelectColorAction(color, role)
         eventHandler.offer(event)
     }
 
-    suspend fun retryOnError() {
-        val state = store.current()
-        if (state !is ColorDetailsState.Error) return
-        when (val target = state.error.origin) {
-            is ColorDetailsError.Origin.SetSeedColor -> setSeedColor(target.color)
-            is ColorDetailsError.Origin.SelectColor -> selectColor(target.role)
-        }
+    private fun onRetryOnError() {
+        val event = ColorDetailsEvent.RetryOnErrorAction
+        eventHandler.offer(event)
     }
 
     /**
@@ -178,6 +161,15 @@ class ColorDetailsViewModel @AssistedInject constructor(
         setColorDetails(details, subjectColor)
     }
 
+    suspend fun retryOnError() {
+        val state = store.current()
+        if (state !is ColorDetailsState.Error) return
+        when (val target = state.error.origin) {
+            is ColorDetailsError.Origin.SetSeedColor -> setSeedColor(target.color)
+            is ColorDetailsError.Origin.SelectColor -> selectColor(target.role)
+        }
+    }
+
     private suspend fun fetchColorDetails(color: Color): Result<DomainColorDetails> =
         withContext(ioDispatcher) {
             colorRepository.getColorDetails(color)
@@ -214,7 +206,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
         return null
     }
 
-    private suspend fun ColorDetailsEventHandler.offer(event: ColorDetailsEvent) {
+    private fun ColorDetailsEventHandler.offer(event: ColorDetailsEvent) {
         if (!coroutineScope.isActive) return
         this.invoke(event)
     }

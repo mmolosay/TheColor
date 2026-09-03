@@ -6,5 +6,5 @@ package io.github.mmolosay.thecolor.presentation.details.viewmodel
  * Provided to the 'Color Details' feature from the outside (by the caller / parent).
  */
 fun interface ColorDetailsEventHandler {
-    suspend operator fun invoke(event: ColorDetailsEvent)
+    operator fun invoke(event: ColorDetailsEvent)
 }
