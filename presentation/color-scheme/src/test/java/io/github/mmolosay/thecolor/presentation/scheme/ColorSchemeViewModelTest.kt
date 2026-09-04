@@ -361,7 +361,7 @@ class ColorSchemeViewModelTest {
 
                 // THEN
                 val emittedEvent = awaitItem()
-                emittedEvent.shouldBeInstanceOf<ColorSchemeEvent.SwatchSelected>()
+                emittedEvent.shouldBeInstanceOf<ColorSchemeEvent.SelectSwatchAction>()
                 emittedEvent.swatch.color shouldBe selectedSwatchColor
             }
         }

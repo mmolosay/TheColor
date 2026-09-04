@@ -11,5 +11,7 @@ sealed interface ColorDetailsEvent {
         val colorRole: ColorRole,
     ) : ColorDetailsEvent
 
-    data object RetryOnErrorAction : ColorDetailsEvent
+    data class RetryOnErrorAction(
+        val error: ColorDetailsError,
+    ) : ColorDetailsEvent
 }

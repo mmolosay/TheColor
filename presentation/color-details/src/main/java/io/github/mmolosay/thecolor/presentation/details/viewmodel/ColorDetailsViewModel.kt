@@ -74,8 +74,10 @@ class ColorDetailsViewModel @AssistedInject constructor(
         eventHandler.offer(event)
     }
 
-    private fun onRetryOnError() {
-        val event = ColorDetailsEvent.RetryOnErrorAction
+    private suspend fun onRetryOnError() {
+        val state = store.current()
+        if (state !is ColorDetailsState.Error) return // stale invocation
+        val event = ColorDetailsEvent.RetryOnErrorAction(state.error)
         eventHandler.offer(event)
     }
 
@@ -159,15 +161,6 @@ class ColorDetailsViewModel @AssistedInject constructor(
             return
         }
         setColorDetails(details, subjectColor)
-    }
-
-    suspend fun retryOnError() {
-        val state = store.current()
-        if (state !is ColorDetailsState.Error) return
-        when (val target = state.error.origin) {
-            is ColorDetailsError.Origin.SetSeedColor -> setSeedColor(target.color)
-            is ColorDetailsError.Origin.SelectColor -> selectColor(target.role)
-        }
     }
 
     private suspend fun fetchColorDetails(color: Color): Result<DomainColorDetails> =

@@ -137,7 +137,7 @@ fun ColorScheme(
         ListOfSwatches(
             swatches = data.swatches,
             onSwatchClick = { index ->
-                val action = ColorSchemeAction.OnSwatchSelect(index)
+                val action = ColorSchemeAction.SelectSwatch(index)
                 execute(action)
             },
         )

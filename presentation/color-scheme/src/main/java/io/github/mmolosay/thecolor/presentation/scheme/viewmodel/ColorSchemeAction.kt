@@ -5,8 +5,8 @@ import io.github.mmolosay.thecolor.domain.color.ColorScheme.Mode as DomainMode
 
 sealed interface ColorSchemeAction {
 
-    data class OnSwatchSelect(
-        val index: Int,
+    data class SelectSwatch(
+        val swatchIndex: Int,
     ) : ColorSchemeAction
 
     data class SelectMode(

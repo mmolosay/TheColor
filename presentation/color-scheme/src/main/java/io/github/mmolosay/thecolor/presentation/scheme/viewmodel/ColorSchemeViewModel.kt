@@ -58,13 +58,8 @@ class ColorSchemeViewModel @AssistedInject constructor(
     fun execute(action: ColorSchemeAction): Job =
         coroutineScope.launch(exclusiveLane) {
             when (action) {
-                is ColorSchemeAction.OnSwatchSelect -> {
-                    opRegistry.trackThisAsSingleActive(
-                        predicate = { it.value is ColorSchemeAction.OnSwatchSelect },
-                        value = action,
-                    ) {
-                        sendSwatchSelectedEvent(indexOfSelectedSwatch = action.index)
-                    }
+                is ColorSchemeAction.SelectSwatch -> {
+                    onSelectSwatch(swatchIndex = action.swatchIndex)
                 }
                 is ColorSchemeAction.SelectMode -> {
                     opRegistry.trackThisAsSingleActive(
@@ -83,35 +78,42 @@ class ColorSchemeViewModel @AssistedInject constructor(
                     }
                 }
                 is ColorSchemeAction.ApplyChanges -> {
-                    opRegistry.trackThisAsSingleActive(
-                        predicate = { it.value is ColorSchemeAction.ApplyChanges },
-                        value = action,
-                    ) {
-                        applyChanges()
-                    }
+                    onApplyChanges()
                 }
                 is ColorSchemeAction.RetryOnError -> {
-                    opRegistry.trackThisAsSingleActive(
-                        predicate = { it.value is ColorSchemeAction.RetryOnError },
-                        value = action,
-                    ) {
-                        retryOnError()
-                    }
+                    onRetryOnError()
                 }
             }
         }
+
+    private suspend fun onSelectSwatch(swatchIndex: Int) {
+        val state = store.current()
+        if (state !is ColorSchemeState.Ready) return // stale invocation
+        val swatch = state.data.swatches.getOrNull(swatchIndex) ?: return
+        val swatchColorDetails = state.domainColorScheme.swatchDetails.getOrNull(swatchIndex) ?: return
+        val event = ColorSchemeEvent.SelectSwatchAction(swatch, swatchColorDetails)
+        eventHandler.offer(event)
+    }
+
+    private suspend fun onApplyChanges() {
+        val state = store.current()
+        if (state !is ColorSchemeState.Ready) return // stale invocation
+        if (!state.data.hasChangesToApply) return // nothing to apply
+        val event = ColorSchemeEvent.ApplyChangesAction(seed = state.request.seed)
+        eventHandler.offer(event)
+    }
+
+    private suspend fun onRetryOnError() {
+        val state = store.current()
+        if (state !is ColorSchemeState.Error) return // stale invocation
+        val event = ColorSchemeEvent.RetryOnErrorAction(seed = state.request.seed)
+        eventHandler.offer(event)
+    }
 
     /**
      * Fetches [DomainColorScheme] for the specified "[seed]" color of the color scheme.
      * Exposes fetched color scheme from the [stateFlow].
      */
-    // TODO: invocations of this method are not coordinated with each other.
-    //  Fetches made by the outer caller (like parent ViewModel) and the ones from 'execute()' ('ApplyChanges', 'RetryOnError')
-    //  belong to different mechanisms and can overlap: each writes 'Loading' and then its own result, so the state settles
-    //  on whichever finishes last — possibly a scheme for a stale seed.
-    //  Repro: apply changes, then select a color on the 'Color Details' page while the fetch is in flight.
-    //  Tracking this method again is not an option: it would register the caller's job and let this ViewModel
-    //  cancel its caller's operation. Fix by coordinating all invocations in the caller.
     suspend fun fetchColorScheme(seed: Color) {
         val request = store.current().request(seed)
         val domainRequest = request.toDomainRequest()
@@ -144,16 +146,6 @@ class ColorSchemeViewModel @AssistedInject constructor(
         }
     }
 
-    private suspend fun sendSwatchSelectedEvent(indexOfSelectedSwatch: Int) {
-        val state = store.current()
-        if (state !is ColorSchemeState.Ready) return // stale invocation
-        val swatch = state.data.swatches.getOrNull(indexOfSelectedSwatch) ?: return
-        val swatchColorDetails =
-            state.domainColorScheme.swatchDetails.getOrNull(indexOfSelectedSwatch) ?: return
-        val event = ColorSchemeEvent.SwatchSelected(swatch, swatchColorDetails)
-        eventHandler.offer(event)
-    }
-
     private suspend fun selectMode(mode: Mode) {
         store.update { state ->
             if (state !is ColorSchemeState.Ready) return@update state
@@ -174,20 +166,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
         }
     }
 
-    private suspend fun applyChanges() {
-        val state = store.current()
-        if (state !is ColorSchemeState.Ready) return // stale invocation
-        if (!state.data.hasChangesToApply) return // nothing to apply
-        fetchColorScheme(seed = state.request.seed)
-    }
-
-    private suspend fun retryOnError() {
-        val state = store.current()
-        if (state !is ColorSchemeState.Error) return // stale invocation
-        fetchColorScheme(seed = state.request.seed)
-    }
-
-    private suspend fun ColorSchemeEventHandler.offer(event: ColorSchemeEvent) {
+    private fun ColorSchemeEventHandler.offer(event: ColorSchemeEvent) {
         if (!coroutineScope.isActive) return
         this.invoke(event)
     }

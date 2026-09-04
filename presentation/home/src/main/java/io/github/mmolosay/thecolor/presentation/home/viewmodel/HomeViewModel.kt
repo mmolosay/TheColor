@@ -16,6 +16,7 @@ import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQuali
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
+import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsError
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEvent
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEventHandler
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
@@ -427,7 +428,21 @@ class HomeViewModel @Inject constructor(
                         val viewModel = colorCenterComponentsStore.components
                             ?.colorCenterViewModel?.colorDetailsViewModel
                             ?: return@launch
-                        viewModel.retryOnError()
+                        when (val origin = event.error.origin) {
+                            is ColorDetailsError.Origin.SetSeedColor -> {
+                                // the session was canceled when the seed fetch failed, so build a new one
+                                val deferredDetails = CompletableDeferred<DomainColorDetails>()
+                                startColorCenterSession(
+                                    seed = origin.color,
+                                    deferredDetails = deferredDetails,
+                                )
+                                viewModel.setSeedColor(origin.color, deferredDetails)
+                            }
+                            is ColorDetailsError.Origin.SelectColor -> {
+                                // the session is still ongoing, only the fetch failed
+                                viewModel.selectColor(origin.role)
+                            }
+                        }
                     }
             }
         }
@@ -439,37 +454,61 @@ class HomeViewModel @Inject constructor(
                 is ColorDetailsEvent.SelectColorAction -> {
                     // TODO: coroutines orchestration
                     viewModelScope.launch(exclusiveLane) {
-                        val viewModel = colorCenterComponentsStore.components
-                            ?.selectedSwatchColorDetailsViewModel
-                            ?: return@launch
-                        viewModel.selectColor(event.colorRole)
+                        viewModel()?.selectColor(event.colorRole)
                     }
                 }
                 is ColorDetailsEvent.RetryOnErrorAction -> {
                     // TODO: coroutines orchestration
                     viewModelScope.launch(exclusiveLane) {
-                        val viewModel = colorCenterComponentsStore.components
-                            ?.selectedSwatchColorDetailsViewModel
-                            ?: return@launch
-                        viewModel.retryOnError()
+                        val viewModel = viewModel() ?: return@launch
+                        when (val origin = event.error.origin) {
+                            // the swatch's seed comes from 'setSeedDetails', which cannot fail, so this origin is not reachable here
+                            is ColorDetailsError.Origin.SetSeedColor -> {
+                                viewModel.setSeedColor(origin.color)
+                            }
+                            is ColorDetailsError.Origin.SelectColor -> {
+                                viewModel.selectColor(origin.role)
+                            }
+                        }
                     }
                 }
             }
         }
+
+        private fun viewModel(): ColorDetailsViewModel? =
+            colorCenterComponentsStore.components?.selectedSwatchColorDetailsViewModel
     }
 
     private inner class ColorSchemeEventHandlerImpl : ColorSchemeEventHandler {
-        override suspend fun invoke(event: ColorSchemeEvent) {
+        override fun invoke(event: ColorSchemeEvent) {
             when (event) {
-                is ColorSchemeEvent.SwatchSelected -> {
-                    val viewModel = colorCenterComponentsStore.components
-                        ?.selectedSwatchColorDetailsViewModel
-                        ?: return
-                    viewModel.setSeedDetails(event.swatchColorDetails)
-                    _colorSchemeSwatchDetailsViewModelFlow.value = viewModel
+                is ColorSchemeEvent.SelectSwatchAction -> {
+                    // TODO: coroutines orchestration
+                    viewModelScope.launch(exclusiveLane) {
+                        val viewModel = colorCenterComponentsStore.components
+                            ?.selectedSwatchColorDetailsViewModel
+                            ?: return@launch
+                        viewModel.setSeedDetails(event.swatchColorDetails)
+                        _colorSchemeSwatchDetailsViewModelFlow.value = viewModel
+                    }
+                }
+                is ColorSchemeEvent.ApplyChangesAction -> {
+                    // TODO: coroutines orchestration
+                    viewModelScope.launch(exclusiveLane) {
+                        viewModel()?.fetchColorScheme(event.seed)
+                    }
+                }
+                is ColorSchemeEvent.RetryOnErrorAction -> {
+                    // TODO: coroutines orchestration
+                    viewModelScope.launch(exclusiveLane) {
+                        viewModel()?.fetchColorScheme(event.seed)
+                    }
                 }
             }
         }
+
+        private fun viewModel(): ColorSchemeViewModel? =
+            colorCenterComponentsStore.components?.colorCenterViewModel?.colorSchemeViewModel
     }
 
     private sealed interface Operation {

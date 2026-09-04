@@ -907,7 +907,7 @@ class HomeViewModelTest {
             // we know from other tests that it would be 'CanProceed.Yes'
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
             run emitSwatchSelectedEvent@{
-                val event: ColorSchemeEvent.SwatchSelected = mockk(relaxed = true)
+                val event: ColorSchemeEvent.SelectSwatchAction = mockk(relaxed = true)
                 colorSchemeEventFlow.emit(event)
             }
 
@@ -931,7 +931,7 @@ class HomeViewModelTest {
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
 
             run emitSwatchSelectedEvent@{
-                val event: ColorSchemeEvent.SwatchSelected = mockk(relaxed = true)
+                val event: ColorSchemeEvent.SelectSwatchAction = mockk(relaxed = true)
                 colorSchemeEventFlow.emit(event)
             }
 

@@ -6,5 +6,5 @@ package io.github.mmolosay.thecolor.presentation.scheme.viewmodel
  * Provided to the 'Color Scheme' feature from the outside (by the caller / parent).
  */
 fun interface ColorSchemeEventHandler {
-    suspend operator fun invoke(event: ColorSchemeEvent)
+    operator fun invoke(event: ColorSchemeEvent)
 }
