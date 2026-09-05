@@ -15,9 +15,7 @@ import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeData.Swatch
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeData.SwatchCount
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeState.Request
-import io.github.mmolosay.thecolor.utils.CoroutineRegistry
 import io.github.mmolosay.thecolor.utils.Store
-import io.github.mmolosay.thecolor.utils.trackThisAsSingleActive
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -51,31 +49,19 @@ class ColorSchemeViewModel @AssistedInject constructor(
 
     val stateFlow: StateFlow<ColorSchemeState> = store.flow
 
-    private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
-    private val opRegistry = CoroutineRegistry<ColorSchemeAction>()
     private val dataEditor = ColorSchemeDataEditor()
 
     fun execute(action: ColorSchemeAction): Job =
-        coroutineScope.launch(exclusiveLane) {
+        coroutineScope.launch(defaultDispatcher) {
             when (action) {
                 is ColorSchemeAction.SelectSwatch -> {
                     onSelectSwatch(swatchIndex = action.swatchIndex)
                 }
                 is ColorSchemeAction.SelectMode -> {
-                    opRegistry.trackThisAsSingleActive(
-                        predicate = { it.value is ColorSchemeAction.SelectMode },
-                        value = action,
-                    ) {
-                        selectMode(mode = action.mode)
-                    }
+                    selectMode(mode = action.mode)
                 }
                 is ColorSchemeAction.SelectSwatchCount -> {
-                    opRegistry.trackThisAsSingleActive(
-                        predicate = { it.value is ColorSchemeAction.SelectSwatchCount },
-                        value = action,
-                    ) {
-                        selectSwatchCount(count = action.count)
-                    }
+                    selectSwatchCount(count = action.count)
                 }
                 is ColorSchemeAction.ApplyChanges -> {
                     onApplyChanges()
