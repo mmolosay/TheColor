@@ -1,13 +1,9 @@
 package io.github.mmolosay.thecolor.utils
 
-import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -197,10 +193,8 @@ private class StoreView<Source, T>(
     override val value: T
         get() = lens.get(store.value)
 
-    override val flow: StateFlow<T> = MappedStateFlow(
-        source = store.flow,
-        transform = lens::get,
-    )
+    override val flow: StateFlow<T> =
+        store.flow.mapState(lens::get)
 
     override suspend fun current(): T =
         lens.get(source = store.current())
@@ -221,24 +215,4 @@ private class StoreView<Source, T>(
             lens = lens,
         )
 
-    @OptIn(ExperimentalForInheritanceCoroutinesApi::class)
-    private class MappedStateFlow<Source, T>(
-        private val source: StateFlow<Source>,
-        private val transform: (Source) -> T,
-    ) : StateFlow<T> {
-
-        override val value: T
-            get() = transform(source.value)
-
-        override val replayCache: List<T>
-            get() = listOf(value)
-
-        override suspend fun collect(collector: FlowCollector<T>): Nothing {
-            source
-                .map(transform)
-                .distinctUntilChanged()
-                .collect(collector)
-            error("StateFlow.collect() never completes")
-        }
-    }
 }

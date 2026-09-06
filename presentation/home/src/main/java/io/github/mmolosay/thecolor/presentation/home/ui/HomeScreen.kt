@@ -20,7 +20,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -47,16 +46,17 @@ import io.github.mmolosay.thecolor.presentation.home.ui.center.BareColorCenterCo
 import io.github.mmolosay.thecolor.presentation.home.ui.center.ColorCenterInHome
 import io.github.mmolosay.thecolor.presentation.home.ui.preview.BareColorPreviewComposable
 import io.github.mmolosay.thecolor.presentation.home.ui.preview.ColorPreviewInHome
-import io.github.mmolosay.thecolor.presentation.home.ui.preview.FlowOfColorPreviewData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ExecuteHomeAction
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeAction
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeState
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.requireReady
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroup
 import io.github.mmolosay.thecolor.presentation.preview.AnimatedColorPreview
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
+import io.github.mmolosay.thecolor.utils.mapState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -70,17 +70,13 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
     val strings = remember(context) { HomeUiStrings(context) }
-    val coroutineScope = rememberCoroutineScope()
 
     val state = viewModel.stateFlow.collectAsStateWithLifecycle().value
         .let { it as? HomeState.Ready }
         ?: return
 
     val flowOfUiState = remember {
-        FlowOfHomeUiState(
-            coroutineScope = coroutineScope,
-            flowOfHomeState = viewModel.stateFlow,
-        )
+        viewModel.stateFlow.mapState { it.requireReady().toUiState() }
     }
     val animController = remember {
         val animState = flowOfUiState.value.toAnimState()
@@ -110,10 +106,7 @@ fun HomeScreen(
         )
     }
     val colorPreviewDataFlow = remember {
-        FlowOfColorPreviewData(
-            coroutineScope = coroutineScope,
-            flowOfHomeState = viewModel.stateFlow,
-        )
+        viewModel.stateFlow.mapState { it.requireReady().colorPreview }
     }
     val colorCenter: BareColorCenterComposable? = run {
         val vm = state.colorCenterViewModel

@@ -2,14 +2,8 @@ package io.github.mmolosay.thecolor.presentation.home.ui
 
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeState
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.requireReady
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState
 import io.github.mmolosay.thecolor.presentation.preview.toUiState
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 
 /**
  * Describes UI state of 'Home' View.
@@ -33,15 +27,4 @@ internal fun HomeState.Ready.toUiState(): HomeUiState {
         isColorPreviewVisible = isColorPreviewVisible,
         isColorCenterVisible = isColorCenterVisible,
     )
-}
-
-internal fun FlowOfHomeUiState(
-    coroutineScope: CoroutineScope,
-    flowOfHomeState: StateFlow<HomeState>,
-): StateFlow<HomeUiState> {
-    fun uiState(state: HomeState): HomeUiState =
-        state.requireReady().toUiState()
-    return flowOfHomeState
-        .map(::uiState)
-        .stateIn(coroutineScope, SharingStarted.Eagerly, uiState(flowOfHomeState.value))
 }

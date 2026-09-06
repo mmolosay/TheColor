@@ -12,7 +12,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.tooling.preview.Preview
@@ -26,9 +25,7 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimController
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import io.github.mmolosay.thecolor.utils.mapState
 
 /**
  * The "bare" 'Color Center' [Composable], free of any 'Home'-specific logic.
@@ -49,7 +46,6 @@ internal fun ColorCenterInHome(
     content: BareColorCenterComposable?,
 ) {
     if (homeAnimController == null) return
-    val coroutineScope = rememberCoroutineScope()
     val decoratedColorCenter = remember(content, proceedResult) {
         decoratedColorCenterComposable(
             proceededColorData = (proceedResult as? HomeData.ProceedResult.Success)?.colorData,
@@ -63,14 +59,7 @@ internal fun ColorCenterInHome(
         flowOfAnimDest = run {
             val upstream = homeAnimController.flowOfDestState
             remember(upstream) {
-                fun value(animState: HomeAnimState) = animState.colorCenter
-                upstream
-                    .map(::value)
-                    .stateIn(
-                        coroutineScope,
-                        SharingStarted.WhileSubscribed(),
-                        value(upstream.value)
-                    )
+                upstream.mapState { it.colorCenter }
             }
         },
         onReached = homeAnimController::onValueReached,

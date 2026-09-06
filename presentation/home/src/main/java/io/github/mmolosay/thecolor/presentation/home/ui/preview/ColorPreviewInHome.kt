@@ -13,7 +13,6 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.tooling.preview.Preview
@@ -24,17 +23,12 @@ import io.github.mmolosay.thecolor.presentation.common.compose.PlaceholderDefaul
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimController
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeState
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.requireReady
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState
-import kotlinx.coroutines.CoroutineScope
+import io.github.mmolosay.thecolor.utils.mapState
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 
 /**
  * The "bare" 'Color Preview' [Composable], free of any 'Home'-specific logic.
@@ -57,23 +51,16 @@ internal fun ColorPreviewInHome(
     content: BareColorPreviewComposable,
 ) {
     if (homeAnimController == null) return
-    val coroutineScope = rememberCoroutineScope()
     val flowOfPositionAnimDest = run {
         val upstream = homeAnimController.flowOfDestState
         remember(upstream) {
-            fun value(animState: HomeAnimState) = animState.colorPreviewPosition
-            upstream
-                .map(::value)
-                .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), value(upstream.value))
+            upstream.mapState { it.colorPreviewPosition }
         }
     }
     val flowOfVisibilityAnimDest = run {
         val upstream = homeAnimController.flowOfDestState
         remember(upstream) {
-            fun value(animState: HomeAnimState) = animState.colorPreviewVisibility
-            upstream
-                .map(::value)
-                .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), value(upstream.value))
+            upstream.mapState { it.colorPreviewVisibility }
         }
     }
     val stateOfContainerViewportHeight =
@@ -97,18 +84,6 @@ internal fun ColorPreviewInHome(
             { reached -> homeAnimController.onValueReached(reached.toAnimState()) },
         )
     }
-}
-
-// TODO: this pattern of re-mapping a StateFlow occurs in many places. Review what can be done.
-internal fun FlowOfColorPreviewData(
-    coroutineScope: CoroutineScope,
-    flowOfHomeState: StateFlow<HomeState>
-): StateFlow<ColorPreviewData> {
-    fun data(state: HomeState): ColorPreviewData =
-        state.requireReady().colorPreview
-    return flowOfHomeState
-        .map(::data)
-        .stateIn(coroutineScope, SharingStarted.Eagerly, data(flowOfHomeState.value))
 }
 
 @Suppress("unused") // params of 'BareColorPreviewComposable' lambda
