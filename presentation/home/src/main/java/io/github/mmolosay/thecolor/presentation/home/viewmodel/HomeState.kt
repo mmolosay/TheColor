@@ -4,7 +4,6 @@ import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsHandle
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsState
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
-import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 import io.github.mmolosay.thecolor.utils.Lens
 
 sealed interface HomeState {
@@ -14,9 +13,8 @@ sealed interface HomeState {
     data class Ready(
         val data: HomeData,
         val colorPreview: ColorPreviewData,
-        val colorPreviewViewModel: ColorPreviewViewModel,
         val colorCenterViewModel: ColorCenterViewModel?,
-        val selectedSwatchDetails: ColorDetailsState, // TODO: I don't like this approach. HomeState shouldn't be both used as a model for a ViewModel and for UI
+        val selectedSwatchDetails: ColorDetailsState, // TODO: rework as 'Color Preview' is done
         val selectedSwatchDetailsHandle: ColorDetailsHandle?,
     ) : HomeState
 }

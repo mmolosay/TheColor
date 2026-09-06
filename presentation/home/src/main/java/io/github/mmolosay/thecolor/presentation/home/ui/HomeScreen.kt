@@ -47,6 +47,7 @@ import io.github.mmolosay.thecolor.presentation.home.ui.center.BareColorCenterCo
 import io.github.mmolosay.thecolor.presentation.home.ui.center.ColorCenterInHome
 import io.github.mmolosay.thecolor.presentation.home.ui.preview.BareColorPreviewComposable
 import io.github.mmolosay.thecolor.presentation.home.ui.preview.ColorPreviewInHome
+import io.github.mmolosay.thecolor.presentation.home.ui.preview.FlowOfColorPreviewData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ExecuteHomeAction
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeAction
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
@@ -108,7 +109,12 @@ fun HomeScreen(
             onUiStateReached = onUiStateReached,
         )
     }
-    val colorPreviewDataFlow = state.colorPreviewViewModel.dataFlow
+    val colorPreviewDataFlow = remember {
+        FlowOfColorPreviewData(
+            coroutineScope = coroutineScope,
+            flowOfHomeState = viewModel.stateFlow,
+        )
+    }
     val colorCenter: BareColorCenterComposable? = run {
         val vm = state.colorCenterViewModel
         remember(vm) {

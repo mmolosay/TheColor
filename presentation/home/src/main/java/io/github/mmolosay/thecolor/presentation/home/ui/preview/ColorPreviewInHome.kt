@@ -24,9 +24,12 @@ import io.github.mmolosay.thecolor.presentation.common.compose.PlaceholderDefaul
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimController
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeState
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.requireReady
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewAnimController
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -94,6 +97,18 @@ internal fun ColorPreviewInHome(
             { reached -> homeAnimController.onValueReached(reached.toAnimState()) },
         )
     }
+}
+
+// TODO: this pattern of re-mapping a StateFlow occurs in many places. Review what can be done.
+internal fun FlowOfColorPreviewData(
+    coroutineScope: CoroutineScope,
+    flowOfHomeState: StateFlow<HomeState>
+): StateFlow<ColorPreviewData> {
+    fun data(state: HomeState): ColorPreviewData =
+        state.requireReady().colorPreview
+    return flowOfHomeState
+        .map(::data)
+        .stateIn(coroutineScope, SharingStarted.Eagerly, data(flowOfHomeState.value))
 }
 
 @Suppress("unused") // params of 'BareColorPreviewComposable' lambda

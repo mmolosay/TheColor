@@ -105,6 +105,9 @@ class HomeViewModel @Inject constructor(
         )
     }
 
+    @Volatile
+    private var colorPreviewViewModel: ColorPreviewViewModel? = null
+
     private val colorCenterComponentsStore: ColorCenterComponentsStore =
         colorCenterComponentsStoreFactory.create(
             viewModelScope = viewModelScope,
@@ -126,29 +129,25 @@ class HomeViewModel @Inject constructor(
         val color = if (resumeFromLastSearchedColorOnStartup.enabled) {
             lastSearchedColorRepository.getLastSearchedColor()
         } else null
+        this.colorPreviewViewModel = colorPreviewViewModelFactory.create(
+            coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
+            store = store.focus(HomeStateLenses.colorPreview),
+        )
         val initialData = HomeData(
             canProceed = CanProceed(colorFromColorInput = colorInputMediator.colorState.color),
             proceedResult = null, // 'proceed' action wasn't invoked yet
             sideEffects = emptyList(),
         )
         store.transaction transaction@{
-            run becomeReady@{
-                // the ViewModel's store is a view onto 'Ready.colorPreview' of this very store
-                val colorPreviewViewModel = colorPreviewViewModelFactory.create(
-                    coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
-                    store = store.focus(HomeStateLenses.colorPreview),
-                )
-                val state = HomeState.Ready(
+            store.update {
+                HomeState.Ready(
                     data = initialData,
                     colorPreview = colorPreviewDataFactory.create(color),
-                    colorPreviewViewModel = colorPreviewViewModel,
                     colorCenterViewModel = null, // 'proceed' action wasn't invoked yet
                     selectedSwatchDetails = ColorDetailsState.Idle,
                     selectedSwatchDetailsHandle = null, // no swatch was selected yet
                 )
-                store.update { state }
             }
-
             // from here on the state is 'Ready', thus the partial lenses are safe to write through
             if (color == null) return@transaction
             createAndConsumeNewColorCenterComponents()
@@ -372,8 +371,11 @@ class HomeViewModel @Inject constructor(
             val canProceed = CanProceed(colorFromColorInput = color)
             it.copy(canProceed = canProceed)
         }
-        // writes through a view onto 'Ready.colorPreview', thus joins the ongoing transaction
-        store.requireReady().colorPreviewViewModel.setColor(color)
+        // TODO: doesn't look like a write to the same store under the ongoing transaction, but it is.
+        //       replace ColorPreviewViewModel.setColor() with a colorPreviewStore.update() ?
+        colorPreviewViewModel
+            .let { requireNotNull(it) }
+            .setColor(color)
     }
 
     private inner class ColorInputSubmitActionImpl : ColorInputSubmitAction {
@@ -684,9 +686,3 @@ private suspend fun Store<HomeState>.updateReady(
         }
     }
 }
-
-private suspend fun Store<HomeState>.requireReady(): HomeState.Ready =
-    when (val state = this.current()) {
-        is HomeState.Initializing -> error("HomeState must be Ready")
-        is HomeState.Ready -> state
-    }
