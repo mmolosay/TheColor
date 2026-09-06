@@ -5,10 +5,11 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedR
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState
 import io.github.mmolosay.thecolor.presentation.preview.toUiState
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combineTransform
-import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.stateIn
 
 /**
  * Describes UI state of 'Home' View.
@@ -26,17 +27,18 @@ internal fun HomeUiState.toAnimState(): HomeAnimState? =
     )
 
 internal fun FlowOfHomeUiState(
-    flowOfColorPreviewData: StateFlow<ColorPreviewData?>,
+    coroutineScope: CoroutineScope,
+    flowOfColorPreviewData: StateFlow<ColorPreviewData>,
     flowOfHomeData: StateFlow<HomeData>,
-): Flow<HomeUiState> {
-    fun actualUiState(): HomeUiState? {
+): StateFlow<HomeUiState> {
+    fun actualUiState(): HomeUiState {
         val isColorPreviewVisible = run {
-            val data = flowOfColorPreviewData.value ?: return null
-            return@run data.toUiState() is ColorPreviewUiState.Visible
+            val data = flowOfColorPreviewData.value
+            return@run (data.toUiState() is ColorPreviewUiState.Visible)
         }
         val isColorCenterVisible = run {
             val data = flowOfHomeData.value
-            return@run data.proceedResult is ProceedResult.Success
+            return@run (data.proceedResult is ProceedResult.Success)
         }
         return HomeUiState(isColorPreviewVisible, isColorCenterVisible)
     }
@@ -46,8 +48,6 @@ internal fun FlowOfHomeUiState(
     ) { _, _ ->
         // ignore collected values and assemble 'HomeUiState' from actual values of 'StateFlow's
         // that may have not yet been collected due to the asynchronous nature of Flows and coroutines
-        val uiState = actualUiState()
-        if (uiState != null) emit(uiState)
-    }
-        .distinctUntilChanged()
+        emit(actualUiState())
+    }.stateIn(coroutineScope, SharingStarted.Eagerly, initialValue = actualUiState())
 }

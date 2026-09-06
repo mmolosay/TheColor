@@ -47,7 +47,7 @@ internal typealias BareColorPreviewComposable =
  */
 @Composable
 internal fun ColorPreviewInHome(
-    flowOfData: StateFlow<ColorPreviewData?>,
+    flowOfData: StateFlow<ColorPreviewData>,
     homeAnimController: HomeAnimController?,
     containerScrollState: ScrollState,
     stateOfContainerPosInRoot: State<Offset?>,
@@ -75,27 +75,24 @@ internal fun ColorPreviewInHome(
     }
     val stateOfContainerViewportHeight =
         produceState<Int?>(initialValue = null, /*keys*/ containerScrollState.viewportSize) {
-            value =
-                containerScrollState.viewportSize.takeUnless { it == 0 } // consider 0 size as unknown
+            value = containerScrollState.viewportSize.takeUnless { it == 0 } // consider 0 size as unknown
         }
     val animController = rememberColorPreviewAnimController(
         flowOfData = flowOfData,
         flowOfVisibilityAnimDest = flowOfVisibilityAnimDest,
     )
 
-    if (animController != null) {
-        DivingColorPreview(
-            flowOfPositionAnimDest = flowOfPositionAnimDest,
-            onPositionReached = homeAnimController::onValueReached,
-            stateOfContainerViewportHeight = stateOfContainerViewportHeight,
-            stateOfContainerPosInRoot = stateOfContainerPosInRoot,
-        ) {
-            @Suppress("MoveLambdaOutsideParentheses")
-            content(
-                animController,
-                { reached -> homeAnimController.onValueReached(reached.toAnimState()) },
-            )
-        }
+    DivingColorPreview(
+        flowOfPositionAnimDest = flowOfPositionAnimDest,
+        onPositionReached = homeAnimController::onValueReached,
+        stateOfContainerViewportHeight = stateOfContainerViewportHeight,
+        stateOfContainerPosInRoot = stateOfContainerPosInRoot,
+    ) {
+        @Suppress("MoveLambdaOutsideParentheses")
+        content(
+            animController,
+            { reached -> homeAnimController.onValueReached(reached.toAnimState()) },
+        )
     }
 }
 

@@ -34,7 +34,7 @@ import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputValidationResult
 import io.github.mmolosay.thecolor.presentation.input.set
-import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
+import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewDataFactory
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeEvent
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeEventHandler
@@ -75,6 +75,7 @@ class HomeViewModel @Inject constructor(
     private val colorInputMediator: ColorInputMediator,
     colorInputGroupDataFactory: ColorInputGroupDataFactory,
     colorInputGroupViewModelFactory: ColorInputGroupViewModel.Factory,
+    private val colorPreviewDataFactory: ColorPreviewDataFactory,
     private val colorPreviewViewModelFactory: ColorPreviewViewModel.Factory,
     colorCenterComponentsStoreFactory: ColorCenterComponentsStore.Factory,
     private val createColorData: CreateColorDataUseCase,
@@ -103,11 +104,8 @@ class HomeViewModel @Inject constructor(
         )
     }
 
-    val colorPreviewViewModel: ColorPreviewViewModel =
-        colorPreviewViewModelFactory.create(
-            coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
-            store = Store<ColorPreviewData?>(null),
-        )
+    private val _colorPreviewViewModelFlow = MutableStateFlow<ColorPreviewViewModel?>(null)
+    val colorPreviewViewModelFlow = _colorPreviewViewModelFlow.asStateFlow()
 
     private val colorCenterComponentsStore: ColorCenterComponentsStore =
         colorCenterComponentsStoreFactory.create(
@@ -121,11 +119,31 @@ class HomeViewModel @Inject constructor(
     val colorSchemeSwatchDetailsViewModelFlow = _colorSchemeSwatchDetailsViewModelFlow.asStateFlow()
 
     init {
-        maybeProceedWithLastSearchedColor()
-        collectColorsFromColorInput()
+        viewModelScope.launch(defaultDispatcher) {
+            initColorPreviewViewModel().join()
+            maybeProceedWithLastSearchedColor().join()
+            collectColorsFromColorInput()
+        }
     }
 
-    private fun maybeProceedWithLastSearchedColor() {
+    private fun initColorPreviewViewModel(): Job =
+        viewModelScope.launch(defaultDispatcher) {
+            val resumeFromLastSearchedColorOnStartup = userPreferencesRepository
+                .flowOfResumeFromLastSearchedColorOnStartup
+                .filterReady().first()
+                .getOrElse { DefaultUserPreferences.ResumeFromLastSearchedColorOnStartup }
+            val color = if (resumeFromLastSearchedColorOnStartup.enabled) {
+                lastSearchedColorRepository.getLastSearchedColor()
+            } else null
+            val data = colorPreviewDataFactory.create(color)
+            val viewModel = colorPreviewViewModelFactory.create(
+                coroutineScope = ViewModelCoroutineScope(viewModelScope),
+                store = Store(data),
+            )
+            _colorPreviewViewModelFlow.value = viewModel
+        }
+
+    private fun maybeProceedWithLastSearchedColor(): Job =
         launchAsProceed launch@{
             store.batch {
                 val resumeFromLastSearchedColorOnStartup = userPreferencesRepository
@@ -149,9 +167,8 @@ class HomeViewModel @Inject constructor(
                 }
             }
         }
-    }
 
-    private fun collectColorsFromColorInput() =
+    private fun collectColorsFromColorInput(): Job =
         viewModelScope.launch(defaultDispatcher) {
             colorInputMediator.colorStateFlow
                 .drop(1) // replayed value
@@ -347,7 +364,9 @@ class HomeViewModel @Inject constructor(
             val canProceed = CanProceed(colorFromColorInput = color)
             it.copy(canProceed = canProceed)
         }
-        colorPreviewViewModel.setColor(color)
+        colorPreviewViewModelFlow.value
+            .let { requireNotNull(it) }
+            .setColor(color)
     }
 
     private inner class ColorInputSubmitActionImpl : ColorInputSubmitAction {

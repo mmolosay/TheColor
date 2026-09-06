@@ -18,7 +18,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -60,11 +59,9 @@ import io.github.mmolosay.thecolor.presentation.preview.AnimatedColorPreview
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.shareIn
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 @Composable
@@ -78,26 +75,26 @@ fun HomeScreen(
     val coroutineScope = rememberCoroutineScope()
 
     val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
+    val colorPreviewViewModel = viewModel.colorPreviewViewModelFlow
+        .collectAsStateWithLifecycle().value ?: return
 
     val flowOfUiState = remember {
         FlowOfHomeUiState(
-            flowOfColorPreviewData = viewModel.colorPreviewViewModel.dataFlow,
+            coroutineScope = coroutineScope,
+            flowOfColorPreviewData = colorPreviewViewModel.dataFlow,
             flowOfHomeData = viewModel.dataFlow,
         )
-            // make it hot to allow replaying last value when creating 'animController'
-            .shareIn(coroutineScope, SharingStarted.Eagerly, replay = 1)
     }
-    val animController by produceState<HomeAnimController?>(initialValue = null) {
+    val animController = produceState<HomeAnimController?>(initialValue = null) {
         val animState = flowOfUiState
             .mapNotNull { it.toAnimState() }
             .first()
         value = HomeAnimController(animState)
-    }
+    }.value ?: return
     LaunchedEffect(Unit) {
         flowOfUiState.collect { uiState ->
-            val animController = animController ?: return@collect
-            val to = uiState.toAnimState() ?: return@collect
-            val destStates = animController.makeDestStates(to = to)
+            val finish = uiState.toAnimState() ?: return@collect
+            val destStates = animController.makeDestStates(finish = finish)
             if (destStates != null) {
                 animController.run(destStates)
             }
@@ -116,7 +113,7 @@ fun HomeScreen(
             onUiStateReached = onUiStateReached,
         )
     }
-    val colorPreviewDataFlow = viewModel.colorPreviewViewModel.dataFlow
+    val colorPreviewDataFlow = colorPreviewViewModel.dataFlow
     val colorCenter: BareColorCenterComposable? = run {
         val vm = viewModel.colorCenterViewModelFlow.collectAsStateWithLifecycle().value
         remember(vm) {
@@ -171,7 +168,7 @@ private fun HomeScreen(
     execute: ExecuteHomeAction,
     colorInput: BareColorInputComposable,
     colorPreview: BareColorPreviewComposable,
-    colorPreviewDataFlow: StateFlow<ColorPreviewData?>,
+    colorPreviewDataFlow: StateFlow<ColorPreviewData>,
     colorCenter: BareColorCenterComposable?,
     selectedSwatchDetails: BareSelectedSwatchDetailsComposable?,
     selectedSwatchData: SubjectColorData?,
@@ -209,7 +206,7 @@ private fun Home(
     execute: ExecuteHomeAction,
     colorInput: BareColorInputComposable,
     colorPreview: BareColorPreviewComposable,
-    colorPreviewDataFlow: StateFlow<ColorPreviewData?>,
+    colorPreviewDataFlow: StateFlow<ColorPreviewData>,
     colorCenter: BareColorCenterComposable?,
     selectedSwatchDetails: BareSelectedSwatchDetailsComposable?,
     selectedSwatchData: SubjectColorData?,
@@ -360,7 +357,10 @@ private fun Preview() {
                     Text("Color Preview")
                 }
             },
-            colorPreviewDataFlow = remember { MutableStateFlow(null) },
+            colorPreviewDataFlow = remember {
+                val value = ColorPreviewData(color = ColorInt(0x1A803F))
+                MutableStateFlow(value)
+            },
             colorCenter = {
                 Placeholder(
                     modifier = Modifier

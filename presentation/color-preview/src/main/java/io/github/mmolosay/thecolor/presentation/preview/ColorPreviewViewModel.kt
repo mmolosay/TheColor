@@ -16,6 +16,7 @@ import io.github.mmolosay.thecolor.utils.Store
 import io.github.mmolosay.thecolor.utils.SuspendGate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
+import javax.inject.Inject
 import javax.inject.Qualifier
 
 /**
@@ -28,12 +29,12 @@ import javax.inject.Qualifier
  */
 class ColorPreviewViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted private val store: Store<ColorPreviewData?>,
+    @Assisted private val store: Store<ColorPreviewData>,
     private val colorToColorInt: ColorToColorIntUseCase,
     @GateForDataFlow private val gateForDataFlow: SuspendGate,
 ) : SimpleViewModel(coroutineScope) {
 
-    val dataFlow: StateFlow<ColorPreviewData?> = store.flow
+    val dataFlow: StateFlow<ColorPreviewData> = store.flow
 
     /**
      * Sets the new [color].
@@ -43,11 +44,7 @@ class ColorPreviewViewModel @AssistedInject constructor(
         gateForDataFlow.awaitOpen()
         val colorInt = with(colorToColorInt) { color?.toColorInt() }
         store.update {
-            if (it == null) {
-                ColorPreviewData(color = colorInt)
-            } else {
-                it.copy(color = colorInt)
-            }
+            it.copy(color = colorInt)
         }
     }
 
@@ -55,7 +52,7 @@ class ColorPreviewViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            store: Store<ColorPreviewData?>,
+            store: Store<ColorPreviewData>,
         ): ColorPreviewViewModel
     }
 }
@@ -72,4 +69,15 @@ internal object ColorPreviewViewModelDiModule {
     @Qualifier
     @Retention(AnnotationRetention.BINARY)
     annotation class GateForDataFlow
+}
+
+class ColorPreviewDataFactory @Inject constructor(
+    private val colorToColorInt: ColorToColorIntUseCase,
+) {
+    fun create(
+        color: Color?,
+    ): ColorPreviewData =
+        ColorPreviewData(
+            color = with(colorToColorInt) { color?.toColorInt() },
+        )
 }

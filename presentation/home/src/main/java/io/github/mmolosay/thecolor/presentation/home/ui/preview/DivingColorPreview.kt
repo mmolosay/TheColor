@@ -48,8 +48,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combineTransform
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState.ColorPreview as AnimState
 
@@ -192,24 +190,24 @@ private object VerticalOffset {
 // TODO: doesn't feel like it belongs here; address
 @Composable
 internal fun rememberColorPreviewAnimController(
-    flowOfData: StateFlow<ColorPreviewData?>,
+    flowOfData: StateFlow<ColorPreviewData>,
     flowOfVisibilityAnimDest: StateFlow<AnimState.Visibility>,
-): ColorPreviewAnimController? {
+): ColorPreviewAnimController {
     val coroutineScope = rememberCoroutineScope()
     val flowOfAnimatedUiState = remember {
         FlowOfAnimatedUiState(
+            coroutineScope = coroutineScope,
             flowOfData = flowOfData,
             flowOfVisibilityAnimDest = flowOfVisibilityAnimDest,
-            coroutineScope = coroutineScope,
         )
     }
-    val animController by produceState<ColorPreviewAnimController?>(initialValue = null) {
-        val uiState = flowOfAnimatedUiState.filterNotNull().first()
-        value = ColorPreviewAnimController(uiState)
+    val animController = remember {
+        val uiState = flowOfAnimatedUiState.value
+        ColorPreviewAnimController(uiState)
     }
     LaunchedEffect(Unit) {
-        flowOfAnimatedUiState.filterNotNull().collect { uiState ->
-            animController?.onNewUiState(uiState)
+        flowOfAnimatedUiState.collect { uiState ->
+            animController.onNewUiState(uiState)
         }
     }
     return animController
@@ -224,25 +222,24 @@ internal fun ColorPreviewUiState.toAnimState(): AnimState.Visibility =
 
 @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
 internal fun FlowOfAnimatedUiState(
-    flowOfData: StateFlow<ColorPreviewData?>,
-    flowOfVisibilityAnimDest: StateFlow<AnimState.Visibility>,
     coroutineScope: CoroutineScope,
-): StateFlow<ColorPreviewUiState?> {
+    flowOfData: StateFlow<ColorPreviewData>,
+    flowOfVisibilityAnimDest: StateFlow<AnimState.Visibility>,
+): StateFlow<ColorPreviewUiState> {
     /*
      * Most of the time, new original data will be emitted first,
      * and new anim dest (if any) will be emitted second.
      */
+    val initialValue = flowOfData.value.toUiState()
     return combineTransform(
         flowOfData,
         flowOfVisibilityAnimDest,
     ) { data, animDest ->
-        data ?: return@combineTransform
         val uiState = data.toUiState()
-        if (uiState.toAnimState() == animDest) {
-            emit(uiState)
-        }
+        val hasReachedAnimDest = (uiState.toAnimState() == animDest)
+        if (hasReachedAnimDest) emit(uiState)
     }
-        .stateIn(coroutineScope, SharingStarted.Eagerly, initialValue = null)
+        .stateIn(coroutineScope, SharingStarted.Eagerly, initialValue)
 }
 
 @Preview(
