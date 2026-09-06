@@ -19,7 +19,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -53,6 +52,7 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.ExecuteHomeAction
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeAction
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeState
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroup
 import io.github.mmolosay.thecolor.presentation.preview.AnimatedColorPreview
@@ -60,8 +60,6 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.mapNotNull
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 @Composable
@@ -74,23 +72,21 @@ fun HomeScreen(
     val strings = remember(context) { HomeUiStrings(context) }
     val coroutineScope = rememberCoroutineScope()
 
-    val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
-    val colorPreviewViewModel = viewModel.colorPreviewViewModelFlow
-        .collectAsStateWithLifecycle().value ?: return
+    val state = viewModel.stateFlow.collectAsStateWithLifecycle().value
+        .let { it as? HomeState.Ready }
+        ?: return
 
     val flowOfUiState = remember {
         FlowOfHomeUiState(
             coroutineScope = coroutineScope,
-            flowOfColorPreviewData = colorPreviewViewModel.dataFlow,
-            flowOfHomeData = viewModel.dataFlow,
+            flowOfHomeState = viewModel.stateFlow,
         )
     }
-    val animController = produceState<HomeAnimController?>(initialValue = null) {
-        val animState = flowOfUiState
-            .mapNotNull { it.toAnimState() }
-            .first()
-        value = HomeAnimController(animState)
-    }.value ?: return
+    val animController = remember {
+        val animState = flowOfUiState.value.toAnimState()
+            .let { requireNotNull(it) } // assume the initial state is always valid
+        HomeAnimController(animState)
+    }
     LaunchedEffect(Unit) {
         flowOfUiState.collect { uiState ->
             val finish = uiState.toAnimState() ?: return@collect
@@ -113,9 +109,9 @@ fun HomeScreen(
             onUiStateReached = onUiStateReached,
         )
     }
-    val colorPreviewDataFlow = colorPreviewViewModel.dataFlow
+    val colorPreviewDataFlow = state.colorPreviewViewModel.dataFlow
     val colorCenter: BareColorCenterComposable? = run {
-        val vm = viewModel.colorCenterViewModelFlow.collectAsStateWithLifecycle().value
+        val vm = state.colorCenterViewModel
         remember(vm) {
             if (vm == null) return@remember null
             return@remember {
@@ -125,8 +121,7 @@ fun HomeScreen(
             }
         }
     }
-    val selectedSwatchDetailsVm = viewModel.colorSchemeSwatchDetailsViewModelFlow
-        .collectAsStateWithLifecycle().value
+    val selectedSwatchDetailsVm = state.selectedSwatchDetailsViewModel
     val selectedSwatchDetails: BareSelectedSwatchDetailsComposable? = remember(selectedSwatchDetailsVm) {
         if (selectedSwatchDetailsVm == null) return@remember null
         return@remember { modifier ->
@@ -146,7 +141,7 @@ fun HomeScreen(
         ?.subjectColorOrNull()
 
     HomeScreen(
-        data = data,
+        data = state.data,
         strings = strings,
         execute = viewModel::execute,
         colorInput = colorInput,

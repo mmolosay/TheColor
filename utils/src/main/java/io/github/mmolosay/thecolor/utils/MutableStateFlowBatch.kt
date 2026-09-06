@@ -3,6 +3,15 @@ package io.github.mmolosay.thecolor.utils
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 
+@Suppress("unused") // useful, independent util that may come handy in future
+inline fun <T> MutableStateFlow<T>.batch(
+    block: BatchScope<T>.() -> Unit,
+) {
+    val scope = BatchScope<T>()
+    with(scope) { block() }
+    this.update { scope.apply(it) }
+}
+
 class BatchScope<T> {
     private val _updates = mutableListOf<(T) -> T>()
     val updates: List<(T) -> T>
@@ -16,20 +25,4 @@ class BatchScope<T> {
         updates.fold(initial = value) { acc, update ->
             update(acc)
         }
-}
-
-inline fun <T> MutableStateFlow<T>.batch(
-    block: BatchScope<T>.() -> Unit,
-) {
-    val scope = BatchScope<T>()
-    with(scope) { block() }
-    this.update { scope.apply(it) }
-}
-
-suspend inline fun <T> Store<T>.batch(
-    block: BatchScope<T>.() -> Unit,
-) {
-    val scope = BatchScope<T>()
-    with(scope) { block() }
-    this.update { scope.apply(it) }
 }
