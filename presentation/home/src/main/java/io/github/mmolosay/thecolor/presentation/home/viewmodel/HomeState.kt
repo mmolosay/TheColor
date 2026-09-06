@@ -1,7 +1,8 @@
 package io.github.mmolosay.thecolor.presentation.home.viewmodel
 
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
+import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsHandle
+import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsState
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 import io.github.mmolosay.thecolor.utils.Lens
@@ -15,7 +16,8 @@ sealed interface HomeState {
         val colorPreview: ColorPreviewData,
         val colorPreviewViewModel: ColorPreviewViewModel,
         val colorCenterViewModel: ColorCenterViewModel?,
-        val selectedSwatchDetailsViewModel: ColorDetailsViewModel?,
+        val selectedSwatchDetails: ColorDetailsState, // TODO: I don't like this approach. HomeState shouldn't be both used as a model for a ViewModel and for UI
+        val selectedSwatchDetailsHandle: ColorDetailsHandle?,
     ) : HomeState
 }
 
@@ -37,6 +39,13 @@ object HomeStateLenses {
         Lens<HomeState, ColorPreviewData>(
             get = { s -> s.requireReady().colorPreview },
             set = { s, v -> s.requireReady().copy(colorPreview = v) },
+        )
+    }
+
+    val selectedSwatchDetails by lazy {
+        Lens<HomeState, ColorDetailsState>(
+            get = { s -> s.requireReady().selectedSwatchDetails },
+            set = { s, v -> s.requireReady().copy(selectedSwatchDetails = v) },
         )
     }
 }

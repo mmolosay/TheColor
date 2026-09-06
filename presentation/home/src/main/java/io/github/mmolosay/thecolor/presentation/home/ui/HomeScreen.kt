@@ -41,7 +41,6 @@ import io.github.mmolosay.thecolor.presentation.common.navbar.RootNavBarAppearan
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.details.ui.ColorDetails
 import io.github.mmolosay.thecolor.presentation.details.ui.ColorDetailsCrossfade
-import io.github.mmolosay.thecolor.presentation.details.ui.rememberColorDetailsFacade
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.SubjectColorData
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.subjectColorOrNull
 import io.github.mmolosay.thecolor.presentation.home.ui.center.BareColorCenterComposable
@@ -121,24 +120,26 @@ fun HomeScreen(
             }
         }
     }
-    val selectedSwatchDetailsVm = state.selectedSwatchDetailsViewModel
-    val selectedSwatchDetails: BareSelectedSwatchDetailsComposable? = remember(selectedSwatchDetailsVm) {
-        if (selectedSwatchDetailsVm == null) return@remember null
-        return@remember { modifier ->
-            val actualFacade = rememberColorDetailsFacade(selectedSwatchDetailsVm)
-            ColorDetailsCrossfade(
-                modifier = modifier,
-                actualFacade = actualFacade,
-            ) { facade ->
-                ColorDetails(
-                    facade = facade,
-                )
+    val selectedSwatchState = state.selectedSwatchDetails
+    val selectedSwatchData = selectedSwatchState.subjectColorOrNull()
+    val selectedSwatchDetails: BareSelectedSwatchDetailsComposable? = run {
+        val handle = state.selectedSwatchDetailsHandle
+        val state = selectedSwatchState
+        val facade = remember(handle, state) { handle?.facade(state) }
+        remember(facade) {
+            if (facade == null) return@remember null
+            return@remember { modifier ->
+                ColorDetailsCrossfade(
+                    modifier = modifier,
+                    actualFacade = facade,
+                ) { facade ->
+                    ColorDetails(
+                        facade = facade,
+                    )
+                }
             }
         }
     }
-    val selectedSwatchData = selectedSwatchDetailsVm?.stateFlow
-        ?.collectAsStateWithLifecycle()?.value
-        ?.subjectColorOrNull()
 
     HomeScreen(
         data = state.data,

@@ -18,6 +18,8 @@ import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCorout
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsError
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEvent
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEventHandler
+import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsHandle
+import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsState
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.SideEffect
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.Operation.Companion.isSupersededByFetchColorDetails
@@ -141,7 +143,8 @@ class HomeViewModel @Inject constructor(
                     colorPreview = colorPreviewDataFactory.create(color),
                     colorPreviewViewModel = colorPreviewViewModel,
                     colorCenterViewModel = null, // 'proceed' action wasn't invoked yet
-                    selectedSwatchDetailsViewModel = null, // no swatch was selected yet
+                    selectedSwatchDetails = ColorDetailsState.Idle,
+                    selectedSwatchDetailsHandle = null, // no swatch was selected yet
                 )
                 store.update { state }
             }
@@ -296,7 +299,9 @@ class HomeViewModel @Inject constructor(
     private fun clearColorSchemeSelectedSwatch(): Job =
         launchUntracked {
             store.updateReady {
-                it.copy(selectedSwatchDetailsViewModel = null)
+                it.copy(
+                    selectedSwatchDetails = ColorDetailsState.Idle,
+                )
             }
         }
 
@@ -309,11 +314,15 @@ class HomeViewModel @Inject constructor(
         colorCenterComponentsStore.createNewComponents(
             colorDetailsEventHandler = ColorCenterColorDetailsEventHandlerImpl(),
             colorSchemeEventHandler = ColorSchemeEventHandlerImpl(),
+            selectedSwatchColorDetailsStore = store.focus(HomeStateLenses.selectedSwatchDetails),
             selectedSwatchColorDetailsEventHandler = SelectedSwatchColorDetailsEventHandlerImpl(),
         )
-        val newComponents = colorCenterComponentsStore.components
+        val newComponents = requireNotNull(colorCenterComponentsStore.components)
         store.updateReady {
-            it.copy(colorCenterViewModel = newComponents?.colorCenterViewModel)
+            it.copy(
+                colorCenterViewModel = newComponents.colorCenterViewModel,
+                selectedSwatchDetailsHandle = ColorDetailsHandle(newComponents.selectedSwatchColorDetailsViewModel),
+            )
         }
     }
 
@@ -351,9 +360,9 @@ class HomeViewModel @Inject constructor(
         store.updateReady {
             it.copy(
                 data = it.data.copy(proceedResult = null),
-                // the components these handles pointed at have just been disposed
                 colorCenterViewModel = null,
-                selectedSwatchDetailsViewModel = null,
+                selectedSwatchDetails = ColorDetailsState.Idle,
+                selectedSwatchDetailsHandle = null,
             )
         }
     }
@@ -490,9 +499,6 @@ class HomeViewModel @Inject constructor(
                             ?: return@launch
                         // set the data first, so that the handle is published already populated
                         viewModel.setSeedDetails(event.swatchColorDetails)
-                        store.updateReady {
-                            it.copy(selectedSwatchDetailsViewModel = viewModel)
-                        }
                     }
                 }
                 is ColorSchemeEvent.ApplyChangesAction -> {

@@ -35,6 +35,7 @@ class ColorCenterComponentsStore @AssistedInject constructor(
     fun createNewComponents(
         colorDetailsEventHandler: ColorDetailsEventHandler,
         colorSchemeEventHandler: ColorSchemeEventHandler,
+        selectedSwatchColorDetailsStore: Store<ColorDetailsState>,
         selectedSwatchColorDetailsEventHandler: ColorDetailsEventHandler,
     ) {
         disposeComponents() // dispose of current components if there are any
@@ -42,6 +43,7 @@ class ColorCenterComponentsStore @AssistedInject constructor(
             viewModelScope = viewModelScope,
             colorDetailsEventHandler = colorDetailsEventHandler,
             colorSchemeEventHandler = colorSchemeEventHandler,
+            selectedSwatchColorDetailsStore = selectedSwatchColorDetailsStore,
             selectedSwatchColorDetailsEventHandler = selectedSwatchColorDetailsEventHandler,
         )
     }
@@ -73,6 +75,7 @@ class ColorCenterComponentsFactory @Inject constructor(
         viewModelScope: CoroutineScope,
         colorDetailsEventHandler: ColorDetailsEventHandler,
         colorSchemeEventHandler: ColorSchemeEventHandler,
+        selectedSwatchColorDetailsStore: Store<ColorDetailsState>,
         selectedSwatchColorDetailsEventHandler: ColorDetailsEventHandler,
     ): ColorCenterComponents {
         val colorSchemeViewModelCoroutineScope: CoroutineScope
@@ -102,7 +105,7 @@ class ColorCenterComponentsFactory @Inject constructor(
         }
         val selectedSwatchColorDetailsViewModel = colorDetailsViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = colorSchemeViewModelCoroutineScope),
-            store = Store(ColorDetailsState.Idle),
+            store = selectedSwatchColorDetailsStore,
             eventHandler = selectedSwatchColorDetailsEventHandler,
         )
         return ColorCenterComponents(
