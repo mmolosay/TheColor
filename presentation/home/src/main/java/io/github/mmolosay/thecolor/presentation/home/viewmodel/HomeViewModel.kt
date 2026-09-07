@@ -87,7 +87,8 @@ class HomeViewModel @Inject constructor(
     private val store = Store<HomeState>(HomeState.Initializing)
     val stateFlow: StateFlow<HomeState> = store.flow
 
-    private val dataStore: Store<HomeData> = store.focus(HomeStateLenses.homeData)
+    private val treeStore = store.focus(HomeStateLenses.tree)
+    private val dataStore = treeStore.focus(HomeTreeDataLenses.home)
 
     private val initialized = ClosableSuspendGate(closed = true)
     private val opRegistry = CoroutineRegistry<Operation>()
@@ -129,26 +130,30 @@ class HomeViewModel @Inject constructor(
         val color = if (resumeFromLastSearchedColorOnStartup.enabled) {
             lastSearchedColorRepository.getLastSearchedColor()
         } else null
-        this.colorPreviewViewModel = colorPreviewViewModelFactory.create(
-            coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
-            store = store.focus(HomeStateLenses.colorPreview),
-        )
-        val initialData = HomeData(
-            canProceed = CanProceed(colorFromColorInput = colorInputMediator.colorState.color),
-            proceedResult = null, // 'proceed' action wasn't invoked yet
-            sideEffects = emptyList(),
-        )
-        store.transaction transaction@{
+        store.transaction {
             store.update {
-                HomeState.Ready(
-                    data = initialData,
+                val tree = HomeTreeData(
+                    home = HomeData(
+                        canProceed = CanProceed(colorFromColorInput = colorInputMediator.colorState.color),
+                        proceedResult = null, // 'proceed' action wasn't invoked yet
+                        sideEffects = emptyList(),
+                    ),
                     colorPreview = colorPreviewDataFactory.create(color),
+                    colorCenter = null,
+                )
+                HomeState.Ready(
+                    tree = tree,
                     colorCenterViewModel = null, // 'proceed' action wasn't invoked yet
-                    selectedSwatchDetails = ColorDetailsState.Idle,
                     selectedSwatchDetailsHandle = null, // no swatch was selected yet
                 )
             }
             // from here on the state is 'Ready', thus the partial lenses are safe to write through
+            this.colorPreviewViewModel = colorPreviewViewModelFactory.create(
+                coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
+                store = treeStore.focus(HomeTreeDataLenses.colorPreview),
+            )
+
+            if (!resumeFromLastSearchedColorOnStartup.enabled) return@transaction
             if (color == null) return@transaction
             createAndConsumeNewColorCenterComponents()
             val deferredDetails = CompletableDeferred<DomainColorDetails>()
@@ -297,10 +302,12 @@ class HomeViewModel @Inject constructor(
 
     private fun clearColorSchemeSelectedSwatch(): Job =
         launchUntracked {
-            store.updateReady {
-                it.copy(
+            treeStore.update {
+                // TODO: nested data update is very verbose and cumbersome
+                val colorCenter = it.colorCenter?.copy(
                     selectedSwatchDetails = ColorDetailsState.Idle,
                 )
+                it.copy(colorCenter = colorCenter)
             }
         }
 
@@ -310,10 +317,17 @@ class HomeViewModel @Inject constructor(
     }
 
     private suspend fun createAndConsumeNewColorCenterComponents() {
+        treeStore.update {
+            // TODO: nested data update is very verbose and cumbersome
+            val colorCenter = ColorCenterTreeData(
+                selectedSwatchDetails = ColorDetailsState.Idle,
+            )
+            it.copy(colorCenter = colorCenter)
+        }
         colorCenterComponentsStore.createNewComponents(
             colorDetailsEventHandler = ColorCenterColorDetailsEventHandlerImpl(),
             colorSchemeEventHandler = ColorSchemeEventHandlerImpl(),
-            selectedSwatchColorDetailsStore = store.focus(HomeStateLenses.selectedSwatchDetails),
+            selectedSwatchColorDetailsStore = treeStore.focus(HomeTreeDataLenses.selectedSwatchDetails),
             selectedSwatchColorDetailsEventHandler = SelectedSwatchColorDetailsEventHandlerImpl(),
         )
         val newComponents = requireNotNull(colorCenterComponentsStore.components)
@@ -357,10 +371,13 @@ class HomeViewModel @Inject constructor(
         ccSessionStore.clear()
         colorCenterComponentsStore.disposeComponents()
         store.updateReady {
+            // TODO: nested data update is very verbose and cumbersome
             it.copy(
-                data = it.data.copy(proceedResult = null),
+                tree = it.tree.copy(
+                    home = it.tree.home.copy(proceedResult = null),
+                    colorCenter = null,
+                ),
                 colorCenterViewModel = null,
-                selectedSwatchDetails = ColorDetailsState.Idle,
                 selectedSwatchDetailsHandle = null,
             )
         }

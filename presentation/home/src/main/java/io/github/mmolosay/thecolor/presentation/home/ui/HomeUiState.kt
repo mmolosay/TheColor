@@ -21,8 +21,8 @@ internal fun HomeUiState.toAnimState(): HomeAnimState? =
     )
 
 internal fun HomeState.Ready.toUiState(): HomeUiState {
-    val isColorPreviewVisible = (this.colorPreview.toUiState() is ColorPreviewUiState.Visible)
-    val isColorCenterVisible = (this.data.proceedResult is ProceedResult.Success)
+    val isColorPreviewVisible = (this.tree.colorPreview.toUiState() is ColorPreviewUiState.Visible)
+    val isColorCenterVisible = (this.tree.home.proceedResult is ProceedResult.Success)
     return HomeUiState(
         isColorPreviewVisible = isColorPreviewVisible,
         isColorCenterVisible = isColorCenterVisible,

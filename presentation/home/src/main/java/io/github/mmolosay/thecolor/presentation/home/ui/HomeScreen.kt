@@ -106,7 +106,7 @@ fun HomeScreen(
         )
     }
     val colorPreviewDataFlow = remember {
-        viewModel.stateFlow.mapState { it.requireReady().colorPreview }
+        viewModel.stateFlow.mapState { it.requireReady().tree.colorPreview }
     }
     val colorCenter: BareColorCenterComposable? = run {
         val vm = state.colorCenterViewModel
@@ -119,12 +119,16 @@ fun HomeScreen(
             }
         }
     }
-    val selectedSwatchState = state.selectedSwatchDetails
-    val selectedSwatchData = selectedSwatchState.subjectColorOrNull()
+    val selectedSwatchState = state.tree.colorCenter?.selectedSwatchDetails
+    val selectedSwatchData = selectedSwatchState?.subjectColorOrNull()
     val selectedSwatchDetails: BareSelectedSwatchDetailsComposable? = run {
         val handle = state.selectedSwatchDetailsHandle
         val state = selectedSwatchState
-        val facade = remember(handle, state) { handle?.facade(state) }
+        val facade = remember(handle, state) {
+            // TODO: ugly
+            if (state == null) return@remember null
+            handle?.facade(state)
+        }
         remember(facade) {
             if (facade == null) return@remember null
             return@remember { modifier ->
@@ -141,7 +145,7 @@ fun HomeScreen(
     }
 
     HomeScreen(
-        data = state.data,
+        data = state.tree.home,
         strings = strings,
         execute = viewModel::execute,
         colorInput = colorInput,
