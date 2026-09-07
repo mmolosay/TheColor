@@ -41,7 +41,6 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewDataFactory
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeEvent
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeEventHandler
-import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeState
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeViewModel
 import io.github.mmolosay.thecolor.utils.ClosableSuspendGate
 import io.github.mmolosay.thecolor.utils.CoroutineRegistry
@@ -143,11 +142,10 @@ class HomeViewModel @Inject constructor(
                         sideEffects = emptyList(),
                     ),
                     colorPreview = colorPreviewDataFactory.create(color),
-                    colorCenter = null,
                 )
                 HomeState.Ready(
                     tree = tree,
-                    colorCenterHandles = null, // 'proceed' action wasn't invoked yet
+                    colorCenter = null, // 'proceed' action wasn't invoked yet
                 )
             }
             // from here on the state is 'Ready', thus the partial lenses are safe to write through
@@ -303,13 +301,11 @@ class HomeViewModel @Inject constructor(
         }
 
     private fun clearColorSchemeSelectedSwatch(): Job =
-        launchUntracked {
-            treeStore.update {
-                // TODO: nested data update is very verbose and cumbersome
-                val colorCenter = it.colorCenter?.copy(
-                    selectedSwatchDetails = ColorDetailsState.Idle,
-                )
-                it.copy(colorCenter = colorCenter)
+        launchUntracked launch@{
+            // no ongoing session means there's no selected swatch to clear
+            val components = colorCenterComponentsStore.components ?: return@launch
+            components.store.update {
+                ColorCenterTreeDataLenses.selectedSwatchDetails.set(it, ColorDetailsState.Idle)
             }
         }
 
@@ -319,32 +315,22 @@ class HomeViewModel @Inject constructor(
     }
 
     private suspend fun createAndConsumeNewColorCenterComponents() {
-        treeStore.update {
-            // TODO: nested data update is very verbose and cumbersome
-            val colorCenter = ColorCenterTreeData(
-                colorCenter = colorCenterDataFactory.create(),
-                colorDetails = ColorDetailsState.Idle,
-                colorScheme = ColorSchemeState.Idle,
-                selectedSwatchDetails = ColorDetailsState.Idle,
-            )
-            it.copy(colorCenter = colorCenter)
-        }
         colorCenterComponentsStore.createNewComponents(
-            colorCenterStore = treeStore.focus(HomeTreeDataLenses.colorCenter),
-            colorDetailsStore = treeStore.focus(HomeTreeDataLenses.colorDetails),
             colorDetailsEventHandler = ColorCenterColorDetailsEventHandlerImpl(),
-            colorSchemeStore = treeStore.focus(HomeTreeDataLenses.colorScheme),
             colorSchemeEventHandler = ColorSchemeEventHandlerImpl(),
-            selectedSwatchColorDetailsStore = treeStore.focus(HomeTreeDataLenses.selectedSwatchDetails),
             selectedSwatchColorDetailsEventHandler = SelectedSwatchColorDetailsEventHandlerImpl(),
         )
         val newComponents = requireNotNull(colorCenterComponentsStore.components)
         store.updateReady {
-            val colorCenterHandles = ColorCenterHandles(
+            val handles = ColorCenterHandles(
                 colorCenter = ColorCenterHandle(newComponents.colorCenterViewModel),
                 selectedSwatchDetails = ColorDetailsHandle(newComponents.selectedSwatchColorDetailsViewModel),
             )
-            it.copy(colorCenterHandles = colorCenterHandles)
+            val colorCenter = LiveColorCenter(
+                treeFlow = newComponents.store.flow,
+                handles = handles,
+            )
+            it.copy(colorCenter = colorCenter)
         }
     }
 
@@ -380,13 +366,11 @@ class HomeViewModel @Inject constructor(
         ccSessionStore.clear()
         colorCenterComponentsStore.disposeComponents()
         store.updateReady {
-            // TODO: nested data update is very verbose and cumbersome
             it.copy(
                 tree = it.tree.copy(
                     home = it.tree.home.copy(proceedResult = null),
-                    colorCenter = null,
                 ),
-                colorCenterHandles = null,
+                colorCenter = null,
             )
         }
     }

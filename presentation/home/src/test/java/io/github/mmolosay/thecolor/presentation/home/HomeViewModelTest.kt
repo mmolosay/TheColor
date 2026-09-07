@@ -106,10 +106,9 @@ class HomeViewModelTest {
             viewModelScope: CoroutineScope,
         ): ColorCenterComponentsStore {
             val factory = ColorCenterComponentsFactory(
-                colorDetailsViewModelFactory = { _ -> colorDetailsViewModel },
-                colorSchemeViewModelFactory = { _ -> colorSchemeViewModel },
                 colorCenterViewModelFactory = { _, _, _ -> colorCenterViewModel },
-            )
+                colorDetailsViewModelFactory = { _ -> colorDetailsViewModel },
+            ) { _ -> colorSchemeViewModel }
             return ColorCenterComponentsStore(
                 viewModelScope = viewModelScope,
                 factory = factory,
