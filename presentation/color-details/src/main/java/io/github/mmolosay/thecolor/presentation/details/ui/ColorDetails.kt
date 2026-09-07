@@ -34,7 +34,6 @@ import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEr
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsFacade
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsHandle
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsState
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorRole
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ExecuteColorDetailsAction
 import io.github.mmolosay.thecolor.presentation.errors.ErrorMessageWithButton
@@ -43,23 +42,9 @@ import io.github.mmolosay.thecolor.presentation.errors.rememberDefaultErrorsUiSt
 import io.github.mmolosay.thecolor.utils.doNothing
 import kotlinx.coroutines.Job
 
-@Suppress("unused") // example of having 'ViewModel' as entry point
 @Composable
-fun ColorDetails(
-    viewModel: ColorDetailsViewModel,
-    modifier: Modifier = Modifier,
-) {
-    val facade = rememberColorDetailsFacade(viewModel)
-    ColorDetails(
-        facade = facade,
-        modifier = modifier,
-    )
-}
-
-@Composable
-fun rememberColorDetailsFacade(viewModel: ColorDetailsViewModel): ColorDetailsFacade {
-    val handle = remember(viewModel) { ColorDetailsHandle(viewModel) }
-    val state = viewModel.stateFlow.collectAsStateWithLifecycle().value
+fun rememberColorDetailsFacade(handle: ColorDetailsHandle): ColorDetailsFacade {
+    val state = handle.stateFlow.collectAsStateWithLifecycle().value
     return remember(handle, state) { handle.facade(state) }
 }
 

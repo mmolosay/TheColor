@@ -54,10 +54,10 @@ import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun ColorCenter(
-    viewModel: ColorCenterViewModel,
+    handle: ColorCenterHandle,
     modifier: Modifier = Modifier,
 ) {
-    val facade = rememberColorCenterFacade(viewModel)
+    val facade = rememberColorCenterFacade(handle)
     val crossfadeSpec = tween<Float>(
         durationMillis = 500,
         easing = FastOutSlowInEasing,
@@ -66,9 +66,7 @@ fun ColorCenter(
         modifier = modifier,
         facade = facade,
         colorDetails = {
-            @Suppress("NAME_SHADOWING")
-            val viewModel = viewModel.colorDetailsViewModel
-            val actualFacade = rememberColorDetailsFacade(viewModel)
+            val actualFacade = rememberColorDetailsFacade(handle.colorDetails)
             ColorDetailsCrossfade(
                 actualFacade = actualFacade,
                 animationSpec = crossfadeSpec,
@@ -77,9 +75,7 @@ fun ColorCenter(
             }
         },
         colorScheme = {
-            @Suppress("NAME_SHADOWING")
-            val viewModel = viewModel.colorSchemeViewModel
-            val actualFacade = rememberColorSchemeFacade(viewModel)
+            val actualFacade = rememberColorSchemeFacade(handle.colorScheme)
             val transition = updateTransition(
                 targetState = actualFacade,
                 label = "Color Scheme cross-fade",
@@ -99,9 +95,8 @@ fun ColorCenter(
 }
 
 @Composable
-fun rememberColorCenterFacade(viewModel: ColorCenterViewModel): ColorCenterFacade {
-    val handle = remember(viewModel) { ColorCenterHandle(viewModel) }
-    val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
+fun rememberColorCenterFacade(handle: ColorCenterHandle): ColorCenterFacade {
+    val data = handle.dataFlow.collectAsStateWithLifecycle().value
     return remember(handle, data) { handle.facade(data) }
 }
 

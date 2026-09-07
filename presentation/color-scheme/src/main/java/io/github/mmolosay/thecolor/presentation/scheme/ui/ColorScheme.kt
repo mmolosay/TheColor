@@ -66,7 +66,6 @@ import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeErro
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeFacade
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeHandle
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeState
-import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ExecuteColorSchemeAction
 import io.github.mmolosay.thecolor.utils.doNothing
 import kotlinx.collections.immutable.persistentListOf
@@ -74,21 +73,9 @@ import kotlinx.coroutines.Job
 import io.github.mmolosay.thecolor.domain.color.ColorScheme.Mode as DomainMode
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
-@Suppress("unused") // example of having 'ViewModel' as entry point
 @Composable
-fun ColorScheme(
-    viewModel: ColorSchemeViewModel,
-) {
-    val facade = rememberColorSchemeFacade(viewModel)
-    ColorScheme(
-        facade = facade,
-    )
-}
-
-@Composable
-fun rememberColorSchemeFacade(viewModel: ColorSchemeViewModel): ColorSchemeFacade {
-    val handle = remember(viewModel) { ColorSchemeHandle(viewModel) }
-    val state = viewModel.stateFlow.collectAsStateWithLifecycle().value
+fun rememberColorSchemeFacade(handle: ColorSchemeHandle): ColorSchemeFacade {
+    val state = handle.stateFlow.collectAsStateWithLifecycle().value
     return remember(handle, state) { handle.facade(state) }
 }
 

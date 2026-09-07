@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.home.viewmodel
 
-import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
+import io.github.mmolosay.thecolor.presentation.center.ColorCenterHandle
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsHandle
 import io.github.mmolosay.thecolor.utils.Lens
 
@@ -10,10 +10,14 @@ sealed interface HomeState {
 
     data class Ready(
         val tree: HomeTreeData,
-        val colorCenterViewModel: ColorCenterViewModel?,
-        val selectedSwatchDetailsHandle: ColorDetailsHandle?,
+        val colorCenterHandles: ColorCenterHandles?,
     ) : HomeState
 }
+
+data class ColorCenterHandles(
+    val colorCenter: ColorCenterHandle,
+    val selectedSwatchDetails: ColorDetailsHandle,
+)
 
 internal fun HomeState.requireReady(): HomeState.Ready {
     require(this is HomeState.Ready)

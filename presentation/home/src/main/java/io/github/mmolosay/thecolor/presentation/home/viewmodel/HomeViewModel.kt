@@ -13,6 +13,7 @@ import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesReposi
 import io.github.mmolosay.thecolor.domain.utils.filterReady
 import io.github.mmolosay.thecolor.domain.utils.getOrElse
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
+import io.github.mmolosay.thecolor.presentation.center.ColorCenterHandle
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsError
@@ -143,8 +144,7 @@ class HomeViewModel @Inject constructor(
                 )
                 HomeState.Ready(
                     tree = tree,
-                    colorCenterViewModel = null, // 'proceed' action wasn't invoked yet
-                    selectedSwatchDetailsHandle = null, // no swatch was selected yet
+                    colorCenterHandles = null, // 'proceed' action wasn't invoked yet
                 )
             }
             // from here on the state is 'Ready', thus the partial lenses are safe to write through
@@ -221,7 +221,6 @@ class HomeViewModel @Inject constructor(
             }
         }
 
-    /** Must be called inside a [Store.transaction] on the [store]. */
     private suspend fun proceed(
         color: Color,
         colorCenterAction: suspend (ColorDetailsViewModel, ColorSchemeViewModel) -> Unit,
@@ -332,10 +331,11 @@ class HomeViewModel @Inject constructor(
         )
         val newComponents = requireNotNull(colorCenterComponentsStore.components)
         store.updateReady {
-            it.copy(
-                colorCenterViewModel = newComponents.colorCenterViewModel,
-                selectedSwatchDetailsHandle = ColorDetailsHandle(newComponents.selectedSwatchColorDetailsViewModel),
+            val colorCenterHandles = ColorCenterHandles(
+                colorCenter = ColorCenterHandle(newComponents.colorCenterViewModel),
+                selectedSwatchDetails = ColorDetailsHandle(newComponents.selectedSwatchColorDetailsViewModel),
             )
+            it.copy(colorCenterHandles = colorCenterHandles)
         }
     }
 
@@ -377,8 +377,7 @@ class HomeViewModel @Inject constructor(
                     home = it.tree.home.copy(proceedResult = null),
                     colorCenter = null,
                 ),
-                colorCenterViewModel = null,
-                selectedSwatchDetailsHandle = null,
+                colorCenterHandles = null,
             )
         }
     }

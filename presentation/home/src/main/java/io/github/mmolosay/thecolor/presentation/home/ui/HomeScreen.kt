@@ -109,12 +109,11 @@ fun HomeScreen(
         viewModel.stateFlow.mapState { it.requireReady().tree.colorPreview }
     }
     val colorCenter: BareColorCenterComposable? = run {
-        val vm = state.colorCenterViewModel
-        remember(vm) {
-            if (vm == null) return@remember null
-            return@remember {
+        val handle = state.colorCenterHandles?.colorCenter ?: return@run null
+        remember(handle) {
+            {
                 ColorCenter(
-                    viewModel = vm,
+                    handle = handle,
                 )
             }
         }
@@ -122,16 +121,11 @@ fun HomeScreen(
     val selectedSwatchState = state.tree.colorCenter?.selectedSwatchDetails
     val selectedSwatchData = selectedSwatchState?.subjectColorOrNull()
     val selectedSwatchDetails: BareSelectedSwatchDetailsComposable? = run {
-        val handle = state.selectedSwatchDetailsHandle
-        val state = selectedSwatchState
-        val facade = remember(handle, state) {
-            // TODO: ugly
-            if (state == null) return@remember null
-            handle?.facade(state)
-        }
+        val handle = state.colorCenterHandles?.selectedSwatchDetails ?: return@run null
+        val state = selectedSwatchState ?: return@run null
+        val facade = remember(handle, state) { handle.facade(state) }
         remember(facade) {
-            if (facade == null) return@remember null
-            return@remember { modifier ->
+            { modifier ->
                 ColorDetailsCrossfade(
                     modifier = modifier,
                     actualFacade = facade,
