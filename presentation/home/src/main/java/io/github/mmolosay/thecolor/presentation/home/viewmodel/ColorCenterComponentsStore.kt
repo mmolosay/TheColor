@@ -13,7 +13,6 @@ import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeEven
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeState
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeViewModel
 import io.github.mmolosay.thecolor.utils.Store
-import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.CoroutineScope
 import javax.inject.Inject
 
@@ -33,15 +32,22 @@ class ColorCenterComponentsStore @AssistedInject constructor(
 
     @Synchronized
     fun createNewComponents(
+        // TODO: list of params if pretty long, and passed forward to ColorCenterComponentsFactory. Refactor?
         colorDetailsEventHandler: ColorDetailsEventHandler,
         colorSchemeEventHandler: ColorSchemeEventHandler,
+        colorCenterStore: Store<ColorCenterData>,
+        colorDetailsStore: Store<ColorDetailsState>,
+        colorSchemeStore: Store<ColorSchemeState>,
         selectedSwatchColorDetailsStore: Store<ColorDetailsState>,
         selectedSwatchColorDetailsEventHandler: ColorDetailsEventHandler,
     ) {
         disposeComponents() // dispose of current components if there are any
         this.components = factory.create(
             viewModelScope = viewModelScope,
+            colorCenterStore = colorCenterStore,
+            colorDetailsStore =colorDetailsStore,
             colorDetailsEventHandler = colorDetailsEventHandler,
+            colorSchemeStore = colorSchemeStore,
             colorSchemeEventHandler = colorSchemeEventHandler,
             selectedSwatchColorDetailsStore = selectedSwatchColorDetailsStore,
             selectedSwatchColorDetailsEventHandler = selectedSwatchColorDetailsEventHandler,
@@ -73,7 +79,10 @@ class ColorCenterComponentsFactory @Inject constructor(
 
     fun create(
         viewModelScope: CoroutineScope,
+        colorCenterStore: Store<ColorCenterData>,
+        colorDetailsStore: Store<ColorDetailsState>,
         colorDetailsEventHandler: ColorDetailsEventHandler,
+        colorSchemeStore: Store<ColorSchemeState>,
         colorSchemeEventHandler: ColorSchemeEventHandler,
         selectedSwatchColorDetailsStore: Store<ColorDetailsState>,
         selectedSwatchColorDetailsEventHandler: ColorDetailsEventHandler,
@@ -83,22 +92,18 @@ class ColorCenterComponentsFactory @Inject constructor(
             val coroutineScope = ViewModelCoroutineScope(parent = viewModelScope)
             val colorDetailsViewModel = colorDetailsViewModelFactory.create(
                 coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
-                store = Store(ColorDetailsState.Idle),
+                store = colorDetailsStore,
                 eventHandler = colorDetailsEventHandler,
             )
             colorSchemeViewModelCoroutineScope = ViewModelCoroutineScope(parent = coroutineScope)
             val colorSchemeViewModel = colorSchemeViewModelFactory.create(
                 coroutineScope = colorSchemeViewModelCoroutineScope,
-                store = Store(ColorSchemeState.Idle),
+                store = colorSchemeStore,
                 eventHandler = colorSchemeEventHandler,
             )
             return@run colorCenterViewModelFactory.create(
                 coroutineScope = coroutineScope,
-                store = Store(
-                    ColorCenterData(
-                        sideEffects = persistentListOf(),
-                    )
-                ),
+                store = colorCenterStore,
                 colorDetailsViewModel = colorDetailsViewModel,
                 colorSchemeViewModel = colorSchemeViewModel,
             )

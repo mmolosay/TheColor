@@ -13,6 +13,7 @@ import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesReposi
 import io.github.mmolosay.thecolor.domain.utils.filterReady
 import io.github.mmolosay.thecolor.domain.utils.getOrElse
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
+import io.github.mmolosay.thecolor.presentation.center.ColorCenterDataFactory
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterHandle
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
@@ -40,6 +41,7 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewDataFactory
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeEvent
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeEventHandler
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeState
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeViewModel
 import io.github.mmolosay.thecolor.utils.ClosableSuspendGate
 import io.github.mmolosay.thecolor.utils.CoroutineRegistry
@@ -76,6 +78,7 @@ class HomeViewModel @Inject constructor(
     colorInputGroupViewModelFactory: ColorInputGroupViewModel.Factory,
     private val colorPreviewDataFactory: ColorPreviewDataFactory,
     private val colorPreviewViewModelFactory: ColorPreviewViewModel.Factory,
+    private val colorCenterDataFactory: ColorCenterDataFactory,
     colorCenterComponentsStoreFactory: ColorCenterComponentsStore.Factory,
     private val createColorData: CreateColorDataUseCase,
     private val colorComparator: ColorComparator,
@@ -319,12 +322,18 @@ class HomeViewModel @Inject constructor(
         treeStore.update {
             // TODO: nested data update is very verbose and cumbersome
             val colorCenter = ColorCenterTreeData(
+                colorCenter = colorCenterDataFactory.create(),
+                colorDetails = ColorDetailsState.Idle,
+                colorScheme = ColorSchemeState.Idle,
                 selectedSwatchDetails = ColorDetailsState.Idle,
             )
             it.copy(colorCenter = colorCenter)
         }
         colorCenterComponentsStore.createNewComponents(
+            colorCenterStore = treeStore.focus(HomeTreeDataLenses.colorCenter),
+            colorDetailsStore = treeStore.focus(HomeTreeDataLenses.colorDetails),
             colorDetailsEventHandler = ColorCenterColorDetailsEventHandlerImpl(),
+            colorSchemeStore = treeStore.focus(HomeTreeDataLenses.colorScheme),
             colorSchemeEventHandler = ColorSchemeEventHandlerImpl(),
             selectedSwatchColorDetailsStore = treeStore.focus(HomeTreeDataLenses.selectedSwatchDetails),
             selectedSwatchColorDetailsEventHandler = SelectedSwatchColorDetailsEventHandlerImpl(),

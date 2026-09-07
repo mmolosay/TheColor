@@ -11,6 +11,7 @@ import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeView
 import io.github.mmolosay.thecolor.utils.SideEffectIdFactory
 import io.github.mmolosay.thecolor.utils.Store
 import kotlinx.collections.immutable.minus
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.plus
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineDispatcher
@@ -18,6 +19,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /**
  * Handles presentation logic of the 'Color Center' feature.
@@ -81,6 +83,13 @@ class ColorCenterViewModel @AssistedInject constructor(
             colorSchemeViewModel: ColorSchemeViewModel,
         ): ColorCenterViewModel
     }
+}
+
+class ColorCenterDataFactory @Inject constructor() {
+    fun create(): ColorCenterData =
+        ColorCenterData(
+            sideEffects = persistentListOf(),
+        )
 }
 
 private class SideEffectFactory {
