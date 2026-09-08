@@ -36,7 +36,6 @@ import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitActi
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputValidationResult
 import io.github.mmolosay.thecolor.presentation.input.set
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewDataFactory
-import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeEvent
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeEventHandler
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeViewModel
@@ -75,7 +74,6 @@ class HomeViewModel @Inject constructor(
     colorInputGroupDataFactory: ColorInputGroupDataFactory,
     colorInputGroupViewModelFactory: ColorInputGroupViewModel.Factory,
     private val colorPreviewDataFactory: ColorPreviewDataFactory,
-    private val colorPreviewViewModelFactory: ColorPreviewViewModel.Factory,
     colorCenterComponentsStoreFactory: ColorCenterComponentsStore.Factory,
     private val createColorData: CreateColorDataUseCase,
     private val colorComparator: ColorComparator,
@@ -113,9 +111,6 @@ class HomeViewModel @Inject constructor(
         )
     }
 
-    @Volatile
-    private var colorPreviewViewModel: ColorPreviewViewModel? = null
-
     private val colorCenterComponentsStore: ColorCenterComponentsStore =
         colorCenterComponentsStoreFactory.create(
             viewModelScope = viewModelScope,
@@ -152,11 +147,6 @@ class HomeViewModel @Inject constructor(
                     colorCenterHandles = null, // 'proceed' action wasn't invoked yet
                 )
             }
-            // from here on the state is initialized, so 'store' and its derivatives are safe to use
-            this.colorPreviewViewModel = colorPreviewViewModelFactory.create(
-                coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
-                store = treeStore.focus(HomeTreeDataLenses.colorPreview),
-            )
 
             if (!resumeFromLastSearchedColorOnStartup.enabled) return@transaction
             if (color == null) return@transaction
@@ -374,15 +364,14 @@ class HomeViewModel @Inject constructor(
     }
 
     private suspend fun onColorBecameCurrent(color: Color?) {
-        dataStore.update {
-            val canProceed = CanProceed(colorFromColorInput = color)
-            it.copy(canProceed = canProceed)
+        treeStore.update {
+            it.copy(
+                home = it.home.copy(
+                    canProceed = CanProceed(colorFromColorInput = color),
+                ),
+                colorPreview = colorPreviewDataFactory.create(color),
+            )
         }
-        // TODO: doesn't look like a write to the same store under the ongoing transaction, but it is.
-        //       replace ColorPreviewViewModel.setColor() with a colorPreviewStore.update() ?
-        colorPreviewViewModel
-            .let { requireNotNull(it) }
-            .setColor(color)
     }
 
     private inner class ColorInputSubmitActionImpl : ColorInputSubmitAction {
