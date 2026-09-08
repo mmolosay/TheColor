@@ -111,10 +111,11 @@ class ColorSchemeViewModel @AssistedInject constructor(
             colorRepository.getColorScheme(domainRequest)
         }
         val colorScheme = schemeResult.getOrElse { exception ->
-            val error = ColorSchemeError(
-                cause = exception,
-            )
-            store.update {
+            store.update { current ->
+                if (!current.isAwaiting(request)) return@update current
+                val error = ColorSchemeError(
+                    cause = exception,
+                )
                 ColorSchemeState.Error(
                     request = request,
                     error = error,
@@ -122,8 +123,9 @@ class ColorSchemeViewModel @AssistedInject constructor(
             }
             return
         }
-        val data = createData(scheme = colorScheme, request = request)
-        store.update {
+        store.update { current ->
+            if (!current.isAwaiting(request)) return@update current
+            val data = createData(scheme = colorScheme, request = request)
             ColorSchemeState.Ready(
                 request = request,
                 data = data,

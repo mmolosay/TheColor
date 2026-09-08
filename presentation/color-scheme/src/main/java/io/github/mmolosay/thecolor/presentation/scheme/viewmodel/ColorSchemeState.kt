@@ -28,3 +28,6 @@ sealed interface ColorSchemeState {
         val swatchCount: ColorSchemeData.SwatchCount,
     )
 }
+
+internal fun ColorSchemeState.isAwaiting(request: ColorSchemeState.Request): Boolean =
+    (this is ColorSchemeState.Loading) && (this.request == request)

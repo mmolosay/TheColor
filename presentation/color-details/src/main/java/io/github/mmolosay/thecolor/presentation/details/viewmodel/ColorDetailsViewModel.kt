@@ -24,7 +24,6 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.CopyOnWriteArraySet
-import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 import javax.inject.Singleton
 import io.github.mmolosay.thecolor.domain.color.ColorDetails as DomainColorDetails
@@ -52,7 +51,6 @@ class ColorDetailsViewModel @AssistedInject constructor(
     val stateFlow: StateFlow<ColorDetailsState> = store.flow
 
     private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
-    private val session = AtomicReference<Session?>(null)
     private val colorDetailsStore = ColorDetailsStore()
 
     fun execute(action: ColorDetailsAction): Job =
@@ -67,8 +65,8 @@ class ColorDetailsViewModel @AssistedInject constructor(
             }
         }
 
-    private fun onSelectColor(role: ColorRole) {
-        val session = session.get() ?: return
+    private suspend fun onSelectColor(role: ColorRole) {
+        val session = store.current().sessionOrNull() ?: return
         val color = session.getByRole(role)
         val event = ColorDetailsEvent.SelectColorAction(color, role)
         eventHandler.offer(event)
@@ -90,40 +88,45 @@ class ColorDetailsViewModel @AssistedInject constructor(
         color: Color,
         deferredDetails: CompletableDeferred<DomainColorDetails>? = null,
     ) {
-        session.set(null)
         val subjectColor = createSubjectColorData(color)
+        val request = ColorDetailsState.Request(color = color)
+        store.update {
+            ColorDetailsState.Loading(
+                subjectColor = subjectColor,
+                session = null, // isn't established until the "seed" color's details have arrived
+                request = request,
+            )
+        }
         val detailsResult = colorDetailsStore.findWithColor(color)
             ?.let { Result.success(it) }
-            ?: run {
-                store.update { ColorDetailsState.Loading(subjectColor) }
-                fetchColorDetails(color)
-            }
+            ?: fetchColorDetails(color)
         deferredDetails?.completeWith(detailsResult)
         val details = detailsResult.getOrElse { exception ->
-            val error = ColorDetailsError(
-                cause = exception,
-                origin = ColorDetailsError.Origin.SetSeedColor(color),
-            )
-            store.update {
+            store.update { current ->
+                if (!current.isAwaiting(request)) return@update current
+                val error = ColorDetailsError(
+                    cause = exception,
+                    origin = ColorDetailsError.Origin.SetSeedColor(color),
+                )
                 ColorDetailsState.Error(
                     subjectColor = subjectColor,
                     error = error,
+                    session = null,
                 )
             }
             return
         }
-        session.set(Session.fromSeedDetails(seedDetails = details))
-        setColorDetails(details, subjectColor)
+        val session = ColorDetailsSession.fromSeedDetails(seedDetails = details)
+        setColorDetails(details, subjectColor, session, request)
     }
 
     /**
      * Same as [setSeedColor], but provides the [details] of the "seed" color to use.
      */
     suspend fun setSeedDetails(details: DomainColorDetails) {
-        session.set(null)
         val subjectColor = createSubjectColorData(details.color)
-        session.set(Session.fromSeedDetails(seedDetails = details))
-        setColorDetails(details, subjectColor)
+        val session = ColorDetailsSession.fromSeedDetails(seedDetails = details)
+        setColorDetails(details, subjectColor, session, request = null)
     }
 
     /**
@@ -137,30 +140,37 @@ class ColorDetailsViewModel @AssistedInject constructor(
         role: ColorRole,
         deferredDetails: CompletableDeferred<DomainColorDetails>? = null,
     ) {
-        val session = requireNotNull(session.get()) { "Session must be initialized" }
+        val session = store.current().sessionOrNull() ?: return
         val color = session.getByRole(role)
         val subjectColor = createSubjectColorData(session.seed)
+        val request = ColorDetailsState.Request(color = color)
+        store.update {
+            ColorDetailsState.Loading(
+                subjectColor = subjectColor,
+                session = session,
+                request = request,
+            )
+        }
         val detailsResult = colorDetailsStore.findWithColor(color)
             ?.let { Result.success(it) }
-            ?: run {
-                store.update { ColorDetailsState.Loading(subjectColor) }
-                fetchColorDetails(color)
-            }
+            ?: fetchColorDetails(color)
         deferredDetails?.completeWith(detailsResult)
         val details = detailsResult.getOrElse { exception ->
-            val error = ColorDetailsError(
-                cause = exception,
-                origin = ColorDetailsError.Origin.SelectColor(role),
-            )
-            store.update {
+            store.update { current ->
+                if (!current.isAwaiting(request)) return@update current
+                val error = ColorDetailsError(
+                    cause = exception,
+                    origin = ColorDetailsError.Origin.SelectColor(role),
+                )
                 ColorDetailsState.Error(
                     subjectColor = subjectColor,
                     error = error,
+                    session = session,
                 )
             }
             return
         }
-        setColorDetails(details, subjectColor)
+        setColorDetails(details, subjectColor, session, request)
     }
 
     private suspend fun fetchColorDetails(color: Color): Result<DomainColorDetails> =
@@ -171,25 +181,29 @@ class ColorDetailsViewModel @AssistedInject constructor(
     private suspend fun setColorDetails(
         details: DomainColorDetails,
         subjectColor: SubjectColorData,
+        session: ColorDetailsSession,
+        request: ColorDetailsState.Request?,
     ) {
-        val colorRole = details.color.inferColorRole() ?: error("ColorRole cannot be null here")
-        val data = createData(
-            details = details,
-            colorRole = colorRole,
-            getSeedColor = { exactColor -> colorDetailsStore.findWithExactColor(exactColor)?.color },
-        )
-        store.update {
+        val colorRole = details.color.inferColorRole(session)
+            ?: error("ColorRole cannot be null here")
+        store.update { current ->
+            if (request != null && !current.isAwaiting(request)) return@update current
+            val data = createData(
+                details = details,
+                colorRole = colorRole,
+                getSeedColor = { exactColor -> colorDetailsStore.findWithExactColor(exactColor)?.color },
+            )
             ColorDetailsState.Ready(
                 subjectColor = subjectColor,
                 data = data,
+                session = session,
             )
         }
         colorDetailsStore.add(details)
     }
 
-    private fun Color.inferColorRole(): ColorRole? {
+    private fun Color.inferColorRole(session: ColorDetailsSession): ColorRole? {
         val color = this
-        val session = requireNotNull(session.get())
         if (with(colorComparator) { color isSameAs session.seed }) {
             return ColorRole.Seed
         }
@@ -212,28 +226,6 @@ class ColorDetailsViewModel @AssistedInject constructor(
             eventHandler: ColorDetailsEventHandler,
         ): ColorDetailsViewModel
     }
-
-    /**
-     * Describes the current state (color-wise) of the 'Color Details'.
-     */
-    private class Session(
-        val seed: Color,
-        val exact: Color,
-    ) {
-        companion object {
-            fun fromSeedDetails(seedDetails: DomainColorDetails) =
-                Session(
-                    seed = seedDetails.color,
-                    exact = seedDetails.exact.color,
-                )
-        }
-    }
-
-    private fun Session.getByRole(role: ColorRole): Color =
-        when (role) {
-            ColorRole.Seed -> this.seed
-            ColorRole.Exact -> this.exact
-        }
 }
 
 private class ColorDetailsStore {
