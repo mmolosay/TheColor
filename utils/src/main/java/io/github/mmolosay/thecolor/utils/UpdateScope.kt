@@ -38,3 +38,22 @@ suspend inline fun <T> Store<T>.batch(
     with(scope) { block() }
     this.update { scope.apply(it) }
 }
+
+fun <S, V> UpdateScope<S>.focus(lens: Lens<S, V>): UpdateScope<V> =
+    FocusedUpdateScope(
+        updateScope = this,
+        lens = lens,
+    )
+
+private class FocusedUpdateScope<S, V>(
+    private val updateScope: UpdateScope<S>,
+    private val lens: Lens<S, V>,
+) : UpdateScope<V> {
+    override fun update(transform: (V) -> V) {
+        updateScope.update { s ->
+            val focused = lens.get(s)
+            val value = transform(focused)
+            lens.set(s, value)
+        }
+    }
+}
