@@ -1,7 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.home.ui
 
 import android.content.res.Configuration
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -78,7 +77,6 @@ internal fun SelectedSwatchDetailsInHome(
         },
     ) {
         TintedSurface(
-            modifier = Modifier.animateContentSize(),
             surfaceColor = Color.Unspecified, // already has a background due to ModalBottomSheet's 'containerColor'
             contentColors = colorsOnTintedSurface,
         ) {

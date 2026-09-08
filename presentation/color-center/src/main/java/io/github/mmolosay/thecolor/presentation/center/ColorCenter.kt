@@ -1,10 +1,8 @@
 package io.github.mmolosay.thecolor.presentation.center
 
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -44,6 +42,7 @@ import io.github.mmolosay.thecolor.presentation.details.ui.ColorDetails
 import io.github.mmolosay.thecolor.presentation.details.ui.ColorDetailsCrossfade
 import io.github.mmolosay.thecolor.presentation.details.ui.rememberColorDetailsFacade
 import io.github.mmolosay.thecolor.presentation.scheme.ui.ColorScheme
+import io.github.mmolosay.thecolor.presentation.scheme.ui.ColorSchemeCrossfade
 import io.github.mmolosay.thecolor.presentation.scheme.ui.rememberColorSchemeFacade
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -74,19 +73,11 @@ fun ColorCenter(
             }
         },
         colorScheme = {
-            val transition = updateTransition(
-                targetState = rememberColorSchemeFacade(handle.colorScheme),
-                label = "Color Scheme cross-fade",
-            )
-            // there's no 'ColorSchemeCrossfade()' as for 'Color Details' yet.
-            // unlike 'Color Details', 'Color Scheme' is only used in one place, here.
-            transition.Crossfade(
+            ColorSchemeCrossfade(
+                actualFacade = rememberColorSchemeFacade(handle.colorScheme),
                 animationSpec = crossfadeSpec,
-                contentKey = { it.state::class }, // don't animate when 'ColorSchemeState' type stays the same but only its values change
             ) { facade ->
-                ColorScheme(
-                    facade = facade,
-                )
+                ColorScheme(facade)
             }
         },
     )

@@ -1,7 +1,6 @@
-package io.github.mmolosay.thecolor.presentation.details.ui
+package io.github.mmolosay.thecolor.presentation.scheme.ui
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.Spring
@@ -12,19 +11,18 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsFacade
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeFacade
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun ColorDetailsCrossfade(
+fun ColorSchemeCrossfade(
     modifier: Modifier = Modifier,
-    actualFacade: ColorDetailsFacade,
-    animationSpec: FiniteAnimationSpec<Float> = ColorDetailsCrossfadeDefaults.animationSpec(),
-    colorDetails: @Composable (facade: ColorDetailsFacade) -> Unit,
+    actualFacade: ColorSchemeFacade,
+    animationSpec: FiniteAnimationSpec<Float> = ColorSchemeCrossfadeDefaults.animationSpec(),
+    colorScheme: @Composable (facade: ColorSchemeFacade) -> Unit,
 ) {
     val transition = updateTransition(
         targetState = actualFacade,
-        label = "Color Details cross-fade",
+        label = "Color Scheme cross-fade",
     )
     transition.AnimatedContent(
         modifier = modifier,
@@ -34,12 +32,13 @@ fun ColorDetailsCrossfade(
             val sizeTransform = SizeTransform(clip = false)
             (enter togetherWith exit) using sizeTransform
         },
+        contentKey = { it.state::class }, // don't animate when 'ColorSchemeState' type stays the same but only its values change
     ) { facade ->
-        colorDetails(facade)
+        colorScheme(facade)
     }
 }
 
-object ColorDetailsCrossfadeDefaults {
+object ColorSchemeCrossfadeDefaults {
 
     fun animationSpec(): FiniteAnimationSpec<Float> =
         spring(
