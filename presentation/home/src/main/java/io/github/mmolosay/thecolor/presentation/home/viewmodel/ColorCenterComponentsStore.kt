@@ -75,42 +75,33 @@ class ColorCenterComponentsFactory @Inject constructor(
         colorSchemeEventHandler: ColorSchemeEventHandler,
         selectedSwatchColorDetailsEventHandler: ColorDetailsEventHandler,
     ): ColorCenterComponents {
-        val store = Store(
-            ColorCenterTreeData(
-                colorCenter = colorCenterDataFactory.create(),
-                colorDetails = ColorDetailsState.Idle,
-                colorScheme = ColorSchemeState.Idle,
-                selectedSwatchDetails = ColorDetailsState.Idle,
-            )
-        )
         val colorSchemeViewModelCoroutineScope: CoroutineScope
         val colorCenterViewModel = run {
             val coroutineScope = ViewModelCoroutineScope(parent = viewModelScope)
             val colorDetailsViewModel = colorDetailsViewModelFactory.create(
                 coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
-                store = store.focus(ColorCenterTreeDataLenses.colorDetails),
+                store = Store(ColorDetailsState.Idle),
                 eventHandler = colorDetailsEventHandler,
             )
             colorSchemeViewModelCoroutineScope = ViewModelCoroutineScope(parent = coroutineScope)
             val colorSchemeViewModel = colorSchemeViewModelFactory.create(
                 coroutineScope = colorSchemeViewModelCoroutineScope,
-                store = store.focus(ColorCenterTreeDataLenses.colorScheme),
+                store = Store(ColorSchemeState.Idle),
                 eventHandler = colorSchemeEventHandler,
             )
             return@run colorCenterViewModelFactory.create(
                 coroutineScope = coroutineScope,
-                store = store.focus(ColorCenterTreeDataLenses.colorCenter),
+                store = Store(colorCenterDataFactory.create()),
                 colorDetailsViewModel = colorDetailsViewModel,
                 colorSchemeViewModel = colorSchemeViewModel,
             )
         }
         val selectedSwatchColorDetailsViewModel = colorDetailsViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = colorSchemeViewModelCoroutineScope),
-            store = store.focus(ColorCenterTreeDataLenses.selectedSwatchDetails),
+            store = Store(ColorDetailsState.Idle),
             eventHandler = selectedSwatchColorDetailsEventHandler,
         )
         return ColorCenterComponents(
-            store = store,
             colorCenterViewModel = colorCenterViewModel,
             selectedSwatchColorDetailsViewModel = selectedSwatchColorDetailsViewModel,
         )
@@ -124,7 +115,6 @@ class ColorCenterComponentsFactory @Inject constructor(
  */
 /* private for HomeViewModel */
 data class ColorCenterComponents(
-    val store: Store<ColorCenterTreeData>,
     val colorCenterViewModel: ColorCenterViewModel,
     val selectedSwatchColorDetailsViewModel: ColorDetailsViewModel,
 )

@@ -13,7 +13,6 @@ import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesReposi
 import io.github.mmolosay.thecolor.domain.utils.filterReady
 import io.github.mmolosay.thecolor.domain.utils.getOrElse
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
-import io.github.mmolosay.thecolor.presentation.center.ColorCenterDataFactory
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterHandle
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
@@ -21,7 +20,6 @@ import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEr
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEvent
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEventHandler
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsHandle
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsState
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.SideEffect
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.Operation.Companion.isSupersededByFetchColorDetails
@@ -77,7 +75,6 @@ class HomeViewModel @Inject constructor(
     colorInputGroupViewModelFactory: ColorInputGroupViewModel.Factory,
     private val colorPreviewDataFactory: ColorPreviewDataFactory,
     private val colorPreviewViewModelFactory: ColorPreviewViewModel.Factory,
-    private val colorCenterDataFactory: ColorCenterDataFactory,
     colorCenterComponentsStoreFactory: ColorCenterComponentsStore.Factory,
     private val createColorData: CreateColorDataUseCase,
     private val colorComparator: ColorComparator,
@@ -304,9 +301,7 @@ class HomeViewModel @Inject constructor(
         launchUntracked launch@{
             // no ongoing session means there's no selected swatch to clear
             val components = colorCenterComponentsStore.components ?: return@launch
-            components.store.update {
-                ColorCenterTreeDataLenses.selectedSwatchDetails.set(it, ColorDetailsState.Idle)
-            }
+            components.selectedSwatchColorDetailsViewModel.clear()
         }
 
     private fun CanProceed(colorFromColorInput: Color?): Boolean {

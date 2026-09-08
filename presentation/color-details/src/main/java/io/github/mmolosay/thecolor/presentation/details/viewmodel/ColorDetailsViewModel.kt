@@ -173,6 +173,10 @@ class ColorDetailsViewModel @AssistedInject constructor(
         setColorDetails(details, subjectColor, session, request)
     }
 
+    suspend fun clear() {
+        store.update { ColorDetailsState.Idle }
+    }
+
     private suspend fun fetchColorDetails(color: Color): Result<DomainColorDetails> =
         withContext(ioDispatcher) {
             colorRepository.getColorDetails(color)
