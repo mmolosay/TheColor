@@ -108,41 +108,21 @@ fun HomeScreen(
     val colorPreviewDataFlow = remember {
         viewModel.stateFlow.mapState { it.requireReady().tree.colorPreview }
     }
-    val liveColorCenter = state.colorCenter
-    val colorCenterTree = if (liveColorCenter != null) {
-        liveColorCenter.treeFlow.collectAsStateWithLifecycle().value
-    } else null
     val colorCenter: BareColorCenterComposable? = run {
-        if (liveColorCenter == null || colorCenterTree == null) return@run null
-        val facade = run {
-            val handle = liveColorCenter.handles.colorCenter
-            val data = colorCenterTree.colorCenter
-            remember(handle, data) { handle.facade(data) }
-        }
-        val colorDetailsFacade = run {
-            val handle = liveColorCenter.handles.colorCenter.colorDetails
-            val data = colorCenterTree.colorDetails
-            remember(handle, data) { handle.facade(data) }
-        }
-        val colorSchemeFacade = run {
-            val handle = liveColorCenter.handles.colorCenter.colorScheme
-            val data = colorCenterTree.colorScheme
-            remember(handle, data) { handle.facade(data) }
-        }
-        remember(facade, colorDetailsFacade, colorSchemeFacade) {
+        val handle = state.colorCenterHandles?.colorCenter ?: return@run null
+        remember(handle) {
             {
                 ColorCenter(
-                    facade = facade,
-                    colorDetailsFacade = colorDetailsFacade,
-                    colorSchemeFacade = colorSchemeFacade,
+                    handle = handle,
                 )
             }
         }
     }
-    val selectedSwatchState = colorCenterTree?.selectedSwatchDetails
+    val selectedSwatchState = state.colorCenterHandles?.selectedSwatchDetails
+        ?.stateFlow?.collectAsStateWithLifecycle()?.value
     val selectedSwatchData = selectedSwatchState?.subjectColorOrNull()
     val selectedSwatchDetails: BareSelectedSwatchDetailsComposable? = run {
-        val handle = liveColorCenter?.handles?.selectedSwatchDetails ?: return@run null
+        val handle = state.colorCenterHandles?.selectedSwatchDetails ?: return@run null
         val state = selectedSwatchState ?: return@run null
         val facade = remember(handle, state) { handle.facade(state) }
         remember(facade) {

@@ -3,23 +3,16 @@ package io.github.mmolosay.thecolor.presentation.home.viewmodel
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterHandle
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsHandle
 import io.github.mmolosay.thecolor.utils.Lens
-import kotlinx.coroutines.flow.StateFlow
 
 sealed interface HomeState {
 
     data object Initializing : HomeState
 
     data class Ready(
-        val tree: HomeTreeData, // TODO: rename to 'homeTree'?
-        val colorCenter: LiveColorCenter?,
+        val tree: HomeTreeData,
+        val colorCenterHandles: ColorCenterHandles?,
     ) : HomeState
 }
-
-// TODO: bad non-descriptive name; refine
-data class LiveColorCenter(
-    val treeFlow: StateFlow<ColorCenterTreeData>, // TODO: I don't like that a data model exposed from a ViewModel contains StateFlow instead of a single value at this point in time
-    val handles: ColorCenterHandles,
-)
 
 data class ColorCenterHandles(
     // TODO: ColorCenterHandle contains child Handles, but ColorCenterData doesn't contain child data. Why? Refactor?

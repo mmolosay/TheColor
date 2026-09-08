@@ -33,6 +33,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterData.SideEffect
 import io.github.mmolosay.thecolor.presentation.common.compose.Placeholder
 import io.github.mmolosay.thecolor.presentation.common.compose.PlaceholderDefaults
@@ -41,9 +42,9 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.details.ui.ColorDetails
 import io.github.mmolosay.thecolor.presentation.details.ui.ColorDetailsCrossfade
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsFacade
+import io.github.mmolosay.thecolor.presentation.details.ui.rememberColorDetailsFacade
 import io.github.mmolosay.thecolor.presentation.scheme.ui.ColorScheme
-import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeFacade
+import io.github.mmolosay.thecolor.presentation.scheme.ui.rememberColorSchemeFacade
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.Job
@@ -53,11 +54,10 @@ import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun ColorCenter(
-    facade: ColorCenterFacade,
-    colorDetailsFacade: ColorDetailsFacade,
-    colorSchemeFacade: ColorSchemeFacade,
+    handle: ColorCenterHandle,
     modifier: Modifier = Modifier,
 ) {
+    val facade = rememberColorCenterFacade(handle)
     val crossfadeSpec = tween<Float>(
         durationMillis = 500,
         easing = FastOutSlowInEasing,
@@ -67,7 +67,7 @@ fun ColorCenter(
         facade = facade,
         colorDetails = {
             ColorDetailsCrossfade(
-                actualFacade = colorDetailsFacade,
+                actualFacade = rememberColorDetailsFacade(handle.colorDetails),
                 animationSpec = crossfadeSpec,
             ) { facade ->
                 ColorDetails(facade = facade)
@@ -75,7 +75,7 @@ fun ColorCenter(
         },
         colorScheme = {
             val transition = updateTransition(
-                targetState = colorSchemeFacade,
+                targetState = rememberColorSchemeFacade(handle.colorScheme),
                 label = "Color Scheme cross-fade",
             )
             // there's no 'ColorSchemeCrossfade()' as for 'Color Details' yet.
@@ -90,6 +90,12 @@ fun ColorCenter(
             }
         },
     )
+}
+
+@Composable
+fun rememberColorCenterFacade(handle: ColorCenterHandle): ColorCenterFacade {
+    val data = handle.dataFlow.collectAsStateWithLifecycle().value
+    return remember(handle, data) { handle.facade(data) }
 }
 
 @Composable

@@ -145,7 +145,7 @@ class HomeViewModel @Inject constructor(
                 )
                 HomeState.Ready(
                     tree = tree,
-                    colorCenter = null, // 'proceed' action wasn't invoked yet
+                    colorCenterHandles = null, // 'proceed' action wasn't invoked yet
                 )
             }
             // from here on the state is 'Ready', thus the partial lenses are safe to write through
@@ -326,11 +326,7 @@ class HomeViewModel @Inject constructor(
                 colorCenter = ColorCenterHandle(newComponents.colorCenterViewModel),
                 selectedSwatchDetails = ColorDetailsHandle(newComponents.selectedSwatchColorDetailsViewModel),
             )
-            val colorCenter = LiveColorCenter(
-                treeFlow = newComponents.store.flow,
-                handles = handles,
-            )
-            it.copy(colorCenter = colorCenter)
+            it.copy(colorCenterHandles = handles)
         }
     }
 
@@ -370,7 +366,7 @@ class HomeViewModel @Inject constructor(
                 tree = it.tree.copy(
                     home = it.tree.home.copy(proceedResult = null),
                 ),
-                colorCenter = null,
+                colorCenterHandles = null,
             )
         }
     }
