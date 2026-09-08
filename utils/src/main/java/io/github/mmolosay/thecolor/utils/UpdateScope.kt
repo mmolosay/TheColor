@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.utils
 
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 
@@ -57,3 +58,21 @@ private class FocusedUpdateScope<S, V>(
         }
     }
 }
+
+/**
+ * Runs [launch] against an isolated [BatchUpdateScope] and waits for the [Job] it returns.
+ * Updates made in that scope are added to this one as a single update, or discarded if the job
+ * was canceled — work that didn't finish never contributes.
+ */
+suspend fun <T> UpdateScope<T>.appendUnlessCancelled(
+    launch: UpdateScope<T>.() -> Job,
+) {
+    val updates = BatchUpdateScope<T>()
+    val job = with(updates, launch)
+    job.join()
+    if (job.isCancelled) return
+    this.append(updates)
+}
+
+fun <T> UpdateScope<T>.append(batchScope: BatchUpdateScope<T>) =
+    this.update(batchScope::apply)

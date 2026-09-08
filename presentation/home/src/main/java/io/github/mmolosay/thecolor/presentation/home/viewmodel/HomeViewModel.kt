@@ -40,12 +40,14 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewDataFactory
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeEvent
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeEventHandler
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeViewModel
+import io.github.mmolosay.thecolor.utils.BatchUpdateScope
 import io.github.mmolosay.thecolor.utils.ClosableSuspendGate
 import io.github.mmolosay.thecolor.utils.CoroutineRegistry
 import io.github.mmolosay.thecolor.utils.Lens
 import io.github.mmolosay.thecolor.utils.SideEffectIdFactory
 import io.github.mmolosay.thecolor.utils.Store
 import io.github.mmolosay.thecolor.utils.UpdateScope
+import io.github.mmolosay.thecolor.utils.appendUnlessCancelled
 import io.github.mmolosay.thecolor.utils.batch
 import io.github.mmolosay.thecolor.utils.focus
 import io.github.mmolosay.thecolor.utils.launchSuperseding
@@ -123,18 +125,27 @@ class HomeViewModel @Inject constructor(
         )
 
     init {
+        initialize()
+        collectColorsFromColorInput()
+    }
+
+    private fun initialize(): Job =
         viewModelScope.launch(defaultDispatcher) {
-            val initial = initialHomeState()
-            _store.batch {
-                update { initial }
-                focus(initializedLens).run {
-                    maybeProceedWithLastSearchedColor()
-                }
+            val updatesScope = BatchUpdateScope<HomeState?>()
+            run {
+                val initial = initialHomeState()
+                updatesScope.update { initial }
+            }
+            run {
+                updatesScope
+                    .focus(initializedLens)
+                    .appendUnlessCancelled { maybeProceedWithLastSearchedColor() }
+            }
+            _store.update {
+                updatesScope.apply(it)
             }
             initialized.open()
-            collectColorsFromColorInput()
         }
-    }
 
     private suspend fun initialHomeState(): HomeState {
         val resumeFromLastSearchedColorOnStartup = userPreferencesRepository
@@ -159,31 +170,36 @@ class HomeViewModel @Inject constructor(
         coroutineScope: CoroutineScope,
         updateScope: UpdateScope<HomeState>,
     )
-    private suspend fun maybeProceedWithLastSearchedColor() {
-        val resumeFromLastSearchedColorOnStartup = userPreferencesRepository
-            .flowOfResumeFromLastSearchedColorOnStartup
-            .filterReady().first()
-            .getOrElse { DefaultUserPreferences.ResumeFromLastSearchedColorOnStartup }
-        if (!resumeFromLastSearchedColorOnStartup.enabled) return
-        val color = lastSearchedColorRepository.getLastSearchedColor() ?: return
+    private fun maybeProceedWithLastSearchedColor(): Job =
+        coroutineScope.launchAsInitialProceed launch@{
+            val resumeFromLastSearchedColorOnStartup = userPreferencesRepository
+                .flowOfResumeFromLastSearchedColorOnStartup
+                .filterReady().first()
+                .getOrElse { DefaultUserPreferences.ResumeFromLastSearchedColorOnStartup }
+            if (!resumeFromLastSearchedColorOnStartup.enabled) return@launch
+            val color = lastSearchedColorRepository.getLastSearchedColor() ?: return@launch
 
-        createAndConsumeNewColorCenterComponents()
-        val deferredDetails = CompletableDeferred<DomainColorDetails>()
-        startColorCenterSession(
-            seed = color,
-            deferredDetails = deferredDetails,
-        )
-        colorInputMediator.set(color)
-        onColorBecameCurrent(color)
-        proceed(color) { colorDetails, colorScheme ->
-            coroutineScope.launchAsFetchColorDetails {
-                colorDetails.setSeedColor(color, deferredDetails)
+            createAndConsumeNewColorCenterComponents()
+            val deferredDetails = CompletableDeferred<DomainColorDetails>()
+            // this Job is joined before 'initialized' opens
+            context(coroutineScope) {
+                startColorCenterSession(
+                    seed = color,
+                    deferredDetails = deferredDetails,
+                )
             }
-            coroutineScope.launchAsFetchColorScheme {
-                colorScheme.fetchColorScheme(color)
+            colorInputMediator.set(color)
+            onColorBecameCurrent(color)
+            proceed(color) { colorDetails, colorScheme ->
+                // launch lasting operations as children of outer coroutine to complete this coroutine quicker
+                coroutineScope.launchAsFetchColorDetails {
+                    colorDetails.setSeedColor(color, deferredDetails)
+                }
+                coroutineScope.launchAsFetchColorScheme {
+                    colorScheme.fetchColorScheme(color)
+                }
             }
         }
-    }
 
     private fun collectColorsFromColorInput(): Job =
         launchUntracked {
@@ -558,6 +574,17 @@ class HomeViewModel @Inject constructor(
         private fun viewModel(): ColorSchemeViewModel? =
             colorCenterComponentsStore.components?.colorCenterViewModel?.colorSchemeViewModel
     }
+
+    private fun CoroutineScope.launchAsInitialProceed(
+        block: suspend CoroutineScope.() -> Unit,
+    ): Job =
+        this.launchSuperseding(
+            context = defaultDispatcher,
+            registry = opRegistry,
+            value = Operation.Proceed,
+            predicate = { it.value.isSupersededByProceed() },
+            block = block, // no awaitInit()
+        )
 
     private fun launchAsProceed(
         block: suspend CoroutineScope.() -> Unit,
