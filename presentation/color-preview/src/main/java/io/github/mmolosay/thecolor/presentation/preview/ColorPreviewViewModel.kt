@@ -1,23 +1,15 @@
 package io.github.mmolosay.thecolor.presentation.preview
 
-import dagger.Module
-import dagger.Provides
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import dagger.hilt.InstallIn
-import dagger.hilt.android.components.ViewModelComponent
 import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
-import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModelDiModule.GateForDataFlow
-import io.github.mmolosay.thecolor.utils.OpenSuspendGate
 import io.github.mmolosay.thecolor.utils.Store
-import io.github.mmolosay.thecolor.utils.SuspendGate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
-import javax.inject.Qualifier
 
 /**
  * Handles presentation logic of the 'Color Preview' feature.
@@ -31,7 +23,6 @@ class ColorPreviewViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     @Assisted private val store: Store<ColorPreviewData>,
     private val colorToColorInt: ColorToColorIntUseCase,
-    @GateForDataFlow private val gateForDataFlow: SuspendGate,
 ) : SimpleViewModel(coroutineScope) {
 
     val dataFlow: StateFlow<ColorPreviewData> = store.flow
@@ -41,7 +32,6 @@ class ColorPreviewViewModel @AssistedInject constructor(
      * It will be transformed to the [ColorPreviewData] and exposed via [dataFlow].
      */
     suspend fun setColor(color: Color?) {
-        gateForDataFlow.awaitOpen()
         val colorInt = with(colorToColorInt) { color?.toColorInt() }
         store.update {
             it.copy(color = colorInt)
@@ -55,20 +45,6 @@ class ColorPreviewViewModel @AssistedInject constructor(
             store: Store<ColorPreviewData>,
         ): ColorPreviewViewModel
     }
-}
-
-@Module
-@InstallIn(ViewModelComponent::class)
-internal object ColorPreviewViewModelDiModule {
-
-    @Provides
-    @GateForDataFlow
-    fun provideGateForDataFlow(): SuspendGate =
-        OpenSuspendGate
-
-    @Qualifier
-    @Retention(AnnotationRetention.BINARY)
-    annotation class GateForDataFlow
 }
 
 class ColorPreviewDataFactory @Inject constructor(
