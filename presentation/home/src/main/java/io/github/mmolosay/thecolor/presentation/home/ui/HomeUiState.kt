@@ -20,7 +20,7 @@ internal fun HomeUiState.toAnimState(): HomeAnimState? =
         isColorCenterVisible = this.isColorCenterVisible,
     )
 
-internal fun HomeState.Ready.toUiState(): HomeUiState {
+internal fun HomeState.toUiState(): HomeUiState {
     val isColorPreviewVisible = (this.tree.colorPreview.toUiState() is ColorPreviewUiState.Visible)
     val isColorCenterVisible = (this.tree.home.proceedResult is ProceedResult.Success)
     return HomeUiState(

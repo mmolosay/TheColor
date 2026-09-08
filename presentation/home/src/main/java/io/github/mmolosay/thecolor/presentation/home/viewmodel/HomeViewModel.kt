@@ -42,6 +42,7 @@ import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeEven
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeViewModel
 import io.github.mmolosay.thecolor.utils.ClosableSuspendGate
 import io.github.mmolosay.thecolor.utils.CoroutineRegistry
+import io.github.mmolosay.thecolor.utils.Lens
 import io.github.mmolosay.thecolor.utils.SideEffectIdFactory
 import io.github.mmolosay.thecolor.utils.Store
 import io.github.mmolosay.thecolor.utils.launchSuperseding
@@ -84,11 +85,17 @@ class HomeViewModel @Inject constructor(
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
-    private val store = Store<HomeState>(HomeState.Initializing)
-    val stateFlow: StateFlow<HomeState> = store.flow
+    private val _store = Store<HomeState?>(null)
+    private val store: Store<HomeState> = _store.focus(
+        Lens(
+            get = { s: HomeState? -> requireNotNull(s) },
+            set = { _: HomeState?, v: HomeState -> v },
+        )
+    )
+    private val treeStore: Store<HomeTreeData> = store.focus(HomeStateLenses.tree)
+    private val dataStore: Store<HomeData> = treeStore.focus(HomeTreeDataLenses.home)
 
-    private val treeStore = store.focus(HomeStateLenses.tree)
-    private val dataStore = treeStore.focus(HomeTreeDataLenses.home)
+    val stateFlow: StateFlow<HomeState?> = _store.flow
 
     private val initialized = ClosableSuspendGate(closed = true)
     private val opRegistry = CoroutineRegistry<Operation>()
@@ -130,8 +137,8 @@ class HomeViewModel @Inject constructor(
         val color = if (resumeFromLastSearchedColorOnStartup.enabled) {
             lastSearchedColorRepository.getLastSearchedColor()
         } else null
-        store.transaction {
-            store.update {
+        _store.transaction {
+            _store.update {
                 val tree = HomeTreeData(
                     home = HomeData(
                         canProceed = CanProceed(colorFromColorInput = colorInputMediator.colorState.color),
@@ -140,12 +147,12 @@ class HomeViewModel @Inject constructor(
                     ),
                     colorPreview = colorPreviewDataFactory.create(color),
                 )
-                HomeState.Ready(
+                HomeState(
                     tree = tree,
                     colorCenterHandles = null, // 'proceed' action wasn't invoked yet
                 )
             }
-            // from here on the state is 'Ready', thus the partial lenses are safe to write through
+            // from here on the state is initialized, so 'store' and its derivatives are safe to use
             this.colorPreviewViewModel = colorPreviewViewModelFactory.create(
                 coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
                 store = treeStore.focus(HomeTreeDataLenses.colorPreview),
@@ -316,7 +323,7 @@ class HomeViewModel @Inject constructor(
             selectedSwatchColorDetailsEventHandler = SelectedSwatchColorDetailsEventHandlerImpl(),
         )
         val newComponents = requireNotNull(colorCenterComponentsStore.components)
-        store.updateReady {
+        store.update {
             val handles = ColorCenterHandles(
                 colorCenter = ColorCenterHandle(newComponents.colorCenterViewModel),
                 selectedSwatchDetails = ColorDetailsHandle(newComponents.selectedSwatchColorDetailsViewModel),
@@ -356,7 +363,7 @@ class HomeViewModel @Inject constructor(
     private suspend fun endColorCenterSession() {
         ccSessionStore.clear()
         colorCenterComponentsStore.disposeComponents()
-        store.updateReady {
+        store.update {
             it.copy(
                 tree = it.tree.copy(
                     home = it.tree.home.copy(proceedResult = null),
@@ -674,15 +681,4 @@ class CreateColorDataUseCase @Inject constructor(
             color = with(colorToColorInt) { color.toColorInt() },
             isDark = with(isColorLight) { color.isLight().not() },
         )
-}
-
-private suspend fun Store<HomeState>.updateReady(
-    transform: (HomeState.Ready) -> HomeState.Ready,
-) {
-    this.update {
-        when (it) {
-            is HomeState.Initializing -> error("HomeState must be Ready")
-            is HomeState.Ready -> transform(it)
-        }
-    }
 }

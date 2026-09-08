@@ -50,9 +50,7 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.ExecuteHomeAction
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeAction
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeState
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.requireReady
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroup
 import io.github.mmolosay.thecolor.presentation.preview.AnimatedColorPreview
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
@@ -71,12 +69,12 @@ fun HomeScreen(
     val context = LocalContext.current
     val strings = remember(context) { HomeUiStrings(context) }
 
-    val state = viewModel.stateFlow.collectAsStateWithLifecycle().value
-        .let { it as? HomeState.Ready }
-        ?: return
+    // TODO: HomeViewModel may take longer time to initialize HomeState on laggy devices.
+    //       Implement 'loading' state and cross-fade?
+    val state = viewModel.stateFlow.collectAsStateWithLifecycle().value ?: return
 
     val flowOfUiState = remember {
-        viewModel.stateFlow.mapState { it.requireReady().toUiState() }
+        viewModel.stateFlow.mapState { requireNotNull(it).toUiState() }
     }
     val animController = remember {
         val animState = flowOfUiState.value.toAnimState()
@@ -106,7 +104,7 @@ fun HomeScreen(
         )
     }
     val colorPreviewDataFlow = remember {
-        viewModel.stateFlow.mapState { it.requireReady().tree.colorPreview }
+        viewModel.stateFlow.mapState { requireNotNull(it).tree.colorPreview }
     }
     val colorCenter: BareColorCenterComposable? = run {
         val handle = state.colorCenterHandles?.colorCenter ?: return@run null
