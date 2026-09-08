@@ -22,6 +22,7 @@ import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEv
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsHandle
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.SideEffect
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.Operation.Companion.isSupersededByColorFromColorInput
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.Operation.Companion.isSupersededByFetchColorDetails
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.Operation.Companion.isSupersededByFetchColorScheme
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.Operation.Companion.isSupersededByProceed
@@ -53,7 +54,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
@@ -185,19 +185,17 @@ class HomeViewModel @Inject constructor(
             colorInputMediator.colorStateFlow
                 .drop(1) // replayed value
                 .filter { it.source is ColorInputSource }
-                .conflate()
                 .collect(::onColorFromColorInput)
         }
 
-    private suspend fun onColorFromColorInput(colorState: ColorInputMediator.ColorState) {
-        store.transaction {
-            store.batch { // TODO: remove outer 'transaction' when color input collector is tracked
+    private fun onColorFromColorInput(colorState: ColorInputMediator.ColorState) =
+        launchAsColorFromColorInput {
+            store.batch {
                 val color = colorState.color
                 endColorCenterSession() // assuming any new color from Color Input is a new session
                 onColorBecameCurrent(color)
             }
         }
-    }
 
     fun execute(action: HomeAction): Job =
         when (action) {
@@ -563,10 +561,7 @@ class HomeViewModel @Inject constructor(
             registry = opRegistry,
             value = Operation.Proceed,
             predicate = { it.value.isSupersededByProceed() },
-            block = {
-                initialized.awaitOpen()
-                block()
-            },
+            block = awaitInit(block),
         )
 
     private fun CoroutineScope.launchAsFetchColorDetails(
@@ -602,6 +597,17 @@ class HomeViewModel @Inject constructor(
             block = awaitInit(block),
         )
 
+    private fun launchAsColorFromColorInput(
+        block: suspend CoroutineScope.() -> Unit,
+    ): Job =
+        viewModelScope.launchSuperseding(
+            context = defaultDispatcher,
+            registry = opRegistry,
+            value = Operation.ColorFromColorInput,
+            predicate = { it.value.isSupersededByColorFromColorInput() },
+            block = awaitInit(block),
+        )
+
     private fun launchUntracked(
         block: suspend CoroutineScope.() -> Unit,
     ): Job =
@@ -626,17 +632,15 @@ class HomeViewModel @Inject constructor(
  */
 private sealed interface Operation {
 
-    /** Establishes a new 'Color Center' session. Supersedes every other operation. */
     data object Proceed : Operation
 
-    /** Writes into the 'Color Details' of an ongoing session. */
     data object FetchColorDetails : Operation
 
-    /** Writes into the 'Color Scheme' of an ongoing session. */
     data object FetchColorScheme : Operation
 
-    /** Writes into the 'Color Details' of a swatch selected in the 'Color Scheme'. */
     data object UpdateSwatchColorDetails : Operation
+
+    data object ColorFromColorInput : Operation
 
     companion object {
 
@@ -646,7 +650,8 @@ private sealed interface Operation {
                 is Proceed,
                 is FetchColorDetails,
                 is FetchColorScheme,
-                is UpdateSwatchColorDetails, ->
+                is UpdateSwatchColorDetails,
+                is ColorFromColorInput, ->
                     true
             }
 
@@ -656,7 +661,8 @@ private sealed interface Operation {
                     true
                 is Proceed,
                 is FetchColorScheme,
-                is UpdateSwatchColorDetails, ->
+                is UpdateSwatchColorDetails,
+                is ColorFromColorInput, ->
                     false
             }
 
@@ -666,7 +672,8 @@ private sealed interface Operation {
                     true
                 is Proceed,
                 is FetchColorDetails,
-                is UpdateSwatchColorDetails, ->
+                is UpdateSwatchColorDetails,
+                is ColorFromColorInput, ->
                     false
             }
 
@@ -676,8 +683,18 @@ private sealed interface Operation {
                     true
                 is Proceed,
                 is FetchColorDetails,
-                is FetchColorScheme, ->
+                is FetchColorScheme,
+                is ColorFromColorInput, ->
                     false
+            }
+
+        fun Operation.isSupersededByColorFromColorInput(): Boolean =
+            when (this) {
+                is Proceed,
+                is ColorFromColorInput,
+                is FetchColorDetails,
+                is FetchColorScheme,
+                is UpdateSwatchColorDetails, -> true
             }
     }
 }
