@@ -104,7 +104,7 @@ fun HomeScreen(
         )
     }
     val colorPreviewDataFlow = remember {
-        viewModel.stateFlow.mapState { requireNotNull(it).tree.colorPreview }
+        viewModel.stateFlow.mapState { requireNotNull(it).colorPreview }
     }
     val colorCenter: BareColorCenterComposable? = run {
         val handle = state.colorCenterHandles?.colorCenter ?: return@run null
@@ -138,7 +138,7 @@ fun HomeScreen(
     }
 
     HomeScreen(
-        data = state.tree.home,
+        data = state.home,
         strings = strings,
         execute = viewModel::execute,
         colorInput = colorInput,

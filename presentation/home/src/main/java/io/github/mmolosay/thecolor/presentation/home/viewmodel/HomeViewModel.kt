@@ -86,12 +86,16 @@ class HomeViewModel @Inject constructor(
     private val _store = Store<HomeState?>(null)
     private val store: Store<HomeState> = _store.focus(
         Lens(
-            get = { s: HomeState? -> requireNotNull(s) },
-            set = { _: HomeState?, v: HomeState -> v },
+            get = { s -> requireNotNull(s) },
+            set = { _, v -> v },
         )
     )
-    private val treeStore: Store<HomeTreeData> = store.focus(HomeStateLenses.tree)
-    private val dataStore: Store<HomeData> = treeStore.focus(HomeTreeDataLenses.home)
+    private val dataStore: Store<HomeData> = store.focus(
+        Lens(
+            get = { s -> s.home },
+            set = { s, v -> s.copy(home = v) },
+        )
+    )
 
     val stateFlow: StateFlow<HomeState?> = _store.flow
 
@@ -134,16 +138,13 @@ class HomeViewModel @Inject constructor(
         } else null
         _store.transaction {
             _store.update {
-                val tree = HomeTreeData(
+                HomeState(
                     home = HomeData(
                         canProceed = CanProceed(colorFromColorInput = colorInputMediator.colorState.color),
                         proceedResult = null, // 'proceed' action wasn't invoked yet
                         sideEffects = emptyList(),
                     ),
                     colorPreview = colorPreviewDataFactory.create(color),
-                )
-                HomeState(
-                    tree = tree,
                     colorCenterHandles = null, // 'proceed' action wasn't invoked yet
                 )
             }
@@ -355,16 +356,14 @@ class HomeViewModel @Inject constructor(
         colorCenterComponentsStore.disposeComponents()
         store.update {
             it.copy(
-                tree = it.tree.copy(
-                    home = it.tree.home.copy(proceedResult = null),
-                ),
+                home = it.home.copy(proceedResult = null),
                 colorCenterHandles = null,
             )
         }
     }
 
     private suspend fun onColorBecameCurrent(color: Color?) {
-        treeStore.update {
+        store.update {
             it.copy(
                 home = it.home.copy(
                     canProceed = CanProceed(colorFromColorInput = color),
