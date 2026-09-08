@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.domain.color.ColorComparator
 import io.github.mmolosay.thecolor.domain.color.GetPredictableRandomColorUseCase
+import io.github.mmolosay.thecolor.domain.color.GetStartupColorUseCase
 import io.github.mmolosay.thecolor.domain.color.IsColorLightUseCase
 import io.github.mmolosay.thecolor.domain.color.LastSearchedColorRepository
 import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
@@ -82,6 +83,7 @@ class HomeViewModel @Inject constructor(
     colorCenterComponentsStoreFactory: ColorCenterComponentsStore.Factory,
     private val createColorData: CreateColorDataUseCase,
     private val colorComparator: ColorComparator,
+    private val getStartupColor: GetStartupColorUseCase,
     private val userPreferencesRepository: UserPreferencesRepository,
     private val lastSearchedColorRepository: LastSearchedColorRepository,
     private val getPredictableRandomColor: GetPredictableRandomColorUseCase,
@@ -148,13 +150,7 @@ class HomeViewModel @Inject constructor(
         }
 
     private suspend fun initialHomeState(): HomeState {
-        val resumeFromLastSearchedColorOnStartup = userPreferencesRepository
-            .flowOfResumeFromLastSearchedColorOnStartup
-            .filterReady().first()
-            .getOrElse { DefaultUserPreferences.ResumeFromLastSearchedColorOnStartup }
-        val color = if (resumeFromLastSearchedColorOnStartup.enabled) {
-            lastSearchedColorRepository.getLastSearchedColor()
-        } else null
+        val color = getStartupColor()
         return HomeState(
             home = HomeData(
                 canProceed = CanProceed(colorFromColorInput = colorInputMediator.colorState.color),
@@ -172,13 +168,7 @@ class HomeViewModel @Inject constructor(
     )
     private fun maybeProceedWithLastSearchedColor(): Job =
         coroutineScope.launchAsInitialProceed launch@{
-            val resumeFromLastSearchedColorOnStartup = userPreferencesRepository
-                .flowOfResumeFromLastSearchedColorOnStartup
-                .filterReady().first()
-                .getOrElse { DefaultUserPreferences.ResumeFromLastSearchedColorOnStartup }
-            if (!resumeFromLastSearchedColorOnStartup.enabled) return@launch
-            val color = lastSearchedColorRepository.getLastSearchedColor() ?: return@launch
-
+            val color = getStartupColor() ?: return@launch
             createAndConsumeNewColorCenterComponents()
             val deferredDetails = CompletableDeferred<DomainColorDetails>()
             // this Job is joined before 'initialized' opens
