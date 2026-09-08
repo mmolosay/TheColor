@@ -202,7 +202,7 @@ class HomeViewModel @Inject constructor(
             is HomeAction.Proceed -> proceed()
             is HomeAction.RandomizeColor -> randomizeColor()
             is HomeAction.RequestToGoToSettings -> onRequestToGoToSettings()
-            is HomeAction.ClearProceedResult -> clearProceedResult()
+            is HomeAction.OnProceedResultProcessed -> onProceedResultProcessed(action.result)
             is HomeAction.OnSideEffectProcessed -> onSideEffectProcessed(action.se)
             is HomeAction.ClearColorSchemeSelectedSwatch -> clearColorSchemeSelectedSwatch()
         }
@@ -305,10 +305,11 @@ class HomeViewModel @Inject constructor(
             }
         }
 
-    private fun clearProceedResult(): Job =
+    private fun onProceedResultProcessed(result: HomeData.ProceedResult): Job =
         launchUntracked {
-            dataStore.update {
-                it.copy(proceedResult = null)
+            dataStore.update { current ->
+                if (current.proceedResult != result) return@update current // stale invocation
+                current.copy(proceedResult = null)
             }
         }
 

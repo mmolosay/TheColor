@@ -18,14 +18,14 @@ import io.github.mmolosay.thecolor.utils.doNothing
 @Composable
 internal fun ProcessSideEffectsAsSideEffect(
     sideEffects: List<SideEffect>,
-    onSideEffectProcessed: (SideEffect) -> Unit,
+    onProcessed: (SideEffect) -> Unit,
     navigateToSettings: () -> Unit,
 ) {
     val focusManager = LocalFocusManager.current
     fun process(se: SideEffect.GoToSettings) {
         focusManager.clearFocus()
         navigateToSettings()
-        onSideEffectProcessed(se)
+        onProcessed(se)
     }
     for (se in sideEffects) {
         key(se.id) {
@@ -41,8 +41,8 @@ internal fun ProcessSideEffectsAsSideEffect(
 @Composable
 internal fun ProcessProceedResultAsSideEffect(
     proceedResult: ProceedResult?,
+    onProcessed: (ProceedResult) -> Unit,
     strings: HomeUiStrings,
-    clearProceedResult: () -> Unit,
 ) {
     val context = LocalContext.current
     val softwareKeyboardController = LocalSoftwareKeyboardController.current
@@ -57,7 +57,7 @@ internal fun ProcessProceedResultAsSideEffect(
                 Toast
                     .makeText(context, strings.invalidSubmittedColorMessage, Toast.LENGTH_SHORT)
                     .show()
-                clearProceedResult()
+                onProcessed(proceedResult)
             }
             null -> doNothing()
         }

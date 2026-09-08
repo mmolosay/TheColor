@@ -282,7 +282,7 @@ private fun Home(
 
     ProcessSideEffectsAsSideEffect(
         sideEffects = data.sideEffects,
-        onSideEffectProcessed = { se ->
+        onProcessed = { se ->
             val action = HomeAction.OnSideEffectProcessed(se)
             execute(action)
         },
@@ -291,8 +291,11 @@ private fun Home(
 
     ProcessProceedResultAsSideEffect(
         proceedResult = data.proceedResult,
+        onProcessed = { proceedResult ->
+            val action = HomeAction.OnProceedResultProcessed(proceedResult)
+            execute(action)
+        },
         strings = strings,
-        clearProceedResult = { execute(HomeAction.ClearProceedResult) },
     )
 
     ScrollToTopOnNullProceedResultAsSideEffect(

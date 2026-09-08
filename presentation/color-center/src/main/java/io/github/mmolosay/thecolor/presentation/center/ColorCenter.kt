@@ -188,7 +188,7 @@ fun ColorCenter(
 
     ProcessSideEffectsAsSideEffect(
         sideEffects = data.sideEffects,
-        onSideEffectProcessed = { se ->
+        onProcessed = { se ->
             val action = ColorCenterAction.OnSideEffectProcessed(se)
             execute(action)
         },
@@ -206,12 +206,12 @@ fun ColorCenter(
 @Composable
 private fun ProcessSideEffectsAsSideEffect(
     sideEffects: ImmutableList<SideEffect>,
-    onSideEffectProcessed: (SideEffect) -> Unit,
+    onProcessed: (SideEffect) -> Unit,
     changePage: suspend (SideEffect.ChangePage) -> Unit,
 ) {
     suspend fun process(se: SideEffect.ChangePage) {
         changePage(se)
-        onSideEffectProcessed(se)
+        onProcessed(se)
     }
     for (se in sideEffects) {
         key(se.id) {
