@@ -201,9 +201,7 @@ private class StoreView<Source, T>(
 
     override suspend fun update(transform: (T) -> T) =
         store.update { current ->
-            val value = lens.get(current)
-            val newValue = transform(value)
-            lens.set(current, newValue)
+            lens.modify(current, transform)
         }
 
     override suspend fun <R> transaction(block: suspend () -> R): R =

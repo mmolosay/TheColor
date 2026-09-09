@@ -52,9 +52,7 @@ private class FocusedUpdateScope<S, V>(
 ) : UpdateScope<V> {
     override fun update(transform: (V) -> V) {
         delegate.update { s ->
-            val focused = lens.get(s)
-            val value = transform(focused)
-            lens.set(s, value)
+            lens.modify(s, transform)
         }
     }
 }

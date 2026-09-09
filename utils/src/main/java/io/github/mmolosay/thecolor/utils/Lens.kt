@@ -13,3 +13,12 @@ fun <S, V> Lens(
         override fun get(source: S): V = get(source)
         override fun set(source: S, value: V): S = set(source, value)
     }
+
+inline fun <S, V> Lens<S, V>.modify(
+    source: S,
+    transform: (V) -> V,
+): S {
+    val value = this.get(source)
+    val new = transform(value)
+    return this.set(source, new)
+}
