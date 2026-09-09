@@ -42,19 +42,37 @@ suspend inline fun <T> Store<T>.batch(
 
 fun <S, V> UpdateScope<S>.focus(lens: Lens<S, V>): UpdateScope<V> =
     FocusedUpdateScope(
-        updateScope = this,
+        delegate = this,
         lens = lens,
     )
 
 private class FocusedUpdateScope<S, V>(
-    private val updateScope: UpdateScope<S>,
+    private val delegate: UpdateScope<S>,
     private val lens: Lens<S, V>,
 ) : UpdateScope<V> {
     override fun update(transform: (V) -> V) {
-        updateScope.update { s ->
+        delegate.update { s ->
             val focused = lens.get(s)
             val value = transform(focused)
             lens.set(s, value)
+        }
+    }
+}
+
+/**
+ * Returns an [UpdateScope] over the non-null value of this scope.
+ * Updates made in the returned scope are dropped while the value is `null`.
+ */
+fun <T : Any> UpdateScope<T?>.focusNotNull(): UpdateScope<T> =
+    NotNullUpdateScope(delegate = this)
+
+private class NotNullUpdateScope<T : Any>(
+    private val delegate: UpdateScope<T?>,
+) : UpdateScope<T> {
+    override fun update(transform: (T) -> T) {
+        delegate.update { s ->
+            if (s == null) return@update s
+            transform(s)
         }
     }
 }
