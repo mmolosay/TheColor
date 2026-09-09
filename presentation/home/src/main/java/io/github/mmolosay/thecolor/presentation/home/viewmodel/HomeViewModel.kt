@@ -42,8 +42,8 @@ import io.github.mmolosay.thecolor.utils.SideEffectIdFactory
 import io.github.mmolosay.thecolor.utils.Store
 import io.github.mmolosay.thecolor.utils.UpdateScope
 import io.github.mmolosay.thecolor.utils.batch
+import io.github.mmolosay.thecolor.utils.dropOnNull
 import io.github.mmolosay.thecolor.utils.focus
-import io.github.mmolosay.thecolor.utils.focusNotNull
 import io.github.mmolosay.thecolor.utils.launchSuperseding
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
@@ -128,7 +128,7 @@ class HomeViewModel @Inject constructor(
                 )
                 update { it ?: initial }
                 if (color != null) {
-                    context(this.focusNotNull()) {
+                    context(dropOnNull()) {
                         proceedWithLastSearchedColor(color)
                     }
                 }
@@ -363,7 +363,7 @@ class HomeViewModel @Inject constructor(
     // TODO: before, Store.transaction() was used, and it held a write Mutex, making every transaction() exclusive for its whole duration. Wrap in mutex.withLock()?
     private suspend inline fun updateState(block: UpdateScope<HomeState>.() -> Unit) =
         store.batch {
-            with(focusNotNull(), block)
+            with(dropOnNull(), block)
         }
 
     private suspend fun updateData(transform: (HomeData) -> HomeData) =

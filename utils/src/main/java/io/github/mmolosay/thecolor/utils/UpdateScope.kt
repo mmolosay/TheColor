@@ -62,10 +62,10 @@ private class FocusedUpdateScope<S, V>(
  * Returns an [UpdateScope] over the non-null value of this scope.
  * Updates made in the returned scope are dropped while the value is `null`.
  */
-fun <T : Any> UpdateScope<T?>.focusNotNull(): UpdateScope<T> =
-    NotNullUpdateScope(delegate = this)
+fun <T : Any> UpdateScope<T?>.dropOnNull(): UpdateScope<T> =
+    DropOnNullUpdateScope(delegate = this)
 
-private class NotNullUpdateScope<T : Any>(
+private class DropOnNullUpdateScope<T : Any>(
     private val delegate: UpdateScope<T?>,
 ) : UpdateScope<T> {
     override fun update(transform: (T) -> T) {
