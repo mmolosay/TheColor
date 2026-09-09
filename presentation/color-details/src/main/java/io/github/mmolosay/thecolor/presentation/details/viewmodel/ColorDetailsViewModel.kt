@@ -142,7 +142,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
     ) {
         val session = store.current().sessionOrNull() ?: return
         val color = session.getByRole(role)
-        val subjectColor = createSubjectColorData(session.seed)
+        val subjectColor = createSubjectColorData(color)
         val request = ColorDetailsState.Request(color = color)
         store.update {
             ColorDetailsState.Loading(
