@@ -1,6 +1,8 @@
 package io.github.mmolosay.thecolor.presentation.home.ui
 
 import android.content.res.Configuration
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -61,14 +64,18 @@ internal fun SelectedSwatchDetailsInHome(
     if (content == null) return
     if (subjectColorData == null) return
 
-    val surfaceColor = subjectColorData.color.toCompose()
+    val animatedSurfaceColor by animateColorAsState(
+        targetValue = subjectColorData.color.toCompose(),
+        animationSpec = spring(stiffness = 100f),
+        label = "surface color",
+    )
     val colorsOnTintedSurface =
         if (subjectColorData.isDark) colorsOnDarkSurface() else colorsOnLightSurface()
 
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = surfaceColor,
+        containerColor = animatedSurfaceColor,
         contentColor = colorsOnTintedSurface.accent,
         dragHandle = {
             BottomSheetDefaults.DragHandle(
