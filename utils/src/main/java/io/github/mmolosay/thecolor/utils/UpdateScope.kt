@@ -1,6 +1,5 @@
 package io.github.mmolosay.thecolor.utils
 
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 
@@ -24,20 +23,22 @@ class BatchUpdateScope<T> : UpdateScope<T> {
 }
 
 @Suppress("unused") // useful, independent util that may come handy in future
-inline fun <T> MutableStateFlow<T>.batch(
-    block: UpdateScope<T>.() -> Unit,
-) {
+inline fun <T, R> MutableStateFlow<T>.batch(
+    block: UpdateScope<T>.() -> R,
+): R {
     val scope = BatchUpdateScope<T>()
-    with(scope) { block() }
+    val result = with(scope) { block() }
     this.update { scope.apply(it) }
+    return result
 }
 
-suspend inline fun <T> Store<T>.batch(
-    block: UpdateScope<T>.() -> Unit,
-) {
+suspend inline fun <T, R> Store<T>.batch(
+    block: UpdateScope<T>.() -> R,
+): R {
     val scope = BatchUpdateScope<T>()
-    with(scope) { block() }
+    val result = with(scope) { block() }
     this.update { scope.apply(it) }
+    return result
 }
 
 fun <S, V> UpdateScope<S>.focus(lens: Lens<S, V>): UpdateScope<V> =
@@ -74,21 +75,3 @@ private class NotNullUpdateScope<T : Any>(
         }
     }
 }
-
-/**
- * Runs [launch] against an isolated [BatchUpdateScope] and waits for the [Job] it returns.
- * Updates made in that scope are added to this one as a single update, or discarded if the job
- * was canceled — work that didn't finish never contributes.
- */
-suspend fun <T> UpdateScope<T>.appendUnlessCancelled(
-    launch: UpdateScope<T>.() -> Job,
-) {
-    val updates = BatchUpdateScope<T>()
-    val job = with(updates, launch)
-    job.join()
-    if (job.isCancelled) return
-    this.append(updates)
-}
-
-fun <T> UpdateScope<T>.append(batchScope: BatchUpdateScope<T>) =
-    this.update(batchScope::apply)
