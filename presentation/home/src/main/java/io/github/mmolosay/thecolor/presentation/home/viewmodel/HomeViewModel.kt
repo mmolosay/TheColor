@@ -138,13 +138,14 @@ class HomeViewModel @Inject constructor(
 
     context(updateScope: UpdateScope<HomeState>)
     private fun proceedWithLastSearchedColor(color: Color): Job {
-        val components = createAndConsumeNewColorCenterComponents()
+        val components = createNewColorCenterComponents()
+        consumeColorCenterComponents(components)
         onColorBecameCurrent(color)
         setProceedResult(color)
         return launchTransition(Operation.Transition.Proceed) {
+            colorInputMediator.set(color)
             val deferredDetails = CompletableDeferred<DomainColorDetails>()
             startColorCenterSession(seed = color, deferredDetails = deferredDetails)
-            colorInputMediator.set(color)
             launchFetch(Operation.Fetch.ColorDetails) {
                 val viewModel = components.colorCenterViewModel.colorDetailsViewModel
                 viewModel.setSeedColor(color, deferredDetails)
@@ -166,9 +167,10 @@ class HomeViewModel @Inject constructor(
 
     private fun onColorFromColorInput(colorState: ColorInputMediator.ColorState) =
         launchTransition(Operation.Transition.ColorFromColorInput) {
+            val color = colorState.color
+            endColorCenterSession() // assuming any new color from Color Input is a new session
             updateState {
-                val color = colorState.color
-                endColorCenterSession() // assuming any new color from Color Input is a new session
+                onColorCenterSessionEnded()
                 onColorBecameCurrent(color)
             }
         }
@@ -186,27 +188,8 @@ class HomeViewModel @Inject constructor(
     private fun proceed(): Job =
         launchTransition(Operation.Transition.Proceed) launch@{
             val color = colorInputMediator.colorState.color ?: return@launch // invalid state
-            val components = updateState {
-                endColorCenterSession()
-                val components = createAndConsumeNewColorCenterComponents()
-                onColorBecameCurrent(color)
-                setProceedResult(color)
-                components
-            }
-            val deferredDetails = CompletableDeferred<DomainColorDetails>()
-            startColorCenterSession(
-                seed = color,
-                deferredDetails = deferredDetails,
-            )
             colorInputMediator.set(color)
-            launchFetch(Operation.Fetch.ColorDetails) {
-                val viewModel = components.colorCenterViewModel.colorDetailsViewModel
-                viewModel.setSeedColor(color, deferredDetails)
-            }
-            launchFetch(Operation.Fetch.ColorScheme) {
-                val viewModel = components.colorCenterViewModel.colorSchemeViewModel
-                viewModel.fetchColorScheme(color)
-            }
+            proceedWith(color)
         }
 
     private fun randomizeColor(): Job =
@@ -222,8 +205,9 @@ class HomeViewModel @Inject constructor(
                 if (shouldProceed) {
                     proceedWith(color)
                 } else {
+                    endColorCenterSession()
                     updateState {
-                        endColorCenterSession()
+                        onColorCenterSessionEnded()
                         onColorBecameCurrent(color)
                     }
                 }
@@ -268,12 +252,13 @@ class HomeViewModel @Inject constructor(
 
     context(coroutineScope: CoroutineScope)
     private suspend fun proceedWith(color: Color) {
-        val components = updateState { // TODO: can be done better?
-            endColorCenterSession()
-            val components = createAndConsumeNewColorCenterComponents() // TODO: can be done better?
+        // doesn't update 'colorInputMediator', it should be done by the caller
+        endColorCenterSession()
+        val components = createNewColorCenterComponents()
+        updateState {
+            consumeColorCenterComponents(components)
             onColorBecameCurrent(color)
             setProceedResult(color)
-            components // TODO: can be done better?
         }
         val deferredDetails = CompletableDeferred<DomainColorDetails>()
         startColorCenterSession(seed = color, deferredDetails = deferredDetails)
@@ -300,24 +285,22 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    // TODO: should it be split in two functions? createComponents() and consumeComponents(), so that the latter is write-only?
-    context(updateScope: UpdateScope<HomeState>)
-    private fun createAndConsumeNewColorCenterComponents(): ColorCenterComponents {
+    private fun createNewColorCenterComponents(): ColorCenterComponents =
         colorCenterComponentsStore.createNewComponents(
             colorDetailsEventHandler = ColorCenterColorDetailsEventHandlerImpl(),
             colorSchemeEventHandler = ColorSchemeEventHandlerImpl(),
             selectedSwatchColorDetailsEventHandler = SelectedSwatchColorDetailsEventHandlerImpl(),
         )
-        val newComponents = requireNotNull(colorCenterComponentsStore.components)
+
+    context(updateScope: UpdateScope<HomeState>)
+    private fun consumeColorCenterComponents(components: ColorCenterComponents) =
         updateScope.update {
             val handles = ColorCenterHandles(
-                colorCenter = ColorCenterHandle(newComponents.colorCenterViewModel),
-                selectedSwatchDetails = ColorDetailsHandle(newComponents.selectedSwatchColorDetailsViewModel),
+                colorCenter = ColorCenterHandle(components.colorCenterViewModel),
+                selectedSwatchDetails = ColorDetailsHandle(components.selectedSwatchColorDetailsViewModel),
             )
             it.copy(colorCenterHandles = handles)
         }
-        return newComponents
-    }
 
     context(coroutineScope: CoroutineScope)
     private suspend fun startColorCenterSession(
@@ -347,17 +330,19 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    context(updateScope: UpdateScope<HomeState>)
     private suspend fun endColorCenterSession() {
         ccSessionStore.clear()
         colorCenterComponentsStore.disposeComponents()
+    }
+
+    context(updateScope: UpdateScope<HomeState>)
+    private fun onColorCenterSessionEnded() =
         updateScope.update {
             it.copy(
                 home = it.home.copy(proceedResult = null),
                 colorCenterHandles = null,
             )
         }
-    }
 
     context(updateScope: UpdateScope<HomeState>)
     private fun onColorBecameCurrent(color: Color?) {
@@ -374,7 +359,7 @@ class HomeViewModel @Inject constructor(
 
     // TODO: extract as private-in-file extension?
     // TODO: before, Store.transaction() was used, and it held a write Mutex, making every transaction() exclusive for its whole duration. Wrap in mutex.withLock()?
-    private suspend inline fun <R> updateState(block: UpdateScope<HomeState>.() -> R): R =
+    private suspend inline fun updateState(block: UpdateScope<HomeState>.() -> Unit) =
         store.batch {
             with(focusNotNull(), block)
         }
@@ -393,6 +378,7 @@ class HomeViewModel @Inject constructor(
                 is ColorInputValidationResult.Valid -> {
                     launchTransition(Operation.Transition.Proceed) {
                         val color = validationResult.color
+                        colorInputMediator.set(color)
                         proceedWith(color)
                     }
                     return true
@@ -418,12 +404,12 @@ class HomeViewModel @Inject constructor(
                         val components = colorCenterComponentsStore.components ?: return@launch
                         val color = event.color
                         ccSessionStore.sessionState.mustBeOngoing()
+                        colorInputMediator.set(color)
                         updateState {
                             onColorBecameCurrent(color)
                             // assuming any color selected belongs to ongoing session
                             setProceedResult(color)
                         }
-                        colorInputMediator.set(color)
                         launchFetch(Operation.Fetch.ColorDetails) {
                             val viewModel = components.colorCenterViewModel.colorDetailsViewModel
                             viewModel.selectColor(event.colorRole)
@@ -437,8 +423,7 @@ class HomeViewModel @Inject constructor(
                     when (val origin = event.error.origin) {
                         is ColorDetailsError.Origin.SetSeedColor ->
                             launchTransition(Operation.Transition.Proceed) launch@{
-                                val components =
-                                    colorCenterComponentsStore.components ?: return@launch
+                                val components = colorCenterComponentsStore.components ?: return@launch
                                 // the session was canceled when the seed fetch failed, so build a new one
                                 val deferredDetails = CompletableDeferred<DomainColorDetails>()
                                 startColorCenterSession(

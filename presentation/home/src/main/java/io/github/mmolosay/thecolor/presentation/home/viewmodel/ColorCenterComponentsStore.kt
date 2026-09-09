@@ -35,14 +35,16 @@ class ColorCenterComponentsStore @AssistedInject constructor(
         colorDetailsEventHandler: ColorDetailsEventHandler,
         colorSchemeEventHandler: ColorSchemeEventHandler,
         selectedSwatchColorDetailsEventHandler: ColorDetailsEventHandler,
-    ) {
+    ): ColorCenterComponents {
         disposeComponents() // dispose of current components if there are any
-        this.components = factory.create(
+        val components = factory.create(
             viewModelScope = viewModelScope,
             colorDetailsEventHandler = colorDetailsEventHandler,
             colorSchemeEventHandler = colorSchemeEventHandler,
             selectedSwatchColorDetailsEventHandler = selectedSwatchColorDetailsEventHandler,
         )
+        this.components = components
+        return components
     }
 
     @Synchronized
