@@ -194,22 +194,24 @@ class HomeViewModel @Inject constructor(
 
     private fun randomizeColor(): Job =
         launchTransition(Operation.Transition.Proceed) launch@{
+            val color: Color
+            // take the lock before producing the color, so no mediator update lands between the two
             colorInputMediator.withLock { editor ->
-                val color = getPredictableRandomColor()
-                editor.set(color) // hold the mediator lock until the execution flow is finished
-                val shouldProceed = userPreferencesRepository
-                    .flowOfAutoProceedWithRandomizedColors
-                    .filterReady().first()
-                    .getOrElse { DefaultUserPreferences.AutoProceedWithRandomizedColors }
-                    .enabled
-                if (shouldProceed) {
-                    proceedWith(color)
-                } else {
-                    endColorCenterSession()
-                    updateState {
-                        onColorCenterSessionEnded()
-                        onColorBecameCurrent(color)
-                    }
+                color = getPredictableRandomColor()
+                editor.set(color)
+            }
+            val shouldProceed = userPreferencesRepository
+                .flowOfAutoProceedWithRandomizedColors
+                .filterReady().first()
+                .getOrElse { DefaultUserPreferences.AutoProceedWithRandomizedColors }
+                .enabled
+            if (shouldProceed) {
+                proceedWith(color)
+            } else {
+                endColorCenterSession()
+                updateState {
+                    onColorCenterSessionEnded()
+                    onColorBecameCurrent(color)
                 }
             }
         }
