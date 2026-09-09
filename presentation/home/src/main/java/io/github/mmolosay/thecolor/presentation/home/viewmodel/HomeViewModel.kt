@@ -359,7 +359,6 @@ class HomeViewModel @Inject constructor(
     private fun CanProceed(currentColor: Color?): Boolean =
         (currentColor != null)
 
-    // TODO: extract as private-in-file extension?
     // TODO: before, Store.transaction() was used, and it held a write Mutex, making every transaction() exclusive for its whole duration. Wrap in mutex.withLock()?
     private suspend inline fun updateState(block: UpdateScope<HomeState>.() -> Unit) =
         store.batch {
