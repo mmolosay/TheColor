@@ -56,6 +56,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
@@ -86,8 +87,10 @@ class HomeViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
     private val lastSearchedColorRepository: LastSearchedColorRepository,
     private val getPredictableRandomColor: GetPredictableRandomColorUseCase,
-    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
-) : ViewModel() {
+    @DefaultDispatcher defaultDispatcher: CoroutineDispatcher,
+) : ViewModel(
+    viewModelScope = CoroutineScope(SupervisorJob() + defaultDispatcher),
+) {
 
     private val store = Store<HomeState?>(null)
     val stateFlow: StateFlow<HomeState?> = store.flow
@@ -117,7 +120,7 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun initialize(): Job =
-        viewModelScope.launch(defaultDispatcher) {
+        viewModelScope.launch {
             val updatesScope = BatchUpdateScope<HomeState?>()
             run {
                 val initial = initialHomeState()
@@ -173,7 +176,7 @@ class HomeViewModel @Inject constructor(
         }
 
     private fun collectColorsFromColorInput(): Job =
-        viewModelScope.launch(defaultDispatcher) {
+        viewModelScope.launch {
             colorInputMediator.colorStateFlow
                 .drop(1) // replayed value
                 .filter { it.source is ColorInputSource }
@@ -284,7 +287,7 @@ class HomeViewModel @Inject constructor(
          * In a real app, here would've been a logic for accepting / denying UI's navigation request
          * depending on the business logic. Here may also be sending data to analytics or logging.
          */
-        viewModelScope.launch(defaultDispatcher) {
+        viewModelScope.launch {
             val se = seFactory.goToSettings()
             updateData {
                 it.copy(sideEffects = it.sideEffects + se)
@@ -292,7 +295,7 @@ class HomeViewModel @Inject constructor(
         }
 
     private fun onProceedResultProcessed(result: HomeData.ProceedResult): Job =
-        viewModelScope.launch(defaultDispatcher) {
+        viewModelScope.launch {
             updateData { current ->
                 if (current.proceedResult != result) return@updateData current // stale invocation
                 current.copy(proceedResult = null)
@@ -300,7 +303,7 @@ class HomeViewModel @Inject constructor(
         }
 
     private fun onSideEffectProcessed(se: SideEffect): Job =
-        viewModelScope.launch(defaultDispatcher) {
+        viewModelScope.launch {
             updateData {
                 val newSideEffects = it.sideEffects - se
                 it.copy(sideEffects = newSideEffects)
@@ -308,7 +311,7 @@ class HomeViewModel @Inject constructor(
         }
 
     private fun clearColorSchemeSelectedSwatch(): Job =
-        viewModelScope.launch(defaultDispatcher) {
+        viewModelScope.launch {
             // no ongoing session means there's no selected swatch to clear
             val components = colorCenterComponentsStore.components ?: return@launch
             components.selectedSwatchColorDetailsViewModel.clear()
@@ -434,7 +437,7 @@ class HomeViewModel @Inject constructor(
                     return true
                 }
                 is ColorInputValidationResult.Invalid -> {
-                    viewModelScope.launch(defaultDispatcher) {
+                    viewModelScope.launch {
                         updateData {
                             val result = HomeData.ProceedResult.InvalidSubmittedColor
                             it.copy(proceedResult = result)
@@ -552,7 +555,6 @@ class HomeViewModel @Inject constructor(
         block: suspend CoroutineScope.() -> Unit,
     ): Job =
         this.launchSuperseding(
-            context = defaultDispatcher,
             registry = opRegistry,
             value = Operation.Proceed,
             predicate = { it.value.isSupersededByProceed() },
@@ -563,7 +565,6 @@ class HomeViewModel @Inject constructor(
         block: suspend CoroutineScope.() -> Unit,
     ): Job =
         this.launchSuperseding(
-            context = defaultDispatcher,
             registry = opRegistry,
             value = Operation.FetchColorDetails,
             predicate = { it.value.isSupersededByFetchColorDetails() },
@@ -574,7 +575,6 @@ class HomeViewModel @Inject constructor(
         block: suspend CoroutineScope.() -> Unit,
     ): Job =
         this.launchSuperseding(
-            context = defaultDispatcher,
             registry = opRegistry,
             value = Operation.FetchColorScheme,
             predicate = { it.value.isSupersededByFetchColorScheme() },
@@ -585,7 +585,6 @@ class HomeViewModel @Inject constructor(
         block: suspend CoroutineScope.() -> Unit,
     ): Job =
         this.launchSuperseding(
-            context = defaultDispatcher,
             registry = opRegistry,
             value = Operation.UpdateSwatchColorDetails,
             predicate = { it.value.isSupersededByUpdateSwatchColorDetails() },
@@ -596,7 +595,6 @@ class HomeViewModel @Inject constructor(
         block: suspend CoroutineScope.() -> Unit,
     ): Job =
         viewModelScope.launchSuperseding(
-            context = defaultDispatcher,
             registry = opRegistry,
             value = Operation.ColorFromColorInput,
             predicate = { it.value.isSupersededByColorFromColorInput() },
