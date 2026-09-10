@@ -28,15 +28,19 @@ import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldDataFac
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldHandle
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldInputProcessor
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldViewModel
-import io.github.mmolosay.thecolor.utils.Lens
-import io.github.mmolosay.thecolor.utils.Store
+import io.github.mmolosay.thecolor.utils.Ref
+import io.github.mmolosay.thecolor.utils.batch
+import io.github.mmolosay.thecolor.utils.focus
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
@@ -51,7 +55,7 @@ import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInp
  */
 class ColorInputRgbViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted private val store: Store<ColorInputRgbData>,
+    @Assisted private val _dataFlow: MutableStateFlow<ColorInputRgbData>,
     @Assisted private val mediator: ColorInputMediator,
     @Assisted private val submitAction: ColorInputSubmitAction,
     private val textFieldViewModelFactory: TextFieldViewModel.Factory,
@@ -65,30 +69,21 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
 
     private val rTextFieldViewModel = createTextFieldViewModel(
-        lens = Lens(
-            get = { s -> s.rTextField },
-            set = { s, v -> s.copy(rTextField = v) },
-        ),
+        Ref(_dataFlow, ColorInputRgbDataLenses.rTextField),
     )
     val rTextFieldHandle = TextFieldHandle(rTextFieldViewModel)
 
     private val gTextFieldViewModel = createTextFieldViewModel(
-        lens = Lens(
-            get = { s -> s.gTextField },
-            set = { s, v -> s.copy(gTextField = v) },
-        ),
+        Ref(_dataFlow, ColorInputRgbDataLenses.gTextField),
     )
     val gTextFieldHandle = TextFieldHandle(gTextFieldViewModel)
 
     private val bTextFieldViewModel = createTextFieldViewModel(
-        lens = Lens(
-            get = { s -> s.bTextField },
-            set = { s, v -> s.copy(bTextField = v) },
-        ),
+        Ref(_dataFlow, ColorInputRgbDataLenses.bTextField),
     )
     val bTextFieldHandle = TextFieldHandle(bTextFieldViewModel)
 
-    val dataFlow: StateFlow<ColorInputRgbData> = store.flow
+    val dataFlow: StateFlow<ColorInputRgbData> = _dataFlow.asStateFlow()
 
     init {
         collectMediatorUpdates()
@@ -107,12 +102,18 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                 } else {
                     EmptyColorInput
                 }
-                store.transaction {
+                _dataFlow.batch {
                     fun String.toTextWithSource() =
                         TextFieldData.Text(this) causedByUser false
-                    rTextFieldViewModel.setText(colorInput.r.toTextWithSource())
-                    gTextFieldViewModel.setText(colorInput.g.toTextWithSource())
-                    bTextFieldViewModel.setText(colorInput.b.toTextWithSource())
+                    focus(ColorInputRgbDataLenses.rTextField) {
+                        rTextFieldViewModel.setText(colorInput.r.toTextWithSource())
+                    }
+                    focus(ColorInputRgbDataLenses.gTextField) {
+                        gTextFieldViewModel.setText(colorInput.g.toTextWithSource())
+                    }
+                    focus(ColorInputRgbDataLenses.bTextField) {
+                        bTextFieldViewModel.setText(colorInput.b.toTextWithSource())
+                    }
                 }
             }
         }
@@ -120,7 +121,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
 
     private fun collectTextFieldsData() {
         coroutineScope.launch(defaultDispatcher) {
-            store.flow
+            _dataFlow
                 .map { data -> TextFieldsDerived(data.rTextField, data.gTextField, data.bTextField) }
                 .distinctUntilChangedBy { derived -> derived.color } // only update mediator when color changes
                 .collectLatest collect@{ derived ->
@@ -142,7 +143,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                 .filterReady()
                 .map { it.getOrElse { DefaultUserPreferences.SmartBackspace } }
                 .collectLatest { preference ->
-                    store.update {
+                    _dataFlow.update {
                         it.copy(isSmartBackspaceEnabled = preference.enabled)
                     }
                 }
@@ -161,31 +162,29 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             }
         }
 
-    private suspend fun submitInput() {
-        val data = store.current()
+    private fun submitInput() {
+        val data = dataFlow.value
         val derived = TextFieldsDerived(data.rTextField, data.gTextField, data.bTextField)
         val wasAccepted = submitAction.invoke(
             colorInput = derived.colorInput,
             validationResult = derived.validationResult,
         )
         val result = ColorInputSubmissionResult(wasAccepted)
-        store.update {
+        _dataFlow.update {
             it.copy(inputSubmissionResult = result)
         }
     }
 
-    private suspend fun clearInputSubmissionResult() {
-        store.update {
+    private fun clearInputSubmissionResult() {
+        _dataFlow.update {
             it.copy(inputSubmissionResult = null)
         }
     }
 
-    private fun createTextFieldViewModel(
-        lens: Lens<ColorInputRgbData, TextFieldData>,
-    ): TextFieldViewModel =
+    private fun createTextFieldViewModel(ref: Ref<TextFieldData>): TextFieldViewModel =
         textFieldViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
-            store = store.focus(lens),
+            ref = ref,
             inputProcessor = TextFieldInputProcessorImpl(),
         )
 
@@ -239,7 +238,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            store: Store<ColorInputRgbData>,
+            dataFlow: MutableStateFlow<ColorInputRgbData>,
             mediator: ColorInputMediator,
             submitAction: ColorInputSubmitAction,
         ): ColorInputRgbViewModel

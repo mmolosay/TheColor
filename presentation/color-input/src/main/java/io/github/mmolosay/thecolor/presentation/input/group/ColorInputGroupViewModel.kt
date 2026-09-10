@@ -22,6 +22,7 @@ import io.github.mmolosay.thecolor.utils.Store
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -54,10 +55,7 @@ class ColorInputGroupViewModel @AssistedInject constructor(
     val hexViewModel: ColorInputHexViewModel =
         hexViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
-            store = run {
-                val data = hexDataFactory.create()
-                Store(data)
-            },
+            dataFlow = MutableStateFlow(hexDataFactory.create()),
             mediator = mediator,
             submitAction = submitAction,
         )
@@ -65,10 +63,7 @@ class ColorInputGroupViewModel @AssistedInject constructor(
     val rgbViewModel: ColorInputRgbViewModel =
         rgbViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
-            store = run {
-                val data = rgbDataFactory.create()
-                Store(data)
-            },
+            dataFlow = MutableStateFlow(rgbDataFactory.create()),
             mediator = mediator,
             submitAction = submitAction,
         )
@@ -76,10 +71,7 @@ class ColorInputGroupViewModel @AssistedInject constructor(
     val hsvViewModel: ColorInputHsvViewModel =
         hsvViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
-            store = run {
-                val data = hsvDataFactory.create()
-                Store(data)
-            },
+            dataFlow = MutableStateFlow(hsvDataFactory.create()),
             mediator = mediator,
         )
 

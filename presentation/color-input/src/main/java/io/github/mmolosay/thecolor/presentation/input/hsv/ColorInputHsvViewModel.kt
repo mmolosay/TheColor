@@ -11,12 +11,14 @@ import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.ColorInputSource
 import io.github.mmolosay.thecolor.presentation.input.colorState
 import io.github.mmolosay.thecolor.utils.Sampler
-import io.github.mmolosay.thecolor.utils.Store
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
@@ -32,7 +34,7 @@ import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInp
  */
 class ColorInputHsvViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted private val store: Store<ColorInputHsvData>,
+    @Assisted private val _dataFlow: MutableStateFlow<ColorInputHsvData>,
     @Assisted private val mediator: ColorInputMediator,
     private val colorConverter: ColorConverter,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
@@ -40,7 +42,7 @@ class ColorInputHsvViewModel @AssistedInject constructor(
 
     private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
 
-    val dataFlow: StateFlow<ColorInputHsvData> = store.flow
+    val dataFlow: StateFlow<ColorInputHsvData> = _dataFlow.asStateFlow()
 
     private var sampleProcessingJob: Job? = null // 'onSampleProduced' is never invoked concurrently
     private val samplerForNewColors = Sampler<ColorWithId>(
@@ -70,7 +72,7 @@ class ColorInputHsvViewModel @AssistedInject constructor(
         coroutineScope.launch(defaultDispatcher) {
             mediator.colorStateFlow.collect { colorState ->
                 val color = with(colorConverter) { colorState.color?.toHsv() }
-                store.update {
+                _dataFlow.update {
                     it.copy(color = color)
                 }
             }
@@ -86,8 +88,8 @@ class ColorInputHsvViewModel @AssistedInject constructor(
             }
         }
 
-    private suspend fun setColor(newColor: Color.Hsv) {
-        store.update {
+    private fun setColor(newColor: Color.Hsv) {
+        _dataFlow.update {
             it.copy(color = newColor)
         }
         val colorWithId = ColorWithId(color = newColor, mediatorStateId = mediator.colorState.id)
@@ -107,7 +109,7 @@ class ColorInputHsvViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            store: Store<ColorInputHsvData>,
+            dataFlow: MutableStateFlow<ColorInputHsvData>,
             mediator: ColorInputMediator,
         ): ColorInputHsvViewModel
     }

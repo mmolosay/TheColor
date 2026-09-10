@@ -12,7 +12,8 @@ import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.WithSource
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
-import io.github.mmolosay.thecolor.utils.Store
+import io.github.mmolosay.thecolor.utils.Ref
+import io.github.mmolosay.thecolor.utils.UpdateScope
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -31,7 +32,7 @@ import javax.inject.Inject
  */
 class TextFieldViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted private val store: Store<TextFieldData>,
+    @Assisted private val ref: Ref<TextFieldData>,
     @Assisted val inputProcessor: TextFieldInputProcessor,
     private val userPreferencesRepository: UserPreferencesRepository,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
@@ -49,7 +50,7 @@ class TextFieldViewModel @AssistedInject constructor(
                 .filterReady()
                 .map { it.result.getOrElse { DefaultUserPreferences.SelectAllTextOnTextFieldFocus } }
                 .collectLatest { preference ->
-                    store.update {
+                    ref.update {
                         it.copy(shouldSelectAllTextOnFocus = preference.enabled)
                     }
                 }
@@ -60,17 +61,22 @@ class TextFieldViewModel @AssistedInject constructor(
         coroutineScope.launch(exclusiveLane) {
             when (action) {
                 is TextFieldAction.SetText -> {
-                    setText(action.text causedByUser true)
+                    ref.run {
+                        setText(action.text causedByUser true)
+                    }
                 }
                 is TextFieldAction.ClearTextFeature.Invoke -> {
-                    if (store.value.isClearTextFeatureEnabled.not()) return@launch
-                    setText(Text("") causedByUser true)
+                    if (ref.value.isClearTextFeatureEnabled.not()) return@launch
+                    ref.run {
+                        setText(Text("") causedByUser true)
+                    }
                 }
             }
         }
 
-    suspend fun setText(textWithSource: WithSource<Text>) =
-        store.update {
+    context(updateScope: UpdateScope<TextFieldData>)
+    fun setText(textWithSource: WithSource<Text>) =
+        updateScope.update {
             it.copy(text = textWithSource)
         }
 
@@ -78,7 +84,7 @@ class TextFieldViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            store: Store<TextFieldData>,
+            ref: Ref<TextFieldData>,
             inputProcessor: TextFieldInputProcessor,
         ): TextFieldViewModel
     }

@@ -7,6 +7,19 @@ interface UpdateScope<T> {
     fun update(transform: (T) -> T)
 }
 
+fun <T> MutableStateFlow<T>.asUpdateScope(): UpdateScope<T> =
+    MutableStateFlowUpdateScope(delegate = this)
+
+fun <S, V> MutableStateFlow<S>.asUpdateScope(lens: Lens<S, V>): UpdateScope<V> =
+    this.asUpdateScope().focus(lens)
+
+private class MutableStateFlowUpdateScope<T>(
+    private val delegate: MutableStateFlow<T>,
+) : UpdateScope<T> {
+    override fun update(transform: (T) -> T) =
+        delegate.update(transform)
+}
+
 class BatchUpdateScope<T> : UpdateScope<T> {
     private val _updates = mutableListOf<(T) -> T>() // TODO: not safe for concurrency. Address.
     val updates: List<(T) -> T>
@@ -22,7 +35,6 @@ class BatchUpdateScope<T> : UpdateScope<T> {
         }
 }
 
-@Suppress("unused") // useful, independent util that may come handy in future
 inline fun <T, R> MutableStateFlow<T>.batch(
     block: UpdateScope<T>.() -> R,
 ): R {
@@ -46,6 +58,12 @@ fun <S, V> UpdateScope<S>.focus(lens: Lens<S, V>): UpdateScope<V> =
         delegate = this,
         lens = lens,
     )
+
+inline fun <S, V> UpdateScope<S>.focus(
+    lens: Lens<S, V>,
+    block: UpdateScope<V>.() -> Unit,
+) =
+    this.focus(lens).run(block)
 
 private class FocusedUpdateScope<S, V>(
     private val delegate: UpdateScope<S>,
