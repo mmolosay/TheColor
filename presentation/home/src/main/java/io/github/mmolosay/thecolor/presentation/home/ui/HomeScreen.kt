@@ -30,7 +30,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.debounce.debounced
-import io.github.mmolosay.thecolor.presentation.center.ColorCenter
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
 import io.github.mmolosay.thecolor.presentation.common.compose.Placeholder
 import io.github.mmolosay.thecolor.presentation.common.compose.PlaceholderDefaults
@@ -42,6 +41,7 @@ import io.github.mmolosay.thecolor.presentation.details.ui.ColorDetails
 import io.github.mmolosay.thecolor.presentation.details.ui.ColorDetailsCrossfade
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.SubjectColorData
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.subjectColorOrNull
+import io.github.mmolosay.thecolor.presentation.home.ui.center.BareColorCenter
 import io.github.mmolosay.thecolor.presentation.home.ui.center.BareColorCenterComposable
 import io.github.mmolosay.thecolor.presentation.home.ui.center.ColorCenterInHome
 import io.github.mmolosay.thecolor.presentation.home.ui.preview.BareColorPreviewComposable
@@ -107,12 +107,10 @@ fun HomeScreen(
         viewModel.stateFlow.mapState { requireNotNull(it).colorPreview }
     }
     val colorCenter: BareColorCenterComposable? = run {
-        val handle = state.colorCenterHandles?.colorCenter ?: return@run null
-        remember(handle) {
+        val handles = state.colorCenterHandles ?: return@run null
+        remember(handles) {
             {
-                ColorCenter(
-                    handle = handle,
-                )
+                BareColorCenter(handles)
             }
         }
     }

@@ -36,6 +36,7 @@ import io.github.mmolosay.thecolor.presentation.input.set
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewDataFactory
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeEvent
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeEventHandler
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeHandle
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeViewModel
 import io.github.mmolosay.thecolor.utils.CoroutineRegistry
 import io.github.mmolosay.thecolor.utils.SideEffectIdFactory
@@ -147,11 +148,11 @@ class HomeViewModel @Inject constructor(
             val deferredDetails = CompletableDeferred<DomainColorDetails>()
             startColorCenterSession(seed = color, deferredDetails = deferredDetails)
             launchFetch(Operation.Fetch.ColorDetails) {
-                val viewModel = components.colorCenterViewModel.colorDetailsViewModel
+                val viewModel = components.colorDetailsViewModel
                 viewModel.setSeedColor(color, deferredDetails)
             }
             launchFetch(Operation.Fetch.ColorScheme) {
-                val viewModel = components.colorCenterViewModel.colorSchemeViewModel
+                val viewModel = components.colorSchemeViewModel
                 viewModel.fetchColorScheme(color)
             }
         }
@@ -265,11 +266,11 @@ class HomeViewModel @Inject constructor(
         val deferredDetails = CompletableDeferred<DomainColorDetails>()
         startColorCenterSession(seed = color, deferredDetails = deferredDetails)
         coroutineScope.launchFetch(Operation.Fetch.ColorDetails) {
-            val viewModel = components.colorCenterViewModel.colorDetailsViewModel
+            val viewModel = components.colorDetailsViewModel
             viewModel.setSeedColor(color, deferredDetails)
         }
         coroutineScope.launchFetch(Operation.Fetch.ColorScheme) {
-            val viewModel = components.colorCenterViewModel.colorSchemeViewModel
+            val viewModel = components.colorSchemeViewModel
             viewModel.fetchColorScheme(color)
         }
     }
@@ -299,6 +300,8 @@ class HomeViewModel @Inject constructor(
         updateScope.update {
             val handles = ColorCenterHandles(
                 colorCenter = ColorCenterHandle(components.colorCenterViewModel),
+                colorDetails = ColorDetailsHandle(components.colorDetailsViewModel),
+                colorScheme = ColorSchemeHandle(components.colorSchemeViewModel),
                 selectedSwatchDetails = ColorDetailsHandle(components.selectedSwatchColorDetailsViewModel),
             )
             it.copy(colorCenterHandles = handles)
@@ -412,11 +415,11 @@ class HomeViewModel @Inject constructor(
                             setProceedResult(color)
                         }
                         launchFetch(Operation.Fetch.ColorDetails) {
-                            val viewModel = components.colorCenterViewModel.colorDetailsViewModel
+                            val viewModel = components.colorDetailsViewModel
                             viewModel.selectColor(event.colorRole)
                         }
                         launchFetch(Operation.Fetch.ColorScheme) {
-                            val viewModel = components.colorCenterViewModel.colorSchemeViewModel
+                            val viewModel = components.colorSchemeViewModel
                             viewModel.fetchColorScheme(color)
                         }
                     }
@@ -432,8 +435,7 @@ class HomeViewModel @Inject constructor(
                                     deferredDetails = deferredDetails,
                                 )
                                 launchFetch(Operation.Fetch.ColorDetails) {
-                                    val viewModel =
-                                        components.colorCenterViewModel.colorDetailsViewModel
+                                    val viewModel = components.colorDetailsViewModel
                                     viewModel.setSeedColor(origin.color, deferredDetails)
                                 }
                             }
@@ -448,7 +450,7 @@ class HomeViewModel @Inject constructor(
         }
 
         private fun viewModel(): ColorDetailsViewModel? =
-            colorCenterComponentsStore.components?.colorCenterViewModel?.colorDetailsViewModel
+            colorCenterComponentsStore.components?.colorDetailsViewModel
     }
 
     private inner class SelectedSwatchColorDetailsEventHandlerImpl : ColorDetailsEventHandler {
@@ -506,7 +508,7 @@ class HomeViewModel @Inject constructor(
         }
 
         private fun viewModel(): ColorSchemeViewModel? =
-            colorCenterComponentsStore.components?.colorCenterViewModel?.colorSchemeViewModel
+            colorCenterComponentsStore.components?.colorSchemeViewModel
     }
 
     /**

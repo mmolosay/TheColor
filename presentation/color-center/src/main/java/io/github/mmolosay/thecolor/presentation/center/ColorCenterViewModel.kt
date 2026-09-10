@@ -6,8 +6,6 @@ import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterData.SideEffect
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
-import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeViewModel
 import io.github.mmolosay.thecolor.utils.SideEffectIdFactory
 import io.github.mmolosay.thecolor.utils.Store
 import kotlinx.collections.immutable.minus
@@ -32,8 +30,6 @@ import javax.inject.Inject
 class ColorCenterViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     @Assisted private val store: Store<ColorCenterData>,
-    @Assisted val colorDetailsViewModel: ColorDetailsViewModel,
-    @Assisted val colorSchemeViewModel: ColorSchemeViewModel,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
@@ -68,19 +64,11 @@ class ColorCenterViewModel @AssistedInject constructor(
         }
     }
 
-    override fun dispose() {
-        super.dispose()
-        colorDetailsViewModel.dispose()
-        colorSchemeViewModel.dispose()
-    }
-
     @AssistedFactory
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
             store: Store<ColorCenterData>,
-            colorDetailsViewModel: ColorDetailsViewModel,
-            colorSchemeViewModel: ColorSchemeViewModel,
         ): ColorCenterViewModel
     }
 }

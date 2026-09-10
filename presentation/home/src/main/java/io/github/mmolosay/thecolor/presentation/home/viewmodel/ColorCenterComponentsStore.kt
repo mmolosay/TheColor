@@ -50,7 +50,9 @@ class ColorCenterComponentsStore @AssistedInject constructor(
     @Synchronized
     fun disposeComponents() {
         val components = components ?: return
-        components.colorCenterViewModel.dispose() // will also dispose of its child ViewModels
+        components.colorCenterViewModel.dispose()
+        components.colorDetailsViewModel.dispose()
+        components.colorSchemeViewModel.dispose()
         components.selectedSwatchColorDetailsViewModel.dispose()
         this.components = null
     }
@@ -77,46 +79,42 @@ class ColorCenterComponentsFactory @Inject constructor(
         colorSchemeEventHandler: ColorSchemeEventHandler,
         selectedSwatchColorDetailsEventHandler: ColorDetailsEventHandler,
     ): ColorCenterComponents {
-        val colorSchemeViewModelCoroutineScope: CoroutineScope
-        val colorCenterViewModel = run {
-            val coroutineScope = ViewModelCoroutineScope(parent = viewModelScope)
-            val colorDetailsViewModel = colorDetailsViewModelFactory.create(
-                coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
-                store = Store(ColorDetailsState.Idle),
-                eventHandler = colorDetailsEventHandler,
-            )
-            colorSchemeViewModelCoroutineScope = ViewModelCoroutineScope(parent = coroutineScope)
-            val colorSchemeViewModel = colorSchemeViewModelFactory.create(
-                coroutineScope = colorSchemeViewModelCoroutineScope,
-                store = Store(ColorSchemeState.Idle),
-                eventHandler = colorSchemeEventHandler,
-            )
-            return@run colorCenterViewModelFactory.create(
-                coroutineScope = coroutineScope,
-                store = Store(colorCenterDataFactory.create()),
-                colorDetailsViewModel = colorDetailsViewModel,
-                colorSchemeViewModel = colorSchemeViewModel,
-            )
-        }
+        val colorCenterViewModel = colorCenterViewModelFactory.create(
+            coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
+            store = Store(colorCenterDataFactory.create()),
+        )
+        val colorDetailsViewModel = colorDetailsViewModelFactory.create(
+            coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
+            store = Store(ColorDetailsState.Idle),
+            eventHandler = colorDetailsEventHandler,
+        )
+        val colorSchemeViewModel = colorSchemeViewModelFactory.create(
+            coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
+            store = Store(ColorSchemeState.Idle),
+            eventHandler = colorSchemeEventHandler,
+        )
         val selectedSwatchColorDetailsViewModel = colorDetailsViewModelFactory.create(
-            coroutineScope = ViewModelCoroutineScope(parent = colorSchemeViewModelCoroutineScope),
+            coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
             store = Store(ColorDetailsState.Idle),
             eventHandler = selectedSwatchColorDetailsEventHandler,
         )
         return ColorCenterComponents(
             colorCenterViewModel = colorCenterViewModel,
+            colorDetailsViewModel = colorDetailsViewModel,
+            colorSchemeViewModel = colorSchemeViewModel,
             selectedSwatchColorDetailsViewModel = selectedSwatchColorDetailsViewModel,
         )
     }
 }
 
 /**
- * A [ColorCenterViewModel] with the dependencies that it needs to be created via factory.
- * Once old [ColorCenterViewModel] is no longer needed, it will be disposed.
- * New components (and thus new ViewModel) will be created and used.
+ * The ViewModels of one 'Color Center' session.
+ * When the session ends, they are disposed and a new set is created for the next one.
  */
 /* private for HomeViewModel */
 data class ColorCenterComponents(
     val colorCenterViewModel: ColorCenterViewModel,
+    val colorDetailsViewModel: ColorDetailsViewModel,
+    val colorSchemeViewModel: ColorSchemeViewModel,
     val selectedSwatchColorDetailsViewModel: ColorDetailsViewModel,
 )

@@ -1,8 +1,5 @@
 package io.github.mmolosay.thecolor.presentation.center
 
-import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,7 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -38,50 +34,11 @@ import io.github.mmolosay.thecolor.presentation.common.compose.PlaceholderDefaul
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
-import io.github.mmolosay.thecolor.presentation.details.ui.ColorDetails
-import io.github.mmolosay.thecolor.presentation.details.ui.ColorDetailsCrossfade
-import io.github.mmolosay.thecolor.presentation.details.ui.rememberColorDetailsFacade
-import io.github.mmolosay.thecolor.presentation.scheme.ui.ColorScheme
-import io.github.mmolosay.thecolor.presentation.scheme.ui.ColorSchemeCrossfade
-import io.github.mmolosay.thecolor.presentation.scheme.ui.rememberColorSchemeFacade
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.Job
 import kotlin.math.max
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
-
-@OptIn(ExperimentalAnimationApi::class)
-@Composable
-fun ColorCenter(
-    handle: ColorCenterHandle,
-    modifier: Modifier = Modifier,
-) {
-    val facade = rememberColorCenterFacade(handle)
-    val crossfadeSpec = tween<Float>(
-        durationMillis = 500,
-        easing = FastOutSlowInEasing,
-    )
-    ColorCenter(
-        modifier = modifier,
-        facade = facade,
-        colorDetails = {
-            ColorDetailsCrossfade(
-                actualFacade = rememberColorDetailsFacade(handle.colorDetails),
-                animationSpec = crossfadeSpec,
-            ) { facade ->
-                ColorDetails(facade = facade)
-            }
-        },
-        colorScheme = {
-            ColorSchemeCrossfade(
-                actualFacade = rememberColorSchemeFacade(handle.colorScheme),
-                animationSpec = crossfadeSpec,
-            ) { facade ->
-                ColorScheme(facade)
-            }
-        },
-    )
-}
 
 @Composable
 fun rememberColorCenterFacade(handle: ColorCenterHandle): ColorCenterFacade {
@@ -92,18 +49,17 @@ fun rememberColorCenterFacade(handle: ColorCenterHandle): ColorCenterFacade {
 @Composable
 fun ColorCenter(
     facade: ColorCenterFacade,
-    colorDetails: @Composable () -> Unit,
-    colorScheme: @Composable () -> Unit,
+    page1Content: @Composable () -> Unit,
+    page2Content: @Composable () -> Unit,
+    strings: ColorCenterUiStrings,
     modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
-    val strings = remember(context) { ColorCenterUiStrings(context) }
     ColorCenter(
         data = facade.data,
         strings = strings,
         execute = facade.execute,
-        colorDetails = colorDetails,
-        colorScheme = colorScheme,
+        page1Content = page1Content,
+        page2Content = page2Content,
         modifier = modifier,
     )
 }
@@ -114,8 +70,8 @@ fun ColorCenter(
     data: ColorCenterData,
     strings: ColorCenterUiStrings,
     execute: ExecuteColorCenterAction,
-    colorDetails: @Composable () -> Unit,
-    colorScheme: @Composable () -> Unit,
+    page1Content: @Composable () -> Unit,
+    page2Content: @Composable () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val density = LocalDensity.current
@@ -127,12 +83,12 @@ fun ColorCenter(
     val minHeightDp = with(density) { minHeight?.toDp() }
 
     @Composable
-    fun ColorDetailsPage() {
+    fun Page1() {
         Page(
-            content = colorDetails,
+            content = page1Content,
             changePageButton = {
                 ChangePageButton(
-                    text = strings.detailsPageChangePageButtonText,
+                    text = strings.page1ChangePageButtonText,
                     onClick = {
                         val action = ColorCenterAction.ChangePage(pageIndex = 1)
                         execute(action)
@@ -145,12 +101,12 @@ fun ColorCenter(
     }
 
     @Composable
-    fun ColorSchemePage() {
+    fun Page2() {
         Page(
-            content = colorScheme,
+            content = page2Content,
             changePageButton = {
                 ChangePageButton(
-                    text = strings.schemePageChangePageButtonText,
+                    text = strings.page2ChangePageButtonText,
                     onClick = {
                         val action = ColorCenterAction.ChangePage(pageIndex = 0)
                         execute(action)
@@ -179,8 +135,8 @@ fun ColorCenter(
             propagateMinConstraints = true, // propagate min height also to page content
         ) {
             when (pageIndex) {
-                0 -> ColorDetailsPage()
-                1 -> ColorSchemePage()
+                0 -> Page1()
+                1 -> Page2()
                 else -> error("Unexpected page index. Have you forgotten to increase 'pageCount'?")
             }
         }
@@ -246,10 +202,10 @@ private fun Preview() {
                     data = previewData(),
                     strings = previewUiStrings(),
                     execute = { Job() },
-                    colorDetails = {
+                    page1Content = {
                         Page("Color details")
                     },
-                    colorScheme = {
+                    page2Content = {
                         Page("Color scheme")
                     },
                 )
@@ -265,6 +221,6 @@ private fun previewData() =
 
 private fun previewUiStrings() =
     ColorCenterUiStrings(
-        detailsPageChangePageButtonText = "View color scheme",
-        schemePageChangePageButtonText = "View color details",
+        page1ChangePageButtonText = "View color scheme",
+        page2ChangePageButtonText = "View color details",
     )
