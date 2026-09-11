@@ -20,14 +20,21 @@ private class MutableStateFlowUpdateScope<T>(
         delegate.update(transform)
 }
 
-class BatchUpdateScope<T> : UpdateScope<T> {
-    private val _updates = mutableListOf<(T) -> T>() // TODO: not safe for concurrency. Address.
-    val updates: List<(T) -> T>
-        get() = _updates.toList()
+@PublishedApi
+internal class BatchUpdateScope<T> : UpdateScope<T> {
+    private val updates = mutableListOf<(T) -> T>()
+    private var isClosed = false
 
-    override fun update(transform: (T) -> T) {
-        _updates += transform
-    }
+    override fun update(transform: (T) -> T) =
+        synchronized(updates) {
+            check(!isClosed) { "This batch has closed" }
+            updates += transform
+        }
+
+    fun close() =
+        synchronized(updates) {
+            isClosed = true
+        }
 
     fun apply(value: T): T =
         updates.fold(initial = value) { acc, update ->
@@ -39,7 +46,11 @@ inline fun <T, R> MutableStateFlow<T>.batch(
     block: UpdateScope<T>.() -> R,
 ): R {
     val scope = BatchUpdateScope<T>()
-    val result = with(scope) { block() }
+    val result = try {
+        with(scope, block)
+    } finally {
+        scope.close()
+    }
     this.update { scope.apply(it) }
     return result
 }
@@ -48,7 +59,11 @@ suspend inline fun <T, R> Store<T>.batch(
     block: UpdateScope<T>.() -> R,
 ): R {
     val scope = BatchUpdateScope<T>()
-    val result = with(scope) { block() }
+    val result = try {
+        with(scope, block)
+    } finally {
+        scope.close()
+    }
     this.update { scope.apply(it) }
     return result
 }
