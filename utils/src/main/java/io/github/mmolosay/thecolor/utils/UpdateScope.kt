@@ -55,19 +55,6 @@ inline fun <T, R> MutableStateFlow<T>.batch(
     return result
 }
 
-suspend inline fun <T, R> Store<T>.batch(
-    block: UpdateScope<T>.() -> R,
-): R {
-    val scope = BatchUpdateScope<T>()
-    val result = try {
-        with(scope, block)
-    } finally {
-        scope.close()
-    }
-    this.update { scope.apply(it) }
-    return result
-}
-
 fun <S, V> UpdateScope<S>.focus(lens: Lens<S, V>): UpdateScope<V> =
     FocusedUpdateScope(
         delegate = this,

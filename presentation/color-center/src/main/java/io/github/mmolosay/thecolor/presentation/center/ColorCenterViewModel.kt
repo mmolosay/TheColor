@@ -7,7 +7,6 @@ import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQuali
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterData.SideEffect
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.utils.SideEffectIdFactory
-import io.github.mmolosay.thecolor.utils.Store
 import kotlinx.collections.immutable.minus
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.plus
@@ -15,7 +14,10 @@ import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -29,11 +31,11 @@ import javax.inject.Inject
  */
 class ColorCenterViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted private val store: Store<ColorCenterData>,
+    @Assisted private val _dataFlow: MutableStateFlow<ColorCenterData>,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
-    val dataFlow: StateFlow<ColorCenterData> = store.flow
+    val dataFlow: StateFlow<ColorCenterData> = _dataFlow.asStateFlow()
 
     private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
     private val seFactory = SideEffectFactory()
@@ -50,15 +52,15 @@ class ColorCenterViewModel @AssistedInject constructor(
             }
         }
 
-    private suspend fun changePage(pageIndex: Int) {
+    private fun changePage(pageIndex: Int) {
         val se = seFactory.changePage(pageIndex)
-        store.update {
+        _dataFlow.update {
             it.copy(sideEffects = it.sideEffects.toPersistentList() + se)
         }
     }
 
-    private suspend fun onSideEffectProcessed(se: SideEffect) {
-        store.update {
+    private fun onSideEffectProcessed(se: SideEffect) {
+        _dataFlow.update {
             val newSideEffects = it.sideEffects.toPersistentList() - se
             it.copy(sideEffects = newSideEffects)
         }
@@ -68,7 +70,7 @@ class ColorCenterViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            store: Store<ColorCenterData>,
+            dataFlow: MutableStateFlow<ColorCenterData>,
         ): ColorCenterViewModel
     }
 }

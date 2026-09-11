@@ -12,8 +12,8 @@ import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsVi
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeEventHandler
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeState
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeViewModel
-import io.github.mmolosay.thecolor.utils.Store
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 
 /**
@@ -81,21 +81,21 @@ class ColorCenterComponentsFactory @Inject constructor(
     ): ColorCenterComponents {
         val colorCenterViewModel = colorCenterViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
-            store = Store(colorCenterDataFactory.create()),
+            dataFlow = MutableStateFlow(colorCenterDataFactory.create()),
         )
         val colorDetailsViewModel = colorDetailsViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
-            store = Store(ColorDetailsState.Idle),
+            stateFlow = MutableStateFlow(ColorDetailsState.Idle),
             eventHandler = colorDetailsEventHandler,
         )
         val colorSchemeViewModel = colorSchemeViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
-            store = Store(ColorSchemeState.Idle),
+            stateFlow = MutableStateFlow(ColorSchemeState.Idle),
             eventHandler = colorSchemeEventHandler,
         )
         val selectedSwatchColorDetailsViewModel = colorDetailsViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
-            store = Store(ColorDetailsState.Idle),
+            stateFlow = MutableStateFlow(ColorDetailsState.Idle),
             eventHandler = selectedSwatchColorDetailsEventHandler,
         )
         return ColorCenterComponents(

@@ -40,7 +40,6 @@ import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeHand
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeViewModel
 import io.github.mmolosay.thecolor.utils.CoroutineRegistry
 import io.github.mmolosay.thecolor.utils.SideEffectIdFactory
-import io.github.mmolosay.thecolor.utils.Store
 import io.github.mmolosay.thecolor.utils.UpdateScope
 import io.github.mmolosay.thecolor.utils.batch
 import io.github.mmolosay.thecolor.utils.dropOnNull
@@ -52,7 +51,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
@@ -87,8 +88,8 @@ class HomeViewModel @Inject constructor(
     viewModelScope = CoroutineScope(SupervisorJob() + defaultDispatcher),
 ) {
 
-    private val store = Store<HomeState?>(null)
-    val stateFlow: StateFlow<HomeState?> = store.flow
+    private val _stateFlow = MutableStateFlow<HomeState?>(null)
+    val stateFlow: StateFlow<HomeState?> = _stateFlow.asStateFlow()
 
     private val opRegistry = CoroutineRegistry<Operation>()
     private val ccSessionStore = ColorCenterSessionStore()
@@ -96,10 +97,9 @@ class HomeViewModel @Inject constructor(
 
     val colorInputGroupViewModel: ColorInputGroupViewModel = run {
         val data = colorInputGroupDataFactory.create()
-        val store = Store(data)
         colorInputGroupViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
-            store = store,
+            dataFlow = MutableStateFlow(data),
             mediator = colorInputMediator,
             submitAction = ColorInputSubmitActionImpl(),
         )
@@ -117,7 +117,7 @@ class HomeViewModel @Inject constructor(
     private fun initialize(): Job =
         viewModelScope.launch {
             val color = getStartupColor()
-            store.batch {
+            _stateFlow.batch {
                 val initial = HomeState(
                     home = HomeData(
                         canProceed = CanProceed(colorInputMediator.colorState.color),
@@ -362,13 +362,12 @@ class HomeViewModel @Inject constructor(
     private fun CanProceed(currentColor: Color?): Boolean =
         (currentColor != null)
 
-    // TODO: before, Store.transaction() was used, and it held a write Mutex, making every transaction() exclusive for its whole duration. Wrap in mutex.withLock()?
-    private suspend inline fun updateState(block: UpdateScope<HomeState>.() -> Unit) =
-        store.batch {
+    private inline fun updateState(block: UpdateScope<HomeState>.() -> Unit) =
+        _stateFlow.batch {
             with(dropOnNull(), block)
         }
 
-    private suspend fun updateData(transform: (HomeData) -> HomeData) =
+    private fun updateData(transform: (HomeData) -> HomeData) =
         updateState {
             this.focus(HomeStateLenses.home).update(transform)
         }

@@ -18,12 +18,13 @@ import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbDataFactory
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbViewModel
-import io.github.mmolosay.thecolor.utils.Store
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
@@ -38,7 +39,7 @@ import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInp
  */
 class ColorInputGroupViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted private val store: Store<ColorInputGroupData>,
+    @Assisted private val _dataFlow: MutableStateFlow<ColorInputGroupData>,
     @Assisted mediator: ColorInputMediator,
     @Assisted submitAction: ColorInputSubmitAction,
     hexDataFactory: ColorInputHexDataFactory,
@@ -75,7 +76,7 @@ class ColorInputGroupViewModel @AssistedInject constructor(
             mediator = mediator,
         )
 
-    val dataFlow: StateFlow<ColorInputGroupData> = store.flow
+    val dataFlow: StateFlow<ColorInputGroupData> = _dataFlow.asStateFlow()
 
     fun execute(action: ColorInputGroupAction): Job =
         coroutineScope.launch(exclusiveLane) {
@@ -86,8 +87,8 @@ class ColorInputGroupViewModel @AssistedInject constructor(
             }
         }
 
-    private suspend fun changeInputType(type: DomainColorInputType) {
-        store.update {
+    private fun changeInputType(type: DomainColorInputType) {
+        _dataFlow.update {
             it.copy(selectedInputType = type)
         }
     }
@@ -103,7 +104,7 @@ class ColorInputGroupViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            store: Store<ColorInputGroupData>,
+            dataFlow: MutableStateFlow<ColorInputGroupData>,
             mediator: ColorInputMediator,
             submitAction: ColorInputSubmitAction,
         ): ColorInputGroupViewModel

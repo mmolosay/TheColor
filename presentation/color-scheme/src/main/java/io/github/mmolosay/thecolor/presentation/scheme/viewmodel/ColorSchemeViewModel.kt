@@ -15,12 +15,14 @@ import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeData.Swatch
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeData.SwatchCount
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeState.Request
-import io.github.mmolosay.thecolor.utils.Store
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -39,7 +41,7 @@ import io.github.mmolosay.thecolor.domain.color.ColorScheme as DomainColorScheme
  */
 class ColorSchemeViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted private val store: Store<ColorSchemeState>,
+    @Assisted private val _stateFlow: MutableStateFlow<ColorSchemeState>,
     @Assisted private val eventHandler: ColorSchemeEventHandler,
     private val colorRepository: ColorRepository,
     private val createData: CreateColorSchemeDataUseCase,
@@ -47,7 +49,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
-    val stateFlow: StateFlow<ColorSchemeState> = store.flow
+    val stateFlow: StateFlow<ColorSchemeState> = _stateFlow.asStateFlow()
 
     private val dataEditor = ColorSchemeDataEditor()
 
@@ -72,8 +74,8 @@ class ColorSchemeViewModel @AssistedInject constructor(
             }
         }
 
-    private suspend fun onSelectSwatch(swatchIndex: Int) {
-        val state = store.current()
+    private fun onSelectSwatch(swatchIndex: Int) {
+        val state = stateFlow.value
         if (state !is ColorSchemeState.Ready) return // stale invocation
         val swatch = state.data.swatches.getOrNull(swatchIndex) ?: return
         val swatchColorDetails = state.domainColorScheme.swatchDetails.getOrNull(swatchIndex) ?: return
@@ -81,16 +83,16 @@ class ColorSchemeViewModel @AssistedInject constructor(
         eventHandler.offer(event)
     }
 
-    private suspend fun onApplyChanges() {
-        val state = store.current()
+    private fun onApplyChanges() {
+        val state = stateFlow.value
         if (state !is ColorSchemeState.Ready) return // stale invocation
         if (!state.data.hasChangesToApply) return // nothing to apply
         val event = ColorSchemeEvent.ApplyChangesAction(seed = state.request.seed)
         eventHandler.offer(event)
     }
 
-    private suspend fun onRetryOnError() {
-        val state = store.current()
+    private fun onRetryOnError() {
+        val state = stateFlow.value
         if (state !is ColorSchemeState.Error) return // stale invocation
         val event = ColorSchemeEvent.RetryOnErrorAction(seed = state.request.seed)
         eventHandler.offer(event)
@@ -101,9 +103,9 @@ class ColorSchemeViewModel @AssistedInject constructor(
      * Exposes fetched color scheme from the [stateFlow].
      */
     suspend fun fetchColorScheme(seed: Color) {
-        val request = store.current().request(seed)
+        val request = stateFlow.value.request(seed)
         val domainRequest = request.toDomainRequest()
-        store.update {
+        _stateFlow.update {
             ColorSchemeState.Loading(request)
         }
         yield() // allow 'dataStateFlow' to emit 'Loading' state in unit tests // TODO: may not be needed anymore; debug unit tests and verify
@@ -111,7 +113,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
             colorRepository.getColorScheme(domainRequest)
         }
         val colorScheme = schemeResult.getOrElse { exception ->
-            store.update { current ->
+            _stateFlow.update { current ->
                 if (!current.isAwaiting(request)) return@update current
                 val error = ColorSchemeError(
                     cause = exception,
@@ -123,7 +125,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
             }
             return
         }
-        store.update { current ->
+        _stateFlow.update { current ->
             if (!current.isAwaiting(request)) return@update current
             val data = createData(scheme = colorScheme, request = request)
             ColorSchemeState.Ready(
@@ -134,8 +136,8 @@ class ColorSchemeViewModel @AssistedInject constructor(
         }
     }
 
-    private suspend fun selectMode(mode: Mode) {
-        store.update { state ->
+    private fun selectMode(mode: Mode) {
+        _stateFlow.update { state ->
             if (state !is ColorSchemeState.Ready) return@update state
             val newData = with(dataEditor) {
                 state.data.copyConsistently(selectedMode = mode)
@@ -144,8 +146,8 @@ class ColorSchemeViewModel @AssistedInject constructor(
         }
     }
 
-    private suspend fun selectSwatchCount(count: SwatchCount) {
-        store.update { state ->
+    private fun selectSwatchCount(count: SwatchCount) {
+        _stateFlow.update { state ->
             if (state !is ColorSchemeState.Ready) return@update state
             val newData = with(dataEditor) {
                 state.data.copyConsistently(selectedSwatchCount = count)
@@ -189,7 +191,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            store: Store<ColorSchemeState>,
+            stateFlow: MutableStateFlow<ColorSchemeState>,
             eventHandler: ColorSchemeEventHandler,
         ): ColorSchemeViewModel
     }
