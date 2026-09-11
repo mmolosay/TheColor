@@ -46,6 +46,10 @@ import io.github.mmolosay.thecolor.utils.batch
 import io.github.mmolosay.thecolor.utils.dropOnNull
 import io.github.mmolosay.thecolor.utils.focus
 import io.github.mmolosay.thecolor.utils.launchSuperseding
+import kotlinx.collections.immutable.minus
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.plus
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -123,7 +127,7 @@ class HomeViewModel @Inject constructor(
                     home = HomeData(
                         canProceed = CanProceed(colorInputMediator.colorState.color),
                         proceedResult = null, // 'proceed' action wasn't invoked yet
-                        sideEffects = emptyList(),
+                        sideEffects = persistentListOf(),
                     ),
                     colorInputGroupHandle = ColorInputGroupHandle(colorInputGroupViewModel),
                     colorPreview = colorPreviewDataFactory.create(color),
@@ -228,7 +232,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             val se = seFactory.goToSettings()
             updateData {
-                it.copy(sideEffects = it.sideEffects + se)
+                it.copy(sideEffects = it.sideEffects.toPersistentList() + se)
             }
         }
 
@@ -243,7 +247,7 @@ class HomeViewModel @Inject constructor(
     private fun onSideEffectProcessed(se: SideEffect): Job =
         viewModelScope.launch {
             updateData {
-                val newSideEffects = it.sideEffects - se
+                val newSideEffects = it.sideEffects.toPersistentList() - se
                 it.copy(sideEffects = newSideEffects)
             }
         }

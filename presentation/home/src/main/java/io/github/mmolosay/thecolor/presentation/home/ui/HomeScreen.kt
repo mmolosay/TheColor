@@ -55,6 +55,7 @@ import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroup
 import io.github.mmolosay.thecolor.presentation.preview.AnimatedColorPreview
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import io.github.mmolosay.thecolor.utils.mapState
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -389,7 +390,7 @@ private fun previewData() =
                 isDark = true,
             ),
         ),
-        sideEffects = emptyList(),
+        sideEffects = persistentListOf(),
     )
 
 private fun previewUiStrings() =

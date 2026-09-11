@@ -1,6 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.home.viewmodel
 
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
+import kotlinx.collections.immutable.ImmutableList
 import io.github.mmolosay.thecolor.utils.SideEffect as UtilsSideEffect
 
 /**
@@ -9,7 +10,7 @@ import io.github.mmolosay.thecolor.utils.SideEffect as UtilsSideEffect
 data class HomeData(
     val canProceed: Boolean,
     val proceedResult: ProceedResult?,
-    val sideEffects: List<SideEffect>, // TODO: change to ImmutableList
+    val sideEffects: ImmutableList<SideEffect>,
 ) {
 
     /** Result of executing a 'proceed' action. */

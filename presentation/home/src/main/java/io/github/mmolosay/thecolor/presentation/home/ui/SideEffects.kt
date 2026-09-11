@@ -14,10 +14,11 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.SideEffe
 import io.github.mmolosay.thecolor.utils.cache.DequeCache
 import io.github.mmolosay.thecolor.utils.cache.PruneOnSizeThreshold
 import io.github.mmolosay.thecolor.utils.doNothing
+import kotlinx.collections.immutable.ImmutableList
 
 @Composable
 internal fun ProcessSideEffectsAsSideEffect(
-    sideEffects: List<SideEffect>,
+    sideEffects: ImmutableList<SideEffect>,
     onProcessed: (SideEffect) -> Unit,
     navigateToSettings: () -> Unit,
 ) {
