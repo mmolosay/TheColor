@@ -28,6 +28,7 @@ import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.ColorInputSource
 import io.github.mmolosay.thecolor.presentation.input.colorState
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupDataFactory
+import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupHandle
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
@@ -95,7 +96,7 @@ class HomeViewModel @Inject constructor(
     private val ccSessionStore = ColorCenterSessionStore()
     private val seFactory = SideEffectFactory()
 
-    val colorInputGroupViewModel: ColorInputGroupViewModel = run {
+    private val colorInputGroupViewModel: ColorInputGroupViewModel = run {
         val data = colorInputGroupDataFactory.create()
         colorInputGroupViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
@@ -124,6 +125,7 @@ class HomeViewModel @Inject constructor(
                         proceedResult = null, // 'proceed' action wasn't invoked yet
                         sideEffects = emptyList(),
                     ),
+                    colorInputGroupHandle = ColorInputGroupHandle(colorInputGroupViewModel),
                     colorPreview = colorPreviewDataFactory.create(color),
                     colorCenterHandles = null, // 'proceed' action wasn't invoked yet
                 )

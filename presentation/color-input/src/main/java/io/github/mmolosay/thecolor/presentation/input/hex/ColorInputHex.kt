@@ -29,18 +29,10 @@ import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldInputPr
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldUiStrings
 import kotlinx.coroutines.Job
 
-@Suppress("unused") // example of having 'ViewModel' as entry point
 @Composable
-fun ColorInputHex(
-    viewModel: ColorInputHexViewModel,
-) {
-    val handle = remember(viewModel) { ColorInputHexHandle(viewModel) }
-    val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
-    val facade = handle.facade(data)
-
-    ColorInputHex(
-        facade = facade,
-    )
+fun rememberColorInputHexFacade(handle: ColorInputHexHandle): ColorInputHexFacade {
+    val data = handle.dataFlow.collectAsStateWithLifecycle().value
+    return remember(handle, data) { handle.facade(data) }
 }
 
 @Composable

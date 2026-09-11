@@ -30,18 +30,10 @@ import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvValue
 import kotlinx.coroutines.Job
 import io.github.mmolosay.thecolor.domain.color.Color as DomainColor
 
-@Suppress("unused") // example of having 'ViewModel' as entry point
 @Composable
-fun ColorInputHsv(
-    viewModel: ColorInputHsvViewModel,
-) {
-    val handle = remember(viewModel) { ColorInputHsvHandle(viewModel) }
-    val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
-    val facade = handle.facade(data)
-
-    ColorInputHsv(
-        facade = facade,
-    )
+fun rememberColorInputHsvFacade(handle: ColorInputHsvHandle): ColorInputHsvFacade {
+    val data = handle.dataFlow.collectAsStateWithLifecycle().value
+    return remember(handle, data) { handle.facade(data) }
 }
 
 @Composable

@@ -33,18 +33,10 @@ import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldInputPr
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldUiStrings
 import kotlinx.coroutines.Job
 
-@Suppress("unused") // example of having 'ViewModel' as entry point
 @Composable
-fun ColorInputRgb(
-    viewModel: ColorInputRgbViewModel,
-) {
-    val handle = remember(viewModel) { ColorInputRgbHandle(viewModel) }
-    val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
-    val facade = handle.facade(data)
-
-    ColorInputRgb(
-        facade = facade,
-    )
+fun rememberColorInputRgbFacade(handle: ColorInputRgbHandle): ColorInputRgbFacade {
+    val data = handle.dataFlow.collectAsStateWithLifecycle().value
+    return remember(handle, data) { handle.facade(data) }
 }
 
 @Composable

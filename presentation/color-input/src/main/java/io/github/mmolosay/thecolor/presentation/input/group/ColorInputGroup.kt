@@ -35,49 +35,51 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.common.compose.Placeholder
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHex
+import io.github.mmolosay.thecolor.presentation.input.hex.rememberColorInputHexFacade
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsv
+import io.github.mmolosay.thecolor.presentation.input.hsv.rememberColorInputHsvFacade
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgb
+import io.github.mmolosay.thecolor.presentation.input.rgb.rememberColorInputRgbFacade
 import kotlinx.coroutines.Job
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 
 @Composable
 fun ColorInputGroup(
-    viewModel: ColorInputGroupViewModel,
+    handle: ColorInputGroupHandle,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val strings = remember(context) { ColorInputGroupUiStrings(context) }
-
-    val data = viewModel.dataFlow.collectAsStateWithLifecycle().value
-    val execute by rememberUpdatedState(viewModel::execute) // stable across recompositions
-    val facade = remember(data, execute) {
-        ColorInputGroupFacade(
-            selectedInputType = data.selectedInputType,
-            orderedInputTypes = data.orderedInputTypes,
-            execute = execute,
-        )
-    }
-
+    val facade = rememberColorInputGroupFacade(handle)
     ColorInputGroup(
         modifier = modifier,
         facade = facade,
         strings = strings,
         hexInput = {
+            val facade = rememberColorInputHexFacade(handle.hex)
             ColorInputHex(
-                viewModel = viewModel.hexViewModel,
+                facade = facade,
             )
         },
         rgbInput = {
+            val facade = rememberColorInputRgbFacade(handle.rgb)
             ColorInputRgb(
-                viewModel = viewModel.rgbViewModel,
+                facade = facade,
             )
         },
         hsvInput = {
+            val facade = rememberColorInputHsvFacade(handle.hsv)
             ColorInputHsv(
-                viewModel = viewModel.hsvViewModel,
+                facade = facade,
             )
         },
     )
+}
+
+@Composable
+fun rememberColorInputGroupFacade(handle: ColorInputGroupHandle): ColorInputGroupFacade {
+    val data = handle.dataFlow.collectAsStateWithLifecycle().value
+    return remember(handle, data) { handle.facade(data) }
 }
 
 @Composable
@@ -95,7 +97,7 @@ fun ColorInputGroup(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         AnimatedContent(
-            targetState = facade.selectedInputType,
+            targetState = facade.data.selectedInputType,
             transitionSpec = {
                 fadeIn() togetherWith fadeOut() using SizeTransform(clip = false)
             },
@@ -104,7 +106,7 @@ fun ColorInputGroup(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .wrapContentWidth(),
+                    .wrapContentWidth(Alignment.CenterHorizontally),
             ) {
                 when (type) {
                     DomainColorInputType.Hex -> hexInput()
@@ -116,8 +118,8 @@ fun ColorInputGroup(
 
         Spacer(modifier = Modifier.height(12.dp))
         InputSelector(
-            orderedInputTypes = facade.orderedInputTypes,
-            selectedInputType = facade.selectedInputType,
+            orderedInputTypes = facade.data.orderedInputTypes,
+            selectedInputType = facade.data.selectedInputType,
             changeInputType = {
                 val action = ColorInputGroupAction.ChangeInputType(it)
                 execute(action)
@@ -217,11 +219,13 @@ private fun Preview() {
 
 private fun previewFacade() =
     ColorInputGroupFacade(
-        selectedInputType = DomainColorInputType.Hex,
-        orderedInputTypes = listOf(
-            DomainColorInputType.Hex,
-            DomainColorInputType.Rgb,
-            DomainColorInputType.Hsv,
+        data = ColorInputGroupData(
+            selectedInputType = DomainColorInputType.Hex,
+            orderedInputTypes = listOf(
+                DomainColorInputType.Hex,
+                DomainColorInputType.Rgb,
+                DomainColorInputType.Hsv,
+            )
         ),
         execute = { Job() },
     )
