@@ -52,14 +52,15 @@ class ColorInputHsvViewModel @AssistedInject constructor(
         sampleProcessingJob?.cancel()
         coroutineScope.launch(defaultDispatcher, CoroutineStart.UNDISPATCHED) {
             mediator.withLock { editor ->
-                val idThen = colorWithId.mediatorStateId
-                val idNow = mediator.colorState.id
-                if (idNow == idThen) {
-                    editor.set(
-                        color = colorWithId.color,
-                        source = ColorInputSource(DomainColorInputType.Hsv),
-                    )
-                }
+                val state = mediator.colorState
+                val source = state.source
+                val isOwnChange = (source is ColorInputSource && source.type == DomainColorInputType.Hsv)
+                val hasIdChanged = (state.id != colorWithId.mediatorStateId)
+                if (hasIdChanged && !isOwnChange) return@withLock
+                editor.set(
+                    color = colorWithId.color,
+                    source = ColorInputSource(DomainColorInputType.Hsv),
+                )
             }
         }.also { sampleProcessingJob = it }
     }
@@ -70,8 +71,10 @@ class ColorInputHsvViewModel @AssistedInject constructor(
 
     private fun collectMediatorUpdates() {
         coroutineScope.launch(defaultDispatcher) {
-            mediator.colorStateFlow.collect { colorState ->
-                val color = with(colorConverter) { colorState.color?.toHsv() }
+            mediator.colorStateFlow.collect { (color, source) ->
+                // don't update color to avoid overwriting a newer one if the color was set from this 'Color Input' type
+                if (source is ColorInputSource && source.type == DomainColorInputType.Hsv) return@collect
+                val color = with(colorConverter) { color?.toHsv() }
                 _dataFlow.update {
                     it.copy(color = color)
                 }
