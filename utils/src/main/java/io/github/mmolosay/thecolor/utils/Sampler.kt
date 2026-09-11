@@ -33,7 +33,7 @@ class Sampler<T>(
 
     private var job: Job? = null
     private var lastValue: Optional<T> = Optional.None
-    val lock = ReentrantLock()
+    private val lock = ReentrantLock()
 
     fun offer(value: T) =
         lock.withLock {
