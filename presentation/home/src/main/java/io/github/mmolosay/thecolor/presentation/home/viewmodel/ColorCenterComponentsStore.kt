@@ -3,11 +3,17 @@ package io.github.mmolosay.thecolor.presentation.home.viewmodel
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import io.github.mmolosay.thecolor.presentation.center.ColorCenterDataFactory
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
+import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEventHandler
+import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsState
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeEventHandler
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeState
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeViewModel
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 
 /**
@@ -25,15 +31,29 @@ class ColorCenterComponentsStore @AssistedInject constructor(
         private set
 
     @Synchronized
-    fun createNewComponents() {
+    fun createNewComponents(
+        colorDetailsEventHandler: ColorDetailsEventHandler,
+        colorSchemeEventHandler: ColorSchemeEventHandler,
+        selectedSwatchColorDetailsEventHandler: ColorDetailsEventHandler,
+    ): ColorCenterComponents {
         disposeComponents() // dispose of current components if there are any
-        this.components = factory.create(viewModelScope)
+        val components = factory.create(
+            viewModelScope = viewModelScope,
+            colorDetailsEventHandler = colorDetailsEventHandler,
+            colorSchemeEventHandler = colorSchemeEventHandler,
+            selectedSwatchColorDetailsEventHandler = selectedSwatchColorDetailsEventHandler,
+        )
+        this.components = components
+        return components
     }
 
     @Synchronized
     fun disposeComponents() {
         val components = components ?: return
-        components.colorCenterViewModel.dispose() // will also dispose of its child ViewModels
+        components.colorCenterViewModel.dispose()
+        components.colorDetailsViewModel.dispose()
+        components.colorSchemeViewModel.dispose()
+        components.selectedSwatchColorDetailsViewModel.dispose()
         this.components = null
     }
 
@@ -47,45 +67,54 @@ class ColorCenterComponentsStore @AssistedInject constructor(
 
 /* private for ColorCenterComponentsStore */
 class ColorCenterComponentsFactory @Inject constructor(
+    private val colorCenterDataFactory: ColorCenterDataFactory,
+    private val colorCenterViewModelFactory: ColorCenterViewModel.Factory,
     private val colorDetailsViewModelFactory: ColorDetailsViewModel.Factory,
     private val colorSchemeViewModelFactory: ColorSchemeViewModel.Factory,
-    private val colorCenterViewModelFactory: ColorCenterViewModel.Factory,
 ) {
 
-    fun create(viewModelScope: CoroutineScope): ColorCenterComponents {
-        val colorSchemeViewModelCoroutineScope: CoroutineScope
-        val colorCenterViewModel = run {
-            val coroutineScope = ViewModelCoroutineScope(parent = viewModelScope)
-            val colorDetailsViewModel = colorDetailsViewModelFactory.create(
-                coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
-            )
-            colorSchemeViewModelCoroutineScope = ViewModelCoroutineScope(parent = coroutineScope)
-            val colorSchemeViewModel = colorSchemeViewModelFactory.create(
-                coroutineScope = colorSchemeViewModelCoroutineScope,
-            )
-            return@run colorCenterViewModelFactory.create(
-                coroutineScope = coroutineScope,
-                colorDetailsViewModel = colorDetailsViewModel,
-                colorSchemeViewModel = colorSchemeViewModel,
-            )
-        }
+    fun create(
+        viewModelScope: CoroutineScope,
+        colorDetailsEventHandler: ColorDetailsEventHandler,
+        colorSchemeEventHandler: ColorSchemeEventHandler,
+        selectedSwatchColorDetailsEventHandler: ColorDetailsEventHandler,
+    ): ColorCenterComponents {
+        val colorCenterViewModel = colorCenterViewModelFactory.create(
+            coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
+            dataFlow = MutableStateFlow(colorCenterDataFactory.create()),
+        )
+        val colorDetailsViewModel = colorDetailsViewModelFactory.create(
+            coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
+            stateFlow = MutableStateFlow(ColorDetailsState.Idle),
+            eventHandler = colorDetailsEventHandler,
+        )
+        val colorSchemeViewModel = colorSchemeViewModelFactory.create(
+            coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
+            stateFlow = MutableStateFlow(ColorSchemeState.Idle),
+            eventHandler = colorSchemeEventHandler,
+        )
         val selectedSwatchColorDetailsViewModel = colorDetailsViewModelFactory.create(
-            coroutineScope = ViewModelCoroutineScope(parent = colorSchemeViewModelCoroutineScope),
+            coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
+            stateFlow = MutableStateFlow(ColorDetailsState.Idle),
+            eventHandler = selectedSwatchColorDetailsEventHandler,
         )
         return ColorCenterComponents(
             colorCenterViewModel = colorCenterViewModel,
+            colorDetailsViewModel = colorDetailsViewModel,
+            colorSchemeViewModel = colorSchemeViewModel,
             selectedSwatchColorDetailsViewModel = selectedSwatchColorDetailsViewModel,
         )
     }
 }
 
 /**
- * A [ColorCenterViewModel] with the dependencies that it needs to be created via factory.
- * Once old [ColorCenterViewModel] is no longer needed, it will be disposed.
- * New components (and thus new ViewModel) will be created and used.
+ * The ViewModels of one 'Color Center' session.
+ * When the session ends, they are disposed and a new set is created for the next one.
  */
 /* private for HomeViewModel */
 data class ColorCenterComponents(
     val colorCenterViewModel: ColorCenterViewModel,
+    val colorDetailsViewModel: ColorDetailsViewModel,
+    val colorSchemeViewModel: ColorSchemeViewModel,
     val selectedSwatchColorDetailsViewModel: ColorDetailsViewModel,
 )

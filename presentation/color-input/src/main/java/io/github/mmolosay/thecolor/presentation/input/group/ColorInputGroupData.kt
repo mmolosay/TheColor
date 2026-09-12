@@ -8,5 +8,4 @@ import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInp
 data class ColorInputGroupData(
     val selectedInputType: DomainColorInputType, // it's OK to use some domain models (like enums) in presentation layer
     val orderedInputTypes: List<DomainColorInputType>,
-    val onInputTypeChange: (DomainColorInputType) -> Unit,
 )

@@ -13,12 +13,6 @@ import kotlinx.coroutines.Dispatchers
 object DiDispatchersModule {
 
     @Provides
-    @CoroutineDispatcherDiQualifiers.UiDataUpdateDispatcher
-    // TODO: BasicTextField2 migration
-    fun provideUiDataUpdateDispatcher(): CoroutineDispatcher =
-        Dispatchers.Main.immediate // https://medium.com/androiddevelopers/effective-state-management-for-textfield-in-compose-d6e5b070fbe5
-
-    @Provides
     @CoroutineDispatcherDiQualifiers.DefaultDispatcher
     fun provideDefaultDispatcher(): CoroutineDispatcher =
         Dispatchers.Default

@@ -88,7 +88,7 @@ class ColorInputGroupViewModelTest {
         }
         createSut()
 
-        data.onInputTypeChange(DomainColorInputType.Rgb)
+        data.changeInputType(DomainColorInputType.Rgb)
 
         data.selectedInputType shouldBe DomainColorInputType.Rgb
     }
@@ -108,5 +108,5 @@ class ColorInputGroupViewModelTest {
         }
 
     val data: ColorInputGroupData
-        get() = sut.dataStateFlow.value.shouldBeInstanceOf<DataState.Ready>().data
+        get() = sut.dataFlow.value.shouldBeInstanceOf<DataState.Ready>().data
 }

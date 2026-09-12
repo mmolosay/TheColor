@@ -9,17 +9,14 @@ import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputValidationResult
-import io.github.mmolosay.thecolor.presentation.input.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.testing.MockColorInputMediatorComponents
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldViewModel
 import io.github.mmolosay.thecolor.testing.MainDispatcherExtension
-import io.github.mmolosay.thecolor.utils.pending
+import io.github.mmolosay.thecolor.utils.invoke
 import io.kotest.assertions.withClue
-import io.kotest.matchers.should
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.beOfType
-import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -74,26 +71,6 @@ class ColorInputHexViewModelTest {
 
     lateinit var sut: ColorInputHexViewModel
 
-    @Test // ANCHOR:Label=0
-    fun `given SUT is created, when mediator has not-null color, then data state becomes Ready`() =
-        runTest(testDispatcher) {
-            val color = Color.Hex(0x1A803F)
-            every { mediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = color, source = null, id = 0)
-                MutableStateFlow(value)
-            }
-            with(colorConverter) {
-                every { (color as Color).toHex() } returns color
-            }
-            with(colorInputMapper) {
-                every { color.toColorInput() } returns ColorInput.Hex("1A803F")
-            }
-
-            createSut()
-
-            dataState should beOfType<DataState.Ready<*>>()
-        }
-
     @Test
     fun `given SUT is created, when mediator has not-null color, then text field is populated with the correct text`() =
         runTest(testDispatcher) {
@@ -111,22 +88,7 @@ class ColorInputHexViewModelTest {
 
             createSut()
 
-            // REFERENCE:Label=0
-            val data = dataState.shouldBeInstanceOf<DataState.Ready<ColorInputHexData>>().data
-            data.textField.text.data shouldBe Text("1A803F")
-        }
-
-    @Test
-    fun `given SUT is created, when mediator has 'null' color, then data state becomes Ready nonetheless`() =
-        runTest(testDispatcher) {
-            every { mediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = null, source = null, id = 0)
-                MutableStateFlow(value)
-            }
-
-            createSut()
-
-            dataState should beOfType<DataState.Ready<*>>()
+            sut.data.textField.text.data shouldBe Text("1A803F")
         }
 
     @Test
@@ -165,7 +127,7 @@ class ColorInputHexViewModelTest {
             }
             createSut()
 
-            data.textField.onTextChange(Text("gibberish"))
+            sut.data.textField.onTextChange(Text("gibberish"))
 
             coVerify(exactly = 1) {
                 mediatorComponents.editor.set(color = null /*invalid color input*/, source = DomainColorInputType.Hex)
@@ -195,7 +157,7 @@ class ColorInputHexViewModelTest {
                 colorStateFlow.emit(value)
             }
 
-            data.textField.text.data.string shouldBe "1A803F"
+            sut.data.textField.text.data.string shouldBe "1A803F"
         }
 
     @Test
@@ -215,11 +177,11 @@ class ColorInputHexViewModelTest {
                 colorStateFlow.emit(value)
             }
 
-            data.textField.text.data.string shouldBe ""
+            sut.data.textField.text.data.string shouldBe ""
         }
 
-    @Test
-    fun `given 'submit action' returns 'true', when invoking 'submit input', then 'submission result' is emitted`() =
+    @Test // ANCHOR:Label=0
+    fun `given 'submit action' returns 'true', when invoking 'submit input', then the next data has submission result`() =
         runTest(testDispatcher) {
             val color = Color.Hex(0x1A803F)
             val colorAsColorInput = ColorInput.Hex("1A803F")
@@ -240,13 +202,42 @@ class ColorInputHexViewModelTest {
             every { submitAction.invoke(colorInput = colorAsColorInput, validationResult = any()) } returns true
             createSut()
 
-            data.submitInput()
+            sut.data.inputSubmissionResult()
 
             coVerify(exactly = 1) {
                 submitAction.invoke(colorInput = colorAsColorInput, validationResult = any())
             }
-            val submissionResult = sut.submissionResultStore.pending.last().value
-            submissionResult.wasAccepted shouldBe true
+            val ackResult = sut.data.inputSubmissionResult.result.shouldNotBeNull()
+            ackResult.value.wasAccepted shouldBe true
+        }
+
+    @Test
+    fun `given the data has submission result, when it is acknowledged, then the next data has it cleared`() =
+        runTest(testDispatcher) {
+            val color = Color.Hex(0x1A803F)
+            val colorAsColorInput = ColorInput.Hex("1A803F")
+            every { mediator.colorStateFlow } returns run {
+                val value = ColorInputMediator.ColorState(color = color, source = null, id = 0)
+                MutableStateFlow(value)
+            }
+            with(colorInputValidator) {
+                every { ColorInput.Hex("").validate() } returns mockk<ColorInputValidationResult.Invalid>()
+                every { colorAsColorInput.validate() } returns ColorInputValidationResult.Valid(color)
+            }
+            with(colorConverter) {
+                every { (color as Color).toHex() } returns color
+            }
+            with(colorInputMapper) {
+                every { color.toColorInput() } returns colorAsColorInput
+            }
+            every { submitAction.invoke(colorInput = colorAsColorInput, validationResult = any()) } returns true
+            createSut()
+
+            sut.data.inputSubmissionResult()
+            val ackResult = sut.data.inputSubmissionResult.result.shouldNotBeNull() // REFERENCE:Label=0
+            ackResult.ack()
+
+            sut.data.inputSubmissionResult.result shouldBe null
         }
 
     @ParameterizedTest
@@ -259,7 +250,7 @@ class ColorInputHexViewModelTest {
             every { mediator.colorStateFlow } returns MutableStateFlow(ColorInputMediator.InitialColorState)
             createSut()
 
-            val text = data.textField.filterUserInput(input)
+            val text = sut.data.textField.filterUserInput(input)
 
             withClue("Filtering user input \"$input\" should return \"$expectedTextString\"") {
                 text shouldBe Text(expectedTextString)
@@ -281,16 +272,13 @@ class ColorInputHexViewModelTest {
             sut = it
         }
 
-    val dataState: DataState<ColorInputHexData>
-        get() = sut.dataStateFlow.value
-
-    val data: ColorInputHexData
-        get() = dataState.shouldBeInstanceOf<DataState.Ready<ColorInputHexData>>().data
+    val ColorInputHexViewModel.data: ColorInputHexData
+        get() = this.dataFlow.value
 
     companion object {
 
         @JvmStatic
-        @Suppress("SpellCheckingInspection")
+        @Suppress("SpellCheckingInspection", "RedundantSuppression")
         fun data() = listOf(
             // can't work with Text() directly because it's a value class and inlined in runtime
             /* #0  */ "" shouldBeFilteredTo "",

@@ -1,14 +1,14 @@
 package io.github.mmolosay.thecolor.presentation.input.rgb
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
@@ -23,60 +23,38 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.common.compose.thenIf
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.input.UiComponents.DataStateCrossfade
-import io.github.mmolosay.thecolor.presentation.input.UiComponents.ProcessColorSubmissionResultsAsSideEffect
+import io.github.mmolosay.thecolor.presentation.input.UiComponents.ProcessColorSubmissionResultAsSideEffect
 import io.github.mmolosay.thecolor.presentation.input.UiComponents.onBackspace
-import io.github.mmolosay.thecolor.presentation.input.model.DataState
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextField
-import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFacade
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldInputProcessor
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldUiStrings
+import kotlinx.coroutines.Job
 
 @Composable
-fun ColorInputRgb(
-    viewModel: ColorInputRgbViewModel,
-) {
-    val context = LocalContext.current
-    val strings = remember(context) { ColorInputRgbUiStrings(context) }
-    val dataState = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
-
-    DataStateCrossfade(
-        actualDataState = dataState,
-    ) { state ->
-        when (state) {
-            is DataState.BeingInitialized ->
-                ColorInputRgbLoading()
-            is DataState.Ready -> {
-                ColorInputRgb(
-                    data = state.data,
-                    strings = strings,
-                )
-            }
-        }
-    }
-
-    ProcessColorSubmissionResultsAsSideEffect(
-        resultStore = viewModel.submissionResultStore,
-    )
+fun rememberColorInputRgbFacade(handle: ColorInputRgbHandle): ColorInputRgbFacade {
+    val data = handle.dataFlow.collectAsStateWithLifecycle().value
+    return remember(handle, data) { handle.facade(data) }
 }
 
 @Composable
 fun ColorInputRgb(
-    data: ColorInputRgbData,
-    strings: ColorInputRgbUiStrings,
+    facade: ColorInputRgbFacade,
+    strings: ColorInputRgbUiStrings = rememberColorInputRgbUiStrings(),
 ) {
-    Row {
-        @Composable
-        fun SpacerInBetween() = Spacer(modifier = Modifier.width(16.dp))
-
+    val execute by rememberUpdatedState(facade.execute) // stable across recompositions
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
         val modifier = Modifier.weight(1f)
-        val isSmartBackspaceEnabled = data.isSmartBackspaceEnabled
+        val isSmartBackspaceEnabled = facade.isSmartBackspaceEnabled
 
         // R
         ComponentAdvancedTextField(
             modifier = modifier,
-            data = data.rTextField,
+            facade = facade.rTextField,
             strings = strings.rTextField,
             imeAction = ImeAction.Next,
             hasPreviousComponent = false, // for R there's no previous
@@ -84,31 +62,36 @@ fun ColorInputRgb(
         )
 
         // G
-        SpacerInBetween()
         ComponentAdvancedTextField(
             modifier = modifier,
-            data = data.gTextField,
+            facade = facade.gTextField,
             strings = strings.gTextField,
             imeAction = ImeAction.Next,
             hasPreviousComponent = true, // for G previous is R
             enableSmartBackspace = isSmartBackspaceEnabled,
         )
 
-
         // B
-        SpacerInBetween()
         ComponentAdvancedTextField(
             modifier = modifier,
-            data = data.bTextField,
+            facade = facade.bTextField,
             strings = strings.bTextField,
             imeAction = ImeAction.Done,
             keyboardActions = KeyboardActions(
-                onDone = { data.submitInput() },
+                onDone = {
+                    val action = ColorInputRgbAction.SubmitInput
+                    execute(action)
+                },
             ),
             hasPreviousComponent = true, // for B previous is G
             enableSmartBackspace = isSmartBackspaceEnabled,
         )
     }
+
+    ProcessColorSubmissionResultAsSideEffect(
+        result = facade.inputSubmissionResult,
+        ack = { execute(ColorInputRgbAction.AckInputSubmissionResult) },
+    )
 }
 
 /**
@@ -116,7 +99,7 @@ fun ColorInputRgb(
  */
 @Composable
 private fun ComponentAdvancedTextField(
-    data: TextFieldData,
+    facade: TextFieldFacade,
     strings: TextFieldUiStrings,
     imeAction: ImeAction,
     hasPreviousComponent: Boolean,
@@ -129,13 +112,13 @@ private fun ComponentAdvancedTextField(
         modifier = modifier
             .thenIf(enableSmartBackspace) {
                 onBackspace {
-                    val text = data.text.data.string
+                    val text = facade.text.data.string
                     if (text.isEmpty() && hasPreviousComponent) {
                         focusManager.moveFocus(FocusDirection.Previous)
                     }
             }
         },
-        data = data,
+        facade = facade,
         strings = strings,
         imeAction = imeAction,
         keyboardActions = keyboardActions,
@@ -148,13 +131,13 @@ private fun ComponentAdvancedTextField(
 @Composable
 private fun ComponentBasicTextField(
     modifier: Modifier = Modifier,
-    data: TextFieldData,
+    facade: TextFieldFacade,
     strings: TextFieldUiStrings,
     imeAction: ImeAction,
     keyboardActions: KeyboardActions = KeyboardActions(),
 ) {
     var value by remember {
-        val text = data.text.data.string
+        val text = facade.text.data.string
         val value = TextFieldValue(
             text = text,
             selection = TextRange(index = text.length), // cursor at the end of the text
@@ -163,7 +146,7 @@ private fun ComponentBasicTextField(
     }
     TextField(
         modifier = modifier,
-        data = data,
+        facade = facade,
         strings = strings,
         value = value,
         onValueChange = { new -> value = new },
@@ -175,42 +158,49 @@ private fun ComponentBasicTextField(
     )
 }
 
+@Composable
+private fun rememberColorInputRgbUiStrings(): ColorInputRgbUiStrings {
+    val context = LocalContext.current
+    return remember(context) { ColorInputRgbUiStrings(context) }
+}
+
 @Preview(showBackground = true)
 @Composable
 private fun Preview() {
     TheColorTheme {
         ColorInputRgb(
-            data = previewData(),
+            facade = previewFacade(),
             strings = previewUiStrings(),
         )
     }
 }
 
-private fun previewData() =
-    ColorInputRgbData(
-        rTextField = TextFieldData(
-            text = Text("12") causedByUser false,
-            onTextChange = {},
-            filterUserInput = { Text(it) },
-            clearText = null,
-            shouldSelectAllTextOnFocus = false,
+private fun previewFacade() =
+    ColorInputRgbFacade(
+        rTextField = TextFieldFacade(
+            text = Text("12") causedByUser true,
+            shouldSelectAllTextOnFocus = true,
+            isClearTextFeatureEnabled = false,
+            inputProcessor = TextFieldInputProcessor { Text(it) },
+            execute = { Job() },
         ),
-        gTextField = TextFieldData(
-            text = Text("") causedByUser false,
-            onTextChange = {},
-            filterUserInput = { Text(it) },
-            clearText = null,
-            shouldSelectAllTextOnFocus = false,
+        gTextField = TextFieldFacade(
+            text = Text("") causedByUser true,
+            shouldSelectAllTextOnFocus = true,
+            isClearTextFeatureEnabled = false,
+            inputProcessor = TextFieldInputProcessor { Text(it) },
+            execute = { Job() },
         ),
-        bTextField = TextFieldData(
-            text = Text("255") causedByUser false,
-            onTextChange = {},
-            filterUserInput = { Text(it) },
-            clearText = null,
-            shouldSelectAllTextOnFocus = false,
+        bTextField = TextFieldFacade(
+            text = Text("255") causedByUser true,
+            shouldSelectAllTextOnFocus = true,
+            isClearTextFeatureEnabled = false,
+            inputProcessor = TextFieldInputProcessor { Text(it) },
+            execute = { Job() },
         ),
-        submitInput = {},
+        inputSubmissionResult = null,
         isSmartBackspaceEnabled = true,
+        execute = { Job() },
     )
 
 private fun previewUiStrings() =

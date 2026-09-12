@@ -34,5 +34,6 @@
     <string name="dev_options_item_build_info_app_build_type_label">Build type</string>
     <string name="dev_options_item_build_info_app_version_name_label">Version name</string>
     <string name="dev_options_item_build_info_app_version_code_label">Version code</string>
+    <string name="dev_options_item_build_info_git_head_label">Git head</string>
 
 </resources>

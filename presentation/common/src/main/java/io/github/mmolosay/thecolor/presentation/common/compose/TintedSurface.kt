@@ -22,6 +22,7 @@ fun TintedSurface(
 ) {
     Box(
         modifier = modifier.background(surfaceColor),
+        propagateMinConstraints = true,
     ) {
         ProvideColorsOnTintedSurface(colors = contentColors) {
             content()

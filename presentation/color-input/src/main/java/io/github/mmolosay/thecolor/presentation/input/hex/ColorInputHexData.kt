@@ -1,11 +1,21 @@
 package io.github.mmolosay.thecolor.presentation.input.hex
 
+import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmissionResult
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
+import io.github.mmolosay.thecolor.utils.Lens
 
 /**
  * Platform-agnostic data provided by ViewModel to 'HEX Color Input' View.
  */
 data class ColorInputHexData(
     val textField: TextFieldData,
-    val submitInput: () -> Unit,
+    val inputSubmissionResult: ColorInputSubmissionResult?,
 )
+
+internal object ColorInputHexDataLenses {
+
+    val textField = Lens<ColorInputHexData, TextFieldData>(
+        get = { s -> s.textField },
+        set = { s, v -> s.copy(textField = v) },
+    )
+}

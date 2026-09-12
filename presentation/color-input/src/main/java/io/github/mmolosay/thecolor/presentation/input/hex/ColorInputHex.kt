@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -19,50 +20,30 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.input.UiComponents.DataStateCrossfade
-import io.github.mmolosay.thecolor.presentation.input.UiComponents.ProcessColorSubmissionResultsAsSideEffect
-import io.github.mmolosay.thecolor.presentation.input.model.DataState
+import io.github.mmolosay.thecolor.presentation.input.UiComponents.ProcessColorSubmissionResultAsSideEffect
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextField
-import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFacade
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldInputProcessor
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldUiStrings
+import kotlinx.coroutines.Job
 
 @Composable
-fun ColorInputHex(
-    viewModel: ColorInputHexViewModel,
-) {
-    val context = LocalContext.current
-    val strings = remember(context) { ColorInputHexUiStrings(context) }
-    val dataState = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
-
-    DataStateCrossfade(
-        actualDataState = dataState,
-    ) { state ->
-        when (state) {
-            is DataState.BeingInitialized ->
-                ColorInputHexLoading()
-            is DataState.Ready -> {
-                ColorInputHex(
-                    data = state.data,
-                    strings = strings,
-                )
-            }
-        }
-    }
-
-    ProcessColorSubmissionResultsAsSideEffect(
-        resultStore = viewModel.submissionResultStore,
-    )
+fun rememberColorInputHexFacade(handle: ColorInputHexHandle): ColorInputHexFacade {
+    val data = handle.dataFlow.collectAsStateWithLifecycle().value
+    return remember(handle, data) { handle.facade(data) }
 }
 
 @Composable
 fun ColorInputHex(
-    data: ColorInputHexData,
-    strings: ColorInputHexUiStrings,
+    facade: ColorInputHexFacade,
+    strings: ColorInputHexUiStrings = rememberColorInputHexUiStrings(),
 ) {
+    val execute by rememberUpdatedState(facade.execute) // stable across recompositions
+
     var value by remember {
-        val text = data.textField.text.data.string
+        val text = facade.textField.text.data.string
         val value = TextFieldValue(
             text = text,
             selection = TextRange(index = text.length), // cursor at the end of the text
@@ -74,7 +55,7 @@ fun ColorInputHex(
         modifier = Modifier
             .defaultMinSize(minWidth = 180.dp)
             .fillMaxWidth(0.5f),
-        data = data.textField,
+        facade = facade.textField,
         strings = strings.textField,
         value = value,
         onValueChange = { new -> value = new },
@@ -83,9 +64,23 @@ fun ColorInputHex(
             capitalization = KeyboardCapitalization.Characters,
         ),
         keyboardActions = KeyboardActions(
-            onDone = { data.submitInput() },
+            onDone = {
+                val action = ColorInputHexAction.SubmitInput
+                execute(action)
+            },
         ),
     )
+
+    ProcessColorSubmissionResultAsSideEffect(
+        result = facade.inputSubmissionResult,
+        ack = { execute(ColorInputHexAction.AckInputSubmissionResult) },
+    )
+}
+
+@Composable
+private fun rememberColorInputHexUiStrings(): ColorInputHexUiStrings {
+    val context = LocalContext.current
+    return remember(context) { ColorInputHexUiStrings(context) }
 }
 
 @Preview(showBackground = true)
@@ -93,22 +88,23 @@ fun ColorInputHex(
 private fun Preview() {
     TheColorTheme {
         ColorInputHex(
-            data = previewData(),
+            facade = previewFacade(),
             strings = previewUiStrings(),
         )
     }
 }
 
-private fun previewData() =
-    ColorInputHexData(
-        textField = TextFieldData(
-            text = Text("") causedByUser false,
-            onTextChange = {},
-            filterUserInput = { Text(it) },
-            clearText = TextFieldData.NoOpClearTextFeature,
-            shouldSelectAllTextOnFocus = false,
+private fun previewFacade() =
+    ColorInputHexFacade(
+        textField = TextFieldFacade(
+            text = Text("1A803F") causedByUser true,
+            shouldSelectAllTextOnFocus = true,
+            isClearTextFeatureEnabled = true,
+            inputProcessor = TextFieldInputProcessor { Text(it) },
+            execute = { Job() },
         ),
-        submitInput = {},
+        inputSubmissionResult = null,
+        execute = { Job() },
     )
 
 private fun previewUiStrings() =

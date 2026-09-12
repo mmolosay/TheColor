@@ -3,14 +3,23 @@ package io.github.mmolosay.thecolor.presentation.center
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
+import io.github.mmolosay.thecolor.presentation.center.ColorCenterData.SideEffect
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
-import io.github.mmolosay.thecolor.presentation.center.ColorCenterData.ChangePageEvent
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
+import io.github.mmolosay.thecolor.utils.SideEffectIdFactory
+import kotlinx.collections.immutable.minus
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.plus
+import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /**
  * Handles presentation logic of the 'Color Center' feature.
@@ -22,47 +31,64 @@ import kotlinx.coroutines.flow.update
  */
 class ColorCenterViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted val colorDetailsViewModel: ColorDetailsViewModel,
-    @Assisted val colorSchemeViewModel: ColorSchemeViewModel,
+    @Assisted private val _dataFlow: MutableStateFlow<ColorCenterData>,
+    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
-    private val _dataFlow = MutableStateFlow(initialData())
-    val dataFlow = _dataFlow.asStateFlow()
+    val dataFlow: StateFlow<ColorCenterData> = _dataFlow.asStateFlow()
 
-    private fun changePage(destPage: Int) {
-        _dataFlow.update { data ->
-            val event = ChangePageEvent(
-                destPage = destPage,
-                onConsumed = ::clearChangePageEvent,
-            )
-            data.copy(changePageEvent = event)
+    private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
+    private val seFactory = SideEffectFactory()
+
+    fun execute(action: ColorCenterAction): Job =
+        coroutineScope.launch(exclusiveLane) {
+            when (action) {
+                is ColorCenterAction.ChangePage -> {
+                    changePage(action.pageIndex)
+                }
+                is ColorCenterAction.OnSideEffectProcessed -> {
+                    onSideEffectProcessed(action.se)
+                }
+            }
+        }
+
+    private fun changePage(pageIndex: Int) {
+        val se = seFactory.changePage(pageIndex)
+        _dataFlow.update {
+            it.copy(sideEffects = it.sideEffects.toPersistentList() + se)
         }
     }
 
-    private fun clearChangePageEvent() {
-        _dataFlow.update { data ->
-            data.copy(changePageEvent = null)
+    private fun onSideEffectProcessed(se: SideEffect) {
+        _dataFlow.update {
+            val newSideEffects = it.sideEffects.toPersistentList() - se
+            it.copy(sideEffects = newSideEffects)
         }
-    }
-
-    private fun initialData(): ColorCenterData =
-        ColorCenterData(
-            changePage = ::changePage,
-            changePageEvent = null,
-        )
-
-    override fun dispose() {
-        super.dispose()
-        colorDetailsViewModel.dispose()
-        colorSchemeViewModel.dispose()
     }
 
     @AssistedFactory
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            colorDetailsViewModel: ColorDetailsViewModel,
-            colorSchemeViewModel: ColorSchemeViewModel,
+            dataFlow: MutableStateFlow<ColorCenterData>,
         ): ColorCenterViewModel
     }
+}
+
+class ColorCenterDataFactory @Inject constructor() {
+    fun create(): ColorCenterData =
+        ColorCenterData(
+            sideEffects = persistentListOf(),
+        )
+}
+
+private class SideEffectFactory {
+
+    private val idFactory = SideEffectIdFactory()
+
+    fun changePage(pageIndex: Int): SideEffect.ChangePage =
+        SideEffect.ChangePage(
+            id = idFactory.get(),
+            pageIndex = pageIndex,
+        )
 }

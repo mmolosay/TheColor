@@ -29,11 +29,12 @@ import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitActi
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputValidationResult
 import io.github.mmolosay.thecolor.presentation.input.testing.MockColorInputMediatorComponents
 import io.github.mmolosay.thecolor.presentation.input.testing.mockSet
-import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewViewModel
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeEvent
-import io.github.mmolosay.thecolor.presentation.scheme.ColorSchemeViewModel
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeEvent
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeViewModel
 import io.github.mmolosay.thecolor.testing.MainDispatcherExtension
 import io.github.mmolosay.thecolor.utils.ClosableSuspendGate
+import io.github.mmolosay.thecolor.utils.ClosedLatch
+import io.github.mmolosay.thecolor.utils.OpenLatch
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
@@ -104,10 +105,9 @@ class HomeViewModelTest {
             viewModelScope: CoroutineScope,
         ): ColorCenterComponentsStore {
             val factory = ColorCenterComponentsFactory(
-                colorDetailsViewModelFactory = { _ -> colorDetailsViewModel },
-                colorSchemeViewModelFactory = { _ -> colorSchemeViewModel },
                 colorCenterViewModelFactory = { _, _, _ -> colorCenterViewModel },
-            )
+                colorDetailsViewModelFactory = { _ -> colorDetailsViewModel },
+            ) { _ -> colorSchemeViewModel }
             return ColorCenterComponentsStore(
                 viewModelScope = viewModelScope,
                 factory = factory,
@@ -214,7 +214,7 @@ class HomeViewModelTest {
      * 2. 'proceed' was already invoked and there's a color in Color Center
      *
      * WHEN
-     * 1. [ColorDetailsEvent.ColorSelected] for "exact" color is emitted (e.g. due to user clicking on "go to exact" button)
+     * 1. [ColorDetailsEvent.SelectColorAction] for "exact" color is emitted (e.g. due to user clicking on "go to exact" button)
      * 2. the event is handled and "exact" color is sent to [ColorInputMediator]
      * 3. the update of the [ColorInputMediator.colorStateFlow] is received and processed.
      * SUT checks whether the new color (which is "exact" color) belongs to the ongoing color session.
@@ -263,7 +263,7 @@ class HomeViewModelTest {
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
             // clicking "Go to exact color"
             run emitExactColorSelectedEvent@{
-                val event = ColorDetailsEvent.ColorSelected(
+                val event = ColorDetailsEvent.SelectColorAction(
                     color = exactColorInRgb,
                     colorRole = ColorRole.Exact,
                 )
@@ -305,10 +305,10 @@ class HomeViewModelTest {
                 val value = ColorInputMediator.ColorState(color = color, source = null, id = 1)
                 colorStateFlow.emit(value)
             }
-            sut.flowOfIsDataBeingUpdated.value shouldBe true // data transaction has started and is ongoing
+            sut.flowOfDataUpdateLatch.value shouldBe ClosedLatch // data transaction has started and is ongoing
 
             gateForSetColorMethod.open()
-            sut.flowOfIsDataBeingUpdated.value shouldBe false // data transaction has finished
+            sut.flowOfDataUpdateLatch.value shouldBe OpenLatch // data transaction has finished
         }
 
     @Test
@@ -590,7 +590,7 @@ class HomeViewModelTest {
             // we know from other tests that it would be 'CanProceed.Yes'
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
             run emitExactColorSelectedEvent@{
-                val event = ColorDetailsEvent.ColorSelected(
+                val event = ColorDetailsEvent.SelectColorAction(
                     color = exactColor,
                     colorRole = ColorRole.Exact,
                 )
@@ -656,7 +656,7 @@ class HomeViewModelTest {
             // we know from other tests that it would be 'CanProceed.Yes'
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
             run emitExactColorSelectedEvent@{
-                val event = ColorDetailsEvent.ColorSelected(
+                val event = ColorDetailsEvent.SelectColorAction(
                     color = exactColor,
                     colorRole = ColorRole.Exact,
                 )
@@ -715,7 +715,7 @@ class HomeViewModelTest {
                 data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed()
                 // clicking "Go to exact color"
                 run emitExactColorSelectedEvent@{
-                    val event = ColorDetailsEvent.ColorSelected(
+                    val event = ColorDetailsEvent.SelectColorAction(
                         color = exactColor,
                         colorRole = ColorRole.Exact,
                     )
@@ -771,7 +771,7 @@ class HomeViewModelTest {
             // we know from other tests that it would be 'CanProceed.Yes'
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
             run emitExactColorSelectedEvent@{
-                val event = ColorDetailsEvent.ColorSelected(
+                val event = ColorDetailsEvent.SelectColorAction(
                     color = exactColor,
                     colorRole = ColorRole.Exact,
                 )
@@ -799,8 +799,8 @@ class HomeViewModelTest {
      * 2. [sut] is proceeded with some color
      *
      * WHEN
-     * 1. receiving two same [ColorDetailsEvent.ColorSelected] events with color X in a quick succession
-     * 2. then receiving a different [ColorDetailsEvent.ColorSelected] event with color Y
+     * 1. receiving two same [ColorDetailsEvent.SelectColorAction] events with color X in a quick succession
+     * 2. then receiving a different [ColorDetailsEvent.SelectColorAction] event with color Y
      *
      * THEN
      *  nothing breaks: [HomeViewModel.proceed] is invoked for both color X and then for color Y.
@@ -844,7 +844,7 @@ class HomeViewModelTest {
             // we know from other tests that it would be 'CanProceed.Yes'
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
             run emitExactColorSelectedEvents@{
-                val event = ColorDetailsEvent.ColorSelected(
+                val event = ColorDetailsEvent.SelectColorAction(
                     color = exactColor,
                     colorRole = ColorRole.Exact,
                 )
@@ -858,7 +858,7 @@ class HomeViewModelTest {
                 colorStateFlow.emit(value)
             }
             run emitSeedColorSelectedEvent@{
-                val event = ColorDetailsEvent.ColorSelected(
+                val event = ColorDetailsEvent.SelectColorAction(
                     color = initialColor,
                     colorRole = ColorRole.Seed,
                 )
@@ -905,7 +905,7 @@ class HomeViewModelTest {
             // we know from other tests that it would be 'CanProceed.Yes'
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
             run emitSwatchSelectedEvent@{
-                val event: ColorSchemeEvent.SwatchSelected = mockk(relaxed = true)
+                val event: ColorSchemeEvent.SelectSwatchAction = mockk(relaxed = true)
                 colorSchemeEventFlow.emit(event)
             }
 
@@ -929,7 +929,7 @@ class HomeViewModelTest {
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
 
             run emitSwatchSelectedEvent@{
-                val event: ColorSchemeEvent.SwatchSelected = mockk(relaxed = true)
+                val event: ColorSchemeEvent.SelectSwatchAction = mockk(relaxed = true)
                 colorSchemeEventFlow.emit(event)
             }
 
@@ -1033,7 +1033,7 @@ class HomeViewModelTest {
             // we know from other tests that it would be 'CanProceed.Yes'
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
             run emitExactColorSelectedEvent@{
-                val event = ColorDetailsEvent.ColorSelected(
+                val event = ColorDetailsEvent.SelectColorAction(
                     color = exactColor,
                     colorRole = ColorRole.Exact,
                 )
@@ -1357,7 +1357,7 @@ class HomeViewModelTest {
             // we know from other tests that it would be 'CanProceed.Yes'
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed()
             run emitExactColorSelectedEvent@{
-                val event = ColorDetailsEvent.ColorSelected(
+                val event = ColorDetailsEvent.SelectColorAction(
                     color = exactColor,
                     colorRole = ColorRole.Exact,
                 )

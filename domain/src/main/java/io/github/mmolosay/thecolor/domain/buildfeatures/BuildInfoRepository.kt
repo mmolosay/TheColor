@@ -4,6 +4,7 @@ interface BuildInfoRepository {
     fun getAppBuildType(): BuildType
     fun getAppBuildVersionCode(): Long
     fun getAppBuildVersionName(): String?
+    fun getGitHeadCommitShortHash(): String?
 }
 
 /**

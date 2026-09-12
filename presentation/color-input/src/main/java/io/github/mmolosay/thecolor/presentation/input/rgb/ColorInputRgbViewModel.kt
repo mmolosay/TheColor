@@ -7,37 +7,42 @@ import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.domain.color.ColorConverter
 import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
+import io.github.mmolosay.thecolor.domain.utils.filterReady
 import io.github.mmolosay.thecolor.domain.utils.getOrElse
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
-import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.UiDataUpdateDispatcher
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMapper
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
+import io.github.mmolosay.thecolor.presentation.input.ColorInputSource
 import io.github.mmolosay.thecolor.presentation.input.ColorInputValidator
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
+import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmissionResult
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputValidationResult
-import io.github.mmolosay.thecolor.presentation.input.model.ColorSubmissionResult
-import io.github.mmolosay.thecolor.presentation.input.model.DataState
+import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.model.getColorOrNull
-import io.github.mmolosay.thecolor.presentation.input.plus
 import io.github.mmolosay.thecolor.presentation.input.set
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldDataFactory
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldHandle
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldInputProcessor
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldViewModel
-import io.github.mmolosay.thecolor.presentation.input.textfield.updateText
-import io.github.mmolosay.thecolor.utils.MutableConsumableStore
-import io.github.mmolosay.thecolor.utils.asConsumableStore
+import io.github.mmolosay.thecolor.utils.Ref
+import io.github.mmolosay.thecolor.utils.batch
+import io.github.mmolosay.thecolor.utils.focus
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 
 /**
@@ -50,6 +55,7 @@ import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInp
  */
 class ColorInputRgbViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
+    @Assisted private val _dataFlow: MutableStateFlow<ColorInputRgbData>,
     @Assisted private val mediator: ColorInputMediator,
     @Assisted private val submitAction: ColorInputSubmitAction,
     private val textFieldViewModelFactory: TextFieldViewModel.Factory,
@@ -58,127 +64,181 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     private val colorConverter: ColorConverter,
     private val userPreferencesRepository: UserPreferencesRepository,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
-    @UiDataUpdateDispatcher private val uiDataUpdateDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
-    private val rTextFieldVm = createTextFieldViewModel()
-    private val gTextFieldVm = createTextFieldViewModel()
-    private val bTextFieldVm = createTextFieldViewModel()
+    private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
 
-    val dataStateFlow: StateFlow<DataState<ColorInputRgbData>> =
-        combine(
-            rTextFieldVm.dataFlow,
-            gTextFieldVm.dataFlow,
-            bTextFieldVm.dataFlow,
-            userPreferencesRepository.flowOfSmartBackspace
-                .map { it.getOrElse { DefaultUserPreferences.SmartBackspace } },
-        ) { r, g, b, smartBackspace ->
-            val colorInput = ColorInput.Rgb(
-                r = r.text.data.string,
-                g = g.text.data.string,
-                b = b.text.data.string,
-            )
-            val validationResult = with(colorInputValidator) { colorInput.validate() }
-            FullData(
-                rTextField = r,
-                gTextField = g,
-                bTextField = b,
-                submitInput = { submitInput(colorInput, validationResult) },
-                isSmartBackspaceEnabled = smartBackspace.enabled,
-                colorInput = colorInput,
-                colorInputValidationResult = validationResult,
-            )
-        }
-            .onEach { fullData ->
-                // don't synchronize this data with other Views to avoid update loop
-                val isAnyCausedByUser =
-                    listOf(fullData.rTextField, fullData.gTextField, fullData.bTextField)
-                        .any { it.text.causedByUser }
-                if (!isAnyCausedByUser) return@onEach // none caused by user
-                val parsedColor = fullData.colorInputValidationResult.getColorOrNull()
-                mediator.set(color = parsedColor, source = DomainColorInputType.Rgb)
-            }
-            .map { fullData -> fullData.reduce() }
-            .map { data -> DataState(data) }
-            .flowOn(defaultDispatcher)
-            .stateIn(
-                scope = coroutineScope,
-                started = SharingStarted.Eagerly + SharingStarted.WhileSubscribed(5000), // start eagerly to pre-compute first value before UI starts collecting
-                initialValue = DataState.BeingInitialized,
-            )
+    private val rTextFieldViewModel = createTextFieldViewModel(
+        Ref(_dataFlow, ColorInputRgbDataLenses.rTextField),
+    )
+    val rTextFieldHandle = TextFieldHandle(rTextFieldViewModel)
 
-    private val _submissionResultStore = MutableConsumableStore<ColorSubmissionResult>()
-    val submissionResultStore = _submissionResultStore.asConsumableStore()
+    private val gTextFieldViewModel = createTextFieldViewModel(
+        Ref(_dataFlow, ColorInputRgbDataLenses.gTextField),
+    )
+    val gTextFieldHandle = TextFieldHandle(gTextFieldViewModel)
+
+    private val bTextFieldViewModel = createTextFieldViewModel(
+        Ref(_dataFlow, ColorInputRgbDataLenses.bTextField),
+    )
+    val bTextFieldHandle = TextFieldHandle(bTextFieldViewModel)
+
+    val dataFlow: StateFlow<ColorInputRgbData> = _dataFlow.asStateFlow()
 
     init {
         collectMediatorUpdates()
+        collectTextFieldsData()
+        collectSmartBackspacePreference()
     }
 
     private fun collectMediatorUpdates() {
-        coroutineScope.launch(uiDataUpdateDispatcher) {
+        coroutineScope.launch(defaultDispatcher) {
             mediator.colorStateFlow.collect { (color, source) ->
                 // don't update text fields to avoid update loop if the color was set from this 'Color Input' type
-                if (source == DomainColorInputType.Rgb) return@collect
+                if (source is ColorInputSource && source.type == DomainColorInputType.Rgb) return@collect
                 val colorInput = if (color != null) {
                     val hexColor = with(colorConverter) { color.toRgb() }
                     with(colorInputMapper) { hexColor.toColorInput() }
                 } else {
                     EmptyColorInput
                 }
-                rTextFieldVm updateText TextFieldData.Text(colorInput.r)
-                gTextFieldVm updateText TextFieldData.Text(colorInput.g)
-                bTextFieldVm updateText TextFieldData.Text(colorInput.b)
+                _dataFlow.batch {
+                    fun String.toTextWithSource() =
+                        TextFieldData.Text(this) causedByUser false
+                    focus(ColorInputRgbDataLenses.rTextField) {
+                        rTextFieldViewModel.setText(colorInput.r.toTextWithSource())
+                    }
+                    focus(ColorInputRgbDataLenses.gTextField) {
+                        gTextFieldViewModel.setText(colorInput.g.toTextWithSource())
+                    }
+                    focus(ColorInputRgbDataLenses.bTextField) {
+                        bTextFieldViewModel.setText(colorInput.b.toTextWithSource())
+                    }
+                }
             }
         }
     }
 
-    private fun filterUserInput(input: String): TextFieldData.Text =
-        input
-            .filter { it.isDigit() }
-            .take(3) // rgb component can be up to 3 digits long
-            .let { string ->
-                if (string.isEmpty()) return@let ""
-                val rgbComponentMinValue = Color.Rgb.ComponentRange.first
-                val rgbComponentMaxValue = Color.Rgb.ComponentRange.last
-                var int = string.toIntOrNull() ?: rgbComponentMinValue // remove leading zeros
-                // reduce int from right until it's in range
-                while (int > rgbComponentMaxValue) {
-                    int /= 10
+    private fun collectTextFieldsData() {
+        coroutineScope.launch(defaultDispatcher) {
+            _dataFlow
+                .map { data -> TextFieldsDerived(data.rTextField, data.gTextField, data.bTextField) }
+                .distinctUntilChangedBy { derived -> derived.color } // only update mediator when color changes
+                .collectLatest collect@{ derived ->
+                    val r = derived.r; val g = derived.g; val b = derived.b
+                    // don't synchronize this data with other Views to avoid update loop
+                    val isAnyCausedByUser = listOf(r, g, b).any { it.text.causedByUser }
+                    if (!isAnyCausedByUser) return@collect // none caused by user
+                    mediator.set(
+                        color = derived.color,
+                        source = ColorInputSource(DomainColorInputType.Rgb),
+                    )
                 }
-                int.toString()
-            }
-            .let { TextFieldData.Text(it) }
-
-    private fun submitInput(
-        colorInput: ColorInput.Rgb,
-        validationResult: ColorInputValidationResult,
-    ) {
-        val wasAccepted = submitAction.invoke(
-            colorInput = colorInput,
-            validationResult = validationResult,
-        )
-        val result = ColorSubmissionResult(wasAccepted)
-        _submissionResultStore.publish(result)
+        }
     }
 
-    private fun createTextFieldViewModel(): TextFieldViewModel =
+    private fun collectSmartBackspacePreference() {
+        coroutineScope.launch(defaultDispatcher) {
+            userPreferencesRepository.flowOfSmartBackspace
+                .filterReady()
+                .map { it.getOrElse { DefaultUserPreferences.SmartBackspace } }
+                .collectLatest { preference ->
+                    _dataFlow.update {
+                        it.copy(isSmartBackspaceEnabled = preference.enabled)
+                    }
+                }
+        }
+    }
+
+    fun execute(action: ColorInputRgbAction): Job =
+        coroutineScope.launch(exclusiveLane) {
+            when (action) {
+                is ColorInputRgbAction.SubmitInput -> {
+                    submitInput()
+                }
+                is ColorInputRgbAction.AckInputSubmissionResult -> {
+                    clearInputSubmissionResult()
+                }
+            }
+        }
+
+    private fun submitInput() {
+        val data = dataFlow.value
+        val derived = TextFieldsDerived(data.rTextField, data.gTextField, data.bTextField)
+        val wasAccepted = submitAction.invoke(
+            colorInput = derived.colorInput,
+            validationResult = derived.validationResult,
+        )
+        val result = ColorInputSubmissionResult(wasAccepted)
+        _dataFlow.update {
+            it.copy(inputSubmissionResult = result)
+        }
+    }
+
+    private fun clearInputSubmissionResult() {
+        _dataFlow.update {
+            it.copy(inputSubmissionResult = null)
+        }
+    }
+
+    private fun createTextFieldViewModel(ref: Ref<TextFieldData>): TextFieldViewModel =
         textFieldViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
-            filterUserInput = ::filterUserInput,
-            enableClearTextFeature = false,
+            ref = ref,
+            inputProcessor = TextFieldInputProcessorImpl(),
         )
 
     override fun dispose() {
         super.dispose()
-        rTextFieldVm.dispose()
-        gTextFieldVm.dispose()
-        bTextFieldVm.dispose()
+        rTextFieldViewModel.dispose()
+        gTextFieldViewModel.dispose()
+        bTextFieldViewModel.dispose()
+    }
+
+    private fun TextFieldsDerived(
+        r: TextFieldData,
+        g: TextFieldData,
+        b: TextFieldData,
+    ): TextFieldsDerived {
+        val colorInput = ColorInput.Rgb(
+            r = r.text.data.string,
+            g = g.text.data.string,
+            b = b.text.data.string,
+        )
+        val validationResult = with(colorInputValidator) { colorInput.validate() }
+        return TextFieldsDerived(
+            r = r,
+            g = g,
+            b = b,
+            colorInput = colorInput,
+            validationResult = validationResult,
+        )
+    }
+
+    private class TextFieldInputProcessorImpl : TextFieldInputProcessor {
+        override fun invoke(input: String): TextFieldData.Text =
+            input
+                .filter { it.isDigit() }
+                .take(3) // rgb component can be up to 3 digits long
+                .let { string ->
+                    if (string.isEmpty()) return@let ""
+                    val rgbComponentMinValue = Color.Rgb.ComponentRange.first
+                    val rgbComponentMaxValue = Color.Rgb.ComponentRange.last
+                    var int = string.toIntOrNull() ?: rgbComponentMinValue // remove leading zeros
+                    // reduce int from right until it's in range
+                    while (int > rgbComponentMaxValue) {
+                        int /= 10
+                    }
+                    int.toString()
+                }
+                .let { TextFieldData.Text(it) }
     }
 
     @AssistedFactory
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
+            dataFlow: MutableStateFlow<ColorInputRgbData>,
             mediator: ColorInputMediator,
             submitAction: ColorInputSubmitAction,
         ): ColorInputRgbViewModel
@@ -190,30 +250,40 @@ class ColorInputRgbViewModel @AssistedInject constructor(
 }
 
 /**
- * Couples data which is exposed from the ViewModel with various values that are related to it:
- * derived from the exposed data, or used to produce it.
- *
- * @param colorInput contains data from all of the text fields.
- * @param colorInputValidationResult is a result of [colorInput] validation.
+ * Couples [TextFieldData] of R, G, and B text fields with values that are derived from it.
  */
-private data class FullData(
-    val rTextField: TextFieldData,
-    val gTextField: TextFieldData,
-    val bTextField: TextFieldData,
-    val submitInput: () -> Unit,
-    val isSmartBackspaceEnabled: Boolean,
+private data class TextFieldsDerived(
+    val r: TextFieldData,
+    val g: TextFieldData,
+    val b: TextFieldData,
     val colorInput: ColorInput.Rgb,
-    val colorInputValidationResult: ColorInputValidationResult,
+    val validationResult: ColorInputValidationResult,
 )
 
-/**
- * Reduces [FullData] to the [ColorInputRgbData] which is exposed from the ViewModel.
- */
-private fun FullData.reduce(): ColorInputRgbData =
-    ColorInputRgbData(
-        rTextField = rTextField,
-        gTextField = gTextField,
-        bTextField = bTextField,
-        submitInput = submitInput,
-        isSmartBackspaceEnabled = isSmartBackspaceEnabled,
-    )
+private val TextFieldsDerived.color: Color?
+    get() = this.validationResult.getColorOrNull()
+
+class ColorInputRgbDataFactory @Inject constructor(
+    private val textFieldDataFactory: TextFieldDataFactory,
+    private val userPreferencesRepository: UserPreferencesRepository,
+) {
+    fun create() =
+        ColorInputRgbData(
+            rTextField = textFieldDataFactory.create(
+                text = TextFieldData.Text("") causedByUser false,
+                isClearTextFeatureEnabled = false,
+            ),
+            gTextField = textFieldDataFactory.create(
+                text = TextFieldData.Text("") causedByUser false,
+                isClearTextFeatureEnabled = false,
+            ),
+            bTextField = textFieldDataFactory.create(
+                text = TextFieldData.Text("") causedByUser false,
+                isClearTextFeatureEnabled = false,
+            ),
+            inputSubmissionResult = null,
+            isSmartBackspaceEnabled = userPreferencesRepository.flowOfSmartBackspace
+                .value.getOrElse { DefaultUserPreferences.SmartBackspace }
+                .enabled,
+        )
+}

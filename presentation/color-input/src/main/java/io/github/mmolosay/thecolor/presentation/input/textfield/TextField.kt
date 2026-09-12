@@ -32,12 +32,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
-import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.NoOpClearTextFeature
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
+import kotlinx.coroutines.Job
+import androidx.compose.ui.text.input.TextFieldValue as MaterialTextFieldValue
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 /**
@@ -46,16 +46,19 @@ import io.github.mmolosay.thecolor.presentation.design.R as DesignR
  */
 @Composable
 internal fun TextField(
-    data: TextFieldData,
+    facade: TextFieldFacade,
     strings: TextFieldUiStrings,
-    value: TextFieldValue,
-    onValueChange: (TextFieldValue) -> Unit,
+    value: MaterialTextFieldValue,
+    onValueChange: (MaterialTextFieldValue) -> Unit,
     keyboardOptions: KeyboardOptions,
     keyboardActions: KeyboardActions,
     modifier: Modifier = Modifier,
 ) {
+    val inputProcessor = facade.inputProcessor
+    val execute by rememberUpdatedState(facade.execute) // stable across recompositions
+
     val interactionSource = remember { MutableInteractionSource() }
-    if (data.shouldSelectAllTextOnFocus) {
+    if (facade.shouldSelectAllTextOnFocus) {
         SelectAllTextOnFocusAsSideEffect(
             interactionSource = interactionSource,
             value = value,
@@ -66,14 +69,17 @@ internal fun TextField(
         modifier = modifier,
         value = value,
         onValueChange = { new ->
-            @Suppress("UnnecessaryVariable")
             val current = value
             if (current.text != new.text) {
                 // can't just pass new.text to ViewModel for filtering: TextFieldValue.selection will be lost
-                val filteredText = data.filterUserInput(new.text)
-                val filteredValue = new.copy(text = filteredText.string)
-                onValueChange(filteredValue)
-                data.onTextChange(filteredText)
+                val newInput = new.text
+                val newText = inputProcessor(newInput)
+                val newValue = new.copy(text = newText.string)
+                onValueChange(newValue)
+                run {
+                    val action = TextFieldAction.SetText(newText)
+                    execute(action)
+                }
             } else {
                 onValueChange(new)
             }
@@ -82,8 +88,13 @@ internal fun TextField(
         label = { Label(text = strings.label) },
         placeholder = { Placeholder(text = strings.placeholder) },
         trailingIcon = icon@{
-            TrailingButton(
-                feature = data.clearText ?: return@icon,
+            if (facade.isClearTextFeatureEnabled.not()) return@icon
+            ClearTextTrailingButton(
+                visible = value.text.isNotEmpty(),
+                onClick = {
+                    val action = TextFieldAction.ClearTextFeature.Invoke
+                    execute(action)
+                },
                 iconContentDesc = strings.trailingIconContentDesc ?: return@icon,
             )
         },
@@ -95,11 +106,10 @@ internal fun TextField(
         singleLine = true,
         interactionSource = interactionSource,
     )
-    // for when text is cleared with trailing button or set programmatically
-    LaunchedEffect(data.text) {
-        @Suppress("UnnecessaryVariable")
+    // for when text is changed programmatically
+    LaunchedEffect(facade.text) {
         val oldValue = value
-        val newText = data.text.data.string
+        val newText = facade.text.data.string
         val newSelection = run {
             val hadSelectionAtTheEnd = (oldValue.selection.end == oldValue.text.length)
             val isNewTextLongerThanOld = (newText.length > oldValue.text.length)
@@ -131,19 +141,19 @@ private fun Placeholder(text: String) =
     )
 
 @Composable
-private fun TrailingButton(
-    feature: TextFieldData.ClearTextFeature,
+private fun ClearTextTrailingButton(
+    visible: Boolean,
+    onClick: () -> Unit,
     iconContentDesc: String,
 ) {
-    val updatedFeature by rememberUpdatedState(feature)
     val resizingAlignment = Alignment.Center
     AnimatedVisibility(
-        visible = !feature.willBeIdempotent,
+        visible = visible,
         enter = fadeIn() + expandIn(expandFrom = resizingAlignment),
         exit = fadeOut() + shrinkOut(shrinkTowards = resizingAlignment),
     ) {
         IconButton(
-            onClick = { updatedFeature.invoke() }, // skip recomposition by creating a lambda that captures the same State object instead of changing feature
+            onClick = onClick,
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(DesignR.drawable.ic_cross),
@@ -162,8 +172,8 @@ private fun Prefix(text: String) =
 @Composable
 private fun SelectAllTextOnFocusAsSideEffect(
     interactionSource: InteractionSource,
-    value: TextFieldValue,
-    onValueChange: (TextFieldValue) -> Unit,
+    value: MaterialTextFieldValue,
+    onValueChange: (MaterialTextFieldValue) -> Unit,
 ) {
     val isFocused by interactionSource.collectIsFocusedAsState()
     LaunchedEffect(isFocused) {
@@ -184,17 +194,17 @@ private fun SelectAllTextOnFocusAsSideEffect(
 private fun Preview() {
     TheColorTheme {
         Surface {
-            var text by remember { mutableStateOf(Text("1801FF")) }
+            val textState = remember { mutableStateOf(Text("1801FF")) }
             var value by remember {
-                mutableStateOf(TextFieldValue(text = text.string))
+                mutableStateOf(MaterialTextFieldValue(text = textState.value.string))
             }
             TextField(
-                data = TextFieldData(
-                    text = text causedByUser false,
-                    onTextChange = { newText -> text = newText },
-                    filterUserInput = { Text(it) },
-                    clearText = NoOpClearTextFeature,
+                facade = TextFieldFacade(
+                    text = textState.value causedByUser true,
                     shouldSelectAllTextOnFocus = true,
+                    isClearTextFeatureEnabled = true,
+                    inputProcessor = TextFieldInputProcessor { Text(it) },
+                    execute = { Job() },
                 ),
                 strings = TextFieldUiStrings(
                     label = "HEX",
