@@ -22,7 +22,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import org.junit.jupiter.api.RepeatedTest
@@ -39,37 +42,6 @@ class CoroutineRegistryExtTest {
     val testDispatcher = UnconfinedTestDispatcher()
 
     lateinit var sut: CoroutineRegistry<String>
-
-    // region 'removeAll'
-
-    @Test
-    fun `given matching and non-matching items, when 'removeAll' is called, then the matching items are removed and returned`() =
-        runTest(testDispatcher) {
-            sut = CoroutineRegistry<String>()
-            val firstMatchingItem = sut.access { add(Job(), "match") }
-            sut.access { add(Job(), "keep") }
-            val secondMatchingItem = sut.access { add(Job(), "match") }
-
-            val removedItems = sut.access { removeAll { it.value == "match" } }
-
-            removedItems shouldContainExactly listOf(firstMatchingItem, secondMatchingItem)
-            sut.items() shouldHaveSize 1
-        }
-
-    @Test
-    fun `given matching and non-matching items, when 'removeAll' is called, then the non-matching items remain registered`() =
-        runTest(testDispatcher) {
-            sut = CoroutineRegistry<String>()
-            sut.access { add(Job(), "match") }
-            val nonMatchingItem = sut.access { add(Job(), "keep") }
-            sut.access { add(Job(), "match") }
-
-            sut.access { removeAll { it.value == "match" } }
-
-            sut.items() shouldContainExactly listOf(nonMatchingItem)
-        }
-
-    // endregion
 
     // region 'removeOnCompletion'
 
@@ -116,7 +88,7 @@ class CoroutineRegistryExtTest {
     // region 'supersede'
 
     @Test
-    fun `given items matching the 'predicate', when 'supersede' is called, then they are removed from the registry and returned`() =
+    fun `given items matching the 'predicate', when 'supersede' is called, then they are returned`() =
         runTest(testDispatcher) {
             sut = CoroutineRegistry<String>()
             val matchingItem = sut.access {
@@ -132,7 +104,6 @@ class CoroutineRegistryExtTest {
             )
 
             supersededItems shouldContainExactly listOf(matchingItem)
-            sut.items() shouldContainExactly listOf(Item(job = newJob, value = "new"))
         }
 
     @Test
@@ -197,7 +168,6 @@ class CoroutineRegistryExtTest {
             )
 
             newJob.isActive shouldBe true
-            sut.items() shouldContainExactly listOf(Item(job = newJob, value = "new"))
         }
 
     @Test
@@ -287,8 +257,8 @@ class CoroutineRegistryExtTest {
         }
 
     /**
-     * Tests that the removal of the superseded items and the addition of the new one are atomic with
-     * respect to each other: if they were not, concurrent calls would leave more than one item registered.
+     * Tests that matching the items and registering the new one are atomic with respect to each other:
+     * if they were not, concurrent calls could miss each other, and more than one item would be left registered.
      */
     @RepeatedTest(10) // executed sequentially (by default)
     fun `given concurrent 'supersede' calls that match each other, when all of them return, then exactly one item is left registered`() =
@@ -342,7 +312,7 @@ class CoroutineRegistryExtTest {
         runTest(testDispatcher) {
             sut = CoroutineRegistry<String>()
             val gateOfCancellationOfOldCoroutine = ClosableSuspendGate(closed = true)
-            var hasOldCoroutineFinishedCancelling = false
+            var hasOldFinishedCancelling = false
             backgroundScope.launchSuperseding(
                 registry = sut,
                 value = "old",
@@ -353,24 +323,24 @@ class CoroutineRegistryExtTest {
                 } finally {
                     withContext(NonCancellable) {
                         gateOfCancellationOfOldCoroutine.awaitOpen()
-                        hasOldCoroutineFinishedCancelling = true
+                        hasOldFinishedCancelling = true
                     }
                 }
             }
 
-            var hadOldCoroutineFinishedCancellingWhenNewBlockStarted: Boolean? = null
+            var hadOldFinishedCancellingWhenNewStarted: Boolean? = null
             backgroundScope.launchSuperseding(
                 registry = sut,
                 value = "new",
                 predicate = { true },
             ) {
-                hadOldCoroutineFinishedCancellingWhenNewBlockStarted = hasOldCoroutineFinishedCancelling
+                hadOldFinishedCancellingWhenNewStarted = hasOldFinishedCancelling
             }
 
-            hadOldCoroutineFinishedCancellingWhenNewBlockStarted shouldBe null // the new block is still waiting
+            hadOldFinishedCancellingWhenNewStarted shouldBe null // the new block is still waiting
             gateOfCancellationOfOldCoroutine.open()
             testDispatcher.scheduler.advanceUntilIdle()
-            hadOldCoroutineFinishedCancellingWhenNewBlockStarted shouldBe true
+            hadOldFinishedCancellingWhenNewStarted shouldBe true
         }
 
     @Test
@@ -418,17 +388,16 @@ class CoroutineRegistryExtTest {
         }
 
     /**
-     * A coroutine supersedes only the items that are in the registry, and a superseded coroutine is
-     * already gone from it. So the last coroutine of a chain waits for its direct predecessor only,
-     * while the guarantee of [launchSuperseding] is about the whole family.
+     * A superseded coroutine stays registered until it completes, so the last coroutine of a chain
+     * waits for every preceding one, not only for its direct predecessor.
      */
-//    @Test // TODO: address me
+    @Test
     fun `given a chain of superseding coroutines, when the last one starts its block, then every preceding coroutine has finished cancelling`() =
         runTest(testDispatcher) {
             // GIVEN
             sut = CoroutineRegistry<String>()
             val gateOfCancellationOfFirstCoroutine = ClosableSuspendGate(closed = true)
-            var hasFirstCoroutineFinishedCancelling = false
+            var hasFirstFinishedCancelling = false
             backgroundScope.launchSuperseding(
                 registry = sut,
                 value = "first",
@@ -439,7 +408,7 @@ class CoroutineRegistryExtTest {
                 } finally {
                     withContext(NonCancellable) {
                         gateOfCancellationOfFirstCoroutine.awaitOpen()
-                        hasFirstCoroutineFinishedCancelling = true
+                        hasFirstFinishedCancelling = true
                     }
                 }
             }
@@ -453,20 +422,83 @@ class CoroutineRegistryExtTest {
             }
 
             // WHEN
-            var hadFirstCoroutineFinishedCancellingWhenThirdBlockStarted: Boolean? = null
+            var hadFirstFinishedCancellingWhenThirdStarted: Boolean? = null
             backgroundScope.launchSuperseding(
                 registry = sut,
                 value = "third",
                 predicate = { true },
             ) {
-                hadFirstCoroutineFinishedCancellingWhenThirdBlockStarted = hasFirstCoroutineFinishedCancelling
+                hadFirstFinishedCancellingWhenThirdStarted = hasFirstFinishedCancelling
             }
 
             // THEN
-            hadFirstCoroutineFinishedCancellingWhenThirdBlockStarted shouldBe null // the third block is still waiting
+            hadFirstFinishedCancellingWhenThirdStarted shouldBe null // the third block is still waiting
             gateOfCancellationOfFirstCoroutine.open()
             testDispatcher.scheduler.advanceUntilIdle()
-            hadFirstCoroutineFinishedCancellingWhenThirdBlockStarted shouldBe true
+            hadFirstFinishedCancellingWhenThirdStarted shouldBe true
+        }
+
+    /**
+     * Same as the chain above, but the second coroutine is superseded before its first dispatch,
+     * so its body never runs and it never starts waiting for the first coroutine.
+     */
+    @Test
+    fun `given a coroutine that is superseded before it starts, when the next one starts its block, then every preceding coroutine has finished cancelling`() =
+        runTest(StandardTestDispatcher()) {
+            // GIVEN
+            sut = CoroutineRegistry<String>()
+            // not 'backgroundScope': 'advanceUntilIdle()' doesn't run its work
+            val scope = CoroutineScope(StandardTestDispatcher(testScheduler) + Job())
+            val gateOfCancellationOfFirstCoroutine = ClosableSuspendGate(closed = true)
+            var hasFirstStarted = false
+            var hasFirstFinishedCancelling = false
+            scope.launchSuperseding(
+                registry = sut,
+                value = "first",
+                predicate = { true },
+            ) {
+                hasFirstStarted = true
+                try {
+                    awaitCancellation()
+                } finally {
+                    withContext(NonCancellable) {
+                        gateOfCancellationOfFirstCoroutine.awaitOpen()
+                        hasFirstFinishedCancelling = true
+                    }
+                }
+            }
+            runCurrent()
+            hasFirstStarted shouldBe true
+
+            var hasSecondBlockExecuted = false
+            val secondJob = scope.launchSuperseding(
+                registry = sut,
+                value = "second",
+                predicate = { true },
+            ) {
+                hasSecondBlockExecuted = true
+            }
+            // the second coroutine is launched, but not dispatched yet
+
+            // WHEN
+            var hadFirstFinishedCancellingWhenThirdStarted: Boolean? = null
+            scope.launchSuperseding(
+                registry = sut,
+                value = "third",
+                predicate = { true },
+            ) {
+                hadFirstFinishedCancellingWhenThirdStarted = hasFirstFinishedCancelling
+            }
+            runCurrent() // the second coroutine is dispatched only now, already canceled
+
+            // THEN
+            secondJob.isCancelled shouldBe true
+            hasSecondBlockExecuted shouldBe false
+            hadFirstFinishedCancellingWhenThirdStarted shouldBe null // the third block is still waiting
+            gateOfCancellationOfFirstCoroutine.open()
+            advanceUntilIdle()
+            hadFirstFinishedCancellingWhenThirdStarted shouldBe true
+            scope.cancel()
         }
 
     @Test

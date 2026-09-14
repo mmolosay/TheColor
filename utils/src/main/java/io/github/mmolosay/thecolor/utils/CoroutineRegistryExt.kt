@@ -12,23 +12,6 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.cancellation.CancellationException
 
-// region Extensions for CoroutineRegistry.AccessProvider
-
-/**
- * Removes every item matching the [predicate] and returns the removed items.
- */
-fun <T> CoroutineRegistry<T>.AccessProvider.removeAll(
-    predicate: (Item<T>) -> Boolean,
-): List<Item<T>> {
-    val matching = this.items.filter(predicate)
-    for (item in matching) {
-        this.remove(item.job)
-    }
-    return matching
-}
-
-// endregion
-
 // region Extensions for CoroutineRegistry
 
 fun <T> CoroutineRegistry<T>.removeOnCompletion(job: Job): DisposableHandle =
@@ -37,11 +20,11 @@ fun <T> CoroutineRegistry<T>.removeOnCompletion(job: Job): DisposableHandle =
     }
 
 /**
- * Registers the [job] with the associated [value], first removing and canceling every item that
- * matches [predicate].
- * The removal and the addition are atomic with respect to each other.
+ * Registers the [job] with the associated [value] and cancels the jobs of every item that matches [predicate].
+ * The matching and the registration are atomic with respect to each other.
  *
- * The superseded items are returned, but are not joined: the caller decides whether to wait for them or not.
+ * An item stays registered until its job completes, so the matching items include the ones superseded earlier
+ * that are still canceling. They are returned, but are not joined: the caller decides whether to wait for them or not.
  */
 fun <T> CoroutineRegistry<T>.supersede(
     job: Job,
@@ -49,7 +32,7 @@ fun <T> CoroutineRegistry<T>.supersede(
     predicate: (Item<T>) -> Boolean,
 ): List<Item<T>> {
     val superseded = this.access {
-        val matching = this.removeAll(predicate)
+        val matching = this.items.filter(predicate)
         add(job, value)
         return@access matching
     }
@@ -65,7 +48,8 @@ fun <T> CoroutineRegistry<T>.supersede(
  * associated [value].
  *
  * Guarantees that at any time there is at most one running [block] of the family selected by the [predicate]:
- * the [block] doesn't start executing until every superseded coroutine has completed canceling.
+ * the [block] doesn't start executing until every registered coroutine that matches the [predicate] has completed,
+ * including the ones still canceling.
  * The launched coroutine is registered before it waits, so a concurrent call supersedes it correctly while it is still waiting.
  */
 fun <T> CoroutineScope.launchSuperseding(
