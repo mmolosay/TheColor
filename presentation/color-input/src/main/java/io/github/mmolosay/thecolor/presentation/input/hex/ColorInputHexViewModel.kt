@@ -24,7 +24,7 @@ import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldDataFac
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldHandle
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldInputProcessor
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldViewModel
-import io.github.mmolosay.thecolor.utils.Ref
+import io.github.mmolosay.thecolor.utils.Atom
 import io.github.mmolosay.thecolor.utils.asUpdateScope
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -65,7 +65,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
     private val textFieldViewModel =
         textFieldViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
-            ref = Ref(_dataFlow, ColorInputHexDataLenses.textField),
+            atom = Atom(_dataFlow, ColorInputHexDataLenses.textField),
             inputProcessor = TextFieldInputProcessorImpl(),
         )
     val textFieldHandle = TextFieldHandle(textFieldViewModel)

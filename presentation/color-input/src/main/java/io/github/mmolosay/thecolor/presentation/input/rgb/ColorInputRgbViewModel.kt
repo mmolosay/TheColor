@@ -28,7 +28,7 @@ import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldDataFac
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldHandle
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldInputProcessor
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldViewModel
-import io.github.mmolosay.thecolor.utils.Ref
+import io.github.mmolosay.thecolor.utils.Atom
 import io.github.mmolosay.thecolor.utils.batch
 import io.github.mmolosay.thecolor.utils.focus
 import kotlinx.coroutines.CoroutineDispatcher
@@ -69,17 +69,17 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
 
     private val rTextFieldViewModel = createTextFieldViewModel(
-        Ref(_dataFlow, ColorInputRgbDataLenses.rTextField),
+        Atom(_dataFlow, ColorInputRgbDataLenses.rTextField),
     )
     val rTextFieldHandle = TextFieldHandle(rTextFieldViewModel)
 
     private val gTextFieldViewModel = createTextFieldViewModel(
-        Ref(_dataFlow, ColorInputRgbDataLenses.gTextField),
+        Atom(_dataFlow, ColorInputRgbDataLenses.gTextField),
     )
     val gTextFieldHandle = TextFieldHandle(gTextFieldViewModel)
 
     private val bTextFieldViewModel = createTextFieldViewModel(
-        Ref(_dataFlow, ColorInputRgbDataLenses.bTextField),
+        Atom(_dataFlow, ColorInputRgbDataLenses.bTextField),
     )
     val bTextFieldHandle = TextFieldHandle(bTextFieldViewModel)
 
@@ -181,10 +181,10 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         }
     }
 
-    private fun createTextFieldViewModel(ref: Ref<TextFieldData>): TextFieldViewModel =
+    private fun createTextFieldViewModel(atom: Atom<TextFieldData>): TextFieldViewModel =
         textFieldViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
-            ref = ref,
+            atom = atom,
             inputProcessor = TextFieldInputProcessorImpl(),
         )
 

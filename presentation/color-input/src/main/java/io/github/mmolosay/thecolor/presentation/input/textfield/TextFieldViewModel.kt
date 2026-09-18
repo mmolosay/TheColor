@@ -12,7 +12,7 @@ import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.WithSource
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
-import io.github.mmolosay.thecolor.utils.Ref
+import io.github.mmolosay.thecolor.utils.Atom
 import io.github.mmolosay.thecolor.utils.UpdateScope
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -32,7 +32,7 @@ import javax.inject.Inject
  */
 class TextFieldViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted private val ref: Ref<TextFieldData>,
+    @Assisted private val atom: Atom<TextFieldData>,
     @Assisted val inputProcessor: TextFieldInputProcessor,
     private val userPreferencesRepository: UserPreferencesRepository,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
@@ -50,7 +50,7 @@ class TextFieldViewModel @AssistedInject constructor(
                 .filterReady()
                 .map { it.result.getOrElse { DefaultUserPreferences.SelectAllTextOnTextFieldFocus } }
                 .collectLatest { preference ->
-                    ref.update {
+                    atom.update {
                         it.copy(shouldSelectAllTextOnFocus = preference.enabled)
                     }
                 }
@@ -61,13 +61,13 @@ class TextFieldViewModel @AssistedInject constructor(
         coroutineScope.launch(exclusiveLane) {
             when (action) {
                 is TextFieldAction.SetText -> {
-                    ref.run {
+                    atom.run {
                         setText(action.text causedByUser true)
                     }
                 }
                 is TextFieldAction.ClearTextFeature.Invoke -> {
-                    if (ref.value.isClearTextFeatureEnabled.not()) return@launch
-                    ref.run {
+                    if (atom.value.isClearTextFeatureEnabled.not()) return@launch
+                    atom.run {
                         setText(Text("") causedByUser true)
                     }
                 }
@@ -84,7 +84,7 @@ class TextFieldViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            ref: Ref<TextFieldData>,
+            atom: Atom<TextFieldData>,
             inputProcessor: TextFieldInputProcessor,
         ): TextFieldViewModel
     }
