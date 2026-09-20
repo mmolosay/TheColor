@@ -1,8 +1,8 @@
 package io.github.mmolosay.thecolor.utils
 
-interface Lens<Source, Value> {
-    fun get(source: Source): Value
-    fun set(source: Source, value: Value): Source
+interface Lens<S, V> {
+    fun get(source: S): V
+    fun set(source: S, value: V): S
 }
 
 fun <S, V> Lens(
