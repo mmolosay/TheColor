@@ -5,9 +5,12 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.domain.color.ColorConverter
+import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
+import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
+import io.github.mmolosay.thecolor.domain.utils.filterReady
+import io.github.mmolosay.thecolor.domain.utils.getOrElse
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
-import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMapper
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.ColorInputSource
@@ -19,13 +22,16 @@ import io.github.mmolosay.thecolor.presentation.input.model.ColorInputValidation
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.model.getColorOrNull
 import io.github.mmolosay.thecolor.presentation.input.set
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldAction
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldDataFactory
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldHandle
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldInputProcessor
-import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldViewModel
-import io.github.mmolosay.thecolor.utils.Atom
+import io.github.mmolosay.thecolor.presentation.input.textfield.reduce
+import io.github.mmolosay.thecolor.presentation.input.textfield.withSelectAllTextOnFocus
+import io.github.mmolosay.thecolor.presentation.input.textfield.withText
 import io.github.mmolosay.thecolor.utils.asUpdateScope
+import io.github.mmolosay.thecolor.utils.focus
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -39,6 +45,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
+import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexDataLenses as Lenses
 
 /**
  * Handles presentation logic of the 'HEX Color Input' feature.
@@ -53,28 +60,40 @@ class ColorInputHexViewModel @AssistedInject constructor(
     @Assisted private val _dataFlow: MutableStateFlow<ColorInputHexData>,
     @Assisted private val mediator: ColorInputMediator,
     @Assisted private val submitAction: ColorInputSubmitAction,
-    textFieldViewModelFactory: TextFieldViewModel.Factory,
     private val colorInputValidator: ColorInputValidator,
     private val colorInputMapper: ColorInputMapper,
     private val colorConverter: ColorConverter,
+    private val userPreferencesRepository: UserPreferencesRepository,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
     private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
 
-    private val textFieldViewModel =
-        textFieldViewModelFactory.create(
-            coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
-            atom = Atom(_dataFlow, ColorInputHexDataLenses.textField),
-            inputProcessor = TextFieldInputProcessorImpl(),
-        )
-    val textFieldHandle = TextFieldHandle(textFieldViewModel)
+    private val textFieldInputProcessor = TextFieldInputProcessorImpl()
+    val textFieldHandle = TextFieldHandle(
+        inputProcessor = textFieldInputProcessor,
+        execute = ::executeTextFieldAction,
+    )
 
     val dataFlow: StateFlow<ColorInputHexData> = _dataFlow.asStateFlow()
 
     init {
+        collectSelectAllTextOnTextFieldFocusPreference()
         collectMediatorUpdates()
         collectTextFieldData()
+    }
+
+    private fun collectSelectAllTextOnTextFieldFocusPreference() {
+        coroutineScope.launch(defaultDispatcher) {
+            userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus
+                .filterReady()
+                .map { it.result.getOrElse { DefaultUserPreferences.SelectAllTextOnTextFieldFocus } }
+                .collect { preference ->
+                    _dataFlow.asUpdateScope().focus(Lenses.textField).update {
+                        it.withSelectAllTextOnFocus(value = preference.enabled)
+                    }
+                }
+        }
     }
 
     private fun collectMediatorUpdates() {
@@ -88,9 +107,9 @@ class ColorInputHexViewModel @AssistedInject constructor(
                 } else {
                     EmptyColorInput
                 }
-                _dataFlow.asUpdateScope(ColorInputHexDataLenses.textField).run {
+                _dataFlow.asUpdateScope().focus(Lenses.textField).update {
                     val textWithSource = TextFieldData.Text(colorInput.string) causedByUser false
-                    textFieldViewModel.setText(textWithSource)
+                    it.withText(textWithSource)
                 }
             }
         }
@@ -124,6 +143,13 @@ class ColorInputHexViewModel @AssistedInject constructor(
             }
         }
 
+    fun executeTextFieldAction(action: TextFieldAction): Job =
+        coroutineScope.launch(exclusiveLane) {
+            _dataFlow.asUpdateScope().focus(Lenses.textField).update {
+                it.reduce(action)
+            }
+        }
+
     private fun submitInput() {
         val textField = dataFlow.value.textField
         val derived = TextFieldDerived(textField)
@@ -141,11 +167,6 @@ class ColorInputHexViewModel @AssistedInject constructor(
         _dataFlow.update {
             it.copy(inputSubmissionResult = null)
         }
-    }
-
-    override fun dispose() {
-        super.dispose()
-        textFieldViewModel.dispose()
     }
 
     private fun TextFieldDerived(

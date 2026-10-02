@@ -11,7 +11,6 @@ import io.github.mmolosay.thecolor.domain.utils.filterReady
 import io.github.mmolosay.thecolor.domain.utils.getOrElse
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
-import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMapper
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.ColorInputSource
@@ -23,12 +22,16 @@ import io.github.mmolosay.thecolor.presentation.input.model.ColorInputValidation
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.model.getColorOrNull
 import io.github.mmolosay.thecolor.presentation.input.set
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldAction
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldDataFactory
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldHandle
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldInputProcessor
-import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldViewModel
-import io.github.mmolosay.thecolor.utils.Atom
+import io.github.mmolosay.thecolor.presentation.input.textfield.reduce
+import io.github.mmolosay.thecolor.presentation.input.textfield.withSelectAllTextOnFocus
+import io.github.mmolosay.thecolor.presentation.input.textfield.withText
+import io.github.mmolosay.thecolor.utils.Lens
+import io.github.mmolosay.thecolor.utils.asUpdateScope
 import io.github.mmolosay.thecolor.utils.batch
 import io.github.mmolosay.thecolor.utils.focus
 import kotlinx.coroutines.CoroutineDispatcher
@@ -44,6 +47,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
+import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbDataLenses as Lenses
 
 /**
  * Handles presentation logic of the 'RGB Color Input' feature.
@@ -58,7 +62,6 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     @Assisted private val _dataFlow: MutableStateFlow<ColorInputRgbData>,
     @Assisted private val mediator: ColorInputMediator,
     @Assisted private val submitAction: ColorInputSubmitAction,
-    private val textFieldViewModelFactory: TextFieldViewModel.Factory,
     private val colorInputValidator: ColorInputValidator,
     private val colorInputMapper: ColorInputMapper,
     private val colorConverter: ColorConverter,
@@ -68,27 +71,48 @@ class ColorInputRgbViewModel @AssistedInject constructor(
 
     private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
 
-    private val rTextFieldViewModel = createTextFieldViewModel(
-        Atom(_dataFlow, ColorInputRgbDataLenses.rTextField),
+    private val textFieldInputProcessor = TextFieldInputProcessorImpl()
+    val rTextFieldHandle = TextFieldHandle(
+        inputProcessor = textFieldInputProcessor,
+        execute = ::executeRTextFieldAction,
     )
-    val rTextFieldHandle = TextFieldHandle(rTextFieldViewModel)
-
-    private val gTextFieldViewModel = createTextFieldViewModel(
-        Atom(_dataFlow, ColorInputRgbDataLenses.gTextField),
+    val gTextFieldHandle = TextFieldHandle(
+        inputProcessor = textFieldInputProcessor,
+        execute = ::executeGTextFieldAction,
     )
-    val gTextFieldHandle = TextFieldHandle(gTextFieldViewModel)
-
-    private val bTextFieldViewModel = createTextFieldViewModel(
-        Atom(_dataFlow, ColorInputRgbDataLenses.bTextField),
+    val bTextFieldHandle = TextFieldHandle(
+        inputProcessor = textFieldInputProcessor,
+        execute = ::executeBTextFieldAction,
     )
-    val bTextFieldHandle = TextFieldHandle(bTextFieldViewModel)
 
     val dataFlow: StateFlow<ColorInputRgbData> = _dataFlow.asStateFlow()
 
     init {
+        collectSelectAllTextOnTextFieldFocusPreference()
         collectMediatorUpdates()
         collectTextFieldsData()
         collectSmartBackspacePreference()
+    }
+
+    private fun collectSelectAllTextOnTextFieldFocusPreference() {
+        coroutineScope.launch(defaultDispatcher) {
+            userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus
+                .filterReady()
+                .map { it.result.getOrElse { DefaultUserPreferences.SelectAllTextOnTextFieldFocus } }
+                .collect { preference ->
+                    _dataFlow.batch {
+                        focus(Lenses.rTextField).update {
+                            it.withSelectAllTextOnFocus(value = preference.enabled)
+                        }
+                        focus(Lenses.gTextField).update {
+                            it.withSelectAllTextOnFocus(value = preference.enabled)
+                        }
+                        focus(Lenses.bTextField).update {
+                            it.withSelectAllTextOnFocus(value = preference.enabled)
+                        }
+                    }
+                }
+        }
     }
 
     private fun collectMediatorUpdates() {
@@ -105,14 +129,14 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                 _dataFlow.batch {
                     fun String.toTextWithSource() =
                         TextFieldData.Text(this) causedByUser false
-                    focus(ColorInputRgbDataLenses.rTextField) {
-                        rTextFieldViewModel.setText(colorInput.r.toTextWithSource())
+                    focus(Lenses.rTextField).update {
+                        it.withText(colorInput.r.toTextWithSource())
                     }
-                    focus(ColorInputRgbDataLenses.gTextField) {
-                        gTextFieldViewModel.setText(colorInput.g.toTextWithSource())
+                    focus(Lenses.gTextField).update {
+                        it.withText(colorInput.g.toTextWithSource())
                     }
-                    focus(ColorInputRgbDataLenses.bTextField) {
-                        bTextFieldViewModel.setText(colorInput.b.toTextWithSource())
+                    focus(Lenses.bTextField).update {
+                        it.withText(colorInput.b.toTextWithSource())
                     }
                 }
             }
@@ -162,6 +186,25 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             }
         }
 
+    fun executeRTextFieldAction(action: TextFieldAction): Job =
+        execute(action, Lenses.rTextField)
+
+    fun executeGTextFieldAction(action: TextFieldAction): Job =
+        execute(action, Lenses.gTextField)
+
+    fun executeBTextFieldAction(action: TextFieldAction): Job =
+        execute(action, Lenses.bTextField)
+
+    private fun execute(
+        action: TextFieldAction,
+        lens: Lens<ColorInputRgbData, TextFieldData>,
+    ): Job =
+        coroutineScope.launch(exclusiveLane) {
+            _dataFlow.asUpdateScope().focus(lens).update {
+                it.reduce(action)
+            }
+        }
+
     private fun submitInput() {
         val data = dataFlow.value
         val derived = TextFieldsDerived(data.rTextField, data.gTextField, data.bTextField)
@@ -179,20 +222,6 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         _dataFlow.update {
             it.copy(inputSubmissionResult = null)
         }
-    }
-
-    private fun createTextFieldViewModel(atom: Atom<TextFieldData>): TextFieldViewModel =
-        textFieldViewModelFactory.create(
-            coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
-            atom = atom,
-            inputProcessor = TextFieldInputProcessorImpl(),
-        )
-
-    override fun dispose() {
-        super.dispose()
-        rTextFieldViewModel.dispose()
-        gTextFieldViewModel.dispose()
-        bTextFieldViewModel.dispose()
     }
 
     private fun TextFieldsDerived(

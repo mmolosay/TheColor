@@ -10,9 +10,6 @@ interface UpdateScope<T> {
 fun <T> MutableStateFlow<T>.asUpdateScope(): UpdateScope<T> =
     MutableStateFlowUpdateScope(delegate = this)
 
-fun <S, V> MutableStateFlow<S>.asUpdateScope(lens: Lens<S, V>): UpdateScope<V> =
-    this.asUpdateScope().focus(lens)
-
 private class MutableStateFlowUpdateScope<T>(
     private val delegate: MutableStateFlow<T>,
 ) : UpdateScope<T> {

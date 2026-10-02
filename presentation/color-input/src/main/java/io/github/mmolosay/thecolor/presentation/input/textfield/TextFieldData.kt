@@ -26,3 +26,9 @@ data class TextFieldData(
     @JvmInline
     value class Text(val string: String)
 }
+
+fun TextFieldData.withText(value: WithSource<TextFieldData.Text>): TextFieldData =
+    this.copy(text = value)
+
+fun TextFieldData.withSelectAllTextOnFocus(value: Boolean): TextFieldData =
+    this.copy(shouldSelectAllTextOnFocus = value)

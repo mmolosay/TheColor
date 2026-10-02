@@ -15,10 +15,13 @@ data class TextFieldFacade(
     val execute: ExecuteTextFieldAction,
 )
 
-fun TextFieldHandle(viewModel: TextFieldViewModel): TextFieldHandle =
+fun TextFieldHandle(
+    inputProcessor: TextFieldInputProcessor,
+    execute: ExecuteTextFieldAction,
+): TextFieldHandle =
     TextFieldHandleImpl(
-        inputProcessor = viewModel.inputProcessor,
-        execute = viewModel::execute,
+        inputProcessor = inputProcessor,
+        execute = execute,
     )
 
 private class TextFieldHandleImpl(
