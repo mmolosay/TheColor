@@ -40,7 +40,6 @@ import io.github.mmolosay.thecolor.domain.color.ColorDetails as DomainColorDetai
  */
 class ColorDetailsViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted private val _stateFlow: MutableStateFlow<ColorDetailsState>,
     @Assisted private val eventHandler: ColorDetailsEventHandler,
     private val colorRepository: ColorRepository,
     private val createData: CreateColorDetailsDataUseCase,
@@ -50,6 +49,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
+    private val _stateFlow = MutableStateFlow<ColorDetailsState>(ColorDetailsState.Idle)
     val stateFlow: StateFlow<ColorDetailsState> = _stateFlow.asStateFlow()
 
     private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
@@ -228,7 +228,6 @@ class ColorDetailsViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            stateFlow: MutableStateFlow<ColorDetailsState>,
             eventHandler: ColorDetailsEventHandler,
         ): ColorDetailsViewModel
     }

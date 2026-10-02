@@ -7,13 +7,10 @@ import io.github.mmolosay.thecolor.presentation.center.ColorCenterDataFactory
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterViewModel
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEventHandler
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsState
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeEventHandler
-import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeState
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeViewModel
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 
 /**
@@ -81,21 +78,17 @@ class ColorCenterComponentsFactory @Inject constructor(
     ): ColorCenterComponents {
         val colorCenterViewModel = colorCenterViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
-            dataFlow = MutableStateFlow(colorCenterDataFactory.create()),
         )
         val colorDetailsViewModel = colorDetailsViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
-            stateFlow = MutableStateFlow(ColorDetailsState.Idle),
             eventHandler = colorDetailsEventHandler,
         )
         val colorSchemeViewModel = colorSchemeViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
-            stateFlow = MutableStateFlow(ColorSchemeState.Idle),
             eventHandler = colorSchemeEventHandler,
         )
         val selectedSwatchColorDetailsViewModel = colorDetailsViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
-            stateFlow = MutableStateFlow(ColorDetailsState.Idle),
             eventHandler = selectedSwatchColorDetailsEventHandler,
         )
         return ColorCenterComponents(

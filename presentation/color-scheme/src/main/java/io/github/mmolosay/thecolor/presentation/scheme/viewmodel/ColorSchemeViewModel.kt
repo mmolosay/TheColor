@@ -41,7 +41,6 @@ import io.github.mmolosay.thecolor.domain.color.ColorScheme as DomainColorScheme
  */
 class ColorSchemeViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted private val _stateFlow: MutableStateFlow<ColorSchemeState>,
     @Assisted private val eventHandler: ColorSchemeEventHandler,
     private val colorRepository: ColorRepository,
     private val createData: CreateColorSchemeDataUseCase,
@@ -49,6 +48,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
+    private val _stateFlow = MutableStateFlow<ColorSchemeState>(ColorSchemeState.Idle)
     val stateFlow: StateFlow<ColorSchemeState> = _stateFlow.asStateFlow()
 
     private val dataEditor = ColorSchemeDataEditor()
@@ -191,7 +191,6 @@ class ColorSchemeViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            stateFlow: MutableStateFlow<ColorSchemeState>,
             eventHandler: ColorSchemeEventHandler,
         ): ColorSchemeViewModel
     }

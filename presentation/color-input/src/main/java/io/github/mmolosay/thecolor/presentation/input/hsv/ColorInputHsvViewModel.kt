@@ -34,14 +34,15 @@ import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInp
  */
 class ColorInputHsvViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted private val _dataFlow: MutableStateFlow<ColorInputHsvData>,
     @Assisted private val mediator: ColorInputMediator,
+    dataFactory: ColorInputHsvDataFactory,
     private val colorConverter: ColorConverter,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
     private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
 
+    private val _dataFlow = MutableStateFlow(dataFactory.create())
     val dataFlow: StateFlow<ColorInputHsvData> = _dataFlow.asStateFlow()
 
     private var sampleProcessingJob: Job? = null // 'onSampleProduced' is never invoked concurrently
@@ -112,7 +113,6 @@ class ColorInputHsvViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            dataFlow: MutableStateFlow<ColorInputHsvData>,
             mediator: ColorInputMediator,
         ): ColorInputHsvViewModel
     }

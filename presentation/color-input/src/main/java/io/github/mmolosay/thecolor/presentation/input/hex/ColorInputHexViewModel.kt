@@ -57,9 +57,9 @@ import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexDataLense
  */
 class ColorInputHexViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted private val _dataFlow: MutableStateFlow<ColorInputHexData>,
     @Assisted private val mediator: ColorInputMediator,
     @Assisted private val submitAction: ColorInputSubmitAction,
+    dataFactory: ColorInputHexDataFactory,
     private val colorInputValidator: ColorInputValidator,
     private val colorInputMapper: ColorInputMapper,
     private val colorConverter: ColorConverter,
@@ -69,13 +69,14 @@ class ColorInputHexViewModel @AssistedInject constructor(
 
     private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
 
+    private val _dataFlow = MutableStateFlow(dataFactory.create())
+    val dataFlow: StateFlow<ColorInputHexData> = _dataFlow.asStateFlow()
+
     private val textFieldInputProcessor = TextFieldInputProcessorImpl()
     val textFieldHandle = TextFieldHandle(
         inputProcessor = textFieldInputProcessor,
         execute = ::executeTextFieldAction,
     )
-
-    val dataFlow: StateFlow<ColorInputHexData> = _dataFlow.asStateFlow()
 
     init {
         collectSelectAllTextOnTextFieldFocusPreference()
@@ -194,7 +195,6 @@ class ColorInputHexViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            dataFlow: MutableStateFlow<ColorInputHexData>,
             mediator: ColorInputMediator,
             submitAction: ColorInputSubmitAction,
         ): ColorInputHexViewModel

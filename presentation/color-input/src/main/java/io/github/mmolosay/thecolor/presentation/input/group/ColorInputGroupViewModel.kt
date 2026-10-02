@@ -11,14 +11,11 @@ import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQuali
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
-import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexDataFactory
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexHandle
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexViewModel
-import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvDataFactory
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvHandle
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
-import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbDataFactory
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbHandle
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -42,24 +39,23 @@ import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInp
  */
 class ColorInputGroupViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted private val _dataFlow: MutableStateFlow<ColorInputGroupData>,
     @Assisted mediator: ColorInputMediator,
     @Assisted submitAction: ColorInputSubmitAction,
-    hexDataFactory: ColorInputHexDataFactory,
+    dataFactory: ColorInputGroupDataFactory,
     hexViewModelFactory: ColorInputHexViewModel.Factory,
-    rgbDataFactory: ColorInputRgbDataFactory,
     rgbViewModelFactory: ColorInputRgbViewModel.Factory,
-    hsvDataFactory: ColorInputHsvDataFactory,
     hsvViewModelFactory: ColorInputHsvViewModel.Factory,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
     private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
 
+    private val _dataFlow = MutableStateFlow(dataFactory.create())
+    val dataFlow: StateFlow<ColorInputGroupData> = _dataFlow.asStateFlow()
+
     private val hexViewModel: ColorInputHexViewModel =
         hexViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
-            dataFlow = MutableStateFlow(hexDataFactory.create()),
             mediator = mediator,
             submitAction = submitAction,
         )
@@ -68,7 +64,6 @@ class ColorInputGroupViewModel @AssistedInject constructor(
     private val rgbViewModel: ColorInputRgbViewModel =
         rgbViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
-            dataFlow = MutableStateFlow(rgbDataFactory.create()),
             mediator = mediator,
             submitAction = submitAction,
         )
@@ -77,12 +72,9 @@ class ColorInputGroupViewModel @AssistedInject constructor(
     private val hsvViewModel: ColorInputHsvViewModel =
         hsvViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
-            dataFlow = MutableStateFlow(hsvDataFactory.create()),
             mediator = mediator,
         )
     val hsvHandle = ColorInputHsvHandle(hsvViewModel)
-
-    val dataFlow: StateFlow<ColorInputGroupData> = _dataFlow.asStateFlow()
 
     fun execute(action: ColorInputGroupAction): Job =
         coroutineScope.launch(exclusiveLane) {
@@ -110,7 +102,6 @@ class ColorInputGroupViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            dataFlow: MutableStateFlow<ColorInputGroupData>,
             mediator: ColorInputMediator,
             submitAction: ColorInputSubmitAction,
         ): ColorInputGroupViewModel

@@ -27,7 +27,6 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.Operation.Compani
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.ColorInputSource
 import io.github.mmolosay.thecolor.presentation.input.colorState
-import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupDataFactory
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupHandle
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
@@ -78,7 +77,6 @@ import io.github.mmolosay.thecolor.domain.color.ColorDetails as DomainColorDetai
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val colorInputMediator: ColorInputMediator,
-    colorInputGroupDataFactory: ColorInputGroupDataFactory,
     colorInputGroupViewModelFactory: ColorInputGroupViewModel.Factory,
     private val colorPreviewDataFactory: ColorPreviewDataFactory,
     colorCenterComponentsStoreFactory: ColorCenterComponentsStore.Factory,
@@ -101,10 +99,8 @@ class HomeViewModel @Inject constructor(
     private val seFactory = SideEffectFactory()
 
     private val colorInputGroupViewModel: ColorInputGroupViewModel = run {
-        val data = colorInputGroupDataFactory.create()
         colorInputGroupViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
-            dataFlow = MutableStateFlow(data),
             mediator = colorInputMediator,
             submitAction = ColorInputSubmitActionImpl(),
         )

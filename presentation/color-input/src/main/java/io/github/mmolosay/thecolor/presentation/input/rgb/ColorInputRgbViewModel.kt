@@ -59,9 +59,9 @@ import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbDataLense
  */
 class ColorInputRgbViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted private val _dataFlow: MutableStateFlow<ColorInputRgbData>,
     @Assisted private val mediator: ColorInputMediator,
     @Assisted private val submitAction: ColorInputSubmitAction,
+    dataFactory: ColorInputRgbDataFactory,
     private val colorInputValidator: ColorInputValidator,
     private val colorInputMapper: ColorInputMapper,
     private val colorConverter: ColorConverter,
@@ -70,6 +70,9 @@ class ColorInputRgbViewModel @AssistedInject constructor(
 ) : SimpleViewModel(coroutineScope) {
 
     private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
+
+    private val _dataFlow = MutableStateFlow(dataFactory.create())
+    val dataFlow: StateFlow<ColorInputRgbData> = _dataFlow.asStateFlow()
 
     private val textFieldInputProcessor = TextFieldInputProcessorImpl()
     val rTextFieldHandle = TextFieldHandle(
@@ -84,8 +87,6 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         inputProcessor = textFieldInputProcessor,
         execute = ::executeBTextFieldAction,
     )
-
-    val dataFlow: StateFlow<ColorInputRgbData> = _dataFlow.asStateFlow()
 
     init {
         collectSelectAllTextOnTextFieldFocusPreference()
@@ -267,7 +268,6 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            dataFlow: MutableStateFlow<ColorInputRgbData>,
             mediator: ColorInputMediator,
             submitAction: ColorInputSubmitAction,
         ): ColorInputRgbViewModel
