@@ -25,7 +25,6 @@ import io.github.mmolosay.thecolor.presentation.common.compose.thenIf
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.input.UiComponents.ProcessColorSubmissionResultAsSideEffect
 import io.github.mmolosay.thecolor.presentation.input.UiComponents.onBackspace
-import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextField
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFacade
@@ -112,7 +111,7 @@ private fun ComponentAdvancedTextField(
         modifier = modifier
             .thenIf(enableSmartBackspace) {
                 onBackspace {
-                    val text = facade.text.data.string
+                    val text = facade.text.string
                     if (text.isEmpty() && hasPreviousComponent) {
                         focusManager.moveFocus(FocusDirection.Previous)
                     }
@@ -137,7 +136,7 @@ private fun ComponentBasicTextField(
     keyboardActions: KeyboardActions = KeyboardActions(),
 ) {
     var value by remember {
-        val text = facade.text.data.string
+        val text = facade.text.string
         val value = TextFieldValue(
             text = text,
             selection = TextRange(index = text.length), // cursor at the end of the text
@@ -178,21 +177,21 @@ private fun Preview() {
 private fun previewFacade() =
     ColorInputRgbFacade(
         rTextField = TextFieldFacade(
-            text = Text("12") causedByUser true,
+            text = Text("12"),
             shouldSelectAllTextOnFocus = true,
             isClearTextFeatureEnabled = false,
             inputProcessor = TextFieldInputProcessor { Text(it) },
             execute = { Job() },
         ),
         gTextField = TextFieldFacade(
-            text = Text("") causedByUser true,
+            text = Text(""),
             shouldSelectAllTextOnFocus = true,
             isClearTextFeatureEnabled = false,
             inputProcessor = TextFieldInputProcessor { Text(it) },
             execute = { Job() },
         ),
         bTextField = TextFieldFacade(
-            text = Text("255") causedByUser true,
+            text = Text("255"),
             shouldSelectAllTextOnFocus = true,
             isClearTextFeatureEnabled = false,
             inputProcessor = TextFieldInputProcessor { Text(it) },

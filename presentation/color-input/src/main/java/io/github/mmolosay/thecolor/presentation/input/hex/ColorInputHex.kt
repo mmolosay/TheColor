@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.input.UiComponents.ProcessColorSubmissionResultAsSideEffect
-import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextField
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFacade
@@ -43,7 +42,7 @@ fun ColorInputHex(
     val execute by rememberUpdatedState(facade.execute) // stable across recompositions
 
     var value by remember {
-        val text = facade.textField.text.data.string
+        val text = facade.textField.text.string
         val value = TextFieldValue(
             text = text,
             selection = TextRange(index = text.length), // cursor at the end of the text
@@ -97,7 +96,7 @@ private fun Preview() {
 private fun previewFacade() =
     ColorInputHexFacade(
         textField = TextFieldFacade(
-            text = Text("1A803F") causedByUser true,
+            text = Text("1A803F"),
             shouldSelectAllTextOnFocus = true,
             isClearTextFeatureEnabled = true,
             inputProcessor = TextFieldInputProcessor { Text(it) },

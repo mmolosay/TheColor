@@ -1,6 +1,5 @@
 package io.github.mmolosay.thecolor.presentation.input.textfield
 
-import io.github.mmolosay.thecolor.presentation.input.model.WithSource
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
 
 interface TextFieldHandle {
@@ -8,7 +7,7 @@ interface TextFieldHandle {
 }
 
 data class TextFieldFacade(
-    val text: WithSource<Text>,
+    val text: Text,
     val shouldSelectAllTextOnFocus: Boolean,
     val isClearTextFeatureEnabled: Boolean,
     val inputProcessor: TextFieldInputProcessor,
@@ -31,7 +30,7 @@ private class TextFieldHandleImpl(
 
     override fun facade(data: TextFieldData): TextFieldFacade =
         TextFieldFacade(
-            text = data.text,
+            text = data.text.data,
             shouldSelectAllTextOnFocus = data.shouldSelectAllTextOnFocus,
             isClearTextFeatureEnabled = data.isClearTextFeatureEnabled,
             inputProcessor = inputProcessor,

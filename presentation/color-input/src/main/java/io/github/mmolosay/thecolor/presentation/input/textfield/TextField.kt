@@ -34,7 +34,6 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
 import kotlinx.coroutines.Job
 import androidx.compose.ui.text.input.TextFieldValue as MaterialTextFieldValue
@@ -109,7 +108,7 @@ internal fun TextField(
     // for when text is changed programmatically
     LaunchedEffect(facade.text) {
         val oldValue = value
-        val newText = facade.text.data.string
+        val newText = facade.text.string
         val newSelection = run {
             val hadSelectionAtTheEnd = (oldValue.selection.end == oldValue.text.length)
             val isNewTextLongerThanOld = (newText.length > oldValue.text.length)
@@ -200,7 +199,7 @@ private fun Preview() {
             }
             TextField(
                 facade = TextFieldFacade(
-                    text = textState.value causedByUser true,
+                    text = textState.value,
                     shouldSelectAllTextOnFocus = true,
                     isClearTextFeatureEnabled = true,
                     inputProcessor = TextFieldInputProcessor { Text(it) },
