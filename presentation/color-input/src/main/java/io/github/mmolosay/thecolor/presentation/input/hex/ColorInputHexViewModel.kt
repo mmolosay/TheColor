@@ -72,9 +72,8 @@ class ColorInputHexViewModel @AssistedInject constructor(
     private val _dataFlow = MutableStateFlow(dataFactory.create())
     val dataFlow: StateFlow<ColorInputHexData> = _dataFlow.asStateFlow()
 
-    private val textFieldInputProcessor = TextFieldInputProcessorImpl()
     val textFieldHandle = TextFieldHandle(
-        inputProcessor = textFieldInputProcessor,
+        inputProcessor = TextFieldInputProcessorImpl,
         execute = ::executeTextFieldAction,
     )
 
@@ -182,7 +181,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
         )
     }
 
-    private class TextFieldInputProcessorImpl : TextFieldInputProcessor {
+    private object TextFieldInputProcessorImpl : TextFieldInputProcessor {
         override fun invoke(input: String): TextFieldData.Text =
             input
                 .uppercase()

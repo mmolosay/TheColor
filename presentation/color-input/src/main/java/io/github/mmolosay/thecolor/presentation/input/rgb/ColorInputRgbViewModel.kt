@@ -74,17 +74,16 @@ class ColorInputRgbViewModel @AssistedInject constructor(
     private val _dataFlow = MutableStateFlow(dataFactory.create())
     val dataFlow: StateFlow<ColorInputRgbData> = _dataFlow.asStateFlow()
 
-    private val textFieldInputProcessor = TextFieldInputProcessorImpl()
     val rTextFieldHandle = TextFieldHandle(
-        inputProcessor = textFieldInputProcessor,
+        inputProcessor = TextFieldInputProcessorImpl,
         execute = ::executeRTextFieldAction,
     )
     val gTextFieldHandle = TextFieldHandle(
-        inputProcessor = textFieldInputProcessor,
+        inputProcessor = TextFieldInputProcessorImpl,
         execute = ::executeGTextFieldAction,
     )
     val bTextFieldHandle = TextFieldHandle(
-        inputProcessor = textFieldInputProcessor,
+        inputProcessor = TextFieldInputProcessorImpl,
         execute = ::executeBTextFieldAction,
     )
 
@@ -245,7 +244,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
         )
     }
 
-    private class TextFieldInputProcessorImpl : TextFieldInputProcessor {
+    private object TextFieldInputProcessorImpl : TextFieldInputProcessor {
         override fun invoke(input: String): TextFieldData.Text =
             input
                 .filter { it.isDigit() }
