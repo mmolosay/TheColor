@@ -5,7 +5,7 @@ import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesReposi
 import io.github.mmolosay.thecolor.domain.utils.getOrElse
 import io.github.mmolosay.thecolor.presentation.input.model.WithSource
 import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
-import jakarta.inject.Inject
+import javax.inject.Inject
 
 class TextFieldDataFactory @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
