@@ -64,7 +64,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
     private val colorInputMapper: ColorInputMapper,
     private val colorConverter: ColorConverter,
     private val userPreferencesRepository: UserPreferencesRepository,
-    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
+    @DefaultDispatcher defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
     private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
@@ -85,7 +85,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
     }
 
     private fun collectSelectAllTextOnTextFieldFocusPreference() {
-        coroutineScope.launch(defaultDispatcher) {
+        coroutineScope.launch {
             userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus
                 .filterReady()
                 .map { it.result.getOrElse { DefaultUserPreferences.SelectAllTextOnTextFieldFocus } }
@@ -98,7 +98,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
     }
 
     private fun collectMediatorUpdates() {
-        coroutineScope.launch(defaultDispatcher) {
+        coroutineScope.launch {
             mediator.colorStateFlow.collect { (color, source) ->
                 // don't update text fields to avoid update loop if the color was set from this 'Color Input' type
                 if (source is ColorInputSource && source.type == DomainColorInputType.Hex) return@collect
@@ -117,7 +117,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
     }
 
     private fun collectTextFieldData() {
-        coroutineScope.launch(defaultDispatcher) {
+        coroutineScope.launch {
             _dataFlow
                 .map { data -> TextFieldDerived(data.textField) }
                 .distinctUntilChangedBy { derived -> derived.color } // only update mediator when color changes

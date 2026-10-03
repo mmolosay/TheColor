@@ -46,7 +46,7 @@ class ColorDetailsViewModel @AssistedInject constructor(
     private val createSubjectColorData: CreateSubjectColorDataUseCase,
     private val colorComparator: ColorComparator,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
+    @DefaultDispatcher defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
     private val _stateFlow = MutableStateFlow<ColorDetailsState>(ColorDetailsState.Idle)

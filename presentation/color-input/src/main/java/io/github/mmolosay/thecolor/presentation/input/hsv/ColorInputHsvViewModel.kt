@@ -37,7 +37,7 @@ class ColorInputHsvViewModel @AssistedInject constructor(
     @Assisted private val mediator: ColorInputMediator,
     dataFactory: ColorInputHsvDataFactory,
     private val colorConverter: ColorConverter,
-    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
+    @DefaultDispatcher defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
     private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
@@ -48,10 +48,10 @@ class ColorInputHsvViewModel @AssistedInject constructor(
     private var sampleProcessingJob: Job? = null // 'onSampleProduced' is never invoked concurrently
     private val samplerForNewColors = Sampler<ColorWithId>(
         period = 200.milliseconds,
-        coroutineScope = CoroutineScope(coroutineScope.coroutineContext + defaultDispatcher),
+        coroutineScope = coroutineScope,
     ) { colorWithId ->
         sampleProcessingJob?.cancel()
-        coroutineScope.launch(defaultDispatcher, CoroutineStart.UNDISPATCHED) {
+        coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) {
             mediator.withLock { editor ->
                 val state = mediator.colorState
                 val source = state.source
@@ -71,7 +71,7 @@ class ColorInputHsvViewModel @AssistedInject constructor(
     }
 
     private fun collectMediatorUpdates() {
-        coroutineScope.launch(defaultDispatcher) {
+        coroutineScope.launch {
             mediator.colorStateFlow.collect { (color, source) ->
                 // don't update color to avoid overwriting a newer one if the color was set from this 'Color Input' type
                 if (source is ColorInputSource && source.type == DomainColorInputType.Hsv) return@collect

@@ -32,14 +32,14 @@ import javax.inject.Inject
 class ColorCenterViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
     dataFactory: ColorCenterDataFactory,
-    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
+    @DefaultDispatcher defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
-
-    private val _dataFlow = MutableStateFlow(dataFactory.create())
-    val dataFlow: StateFlow<ColorCenterData> = _dataFlow.asStateFlow()
 
     private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
     private val seFactory = SideEffectFactory()
+
+    private val _dataFlow = MutableStateFlow(dataFactory.create())
+    val dataFlow: StateFlow<ColorCenterData> = _dataFlow.asStateFlow()
 
     fun execute(action: ColorCenterAction): Job =
         coroutineScope.launch(exclusiveLane) {

@@ -44,9 +44,11 @@ class ColorSchemeViewModel @AssistedInject constructor(
     @Assisted private val eventHandler: ColorSchemeEventHandler,
     private val colorRepository: ColorRepository,
     private val createData: CreateColorSchemeDataUseCase,
-    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
+    @DefaultDispatcher defaultDispatcher: CoroutineDispatcher,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
+
+    private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
 
     private val _stateFlow = MutableStateFlow<ColorSchemeState>(ColorSchemeState.Idle)
     val stateFlow: StateFlow<ColorSchemeState> = _stateFlow.asStateFlow()
@@ -54,7 +56,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
     private val dataEditor = ColorSchemeDataEditor()
 
     fun execute(action: ColorSchemeAction): Job =
-        coroutineScope.launch(defaultDispatcher) {
+        coroutineScope.launch(exclusiveLane) {
             when (action) {
                 is ColorSchemeAction.SelectSwatch -> {
                     onSelectSwatch(swatchIndex = action.swatchIndex)
