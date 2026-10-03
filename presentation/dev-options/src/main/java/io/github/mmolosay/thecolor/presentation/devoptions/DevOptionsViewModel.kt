@@ -27,7 +27,7 @@ class DevOptionsViewModel @Inject constructor(
     private val devOptionsRepository: DevOptionsRepository,
     private val defaultDevOptions: DefaultDevOptions,
     private val buildInfoRepository: BuildInfoRepository,
-    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
+    @DefaultDispatcher defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     val dataStateFlow: StateFlow<DataState> =
@@ -57,26 +57,26 @@ class DevOptionsViewModel @Inject constructor(
     }
 
     private fun clearRepository() {
-        viewModelScope.launch(defaultDispatcher) {
+        viewModelScope.launch {
             devOptionsRepository.clear()
         }
     }
 
     private fun updatePredictableRandomColors(value: DomainPredictableRandomColors) {
-        viewModelScope.launch(defaultDispatcher) {
+        viewModelScope.launch {
             devOptionsRepository.setPredictableRandomColors(value)
         }
     }
 
     private fun updateStrictModeEnablement(value: Boolean) {
-        viewModelScope.launch(defaultDispatcher) {
+        viewModelScope.launch {
             val domainModel = DomainStrictMode(enabled = value)
             devOptionsRepository.setStrictMode(domainModel)
         }
     }
 
     private fun updateHttpLoggingEnablement(value: Boolean) {
-        viewModelScope.launch(defaultDispatcher) {
+        viewModelScope.launch {
             val domainModel = DomainHttpLogging(enabled = value)
             devOptionsRepository.setHttpLogging(domainModel)
         }
