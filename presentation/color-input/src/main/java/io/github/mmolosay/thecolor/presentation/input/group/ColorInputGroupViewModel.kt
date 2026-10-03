@@ -5,8 +5,8 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
+import io.github.mmolosay.thecolor.domain.utils.filterReady
 import io.github.mmolosay.thecolor.domain.utils.getOrElse
-import io.github.mmolosay.thecolor.domain.utils.readyOrElse
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
@@ -24,6 +24,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -39,9 +40,9 @@ import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInp
  */
 class ColorInputGroupViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
+    @Assisted initialData: ColorInputGroupData,
     @Assisted mediator: ColorInputMediator,
     @Assisted submitAction: ColorInputSubmitAction,
-    dataFactory: ColorInputGroupDataFactory,
     hexViewModelFactory: ColorInputHexViewModel.Factory,
     rgbViewModelFactory: ColorInputRgbViewModel.Factory,
     hsvViewModelFactory: ColorInputHsvViewModel.Factory,
@@ -50,7 +51,7 @@ class ColorInputGroupViewModel @AssistedInject constructor(
 
     private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
 
-    private val _dataFlow = MutableStateFlow(dataFactory.create())
+    private val _dataFlow = MutableStateFlow(initialData)
     val dataFlow: StateFlow<ColorInputGroupData> = _dataFlow.asStateFlow()
 
     private val hexViewModel: ColorInputHexViewModel =
@@ -102,6 +103,7 @@ class ColorInputGroupViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
+            initialData: ColorInputGroupData,
             mediator: ColorInputMediator,
             submitAction: ColorInputSubmitAction,
         ): ColorInputGroupViewModel
@@ -111,9 +113,9 @@ class ColorInputGroupViewModel @AssistedInject constructor(
 class ColorInputGroupDataFactory @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
 ) {
-    fun create(): ColorInputGroupData {
-        val preferredInputType = userPreferencesRepository.flowOfColorInputType.value
-            .readyOrElse { error("must be ready") }
+    suspend fun create(): ColorInputGroupData {
+        val preferredInputType = userPreferencesRepository.flowOfColorInputType
+            .filterReady().first()
             .getOrElse { DefaultUserPreferences.PreferredColorInputType }
         // make list of all input types with the preferred one being first
         val orderedInputTypes = run {
