@@ -2,11 +2,11 @@ package io.github.mmolosay.thecolor.presentation.input.testing
 
 import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
+import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator.ColorState
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
-import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 
 fun MockColorInputMediatorComponents(): MockColorInputMediatorComponents {
     val editor = mockk<ColorInputMediator.Editor>(relaxed = true)
@@ -31,11 +31,11 @@ data class MockColorInputMediatorComponents(
  * Mocks [ColorInputMediator.Editor.set] method.
  */
 fun ColorInputMediator.Editor.mockSet(
-    answer: suspend (color: Color?, source: DomainColorInputType?) -> Unit,
+    answer: suspend (color: Color?, source: ColorState.Source?) -> Unit,
 ) {
     val editor = this
     val slotOfColor = slot<Color?>()
-    val slotOfSource = slot<DomainColorInputType?>()
+    val slotOfSource = slot<ColorState.Source?>()
     every {
         editor.set(color = captureNullable(slotOfColor), source = captureNullable(slotOfSource))
     } coAnswers {
