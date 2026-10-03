@@ -22,7 +22,6 @@ import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.max
 import kotlin.time.Duration.Companion.milliseconds
-import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ColorInputMediatorTest {
@@ -67,7 +66,7 @@ class ColorInputMediatorTest {
             createSut()
 
             val color = Color.Hex(0x0)
-            val source = mockk<DomainColorInputType>()
+            val source = mockk<ColorState.Source>()
             sut.withLock { editor ->
                 editor.set(color = color, source = source)
             }
@@ -82,9 +81,9 @@ class ColorInputMediatorTest {
             createSut()
 
             val color1 = Color.Hex(0x0)
-            val source1 = mockk<DomainColorInputType>()
+            val source1 = mockk<ColorState.Source>()
             val color2 = Color.Hex(0x1)
-            val source2 = mockk<DomainColorInputType>()
+            val source2 = mockk<ColorState.Source>()
             color1 shouldNotBe color2
             source1 shouldNotBe source2
             sut.withLock { editor ->
