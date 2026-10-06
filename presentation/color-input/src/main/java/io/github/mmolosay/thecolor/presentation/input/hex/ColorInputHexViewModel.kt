@@ -105,7 +105,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
                     val hexColor = with(colorConverter) { color.toHex() }
                     with(colorInputMapper) { hexColor.toColorInput() }
                 } else {
-                    EmptyColorInput
+                    ColorInput.Hex(string = "")
                 }
                 _dataFlow.asUpdateScope().focus(Lenses.textField).update {
                     val textWithSource = TextFieldData.Text(colorInput.string) causedByUser false
@@ -198,10 +198,6 @@ class ColorInputHexViewModel @AssistedInject constructor(
             mediator: ColorInputMediator,
             submitAction: ColorInputSubmitAction,
         ): ColorInputHexViewModel
-    }
-
-    companion object {
-        val EmptyColorInput = ColorInput.Hex(string = "")
     }
 }
 

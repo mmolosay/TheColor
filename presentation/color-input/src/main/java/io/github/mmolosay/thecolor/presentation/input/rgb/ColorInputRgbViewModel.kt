@@ -124,7 +124,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                     val hexColor = with(colorConverter) { color.toRgb() }
                     with(colorInputMapper) { hexColor.toColorInput() }
                 } else {
-                    EmptyColorInput
+                    ColorInput.Rgb(r = "", g = "", b = "")
                 }
                 _dataFlow.batch {
                     fun String.toTextWithSource() =
@@ -271,10 +271,6 @@ class ColorInputRgbViewModel @AssistedInject constructor(
             mediator: ColorInputMediator,
             submitAction: ColorInputSubmitAction,
         ): ColorInputRgbViewModel
-    }
-
-    companion object {
-        val EmptyColorInput = ColorInput.Rgb(r = "", g = "", b = "")
     }
 }
 
