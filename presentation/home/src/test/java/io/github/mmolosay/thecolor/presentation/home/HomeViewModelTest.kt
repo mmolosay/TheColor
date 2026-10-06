@@ -26,6 +26,7 @@ import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputValidationResult
+import io.github.mmolosay.thecolor.presentation.input.testing.EmptyColorState
 import io.github.mmolosay.thecolor.presentation.input.testing.MockColorInputMediatorComponents
 import io.github.mmolosay.thecolor.presentation.input.testing.mockSet
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeViewModel
@@ -1450,7 +1451,7 @@ class HomeViewModelTest {
         get() = sut.dataFlow.value
 
     fun mockStoresWithEmptyFlows() {
-        every { colorInputMediator.colorStateFlow } returns MutableStateFlow(ColorInputMediator.InitialColorState)
+        every { colorInputMediator.colorStateFlow } returns MutableStateFlow(EmptyColorState)
         every { colorDetailsViewModel.eventFlow } returns MutableViewModelEventFlow<ColorDetailsEvent>()
         every { colorSchemeViewModel.eventFlow } returns MutableViewModelEventFlow<ColorSchemeEvent>()
     }

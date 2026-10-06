@@ -44,3 +44,5 @@ fun ColorInputMediator.Editor.mockSet(
         answer.invoke(color, source)
     }
 }
+
+val EmptyColorState = ColorState(color = null, source = null, id = 0)

@@ -12,6 +12,7 @@ import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmissionResult
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputValidationResult
+import io.github.mmolosay.thecolor.presentation.input.testing.EmptyColorState
 import io.github.mmolosay.thecolor.presentation.input.testing.MockColorInputMediatorComponents
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldAction
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
@@ -129,7 +130,7 @@ class ColorInputHexViewModelTest {
         runTest(testDispatcher) {
             val color = Color.Hex(0x1A803F)
             every { mediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.InitialColorState
+                val value = EmptyColorState
                 MutableStateFlow(value)
             }
             with(colorInputValidator) {
@@ -155,7 +156,7 @@ class ColorInputHexViewModelTest {
         runTest(testDispatcher) {
             val color = Color.Hex(0x1A803F)
             every { mediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.InitialColorState
+                val value = EmptyColorState
                 MutableStateFlow(value)
             }
             with(colorInputValidator) {
@@ -184,7 +185,7 @@ class ColorInputHexViewModelTest {
     fun `given text is invalid color, when text is changed to another invalid color, then mediator is NOT updated, because the color has not changed`() =
         runTest(testDispatcher) {
             every { mediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.InitialColorState
+                val value = EmptyColorState
                 MutableStateFlow(value)
             }
             createSut()
@@ -224,7 +225,7 @@ class ColorInputHexViewModelTest {
             val firstColor = Color.Hex(0x1A803F)
             val latestColor = Color.Hex(0x123456)
             every { mediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.InitialColorState
+                val value = EmptyColorState
                 MutableStateFlow(value)
             }
             with(colorInputValidator) {
@@ -266,7 +267,7 @@ class ColorInputHexViewModelTest {
     fun `when mediator emits not-null color from non-HEX source, then the text field is updated`() =
         runTest(testDispatcher) {
             val color = Color.Hex(0x1A803F)
-            val colorStateFlow = MutableStateFlow(ColorInputMediator.InitialColorState)
+            val colorStateFlow = MutableStateFlow(EmptyColorState)
             every { mediator.colorStateFlow } returns colorStateFlow
             with(colorInputValidator) {
                 every { ColorInput.Hex("1A803F").validate() } returns ColorInputValidationResult.Valid(color)
@@ -295,7 +296,7 @@ class ColorInputHexViewModelTest {
     fun `given the text field has text, when mediator emits 'null' color from non-HEX source, then the text field is cleared`() =
         runTest(testDispatcher) {
             val color = Color.Hex(0x1A803F)
-            val colorStateFlow = MutableStateFlow(ColorInputMediator.InitialColorState)
+            val colorStateFlow = MutableStateFlow(EmptyColorState)
             every { mediator.colorStateFlow } returns colorStateFlow
             with(colorInputValidator) {
                 every { ColorInput.Hex("1A803F").validate() } returns ColorInputValidationResult.Valid(color)
@@ -333,7 +334,7 @@ class ColorInputHexViewModelTest {
     fun `when mediator emits not-null color from HEX source, then the text field is NOT updated, so that the update loop is not created`() =
         runTest(testDispatcher) {
             val color = Color.Hex(0x1A803F)
-            val colorStateFlow = MutableStateFlow(ColorInputMediator.InitialColorState)
+            val colorStateFlow = MutableStateFlow(EmptyColorState)
             every { mediator.colorStateFlow } returns colorStateFlow
             createSut()
 
@@ -353,7 +354,7 @@ class ColorInputHexViewModelTest {
     fun `when 'select all text on text field focus' preference changes, then the text field data is updated accordingly`() =
         runTest(testDispatcher) {
             every { mediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.InitialColorState
+                val value = EmptyColorState
                 MutableStateFlow(value)
             }
             val flowOfSelectAllTextOnTextFieldFocus = run {
@@ -390,7 +391,7 @@ class ColorInputHexViewModelTest {
             val color = Color.Hex(0x1A803F)
             val colorAsColorInput = ColorInput.Hex("1A803F")
             every { mediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.InitialColorState
+                val value = EmptyColorState
                 MutableStateFlow(value)
             }
             with(colorInputValidator) {
@@ -414,7 +415,7 @@ class ColorInputHexViewModelTest {
     fun `given data has 'input submission result', when 'AckInputSubmissionResult' action is executed, then it is cleared from data`() =
         runTest(testDispatcher) {
             every { mediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.InitialColorState
+                val value = EmptyColorState
                 MutableStateFlow(value)
             }
             every { submitAction.invoke(colorInput = any(), validationResult = any()) } returns true
@@ -434,7 +435,7 @@ class ColorInputHexViewModelTest {
     ) =
         runTest(testDispatcher) {
             every { mediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.InitialColorState
+                val value = EmptyColorState
                 MutableStateFlow(value)
             }
             createSut()

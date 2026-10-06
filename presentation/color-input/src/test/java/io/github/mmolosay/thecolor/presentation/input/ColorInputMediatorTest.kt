@@ -36,7 +36,6 @@ class ColorInputMediatorTest {
 
         val expectedValue = ColorState(color = null, source = null, id = 0)
         sut.colorState shouldBe expectedValue
-        sut.colorState shouldBe ColorInputMediator.InitialColorState
     }
 
     @Test

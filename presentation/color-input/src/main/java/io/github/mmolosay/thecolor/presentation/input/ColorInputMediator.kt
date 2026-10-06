@@ -27,7 +27,10 @@ import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInp
  */
 class ColorInputMediator {
 
-    private val _colorStateFlow = MutableStateFlow(InitialColorState)
+    private val _colorStateFlow = run {
+        val value = ColorState(color = null, source = null, id = 0)
+        MutableStateFlow(value)
+    }
     val colorStateFlow: StateFlow<ColorState> = _colorStateFlow.asStateFlow()
 
     private val mutex = Mutex()
@@ -84,10 +87,6 @@ class ColorInputMediator {
             check(mutex.holdsLock(lockOwner)) { "This editor doesn't belong to the current mutex's lock" }
             _colorStateFlow.value = ColorState(color = color, source = source, id = nextId++)
         }
-    }
-
-    companion object {
-        val InitialColorState = ColorState(color = null, source = null, id = 0)
     }
 }
 
