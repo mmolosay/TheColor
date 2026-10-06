@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.input.rgb
 
-import kotlinx.coroutines.Job
+import io.github.mmolosay.thecolor.presentation.common.ExecuteAction
 
 sealed interface ColorInputRgbAction {
 
@@ -9,4 +9,4 @@ sealed interface ColorInputRgbAction {
     data object AckInputSubmissionResult : ColorInputRgbAction
 }
 
-typealias ExecuteColorInputRgbAction = (ColorInputRgbAction) -> Job
+typealias ExecuteColorInputRgbAction = ExecuteAction<ColorInputRgbAction>

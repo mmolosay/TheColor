@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.details.viewmodel
 
-import kotlinx.coroutines.Job
+import io.github.mmolosay.thecolor.presentation.common.ExecuteAction
 
 sealed interface ColorDetailsAction {
 
@@ -11,4 +11,4 @@ sealed interface ColorDetailsAction {
     data object RetryOnError : ColorDetailsAction
 }
 
-typealias ExecuteColorDetailsAction = (ColorDetailsAction) -> Job
+typealias ExecuteColorDetailsAction = ExecuteAction<ColorDetailsAction>

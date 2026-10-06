@@ -1,7 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.input.textfield
 
+import io.github.mmolosay.thecolor.presentation.common.ExecuteAction
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
-import kotlinx.coroutines.Job
 
 sealed interface TextFieldAction {
 
@@ -14,4 +14,4 @@ sealed interface TextFieldAction {
     }
 }
 
-typealias ExecuteTextFieldAction = (TextFieldAction) -> Job
+typealias ExecuteTextFieldAction = ExecuteAction<TextFieldAction>

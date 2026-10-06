@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.scheme.viewmodel
 
-import kotlinx.coroutines.Job
+import io.github.mmolosay.thecolor.presentation.common.ExecuteAction
 import io.github.mmolosay.thecolor.domain.color.ColorScheme.Mode as DomainMode
 
 sealed interface ColorSchemeAction {
@@ -22,4 +22,4 @@ sealed interface ColorSchemeAction {
     data object RetryOnError : ColorSchemeAction
 }
 
-typealias ExecuteColorSchemeAction = (ColorSchemeAction) -> Job
+typealias ExecuteColorSchemeAction = ExecuteAction<ColorSchemeAction>

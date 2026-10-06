@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.home.viewmodel
 
-import kotlinx.coroutines.Job
+import io.github.mmolosay.thecolor.presentation.common.ExecuteAction
 
 sealed interface HomeAction {
 
@@ -21,4 +21,4 @@ sealed interface HomeAction {
     data object ClearColorSchemeSelectedSwatch : HomeAction
 }
 
-internal typealias ExecuteHomeAction = (HomeAction) -> Job
+typealias ExecuteHomeAction = ExecuteAction<HomeAction>

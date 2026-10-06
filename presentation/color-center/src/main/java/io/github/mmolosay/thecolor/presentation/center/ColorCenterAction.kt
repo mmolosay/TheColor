@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.center
 
-import kotlinx.coroutines.Job
+import io.github.mmolosay.thecolor.presentation.common.ExecuteAction
 
 sealed interface ColorCenterAction {
 
@@ -13,4 +13,4 @@ sealed interface ColorCenterAction {
     ) : ColorCenterAction
 }
 
-typealias ExecuteColorCenterAction = (ColorCenterAction) -> Job
+typealias ExecuteColorCenterAction = ExecuteAction<ColorCenterAction>

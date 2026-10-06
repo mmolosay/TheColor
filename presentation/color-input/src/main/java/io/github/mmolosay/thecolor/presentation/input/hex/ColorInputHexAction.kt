@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.input.hex
 
-import kotlinx.coroutines.Job
+import io.github.mmolosay.thecolor.presentation.common.ExecuteAction
 
 sealed interface ColorInputHexAction {
 
@@ -9,4 +9,4 @@ sealed interface ColorInputHexAction {
     data object AckInputSubmissionResult : ColorInputHexAction
 }
 
-typealias ExecuteColorInputHexAction = (ColorInputHexAction) -> Job
+typealias ExecuteColorInputHexAction = ExecuteAction<ColorInputHexAction>

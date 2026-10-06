@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.input.group
 
-import kotlinx.coroutines.Job
+import io.github.mmolosay.thecolor.presentation.common.ExecuteAction
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 
 sealed interface ColorInputGroupAction {
@@ -10,4 +10,4 @@ sealed interface ColorInputGroupAction {
     ) : ColorInputGroupAction
 }
 
-typealias ExecuteColorInputGroupAction = (ColorInputGroupAction) -> Job
+typealias ExecuteColorInputGroupAction = ExecuteAction<ColorInputGroupAction>

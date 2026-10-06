@@ -1,7 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.input.hsv
 
 import io.github.mmolosay.thecolor.domain.color.Color
-import kotlinx.coroutines.Job
+import io.github.mmolosay.thecolor.presentation.common.ExecuteAction
 
 sealed interface ColorInputHsvAction {
 
@@ -10,4 +10,4 @@ sealed interface ColorInputHsvAction {
     ) : ColorInputHsvAction
 }
 
-typealias ExecuteColorInputHsvAction = (ColorInputHsvAction) -> Job
+typealias ExecuteColorInputHsvAction = ExecuteAction<ColorInputHsvAction>

@@ -182,7 +182,7 @@ class HomeViewModel @Inject constructor(
             }
         }
 
-    fun execute(action: HomeAction): Job =
+    fun execute(action: HomeAction): Job? =
         when (action) {
             is HomeAction.Proceed -> proceed()
             is HomeAction.RandomizeColor -> randomizeColor()
@@ -417,7 +417,7 @@ class HomeViewModel @Inject constructor(
         private val viewModel: ColorDetailsViewModel
             get() = components.colorDetailsViewModel
 
-        override operator fun invoke(action: ColorDetailsAction): Job =
+        override operator fun invoke(action: ColorDetailsAction): Job? =
             when (action) {
                 is ColorDetailsAction.SelectColor -> {
                     launchTransition(Operation.Transition.Proceed) launch@{
@@ -443,7 +443,7 @@ class HomeViewModel @Inject constructor(
                 }
                 is ColorDetailsAction.RetryOnError -> {
                     val origin = viewModel.stateFlow.value.asError()?.error?.origin
-                        ?: return Job() // stale invocation // TODO: change signature to `Job?`
+                        ?: return null // stale invocation
                     when (origin) {
                         is ColorDetailsError.Origin.SetSeedColor ->
                             launchTransition(Operation.Transition.Proceed) launch@{
@@ -478,7 +478,7 @@ class HomeViewModel @Inject constructor(
         private val viewModel: ColorDetailsViewModel
             get() = components.selectedSwatchColorDetailsViewModel
 
-        override operator fun invoke(action: ColorDetailsAction): Job =
+        override operator fun invoke(action: ColorDetailsAction): Job? =
             when (action) {
                 is ColorDetailsAction.SelectColor -> {
                     viewModelScope.launchFetch(Operation.Fetch.SwatchColorDetails) launch@{
@@ -489,8 +489,8 @@ class HomeViewModel @Inject constructor(
                 is ColorDetailsAction.RetryOnError -> {
                     viewModelScope.launchFetch(Operation.Fetch.SwatchColorDetails) launch@{
                         if (colorCenterComponentsStore.components !== components) return@launch // stale instance
-                        val origin =
-                            viewModel.stateFlow.value.asError()?.error?.origin ?: return@launch
+                        val origin = viewModel.stateFlow.value.asError()?.error?.origin
+                            ?: return@launch // stale invocation
                         when (origin) {
                             // the swatch's seed comes from 'setSeedDetails', which cannot fail, so this origin is not reachable here
                             is ColorDetailsError.Origin.SetSeedColor -> {
@@ -512,7 +512,7 @@ class HomeViewModel @Inject constructor(
         private val viewModel: ColorSchemeViewModel
             get() = components.colorSchemeViewModel
 
-        override fun invoke(action: ColorSchemeAction): Job =
+        override fun invoke(action: ColorSchemeAction): Job? =
             when (action) {
                 is ColorSchemeAction.SelectSwatch -> {
                     viewModelScope.launchFetch(Operation.Fetch.SwatchColorDetails) launch@{
@@ -527,11 +527,11 @@ class HomeViewModel @Inject constructor(
                 }
                 is ColorSchemeAction.SelectMode -> {
                     viewModel.selectMode(action.mode)
-                    Job()
+                    null
                 }
                 is ColorSchemeAction.SelectSwatchCount -> {
                     viewModel.selectSwatchCount(action.count)
-                    Job()
+                    null
                 }
                 is ColorSchemeAction.ApplyChanges -> {
                     viewModelScope.launchFetch(Operation.Fetch.ColorScheme) launch@{
