@@ -15,7 +15,6 @@ import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntU
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeData
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeData.Changes
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeData.SwatchCount
-import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeEvent
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeViewModel
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeViewModel.DataState
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.CreateColorSchemeDataUseCase

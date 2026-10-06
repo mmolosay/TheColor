@@ -45,5 +45,11 @@ fun ColorDetailsState.sessionOrNull(): ColorDetailsSession? =
         is ColorDetailsState.Error -> this.session
     }
 
+fun ColorDetailsState.colorOrNull(role: ColorRole): Color? =
+    this.sessionOrNull()?.getByRole(role)
+
+fun ColorDetailsState.asError(): ColorDetailsState.Error? =
+    this as? ColorDetailsState.Error
+
 internal fun ColorDetailsState.isAwaiting(request: ColorDetailsState.Request): Boolean =
     (this is ColorDetailsState.Loading) && (this.request == request)

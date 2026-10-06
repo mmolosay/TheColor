@@ -12,10 +12,13 @@ data class ColorDetailsFacade(
     val execute: ExecuteColorDetailsAction,
 )
 
-fun ColorDetailsHandle(viewModel: ColorDetailsViewModel): ColorDetailsHandle =
+fun ColorDetailsHandle(
+    stateFlow: StateFlow<ColorDetailsState>,
+    execute: ExecuteColorDetailsAction,
+): ColorDetailsHandle =
     ColorDetailsHandleImpl(
-        stateFlow = viewModel.stateFlow,
-        execute = viewModel::execute,
+        stateFlow = stateFlow,
+        execute = execute,
     )
 
 private class ColorDetailsHandleImpl(

@@ -8,7 +8,6 @@ import io.github.mmolosay.thecolor.domain.color.ColorRepository
 import io.github.mmolosay.thecolor.domain.color.ColorRepository.GetColorSchemeRequest
 import io.github.mmolosay.thecolor.domain.color.ColorScheme.Mode
 import io.github.mmolosay.thecolor.domain.color.IsColorLightUseCase
-import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.IoDispatcher
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
@@ -18,13 +17,10 @@ import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeStat
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
 import javax.inject.Inject
@@ -41,64 +37,15 @@ import io.github.mmolosay.thecolor.domain.color.ColorScheme as DomainColorScheme
  */
 class ColorSchemeViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted private val eventHandler: ColorSchemeEventHandler,
     private val colorRepository: ColorRepository,
     private val createData: CreateColorSchemeDataUseCase,
-    @DefaultDispatcher defaultDispatcher: CoroutineDispatcher,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
-
-    private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
 
     private val _stateFlow = MutableStateFlow<ColorSchemeState>(ColorSchemeState.Idle)
     val stateFlow: StateFlow<ColorSchemeState> = _stateFlow.asStateFlow()
 
     private val dataEditor = ColorSchemeDataEditor()
-
-    fun execute(action: ColorSchemeAction): Job =
-        coroutineScope.launch(exclusiveLane) {
-            when (action) {
-                is ColorSchemeAction.SelectSwatch -> {
-                    onSelectSwatch(swatchIndex = action.swatchIndex)
-                }
-                is ColorSchemeAction.SelectMode -> {
-                    selectMode(mode = action.mode)
-                }
-                is ColorSchemeAction.SelectSwatchCount -> {
-                    selectSwatchCount(count = action.count)
-                }
-                is ColorSchemeAction.ApplyChanges -> {
-                    onApplyChanges()
-                }
-                is ColorSchemeAction.RetryOnError -> {
-                    onRetryOnError()
-                }
-            }
-        }
-
-    private fun onSelectSwatch(swatchIndex: Int) {
-        val state = stateFlow.value
-        if (state !is ColorSchemeState.Ready) return // stale invocation
-        val swatch = state.data.swatches.getOrNull(swatchIndex) ?: return
-        val swatchColorDetails = state.domainColorScheme.swatchDetails.getOrNull(swatchIndex) ?: return
-        val event = ColorSchemeEvent.SelectSwatchAction(swatch, swatchColorDetails)
-        eventHandler.offer(event)
-    }
-
-    private fun onApplyChanges() {
-        val state = stateFlow.value
-        if (state !is ColorSchemeState.Ready) return // stale invocation
-        if (!state.data.hasChangesToApply) return // nothing to apply
-        val event = ColorSchemeEvent.ApplyChangesAction(seed = state.request.seed)
-        eventHandler.offer(event)
-    }
-
-    private fun onRetryOnError() {
-        val state = stateFlow.value
-        if (state !is ColorSchemeState.Error) return // stale invocation
-        val event = ColorSchemeEvent.RetryOnErrorAction(seed = state.request.seed)
-        eventHandler.offer(event)
-    }
 
     /**
      * Fetches [DomainColorScheme] for the specified "[seed]" color of the color scheme.
@@ -138,7 +85,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
         }
     }
 
-    private fun selectMode(mode: Mode) {
+    fun selectMode(mode: Mode) {
         _stateFlow.update { state ->
             if (state !is ColorSchemeState.Ready) return@update state
             val newData = with(dataEditor) {
@@ -148,7 +95,7 @@ class ColorSchemeViewModel @AssistedInject constructor(
         }
     }
 
-    private fun selectSwatchCount(count: SwatchCount) {
+    fun selectSwatchCount(count: SwatchCount) {
         _stateFlow.update { state ->
             if (state !is ColorSchemeState.Ready) return@update state
             val newData = with(dataEditor) {
@@ -156,11 +103,6 @@ class ColorSchemeViewModel @AssistedInject constructor(
             }
             state.copy(data = newData)
         }
-    }
-
-    private fun ColorSchemeEventHandler.offer(event: ColorSchemeEvent) {
-        if (!coroutineScope.isActive) return
-        this.invoke(event)
     }
 
     private fun Request.toDomainRequest(): GetColorSchemeRequest =
@@ -193,7 +135,6 @@ class ColorSchemeViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            eventHandler: ColorSchemeEventHandler,
         ): ColorSchemeViewModel
     }
 }

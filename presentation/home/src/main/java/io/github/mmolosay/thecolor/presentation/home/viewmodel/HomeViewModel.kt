@@ -17,11 +17,13 @@ import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQuali
 import io.github.mmolosay.thecolor.presentation.center.ColorCenterHandle
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
+import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsAction
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsError
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEvent
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEventHandler
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsHandle
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
+import io.github.mmolosay.thecolor.presentation.details.viewmodel.ExecuteColorDetailsAction
+import io.github.mmolosay.thecolor.presentation.details.viewmodel.asError
+import io.github.mmolosay.thecolor.presentation.details.viewmodel.colorOrNull
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.SideEffect
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.Operation.Companion.isSupersededBy
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
@@ -35,10 +37,12 @@ import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitActi
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputValidationResult
 import io.github.mmolosay.thecolor.presentation.input.set
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewDataFactory
-import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeEvent
-import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeEventHandler
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeAction
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeHandle
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeViewModel
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ExecuteColorSchemeAction
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.asError
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.asReady
 import io.github.mmolosay.thecolor.utils.CoroutineRegistry
 import io.github.mmolosay.thecolor.utils.SideEffectIdFactory
 import io.github.mmolosay.thecolor.utils.UpdateScope
@@ -291,20 +295,25 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun createNewColorCenterComponents(): ColorCenterComponents =
-        colorCenterComponentsStore.createNewComponents(
-            colorDetailsEventHandler = ColorCenterColorDetailsEventHandlerImpl(),
-            colorSchemeEventHandler = ColorSchemeEventHandlerImpl(),
-            selectedSwatchColorDetailsEventHandler = SelectedSwatchColorDetailsEventHandlerImpl(),
-        )
+        colorCenterComponentsStore.createNewComponents()
 
     context(updateScope: UpdateScope<HomeState>)
     private fun consumeColorCenterComponents(components: ColorCenterComponents) =
         updateScope.update {
             val handles = ColorCenterHandles(
                 colorCenter = ColorCenterHandle(components.colorCenterViewModel),
-                colorDetails = ColorDetailsHandle(components.colorDetailsViewModel),
-                colorScheme = ColorSchemeHandle(components.colorSchemeViewModel),
-                selectedSwatchDetails = ColorDetailsHandle(components.selectedSwatchColorDetailsViewModel),
+                colorDetails = ColorDetailsHandle(
+                    stateFlow = components.colorDetailsViewModel.stateFlow,
+                    execute = ColorCenterColorDetailsActionExecutor(components),
+                ),
+                colorScheme = ColorSchemeHandle(
+                    stateFlow = components.colorSchemeViewModel.stateFlow,
+                    execute = ColorSchemeActionExecutor(components),
+                ),
+                selectedSwatchDetails = ColorDetailsHandle(
+                    stateFlow = components.selectedSwatchColorDetailsViewModel.stateFlow,
+                    execute = SelectedSwatchColorDetailsActionExecutor(components),
+                ),
             )
             it.copy(colorCenterHandles = handles)
         }
@@ -401,13 +410,20 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private inner class ColorCenterColorDetailsEventHandlerImpl : ColorDetailsEventHandler {
-        override fun invoke(event: ColorDetailsEvent) {
-            when (event) {
-                is ColorDetailsEvent.SelectColorAction ->
+    private inner class ColorCenterColorDetailsActionExecutor(
+        private val components: ColorCenterComponents,
+    ) : ExecuteColorDetailsAction {
+
+        private val viewModel: ColorDetailsViewModel
+            get() = components.colorDetailsViewModel
+
+        override operator fun invoke(action: ColorDetailsAction): Job =
+            when (action) {
+                is ColorDetailsAction.SelectColor -> {
                     launchTransition(Operation.Transition.Proceed) launch@{
-                        val components = colorCenterComponentsStore.components ?: return@launch
-                        val color = event.color
+                        if (colorCenterComponentsStore.components !== components) return@launch // stale instance
+                        val color = viewModel.stateFlow.value.colorOrNull(action.role)
+                            ?: return@launch // stale invocation
                         ccSessionStore.sessionState.mustBeOngoing()
                         colorInputMediator.set(color)
                         updateState {
@@ -417,18 +433,21 @@ class HomeViewModel @Inject constructor(
                         }
                         launchFetch(Operation.Fetch.ColorDetails) {
                             val viewModel = components.colorDetailsViewModel
-                            viewModel.selectColor(event.colorRole)
+                            viewModel.selectColor(action.role)
                         }
                         launchFetch(Operation.Fetch.ColorScheme) {
                             val viewModel = components.colorSchemeViewModel
                             viewModel.fetchColorScheme(color)
                         }
                     }
-                is ColorDetailsEvent.RetryOnErrorAction ->
-                    when (val origin = event.error.origin) {
+                }
+                is ColorDetailsAction.RetryOnError -> {
+                    val origin = viewModel.stateFlow.value.asError()?.error?.origin
+                        ?: return Job() // stale invocation // TODO: change signature to `Job?`
+                    when (origin) {
                         is ColorDetailsError.Origin.SetSeedColor ->
                             launchTransition(Operation.Transition.Proceed) launch@{
-                                val components = colorCenterComponentsStore.components ?: return@launch
+                                if (colorCenterComponentsStore.components !== components) return@launch // stale instance
                                 // the session was canceled when the seed fetch failed, so build a new one
                                 val deferredDetails = CompletableDeferred<DomainColorDetails>()
                                 startColorCenterSession(
@@ -442,30 +461,37 @@ class HomeViewModel @Inject constructor(
                             }
                         is ColorDetailsError.Origin.SelectColor ->
                             viewModelScope.launchFetch(Operation.Fetch.ColorDetails) launch@{
-                                val viewModel = viewModel() ?: return@launch
+                                if (colorCenterComponentsStore.components !== components) return@launch // stale instance
+                                val viewModel = components.colorDetailsViewModel
                                 // the session is still ongoing, only the fetch failed
                                 viewModel.selectColor(origin.role)
                             }
                     }
+                }
             }
-        }
-
-        private fun viewModel(): ColorDetailsViewModel? =
-            colorCenterComponentsStore.components?.colorDetailsViewModel
     }
 
-    private inner class SelectedSwatchColorDetailsEventHandlerImpl : ColorDetailsEventHandler {
-        override fun invoke(event: ColorDetailsEvent) {
-            when (event) {
-                is ColorDetailsEvent.SelectColorAction -> {
-                    viewModelScope.launchFetch(Operation.Fetch.SwatchColorDetails) {
-                        viewModel()?.selectColor(event.colorRole)
+    private inner class SelectedSwatchColorDetailsActionExecutor(
+        private val components: ColorCenterComponents,
+    ) : ExecuteColorDetailsAction {
+
+        private val viewModel: ColorDetailsViewModel
+            get() = components.selectedSwatchColorDetailsViewModel
+
+        override operator fun invoke(action: ColorDetailsAction): Job =
+            when (action) {
+                is ColorDetailsAction.SelectColor -> {
+                    viewModelScope.launchFetch(Operation.Fetch.SwatchColorDetails) launch@{
+                        if (colorCenterComponentsStore.components !== components) return@launch // stale instance
+                        viewModel.selectColor(action.role)
                     }
                 }
-                is ColorDetailsEvent.RetryOnErrorAction -> {
+                is ColorDetailsAction.RetryOnError -> {
                     viewModelScope.launchFetch(Operation.Fetch.SwatchColorDetails) launch@{
-                        val viewModel = viewModel() ?: return@launch
-                        when (val origin = event.error.origin) {
+                        if (colorCenterComponentsStore.components !== components) return@launch // stale instance
+                        val origin =
+                            viewModel.stateFlow.value.asError()?.error?.origin ?: return@launch
+                        when (origin) {
                             // the swatch's seed comes from 'setSeedDetails', which cannot fail, so this origin is not reachable here
                             is ColorDetailsError.Origin.SetSeedColor -> {
                                 viewModel.setSeedColor(origin.color)
@@ -477,39 +503,54 @@ class HomeViewModel @Inject constructor(
                     }
                 }
             }
-        }
-
-        private fun viewModel(): ColorDetailsViewModel? =
-            colorCenterComponentsStore.components?.selectedSwatchColorDetailsViewModel
     }
 
-    private inner class ColorSchemeEventHandlerImpl : ColorSchemeEventHandler {
-        override fun invoke(event: ColorSchemeEvent) {
-            when (event) {
-                is ColorSchemeEvent.SelectSwatchAction -> {
+    private inner class ColorSchemeActionExecutor(
+        private val components: ColorCenterComponents,
+    ) : ExecuteColorSchemeAction {
+
+        private val viewModel: ColorSchemeViewModel
+            get() = components.colorSchemeViewModel
+
+        override fun invoke(action: ColorSchemeAction): Job =
+            when (action) {
+                is ColorSchemeAction.SelectSwatch -> {
                     viewModelScope.launchFetch(Operation.Fetch.SwatchColorDetails) launch@{
-                        val viewModel = colorCenterComponentsStore.components
-                            ?.selectedSwatchColorDetailsViewModel
-                            ?: return@launch
+                        if (colorCenterComponentsStore.components !== components) return@launch // stale instance
+                        val swatchDetails = viewModel.stateFlow.value.asReady()
+                            ?.domainColorScheme?.swatchDetails?.getOrNull(action.swatchIndex)
+                            ?: return@launch // stale invocation
+                        val swatchViewModel = components.selectedSwatchColorDetailsViewModel
                         // set the data first, so that the handle is published already populated
-                        viewModel.setSeedDetails(event.swatchColorDetails)
+                        swatchViewModel.setSeedDetails(swatchDetails)
                     }
                 }
-                is ColorSchemeEvent.ApplyChangesAction -> {
-                    viewModelScope.launchFetch(Operation.Fetch.ColorScheme) {
-                        viewModel()?.fetchColorScheme(event.seed)
+                is ColorSchemeAction.SelectMode -> {
+                    viewModel.selectMode(action.mode)
+                    Job()
+                }
+                is ColorSchemeAction.SelectSwatchCount -> {
+                    viewModel.selectSwatchCount(action.count)
+                    Job()
+                }
+                is ColorSchemeAction.ApplyChanges -> {
+                    viewModelScope.launchFetch(Operation.Fetch.ColorScheme) launch@{
+                        if (colorCenterComponentsStore.components !== components) return@launch // stale instance
+                        val ready =
+                            viewModel.stateFlow.value.asReady() ?: return@launch // stale invocation
+                        if (!ready.data.hasChangesToApply) return@launch // nothing to apply
+                        viewModel.fetchColorScheme(ready.request.seed)
                     }
                 }
-                is ColorSchemeEvent.RetryOnErrorAction -> {
-                    viewModelScope.launchFetch(Operation.Fetch.ColorScheme) {
-                        viewModel()?.fetchColorScheme(event.seed)
+                is ColorSchemeAction.RetryOnError -> {
+                    viewModelScope.launchFetch(Operation.Fetch.ColorScheme) launch@{
+                        if (colorCenterComponentsStore.components !== components) return@launch // stale instance
+                        val error =
+                            viewModel.stateFlow.value.asError() ?: return@launch // stale invocation
+                        viewModel.fetchColorScheme(error.request.seed)
                     }
                 }
             }
-        }
-
-        private fun viewModel(): ColorSchemeViewModel? =
-            colorCenterComponentsStore.components?.colorSchemeViewModel
     }
 
     /**

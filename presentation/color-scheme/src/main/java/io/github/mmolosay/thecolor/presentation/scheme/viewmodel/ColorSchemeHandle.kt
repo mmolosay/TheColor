@@ -12,10 +12,13 @@ data class ColorSchemeFacade(
     val execute: ExecuteColorSchemeAction,
 )
 
-fun ColorSchemeHandle(viewModel: ColorSchemeViewModel): ColorSchemeHandle =
+fun ColorSchemeHandle(
+    stateFlow: StateFlow<ColorSchemeState>,
+    execute: ExecuteColorSchemeAction,
+): ColorSchemeHandle =
     ColorSchemeHandleImpl(
-        stateFlow = viewModel.stateFlow,
-        execute = viewModel::execute,
+        stateFlow = stateFlow,
+        execute = execute,
     )
 
 private class ColorSchemeHandleImpl(

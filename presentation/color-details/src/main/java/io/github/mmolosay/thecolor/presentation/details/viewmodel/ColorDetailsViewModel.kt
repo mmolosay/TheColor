@@ -7,7 +7,6 @@ import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.domain.color.ColorComparator
 import io.github.mmolosay.thecolor.domain.color.ColorRepository
 import io.github.mmolosay.thecolor.domain.color.IsColorLightUseCase
-import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.IoDispatcher
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
@@ -16,14 +15,11 @@ import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsDa
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.completeWith
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.CopyOnWriteArraySet
 import javax.inject.Inject
@@ -40,46 +36,17 @@ import io.github.mmolosay.thecolor.domain.color.ColorDetails as DomainColorDetai
  */
 class ColorDetailsViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted private val eventHandler: ColorDetailsEventHandler,
     private val colorRepository: ColorRepository,
     private val createData: CreateColorDetailsDataUseCase,
     private val createSubjectColorData: CreateSubjectColorDataUseCase,
     private val colorComparator: ColorComparator,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-    @DefaultDispatcher defaultDispatcher: CoroutineDispatcher,
 ) : SimpleViewModel(coroutineScope) {
 
     private val _stateFlow = MutableStateFlow<ColorDetailsState>(ColorDetailsState.Idle)
     val stateFlow: StateFlow<ColorDetailsState> = _stateFlow.asStateFlow()
 
-    private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
     private val colorDetailsStore = ColorDetailsStore()
-
-    fun execute(action: ColorDetailsAction): Job =
-        coroutineScope.launch(exclusiveLane) {
-            when (action) {
-                is ColorDetailsAction.SelectColor -> {
-                    onSelectColor(role = action.role)
-                }
-                is ColorDetailsAction.RetryOnError -> {
-                    onRetryOnError()
-                }
-            }
-        }
-
-    private fun onSelectColor(role: ColorRole) {
-        val session = stateFlow.value.sessionOrNull() ?: return
-        val color = session.getByRole(role)
-        val event = ColorDetailsEvent.SelectColorAction(color, role)
-        eventHandler.offer(event)
-    }
-
-    private fun onRetryOnError() {
-        val state = stateFlow.value
-        if (state !is ColorDetailsState.Error) return // stale invocation
-        val event = ColorDetailsEvent.RetryOnErrorAction(state.error)
-        eventHandler.offer(event)
-    }
 
     /**
      * Sets the specified [color] as the "seed" color of this ViewModel.
@@ -219,16 +186,10 @@ class ColorDetailsViewModel @AssistedInject constructor(
         return null
     }
 
-    private fun ColorDetailsEventHandler.offer(event: ColorDetailsEvent) {
-        if (!coroutineScope.isActive) return
-        this.invoke(event)
-    }
-
     @AssistedFactory
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            eventHandler: ColorDetailsEventHandler,
         ): ColorDetailsViewModel
     }
 }

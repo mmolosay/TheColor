@@ -29,5 +29,11 @@ sealed interface ColorSchemeState {
     )
 }
 
+fun ColorSchemeState.asReady(): ColorSchemeState.Ready? =
+    this as? ColorSchemeState.Ready
+
+fun ColorSchemeState.asError(): ColorSchemeState.Error? =
+    this as? ColorSchemeState.Error
+
 internal fun ColorSchemeState.isAwaiting(request: ColorSchemeState.Request): Boolean =
     (this is ColorSchemeState.Loading) && (this.request == request)
