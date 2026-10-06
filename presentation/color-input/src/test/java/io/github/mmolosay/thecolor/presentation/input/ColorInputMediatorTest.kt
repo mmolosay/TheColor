@@ -4,6 +4,7 @@ import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator.ColorState
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.mockk
@@ -34,7 +35,7 @@ class ColorInputMediatorTest {
     fun `when SUT is initialized, then 'colorStateFlow' has correct initial value`() {
         createSut()
 
-        val expectedValue = ColorState(color = null, source = null, id = 0)
+        val expectedValue = ColorState(color = null, source = null, revision = ColorState.Revision(0))
         sut.colorState shouldBe expectedValue
     }
 
@@ -43,7 +44,7 @@ class ColorInputMediatorTest {
         runTest(testDispatcher) {
             createSut()
 
-            sut.set(color = null, source = null)
+            sut.set(color = null, source = null, revision = sut.newRevision())
 
             sut.colorState.color shouldBe null
         }
@@ -54,7 +55,7 @@ class ColorInputMediatorTest {
             createSut()
 
             val color = Color.Hex(0x0)
-            sut.set(color = color, source = null)
+            sut.set(color = color, source = null, revision = sut.newRevision())
 
             sut.colorState.color shouldBe color
         }
@@ -67,7 +68,7 @@ class ColorInputMediatorTest {
             val color = Color.Hex(0x0)
             val source = mockk<ColorState.Source>()
             sut.withLock { editor ->
-                editor.set(color = color, source = source)
+                editor.set(color = color, source = source, revision = sut.newRevision())
             }
 
             sut.colorState.color shouldBe color
@@ -86,8 +87,8 @@ class ColorInputMediatorTest {
             color1 shouldNotBe color2
             source1 shouldNotBe source2
             sut.withLock { editor ->
-                editor.set(color = color1, source = source1)
-                editor.set(color = color2, source = source2)
+                editor.set(color = color1, source = source1, revision = sut.newRevision())
+                editor.set(color = color2, source = source2, revision = sut.newRevision())
             }
 
             sut.colorState.color shouldBe color2
@@ -150,7 +151,7 @@ class ColorInputMediatorTest {
             suspend fun executeCoroutine() {
                 barrier.await() // ensure coroutine has started
                 sut.withLock { editor ->
-                    editor.set(color = color(index))
+                    editor.set(color = color(index), revision = sut.newRevision())
                     colorStates += sut.colorState
                     index++
                 }
@@ -180,7 +181,7 @@ class ColorInputMediatorTest {
             }
 
             shouldThrow<IllegalStateException> {
-                capturedEditor.set(color = Color.Hex(0x0))
+                capturedEditor.set(color = Color.Hex(0x0), revision = sut.newRevision())
             }
         }
 
@@ -196,9 +197,87 @@ class ColorInputMediatorTest {
             @Suppress("unused")
             sut.withLock { localEditor ->
                 shouldThrow<IllegalStateException> {
-                    capturedEditor.set(color = Color.Hex(0x0))
+                    capturedEditor.set(color = Color.Hex(0x0), revision = sut.newRevision())
                 }
             }
+        }
+
+    @Test
+    fun `when new revisions are taken one after another, then each is later than the previous one`() {
+        createSut()
+
+        val first = sut.newRevision()
+        val second = sut.newRevision()
+
+        second shouldBeGreaterThan first
+        first shouldBeGreaterThan sut.colorState.revision
+    }
+
+    @RepeatedTest(10) // executed sequentially (by default)
+    fun `when new revisions are taken concurrently, then all of them are distinct`() =
+        runTest(testDispatcher) {
+            createSut()
+
+            val numberOfThreads = 10
+            val revisionsPerThread = 100
+            val dispatcher = Executors.newFixedThreadPool(numberOfThreads).asCoroutineDispatcher()
+            val barrier = CyclicBarrier(numberOfThreads)
+            val revisions = Collections.synchronizedList<ColorState.Revision>(mutableListOf())
+            coroutineScope {
+                repeat(numberOfThreads) {
+                    launch(dispatcher) {
+                        barrier.await() // ensure coroutines start at the same time
+                        repeat(revisionsPerThread) {
+                            revisions += sut.newRevision()
+                        }
+                    }
+                }
+            }
+
+            revisions.toSet().size shouldBe (numberOfThreads * revisionsPerThread)
+            dispatcher.close()
+        }
+
+    @Test
+    fun `when a change is set with a later revision, then it is applied`() =
+        runTest(testDispatcher) {
+            createSut()
+
+            val color = Color.Hex(0x0)
+            val revision = sut.newRevision()
+            val isApplied = sut.set(color = color, source = null, revision = revision)
+
+            isApplied shouldBe true
+            sut.colorState shouldBe ColorState(color = color, source = null, revision = revision)
+        }
+
+    @Test
+    fun `when a change is set with an earlier revision than the current state's, then it is ignored`() =
+        runTest(testDispatcher) {
+            createSut()
+            val earlierRevision = sut.newRevision()
+            val laterRevision = sut.newRevision()
+            sut.set(color = Color.Hex(0x1), source = null, revision = laterRevision)
+            val stateBefore = sut.colorState
+
+            val isApplied = sut.set(color = Color.Hex(0x0), source = null, revision = earlierRevision)
+
+            isApplied shouldBe false
+            sut.colorState shouldBe stateBefore
+        }
+
+    @Test
+    fun `when a change is set with the same revision as the current state's, then it is ignored`() =
+        runTest(testDispatcher) {
+            createSut()
+            val revision = sut.newRevision()
+            sut.set(color = Color.Hex(0x1), source = null, revision = revision)
+            val stateBefore = sut.colorState
+
+            val isApplied = sut.set(color = Color.Hex(0x0), source = null, revision = revision)
+
+            isApplied shouldBe false
+            sut.colorState shouldBe stateBefore
         }
 
     fun createSut() =

@@ -145,7 +145,7 @@ class HomeViewModelTest {
     fun `given color from Color Input is not 'null', when SUT is created, then data has 'CanProceed Yes'`() {
         mockStoresWithEmptyFlows()
         every { colorInputMediator.colorStateFlow } returns run {
-            val value = ColorInputMediator.ColorState(color = Color.Hex(0x0), source = null, id = 0)
+            val value = ColorInputMediator.ColorState(color = Color.Hex(0x0), source = null, revision = ColorInputMediator.ColorState.Revision(0))
             MutableStateFlow(value)
         }
 
@@ -158,7 +158,7 @@ class HomeViewModelTest {
     fun `given color from color input is 'null', when SUT is created, then data has 'CanProceed No'`() {
         mockStoresWithEmptyFlows()
         every { colorInputMediator.colorStateFlow } returns run {
-            val value = ColorInputMediator.ColorState(color = null, source = null, id = 0)
+            val value = ColorInputMediator.ColorState(color = null, source = null, revision = ColorInputMediator.ColorState.Revision(0))
             MutableStateFlow(value)
         }
 
@@ -173,7 +173,7 @@ class HomeViewModelTest {
             mockStoresWithEmptyFlows()
             // from other tests, we know that this will produce 'CanProceed.No' in data
             val colorStateFlow = run {
-                val value = ColorInputMediator.ColorState(color = null, source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = null, source = null, revision = ColorInputMediator.ColorState.Revision(0))
                 MutableStateFlow(value)
             }
             every { colorInputMediator.colorStateFlow } returns colorStateFlow
@@ -181,7 +181,7 @@ class HomeViewModelTest {
 
             val color = mockk<Color>()
             run emitColorFromColorInput@{
-                val value = ColorInputMediator.ColorState(color = color, source = null, id = 1)
+                val value = ColorInputMediator.ColorState(color = color, source = null, revision = ColorInputMediator.ColorState.Revision(1))
                 colorStateFlow.emit(value)
             }
 
@@ -193,14 +193,14 @@ class HomeViewModelTest {
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             val colorStateFlow = run {
-                val value = ColorInputMediator.ColorState(color = null, source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = null, source = null, revision = ColorInputMediator.ColorState.Revision(0))
                 MutableStateFlow(value)
             }
             every { colorInputMediator.colorStateFlow } returns colorStateFlow
             createSut()
 
             run emitColorFromColorInput@{
-                val value = ColorInputMediator.ColorState(color = null, source = null, id = 1)
+                val value = ColorInputMediator.ColorState(color = null, source = null, revision = ColorInputMediator.ColorState.Revision(1))
                 colorStateFlow.emit(value)
             }
 
@@ -230,7 +230,7 @@ class HomeViewModelTest {
             val exactColorInRgb = Color.Rgb(1, 2, 3)
             val exactColorInHex = Color.Hex(0x010203)
             val colorStateFlow = run {
-                val value = ColorInputMediator.ColorState(color = initialColorInHex, source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = initialColorInHex, source = null, revision = ColorInputMediator.ColorState.Revision(0))
                 MutableStateFlow(value)
             }
             every { colorInputMediator.colorStateFlow } returns colorStateFlow
@@ -269,7 +269,7 @@ class HomeViewModelTest {
                 colorDetailsEventFlow.emit(event)
             }
             run emitExactColorFromColorInput@{
-                val value = ColorInputMediator.ColorState(color = exactColorInRgb, source = null, id = 1)
+                val value = ColorInputMediator.ColorState(color = exactColorInRgb, source = null, revision = ColorInputMediator.ColorState.Revision(1))
                 colorStateFlow.emit(value)
             }
 
@@ -287,7 +287,7 @@ class HomeViewModelTest {
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             val colorStateFlow = run {
-                val value = ColorInputMediator.ColorState(color = null, source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = null, source = null, revision = ColorInputMediator.ColorState.Revision(0))
                 MutableStateFlow(value)
             }
             every { colorInputMediator.colorStateFlow } returns colorStateFlow
@@ -301,7 +301,7 @@ class HomeViewModelTest {
 
             val color = Color.Hex(0x0)
             run emitExactColorFromColorInput@{
-                val value = ColorInputMediator.ColorState(color = color, source = null, id = 1)
+                val value = ColorInputMediator.ColorState(color = color, source = null, revision = ColorInputMediator.ColorState.Revision(1))
                 colorStateFlow.emit(value)
             }
             sut.flowOfDataUpdateLatch.value shouldBe ClosedLatch // data transaction has started and is ongoing
@@ -316,7 +316,7 @@ class HomeViewModelTest {
             mockStoresWithEmptyFlows()
             val color = Color.Hex(0x0)
             every { colorInputMediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = color, source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = color, source = null, revision = ColorInputMediator.ColorState.Revision(0))
                 MutableStateFlow(value)
             }
             every { createColorData(color) } returns mockk()
@@ -338,7 +338,7 @@ class HomeViewModelTest {
     fun `given there is a not-null color in Color Input, when 'proceed' action is invoked, then 'proceedResult' is updated`() {
         mockStoresWithEmptyFlows()
         every { colorInputMediator.colorStateFlow } returns run {
-            val value = ColorInputMediator.ColorState(color = Color.Hex(0x0), source = null, id = 0)
+            val value = ColorInputMediator.ColorState(color = Color.Hex(0x0), source = null, revision = ColorInputMediator.ColorState.Revision(0))
             MutableStateFlow(value)
         }
         val colorData: ProceedResult.Success.ColorData = mockk()
@@ -370,7 +370,7 @@ class HomeViewModelTest {
             mockStoresWithEmptyFlows()
             val color = Color.Hex(0x0)
             every { colorInputMediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = color, source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = color, source = null, revision = ColorInputMediator.ColorState.Revision(0))
                 MutableStateFlow(value)
             }
             every { createColorData(color) } returns mockk()
@@ -406,7 +406,7 @@ class HomeViewModelTest {
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             every { colorInputMediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = Color.Hex(0x0), source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = Color.Hex(0x0), source = null, revision = ColorInputMediator.ColorState.Revision(0))
                 MutableStateFlow(value)
             }
             val colorData: ProceedResult.Success.ColorData = mockk()
@@ -439,7 +439,7 @@ class HomeViewModelTest {
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             every { colorInputMediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = Color.Hex(0x0), source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = Color.Hex(0x0), source = null, revision = ColorInputMediator.ColorState.Revision(0))
                 MutableStateFlow(value)
             }
             val colorData: ProceedResult.Success.ColorData = mockk()
@@ -470,7 +470,7 @@ class HomeViewModelTest {
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             every { colorInputMediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = Color.Hex(0x0), source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = Color.Hex(0x0), source = null, revision = ColorInputMediator.ColorState.Revision(0))
                 MutableStateFlow(value)
             }
             val colorData: ProceedResult.Success.ColorData = mockk()
@@ -501,7 +501,7 @@ class HomeViewModelTest {
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             every { colorInputMediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = Color.Hex(0x0), source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = Color.Hex(0x0), source = null, revision = ColorInputMediator.ColorState.Revision(0))
                 MutableStateFlow(value)
             }
             val colorData: ProceedResult.Success.ColorData = mockk()
@@ -533,7 +533,7 @@ class HomeViewModelTest {
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             every { colorInputMediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = Color.Hex(0x0), source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = Color.Hex(0x0), source = null, revision = ColorInputMediator.ColorState.Revision(0))
                 MutableStateFlow(value)
             }
             val colorData: ProceedResult.Success.ColorData = mockk()
@@ -558,7 +558,7 @@ class HomeViewModelTest {
             val initialColor = Color.Hex(0x0)
             val exactColor = Color.Hex(0x1)
             val colorStateFlow = run {
-                val value = ColorInputMediator.ColorState(color = initialColor, source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = initialColor, source = null, revision = ColorInputMediator.ColorState.Revision(0))
                 MutableStateFlow(value)
             }
             every { colorInputMediator.colorStateFlow } returns colorStateFlow
@@ -596,13 +596,13 @@ class HomeViewModelTest {
                 colorDetailsEventFlow.emit(event)
             }
             run emitExactColorFromColorInput@{
-                val value = ColorInputMediator.ColorState(color = exactColor, source = null, id = 1)
+                val value = ColorInputMediator.ColorState(color = exactColor, source = null, revision = ColorInputMediator.ColorState.Revision(1))
                 colorStateFlow.emit(value)
             }
 
             coVerify {
-                colorInputMediator.withLock(block = any())
-                colorInputMediatorComponents.editor.set(color = exactColor, source = null)
+                colorInputMediator.withLock<Any?>(block = any())
+                colorInputMediatorComponents.editor.set(color = exactColor, source = null, revision = any())
             }
         }
 
@@ -613,18 +613,19 @@ class HomeViewModelTest {
             val initialColor = Color.Hex(0x0)
             val exactColor = Color.Hex(0x1)
             val colorStateFlow = run {
-                val value = ColorInputMediator.ColorState(color = initialColor, source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = initialColor, source = null, revision = ColorInputMediator.ColorState.Revision(0))
                 MutableStateFlow(value)
             }
             every { colorInputMediator.colorStateFlow } returns colorStateFlow
             coEvery {
-                colorInputMediator.withLock(block = any())
+                colorInputMediator.withLock<Any?>(block = any())
             } coAnswers  {
-                val block = firstArg<suspend (ColorInputMediator.Editor) -> Unit>()
+                val block = firstArg<suspend (ColorInputMediator.Editor) -> Any?>()
                 val editor = colorInputMediatorComponents.editor
-                editor.mockSet { color, source ->
-                    val value = ColorInputMediator.ColorState(color = color, source = source, id = 1)
+                editor.mockSet { color, source, revision ->
+                    val value = ColorInputMediator.ColorState(color = color, source = source, revision = revision)
                     colorStateFlow.emit(value)
+                    true // applied
                 }
                 block.invoke(editor)
             }
@@ -678,7 +679,7 @@ class HomeViewModelTest {
             val initialColor = Color.Hex(0x0)
             val exactColor = Color.Hex(0x1)
             val colorStateFlow = run {
-                val value = ColorInputMediator.ColorState(color = initialColor, source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = initialColor, source = null, revision = ColorInputMediator.ColorState.Revision(0))
                 MutableStateFlow(value)
             }
             every { colorInputMediator.colorStateFlow } returns colorStateFlow
@@ -721,7 +722,7 @@ class HomeViewModelTest {
                     colorDetailsEventFlow.emit(event)
                 }
                 run emitExactColorFromColorInput@{
-                    val value = ColorInputMediator.ColorState(color = exactColor, source = null, id = 0)
+                    val value = ColorInputMediator.ColorState(color = exactColor, source = null, revision = ColorInputMediator.ColorState.Revision(0))
                     colorStateFlow.emit(value)
                 }
 
@@ -738,7 +739,7 @@ class HomeViewModelTest {
             val initialColor = Color.Hex(0x0)
             val exactColor = Color.Hex(0x1)
             val colorStateFlow = run {
-                val value = ColorInputMediator.ColorState(color = initialColor, source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = initialColor, source = null, revision = ColorInputMediator.ColorState.Revision(0))
                 MutableStateFlow(value)
             }
             every { colorInputMediator.colorStateFlow } returns colorStateFlow
@@ -777,7 +778,7 @@ class HomeViewModelTest {
                 colorDetailsEventFlow.emit(event)
             }
             run emitExactColorFromColorInput@{
-                val value = ColorInputMediator.ColorState(color = exactColor, source = null, id = 1)
+                val value = ColorInputMediator.ColorState(color = exactColor, source = null, revision = ColorInputMediator.ColorState.Revision(1))
                 colorStateFlow.emit(value)
             }
 
@@ -811,7 +812,7 @@ class HomeViewModelTest {
             val initialColor = Color.Hex(0x0)
             val exactColor = Color.Hex(0x1)
             val colorStateFlow = run {
-                val value = ColorInputMediator.ColorState(color = initialColor, source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = initialColor, source = null, revision = ColorInputMediator.ColorState.Revision(0))
                 MutableStateFlow(value)
             }
             every { colorInputMediator.colorStateFlow } returns colorStateFlow
@@ -853,7 +854,7 @@ class HomeViewModelTest {
                 }
             }
             run emitExactColorFromColorInput@{
-                val value = ColorInputMediator.ColorState(color = exactColor, source = null, id = 1)
+                val value = ColorInputMediator.ColorState(color = exactColor, source = null, revision = ColorInputMediator.ColorState.Revision(1))
                 colorStateFlow.emit(value)
             }
             run emitSeedColorSelectedEvent@{
@@ -864,7 +865,7 @@ class HomeViewModelTest {
                 colorDetailsEventFlow.emit(event)
             }
             run emitInitialColorFromColorInput@{
-                val value = ColorInputMediator.ColorState(color = initialColor, source = null, id = 2)
+                val value = ColorInputMediator.ColorState(color = initialColor, source = null, revision = ColorInputMediator.ColorState.Revision(2))
                 colorStateFlow.emit(value)
             }
 
@@ -892,7 +893,7 @@ class HomeViewModelTest {
             mockStoresWithEmptyFlows()
             val initialColor = Color.Hex(0x0)
             every { colorInputMediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = initialColor, source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = initialColor, source = null, revision = ColorInputMediator.ColorState.Revision(0))
                 MutableStateFlow(value)
             }
             val colorSchemeEventFlow = MutableViewModelEventFlow<ColorSchemeEvent>()
@@ -916,7 +917,7 @@ class HomeViewModelTest {
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             every { colorInputMediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = Color.Hex(0x0), source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = Color.Hex(0x0), source = null, revision = ColorInputMediator.ColorState.Revision(0))
                 MutableStateFlow(value)
             }
             val colorSchemeEventFlow = MutableViewModelEventFlow<ColorSchemeEvent>()
@@ -946,7 +947,7 @@ class HomeViewModelTest {
             mockStoresWithEmptyFlows()
             val initialColor = Color.Hex(0x0)
             val colorStateFlow = run {
-                val value = ColorInputMediator.ColorState(color = initialColor, source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = initialColor, source = null, revision = ColorInputMediator.ColorState.Revision(0))
                 MutableStateFlow(value)
             }
             every { colorInputMediator.colorStateFlow } returns colorStateFlow
@@ -956,7 +957,7 @@ class HomeViewModelTest {
             // we know from other tests that it would be 'CanProceed.Yes'
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
             run emitNullColorFromColorInput@{
-                val value = ColorInputMediator.ColorState(color = null, source = null, id = 1)
+                val value = ColorInputMediator.ColorState(color = null, source = null, revision = ColorInputMediator.ColorState.Revision(1))
                 colorStateFlow.emit(value)
             }
 
@@ -969,7 +970,7 @@ class HomeViewModelTest {
             mockStoresWithEmptyFlows()
             val initialColor = Color.Hex(0x0)
             val colorStateFlow = run {
-                val value = ColorInputMediator.ColorState(color = initialColor, source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = initialColor, source = null, revision = ColorInputMediator.ColorState.Revision(0))
                 MutableStateFlow(value)
             }
             every { colorInputMediator.colorStateFlow } returns colorStateFlow
@@ -981,7 +982,7 @@ class HomeViewModelTest {
             // we know from other tests that it would be 'CanProceed.Yes'
             data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed.invoke()
             run emitNewColorFromColorInput@{
-                val value = ColorInputMediator.ColorState(color = Color.Hex(0x1), source = null, id = 1)
+                val value = ColorInputMediator.ColorState(color = Color.Hex(0x1), source = null, revision = ColorInputMediator.ColorState.Revision(1))
                 colorStateFlow.emit(value)
             }
 
@@ -1001,7 +1002,7 @@ class HomeViewModelTest {
             val initialColorInHex = Color.Hex(0x1A803F)
             val exactColor = Color.Hex(0x126B40)
             val colorStateFlow = run {
-                val value = ColorInputMediator.ColorState(color = initialColorInRgb, source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = initialColorInRgb, source = null, revision = ColorInputMediator.ColorState.Revision(0))
                 MutableStateFlow(value)
             }
             every { colorInputMediator.colorStateFlow } returns colorStateFlow
@@ -1039,7 +1040,7 @@ class HomeViewModelTest {
                 colorDetailsEventFlow.emit(event)
             }
             run emitExactColorFromColorInput@{
-                val value = ColorInputMediator.ColorState(color = exactColor, source = null, id = 1)
+                val value = ColorInputMediator.ColorState(color = exactColor, source = null, revision = ColorInputMediator.ColorState.Revision(1))
                 colorStateFlow.emit(value)
             }
 
@@ -1053,7 +1054,7 @@ class HomeViewModelTest {
             val initialColor = Color.Hex(0x0)
             val exactColor = Color.Hex(0x1)
             val colorStateFlow = run {
-                val value = ColorInputMediator.ColorState(color = initialColor, source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = initialColor, source = null, revision = ColorInputMediator.ColorState.Revision(0))
                 MutableStateFlow(value)
             }
             every { colorInputMediator.colorStateFlow } returns colorStateFlow
@@ -1086,7 +1087,7 @@ class HomeViewModelTest {
                 data.canProceed.shouldBeInstanceOf<CanProceed.Yes>().proceed()
             }
             run emitNullColorFromColorInput@{
-                val value = ColorInputMediator.ColorState(color = null, source = null, id = 1)
+                val value = ColorInputMediator.ColorState(color = null, source = null, revision = ColorInputMediator.ColorState.Revision(1))
                 colorStateFlow.emit(value)
             }
 
@@ -1132,7 +1133,7 @@ class HomeViewModelTest {
             val secondColor = Color.Hex(0x2)
             val exactColorForSecond = Color.Hex(0x3)
             val colorStateFlow = run {
-                val value = ColorInputMediator.ColorState(color = firstColor, source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = firstColor, source = null, revision = ColorInputMediator.ColorState.Revision(0))
                 MutableStateFlow(value)
             }
             every { colorInputMediator.colorStateFlow } returns colorStateFlow
@@ -1189,7 +1190,7 @@ class HomeViewModelTest {
             }
             run emitSecondColorFromColorInput@{
                 val value =
-                    ColorInputMediator.ColorState(color = secondColor, source = null, id = 1)
+                    ColorInputMediator.ColorState(color = secondColor, source = null, revision = ColorInputMediator.ColorState.Revision(1))
                 colorStateFlow.emit(value)
             }
             run proceedWithSecondColor@{
@@ -1201,7 +1202,7 @@ class HomeViewModelTest {
             }
             run emitExactColorForFirstColorFromColorInput@{
                 val value =
-                    ColorInputMediator.ColorState(color = exactColorForFirst, source = null, id = 2)
+                    ColorInputMediator.ColorState(color = exactColorForFirst, source = null, revision = ColorInputMediator.ColorState.Revision(2))
                 colorStateFlow.emit(value)
             }
 
@@ -1216,7 +1217,7 @@ class HomeViewModelTest {
             val exactColor = Color.Hex(0x1)
             every { colorInputMediator.colorStateFlow } returns run {
                 val value =
-                    ColorInputMediator.ColorState(color = initialColor, source = null, id = 0)
+                    ColorInputMediator.ColorState(color = initialColor, source = null, revision = ColorInputMediator.ColorState.Revision(0))
                 MutableStateFlow(value)
             }
             val colorDetailsEventFlow = MutableViewModelEventFlow<ColorDetailsEvent>()
@@ -1288,7 +1289,7 @@ class HomeViewModelTest {
             coEvery { lastSearchedColorRepository.getLastSearchedColor() } returns lastSearchedColor
             mockStoresWithEmptyFlows()
             val colorStateFlow = run {
-                val value = ColorInputMediator.ColorState(color = null, source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = null, source = null, revision = ColorInputMediator.ColorState.Revision(0))
                 MutableStateFlow(value)
             }
             every { colorInputMediator.colorStateFlow } returns colorStateFlow
@@ -1303,10 +1304,10 @@ class HomeViewModelTest {
                 } coAnswers {
                     val block = slotOfBlock.captured
                     val editor = colorInputMediatorComponents.editor
-                    editor.mockSet { color, source ->
-                        val value =
-                            ColorInputMediator.ColorState(color = color, source = source, id = 1)
+                    editor.mockSet { color, source, revision ->
+                        val value = ColorInputMediator.ColorState(color = color, source = source, revision = revision)
                         colorStateFlow.emit(value)
+                        true // applied
                     }
                     block.invoke(editor)
                 }
@@ -1325,7 +1326,7 @@ class HomeViewModelTest {
             val initialColor = Color.Hex(0x0)
             val exactColor = Color.Hex(0x1)
             val colorStateFlow = run {
-                val value = ColorInputMediator.ColorState(color = initialColor, source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = initialColor, source = null, revision = ColorInputMediator.ColorState.Revision(0))
                 MutableStateFlow(value)
             }
             every { colorInputMediator.colorStateFlow } returns colorStateFlow
@@ -1363,7 +1364,7 @@ class HomeViewModelTest {
                 colorDetailsEventFlow.emit(event)
             }
             run emitExactColorFromColorInput@{
-                val value = ColorInputMediator.ColorState(color = exactColor, source = null, id = 1)
+                val value = ColorInputMediator.ColorState(color = exactColor, source = null, revision = ColorInputMediator.ColorState.Revision(1))
                 colorStateFlow.emit(value)
             }
 
@@ -1389,8 +1390,8 @@ class HomeViewModelTest {
             data.randomizeColor()
 
             coVerify(exactly = 1) {
-                colorInputMediator.withLock(block = any())
-                colorInputMediatorComponents.editor.set(color = randomColor, source = null)
+                colorInputMediator.withLock<Any?>(block = any())
+                colorInputMediatorComponents.editor.set(color = randomColor, source = null, revision = any())
             }
         }
 
@@ -1399,7 +1400,7 @@ class HomeViewModelTest {
         runTest(testDispatcher) {
             mockStoresWithEmptyFlows()
             val colorStateFlow = run {
-                val value = ColorInputMediator.ColorState(color = null, source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = null, source = null, revision = ColorInputMediator.ColorState.Revision(0))
                 MutableStateFlow(value)
             }
             every { colorInputMediator.colorStateFlow } returns colorStateFlow
@@ -1417,7 +1418,7 @@ class HomeViewModelTest {
 
             data.randomizeColor()
             run emitRandomColorFromColorInput@{
-                val value = ColorInputMediator.ColorState(color = randomColor, source = null, id = 1)
+                val value = ColorInputMediator.ColorState(color = randomColor, source = null, revision = ColorInputMediator.ColorState.Revision(1))
                 colorStateFlow.emit(value)
             }
 

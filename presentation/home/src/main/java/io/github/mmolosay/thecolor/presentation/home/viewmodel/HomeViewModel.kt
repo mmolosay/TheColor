@@ -150,7 +150,7 @@ class HomeViewModel @Inject constructor(
         onColorBecameCurrent(color)
         setProceedResult(color)
         return launchTransition(Operation.Transition.Proceed) {
-            colorInputMediator.set(color)
+            colorInputMediator.set(color, revision = colorInputMediator.newRevision())
             val deferredDetails = CompletableDeferred<DomainColorDetails>()
             startColorCenterSession(seed = color, deferredDetails = deferredDetails)
             launchFetch(Operation.Fetch.ColorDetails) {
@@ -195,7 +195,7 @@ class HomeViewModel @Inject constructor(
     private fun proceed(): Job =
         launchTransition(Operation.Transition.Proceed) launch@{
             val color = colorInputMediator.colorState.color ?: return@launch // invalid state
-            colorInputMediator.set(color)
+            colorInputMediator.set(color, revision = colorInputMediator.newRevision())
             proceedWith(color)
         }
 
@@ -205,7 +205,7 @@ class HomeViewModel @Inject constructor(
             // take the lock before producing the color, so no mediator update lands between the two
             colorInputMediator.withLock { editor ->
                 color = getPredictableRandomColor()
-                editor.set(color)
+                editor.set(color, revision = colorInputMediator.newRevision())
             }
             val shouldProceed = userPreferencesRepository
                 .flowOfAutoProceedWithRandomizedColors
@@ -392,7 +392,7 @@ class HomeViewModel @Inject constructor(
                 is ColorInputValidationResult.Valid -> {
                     launchTransition(Operation.Transition.Proceed) {
                         val color = validationResult.color
-                        colorInputMediator.set(color)
+                        colorInputMediator.set(color, revision = colorInputMediator.newRevision())
                         proceedWith(color)
                     }
                     return true
@@ -425,7 +425,7 @@ class HomeViewModel @Inject constructor(
                         val color = viewModel.stateFlow.value.colorOrNull(action.role)
                             ?: return@launch // stale invocation
                         ccSessionStore.sessionState.mustBeOngoing()
-                        colorInputMediator.set(color)
+                        colorInputMediator.set(color, revision = colorInputMediator.newRevision())
                         updateState {
                             onColorBecameCurrent(color)
                             // assuming any color selected belongs to ongoing session

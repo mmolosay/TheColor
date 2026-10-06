@@ -95,7 +95,7 @@ class ColorInputRgbViewModelTest {
             val color = Color.Hex(0x1A803F)
             val colorInRgb = Color.Rgb(26, 128, 63)
             every { mediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = color, source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = color, source = null, revision = ColorInputMediator.ColorState.Revision(0))
                 MutableStateFlow(value)
             }
             with(colorConverter) {
@@ -118,7 +118,7 @@ class ColorInputRgbViewModelTest {
             val color = Color.Hex(0x1A803F)
             val colorInRgb = Color.Rgb(26, 128, 63)
             every { mediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = color, source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = color, source = null, revision = ColorInputMediator.ColorState.Revision(0))
                 MutableStateFlow(value)
             }
             with(colorInputValidator) {
@@ -135,7 +135,7 @@ class ColorInputRgbViewModelTest {
             createSut()
 
             coVerify(exactly = 0) {
-                mediatorComponents.editor.set(color = any(), source = any())
+                mediatorComponents.editor.set(color = any(), source = any(), revision = any())
             }
         }
 
@@ -159,6 +159,7 @@ class ColorInputRgbViewModelTest {
                 mediatorComponents.editor.set(
                     color = color,
                     source = ColorInputSource(DomainColorInputType.Rgb),
+                    revision = any(),
                 )
             }
         }
@@ -187,6 +188,7 @@ class ColorInputRgbViewModelTest {
                 mediatorComponents.editor.set(
                     color = null,
                     source = ColorInputSource(DomainColorInputType.Rgb),
+                    revision = any(),
                 )
             }
         }
@@ -210,7 +212,7 @@ class ColorInputRgbViewModelTest {
             }
 
             coVerify(exactly = 0) {
-                mediatorComponents.editor.set(color = any(), source = any())
+                mediatorComponents.editor.set(color = any(), source = any(), revision = any())
             }
         }
 
@@ -245,9 +247,9 @@ class ColorInputRgbViewModelTest {
                         ColorInputValidationResult.Valid(latestColor)
             }
             val lockRelease = CompletableDeferred<Unit>()
-            coEvery { mediator.withLock(block = any()) } coAnswers {
+            coEvery { mediator.withLock<Any?>(block = any()) } coAnswers {
                 lockRelease.await()
-                val block = firstArg<suspend (ColorInputMediator.Editor) -> Unit>()
+                val block = firstArg<suspend (ColorInputMediator.Editor) -> Any?>()
                 block.invoke(mediatorComponents.editor)
             }
             createSut()
@@ -262,12 +264,13 @@ class ColorInputRgbViewModelTest {
 
             // THEN
             coVerify(exactly = 0) {
-                mediatorComponents.editor.set(color = firstColor, source = any())
+                mediatorComponents.editor.set(color = firstColor, source = any(), revision = any())
             }
             coVerify(exactly = 1) {
                 mediatorComponents.editor.set(
                     color = latestColor,
                     source = ColorInputSource(DomainColorInputType.Rgb),
+                    revision = any(),
                 )
             }
         }
@@ -291,7 +294,7 @@ class ColorInputRgbViewModelTest {
                 val value = ColorInputMediator.ColorState(
                     color = color,
                     source = ColorInputSource(DomainColorInputType.Hex),
-                    id = 1,
+                    revision = ColorInputMediator.ColorState.Revision(1),
                 )
                 colorStateFlow.emit(value)
             }
@@ -313,7 +316,7 @@ class ColorInputRgbViewModelTest {
                 val value = ColorInputMediator.ColorState(
                     color = color,
                     source = ColorInputSource(DomainColorInputType.Rgb),
-                    id = 1,
+                    revision = ColorInputMediator.ColorState.Revision(1),
                 )
                 colorStateFlow.emit(value)
             }

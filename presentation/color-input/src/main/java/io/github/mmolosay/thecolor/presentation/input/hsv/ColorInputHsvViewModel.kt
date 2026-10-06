@@ -10,6 +10,7 @@ import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
 import io.github.mmolosay.thecolor.presentation.input.ColorInputSource
 import io.github.mmolosay.thecolor.presentation.input.colorState
+import io.github.mmolosay.thecolor.presentation.input.set
 import io.github.mmolosay.thecolor.utils.Sampler
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -46,23 +47,18 @@ class ColorInputHsvViewModel @AssistedInject constructor(
     val dataFlow: StateFlow<ColorInputHsvData> = _dataFlow.asStateFlow()
 
     private var sampleProcessingJob: Job? = null // 'onSampleProduced' is never invoked concurrently
-    private val samplerForNewColors = Sampler<ColorWithId>(
+    private val samplerForNewColors = Sampler<ColorWithRevision>(
         period = 200.milliseconds,
         coroutineScope = coroutineScope,
-    ) { colorWithId ->
+    ) { (color, revision) ->
         sampleProcessingJob?.cancel()
         coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) {
-            mediator.withLock { editor ->
-                val state = mediator.colorState
-                val source = state.source
-                val isOwnChange = (source is ColorInputSource && source.type == DomainColorInputType.Hsv)
-                val hasIdChanged = (state.id != colorWithId.mediatorStateId)
-                if (hasIdChanged && !isOwnChange) return@withLock
-                editor.set(
-                    color = colorWithId.color,
-                    source = ColorInputSource(DomainColorInputType.Hsv),
-                )
-            }
+            // ignored by the mediator if a later change has been made meanwhile
+            mediator.set(
+                color = color,
+                source = ColorInputSource(DomainColorInputType.Hsv),
+                revision = revision,
+            )
         }.also { sampleProcessingJob = it }
     }
 
@@ -96,17 +92,16 @@ class ColorInputHsvViewModel @AssistedInject constructor(
         _dataFlow.update {
             it.copy(color = newColor)
         }
-        val colorWithId = ColorWithId(color = newColor, mediatorStateId = mediator.colorState.id)
-        samplerForNewColors.offer(colorWithId)
+        val colorWithRevision = ColorWithRevision(color = newColor, revision = mediator.newRevision())
+        samplerForNewColors.offer(colorWithRevision)
     }
 
     /**
-     * Couples [color] received via [setColor] with [ColorInputMediator.ColorState.id]
-     * at the moment when [color] was received.
+     * Couples [color] received via [setColor] with the [ColorInputMediator.ColorState.Revision] of that change.
      */
-    private data class ColorWithId(
+    private data class ColorWithRevision(
         val color: Color.Hsv,
-        val mediatorStateId: Int,
+        val revision: ColorInputMediator.ColorState.Revision,
     )
 
     @AssistedFactory

@@ -85,7 +85,7 @@ class ColorInputHexViewModelTest {
         runTest(testDispatcher) {
             val color = Color.Hex(0x1A803F)
             every { mediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = color, source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = color, source = null, revision = ColorInputMediator.ColorState.Revision(0))
                 MutableStateFlow(value)
             }
             with(colorConverter) {
@@ -105,7 +105,7 @@ class ColorInputHexViewModelTest {
         runTest(testDispatcher) {
             val color = Color.Hex(0x1A803F)
             every { mediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = color, source = null, id = 0)
+                val value = ColorInputMediator.ColorState(color = color, source = null, revision = ColorInputMediator.ColorState.Revision(0))
                 MutableStateFlow(value)
             }
             with(colorInputValidator) {
@@ -121,7 +121,7 @@ class ColorInputHexViewModelTest {
             createSut()
 
             coVerify(exactly = 0) {
-                mediatorComponents.editor.set(color = any(), source = any())
+                mediatorComponents.editor.set(color = any(), source = any(), revision = any())
             }
         }
 
@@ -147,6 +147,7 @@ class ColorInputHexViewModelTest {
                 mediatorComponents.editor.set(
                     color = color,
                     source = ColorInputSource(DomainColorInputType.Hex),
+                    revision = any(),
                 )
             }
         }
@@ -177,6 +178,7 @@ class ColorInputHexViewModelTest {
                 mediatorComponents.editor.set(
                     color = null,
                     source = ColorInputSource(DomainColorInputType.Hex),
+                    revision = any(),
                 )
             }
         }
@@ -200,7 +202,7 @@ class ColorInputHexViewModelTest {
             }
 
             coVerify(exactly = 0) {
-                mediatorComponents.editor.set(color = any(), source = any())
+                mediatorComponents.editor.set(color = any(), source = any(), revision = any())
             }
         }
 
@@ -233,9 +235,9 @@ class ColorInputHexViewModelTest {
                 every { ColorInput.Hex("123456").validate() } returns ColorInputValidationResult.Valid(latestColor)
             }
             val lockRelease = CompletableDeferred<Unit>()
-            coEvery { mediator.withLock(block = any()) } coAnswers {
+            coEvery { mediator.withLock<Any?>(block = any()) } coAnswers {
                 lockRelease.await()
-                val block = firstArg<suspend (ColorInputMediator.Editor) -> Unit>()
+                val block = firstArg<suspend (ColorInputMediator.Editor) -> Any?>()
                 block.invoke(mediatorComponents.editor)
             }
             createSut()
@@ -253,12 +255,13 @@ class ColorInputHexViewModelTest {
 
             // THEN
             coVerify(exactly = 0) {
-                mediatorComponents.editor.set(color = firstColor, source = any())
+                mediatorComponents.editor.set(color = firstColor, source = any(), revision = any())
             }
             coVerify(exactly = 1) {
                 mediatorComponents.editor.set(
                     color = latestColor,
                     source = ColorInputSource(DomainColorInputType.Hex),
+                    revision = any(),
                 )
             }
         }
@@ -284,7 +287,7 @@ class ColorInputHexViewModelTest {
                 val value = ColorInputMediator.ColorState(
                     color = color,
                     source = ColorInputSource(DomainColorInputType.Rgb),
-                    id = 1,
+                    revision = ColorInputMediator.ColorState.Revision(1),
                 )
                 colorStateFlow.emit(value)
             }
@@ -312,7 +315,7 @@ class ColorInputHexViewModelTest {
                 val value = ColorInputMediator.ColorState(
                     color = color,
                     source = ColorInputSource(DomainColorInputType.Rgb),
-                    id = 1,
+                    revision = ColorInputMediator.ColorState.Revision(1),
                 )
                 colorStateFlow.emit(value)
             }
@@ -322,7 +325,7 @@ class ColorInputHexViewModelTest {
                 val value = ColorInputMediator.ColorState(
                     color = null,
                     source = ColorInputSource(DomainColorInputType.Rgb),
-                    id = 2,
+                    revision = ColorInputMediator.ColorState.Revision(2),
                 )
                 colorStateFlow.emit(value)
             }
@@ -342,7 +345,7 @@ class ColorInputHexViewModelTest {
                 val value = ColorInputMediator.ColorState(
                     color = color,
                     source = ColorInputSource(DomainColorInputType.Hex),
-                    id = 1,
+                    revision = ColorInputMediator.ColorState.Revision(1),
                 )
                 colorStateFlow.emit(value)
             }

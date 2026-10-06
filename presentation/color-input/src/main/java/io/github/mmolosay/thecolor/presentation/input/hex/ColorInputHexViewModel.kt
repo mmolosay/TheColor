@@ -126,6 +126,7 @@ class ColorInputHexViewModel @AssistedInject constructor(
                     mediator.set(
                         color = derived.color,
                         source = ColorInputSource(DomainColorInputType.Hex),
+                        revision = mediator.newRevision(), // taken at write time until the content revision is tracked
                     )
                 }
         }

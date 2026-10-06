@@ -156,6 +156,7 @@ class ColorInputRgbViewModel @AssistedInject constructor(
                     mediator.set(
                         color = derived.color,
                         source = ColorInputSource(DomainColorInputType.Rgb),
+                        revision = mediator.newRevision(), // taken at write time until the content revision is tracked
                     )
                 }
         }
