@@ -128,3 +128,13 @@ class ColorInputHsvDataFactory @Inject constructor(
     fun colorFromMediator(mediator: ColorInputMediator): Color.Hsv? =
         with(colorConverter) { mediator.colorState.color?.toHsv() }
 }
+
+class ColorInputHsvStateFactory @Inject constructor(
+    private val colorConverter: ColorConverter,
+) {
+    fun create(color: Color?): ColorInputHsvState =
+        ColorInputHsvState(
+            displayColor = with(colorConverter) { color?.toHsv() },
+            color = color,
+        )
+}

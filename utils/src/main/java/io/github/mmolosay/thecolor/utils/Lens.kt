@@ -22,3 +22,9 @@ inline fun <S, V> Lens<S, V>.modify(
     val new = transform(value)
     return this.set(source, new)
 }
+
+infix fun <A, B, C> Lens<A, B>.then(next: Lens<B, C>): Lens<A, C> =
+    Lens(
+        get = { a -> next.get(this.get(a)) },
+        set = { a, c -> this.modify(a) { b -> next.set(b, c) } },
+    )

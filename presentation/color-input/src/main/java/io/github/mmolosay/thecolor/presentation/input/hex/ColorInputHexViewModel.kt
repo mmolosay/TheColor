@@ -225,3 +225,25 @@ class ColorInputHexDataFactory @Inject constructor(
             inputSubmissionResult = null,
         )
 }
+
+class ColorInputHexStateFactory @Inject constructor(
+    private val textFieldDataFactory: TextFieldDataFactory,
+    private val colorConverter: ColorConverter,
+    private val colorInputMapper: ColorInputMapper,
+) {
+    fun create(color: Color?): ColorInputHexState {
+        val colorInput = run {
+            val hex = with(colorConverter) { color?.toHex() }
+            with(colorInputMapper) { hex?.toColorInput() }
+        }
+        val textField = textFieldDataFactory.create(
+            text = TextFieldData.Text(colorInput?.string.orEmpty()) causedByUser false,
+            isClearTextFeatureEnabled = true,
+        )
+        return ColorInputHexState(
+            textField = textField,
+            inputSubmissionResult = null,
+            color = color,
+        )
+    }
+}
