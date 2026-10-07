@@ -18,7 +18,6 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.input.UiComponents.ProcessColorSubmissionResultAsSideEffect
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextField
@@ -27,12 +26,6 @@ import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFacade
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldInputProcessor
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldUiStrings
 import kotlinx.coroutines.Job
-
-@Composable
-fun rememberColorInputHexFacade(handle: ColorInputHexHandle): ColorInputHexFacade {
-    val data = handle.dataFlow.collectAsStateWithLifecycle().value
-    return remember(handle, data) { handle.facade(data) }
-}
 
 @Composable
 fun ColorInputHex(

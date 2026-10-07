@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.LocalContentColor
@@ -32,14 +31,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import io.github.mmolosay.thecolor.presentation.common.compose.Placeholder
+import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHex
-import io.github.mmolosay.thecolor.presentation.input.hex.rememberColorInputHexFacade
+import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexFacade
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsv
-import io.github.mmolosay.thecolor.presentation.input.hsv.rememberColorInputHsvFacade
+import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvFacade
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgb
-import io.github.mmolosay.thecolor.presentation.input.rgb.rememberColorInputRgbFacade
+import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbFacade
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFacade
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldInputProcessor
 import kotlinx.coroutines.Job
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 
@@ -55,24 +57,6 @@ fun ColorInputGroup(
         modifier = modifier,
         facade = facade,
         strings = strings,
-        hexInput = {
-            val facade = rememberColorInputHexFacade(handle.hex)
-            ColorInputHex(
-                facade = facade,
-            )
-        },
-        rgbInput = {
-            val facade = rememberColorInputRgbFacade(handle.rgb)
-            ColorInputRgb(
-                facade = facade,
-            )
-        },
-        hsvInput = {
-            val facade = rememberColorInputHsvFacade(handle.hsv)
-            ColorInputHsv(
-                facade = facade,
-            )
-        },
     )
 }
 
@@ -86,9 +70,6 @@ fun rememberColorInputGroupFacade(handle: ColorInputGroupHandle): ColorInputGrou
 fun ColorInputGroup(
     facade: ColorInputGroupFacade,
     strings: ColorInputGroupUiStrings,
-    hexInput: @Composable () -> Unit,
-    rgbInput: @Composable () -> Unit,
-    hsvInput: @Composable () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val execute by rememberUpdatedState(facade.execute) // reference 'execute' directly to enable lambda memoization
@@ -97,7 +78,7 @@ fun ColorInputGroup(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         AnimatedContent(
-            targetState = facade.data.selectedInputType,
+            targetState = facade.selectedInputType,
             transitionSpec = {
                 fadeIn() togetherWith fadeOut() using SizeTransform(clip = false)
             },
@@ -109,17 +90,20 @@ fun ColorInputGroup(
                     .wrapContentWidth(Alignment.CenterHorizontally),
             ) {
                 when (type) {
-                    DomainColorInputType.Hex -> hexInput()
-                    DomainColorInputType.Rgb -> rgbInput()
-                    DomainColorInputType.Hsv -> hsvInput()
+                    DomainColorInputType.Hex ->
+                        ColorInputHex(facade = facade.hex)
+                    DomainColorInputType.Rgb ->
+                        ColorInputRgb(facade = facade.rgb)
+                    DomainColorInputType.Hsv ->
+                        ColorInputHsv(facade = facade.hsv)
                 }
             }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
         InputSelector(
-            orderedInputTypes = facade.data.orderedInputTypes,
-            selectedInputType = facade.data.selectedInputType,
+            orderedInputTypes = facade.orderedInputTypes,
+            selectedInputType = facade.selectedInputType,
             changeInputType = {
                 val action = ColorInputGroupAction.ChangeInputType(it)
                 execute(action)
@@ -129,7 +113,6 @@ fun ColorInputGroup(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun InputSelector(
     orderedInputTypes: List<DomainColorInputType>,
@@ -187,31 +170,11 @@ private fun DomainColorInputType.label(strings: ColorInputGroupUiStrings): Strin
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL)
 @Composable
 private fun Preview() {
-    @Composable
-    fun ColorInputPlaceholder(label: String) {
-        Placeholder(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(120.dp),
-        ) {
-            Text(text = label)
-        }
-    }
-
     TheColorTheme {
         Surface {
             ColorInputGroup(
                 facade = previewFacade(),
                 strings = previewUiStrings(),
-                hexInput = {
-                    ColorInputPlaceholder("HEX Color Input")
-                },
-                rgbInput = {
-                    ColorInputPlaceholder("RGB Color Input")
-                },
-                hsvInput = {
-                    ColorInputPlaceholder("HSV Color Input")
-                },
             )
         }
     }
@@ -219,13 +182,52 @@ private fun Preview() {
 
 private fun previewFacade() =
     ColorInputGroupFacade(
-        data = ColorInputGroupData(
-            selectedInputType = DomainColorInputType.Hex,
-            orderedInputTypes = listOf(
-                DomainColorInputType.Hex,
-                DomainColorInputType.Rgb,
-                DomainColorInputType.Hsv,
-            )
+        hex = ColorInputHexFacade(
+            textField = TextFieldFacade(
+                text = TextFieldData.Text("1A803F"),
+                shouldSelectAllTextOnFocus = true,
+                isClearTextFeatureEnabled = true,
+                inputProcessor = TextFieldInputProcessor { TextFieldData.Text(it) },
+                execute = { Job() },
+            ),
+            inputSubmissionResult = null,
+            execute = { Job() },
+        ),
+        rgb = ColorInputRgbFacade(
+            rTextField = TextFieldFacade(
+                text = TextFieldData.Text("12"),
+                shouldSelectAllTextOnFocus = true,
+                isClearTextFeatureEnabled = false,
+                inputProcessor = TextFieldInputProcessor { TextFieldData.Text(it) },
+                execute = { Job() },
+            ),
+            gTextField = TextFieldFacade(
+                text = TextFieldData.Text(""),
+                shouldSelectAllTextOnFocus = true,
+                isClearTextFeatureEnabled = false,
+                inputProcessor = TextFieldInputProcessor { TextFieldData.Text(it) },
+                execute = { Job() },
+            ),
+            bTextField = TextFieldFacade(
+                text = TextFieldData.Text("255"),
+                shouldSelectAllTextOnFocus = true,
+                isClearTextFeatureEnabled = false,
+                inputProcessor = TextFieldInputProcessor { TextFieldData.Text(it) },
+                execute = { Job() },
+            ),
+            inputSubmissionResult = null,
+            isSmartBackspaceEnabled = true,
+            execute = { Job() },
+        ),
+        hsv = ColorInputHsvFacade(
+            color = Color.Hsv(hue = 117f, saturation = 0.59f, value = 0.31f),
+            execute = { Job() },
+        ),
+        selectedInputType = DomainColorInputType.Hex,
+        orderedInputTypes = listOf(
+            DomainColorInputType.Hex,
+            DomainColorInputType.Rgb,
+            DomainColorInputType.Hsv,
         ),
         execute = { Job() },
     )

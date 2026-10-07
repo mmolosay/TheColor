@@ -4,11 +4,14 @@ import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.domain.color.ColorConverter
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMapper
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexState
+import io.github.mmolosay.thecolor.presentation.input.hex.toData
 import io.github.mmolosay.thecolor.presentation.input.hex.withColor
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvState
+import io.github.mmolosay.thecolor.presentation.input.hsv.toData
 import io.github.mmolosay.thecolor.presentation.input.hsv.withColor
 import io.github.mmolosay.thecolor.presentation.input.model.ColorState
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbState
+import io.github.mmolosay.thecolor.presentation.input.rgb.toData
 import io.github.mmolosay.thecolor.presentation.input.rgb.withColor
 import io.github.mmolosay.thecolor.utils.Lens
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
@@ -39,6 +42,9 @@ object ColorInputGroupStateLenses {
 
 fun ColorInputGroupState.toData(): ColorInputGroupData =
     ColorInputGroupData(
+        hex = this.hex.toData(),
+        rgb = this.rgb.toData(),
+        hsv = this.hsv.toData(),
         selectedInputType = this.selectedInputType,
         orderedInputTypes = this.orderedInputTypes,
     )
