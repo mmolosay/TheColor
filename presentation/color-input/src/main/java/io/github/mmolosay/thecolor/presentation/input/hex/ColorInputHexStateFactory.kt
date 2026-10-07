@@ -25,7 +25,6 @@ class ColorInputHexStateFactory @Inject constructor(
         return ColorInputHexState(
             textField = textField,
             inputSubmissionResult = null,
-            color = color,
         )
     }
 }

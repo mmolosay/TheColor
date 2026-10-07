@@ -36,7 +36,6 @@ class ColorInputRgbStateFactory @Inject constructor(
             bTextField = createTextFieldData(colorInput?.b),
             inputSubmissionResult = null,
             isSmartBackspaceEnabled = isSmartBackspaceEnabled,
-            color = color,
         )
     }
 }

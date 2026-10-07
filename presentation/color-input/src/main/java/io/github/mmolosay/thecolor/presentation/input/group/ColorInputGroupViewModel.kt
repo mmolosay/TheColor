@@ -12,9 +12,11 @@ import io.github.mmolosay.thecolor.domain.utils.getOrElse
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMapper
+import io.github.mmolosay.thecolor.presentation.input.ColorInputValidator
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexHandle
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexStateFactory
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexViewModel
+import io.github.mmolosay.thecolor.presentation.input.hex.color
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvHandle
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvStateFactory
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvViewModel
@@ -34,6 +36,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
+import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupStateLenses as Lenses
 
 /**
  * Handles presentation logic of the 'Color Input Group' feature.
@@ -52,6 +55,7 @@ class ColorInputGroupViewModel @AssistedInject constructor(
     hsvViewModelFactory: ColorInputHsvViewModel.Factory,
     private val colorConverter: ColorConverter,
     private val colorInputMapper: ColorInputMapper,
+    private val colorInputValidator: ColorInputValidator,
 ) : SimpleViewModel(coroutineScope) {
 
     private val stateFlow = MutableStateFlow(initialState)
@@ -61,7 +65,11 @@ class ColorInputGroupViewModel @AssistedInject constructor(
     private val hexViewModel: ColorInputHexViewModel =
         hexViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
-            mediator = mediator,
+            atom = InputStateAtom(
+                type = DomainColorInputType.Hex,
+                lens = Lenses.hex,
+                colorOf = { context(colorInputValidator) { it.color() } },
+            ),
             submitAction = submitAction,
         )
     val hexHandle = ColorInputHexHandle(hexViewModel)
@@ -132,11 +140,11 @@ class ColorInputGroupViewModel @AssistedInject constructor(
             stateFlow.update { current ->
                 val old = lens.get(current)
                 val new = transform(old)
-                val color = colorOf(new)
-                val base = when (color) {
-                    current.colorState.color -> current
+                val newColor = colorOf(new)
+                val base = when (newColor) {
+                    colorOf(old) -> current // this input still stands for the same color
                     else -> context(colorConverter, colorInputMapper) {
-                        current.withColor(color, type)
+                        current.withColor(newColor, type)
                     }
                 }
                 lens.set(base, new)

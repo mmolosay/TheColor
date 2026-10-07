@@ -5,7 +5,7 @@ import io.github.mmolosay.thecolor.domain.color.ColorConverter
 
 data class ColorInputHsvState(
     val displayColor: Color.Hsv?, // what the View presents
-    val color: Color?, // the applied color
+    val color: Color.Hsv?, // the applied color
 )
 
 fun ColorInputHsvState.toData(): ColorInputHsvData =
@@ -17,8 +17,9 @@ context(
     converter: ColorConverter,
 )
 fun ColorInputHsvState.withColor(color: Color?): ColorInputHsvState {
+    val hsvColor = with(converter) { color?.toHsv() }
     return this.copy(
-        displayColor = with(converter) { color?.toHsv() },
-        color = color,
+        displayColor = hsvColor,
+        color = hsvColor,
     )
 }
