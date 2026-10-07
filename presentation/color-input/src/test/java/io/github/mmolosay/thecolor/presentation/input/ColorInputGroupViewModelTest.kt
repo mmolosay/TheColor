@@ -53,7 +53,7 @@ class ColorInputGroupViewModelTest {
     ) =
         ColorInputGroupViewModel(
             coroutineScope = CoroutineScope(context = testDispatcher),
-            initialData = initialData,
+            initialState = initialData,
             mediator = mediator,
             submitAction = mockk(),
             hexViewModelFactory = { _, _, _ -> mockk(relaxed = true) },

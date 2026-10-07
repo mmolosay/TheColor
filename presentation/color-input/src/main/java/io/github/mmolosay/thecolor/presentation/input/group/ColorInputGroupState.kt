@@ -10,6 +10,7 @@ import io.github.mmolosay.thecolor.presentation.input.hsv.withColor
 import io.github.mmolosay.thecolor.presentation.input.model.ColorState
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbState
 import io.github.mmolosay.thecolor.presentation.input.rgb.withColor
+import io.github.mmolosay.thecolor.utils.Lens
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 
 data class ColorInputGroupState(
@@ -19,8 +20,21 @@ data class ColorInputGroupState(
     val hex: ColorInputHexState,
     val rgb: ColorInputRgbState,
     val hsv: ColorInputHsvState,
-) {
+)
 
+object ColorInputGroupStateLenses {
+    val hex = Lens<ColorInputGroupState, ColorInputHexState>(
+        get = { s -> s.hex },
+        set = { s, v -> s.copy(hex = v) },
+    )
+    val rgb = Lens<ColorInputGroupState, ColorInputRgbState>(
+        get = { s -> s.rgb },
+        set = { s, v -> s.copy(rgb = v) },
+    )
+    val hsv = Lens<ColorInputGroupState, ColorInputHsvState>(
+        get = { s -> s.hsv },
+        set = { s, v -> s.copy(hsv = v) },
+    )
 }
 
 fun ColorInputGroupState.toData(): ColorInputGroupData =

@@ -118,7 +118,7 @@ class HomeViewModel @Inject constructor(
             val color = getStartupColor()
             val colorInputGroupViewModel = colorInputGroupViewModelFactory.create(
                 coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
-                initialData = colorInputGroupDataFactory.create(),
+                initialState = colorInputGroupDataFactory.create(),
                 mediator = colorInputMediator,
                 submitAction = ColorInputSubmitActionImpl(),
             )

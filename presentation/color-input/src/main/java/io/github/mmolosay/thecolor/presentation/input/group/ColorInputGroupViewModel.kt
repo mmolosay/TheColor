@@ -4,14 +4,14 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.color.Color
+import io.github.mmolosay.thecolor.domain.color.ColorConverter
 import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
 import io.github.mmolosay.thecolor.domain.utils.filterReady
 import io.github.mmolosay.thecolor.domain.utils.getOrElse
-import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
-import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
+import io.github.mmolosay.thecolor.presentation.input.ColorInputMapper
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexHandle
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexStateFactory
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexViewModel
@@ -23,15 +23,15 @@ import io.github.mmolosay.thecolor.presentation.input.model.ColorState
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbHandle
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbStateFactory
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbViewModel
-import kotlinx.coroutines.CoroutineDispatcher
+import io.github.mmolosay.thecolor.utils.Atom
+import io.github.mmolosay.thecolor.utils.Lens
+import io.github.mmolosay.thecolor.utils.mapState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 
@@ -45,19 +45,18 @@ import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInp
  */
 class ColorInputGroupViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted initialData: ColorInputGroupData,
-    @Assisted mediator: ColorInputMediator,
+    @Assisted initialState: ColorInputGroupState,
     @Assisted submitAction: ColorInputSubmitAction,
     hexViewModelFactory: ColorInputHexViewModel.Factory,
     rgbViewModelFactory: ColorInputRgbViewModel.Factory,
     hsvViewModelFactory: ColorInputHsvViewModel.Factory,
-    @DefaultDispatcher defaultDispatcher: CoroutineDispatcher,
+    private val colorConverter: ColorConverter,
+    private val colorInputMapper: ColorInputMapper,
 ) : SimpleViewModel(coroutineScope) {
 
-    private val exclusiveLane = defaultDispatcher.limitedParallelism(1)
-
-    private val _dataFlow = MutableStateFlow(initialData)
-    val dataFlow: StateFlow<ColorInputGroupData> = _dataFlow.asStateFlow()
+    private val stateFlow = MutableStateFlow(initialState)
+    val dataFlow: StateFlow<ColorInputGroupData> = stateFlow.mapState { it.toData() }
+    val colorStateFlow: StateFlow<ColorState> = stateFlow.mapState { it.colorState }
 
     private val hexViewModel: ColorInputHexViewModel =
         hexViewModelFactory.create(
@@ -82,18 +81,25 @@ class ColorInputGroupViewModel @AssistedInject constructor(
         )
     val hsvHandle = ColorInputHsvHandle(hsvViewModel)
 
-    fun execute(action: ColorInputGroupAction): Job =
-        coroutineScope.launch(exclusiveLane) {
-            when (action) {
-                is ColorInputGroupAction.ChangeInputType -> {
-                    changeInputType(action.type)
-                }
+    fun execute(action: ColorInputGroupAction): Job? =
+        when (action) {
+            is ColorInputGroupAction.ChangeInputType -> {
+                changeInputType(action.type)
+                null
             }
         }
 
     private fun changeInputType(type: DomainColorInputType) {
-        _dataFlow.update {
+        stateFlow.update {
             it.copy(selectedInputType = type)
+        }
+    }
+
+    fun setColor(color: Color?) {
+        context(colorConverter, colorInputMapper) {
+            stateFlow.update {
+                it.withColor(color, source = null)
+            }
         }
     }
 
@@ -108,10 +114,34 @@ class ColorInputGroupViewModel @AssistedInject constructor(
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            initialData: ColorInputGroupData,
-            mediator: ColorInputMediator,
+            initialState: ColorInputGroupState,
             submitAction: ColorInputSubmitAction,
         ): ColorInputGroupViewModel
+    }
+
+    private inner class InputStateAtom<T>(
+        private val type: DomainColorInputType,
+        private val lens: Lens<ColorInputGroupState, T>,
+        private val colorOf: (T) -> Color?,
+    ) : Atom<T> {
+
+        override val value: T
+            get() = lens.get(stateFlow.value)
+
+        override fun update(transform: (T) -> T) {
+            stateFlow.update { current ->
+                val old = lens.get(current)
+                val new = transform(old)
+                val color = colorOf(new)
+                val base = when (color) {
+                    current.colorState.color -> current
+                    else -> context(colorConverter, colorInputMapper) {
+                        current.withColor(color, type)
+                    }
+                }
+                lens.set(base, new)
+            }
+        }
     }
 }
 
