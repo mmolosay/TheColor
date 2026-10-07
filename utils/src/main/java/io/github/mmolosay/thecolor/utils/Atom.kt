@@ -6,10 +6,15 @@ import kotlinx.coroutines.flow.update
 /**
  * A value that can be read and updated atomically.
  *
- * The value changes only through [update], which is atomic.
- * The contract doesn't specify where the value is stored: it may be held directly or derived from another value.
+ * Where the value is stored is not specified: it may be held directly or derived from another value,
+ * in which case it also changes whenever that value does.
  *
- * Named after Clojure's atom, which is read and updated the same way.
+ * All parts of one change must be made in a single [update], so that no one observes it half-applied.
+ * The `transform` must derive the new value from the value it receives, not from [value] read earlier:
+ * a change made in between would be lost.
+ * The `transform` may be invoked more than once, so it must be free of side effects.
+ *
+ * Named after Clojure's [atom](https://clojure.org/reference/atoms), which is read and updated the same way.
  */
 interface Atom<T> : UpdateScope<T> {
     val value: T
