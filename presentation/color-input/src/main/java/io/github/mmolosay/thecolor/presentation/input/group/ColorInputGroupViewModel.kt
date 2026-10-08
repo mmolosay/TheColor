@@ -18,6 +18,7 @@ import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexStateFact
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexViewModel
 import io.github.mmolosay.thecolor.presentation.input.hex.color
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvHandle
+import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvState
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvStateFactory
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
@@ -90,7 +91,11 @@ class ColorInputGroupViewModel @AssistedInject constructor(
     private val hsvViewModel: ColorInputHsvViewModel =
         hsvViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
-            mediator = mediator,
+            atom = InputStateAtom(
+                type = DomainColorInputType.Hsv,
+                lens = Lenses.hsv,
+                getColor = ColorInputHsvState::color,
+            )
         )
     val hsvHandle = ColorInputHsvHandle(hsvViewModel)
 
