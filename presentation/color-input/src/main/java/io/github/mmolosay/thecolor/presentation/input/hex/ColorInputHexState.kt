@@ -30,7 +30,8 @@ fun ColorInputHexState.colorInput(): ColorInput.Hex =
 context(validator: ColorInputValidator)
 fun ColorInputHexState.color(): Color? {
     val colorInput = this.colorInput()
-    return with(validator) { colorInput.validate() }.getColorOrNull()
+    val validationResult = with(validator) { colorInput.validate() }
+    return validationResult.getColorOrNull()
 }
 
 fun ColorInputHexState.toData(): ColorInputHexData =

@@ -39,7 +39,7 @@ internal class BatchUpdateScope<T> : UpdateScope<T> {
         }
 }
 
-inline fun <T, R> MutableStateFlow<T>.batch(
+inline fun <T, R> UpdateScope<T>.batch(
     block: UpdateScope<T>.() -> R,
 ): R {
     val scope = BatchUpdateScope<T>()
@@ -51,6 +51,11 @@ inline fun <T, R> MutableStateFlow<T>.batch(
     this.update { scope.apply(it) }
     return result
 }
+
+inline fun <T, R> MutableStateFlow<T>.batch(
+    block: UpdateScope<T>.() -> R,
+): R =
+    this.asUpdateScope().batch(block)
 
 fun <S, V> UpdateScope<S>.focus(lens: Lens<S, V>): UpdateScope<V> =
     FocusedUpdateScope(

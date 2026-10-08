@@ -91,7 +91,9 @@ class ColorInputHexViewModel @AssistedInject constructor(
             validationResult = validationResult,
         )
         val result = ColorInputSubmissionResult(wasAccepted)
-        atom.update { it.copy(inputSubmissionResult = result) }
+        atom.update {
+            it.copy(inputSubmissionResult = result)
+        }
     }
 
     private fun clearInputSubmissionResult() {

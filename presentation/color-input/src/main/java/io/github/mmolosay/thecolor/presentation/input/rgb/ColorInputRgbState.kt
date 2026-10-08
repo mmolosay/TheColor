@@ -10,6 +10,7 @@ import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.model.getColorOrNull
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.withText
+import io.github.mmolosay.thecolor.utils.Lens
 
 data class ColorInputRgbState(
     val rTextField: TextFieldData,
@@ -18,6 +19,21 @@ data class ColorInputRgbState(
     val inputSubmissionResult: ColorInputSubmissionResult?,
     val isSmartBackspaceEnabled: Boolean,
 )
+
+object ColorInputRgbStateLenses {
+    val rTextField = Lens<ColorInputRgbState, TextFieldData>(
+        get = { s -> s.rTextField },
+        set = { s, v -> s.copy(rTextField = v) },
+    )
+    val gTextField = Lens<ColorInputRgbState, TextFieldData>(
+        get = { s -> s.gTextField },
+        set = { s, v -> s.copy(gTextField = v) },
+    )
+    val bTextField = Lens<ColorInputRgbState, TextFieldData>(
+        get = { s -> s.bTextField },
+        set = { s, v -> s.copy(bTextField = v) },
+    )
+}
 
 fun ColorInputRgbState.colorInput(): ColorInput.Rgb =
     ColorInput.Rgb(
@@ -29,7 +45,8 @@ fun ColorInputRgbState.colorInput(): ColorInput.Rgb =
 context(validator: ColorInputValidator)
 fun ColorInputRgbState.color(): Color? {
     val colorInput = this.colorInput()
-    return with(validator) { colorInput.validate() }.getColorOrNull()
+    val validationResult = with(validator) { colorInput.validate() }
+    return validationResult.getColorOrNull()
 }
 
 fun ColorInputRgbState.toData(): ColorInputRgbData =

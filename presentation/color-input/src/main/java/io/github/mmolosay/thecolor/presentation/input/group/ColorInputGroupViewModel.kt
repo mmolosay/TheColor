@@ -25,6 +25,7 @@ import io.github.mmolosay.thecolor.presentation.input.model.ColorState
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbHandle
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbStateFactory
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbViewModel
+import io.github.mmolosay.thecolor.presentation.input.rgb.color
 import io.github.mmolosay.thecolor.utils.Atom
 import io.github.mmolosay.thecolor.utils.Lens
 import io.github.mmolosay.thecolor.utils.mapState
@@ -68,7 +69,7 @@ class ColorInputGroupViewModel @AssistedInject constructor(
             atom = InputStateAtom(
                 type = DomainColorInputType.Hex,
                 lens = Lenses.hex,
-                colorOf = { context(colorInputValidator) { it.color() } },
+                getColor = { context(colorInputValidator) { it.color() } },
             ),
             submitAction = submitAction,
         )
@@ -77,7 +78,11 @@ class ColorInputGroupViewModel @AssistedInject constructor(
     private val rgbViewModel: ColorInputRgbViewModel =
         rgbViewModelFactory.create(
             coroutineScope = ViewModelCoroutineScope(parent = coroutineScope),
-            mediator = mediator,
+            atom = InputStateAtom(
+                type = DomainColorInputType.Rgb,
+                lens = Lenses.rgb,
+                getColor = { context(colorInputValidator) { it.color() } },
+            ),
             submitAction = submitAction,
         )
     val rgbHandle = ColorInputRgbHandle(rgbViewModel)
@@ -130,7 +135,7 @@ class ColorInputGroupViewModel @AssistedInject constructor(
     private inner class InputStateAtom<T>(
         private val type: DomainColorInputType,
         private val lens: Lens<ColorInputGroupState, T>,
-        private val colorOf: (T) -> Color?,
+        private val getColor: (T) -> Color?,
     ) : Atom<T> {
 
         override val value: T
@@ -140,9 +145,9 @@ class ColorInputGroupViewModel @AssistedInject constructor(
             stateFlow.update { current ->
                 val old = lens.get(current)
                 val new = transform(old)
-                val newColor = colorOf(new)
+                val newColor = getColor(new)
                 val base = when (newColor) {
-                    colorOf(old) -> current // this input still stands for the same color
+                    getColor(old) -> current // this input still stands for the same color
                     else -> context(colorConverter, colorInputMapper) {
                         current.withColor(newColor, type)
                     }
