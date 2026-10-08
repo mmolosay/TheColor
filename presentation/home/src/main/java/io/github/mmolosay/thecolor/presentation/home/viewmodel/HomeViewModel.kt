@@ -26,16 +26,14 @@ import io.github.mmolosay.thecolor.presentation.details.viewmodel.asError
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.colorOrNull
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.SideEffect
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.Operation.Companion.isSupersededBy
-import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
-import io.github.mmolosay.thecolor.presentation.input.ColorInputSource
-import io.github.mmolosay.thecolor.presentation.input.colorState
-import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupDataFactory
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupHandle
+import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupStateFactory
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupViewModel
+import io.github.mmolosay.thecolor.presentation.input.group.colorState
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputValidationResult
-import io.github.mmolosay.thecolor.presentation.input.set
+import io.github.mmolosay.thecolor.presentation.input.model.ColorState
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewDataFactory
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeAction
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeHandle
@@ -81,8 +79,7 @@ import io.github.mmolosay.thecolor.domain.color.ColorDetails as DomainColorDetai
  */
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val colorInputMediator: ColorInputMediator,
-    private val colorInputGroupDataFactory: ColorInputGroupDataFactory,
+    private val colorInputGroupStateFactory: ColorInputGroupStateFactory,
     private val colorInputGroupViewModelFactory: ColorInputGroupViewModel.Factory,
     private val colorPreviewDataFactory: ColorPreviewDataFactory,
     colorCenterComponentsStoreFactory: ColorCenterComponentsStore.Factory,
@@ -104,6 +101,8 @@ class HomeViewModel @Inject constructor(
     private val ccSessionStore = ColorCenterSessionStore()
     private val seFactory = SideEffectFactory()
 
+    private var colorInputGroupViewModel: ColorInputGroupViewModel? = null
+
     private val colorCenterComponentsStore: ColorCenterComponentsStore =
         colorCenterComponentsStoreFactory.create(
             viewModelScope = viewModelScope,
@@ -118,14 +117,15 @@ class HomeViewModel @Inject constructor(
             val color = getStartupColor()
             val colorInputGroupViewModel = colorInputGroupViewModelFactory.create(
                 coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
-                initialState = colorInputGroupDataFactory.create(),
-                mediator = colorInputMediator,
+                initialState = colorInputGroupStateFactory.create(color),
                 submitAction = ColorInputSubmitActionImpl(),
-            )
+            ).also {
+                colorInputGroupViewModel = it
+            }
             _stateFlow.batch {
                 val initial = HomeState(
                     home = HomeData(
-                        canProceed = CanProceed(colorInputMediator.colorState.color),
+                        canProceed = CanProceed(colorInputGroupViewModel.colorState.color),
                         proceedResult = null, // 'proceed' action wasn't invoked yet
                         sideEffects = persistentListOf(),
                     ),
@@ -140,7 +140,7 @@ class HomeViewModel @Inject constructor(
                     }
                 }
             }
-            collectColorsFromColorInput()
+            collectColorsFromColorInput(colorInputGroupViewModel)
         }
 
     context(updateScope: UpdateScope<HomeState>)
@@ -150,7 +150,9 @@ class HomeViewModel @Inject constructor(
         onColorBecameCurrent(color)
         setProceedResult(color)
         return launchTransition(Operation.Transition.Proceed) {
-            colorInputMediator.set(color, revision = colorInputMediator.newRevision())
+            colorInputGroupViewModel
+                .let { requireNotNull(it) }
+                .setColor(color)
             val deferredDetails = CompletableDeferred<DomainColorDetails>()
             startColorCenterSession(seed = color, deferredDetails = deferredDetails)
             launchFetch(Operation.Fetch.ColorDetails) {
@@ -164,15 +166,15 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun collectColorsFromColorInput(): Job =
+    private fun collectColorsFromColorInput(group: ColorInputGroupViewModel): Job =
         viewModelScope.launch {
-            colorInputMediator.colorStateFlow
+            group.colorStateFlow
                 .drop(1) // replayed value
-                .filter { it.source is ColorInputSource }
+                .filter { it.source != null } // set by 'Color Input' feature
                 .collect(::onColorFromColorInput)
         }
 
-    private fun onColorFromColorInput(colorState: ColorInputMediator.ColorState) =
+    private fun onColorFromColorInput(colorState: ColorState) =
         launchTransition(Operation.Transition.ColorFromColorInput) {
             val color = colorState.color
             endColorCenterSession() // assuming any new color from Color Input is a new session
@@ -194,19 +196,21 @@ class HomeViewModel @Inject constructor(
 
     private fun proceed(): Job =
         launchTransition(Operation.Transition.Proceed) launch@{
-            val color = colorInputMediator.colorState.color ?: return@launch // invalid state
-            colorInputMediator.set(color, revision = colorInputMediator.newRevision())
+            val color = colorInputGroupViewModel
+                .let { requireNotNull(it) }
+                .colorState.color ?: return@launch // invalid state
+            colorInputGroupViewModel
+                .let { requireNotNull(it) }
+                .setColor(color)
             proceedWith(color)
         }
 
     private fun randomizeColor(): Job =
         launchTransition(Operation.Transition.Proceed) launch@{
-            val color: Color
-            // take the lock before producing the color, so no mediator update lands between the two
-            colorInputMediator.withLock { editor ->
-                color = getPredictableRandomColor()
-                editor.set(color, revision = colorInputMediator.newRevision())
-            }
+            val color = getPredictableRandomColor()
+            colorInputGroupViewModel
+                .let { requireNotNull(it) }
+                .setColor(color)
             val shouldProceed = userPreferencesRepository
                 .flowOfAutoProceedWithRandomizedColors
                 .filterReady().first()
@@ -261,7 +265,7 @@ class HomeViewModel @Inject constructor(
 
     context(coroutineScope: CoroutineScope)
     private suspend fun proceedWith(color: Color) {
-        // doesn't update 'colorInputMediator', it should be done by the caller
+        // doesn't update color in 'Color Input', should be done by the caller
         endColorCenterSession()
         val components = createNewColorCenterComponents()
         updateState {
@@ -392,7 +396,9 @@ class HomeViewModel @Inject constructor(
                 is ColorInputValidationResult.Valid -> {
                     launchTransition(Operation.Transition.Proceed) {
                         val color = validationResult.color
-                        colorInputMediator.set(color, revision = colorInputMediator.newRevision())
+                        colorInputGroupViewModel
+                            .let { requireNotNull(it) }
+                            .setColor(color)
                         proceedWith(color)
                     }
                     return true
@@ -425,7 +431,9 @@ class HomeViewModel @Inject constructor(
                         val color = viewModel.stateFlow.value.colorOrNull(action.role)
                             ?: return@launch // stale invocation
                         ccSessionStore.sessionState.mustBeOngoing()
-                        colorInputMediator.set(color, revision = colorInputMediator.newRevision())
+                        colorInputGroupViewModel
+                            .let { requireNotNull(it) }
+                            .setColor(color)
                         updateState {
                             onColorBecameCurrent(color)
                             // assuming any color selected belongs to ongoing session
