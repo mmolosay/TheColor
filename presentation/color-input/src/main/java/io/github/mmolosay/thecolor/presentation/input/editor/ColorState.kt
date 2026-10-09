@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.input.model
+package io.github.mmolosay.thecolor.presentation.input.editor
 
 import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.domain.color.ColorInputType

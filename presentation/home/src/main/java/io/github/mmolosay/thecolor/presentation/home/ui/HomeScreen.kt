@@ -51,7 +51,6 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeAction
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
-import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroup
 import io.github.mmolosay.thecolor.presentation.preview.AnimatedColorPreview
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import io.github.mmolosay.thecolor.utils.mapState
@@ -93,9 +92,10 @@ fun HomeScreen(
     }
 
     val colorInput: BareColorInputComposable = { modifier ->
-        ColorInputGroup(
+        BareColorInput(
             modifier = modifier,
-            handle = state.colorInputGroupHandle,
+            editorHandle = state.colorEditorHandle,
+            groupHandle = state.colorInputGroupHandle,
         )
     }
     val colorPreview: BareColorPreviewComposable = { animController, onUiStateReached ->
