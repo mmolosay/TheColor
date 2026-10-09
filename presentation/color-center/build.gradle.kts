@@ -15,14 +15,13 @@ dependencies {
     // Modules
     implementation(project(":domain"))
     implementation(project(":utils"))
+    implementation(project(":main:di-qualifiers"))
     implementation(project(":presentation:common"))
     implementation(project(":presentation:design-system"))
-    implementation(project(":presentation:color-details"))
-    implementation(project(":presentation:color-scheme"))
 
     // Kotlin
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.coroutines.get()}")
-    implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.7") // for Compose
+    implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:${libs.versions.kotlinCollectionsImmutable.get()}")
 
     // Compose
     implementation("androidx.compose.material3:material3")

@@ -28,5 +28,6 @@ data class DevOptionsData(
         val appBuildType: DomainBuildType,
         val appVersionName: String?,
         val appVersionCode: Long,
+        val gitHeadCommitHash: String,
     )
 }

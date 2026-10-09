@@ -7,5 +7,4 @@ import io.github.mmolosay.thecolor.domain.color.Color
  */
 data class ColorInputHsvData(
     val color: Color.Hsv?,
-    val onColorChanged: (Color.Hsv) -> Unit,
 )

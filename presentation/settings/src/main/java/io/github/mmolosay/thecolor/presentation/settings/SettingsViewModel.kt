@@ -33,7 +33,7 @@ import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.UiCol
 class SettingsViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
     private val isDevOptionsEnabled: IsDevOptionsEnabledUseCase,
-    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
+    @DefaultDispatcher defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     val dataStateFlow: StateFlow<DataState> =
@@ -60,53 +60,53 @@ class SettingsViewModel @Inject constructor(
             )
 
     private fun clearRepository() {
-        viewModelScope.launch(defaultDispatcher) {
+        viewModelScope.launch {
             userPreferencesRepository.clear()
         }
     }
 
     private fun updatePreferredColorInputType(value: DomainColorInputType) {
-        viewModelScope.launch(defaultDispatcher) {
+        viewModelScope.launch {
             userPreferencesRepository.setColorInputType(value)
         }
     }
 
     private fun updateAppUiColorSchemeSet(value: DomainUiColorSchemeSet) {
-        viewModelScope.launch(defaultDispatcher) {
+        viewModelScope.launch {
             userPreferencesRepository.setAppUiColorSchemeSet(value)
         }
     }
 
     private fun updateDynamicUiColorsEnablement(value: Boolean) {
-        viewModelScope.launch(defaultDispatcher) {
+        viewModelScope.launch {
             val domainModel = DomainDynamicUiColors(value)
             userPreferencesRepository.setDynamicUiColors(domainModel)
         }
     }
 
     private fun updateResumeFromLastSearchedColorOnStartupEnablement(value: Boolean) {
-        viewModelScope.launch(defaultDispatcher) {
+        viewModelScope.launch {
             val domainModel = DomainShouldResumeFromLastSearchedColorOnStartup(value)
             userPreferencesRepository.setResumeFromLastSearchedColorOnStartup(domainModel)
         }
     }
 
     private fun updateSmartBackspaceEnablement(value: Boolean) {
-        viewModelScope.launch(defaultDispatcher) {
+        viewModelScope.launch {
             val domainModel = DomainSmartBackspace(value)
             userPreferencesRepository.setSmartBackspace(domainModel)
         }
     }
 
     private fun updateSelectAllTextOnTextFieldFocusEnablement(value: Boolean) {
-        viewModelScope.launch(defaultDispatcher) {
+        viewModelScope.launch {
             val domainModel = DomainSelectAllTextOnTextFieldFocus(value)
             userPreferencesRepository.setSelectAllTextOnTextFieldFocus(domainModel)
         }
     }
 
     private fun updateAutoProceedWithRandomizedColorsEnablement(value: Boolean) {
-        viewModelScope.launch(defaultDispatcher) {
+        viewModelScope.launch {
             val domainModel = DomainAutoProceedWithRandomizedColors(value)
             userPreferencesRepository.setAutoProceedWithRandomizedColors(domainModel)
         }

@@ -4,23 +4,12 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.domain.color.Color
-import io.github.mmolosay.thecolor.domain.color.ColorConverter
-import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
-import io.github.mmolosay.thecolor.presentation.input.ColorInputMediator
-import io.github.mmolosay.thecolor.presentation.input.colorState
-import io.github.mmolosay.thecolor.presentation.input.model.DataState
+import io.github.mmolosay.thecolor.utils.Atom
 import io.github.mmolosay.thecolor.utils.Sampler
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
-import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 
 /**
  * Handles presentation logic of the 'HSV Color Input' feature.
@@ -32,67 +21,41 @@ import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInp
  */
 class ColorInputHsvViewModel @AssistedInject constructor(
     @Assisted coroutineScope: CoroutineScope,
-    @Assisted private val mediator: ColorInputMediator,
-    private val colorConverter: ColorConverter,
-    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
+    @Assisted private val atom: Atom<ColorInputHsvState>,
 ) : SimpleViewModel(coroutineScope) {
 
-    private val _dataStateFlow = MutableStateFlow<DataState<ColorInputHsvData>>(DataState.BeingInitialized)
-    val dataStateFlow: StateFlow<DataState<ColorInputHsvData>> = _dataStateFlow.asStateFlow()
-
-    private var sampleProcessingJob: Job? = null // 'onSampleProduced' is never invoked concurrently
-    private val samplerForNewColors = Sampler<ColorWithId>(
+    private val samplerForNewColors = Sampler<Color.Hsv>(
         period = 200.milliseconds,
-        coroutineScope = CoroutineScope(coroutineScope.coroutineContext + defaultDispatcher),
-    ) { colorWithId ->
-        sampleProcessingJob?.cancel()
-        sampleProcessingJob = coroutineScope.launch(defaultDispatcher) {
-            mediator.withLock { editor ->
-                val idThen = colorWithId.mediatorStateId
-                val idNow = mediator.colorState.id
-                if (idNow == idThen) {
-                    editor.set(color = colorWithId.color, source = DomainColorInputType.Hsv)
-                }
+        coroutineScope = coroutineScope,
+    ) { sample ->
+        // skipped if the pickers have moved on or the color was set elsewhere meanwhile
+        atom.update {
+            val hasChanged = (it.displayColor != sample)
+            if (hasChanged) return@update it
+            it.copy(color = sample)
+        }
+    }
+
+    fun execute(action: ColorInputHsvAction): Job? =
+        when (action) {
+            is ColorInputHsvAction.SetColor -> {
+                setColor(action.color)
+                null
             }
         }
-    }
 
-    init {
-        coroutineScope.launch(defaultDispatcher) {
-            mediator.colorStateFlow.collect { (color, source) ->
-                val data = ColorInputHsvData(
-                    color = with(colorConverter) { color?.toHsv() },
-                    onColorChanged = ::onColorChanged,
-                )
-                _dataStateFlow.value = DataState.Ready(data)
-            }
+    private fun setColor(newColor: Color.Hsv) {
+        atom.update {
+            it.copy(displayColor = newColor)
         }
+        samplerForNewColors.offer(newColor)
     }
-
-    private fun onColorChanged(newColor: Color.Hsv) {
-        _dataStateFlow.update { dataState ->
-            if (dataState !is DataState.Ready) return@update dataState
-            val newData = dataState.data.copy(color = newColor)
-            DataState.Ready(data = newData)
-        }
-        val colorWithId = ColorWithId(color = newColor, mediatorStateId = mediator.colorState.id)
-        samplerForNewColors.offer(colorWithId)
-    }
-
-    /**
-     * Couples [color] received via [onColorChanged] with [ColorInputMediator.ColorState.id]
-     * at the moment when [color] was received.
-     */
-    private data class ColorWithId(
-        val color: Color.Hsv,
-        val mediatorStateId: Int,
-    )
 
     @AssistedFactory
     fun interface Factory {
         fun create(
             coroutineScope: CoroutineScope,
-            mediator: ColorInputMediator,
+            atom: Atom<ColorInputHsvState>,
         ): ColorInputHsvViewModel
     }
 }

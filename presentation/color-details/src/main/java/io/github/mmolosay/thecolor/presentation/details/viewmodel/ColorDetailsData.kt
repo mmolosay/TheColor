@@ -58,12 +58,10 @@ data class ColorDetailsData(
 
         data class Seed(
             val exactColor: ColorInt,
-            val selectExactColor: () -> Unit,
         ) : ColorRoleData
 
         data class Exact(
             val seedColor: ColorInt,
-            val selectSeedColor: () -> Unit,
         ) : ColorRoleData
     }
 }

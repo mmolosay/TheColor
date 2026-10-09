@@ -11,7 +11,6 @@ import io.github.mmolosay.thecolor.domain.exception.DomainFailure
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ColorRoleData
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsEvent
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel.DataState
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorRole
@@ -228,7 +227,7 @@ class ColorDetailsViewModelTest {
                 sut.setSeedColor(seedColor)
                 sut.data.selectExactColor()
 
-                val expectedEvent = ColorDetailsEvent.ColorSelected(
+                val expectedEvent = ColorDetailsEvent.SelectColorAction(
                     color = exactColor,
                     colorRole = ColorRole.Exact,
                 )
@@ -269,7 +268,7 @@ class ColorDetailsViewModelTest {
                 sut.data.selectSeedColor()
 
                 // THEN
-                val expectedEvent = ColorDetailsEvent.ColorSelected(
+                val expectedEvent = ColorDetailsEvent.SelectColorAction(
                     color = seedColor,
                     colorRole = ColorRole.Seed,
                 )
@@ -466,7 +465,7 @@ class ColorDetailsViewModelTest {
             fun firstEvent() =
                 async { sut.eventFlow.first() }
             fun selectColor(event: ColorDetailsEvent) {
-                event.shouldBeInstanceOf<ColorDetailsEvent.ColorSelected>()
+                event.shouldBeInstanceOf<ColorDetailsEvent.SelectColorAction>()
                 sut.selectColor(event.colorRole)
             }
             sut.setSeedColor(seedColor)
