@@ -7,7 +7,8 @@ interface ColorInputHsvHandle {
 }
 
 data class ColorInputHsvFacade(
-    val color: Color.Hsv?,
+    // TODO: use 'ColorInputHsvData' instead of its flattened content
+    val color: Color.Hsv,
     val execute: ExecuteColorInputHsvAction,
 )
 

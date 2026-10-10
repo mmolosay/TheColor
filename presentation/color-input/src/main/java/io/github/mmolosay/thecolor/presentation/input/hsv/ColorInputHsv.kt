@@ -22,9 +22,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvHueRange
-import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvSaturationRange
-import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvValueRange
 import kotlinx.coroutines.Job
 import io.github.mmolosay.thecolor.domain.color.Color as DomainColor
 
@@ -33,22 +30,9 @@ fun ColorInputHsv(
     facade: ColorInputHsvFacade,
 ) {
     val execute by rememberUpdatedState(facade.execute) // stable across recompositions
-    val hue = run {
-        val color = facade.color
-        if (color != null) HueValue(color)
-        else HueValue(HsvHueRange.start)
-    }
-    val sv = run {
-        val color = facade.color
-        if (color != null) SaturationAndValue(color)
-        else SaturationAndValue(saturation = HsvSaturationRange.endInclusive, value = HsvValueRange.endInclusive)
-    }
-    fun HsvColor(hue: HueValue, sv: SaturationAndValue): DomainColor.Hsv =
-        DomainColor.Hsv(
-            hue = hue.value,
-            saturation = sv.saturation,
-            value = sv.value,
-        )
+    val color = facade.color
+    val hue = HueValue(color)
+    val sv = SaturationAndValue(color)
 
     Row(
         modifier = Modifier.height(IntrinsicSize.Min),
@@ -62,8 +46,7 @@ fun ColorInputHsv(
             hue = hue,
             sv = sv,
             onChange = { newSv ->
-                val newColor = HsvColor(hue, newSv)
-                val action = ColorInputHsvAction.SetColor(newColor)
+                val action = ColorInputHsvAction.SetSaturationAndValue(newSv.saturation, newSv.value)
                 execute(action)
             },
         )
@@ -77,8 +60,7 @@ fun ColorInputHsv(
                     .fillMaxHeight(),
                 hue = hue,
                 onChange = { newHue ->
-                    val newColor = HsvColor(newHue, sv)
-                    val action = ColorInputHsvAction.SetColor(newColor)
+                    val action = ColorInputHsvAction.SetHue(newHue.value)
                     execute(action)
                 },
             )

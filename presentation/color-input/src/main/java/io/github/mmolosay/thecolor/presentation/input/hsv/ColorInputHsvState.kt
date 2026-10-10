@@ -10,8 +10,16 @@ data class ColorInputHsvState(
 
 fun ColorInputHsvState.toData(): ColorInputHsvData =
     ColorInputHsvData(
-        color = this.displayColor,
+        color = this.displayColor.orDefault(),
     )
+
+internal fun Color.Hsv?.orDefault(): Color.Hsv =
+    this
+        ?: Color.Hsv(
+            hue = Color.Hsv.HueRange.start,
+            saturation = Color.Hsv.SaturationRange.endInclusive,
+            value = Color.Hsv.ValueRange.endInclusive,
+        )
 
 context(
     converter: ColorConverter,

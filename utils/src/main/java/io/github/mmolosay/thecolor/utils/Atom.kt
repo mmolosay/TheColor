@@ -26,6 +26,17 @@ fun <S, V> Atom(
 ): Atom<V> =
     MutableStateFlowAtom(flow, lens)
 
+fun <T> Atom(
+    flow: MutableStateFlow<T>,
+): Atom<T> =
+    Atom(
+        flow = flow,
+        lens = Lens(
+            get = { s -> s },
+            set = { _, value -> value },
+        ),
+    )
+
 private class MutableStateFlowAtom<S, V>(
     private val flow: MutableStateFlow<S>,
     private val lens: Lens<S, V>,

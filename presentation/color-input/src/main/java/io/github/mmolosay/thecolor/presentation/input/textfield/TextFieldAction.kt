@@ -7,6 +7,7 @@ sealed interface TextFieldAction {
 
     data class SetText(
         val text: Text,
+        val expected: Text,
     ) : TextFieldAction
 
     object ClearTextFeature {

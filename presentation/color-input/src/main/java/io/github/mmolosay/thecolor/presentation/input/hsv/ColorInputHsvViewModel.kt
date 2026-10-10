@@ -38,17 +38,25 @@ class ColorInputHsvViewModel @AssistedInject constructor(
 
     fun execute(action: ColorInputHsvAction): Job? =
         when (action) {
-            is ColorInputHsvAction.SetColor -> {
-                setColor(action.color)
+            is ColorInputHsvAction.SetHue -> {
+                setDisplayColor { it.copy(hue = action.hue) }
+                null
+            }
+            is ColorInputHsvAction.SetSaturationAndValue -> {
+                setDisplayColor { it.copy(saturation = action.saturation, value = action.value) }
                 null
             }
         }
 
-    private fun setColor(newColor: Color.Hsv) {
+    private fun setDisplayColor(
+        transform: (Color.Hsv) -> Color.Hsv,
+    ) {
         atom.update {
-            it.copy(displayColor = newColor)
+            val newDisplayColor = transform(it.displayColor.orDefault())
+            it.copy(displayColor = newDisplayColor)
         }
-        samplerForNewColors.offer(newColor)
+        val displayColor = atom.value.displayColor ?: return // cleared since the update before; nothing to sample
+        samplerForNewColors.offer(displayColor)
     }
 
     @AssistedFactory

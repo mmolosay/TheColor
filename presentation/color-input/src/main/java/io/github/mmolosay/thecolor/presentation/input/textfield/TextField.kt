@@ -76,7 +76,10 @@ internal fun TextField(
                 val newValue = new.copy(text = newText.string)
                 onValueChange(newValue)
                 run {
-                    val action = TextFieldAction.SetText(newText)
+                    val action = TextFieldAction.SetText(
+                        text = newText,
+                        expected = Text(current.text),
+                    )
                     execute(action)
                 }
             } else {
