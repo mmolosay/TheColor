@@ -21,6 +21,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,6 +37,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
 import kotlinx.coroutines.Job
+import timber.log.Timber
 import androidx.compose.ui.text.input.TextFieldValue as MaterialTextFieldValue
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
@@ -56,6 +58,11 @@ internal fun TextField(
     val inputProcessor = facade.inputProcessor
     val execute by rememberUpdatedState(facade.execute) // stable across recompositions
 
+    // The value the next edit is built on. The field applies edits that arrive between recompositions
+    // on top of each other, so until the next recomposition it is ahead of the 'value' parameter.
+    val latestValue = remember { mutableStateOf(value) }
+    SideEffect { latestValue.value = value }
+
     val interactionSource = remember { MutableInteractionSource() }
     if (facade.shouldSelectAllTextOnFocus) {
         SelectAllTextOnFocusAsSideEffect(
@@ -68,12 +75,13 @@ internal fun TextField(
         modifier = modifier,
         value = value,
         onValueChange = { new ->
-            val current = value
+            val current = latestValue.value
             if (current.text != new.text) {
                 // can't just pass new.text to ViewModel for filtering: TextFieldValue.selection will be lost
                 val newInput = new.text
                 val newText = inputProcessor(newInput)
                 val newValue = new.copy(text = newText.string)
+                latestValue.value = newValue
                 onValueChange(newValue)
                 run {
                     val action = TextFieldAction.SetText(
@@ -83,6 +91,7 @@ internal fun TextField(
                     execute(action)
                 }
             } else {
+                latestValue.value = new
                 onValueChange(new)
             }
         },
@@ -110,6 +119,7 @@ internal fun TextField(
     )
     // for when text is changed programmatically
     LaunchedEffect(facade.text) {
+        val shownText = latestValue.value.text // TODO: remove; temporary for the fast typing check
         val oldValue = value
         val newText = facade.text.string
         val newSelection = run {
@@ -124,6 +134,10 @@ internal fun TextField(
         }
         val newValue = oldValue.copy(text = newText, selection = newSelection)
         onValueChange(newValue)
+        // TODO: remove; temporary log for the fast typing check
+        if (shownText != newText) {
+            Timber.tag("TextFieldRace").d("sync replaced '$shownText' with '$newText'")
+        }
     }
 }
 
