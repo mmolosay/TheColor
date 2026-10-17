@@ -15,7 +15,7 @@ import java.util.concurrent.CyclicBarrier
 import java.util.concurrent.Executors
 
 /**
- * Tests [Store] created with `Store(initialState)`, and its slices.
+ * Tests [MutableStore] created with `MutableStore(initialState)`, and its slices.
  *
  * The states model an office with a desk, and a letter on the desk.
  * The desk's reducer keeps its `summary` equal to the letter's text, and turns the letter's
@@ -33,7 +33,7 @@ class StoreTest {
         other = 0,
     )
 
-    lateinit var sut: Store<Office, Nothing>
+    lateinit var sut: MutableStore<Office, Nothing>
 
     // region 'update'
 
@@ -253,16 +253,16 @@ class StoreTest {
     // endregion
 
     fun createSut() =
-        Store(initialState).also {
+        MutableStore(initialState).also {
             sut = it
         }
 
-    fun createLetterSlice(): Store<Letter, LetterOutcome> =
+    fun createLetterSlice(): MutableStore<Letter, LetterOutcome> =
         sut
             .slice(deskLens, ::onDesk)
             .slice(letterLens, ::onLetter)
 
-    fun createOtherSlice(): Store<Int, Nothing> =
+    fun createOtherSlice(): MutableStore<Int, Nothing> =
         sut.slice(otherLens) { office, _: Nothing? -> Change(office) }
 
     fun onDesk(office: Office, outcome: DeskOutcome?): Change<Office, Nothing> =

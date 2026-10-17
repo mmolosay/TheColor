@@ -10,7 +10,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import io.github.mmolosay.thecolor.composition.Moment
-import kotlinx.coroutines.flow.Flow
+import io.github.mmolosay.thecolor.composition.Store
 
 interface MomentHolder<S> {
     val state: State<S>
@@ -34,17 +34,14 @@ internal class MomentHolderImpl<S>(initial: Moment<S>) : MomentHolder<S> {
 }
 
 @Composable
-fun <S> rememberMomentHolder(
-    initial: Moment<S>,
-    moments: Flow<Moment<S>>,
-): MomentHolder<S> {
-    val holder: MomentHolder<S> = remember(moments) {
-        MomentHolderImpl(initial)
+fun <S> rememberMomentHolder(store: Store<S>): MomentHolder<S> {
+    val holder: MomentHolder<S> = remember(store) {
+        MomentHolderImpl(store.moment)
     }
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(holder, lifecycleOwner) {
         lifecycleOwner.repeatOnLifecycle(state = Lifecycle.State.STARTED) {
-            moments.collect { moment ->
+            store.moments.collect { moment ->
                 holder.offer(moment)
             }
         }

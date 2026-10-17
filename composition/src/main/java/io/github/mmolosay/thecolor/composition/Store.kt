@@ -9,22 +9,25 @@ import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 
-// TODO: Transition and Reduce should be defined inside the Store once 'nested type aliases' is stable
+// TODO: Transition and Reduce should be defined inside the MutableStore once 'nested type aliases'
+//  is stable
 typealias Transition<S, O> = (S) -> Change<S, O>
 typealias Reduce<S, O, CO> = (S, CO?) -> Change<S, O>
 
-interface Store<S, O> {
+interface Store<out S> {
     val moment: Moment<S>
     val moments: Flow<Moment<S>>
-
-    fun update(transition: Transition<S, O>)
-    fun <CS, CO> slice(lens: Lens<S, CS>, reduce: Reduce<S, O, CO>): Store<CS, CO>
 }
 
-fun <S> Store(initialState: S): Store<S, Nothing> =
+interface MutableStore<S, O> : Store<S> {
+    fun update(transition: Transition<S, O>)
+    fun <CS, CO> slice(lens: Lens<S, CS>, reduce: Reduce<S, O, CO>): MutableStore<CS, CO>
+}
+
+fun <S> MutableStore(initialState: S): MutableStore<S, Nothing> =
     RootStore(initialState)
 
-private class RootStore<S>(initialState: S) : Store<S, Nothing> {
+private class RootStore<S>(initialState: S) : MutableStore<S, Nothing> {
 
     private val flow = run {
         val value = Moment(initialState, version = 0L)
@@ -45,15 +48,18 @@ private class RootStore<S>(initialState: S) : Store<S, Nothing> {
             Moment(change.state, version = current.version + 1)
         }
 
-    override fun <CS, CO> slice(lens: Lens<S, CS>, reduce: Reduce<S, Nothing, CO>): Store<CS, CO> =
+    override fun <CS, CO> slice(
+        lens: Lens<S, CS>,
+        reduce: Reduce<S, Nothing, CO>,
+    ): MutableStore<CS, CO> =
         SliceStore(parent = this, lens = lens, reduce = reduce)
 }
 
 private class SliceStore<PS, PO, S, O>(
-    private val parent: Store<PS, PO>,
+    private val parent: MutableStore<PS, PO>,
     private val lens: Lens<PS, S>,
     private val reduce: Reduce<PS, PO, O>,
-) : Store<S, O> {
+) : MutableStore<S, O> {
 
     override val moment: Moment<S>
         get() = parent.moment.focus(lens)
@@ -75,6 +81,9 @@ private class SliceStore<PS, PO, S, O>(
             }
         }
 
-    override fun <CS, CO> slice(lens: Lens<S, CS>, reduce: Reduce<S, O, CO>): Store<CS, CO> =
+    override fun <CS, CO> slice(
+        lens: Lens<S, CS>,
+        reduce: Reduce<S, O, CO>,
+    ): MutableStore<CS, CO> =
         SliceStore(parent = this, lens = lens, reduce = reduce)
 }

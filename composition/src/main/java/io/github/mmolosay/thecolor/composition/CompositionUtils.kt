@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 object CompositionUtils {
 
     fun <S, R : Any> CoroutineScope.launchAwaited(
-        store: Store<S, *>,
+        store: Store<S>,
         awaited: (S) -> R?,
         block: suspend (R) -> Unit,
     ): Job =

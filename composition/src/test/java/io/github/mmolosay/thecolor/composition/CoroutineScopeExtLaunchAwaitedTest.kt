@@ -19,7 +19,7 @@ class CoroutineScopeExtLaunchAwaitedTest {
     val rye = Order(bread = "rye")
     val wheat = Order(bread = "wheat")
 
-    val store = Store(initialState = Bakery(order = rye, other = 0))
+    val store = MutableStore(initialState = Bakery(order = rye, other = 0))
 
     val log = mutableListOf<String>()
 
