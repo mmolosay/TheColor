@@ -8,6 +8,7 @@ import io.github.mmolosay.thecolor.composition.CompositionUtils.child
 import io.github.mmolosay.thecolor.composition.MutableStore
 import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.composition.Token
+import io.github.mmolosay.thecolor.composition.mapState
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.newSubmission
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.shown
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldFeature
@@ -22,7 +23,10 @@ class GramsInputFeature @AssistedInject constructor(
     @Assisted private val store: MutableStore<GramsInputState, GramsInputOutcome>,
     @Assisted private val environment: GramsInputEnvironment,
     textFieldFactory: TextFieldFeature.Factory,
-) : Store<GramsInputState> by store {
+) {
+
+    val viewData: Store<GramsInputViewData> =
+        store.mapState { grams -> context(environment) { grams.toViewData() } }
 
     // for its View, which shows the field's View
     val textField: TextFieldFeature = run {

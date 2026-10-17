@@ -17,7 +17,7 @@ object CompositionUtils {
         block: suspend (R) -> Unit,
     ): Job =
         this.launch {
-            store.moments
+            store
                 .map { moment -> awaited(moment.state) }
                 .distinctUntilChanged { old, new -> old === new }
                 .collectLatest {

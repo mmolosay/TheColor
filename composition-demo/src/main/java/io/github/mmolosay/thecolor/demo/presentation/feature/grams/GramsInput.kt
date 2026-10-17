@@ -20,7 +20,7 @@ fun GramsInput(
     input: GramsInputFeature,
     modifier: Modifier = Modifier,
 ) {
-    val holder = rememberMomentHolder(store = input)
+    val holder = rememberMomentHolder(store = input.viewData)
     TextField(
         field = input.textField,
         label = stringResource(R.string.grams_input_label),
@@ -31,21 +31,20 @@ fun GramsInput(
         keyboardActions = KeyboardActions(
             onDone = {
                 input.submit()
-                holder.offer(input.moment) // read your writes
+                holder.offer(input.viewData.value) // read your writes
             },
         ),
         hasClearButton = true,
         modifier = modifier,
     )
-    val submission = holder.state.value.submission ?: return
-    val answer = submission.answer ?: return
+    val answerToShow = holder.state.value.answerToShow ?: return
     val context = LocalContext.current
     val rejection = stringResource(R.string.grams_input_rejected)
-    LaunchedEffect(submission.token) {
-        if (answer == Submission.Answer.Rejected) {
+    LaunchedEffect(answerToShow.token) {
+        if (answerToShow.answer == Submission.Answer.Rejected) {
             Toast.makeText(context, rejection, Toast.LENGTH_SHORT).show()
         }
-        input.answerShown(submission.token)
-        holder.offer(input.moment) // read your writes
+        input.answerShown(answerToShow.token)
+        holder.offer(input.viewData.value) // read your writes
     }
 }

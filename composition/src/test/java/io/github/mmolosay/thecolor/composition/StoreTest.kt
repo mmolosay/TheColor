@@ -45,7 +45,7 @@ class StoreTest {
             Change(it.copy(other = 1))
         }
 
-        sut.moment shouldBe Moment(initialState.copy(other = 1), version = 1)
+        sut.value shouldBe Moment(initialState.copy(other = 1), version = 1)
     }
 
     @Test
@@ -53,7 +53,7 @@ class StoreTest {
         runTest(testDispatcher) {
             createSut()
 
-            sut.moments.test {
+            sut.test {
                 skipItems(1) // replayed value of 'StateFlow'
 
                 // WHEN
@@ -62,7 +62,7 @@ class StoreTest {
                 }
 
                 // THEN
-                sut.moment.version shouldBe 0
+                sut.value.version shouldBe 0
                 expectNoEvents()
             }
         }
@@ -78,7 +78,7 @@ class StoreTest {
             Change(it.copy()) // a new instance, equal to the one given
         }
 
-        sut.moment shouldBe Moment(initialState, version = 0)
+        sut.value shouldBe Moment(initialState, version = 0)
     }
 
     @Test
@@ -90,7 +90,7 @@ class StoreTest {
             Change(it, outcome = LetterOutcome.Sent)
         }
 
-        sut.moment shouldBe Moment(initialState.copy(sent = ""), version = 1)
+        sut.value shouldBe Moment(initialState.copy(sent = ""), version = 1)
     }
 
     @Test
@@ -99,7 +99,7 @@ class StoreTest {
             createSut()
             val letter = createLetterSlice()
 
-            sut.moments.test {
+            sut.test {
                 skipItems(1) // replayed value of 'StateFlow'
 
                 // WHEN
@@ -124,7 +124,7 @@ class StoreTest {
             Change(Letter(text = "A"), outcome = LetterOutcome.Sent)
         }
 
-        sut.moment shouldBe Moment(
+        sut.value shouldBe Moment(
             initialState.copy(
                 desk = Desk(letter = Letter(text = "A"), summary = "A"),
                 sent = "A",
@@ -171,7 +171,7 @@ class StoreTest {
 
             val updatesPerSlice = numberOfThreads / 2 * updatesPerThread
             val text = "a".repeat(updatesPerSlice)
-            sut.moment shouldBe Moment(
+            sut.value shouldBe Moment(
                 Office(desk = Desk(letter = Letter(text), summary = text), other = updatesPerSlice),
                 version = 2L * updatesPerSlice,
             )
@@ -179,7 +179,7 @@ class StoreTest {
 
     // endregion
 
-    // region 'moment'
+    // region 'value'
 
     /**
      * Tests that a slice's moment carries the version of the root's moment it was read from,
@@ -188,7 +188,7 @@ class StoreTest {
      * so an older version here would let it take a late delivery that is older than what it shows.
      */
     @Test
-    fun `given another part of the root changed after the slice's state, when the slice's 'moment' is read, then it carries the root's latest version`() {
+    fun `given another part of the root changed after the slice's state, when the slice's 'value' is read, then it carries the root's latest version`() {
         createSut()
         val letter = createLetterSlice()
         letter.update {
@@ -198,55 +198,31 @@ class StoreTest {
             Change(it.copy(other = 1))
         }
 
-        val moment = letter.moment
+        val moment = letter.value
 
         moment shouldBe Moment(Letter(text = "A"), version = 2)
     }
 
     // endregion
 
-    // region 'moments'
+    // region 'collect'
 
     @Test
-    fun `when another part of the root changes and then the slice's state changes, then the slice's 'moments' emits only its own change, with the version of that commit`() =
+    fun `when another part of the root changes, then the slice emits its state with the version of that commit, so that its collectors end on the slice's 'value'`() =
         runTest(testDispatcher) {
             createSut()
             val letter = createLetterSlice()
 
-            letter.moments.test {
+            letter.test {
+                skipItems(1) // replayed value of 'StateFlow'
+
                 // WHEN
                 sut.update {
                     Change(it.copy(other = 1))
                 }
-                letter.update {
-                    Change(Letter(text = "A"))
-                }
 
                 // THEN
-                // the current moment, when collecting starts
-                awaitItem() shouldBe Moment(Letter(text = ""), version = 0)
-                awaitItem() shouldBe Moment(Letter(text = "A"), version = 2)
-            }
-        }
-
-    @Test
-    fun `when the slice's state is replaced with an equal one, then the slice's 'moments' emits nothing new`() =
-        runTest(testDispatcher) {
-            createSut()
-            val letter = createLetterSlice()
-
-            letter.moments.test {
-                skipItems(1) // the current moment, when collecting starts
-
-                // WHEN
-                sut.update {
-                    val equalDesk = it.desk.copy(letter = it.desk.letter.copy())
-                    // 'other' changes too, so that the root commits and the slice has something to filter
-                    Change(it.copy(desk = equalDesk, other = 1))
-                }
-
-                // THEN
-                expectNoEvents()
+                awaitItem() shouldBe Moment(Letter(text = ""), version = 1)
             }
         }
 

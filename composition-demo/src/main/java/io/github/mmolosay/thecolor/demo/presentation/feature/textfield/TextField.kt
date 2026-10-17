@@ -36,7 +36,7 @@ fun TextField(
     hasClearButton: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    val holder = rememberMomentHolder(store = field)
+    val holder = rememberMomentHolder(store = field.viewData)
     val text = holder.state.value.text
     // The control applies each edit to its own buffer and has to get the edit back in the same
     // callback, so the View keeps a copy of what it shows, with the cursor the state doesn't hold
@@ -59,7 +59,7 @@ fun TextField(
             copy.value = new
             if (new.text != old.text) {
                 field.enterText(text = new.text, expected = old.text)
-                holder.offer(field.moment) // read your writes
+                holder.offer(field.viewData.value) // read your writes
             }
         },
         modifier = modifier,
@@ -70,7 +70,7 @@ fun TextField(
                     visible = shown.text.isNotEmpty(),
                     onClick = {
                         field.clearText()
-                        holder.offer(field.moment) // read your writes
+                        holder.offer(field.viewData.value) // read your writes
                     },
                 )
             }

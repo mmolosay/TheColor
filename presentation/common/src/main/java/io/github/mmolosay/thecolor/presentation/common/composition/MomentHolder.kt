@@ -36,12 +36,12 @@ internal class MomentHolderImpl<S>(initial: Moment<S>) : MomentHolder<S> {
 @Composable
 fun <S> rememberMomentHolder(store: Store<S>): MomentHolder<S> {
     val holder: MomentHolder<S> = remember(store) {
-        MomentHolderImpl(store.moment)
+        MomentHolderImpl(store.value)
     }
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(holder, lifecycleOwner) {
         lifecycleOwner.repeatOnLifecycle(state = Lifecycle.State.STARTED) {
-            store.moments.collect { moment ->
+            store.collect { moment ->
                 holder.offer(moment)
             }
         }

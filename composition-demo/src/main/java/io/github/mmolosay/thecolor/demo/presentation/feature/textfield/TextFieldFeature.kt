@@ -6,19 +6,23 @@ import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.composition.MutableStore
 import io.github.mmolosay.thecolor.composition.Store
+import io.github.mmolosay.thecolor.composition.mapState
 import kotlinx.coroutines.CoroutineScope
 
 /**
  * A field running in one place, and the only way its View changes the field's state.
  *
  * An action's change is in the store by the time the action returns, so the View can read it back
- * at once.
+ * from [viewData] at once.
  */
 class TextFieldFeature @AssistedInject constructor(
     @Assisted lifetime: CoroutineScope, // no work runs in it, but its parents needn't know that
     @Assisted private val store: MutableStore<TextFieldState, *>,
     @Assisted private val environment: TextFieldEnvironment,
-) : Store<TextFieldState> by store {
+) {
+
+    val viewData: Store<TextFieldViewData> =
+        store.mapState { field -> context(environment) { field.toViewData() } }
 
     fun enterText(text: String, expected: String) {
         store.update { field ->

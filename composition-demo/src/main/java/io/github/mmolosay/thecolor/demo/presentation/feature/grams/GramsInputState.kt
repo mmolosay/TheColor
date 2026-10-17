@@ -59,3 +59,13 @@ fun GramsInputState.withSubmissionRejected(): GramsInputState {
     val submission = this.submission.answered(Submission.Answer.Rejected)
     return this.copy(submission = submission)
 }
+
+context(_: GramsInputEnvironment)
+fun GramsInputState.toViewData(): GramsInputViewData {
+    val answerToShow = run {
+        val submission = this.submission ?: return@run null
+        val answer = submission.answer ?: return@run null
+        GramsInputViewData.AnswerToShow(token = submission.token, answer = answer)
+    }
+    return GramsInputViewData(answerToShow = answerToShow)
+}

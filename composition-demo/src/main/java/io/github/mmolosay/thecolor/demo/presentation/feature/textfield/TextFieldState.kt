@@ -41,3 +41,7 @@ fun TextFieldState.text(): String =
 context(environment: TextFieldEnvironment)
 fun TextFieldState.withText(text: String): TextFieldState =
     this.copy(text = environment.formatter.format(text))
+
+context(_: TextFieldEnvironment)
+fun TextFieldState.toViewData(): TextFieldViewData =
+    TextFieldViewData(text = this.text)

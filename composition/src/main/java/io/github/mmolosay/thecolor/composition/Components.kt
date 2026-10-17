@@ -1,15 +1,13 @@
 package io.github.mmolosay.thecolor.composition
 
-import io.github.mmolosay.thecolor.utils.Lens
-
 data class Moment<out S>(
     val state: S,
     val version: Long,
 )
 
-fun <S, V> Moment<S>.focus(lens: Lens<S, V>): Moment<V> =
+fun <S, R> Moment<S>.map(transform: (S) -> R): Moment<R> =
     Moment(
-        state = lens.get(this.state),
+        state = transform(this.state),
         version = this.version,
     )
 
