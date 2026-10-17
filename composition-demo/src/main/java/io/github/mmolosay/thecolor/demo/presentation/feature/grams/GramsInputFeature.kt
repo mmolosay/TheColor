@@ -1,35 +1,28 @@
-package io.github.mmolosay.thecolor.demo.grams
+package io.github.mmolosay.thecolor.demo.presentation.feature.grams
 
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.composition.CompositionUtils.child
-import io.github.mmolosay.thecolor.composition.Moment
+import io.github.mmolosay.thecolor.composition.MutableStore
 import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.composition.Token
-import io.github.mmolosay.thecolor.demo.input.newSubmission
-import io.github.mmolosay.thecolor.demo.input.shown
-import io.github.mmolosay.thecolor.demo.textfield.TextFieldFeature
-import io.github.mmolosay.thecolor.demo.textfield.TextFieldState
-import io.github.mmolosay.thecolor.demo.textfield.text
-import io.github.mmolosay.thecolor.demo.textfield.withText
+import io.github.mmolosay.thecolor.demo.presentation.feature.input.newSubmission
+import io.github.mmolosay.thecolor.demo.presentation.feature.input.shown
+import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldFeature
+import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldState
+import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.text
+import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.withText
 import io.github.mmolosay.thecolor.utils.Lens
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
 
 class GramsInputFeature @AssistedInject constructor(
     @Assisted lifetime: CoroutineScope,
-    @Assisted private val store: Store<GramsInputState, GramsInputOutcome>,
+    @Assisted private val store: MutableStore<GramsInputState, GramsInputOutcome>,
     @Assisted private val environment: GramsInputEnvironment,
     textFieldFactory: TextFieldFeature.Factory,
-) {
-
-    val moment: Moment<GramsInputState>
-        get() = store.moment
-
-    val moments: Flow<Moment<GramsInputState>>
-        get() = store.moments
+) : Store<GramsInputState> by store {
 
     // for its View, which shows the field's View
     val textField: TextFieldFeature = run {
@@ -59,7 +52,7 @@ class GramsInputFeature @AssistedInject constructor(
     fun interface Factory {
         fun create(
             lifetime: CoroutineScope,
-            store: Store<GramsInputState, GramsInputOutcome>,
+            store: MutableStore<GramsInputState, GramsInputOutcome>,
             environment: GramsInputEnvironment,
         ): GramsInputFeature
     }

@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.demo.textfield
+package io.github.mmolosay.thecolor.demo.presentation.feature.textfield
 
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -36,7 +36,7 @@ fun TextField(
     hasClearButton: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    val holder = rememberMomentHolder(initial = field.moment, moments = field.moments)
+    val holder = rememberMomentHolder(store = field)
     val text = holder.state.value.text
     // The control applies each edit to its own buffer and has to get the edit back in the same
     // callback, so the View keeps a copy of what it shows, with the cursor the state doesn't hold

@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.demo.textfield
+package io.github.mmolosay.thecolor.demo.presentation.feature.textfield
 
 import javax.inject.Inject
 

@@ -1,13 +1,12 @@
-package io.github.mmolosay.thecolor.demo.textfield
+package io.github.mmolosay.thecolor.demo.presentation.feature.textfield
 
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.composition.Change
-import io.github.mmolosay.thecolor.composition.Moment
+import io.github.mmolosay.thecolor.composition.MutableStore
 import io.github.mmolosay.thecolor.composition.Store
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
 
 /**
  * A field running in one place, and the only way its View changes the field's state.
@@ -17,15 +16,9 @@ import kotlinx.coroutines.flow.Flow
  */
 class TextFieldFeature @AssistedInject constructor(
     @Assisted lifetime: CoroutineScope, // no work runs in it, but its parents needn't know that
-    @Assisted private val store: Store<TextFieldState, *>,
+    @Assisted private val store: MutableStore<TextFieldState, *>,
     @Assisted private val environment: TextFieldEnvironment,
-) {
-
-    val moment: Moment<TextFieldState>
-        get() = store.moment
-
-    val moments: Flow<Moment<TextFieldState>>
-        get() = store.moments
+) : Store<TextFieldState> by store {
 
     fun enterText(text: String, expected: String) {
         store.update { field ->
@@ -50,7 +43,7 @@ class TextFieldFeature @AssistedInject constructor(
     fun interface Factory {
         fun create(
             lifetime: CoroutineScope,
-            store: Store<TextFieldState, *>,
+            store: MutableStore<TextFieldState, *>,
             environment: TextFieldEnvironment,
         ): TextFieldFeature
     }

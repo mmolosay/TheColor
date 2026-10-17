@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.demo.input
+package io.github.mmolosay.thecolor.demo.presentation.feature.input
 
 import io.github.mmolosay.thecolor.composition.Token
 

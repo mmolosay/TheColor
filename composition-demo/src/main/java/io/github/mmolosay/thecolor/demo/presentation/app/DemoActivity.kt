@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.demo.app
+package io.github.mmolosay.thecolor.demo.presentation.app
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity

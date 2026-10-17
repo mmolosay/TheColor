@@ -1,7 +1,7 @@
-package io.github.mmolosay.thecolor.demo.grams
+package io.github.mmolosay.thecolor.demo.presentation.feature.grams
 
 import io.github.mmolosay.thecolor.demo.domain.AmountConverter
-import io.github.mmolosay.thecolor.demo.textfield.TextFieldEnvironment
+import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldEnvironment
 import javax.inject.Inject
 
 class GramsInputEnvironment @Inject constructor(

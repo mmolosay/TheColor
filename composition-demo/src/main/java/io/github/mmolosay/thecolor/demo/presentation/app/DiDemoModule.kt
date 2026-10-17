@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.demo.app
+package io.github.mmolosay.thecolor.demo.presentation.app
 
 import dagger.Binds
 import dagger.Module

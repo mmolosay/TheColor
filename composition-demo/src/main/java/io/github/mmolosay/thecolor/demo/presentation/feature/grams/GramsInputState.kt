@@ -1,18 +1,31 @@
-package io.github.mmolosay.thecolor.demo.grams
+package io.github.mmolosay.thecolor.demo.presentation.feature.grams
 
 import io.github.mmolosay.thecolor.demo.domain.Amount
-import io.github.mmolosay.thecolor.demo.input.Submission
-import io.github.mmolosay.thecolor.demo.input.answered
-import io.github.mmolosay.thecolor.demo.textfield.newTextFieldState
-import io.github.mmolosay.thecolor.demo.textfield.text
-import io.github.mmolosay.thecolor.demo.textfield.withText
+import io.github.mmolosay.thecolor.demo.presentation.feature.input.Submission
+import io.github.mmolosay.thecolor.demo.presentation.feature.input.answered
+import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldState
+import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldStateFactory
+import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.text
+import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.withText
 
-// from the parent's choice of amount
-context(environment: GramsInputEnvironment)
-fun newGramsInputState(amount: Amount?): GramsInputState {
-    val textField = context(environment.textField) { newTextFieldState(text = "") }
-    val empty = GramsInputState(textField = textField, submission = null)
-    return empty.withAmount(amount)
+data class GramsInputState(
+    val textField: TextFieldState,
+    val submission: Submission?,
+)
+
+sealed interface GramsInputOutcome {
+    data object Submitted : GramsInputOutcome // the parent reads the amount from the state
+}
+
+object GramsInputStateFactory {
+
+    // from the parent's choice of amount
+    context(environment: GramsInputEnvironment)
+    fun create(amount: Amount?): GramsInputState {
+        val textField = context(environment.textField) { TextFieldStateFactory.create(text = "") }
+        val empty = GramsInputState(textField = textField, submission = null)
+        return empty.withAmount(amount)
+    }
 }
 
 // the fact: what the text stands for

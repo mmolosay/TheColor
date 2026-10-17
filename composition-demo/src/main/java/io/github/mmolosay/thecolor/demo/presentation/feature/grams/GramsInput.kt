@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.demo.grams
+package io.github.mmolosay.thecolor.demo.presentation.feature.grams
 
 import android.widget.Toast
 import androidx.compose.foundation.text.KeyboardActions
@@ -11,8 +11,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import io.github.mmolosay.thecolor.demo.R
-import io.github.mmolosay.thecolor.demo.input.Submission
-import io.github.mmolosay.thecolor.demo.textfield.TextField
+import io.github.mmolosay.thecolor.demo.presentation.feature.input.Submission
+import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextField
 import io.github.mmolosay.thecolor.presentation.common.composition.rememberMomentHolder
 
 @Composable
@@ -20,7 +20,7 @@ fun GramsInput(
     input: GramsInputFeature,
     modifier: Modifier = Modifier,
 ) {
-    val holder = rememberMomentHolder(initial = input.moment, moments = input.moments)
+    val holder = rememberMomentHolder(store = input)
     TextField(
         field = input.textField,
         label = stringResource(R.string.grams_input_label),
