@@ -38,7 +38,7 @@ class StoreTest {
     // region 'update'
 
     @Test
-    fun `when a write changes the state, then the new state is committed with the next version`() {
+    fun `when a transition changes the state, then the new state is committed with the next version`() {
         createSut()
 
         sut.update {
@@ -49,7 +49,7 @@ class StoreTest {
     }
 
     @Test
-    fun `when a write returns an equal state, then nothing is committed`() =
+    fun `when a transition returns an equal state, then nothing is committed`() =
         runTest(testDispatcher) {
             createSut()
 
@@ -68,20 +68,33 @@ class StoreTest {
         }
 
     @Test
-    fun `when a write through a slice returns the state it was given, then nothing is committed`() {
+    fun `when a transition through a slice returns an equal state and no outcome, then the parent's reducer does NOT run, so that nothing is committed`() {
         createSut()
-        val letter = createLetterSlice()
-
-        // as a dropped conditional change does; the desk's reducer still runs and builds an equal desk
-        letter.update {
-            Change(it)
+        val desk = sut.slice(deskLens) { office, _: Nothing? ->
+            Change(office.copy(other = office.other + 1)) // changes the office whenever it runs
         }
 
-        sut.moment.version shouldBe 0
+        desk.update {
+            Change(it.copy()) // a new instance, equal to the one given
+        }
+
+        sut.moment shouldBe Moment(initialState, version = 0)
     }
 
     @Test
-    fun `when a write goes through a slice, then the parent's reducer runs in the same update, so that the root commits once`() =
+    fun `when a transition through a slice returns an equal state with an outcome, then the parent's reducer handles the outcome`() {
+        createSut()
+        val letter = createLetterSlice()
+
+        letter.update {
+            Change(it, outcome = LetterOutcome.Sent)
+        }
+
+        sut.moment shouldBe Moment(initialState.copy(sent = ""), version = 1)
+    }
+
+    @Test
+    fun `when a transition goes through a slice, then the parent's reducer runs in the same update, so that the root commits once`() =
         runTest(testDispatcher) {
             createSut()
             val letter = createLetterSlice()
@@ -103,7 +116,7 @@ class StoreTest {
         }
 
     @Test
-    fun `given nested slices, when a write hands up an outcome, then each parent's reducer handles the outcome of the one below it, in the same update`() {
+    fun `given nested slices, when a transition hands up an outcome, then each parent's reducer handles the outcome of the one below it, in the same update`() {
         createSut()
         val letter = createLetterSlice()
 
@@ -121,17 +134,17 @@ class StoreTest {
     }
 
     /**
-     * Tests that a write through a slice and the reducers above it are one atomic update of the root:
-     * if they were not, concurrent writes could overwrite each other, and some would be lost.
+     * Tests that a transition through a slice and the reducers above it are one atomic update of the
+     * root: if they were not, concurrent updates could overwrite each other, and some would be lost.
      */
     @RepeatedTest(10) // executed sequentially (by default)
-    fun `given concurrent writes through different slices, when all of them return, then every write is applied with a version of its own`() =
+    fun `given concurrent updates through different slices, when all of them return, then every transition is applied with a version of its own`() =
         runTest(testDispatcher) {
             createSut()
             val letter = createLetterSlice()
             val other = createOtherSlice()
             val numberOfThreads = 16
-            val writesPerThread = 100
+            val updatesPerThread = 100
             val dispatcher = Executors.newFixedThreadPool(numberOfThreads).asCoroutineDispatcher()
             val barrier = CyclicBarrier(numberOfThreads)
 
@@ -140,7 +153,7 @@ class StoreTest {
                     repeat(numberOfThreads) { index ->
                         launch(dispatcher) {
                             barrier.await()
-                            repeat(writesPerThread) {
+                            repeat(updatesPerThread) {
                                 if (index % 2 == 0) {
                                     letter.update { state ->
                                         Change(Letter(text = state.text + "a"))
@@ -156,11 +169,11 @@ class StoreTest {
                 }
             }
 
-            val writesPerSlice = numberOfThreads / 2 * writesPerThread
-            val text = "a".repeat(writesPerSlice)
+            val updatesPerSlice = numberOfThreads / 2 * updatesPerThread
+            val text = "a".repeat(updatesPerSlice)
             sut.moment shouldBe Moment(
-                Office(desk = Desk(letter = Letter(text), summary = text), other = writesPerSlice),
-                version = 2L * writesPerSlice,
+                Office(desk = Desk(letter = Letter(text), summary = text), other = updatesPerSlice),
+                version = 2L * updatesPerSlice,
             )
         }
 

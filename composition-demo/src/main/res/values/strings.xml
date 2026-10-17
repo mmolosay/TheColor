@@ -2,4 +2,9 @@
 
     <string name="app_name">Composition Demo</string>
 
+    <string name="text_field_clear">Clear</string>
+
+    <string name="grams_input_label">Grams</string>
+    <string name="grams_input_rejected">Enter a whole number of grams</string>
+
 </resources>

@@ -84,7 +84,7 @@ class CoroutineScopeExtLaunchAwaitedTest {
         }
 
     @Test
-    fun `given the work is running for a data class, when the write replaces it with an equal copy and changes something else, then the work is restarted`() =
+    fun `given the work is running for a data class, when a transition replaces it with an equal copy and changes something else, then the work is restarted`() =
         runTest(testDispatcher) {
             store.update {
                 Change(it.copy(batch = Batch(bread = "rye")))

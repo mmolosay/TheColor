@@ -9,15 +9,15 @@ import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 
-// TODO: Write and Reduce should be defined inside the Store once 'nested type aliases' is stable
-typealias Write<S, O> = (S) -> Change<S, O>
+// TODO: Transition and Reduce should be defined inside the Store once 'nested type aliases' is stable
+typealias Transition<S, O> = (S) -> Change<S, O>
 typealias Reduce<S, O, CO> = (S, CO?) -> Change<S, O>
 
 interface Store<S, O> {
     val moment: Moment<S>
     val moments: Flow<Moment<S>>
 
-    fun update(write: Write<S, O>)
+    fun update(transition: Transition<S, O>)
     fun <CS, CO> slice(lens: Lens<S, CS>, reduce: Reduce<S, O, CO>): Store<CS, CO>
 }
 
@@ -36,9 +36,9 @@ private class RootStore<S>(initialState: S) : Store<S, Nothing> {
     override val moment: Moment<S>
         get() = moments.value
 
-    override fun update(write: Write<S, Nothing>) =
+    override fun update(transition: Transition<S, Nothing>) =
         flow.update { current ->
-            val change = write(current.state)
+            val change = transition(current.state)
             if (change.state == current.state) {
                 return@update current // nothing changed, no need in new Moment with new version
             }
@@ -63,15 +63,16 @@ private class SliceStore<PS, PO, S, O>(
             .map { it.focus(lens) }
             .distinctUntilChangedBy { it.state }
 
-    override fun update(write: Write<S, O>) =
+    override fun update(transition: Transition<S, O>) =
         parent.update { parentState ->
             val state = lens.get(parentState)
-            val change = write(state)
-            val newParentState = when {
-                (change.state === state) -> parentState
-                else -> lens.set(parentState, change.state)
+            val change = transition(state)
+            when {
+                // nothing happened: the parent's reducer isn't run, so it can't add a version
+                (change.state == state && change.outcome == null) -> Change(parentState)
+                (change.state === state) -> reduce(parentState, change.outcome)
+                else -> reduce(lens.set(parentState, change.state), change.outcome)
             }
-            reduce(newParentState, change.outcome)
         }
 
     override fun <CS, CO> slice(lens: Lens<S, CS>, reduce: Reduce<S, O, CO>): Store<CS, CO> =

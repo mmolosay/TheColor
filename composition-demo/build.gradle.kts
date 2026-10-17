@@ -18,8 +18,11 @@ android {
 @Suppress("SpellCheckingInspection")
 dependencies {
     // Modules
+    implementation(project(":composition"))
     implementation(project(":main:di-qualifiers"))
+    implementation(project(":presentation:common"))
     implementation(project(":presentation:design-system"))
+    implementation(project(":utils"))
 
     // Kotlin
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.coroutines.get()}")
