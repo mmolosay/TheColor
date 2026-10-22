@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.demo.presentation.feature.recipe
 
+import io.github.mmolosay.thecolor.demo.domain.AmountFormatter
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorEnvironment
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionEnvironment
 import javax.inject.Inject
@@ -8,4 +9,5 @@ import javax.inject.Inject
 class RecipeEnvironment @Inject constructor(
     val editor: AmountEditorEnvironment,
     val nutrition: NutritionEnvironment,
+    val amountFormatter: AmountFormatter,
 )

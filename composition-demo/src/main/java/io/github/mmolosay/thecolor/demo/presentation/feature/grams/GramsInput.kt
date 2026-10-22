@@ -33,6 +33,7 @@ fun GramsInput(
             onDone = { input.submit() },
         ),
         hasClearButton = true,
+        supportingText = if (viewData.isPending) stringResource(R.string.input_pending) else null,
         modifier = modifier,
     )
     val answerToShow = viewData.answerToShow ?: return

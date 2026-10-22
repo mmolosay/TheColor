@@ -28,8 +28,10 @@ class OuncesInputFeature @AssistedInject constructor(
 
     // for its View, which shows the field's View
     val textField: TextFieldFeature = run {
-        // nothing to decide: the field has no outcomes, and its environment keeps the rule for its text
-        val slice = store.slice(textFieldLens) { ounces, _: Nothing? -> Change(ounces) }
+        // the field has no outcomes, and its environment keeps the rule for its text
+        val slice = store.slice(textFieldLens) { ounces, _: Nothing? ->
+            context(environment) { onTextField(ounces) }
+        }
         textFieldFactory.create(
             lifetime = lifetime.child(),
             store = slice,
@@ -63,6 +65,13 @@ private val textFieldLens = Lens<OuncesInputState, TextFieldState>(
     get = { ounces -> ounces.textField },
     set = { ounces, textField -> ounces.copy(textField = textField) },
 )
+
+// The reducer for its Text Field, which runs only when the field's own edit changes its text
+context(_: OuncesInputEnvironment)
+fun onTextField(ounces: OuncesInputState): Change<OuncesInputState, OuncesInputOutcome> {
+    val state = ounces.withTextChanged()
+    return Change(state)
+}
 
 // The transitions behind the actions. Only the feature instance calls them. They're outside the
 // class so that they can't reach its lifetime or store: they can run more than once, so they must

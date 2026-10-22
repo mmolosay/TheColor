@@ -12,8 +12,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Duration.Companion.milliseconds
 
-// keeps the last amount between launches; reading it takes a moment,
-// so that the screen's wait for its startup data can be seen on a device
+// keeps the last amount between launches; reading and saving take a moment, so that the screen's
+// wait for its startup data, and a submission waiting for its save, can be seen on a device
 @Singleton
 class SharedPreferencesRecipeRepository @Inject constructor(
     @ApplicationContext context: Context,
@@ -31,6 +31,7 @@ class SharedPreferencesRecipeRepository @Inject constructor(
     }
 
     override suspend fun saveLastAmount(amount: Amount) {
+        delay(SaveTime)
         val string = amount.toPreferenceString()
         withContext(ioDispatcher) {
             preferences.edit()
@@ -72,6 +73,7 @@ class SharedPreferencesRecipeRepository @Inject constructor(
     private companion object {
         const val FileName = "recipe"
         const val LastAmountKey = "last_amount"
-        val ReadTime = 300.milliseconds
+        val ReadTime = 1500.milliseconds
+        val SaveTime = 1500.milliseconds
     }
 }

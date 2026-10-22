@@ -4,6 +4,8 @@ import io.github.mmolosay.thecolor.demo.domain.Amount
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.Submission
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.answerToShow
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.answered
+import io.github.mmolosay.thecolor.demo.presentation.feature.input.isPending
+import io.github.mmolosay.thecolor.demo.presentation.feature.input.withdrawn
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldState
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldStateFactory
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.text
@@ -46,8 +48,16 @@ fun GramsInputState.withAmount(amount: Amount?): GramsInputState {
         grams.value.toString()
     }
     val textField = context(environment.textField) { this.textField.withText(text) }
-    return this.copy(textField = textField)
+    if (textField == this.textField) return this
+    return this.copy(textField = textField).withTextChanged()
 }
+
+// A submission is for the text it was made on, so once the text changes, a submission still
+// waiting for an answer is withdrawn. Every path that changes the text calls it: the parent's
+// withAmount, and the reducer for the field's own edits
+context(_: GramsInputEnvironment)
+fun GramsInputState.withTextChanged(): GramsInputState =
+    this.copy(submission = this.submission.withdrawn())
 
 context(_: GramsInputEnvironment)
 fun GramsInputState.withSubmissionAccepted(): GramsInputState {
@@ -63,4 +73,7 @@ fun GramsInputState.withSubmissionRejected(): GramsInputState {
 
 context(_: GramsInputEnvironment)
 fun GramsInputState.toViewData(): GramsInputViewData =
-    GramsInputViewData(answerToShow = this.submission.answerToShow())
+    GramsInputViewData(
+        isPending = this.submission.isPending(),
+        answerToShow = this.submission.answerToShow(),
+    )

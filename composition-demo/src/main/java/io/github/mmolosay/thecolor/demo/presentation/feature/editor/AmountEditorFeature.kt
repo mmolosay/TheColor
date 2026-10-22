@@ -10,13 +10,11 @@ import io.github.mmolosay.thecolor.demo.presentation.feature.grams.GramsInputFea
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.GramsInputOutcome
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.GramsInputState
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.amount
-import io.github.mmolosay.thecolor.demo.presentation.feature.grams.withSubmissionAccepted
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.withSubmissionRejected
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputOutcome
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputState
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.amount
-import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.withSubmissionAccepted
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.withSubmissionRejected
 import io.github.mmolosay.thecolor.utils.Lens
 import kotlinx.coroutines.CoroutineScope
@@ -24,7 +22,7 @@ import kotlinx.coroutines.CoroutineScope
 // No view data of its own: its View only lays out the inputs' Views
 class AmountEditorFeature @AssistedInject constructor(
     @Assisted lifetime: CoroutineScope,
-    @Assisted store: Store<AmountEditorState, *>,
+    @Assisted store: Store<AmountEditorState, AmountEditorOutcome>,
     @Assisted environment: AmountEditorEnvironment,
     gramsFactory: GramsInputFeature.Factory,
     ouncesFactory: OuncesInputFeature.Factory,
@@ -57,7 +55,7 @@ class AmountEditorFeature @AssistedInject constructor(
     fun interface Factory {
         fun create(
             lifetime: CoroutineScope,
-            store: Store<AmountEditorState, *>,
+            store: Store<AmountEditorState, AmountEditorOutcome>,
             environment: AmountEditorEnvironment,
         ): AmountEditorFeature
     }
@@ -74,46 +72,44 @@ private val ouncesLens = Lens<AmountEditorState, OuncesInputState>(
 )
 
 // The reducers for its inputs. Only the feature instance runs them, inside an input's update. Each
-// brings the other input in line with the edited one, and answers a submission: one that stands for
-// no amount is rejected, any other is accepted. An edit that leaves no whole amount, such as clearing
-// the text, leaves the other input as it is
+// brings the other input in line with the edited one. An edit that leaves no whole amount, such as
+// clearing the text, leaves the other input as it is. A submission that stands for no amount is
+// rejected here; a whole amount is handed up, for the parent to answer
 
 context(environment: AmountEditorEnvironment)
 fun onGrams(
     editor: AmountEditorState,
     outcome: GramsInputOutcome?,
-): Change<AmountEditorState, Nothing> {
+): Change<AmountEditorState, AmountEditorOutcome> {
     val amount = context(environment.grams) { editor.grams.amount() }
     val agreed = if (amount != null) editor.withAmount(amount) else editor
-    val grams = when (outcome) {
-        null -> agreed.grams
-        GramsInputOutcome.Submitted -> context(environment.grams) {
-            if (amount != null) {
-                agreed.grams.withSubmissionAccepted()
-            } else {
-                agreed.grams.withSubmissionRejected()
+    return when (outcome) {
+        null -> Change(agreed)
+        GramsInputOutcome.Submitted -> {
+            if (amount == null) {
+                val grams = context(environment.grams) { agreed.grams.withSubmissionRejected() }
+                return Change(agreed.copy(grams = grams))
             }
+            Change(agreed, outcome = AmountEditorOutcome.Submitted(amount))
         }
     }
-    return Change(agreed.copy(grams = grams))
 }
 
 context(environment: AmountEditorEnvironment)
 fun onOunces(
     editor: AmountEditorState,
     outcome: OuncesInputOutcome?,
-): Change<AmountEditorState, Nothing> {
+): Change<AmountEditorState, AmountEditorOutcome> {
     val amount = context(environment.ounces) { editor.ounces.amount() }
     val agreed = if (amount != null) editor.withAmount(amount) else editor
-    val ounces = when (outcome) {
-        null -> agreed.ounces
-        OuncesInputOutcome.Submitted -> context(environment.ounces) {
-            if (amount != null) {
-                agreed.ounces.withSubmissionAccepted()
-            } else {
-                agreed.ounces.withSubmissionRejected()
+    return when (outcome) {
+        null -> Change(agreed)
+        OuncesInputOutcome.Submitted -> {
+            if (amount == null) {
+                val ounces = context(environment.ounces) { agreed.ounces.withSubmissionRejected() }
+                return Change(agreed.copy(ounces = ounces))
             }
+            Change(agreed, outcome = AmountEditorOutcome.Submitted(amount))
         }
     }
-    return Change(agreed.copy(ounces = ounces))
 }

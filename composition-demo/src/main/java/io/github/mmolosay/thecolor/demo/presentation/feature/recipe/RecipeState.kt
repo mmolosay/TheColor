@@ -1,5 +1,7 @@
 package io.github.mmolosay.thecolor.demo.presentation.feature.recipe
 
+import io.github.mmolosay.thecolor.composition.Token
+import io.github.mmolosay.thecolor.demo.domain.Amount
 import io.github.mmolosay.thecolor.demo.domain.Ingredient
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorState
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorStateFactory
@@ -12,15 +14,39 @@ import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.forAmount
 data class RecipeState(
     val editor: AmountEditorState,
     val nutrition: NutritionState,
+    val load: LoadRequest?, // the saved amount, to fill the editor with; none once the user acts
+    val save: SaveRequest?, // a submitted amount being saved
+    val messages: List<SavedMessage>, // in the order the View shows them
+)
+
+// compared by reference: loading the saved amount, as the screen opens
+class LoadRequest
+
+// compared by reference: a new submission is new work, even for the same amount
+class SaveRequest(
+    val amount: Amount,
+)
+
+// "Saved 120 g", shown once; a new token for each, so each one is shown once
+data class SavedMessage(
+    val token: Token,
+    val amount: Amount,
 )
 
 object RecipeStateFactory {
 
+    // with the editor empty, until the saved amount arrives
     context(environment: RecipeEnvironment)
     fun create(): RecipeState {
         val editor = context(environment.editor) { AmountEditorStateFactory.create(amount = null) }
         val nutrition = context(environment.nutrition) { NutritionStateFactory.create() }
-        val state = RecipeState(editor = editor, nutrition = nutrition)
+        val state = RecipeState(
+            editor = editor,
+            nutrition = nutrition,
+            load = LoadRequest(),
+            save = null,
+            messages = emptyList(),
+        )
         return state.withNutritionForAmount()
     }
 }
@@ -34,4 +60,19 @@ fun RecipeState.withNutritionForAmount(): RecipeState {
         this.nutrition.forAmountOf(Ingredient.Flour, amount)
     }
     return this.copy(nutrition = nutrition)
+}
+
+context(environment: RecipeEnvironment)
+fun RecipeState.toViewData(): RecipeViewData {
+    val messageToShow = run {
+        val message = this.messages.firstOrNull() ?: return@run null
+        RecipeViewData.MessageToShow(
+            token = message.token,
+            amount = environment.amountFormatter.format(message.amount),
+        )
+    }
+    return RecipeViewData(
+        isLoadingSavedAmount = (this.load != null),
+        messageToShow = messageToShow,
+    )
 }

@@ -36,6 +36,7 @@ fun TextField(
     keyboardOptions: KeyboardOptions,
     keyboardActions: KeyboardActions,
     hasClearButton: Boolean,
+    supportingText: String?, // under the field, such as what the field waits for
     modifier: Modifier = Modifier,
 ) {
     val viewData by field.viewData.collectAsViewData()
@@ -76,6 +77,9 @@ fun TextField(
             }
         } else {
             null
+        },
+        supportingText = supportingText?.let { text ->
+            { Text(text = text) }
         },
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,

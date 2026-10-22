@@ -22,6 +22,16 @@ fun Submission?.answered(answer: Submission.Answer): Submission? {
     return this.copy(answer = answer)
 }
 
+// what's left once the text it was made on changes: a submission still waiting is withdrawn, and an
+// answer still to show stays
+fun Submission?.withdrawn(): Submission? {
+    if (this == null || this.answer != null) return this
+    return null
+}
+
+fun Submission?.isPending(): Boolean =
+    (this != null && this.answer == null)
+
 // what's left once the View has shown the answer for this token: a newer submission stays
 fun Submission?.shown(token: Token): Submission? {
     if (this == null || this.token !== token) return this

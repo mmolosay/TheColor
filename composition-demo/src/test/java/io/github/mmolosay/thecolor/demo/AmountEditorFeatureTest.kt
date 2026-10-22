@@ -7,6 +7,7 @@ import io.github.mmolosay.thecolor.demo.domain.AmountConverter
 import io.github.mmolosay.thecolor.demo.domain.isSameAs
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorEnvironment
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorFeature
+import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorOutcome
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorState
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorStateFactory
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.withAmount
@@ -17,6 +18,7 @@ import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputE
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.amount
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldFeature
+import io.github.mmolosay.thecolor.utils.Lens
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.shouldBe
@@ -72,9 +74,17 @@ class AmountEditorFeatureTest {
         val state = context(environment) { AmountEditorStateFactory.create(amount) }
         // called at once, inside each commit, as on the main thread
         store = Store(initialState = state, main = Dispatchers.Unconfined)
+        // the parent's part: it answers no submission and hands nothing up
+        val slice = run {
+            val lens = Lens<AmountEditorState, AmountEditorState>(
+                get = { editor -> editor },
+                set = { _, editor -> editor },
+            )
+            store.slice<AmountEditorState, AmountEditorOutcome>(lens) { editor, _ -> Change(editor) }
+        }
         sut = AmountEditorFeature(
             lifetime = CoroutineScope(Job()),
-            store = store,
+            store = slice,
             environment = environment,
             gramsFactory = gramsFactory,
             ouncesFactory = ouncesFactory,
