@@ -9,9 +9,13 @@ import dagger.hilt.migration.DisableInstallInCheck
 import io.github.mmolosay.thecolor.demo.data.FakeDemoSettings
 import io.github.mmolosay.thecolor.demo.data.FakeNutritionService
 import io.github.mmolosay.thecolor.demo.data.SharedPreferencesRecipeRepository
+import io.github.mmolosay.thecolor.demo.domain.AmountFormatter
 import io.github.mmolosay.thecolor.demo.domain.DemoSettings
+import io.github.mmolosay.thecolor.demo.domain.NutritionFormatter
 import io.github.mmolosay.thecolor.demo.domain.NutritionService
 import io.github.mmolosay.thecolor.demo.domain.RecipeRepository
+import io.github.mmolosay.thecolor.demo.presentation.format.LocaleAmountFormatter
+import io.github.mmolosay.thecolor.demo.presentation.format.LocaleNutritionFormatter
 import io.github.mmolosay.thecolor.main.di.qualifiers.AppCoroutineScope
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.IoDispatcher
 import kotlinx.coroutines.CoroutineDispatcher
@@ -57,5 +61,11 @@ object DiDemoModule {
 
         @Binds
         fun bindRecipeRepository(impl: SharedPreferencesRecipeRepository): RecipeRepository
+
+        @Binds
+        fun bindAmountFormatter(impl: LocaleAmountFormatter): AmountFormatter
+
+        @Binds
+        fun bindNutritionFormatter(impl: LocaleNutritionFormatter): NutritionFormatter
     }
 }

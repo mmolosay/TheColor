@@ -1,0 +1,109 @@
+package io.github.mmolosay.thecolor.demo
+
+import io.github.mmolosay.thecolor.composition.Change
+import io.github.mmolosay.thecolor.composition.Store
+import io.github.mmolosay.thecolor.demo.domain.Amount
+import io.github.mmolosay.thecolor.demo.domain.AmountConverter
+import io.github.mmolosay.thecolor.demo.domain.isSameAs
+import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorEnvironment
+import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorFeature
+import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorState
+import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorStateFactory
+import io.github.mmolosay.thecolor.demo.presentation.feature.editor.withAmount
+import io.github.mmolosay.thecolor.demo.presentation.feature.grams.GramsInputEnvironment
+import io.github.mmolosay.thecolor.demo.presentation.feature.grams.GramsInputFeature
+import io.github.mmolosay.thecolor.demo.presentation.feature.grams.amount
+import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputEnvironment
+import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputFeature
+import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.amount
+import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldFeature
+import io.kotest.inspectors.forAll
+import io.kotest.matchers.collections.shouldNotBeEmpty
+import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import org.junit.jupiter.api.Test
+
+/**
+ * Tests [AmountEditorFeature] with its real inputs, on a store of its own, as its parent gives it.
+ */
+class AmountEditorFeatureTest {
+
+    // real implementations: the conversion between grams and ounces is what the inputs agree on
+    val environment = run {
+        val converter = AmountConverter()
+        AmountEditorEnvironment(
+            grams = GramsInputEnvironment(amountConverter = converter),
+            ounces = OuncesInputEnvironment(amountConverter = converter),
+            amountConverter = converter,
+        )
+    }
+
+    lateinit var store: Store<AmountEditorState, Nothing>
+
+    lateinit var sut: AmountEditorFeature
+
+    @Test
+    fun `when the user types in grams, then every state committed has the ounces standing for the same amount`() {
+        createSut(amount = Amount.Grams(value = 4))
+        val committed = mutableListOf<AmountEditorState>()
+        sut.grams.textField.viewData.listen { committed += store.value } // hears every commit
+
+        sut.grams.textField.enterText(text = "42", expected = "4")
+
+        committed.shouldNotBeEmpty()
+        committed.forAll { it.inputsAgree() shouldBe true }
+    }
+
+    @Test
+    fun `given the parent has just set an amount, when a keystroke made on the text before it arrives, then the keystroke is dropped and both inputs show the parent's amount`() {
+        createSut(amount = Amount.Grams(value = 4))
+        store.update { editor ->
+            context(environment) { Change(editor.withAmount(Amount.Grams(value = 100))) }
+        }
+
+        sut.grams.textField.enterText(text = "42", expected = "4")
+
+        texts shouldBe ("100" to "3.53")
+    }
+
+    fun createSut(amount: Amount?) {
+        val state = context(environment) { AmountEditorStateFactory.create(amount) }
+        // called at once, inside each commit, as on the main thread
+        store = Store(initialState = state, main = Dispatchers.Unconfined)
+        sut = AmountEditorFeature(
+            lifetime = CoroutineScope(Job()),
+            store = store,
+            environment = environment,
+            gramsFactory = gramsFactory,
+            ouncesFactory = ouncesFactory,
+        )
+    }
+
+    val textFieldFactory = TextFieldFeature.Factory { lifetime, store, environment ->
+        TextFieldFeature(lifetime, store, environment)
+    }
+
+    val gramsFactory = GramsInputFeature.Factory { lifetime, store, environment ->
+        GramsInputFeature(lifetime, store, environment, textFieldFactory)
+    }
+
+    val ouncesFactory = OuncesInputFeature.Factory { lifetime, store, environment ->
+        OuncesInputFeature(lifetime, store, environment, textFieldFactory)
+    }
+
+    // the grams' text and the ounces' text, as their Views show them
+    val texts: Pair<String, String>
+        get() {
+            val grams = sut.grams.textField.viewData.value.text
+            val ounces = sut.ounces.textField.viewData.value.text
+            return grams to ounces
+        }
+
+    fun AmountEditorState.inputsAgree(): Boolean {
+        val grams = context(environment.grams) { this.grams.amount() }
+        val ounces = context(environment.ounces) { this.ounces.amount() }
+        return context(environment.amountConverter) { grams isSameAs ounces }
+    }
+}

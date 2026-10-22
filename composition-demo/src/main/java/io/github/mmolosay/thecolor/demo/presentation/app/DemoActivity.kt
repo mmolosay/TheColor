@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import dagger.hilt.android.AndroidEntryPoint
+import io.github.mmolosay.thecolor.demo.presentation.feature.recipe.RecipeScreen
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 
 @AndroidEntryPoint
@@ -15,7 +16,7 @@ class DemoActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             TheColorTheme {
-                // the recipe screen's View goes here once it's built
+                RecipeScreen()
             }
         }
     }

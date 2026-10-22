@@ -7,4 +7,13 @@
     <string name="grams_input_label">Grams</string>
     <string name="grams_input_rejected">Enter a whole number of grams</string>
 
+    <string name="ounces_input_label">Ounces</string>
+    <string name="ounces_input_rejected">Enter an amount such as 1.5</string>
+
+    <string name="nutrition_no_amount">Enter an amount to see its nutrition</string>
+    <string name="nutrition_portion">%1$s, %2$s</string>
+    <string name="nutrition_loading">Loading…</string>
+    <string name="nutrition_failed">Couldn\'t load the nutrition facts</string>
+    <string name="nutrition_retry">Retry</string>
+
 </resources>

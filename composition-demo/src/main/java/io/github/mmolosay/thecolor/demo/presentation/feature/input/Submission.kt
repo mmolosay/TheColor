@@ -27,3 +27,14 @@ fun Submission?.shown(token: Token): Submission? {
     if (this == null || this.token !== token) return this
     return null
 }
+
+// an answer the View hasn't shown yet, with the token that tells it apart from a newer one
+data class AnswerToShow(
+    val token: Token,
+    val answer: Submission.Answer,
+)
+
+fun Submission?.answerToShow(): AnswerToShow? {
+    val answer = this?.answer ?: return null
+    return AnswerToShow(token = this.token, answer = answer)
+}

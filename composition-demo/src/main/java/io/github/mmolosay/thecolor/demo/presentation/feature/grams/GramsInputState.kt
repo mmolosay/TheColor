@@ -2,6 +2,7 @@ package io.github.mmolosay.thecolor.demo.presentation.feature.grams
 
 import io.github.mmolosay.thecolor.demo.domain.Amount
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.Submission
+import io.github.mmolosay.thecolor.demo.presentation.feature.input.answerToShow
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.answered
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldState
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldStateFactory
@@ -61,11 +62,5 @@ fun GramsInputState.withSubmissionRejected(): GramsInputState {
 }
 
 context(_: GramsInputEnvironment)
-fun GramsInputState.toViewData(): GramsInputViewData {
-    val answerToShow = run {
-        val submission = this.submission ?: return@run null
-        val answer = submission.answer ?: return@run null
-        GramsInputViewData.AnswerToShow(token = submission.token, answer = answer)
-    }
-    return GramsInputViewData(answerToShow = answerToShow)
-}
+fun GramsInputState.toViewData(): GramsInputViewData =
+    GramsInputViewData(answerToShow = this.submission.answerToShow())

@@ -30,6 +30,8 @@ dependencies {
     // Compose
     implementation("androidx.compose.material3:material3")
     implementation("androidx.activity:activity-compose:1.13.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:${libs.versions.androidx.lifecycle.get()}")
+    implementation("androidx.hilt:hilt-navigation-compose:${libs.versions.hiltNavigationCompose.get()}")
 
     // Testing
     testImplementation("org.junit.jupiter:junit-jupiter-api:${libs.versions.junit.get()}")
@@ -37,4 +39,6 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-params:${libs.versions.junit.get()}")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:${libs.versions.junit.get()}")
     testImplementation("io.kotest:kotest-assertions-core:${libs.versions.kotestAssertions.get()}")
+    testImplementation("io.mockk:mockk:${libs.versions.mockk.get()}")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:${libs.versions.coroutines.get()}")
 }

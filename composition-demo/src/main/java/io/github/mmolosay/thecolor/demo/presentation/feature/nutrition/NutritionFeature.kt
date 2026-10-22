@@ -1,0 +1,79 @@
+package io.github.mmolosay.thecolor.demo.presentation.feature.nutrition
+
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
+import io.github.mmolosay.thecolor.composition.Change
+import io.github.mmolosay.thecolor.composition.CompositionUtils.launchAwaited
+import io.github.mmolosay.thecolor.composition.Store
+import io.github.mmolosay.thecolor.composition.ViewDataSource
+import io.github.mmolosay.thecolor.composition.viewData
+import io.github.mmolosay.thecolor.demo.domain.NutritionFacts
+import io.github.mmolosay.thecolor.demo.domain.NutritionService
+import kotlinx.coroutines.CoroutineScope
+
+class NutritionFeature @AssistedInject constructor(
+    @Assisted lifetime: CoroutineScope,
+    @Assisted private val store: Store<NutritionState, *>,
+    @Assisted private val environment: NutritionEnvironment,
+    private val service: NutritionService, // from dependency injection: only the work uses it
+) {
+
+    val viewData: ViewDataSource<NutritionViewData> =
+        store.viewData { nutrition -> context(environment) { nutrition.toViewData() } }
+
+    init {
+        // starts what the state awaits, and stops what it no longer awaits
+        lifetime.launchAwaited(
+            store = store,
+            awaited = { nutrition -> context(environment) { nutrition.awaited() } },
+            block = { request ->
+                // a failure is a result too
+                val result = service.nutritionFacts(request.ingredient, request.amount)
+                store.update { nutrition ->
+                    context(environment) { nutrition.receive(request, result) }
+                }
+            },
+        )
+    }
+
+    fun retry() {
+        store.update { nutrition ->
+            context(environment) { nutrition.retry() }
+        }
+    }
+
+    @AssistedFactory
+    fun interface Factory {
+        fun create(
+            lifetime: CoroutineScope,
+            store: Store<NutritionState, *>,
+            environment: NutritionEnvironment,
+        ): NutritionFeature
+    }
+}
+
+// The transitions behind the actions and the results. Only the feature instance calls them. They're
+// outside the class so that they can't reach its lifetime or store: they can run more than once, so
+// they must have no side effects
+
+// applies only to the request the state still awaits
+context(_: NutritionEnvironment)
+fun NutritionState.receive(
+    request: NutritionRequest,
+    result: Result<NutritionFacts>,
+): Change<NutritionState, Nothing> {
+    if (this.awaited() !== request) return Change(this) // late, or already received
+    val state = this.copy(result = result)
+    return Change(state)
+}
+
+// a new request for the same amount, after a failure
+context(_: NutritionEnvironment)
+fun NutritionState.retry(): Change<NutritionState, Nothing> {
+    val failed = this.request
+    if (failed == null || this.result?.isFailure != true) return Change(this)
+    val request = NutritionRequest(ingredient = failed.ingredient, amount = failed.amount)
+    val state = NutritionState(request = request, result = null)
+    return Change(state)
+}

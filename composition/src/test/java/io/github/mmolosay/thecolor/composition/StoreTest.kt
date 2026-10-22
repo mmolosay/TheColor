@@ -3,6 +3,7 @@ package io.github.mmolosay.thecolor.composition
 import app.cash.turbine.test
 import io.github.mmolosay.thecolor.utils.Lens
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.coroutineScope
@@ -11,11 +12,14 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.RepeatedTest
 import org.junit.jupiter.api.Test
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CyclicBarrier
 import java.util.concurrent.Executors
+import kotlin.concurrent.thread
+import kotlin.coroutines.CoroutineContext
 
 /**
- * Tests [MutableStore] created with `MutableStore(initialState)`, and its slices.
+ * Tests [Store] created with `Store(initialState)`, and its slices.
  *
  * The states model an office with a desk, and a letter on the desk.
  * The desk's reducer keeps its `summary` equal to the letter's text, and turns the letter's
@@ -33,19 +37,19 @@ class StoreTest {
         other = 0,
     )
 
-    lateinit var sut: MutableStore<Office, Nothing>
+    lateinit var sut: Store<Office, Nothing>
 
     // region 'update'
 
     @Test
-    fun `when a transition changes the state, then the new state is committed with the next version`() {
+    fun `when a transition changes the state, then the new state is committed`() {
         createSut()
 
         sut.update {
             Change(it.copy(other = 1))
         }
 
-        sut.value shouldBe Moment(initialState.copy(other = 1), version = 1)
+        sut.value shouldBe initialState.copy(other = 1)
     }
 
     @Test
@@ -62,7 +66,6 @@ class StoreTest {
                 }
 
                 // THEN
-                sut.value.version shouldBe 0
                 expectNoEvents()
             }
         }
@@ -78,7 +81,7 @@ class StoreTest {
             Change(it.copy()) // a new instance, equal to the one given
         }
 
-        sut.value shouldBe Moment(initialState, version = 0)
+        sut.value shouldBe initialState
     }
 
     @Test
@@ -90,7 +93,7 @@ class StoreTest {
             Change(it, outcome = LetterOutcome.Sent)
         }
 
-        sut.value shouldBe Moment(initialState.copy(sent = ""), version = 1)
+        sut.value shouldBe initialState.copy(sent = "")
     }
 
     @Test
@@ -108,9 +111,9 @@ class StoreTest {
                 }
 
                 // THEN
-                awaitItem() shouldBe Moment(
-                    initialState.copy(desk = Desk(letter = Letter(text = "A"), summary = "A")),
-                    version = 1,
+                // the first state after the transition already has the reducer's change
+                awaitItem() shouldBe initialState.copy(
+                    desk = Desk(letter = Letter(text = "A"), summary = "A"),
                 )
             }
         }
@@ -124,12 +127,9 @@ class StoreTest {
             Change(Letter(text = "A"), outcome = LetterOutcome.Sent)
         }
 
-        sut.value shouldBe Moment(
-            initialState.copy(
-                desk = Desk(letter = Letter(text = "A"), summary = "A"),
-                sent = "A",
-            ),
-            version = 1,
+        sut.value shouldBe initialState.copy(
+            desk = Desk(letter = Letter(text = "A"), summary = "A"),
+            sent = "A",
         )
     }
 
@@ -138,7 +138,7 @@ class StoreTest {
      * root: if they were not, concurrent updates could overwrite each other, and some would be lost.
      */
     @RepeatedTest(10) // executed sequentially (by default)
-    fun `given concurrent updates through different slices, when all of them return, then every transition is applied with a version of its own`() =
+    fun `given concurrent updates through different slices, when all of them return, then every transition is applied`() =
         runTest(testDispatcher) {
             createSut()
             val letter = createLetterSlice()
@@ -171,44 +171,18 @@ class StoreTest {
 
             val updatesPerSlice = numberOfThreads / 2 * updatesPerThread
             val text = "a".repeat(updatesPerSlice)
-            sut.value shouldBe Moment(
-                Office(desk = Desk(letter = Letter(text), summary = text), other = updatesPerSlice),
-                version = 2L * updatesPerSlice,
+            sut.value shouldBe Office(
+                desk = Desk(letter = Letter(text), summary = text),
+                other = updatesPerSlice,
             )
         }
-
-    // endregion
-
-    // region 'value'
-
-    /**
-     * Tests that a slice's moment carries the version of the root's moment it was read from,
-     * not the version of the commit that last changed the slice: a slice can't know that commit.
-     * A View reads at once after its actions and then takes only newer versions,
-     * so an older version here would let it take a late delivery that is older than what it shows.
-     */
-    @Test
-    fun `given another part of the root changed after the slice's state, when the slice's 'value' is read, then it carries the root's latest version`() {
-        createSut()
-        val letter = createLetterSlice()
-        letter.update {
-            Change(Letter(text = "A"))
-        }
-        sut.update {
-            Change(it.copy(other = 1))
-        }
-
-        val moment = letter.value
-
-        moment shouldBe Moment(Letter(text = "A"), version = 2)
-    }
 
     // endregion
 
     // region 'collect'
 
     @Test
-    fun `when another part of the root changes, then the slice emits its state with the version of that commit, so that its collectors end on the slice's 'value'`() =
+    fun `when the root commits and the slice's state stays equal, then the slice emits nothing new, so that a commit elsewhere reaches none of its collectors`() =
         runTest(testDispatcher) {
             createSut()
             val letter = createLetterSlice()
@@ -218,27 +192,112 @@ class StoreTest {
 
                 // WHEN
                 sut.update {
-                    Change(it.copy(other = 1))
+                    val equalDesk = it.desk.copy(letter = it.desk.letter.copy())
+                    // 'other' changes too, so that the root commits and the slice has something to filter
+                    Change(it.copy(desk = equalDesk, other = 1))
                 }
 
                 // THEN
-                awaitItem() shouldBe Moment(Letter(text = ""), version = 1)
+                expectNoEvents()
             }
         }
 
     // endregion
 
-    fun createSut() =
-        MutableStore(initialState).also {
+    // region 'listen'
+
+    @Test
+    fun `when a commit on the main thread changes the state, then the listeners are called before 'update' returns, with the new state`() {
+        createSut(main = testDispatcher) // never dispatches: the test runs on the main thread
+        val seen = mutableListOf<Office>()
+        sut.listen { seen += sut.value }
+
+        sut.update {
+            Change(it.copy(other = 1))
+        }
+
+        seen shouldBe listOf(initialState.copy(other = 1))
+    }
+
+    @Test
+    fun `when a transition changes nothing, then NO listener is called`() {
+        createSut(main = testDispatcher) // never dispatches: the test runs on the main thread
+        var calls = 0
+        sut.listen { calls++ }
+
+        sut.update {
+            Change(it.copy()) // a new instance, equal to the current one
+        }
+
+        calls shouldBe 0
+    }
+
+    @Test
+    fun `when a commit is made through a slice, then a listener added through another slice is called, so that a View hears commits made anywhere on the screen`() {
+        createSut(main = testDispatcher) // never dispatches: the test runs on the main thread
+        var calls = 0
+        createOtherSlice().listen { calls++ }
+
+        createLetterSlice().update {
+            Change(Letter(text = "A"))
+        }
+
+        calls shouldBe 1
+    }
+
+    @Test
+    fun `given commits made off the main thread, when the main thread runs its tasks, then the listeners are called once, with the newest state`() {
+        val main = MainThreadDispatcher()
+        createSut(main = main)
+        val seen = mutableListOf<Office>()
+        sut.listen { seen += sut.value }
+        thread {
+            sut.update { Change(it.copy(other = 1)) }
+            sut.update { Change(it.copy(other = 2)) }
+        }.join()
+
+        main.runTasks()
+
+        seen shouldBe listOf(initialState.copy(other = 2))
+    }
+
+    /**
+     * Tests that a commit made off the main thread, whose listeners wait for a main-thread task,
+     * doesn't hold up the listeners of a commit made on the main thread in the meantime: a View
+     * still has its own action's change before the action returns.
+     */
+    @Test
+    fun `given a commit made off the main thread waits to notify, when the main thread commits, then the listeners are called inside that commit, with both changes`() {
+        val main = MainThreadDispatcher()
+        createSut(main = main)
+        val seen = mutableListOf<Office>()
+        sut.listen { seen += sut.value }
+        thread {
+            sut.update { Change(it.copy(other = 1)) }
+        }.join()
+
+        sut.update {
+            Change(it.copy(sent = "A"))
+        }
+
+        seen shouldBe listOf(initialState.copy(other = 1, sent = "A"))
+    }
+
+    // endregion
+
+    fun createSut(
+        main: CoroutineDispatcher = testDispatcher,
+    ) =
+        Store(initialState, main = main).also {
             sut = it
         }
 
-    fun createLetterSlice(): MutableStore<Letter, LetterOutcome> =
+    fun createLetterSlice(): Store<Letter, LetterOutcome> =
         sut
             .slice(deskLens, ::onDesk)
             .slice(letterLens, ::onLetter)
 
-    fun createOtherSlice(): MutableStore<Int, Nothing> =
+    fun createOtherSlice(): Store<Int, Nothing> =
         sut.slice(otherLens) { office, _: Nothing? -> Change(office) }
 
     fun onDesk(office: Office, outcome: DeskOutcome?): Change<Office, Nothing> =
@@ -291,5 +350,26 @@ class StoreTest {
 
     sealed interface DeskOutcome {
         data class Sent(val text: String) : DeskOutcome
+    }
+
+    // The main thread is the one that creates it. A task dispatched to it waits until 'runTasks()'
+    class MainThreadDispatcher : CoroutineDispatcher() {
+
+        val thread: Thread = Thread.currentThread()
+        val tasks = ConcurrentLinkedQueue<Runnable>()
+
+        override fun isDispatchNeeded(context: CoroutineContext): Boolean =
+            Thread.currentThread() !== thread
+
+        override fun dispatch(context: CoroutineContext, block: Runnable) {
+            tasks += block
+        }
+
+        fun runTasks() {
+            while (true) {
+                val task = tasks.poll() ?: return
+                task.run()
+            }
+        }
     }
 }

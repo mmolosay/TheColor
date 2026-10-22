@@ -8,7 +8,9 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.neverEqualPolicy
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -17,7 +19,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import io.github.mmolosay.thecolor.demo.R
-import io.github.mmolosay.thecolor.presentation.common.composition.rememberMomentHolder
+import io.github.mmolosay.thecolor.presentation.common.composition.collectAsViewData
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 /**
@@ -36,13 +38,15 @@ fun TextField(
     hasClearButton: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    val holder = rememberMomentHolder(store = field.viewData)
-    val text = holder.state.value.text
+    val viewData by field.viewData.collectAsViewData()
+    val text = viewData.text
     // The control applies each edit to its own buffer and has to get the edit back in the same
-    // callback, so the View keeps a copy of what it shows, with the cursor the state doesn't hold
+    // callback, so the View keeps a copy of what it shows, with the cursor the state doesn't hold.
+    // Every edit recomposes, even one equal to the last: a repeated rejected edit must still reset
+    // the latest value below to what the control shows.
     val copy = remember(field) {
         val value = TextFieldValue(text = text, selection = TextRange(text.length))
-        mutableStateOf(value)
+        mutableStateOf(value, neverEqualPolicy())
     }
     // The control's latest value: the result of its last edit, or what the View passed to it since,
     // whichever came later. The next edit is built on it, so it's that edit's expected value.
@@ -59,7 +63,6 @@ fun TextField(
             copy.value = new
             if (new.text != old.text) {
                 field.enterText(text = new.text, expected = old.text)
-                holder.offer(field.viewData.value) // read your writes
             }
         },
         modifier = modifier,
@@ -68,10 +71,7 @@ fun TextField(
             {
                 ClearButton(
                     visible = shown.text.isNotEmpty(),
-                    onClick = {
-                        field.clearText()
-                        holder.offer(field.viewData.value) // read your writes
-                    },
+                    onClick = { field.clearText() },
                 )
             }
         } else {
