@@ -19,9 +19,9 @@ fun SubstituteSheet(
 ) {
     val viewData by sheet.viewData.collectAsStateWithLifecycle()
     val session = viewData.session ?: return
-    // The control keeps a state of its own, such as being dismissed, so each session gets a control
-    // of its own. A session opened right after the user closed one shows open, rather than the
-    // control the user dismissed
+    // The sheet keeps internal state, such as being dismissed, so each session gets a sheet of its
+    // own. A session opened right after the user closed one shows open, rather than the sheet the
+    // user dismissed
     key(session) {
         ModalBottomSheet(
             onDismissRequest = { sheet.close(session) },

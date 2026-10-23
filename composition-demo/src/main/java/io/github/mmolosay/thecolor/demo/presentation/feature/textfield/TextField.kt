@@ -43,15 +43,15 @@ fun TextField(
 ) {
     val viewData by field.viewData.collectAsStateWithLifecycle()
     val text = viewData.text
-    // The control applies each edit to its own buffer and has to get the edit back in the same
-    // callback, so the View keeps a copy of what it shows, with the cursor the state doesn't hold.
-    // Every edit recomposes, even one equal to the last: a repeated rejected edit must still reset
-    // the latest value below to what the control shows.
+    // The text field applies each edit to its internal buffer and has to get the edit back in the
+    // same callback, so the View keeps a copy of what it shows, with the cursor the state doesn't
+    // hold. Every edit recomposes, even one equal to the last: a repeated rejected edit must still
+    // reset the latest value below to what the text field shows.
     val copy = remember(field) {
         val value = TextFieldValue(text = text, selection = TextRange(text.length))
         mutableStateOf(value, neverEqualPolicy())
     }
-    // The control's latest value: the result of its last edit, or what the View passed to it since,
+    // The text field's latest value: the result of its last edit, or what the View passed to it since,
     // whichever came later. The next edit is built on it, so it's that edit's expected value.
     val latest = remember(field) { mutableStateOf(copy.value) }
     val shown = copy.value.withText(text)

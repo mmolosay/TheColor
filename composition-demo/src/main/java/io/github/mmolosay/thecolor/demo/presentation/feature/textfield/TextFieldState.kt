@@ -2,7 +2,7 @@ package io.github.mmolosay.thecolor.demo.presentation.feature.textfield
 
 /**
  * A field's source of truth: what its [TextFieldFeature], its View and its parent all go by.
- * Only the on-screen control's own buffer may briefly differ from it.
+ * Only the on-screen text field's internal buffer may briefly differ from it.
  *
  * It holds the text as last typed or set, which means nothing to the field itself: what the text
  * stands for, such as an amount, and which text is allowed are up to the field's parent. It holds
