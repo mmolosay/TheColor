@@ -15,7 +15,6 @@ typealias Reduce<S, O, CO> = (S, CO?) -> Change<S, O>
 // Sealed, so that every store is one of this file's: none holds a state of its own below the root,
 // so whatever reads a store, at once or by collecting, gets the root's state as it is at that read
 @OptIn(ExperimentalForInheritanceCoroutinesApi::class)
-// TODO: should Store inherit StateFlow, and not MutableStateFlow? Given that Store has write method of update()?
 sealed interface Store<S, O> : StateFlow<S> {
     fun update(transition: Transition<S, O>)
     fun <CS, CO : Any> slice(lens: Lens<S, CS>, reduce: Reduce<S, O, CO>): Store<CS, CO>
