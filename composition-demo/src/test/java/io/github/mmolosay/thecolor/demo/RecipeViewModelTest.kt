@@ -15,6 +15,10 @@ import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputE
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.recipe.RecipeEnvironment
 import io.github.mmolosay.thecolor.demo.presentation.feature.recipe.RecipeViewModel
+import io.github.mmolosay.thecolor.demo.presentation.feature.sheet.SubstituteSheetEnvironment
+import io.github.mmolosay.thecolor.demo.presentation.feature.sheet.SubstituteSheetFeature
+import io.github.mmolosay.thecolor.demo.presentation.feature.substitutes.SubstitutesEnvironment
+import io.github.mmolosay.thecolor.demo.presentation.feature.substitutes.SubstitutesFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldFeature
 import io.github.mmolosay.thecolor.demo.presentation.format.LocaleAmountFormatter
 import io.github.mmolosay.thecolor.demo.presentation.format.LocaleNutritionFormatter
@@ -63,6 +67,17 @@ class RecipeViewModelTest {
                 amountFormatter = formatter,
                 nutritionFormatter = LocaleNutritionFormatter(),
             ),
+            substitutes = SubstitutesEnvironment(
+                amountConverter = converter,
+                nutritionFormatter = LocaleNutritionFormatter(),
+            ),
+            sheet = SubstituteSheetEnvironment(
+                nutrition = NutritionEnvironment(
+                    amountConverter = converter,
+                    amountFormatter = formatter,
+                    nutritionFormatter = LocaleNutritionFormatter(),
+                ),
+            ),
             amountFormatter = formatter,
         )
     }
@@ -74,9 +89,10 @@ class RecipeViewModelTest {
 
     val repository: RecipeRepository = mockk()
 
-    // the card's facts don't arrive within a test
+    // the cards' facts don't arrive within a test
     val nutritionService: NutritionService = mockk {
         coEvery { nutritionFacts(any(), any()) } coAnswers { awaitCancellation() }
+        coEvery { substitutes(any(), any()) } coAnswers { awaitCancellation() }
     }
 
     lateinit var sut: RecipeViewModel
@@ -146,6 +162,8 @@ class RecipeViewModelTest {
             environment = environment,
             editorFactory = editorFactory,
             nutritionFactory = nutritionFactory,
+            substitutesFactory = substitutesFactory,
+            sheetFactory = sheetFactory,
             repository = repository,
         )
     }
@@ -168,5 +186,13 @@ class RecipeViewModelTest {
 
     val nutritionFactory = NutritionFeature.Factory { lifetime, store, environment ->
         NutritionFeature(lifetime, store, environment, nutritionService)
+    }
+
+    val substitutesFactory = SubstitutesFeature.Factory { lifetime, store, environment ->
+        SubstitutesFeature(lifetime, store, environment, nutritionService)
+    }
+
+    val sheetFactory = SubstituteSheetFeature.Factory { lifetime, store, environment ->
+        SubstituteSheetFeature(lifetime, store, environment, nutritionFactory)
     }
 }

@@ -2,12 +2,14 @@ package io.github.mmolosay.thecolor.demo.presentation.feature.recipe
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -25,6 +27,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import io.github.mmolosay.thecolor.demo.R
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditor
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.Nutrition
+import io.github.mmolosay.thecolor.demo.presentation.feature.sheet.SubstituteSheet
+import io.github.mmolosay.thecolor.demo.presentation.feature.substitutes.Substitutes
 import io.github.mmolosay.thecolor.presentation.common.composition.collectAsViewData
 import kotlinx.coroutines.launch
 
@@ -51,8 +55,9 @@ fun RecipeScreen(
             if (viewData.isLoadingSavedAmount) {
                 Text(text = stringResource(R.string.recipe_loading_saved_amount))
             }
+            Presets(onApply = { preset -> viewModel.applyPreset(preset) })
             AmountEditor(editor = viewModel.editor)
-            // only looks around the card's View, so it's the screen's, not a feature
+            // only looks around the cards' Views, so they're the screen's, not features
             Card(
                 modifier = Modifier.fillMaxWidth(),
             ) {
@@ -61,8 +66,17 @@ fun RecipeScreen(
                     modifier = Modifier.padding(16.dp),
                 )
             }
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Substitutes(
+                    substitutes = viewModel.substitutes,
+                    modifier = Modifier.padding(16.dp),
+                )
+            }
         }
     }
+    SubstituteSheet(sheet = viewModel.sheet)
     val messageToShow = viewData.messageToShow ?: return
     val text = stringResource(R.string.recipe_saved, messageToShow.amount)
     // acknowledged as it starts showing, so that it's never shown twice, even if the screen is
@@ -70,5 +84,25 @@ fun RecipeScreen(
     LaunchedEffect(messageToShow.token) {
         snackbarScope.launch { snackbarHostState.showSnackbar(text) }
         viewModel.messageShown(messageToShow.token)
+    }
+}
+
+@Composable
+private fun Presets(
+    onApply: (RecipePreset) -> Unit,
+) {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        RecipePreset.entries.forEach { preset ->
+            AssistChip(
+                onClick = { onApply(preset) },
+                label = {
+                    val label = when (preset) {
+                        RecipePreset.CupByProtein -> R.string.recipe_preset_cup_protein
+                        RecipePreset.HalfCupByCalories -> R.string.recipe_preset_half_cup_calories
+                    }
+                    Text(text = stringResource(label))
+                },
+            )
+        }
     }
 }

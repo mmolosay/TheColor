@@ -45,6 +45,12 @@ fun Nutrition(
                 Portion(portion = data.portion)
                 Text(text = data.calories)
                 Text(text = data.protein)
+                val suggestion = data.suggestion
+                if (suggestion != null) {
+                    TextButton(onClick = { nutrition.selectSuggestion(suggestion.amount) }) {
+                        Text(text = stringResource(R.string.nutrition_suggestion, suggestion.label))
+                    }
+                }
             }
             is NutritionViewData.Failed -> {
                 Portion(portion = data.portion)

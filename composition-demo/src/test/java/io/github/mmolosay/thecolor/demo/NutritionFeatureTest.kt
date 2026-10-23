@@ -9,12 +9,14 @@ import io.github.mmolosay.thecolor.demo.domain.NutritionFacts
 import io.github.mmolosay.thecolor.demo.domain.NutritionService
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionEnvironment
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionFeature
+import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionOutcome
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionState
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionStateFactory
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionViewData
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.forAmountOf
 import io.github.mmolosay.thecolor.demo.presentation.format.LocaleAmountFormatter
 import io.github.mmolosay.thecolor.demo.presentation.format.LocaleNutritionFormatter
+import io.github.mmolosay.thecolor.utils.Lens
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -100,9 +102,17 @@ class NutritionFeatureTest {
     fun createSut(lifetime: CoroutineScope) {
         val state = context(environment) { NutritionStateFactory.create() }
         store = Store(initialState = state, main = Dispatchers.Unconfined) // no View listens
+        // the parent's part: it hands nothing up
+        val slice = run {
+            val lens = Lens<NutritionState, NutritionState>(
+                get = { nutrition -> nutrition },
+                set = { _, nutrition -> nutrition },
+            )
+            store.slice<NutritionState, NutritionOutcome>(lens) { nutrition, _ -> Change(nutrition) }
+        }
         sut = NutritionFeature(
             lifetime = lifetime,
-            store = store,
+            store = slice,
             environment = environment,
             service = service,
         )

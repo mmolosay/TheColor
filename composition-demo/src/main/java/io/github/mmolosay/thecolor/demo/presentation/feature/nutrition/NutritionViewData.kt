@@ -1,5 +1,7 @@
 package io.github.mmolosay.thecolor.demo.presentation.feature.nutrition
 
+import io.github.mmolosay.thecolor.demo.domain.Amount
+
 sealed interface NutritionViewData {
 
     data object NoAmount : NutritionViewData
@@ -12,6 +14,7 @@ sealed interface NutritionViewData {
         val portion: Portion,
         val calories: String, // "437 kcal"
         val protein: String, // "12.4 g protein"
+        val suggestion: Suggestion?, // none when the service suggests the same amount
     ) : NutritionViewData
 
     data class Failed(
@@ -22,5 +25,10 @@ sealed interface NutritionViewData {
     data class Portion(
         val ingredient: String, // "Flour"
         val amount: String, // "120 g"
+    )
+
+    data class Suggestion(
+        val amount: Amount, // what the View passes back when the user takes it
+        val label: String, // "120 g"
     )
 }

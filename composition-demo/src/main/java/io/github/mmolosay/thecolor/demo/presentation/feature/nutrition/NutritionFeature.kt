@@ -8,13 +8,14 @@ import io.github.mmolosay.thecolor.composition.CompositionUtils.launchAwaited
 import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.composition.ViewDataSource
 import io.github.mmolosay.thecolor.composition.viewData
+import io.github.mmolosay.thecolor.demo.domain.Amount
 import io.github.mmolosay.thecolor.demo.domain.NutritionFacts
 import io.github.mmolosay.thecolor.demo.domain.NutritionService
 import kotlinx.coroutines.CoroutineScope
 
 class NutritionFeature @AssistedInject constructor(
     @Assisted lifetime: CoroutineScope,
-    @Assisted private val store: Store<NutritionState, *>,
+    @Assisted private val store: Store<NutritionState, NutritionOutcome>,
     @Assisted private val environment: NutritionEnvironment,
     private val service: NutritionService, // from dependency injection: only the work uses it
 ) {
@@ -43,11 +44,17 @@ class NutritionFeature @AssistedInject constructor(
         }
     }
 
+    fun selectSuggestion(amount: Amount) {
+        store.update { nutrition ->
+            context(environment) { nutrition.selectSuggestion(amount) }
+        }
+    }
+
     @AssistedFactory
     fun interface Factory {
         fun create(
             lifetime: CoroutineScope,
-            store: Store<NutritionState, *>,
+            store: Store<NutritionState, NutritionOutcome>,
             environment: NutritionEnvironment,
         ): NutritionFeature
     }
@@ -76,4 +83,15 @@ fun NutritionState.retry(): Change<NutritionState, Nothing> {
     val request = NutritionRequest(ingredient = failed.ingredient, amount = failed.amount)
     val state = NutritionState(request = request, result = null)
     return Change(state)
+}
+
+// Applies only while the facts still suggest that amount, so that a tap on a suggestion from facts
+// that have changed since does nothing. The card moves to the suggested portion, and the parent
+// decides what else it means
+context(environment: NutritionEnvironment)
+fun NutritionState.selectSuggestion(amount: Amount): Change<NutritionState, NutritionOutcome> {
+    val request = this.request
+    if (request == null || this.suggestion() != amount) return Change(this)
+    val state = this.forAmountOf(request.ingredient, amount)
+    return Change(state, outcome = NutritionOutcome.SuggestionSelected(amount))
 }
