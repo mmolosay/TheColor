@@ -6,10 +6,10 @@ import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.composition.CompositionUtils.launchAwaited
 import io.github.mmolosay.thecolor.composition.Store
-import io.github.mmolosay.thecolor.composition.viewData
 import io.github.mmolosay.thecolor.demo.domain.Amount
 import io.github.mmolosay.thecolor.demo.domain.CupSampler
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
+import io.github.mmolosay.thecolor.utils.mapState
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
@@ -25,7 +25,7 @@ class CupDialFeature @AssistedInject constructor(
 ) {
 
     val viewData: StateFlow<CupDialViewData> =
-        store.viewData { dial -> context(environment) { dial.toViewData() } }
+        store.mapState { dial -> context(environment) { dial.toViewData() } }
 
     init {
         // starts what the state awaits, and stops what it no longer awaits
@@ -33,8 +33,8 @@ class CupDialFeature @AssistedInject constructor(
             store = store,
             awaited = { dial -> context(environment) { dial.awaited() } },
             block = { request ->
-                // off the main thread, as sampling a color area would be; the store tells the Views
-                // on the main thread either way
+                // off the main thread, as sampling a color area would be; the Views collect on the
+                // main thread either way
                 withContext(workDispatcher) {
                     val amount = sampler.amountAt(request.position)
                     store.update { dial ->

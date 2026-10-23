@@ -5,7 +5,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.composition.Store
-import io.github.mmolosay.thecolor.composition.viewData
+import io.github.mmolosay.thecolor.utils.mapState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
 
@@ -22,7 +22,7 @@ class TextFieldFeature @AssistedInject constructor(
 ) {
 
     val viewData: StateFlow<TextFieldViewData> =
-        store.viewData { field -> context(environment) { field.toViewData() } }
+        store.mapState { field -> context(environment) { field.toViewData() } }
 
     fun enterText(text: String, expected: String) {
         store.update { field ->

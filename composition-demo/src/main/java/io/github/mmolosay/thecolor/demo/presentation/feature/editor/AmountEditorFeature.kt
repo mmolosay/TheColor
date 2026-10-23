@@ -34,7 +34,7 @@ class AmountEditorFeature @AssistedInject constructor(
 
     // for its View, which shows the inputs' Views
     val grams: GramsInputFeature = run {
-        val slice = store.slice<GramsInputState, GramsInputOutcome>(gramsLens) { editor, outcome ->
+        val slice = store.slice(gramsLens) { editor, outcome: GramsInputOutcome? ->
             context(environment) { onGrams(editor, outcome) }
         }
         gramsFactory.create(
@@ -45,7 +45,7 @@ class AmountEditorFeature @AssistedInject constructor(
     }
 
     val ounces: OuncesInputFeature = run {
-        val slice = store.slice<OuncesInputState, OuncesInputOutcome>(ouncesLens) { editor, outcome ->
+        val slice = store.slice(ouncesLens) { editor, outcome: OuncesInputOutcome? ->
             context(environment) { onOunces(editor, outcome) }
         }
         ouncesFactory.create(

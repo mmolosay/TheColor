@@ -108,7 +108,7 @@ class AmountEditorFeatureTest {
                 get = { editor -> editor },
                 set = { _, editor -> editor },
             )
-            store.slice<AmountEditorState, AmountEditorOutcome>(lens) { editor, _ -> Change(editor) }
+            store.slice(lens) { editor, _: AmountEditorOutcome? -> Change(editor) }
         }
         sut = AmountEditorFeature(
             lifetime = CoroutineScope(Job()),

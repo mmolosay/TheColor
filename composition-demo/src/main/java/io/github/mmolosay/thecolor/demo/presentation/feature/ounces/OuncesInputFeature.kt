@@ -7,7 +7,6 @@ import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.composition.CompositionUtils.child
 import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.composition.Token
-import io.github.mmolosay.thecolor.composition.viewData
 import io.github.mmolosay.thecolor.demo.domain.DecimalSeparator
 import io.github.mmolosay.thecolor.demo.domain.DemoSettings
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.newSubmission
@@ -15,6 +14,7 @@ import io.github.mmolosay.thecolor.demo.presentation.feature.input.shown
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldState
 import io.github.mmolosay.thecolor.utils.Lens
+import io.github.mmolosay.thecolor.utils.mapState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
@@ -29,7 +29,7 @@ class OuncesInputFeature @AssistedInject constructor(
 ) {
 
     val viewData: StateFlow<OuncesInputViewData> =
-        store.viewData { ounces -> context(environment) { ounces.toViewData() } }
+        store.mapState { ounces -> context(environment) { ounces.toViewData() } }
 
     // for its View, which shows the field's View
     val textField: TextFieldFeature = run {

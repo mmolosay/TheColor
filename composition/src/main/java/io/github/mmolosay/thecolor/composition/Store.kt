@@ -18,7 +18,7 @@ typealias Reduce<S, O, CO> = (S, CO?) -> Change<S, O>
 // TODO: should Store inherit StateFlow, and not MutableStateFlow? Given that Store has write method of update()?
 sealed interface Store<S, O> : StateFlow<S> {
     fun update(transition: Transition<S, O>)
-    fun <CS, CO> slice(lens: Lens<S, CS>, reduce: Reduce<S, O, CO>): Store<CS, CO>
+    fun <CS, CO : Any> slice(lens: Lens<S, CS>, reduce: Reduce<S, O, CO>): Store<CS, CO>
 }
 
 fun <S> Store(initialState: S): Store<S, Nothing> =
@@ -33,7 +33,7 @@ private class RootStore<S>(
     override fun update(transition: Transition<S, Nothing>) =
         flow.update { current -> transition(current).state }
 
-    override fun <CS, CO> slice(
+    override fun <CS, CO : Any> slice(
         lens: Lens<S, CS>,
         reduce: Reduce<S, Nothing, CO>,
     ): Store<CS, CO> =
@@ -59,7 +59,7 @@ private class SliceStore<PS, PO, S, O>(
             }
         }
 
-    override fun <CS, CO> slice(
+    override fun <CS, CO : Any> slice(
         lens: Lens<S, CS>,
         reduce: Reduce<S, O, CO>,
     ): Store<CS, CO> =

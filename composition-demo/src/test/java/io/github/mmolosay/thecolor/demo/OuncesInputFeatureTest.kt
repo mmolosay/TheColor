@@ -57,7 +57,7 @@ class OuncesInputFeatureTest {
                 get = { ounces -> ounces },
                 set = { _, ounces -> ounces },
             )
-            store.slice<OuncesInputState, OuncesInputOutcome>(lens) { ounces, _ -> Change(ounces) }
+            store.slice(lens) { ounces, _: OuncesInputOutcome? -> Change(ounces) }
         }
         sut = OuncesInputFeature(
             // a setting's value applies at once, inside 'MutableStateFlow.value' assignment

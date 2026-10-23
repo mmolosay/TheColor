@@ -7,12 +7,12 @@ import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.composition.CompositionUtils.child
 import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.composition.Token
-import io.github.mmolosay.thecolor.composition.viewData
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionOutcome
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionState
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionStateFactory
 import io.github.mmolosay.thecolor.utils.Lens
+import io.github.mmolosay.thecolor.utils.mapState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
 
@@ -24,13 +24,13 @@ class SubstituteSheetFeature @AssistedInject constructor(
 ) {
 
     val viewData: StateFlow<SubstituteSheetViewData> =
-        store.viewData { sheet -> context(environment) { sheet.toViewData() } }
+        store.mapState { sheet -> context(environment) { sheet.toViewData() } }
 
     // for its View, which shows the card's View
     val nutrition: NutritionFeature = run {
         // A suggestion taken here moves only the sheet's card, which the card does itself; the
         // recipe's amount stays. So there's nothing more to decide
-        val slice = store.slice<NutritionState, NutritionOutcome>(nutritionLens) { sheet, _ ->
+        val slice = store.slice(nutritionLens) { sheet, _: NutritionOutcome? ->
             Change(sheet)
         }
         nutritionFactory.create(

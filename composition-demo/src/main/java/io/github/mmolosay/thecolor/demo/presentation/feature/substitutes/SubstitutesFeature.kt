@@ -6,10 +6,10 @@ import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.composition.CompositionUtils.launchAwaited
 import io.github.mmolosay.thecolor.composition.Store
-import io.github.mmolosay.thecolor.composition.viewData
 import io.github.mmolosay.thecolor.demo.domain.NutritionFacts
 import io.github.mmolosay.thecolor.demo.domain.NutritionService
 import io.github.mmolosay.thecolor.demo.domain.Sort
+import io.github.mmolosay.thecolor.utils.mapState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
 
@@ -21,7 +21,7 @@ class SubstitutesFeature @AssistedInject constructor(
 ) {
 
     val viewData: StateFlow<SubstitutesViewData> =
-        store.viewData { substitutes -> context(environment) { substitutes.toViewData() } }
+        store.mapState { substitutes -> context(environment) { substitutes.toViewData() } }
 
     init {
         // starts what the state awaits, and stops what it no longer awaits

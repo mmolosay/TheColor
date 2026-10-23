@@ -107,7 +107,7 @@ class NutritionFeatureTest {
                 get = { nutrition -> nutrition },
                 set = { _, nutrition -> nutrition },
             )
-            store.slice<NutritionState, NutritionOutcome>(lens) { nutrition, _ -> Change(nutrition) }
+            store.slice(lens) { nutrition, _: NutritionOutcome? -> Change(nutrition) }
         }
         sut = NutritionFeature(
             lifetime = lifetime,

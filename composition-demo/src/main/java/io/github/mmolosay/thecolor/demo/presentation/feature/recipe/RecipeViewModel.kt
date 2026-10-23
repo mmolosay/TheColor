@@ -7,7 +7,6 @@ import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.composition.CompositionUtils.launchAwaited
 import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.composition.Token
-import io.github.mmolosay.thecolor.composition.viewData
 import io.github.mmolosay.thecolor.demo.domain.Amount
 import io.github.mmolosay.thecolor.demo.domain.RecipeRepository
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorFeature
@@ -28,6 +27,7 @@ import io.github.mmolosay.thecolor.demo.presentation.feature.substitutes.withSor
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldStateFactory
 import io.github.mmolosay.thecolor.utils.Lens
+import io.github.mmolosay.thecolor.utils.mapState
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
@@ -48,11 +48,11 @@ class RecipeViewModel @Inject constructor(
     }
 
     val viewData: StateFlow<RecipeViewData> =
-        store.viewData { recipe -> context(environment) { recipe.toViewData() } }
+        store.mapState { recipe -> context(environment) { recipe.toViewData() } }
 
     // for its View, which shows the children's Views
     val editor: AmountEditorFeature = run {
-        val slice = store.slice<AmountEditorState, AmountEditorOutcome>(editorLens) { recipe, outcome ->
+        val slice = store.slice(editorLens) { recipe, outcome: AmountEditorOutcome? ->
             context(environment) { onEditor(recipe, outcome) }
         }
         editorFactory.create(
@@ -63,7 +63,7 @@ class RecipeViewModel @Inject constructor(
     }
 
     val nutrition: NutritionFeature = run {
-        val slice = store.slice<NutritionState, NutritionOutcome>(nutritionLens) { recipe, outcome ->
+        val slice = store.slice(nutritionLens) { recipe, outcome: NutritionOutcome? ->
             context(environment) { onNutrition(recipe, outcome) }
         }
         nutritionFactory.create(
@@ -74,8 +74,7 @@ class RecipeViewModel @Inject constructor(
     }
 
     val substitutes: SubstitutesFeature = run {
-        val slice = store.slice<SubstitutesState, SubstitutesOutcome>(substitutesLens) {
-                recipe, outcome ->
+        val slice = store.slice(substitutesLens) { recipe, outcome: SubstitutesOutcome? ->
             context(environment) { onSubstitutes(recipe, outcome) }
         }
         substitutesFactory.create(
@@ -96,7 +95,7 @@ class RecipeViewModel @Inject constructor(
     }
 
     // Nothing in the screen's functions reads or writes the servings, so the field gets a store of its
-    // own, and its commits call only its own View
+    // own, and its commits wake only its own View
     val servings: TextFieldFeature = run {
         val state = context(environment.servings) { TextFieldStateFactory.create(text = "1") }
         textFieldFactory.create(
