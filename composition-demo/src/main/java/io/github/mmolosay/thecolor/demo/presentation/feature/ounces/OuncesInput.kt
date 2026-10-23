@@ -44,11 +44,11 @@ fun OuncesInput(
     val answerToShow = viewData.answerToShow ?: return
     val context = LocalContext.current
     val rejection = stringResource(R.string.ounces_input_rejected)
-    LaunchedEffect(answerToShow.token) {
+    LaunchedEffect(answerToShow.submission) {
         if (answerToShow.answer == Submission.Answer.Rejected) {
             Toast.makeText(context, rejection, Toast.LENGTH_SHORT).show()
         }
-        input.answerShown(answerToShow.token)
+        input.answerShown(answerToShow.submission)
     }
 }
 

@@ -1,10 +1,8 @@
 package io.github.mmolosay.thecolor.demo.presentation.feature.input
 
-import io.github.mmolosay.thecolor.composition.Token
-
-// a submission and its answer; a new token for each, so each one is answered and shown once
-data class Submission(
-    val token: Token,
+// A submission and its answer, compared by reference: a new instance for each submission and each
+// answer, so each answer is shown once
+class Submission(
     val answer: Answer?, // null while no parent has answered
 ) {
     enum class Answer {
@@ -13,13 +11,10 @@ data class Submission(
     }
 }
 
-fun newSubmission(): Submission =
-    Submission(token = Token(), answer = null)
-
 // answers only a submission that awaits one, so an answer is never overwritten
 fun Submission?.answered(answer: Submission.Answer): Submission? {
     if (this == null || this.answer != null) return this
-    return this.copy(answer = answer)
+    return Submission(answer = answer)
 }
 
 // what's left once the text it was made on changes: a submission still waiting is withdrawn, and an
@@ -32,19 +27,19 @@ fun Submission?.withdrawn(): Submission? {
 fun Submission?.isPending(): Boolean =
     (this != null && this.answer == null)
 
-// what's left once the View has shown the answer for this token: a newer submission stays
-fun Submission?.shown(token: Token): Submission? {
-    if (this == null || this.token !== token) return this
+// what's left once the View has shown this answered submission: a newer submission stays
+fun Submission?.shown(submission: Submission): Submission? {
+    if (this !== submission) return this
     return null
 }
 
-// an answer the View hasn't shown yet, with the token that tells it apart from a newer one
+// an answer the View hasn't shown yet, with the submission it answers, which the View acknowledges
 data class AnswerToShow(
-    val token: Token,
+    val submission: Submission,
     val answer: Submission.Answer,
 )
 
 fun Submission?.answerToShow(): AnswerToShow? {
     val answer = this?.answer ?: return null
-    return AnswerToShow(token = this.token, answer = answer)
+    return AnswerToShow(submission = this, answer = answer)
 }

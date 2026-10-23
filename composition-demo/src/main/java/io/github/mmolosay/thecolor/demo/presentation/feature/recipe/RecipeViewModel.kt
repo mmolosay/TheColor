@@ -6,7 +6,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.composition.CompositionUtils.launchAwaited
 import io.github.mmolosay.thecolor.composition.Store
-import io.github.mmolosay.thecolor.composition.Token
 import io.github.mmolosay.thecolor.demo.domain.Amount
 import io.github.mmolosay.thecolor.demo.domain.RecipeRepository
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorFeature
@@ -135,9 +134,9 @@ class RecipeViewModel @Inject constructor(
         }
     }
 
-    fun messageShown(token: Token) {
+    fun messageShown(message: SavedMessage) {
         store.update { recipe ->
-            context(environment) { recipe.messageShown(token) }
+            context(environment) { recipe.messageShown(message) }
         }
     }
 }
@@ -243,15 +242,15 @@ context(environment: RecipeEnvironment)
 fun RecipeState.receiveSave(request: SaveRequest): Change<RecipeState, Nothing> {
     if (this.awaitedSave() !== request) return Change(this) // withdrawn, or a newer one is saved
     val editor = context(environment.editor) { this.editor.withSubmissionAccepted() }
-    val message = SavedMessage(token = Token(), amount = request.amount)
+    val message = SavedMessage(amount = request.amount)
     val state = this.copy(editor = editor, save = null, messages = this.messages + message)
     return Change(state)
 }
 
-// what's left once the View has shown the message for this token: a newer message stays
+// what's left once the View has shown this message: a newer one stays
 context(_: RecipeEnvironment)
-fun RecipeState.messageShown(token: Token): Change<RecipeState, Nothing> {
-    val messages = this.messages.filterNot { message -> message.token === token }
+fun RecipeState.messageShown(message: SavedMessage): Change<RecipeState, Nothing> {
+    val messages = this.messages.filterNot { it === message }
     val state = this.copy(messages = messages)
     return Change(state)
 }

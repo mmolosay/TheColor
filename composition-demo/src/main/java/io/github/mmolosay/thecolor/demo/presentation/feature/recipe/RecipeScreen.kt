@@ -91,9 +91,9 @@ fun RecipeScreen(
     val text = stringResource(R.string.recipe_saved, messageToShow.amount)
     // acknowledged as it starts showing, so that it's never shown twice, even if the screen is
     // recreated while it shows
-    LaunchedEffect(messageToShow.token) {
+    LaunchedEffect(messageToShow.message) {
         snackbarScope.launch { snackbarHostState.showSnackbar(text) }
-        viewModel.messageShown(messageToShow.token)
+        viewModel.messageShown(messageToShow.message)
     }
 }
 

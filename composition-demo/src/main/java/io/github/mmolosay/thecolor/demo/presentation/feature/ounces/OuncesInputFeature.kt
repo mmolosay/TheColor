@@ -6,10 +6,9 @@ import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.composition.CompositionUtils.child
 import io.github.mmolosay.thecolor.composition.Store
-import io.github.mmolosay.thecolor.composition.Token
 import io.github.mmolosay.thecolor.demo.domain.DecimalSeparator
 import io.github.mmolosay.thecolor.demo.domain.DemoSettings
-import io.github.mmolosay.thecolor.demo.presentation.feature.input.newSubmission
+import io.github.mmolosay.thecolor.demo.presentation.feature.input.Submission
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.shown
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldState
@@ -61,9 +60,9 @@ class OuncesInputFeature @AssistedInject constructor(
         }
     }
 
-    fun answerShown(token: Token) {
+    fun answerShown(submission: Submission) {
         store.update { ounces ->
-            context(environment) { ounces.answerShown(token) }
+            context(environment) { ounces.answerShown(submission) }
         }
     }
 
@@ -105,12 +104,14 @@ fun OuncesInputState.receiveSeparator(
 
 context(_: OuncesInputEnvironment)
 fun OuncesInputState.submit(): Change<OuncesInputState, OuncesInputOutcome> {
-    val state = this.copy(submission = newSubmission())
+    val state = this.copy(submission = Submission(answer = null))
     return Change(state, outcome = OuncesInputOutcome.Submitted)
 }
 
 context(_: OuncesInputEnvironment)
-fun OuncesInputState.answerShown(token: Token): Change<OuncesInputState, OuncesInputOutcome> {
-    val state = this.copy(submission = this.submission.shown(token))
+fun OuncesInputState.answerShown(
+    submission: Submission,
+): Change<OuncesInputState, OuncesInputOutcome> {
+    val state = this.copy(submission = this.submission.shown(submission))
     return Change(state)
 }

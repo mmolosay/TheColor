@@ -6,7 +6,6 @@ import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.composition.CompositionUtils.child
 import io.github.mmolosay.thecolor.composition.Store
-import io.github.mmolosay.thecolor.composition.Token
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionOutcome
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionState
@@ -40,7 +39,7 @@ class SubstituteSheetFeature @AssistedInject constructor(
         )
     }
 
-    fun close(session: Token) {
+    fun close(session: SheetSession) {
         store.update { sheet ->
             context(environment) { sheet.close(session) }
         }
@@ -68,7 +67,7 @@ private val nutritionLens = Lens<SubstituteSheetState, NutritionState>(
 // applies only to the session the View showed, so that closing an earlier session never closes a
 // newer one
 context(environment: SubstituteSheetEnvironment)
-fun SubstituteSheetState.close(session: Token): Change<SubstituteSheetState, Nothing> {
+fun SubstituteSheetState.close(session: SheetSession): Change<SubstituteSheetState, Nothing> {
     if (this.session !== session) return Change(this)
     val nutrition = context(environment.nutrition) { NutritionStateFactory.create() }
     val state = SubstituteSheetState(session = null, nutrition = nutrition)

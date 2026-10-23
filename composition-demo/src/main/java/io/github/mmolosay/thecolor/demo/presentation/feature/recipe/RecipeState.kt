@@ -1,6 +1,5 @@
 package io.github.mmolosay.thecolor.demo.presentation.feature.recipe
 
-import io.github.mmolosay.thecolor.composition.Token
 import io.github.mmolosay.thecolor.demo.domain.Amount
 import io.github.mmolosay.thecolor.demo.domain.Ingredient
 import io.github.mmolosay.thecolor.demo.domain.Sort
@@ -38,9 +37,8 @@ class SaveRequest(
     val amount: Amount,
 )
 
-// "Saved 120 g", shown once; a new token for each, so each one is shown once
-data class SavedMessage(
-    val token: Token,
+// "Saved 120 g"; compared by reference, so each one is shown once, even for the same amount
+class SavedMessage(
     val amount: Amount,
 )
 
@@ -116,7 +114,7 @@ fun RecipeState.toViewData(): RecipeViewData {
     val messageToShow = run {
         val message = this.messages.firstOrNull() ?: return@run null
         RecipeViewData.MessageToShow(
-            token = message.token,
+            message = message,
             amount = environment.amountFormatter.format(message.amount),
         )
     }

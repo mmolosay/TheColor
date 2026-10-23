@@ -41,10 +41,10 @@ fun GramsInput(
     val answerToShow = viewData.answerToShow ?: return
     val context = LocalContext.current
     val rejection = stringResource(R.string.grams_input_rejected)
-    LaunchedEffect(answerToShow.token) {
+    LaunchedEffect(answerToShow.submission) {
         if (answerToShow.answer == Submission.Answer.Rejected) {
             Toast.makeText(context, rejection, Toast.LENGTH_SHORT).show()
         }
-        input.answerShown(answerToShow.token)
+        input.answerShown(answerToShow.submission)
     }
 }

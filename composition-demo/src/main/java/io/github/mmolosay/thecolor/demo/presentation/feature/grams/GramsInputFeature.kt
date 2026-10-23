@@ -6,8 +6,7 @@ import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.composition.CompositionUtils.child
 import io.github.mmolosay.thecolor.composition.Store
-import io.github.mmolosay.thecolor.composition.Token
-import io.github.mmolosay.thecolor.demo.presentation.feature.input.newSubmission
+import io.github.mmolosay.thecolor.demo.presentation.feature.input.Submission
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.shown
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldState
@@ -45,9 +44,9 @@ class GramsInputFeature @AssistedInject constructor(
         }
     }
 
-    fun answerShown(token: Token) {
+    fun answerShown(submission: Submission) {
         store.update { grams ->
-            context(environment) { grams.answerShown(token) }
+            context(environment) { grams.answerShown(submission) }
         }
     }
 
@@ -79,12 +78,14 @@ fun onTextField(grams: GramsInputState): Change<GramsInputState, GramsInputOutco
 
 context(_: GramsInputEnvironment)
 fun GramsInputState.submit(): Change<GramsInputState, GramsInputOutcome> {
-    val state = this.copy(submission = newSubmission())
+    val state = this.copy(submission = Submission(answer = null))
     return Change(state, outcome = GramsInputOutcome.Submitted)
 }
 
 context(_: GramsInputEnvironment)
-fun GramsInputState.answerShown(token: Token): Change<GramsInputState, GramsInputOutcome> {
-    val state = this.copy(submission = this.submission.shown(token))
+fun GramsInputState.answerShown(
+    submission: Submission,
+): Change<GramsInputState, GramsInputOutcome> {
+    val state = this.copy(submission = this.submission.shown(submission))
     return Change(state)
 }
