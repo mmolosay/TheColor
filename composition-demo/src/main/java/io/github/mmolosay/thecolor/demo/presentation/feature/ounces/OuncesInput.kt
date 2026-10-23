@@ -15,17 +15,17 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.demo.R
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.Submission
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextField
-import io.github.mmolosay.thecolor.presentation.common.composition.collectAsViewData
 
 @Composable
 fun OuncesInput(
     input: OuncesInputFeature,
     modifier: Modifier = Modifier,
 ) {
-    val viewData by input.viewData.collectAsViewData()
+    val viewData by input.viewData.collectAsStateWithLifecycle()
     TextField(
         field = input.textField,
         label = stringResource(R.string.ounces_input_label),

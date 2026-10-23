@@ -15,7 +15,6 @@ android {
 dependencies {
     implementation(project(":domain"))
     implementation(project(":utils"))
-    implementation(project(":composition"))
     implementation(project(":presentation:design-system"))
 
     // Compose

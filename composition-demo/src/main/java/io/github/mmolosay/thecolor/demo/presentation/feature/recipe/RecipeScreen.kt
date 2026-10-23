@@ -31,6 +31,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.demo.R
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditor
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.Nutrition
@@ -38,14 +39,13 @@ import io.github.mmolosay.thecolor.demo.presentation.feature.sheet.SubstituteShe
 import io.github.mmolosay.thecolor.demo.presentation.feature.substitutes.Substitutes
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextField
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldFeature
-import io.github.mmolosay.thecolor.presentation.common.composition.collectAsViewData
 import kotlinx.coroutines.launch
 
 @Composable
 fun RecipeScreen(
     viewModel: RecipeViewModel = hiltViewModel(),
 ) {
-    val viewData by viewModel.viewData.collectAsViewData()
+    val viewData by viewModel.viewData.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     // outlives each message's effect, which ends as soon as the message is acknowledged
     val snackbarScope = rememberCoroutineScope()

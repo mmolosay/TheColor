@@ -12,17 +12,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.demo.R
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.Submission
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextField
-import io.github.mmolosay.thecolor.presentation.common.composition.collectAsViewData
 
 @Composable
 fun GramsInput(
     input: GramsInputFeature,
     modifier: Modifier = Modifier,
 ) {
-    val viewData by input.viewData.collectAsViewData()
+    val viewData by input.viewData.collectAsStateWithLifecycle()
     TextField(
         field = input.textField,
         label = stringResource(R.string.grams_input_label),

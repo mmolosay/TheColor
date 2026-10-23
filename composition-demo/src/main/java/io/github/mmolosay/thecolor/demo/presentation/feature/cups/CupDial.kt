@@ -7,15 +7,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.demo.R
-import io.github.mmolosay.thecolor.presentation.common.composition.collectAsViewData
 
 @Composable
 fun CupDial(
     dial: CupDialFeature,
     modifier: Modifier = Modifier,
 ) {
-    val viewData by dial.viewData.collectAsViewData()
+    val viewData by dial.viewData.collectAsStateWithLifecycle()
     Column(
         modifier = modifier,
     ) {

@@ -19,8 +19,8 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.demo.R
-import io.github.mmolosay.thecolor.presentation.common.composition.collectAsViewData
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 /**
@@ -41,7 +41,7 @@ fun TextField(
     visualTransformation: VisualTransformation, // how the text shows; edits are on the text itself
     modifier: Modifier = Modifier,
 ) {
-    val viewData by field.viewData.collectAsViewData()
+    val viewData by field.viewData.collectAsStateWithLifecycle()
     val text = viewData.text
     // The control applies each edit to its own buffer and has to get the edit back in the same
     // callback, so the View keeps a copy of what it shows, with the cursor the state doesn't hold.

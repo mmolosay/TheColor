@@ -20,7 +20,6 @@ dependencies {
     // Modules
     implementation(project(":composition"))
     implementation(project(":main:di-qualifiers"))
-    implementation(project(":presentation:common"))
     implementation(project(":presentation:design-system"))
     implementation(project(":utils"))
 
@@ -30,6 +29,7 @@ dependencies {
     // Compose
     implementation("androidx.compose.material3:material3")
     implementation("androidx.activity:activity-compose:1.13.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:${libs.versions.androidx.lifecycle.get()}")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:${libs.versions.androidx.lifecycle.get()}")
     implementation("androidx.hilt:hilt-navigation-compose:${libs.versions.hiltNavigationCompose.get()}")
 

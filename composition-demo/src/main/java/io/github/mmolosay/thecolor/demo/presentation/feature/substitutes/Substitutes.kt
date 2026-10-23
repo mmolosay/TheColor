@@ -18,16 +18,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.demo.R
 import io.github.mmolosay.thecolor.demo.domain.Sort
-import io.github.mmolosay.thecolor.presentation.common.composition.collectAsViewData
 
 @Composable
 fun Substitutes(
     substitutes: SubstitutesFeature,
     modifier: Modifier = Modifier,
 ) {
-    val viewData by substitutes.viewData.collectAsViewData()
+    val viewData by substitutes.viewData.collectAsStateWithLifecycle()
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp),
