@@ -6,12 +6,12 @@ import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.composition.CompositionUtils.launchAwaited
 import io.github.mmolosay.thecolor.composition.Store
-import io.github.mmolosay.thecolor.composition.ViewDataSource
 import io.github.mmolosay.thecolor.composition.viewData
 import io.github.mmolosay.thecolor.demo.domain.Amount
 import io.github.mmolosay.thecolor.demo.domain.NutritionFacts
 import io.github.mmolosay.thecolor.demo.domain.NutritionService
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.StateFlow
 
 class NutritionFeature @AssistedInject constructor(
     @Assisted lifetime: CoroutineScope,
@@ -20,7 +20,7 @@ class NutritionFeature @AssistedInject constructor(
     private val service: NutritionService, // from dependency injection: only the work uses it
 ) {
 
-    val viewData: ViewDataSource<NutritionViewData> =
+    val viewData: StateFlow<NutritionViewData> =
         store.viewData { nutrition -> context(environment) { nutrition.toViewData() } }
 
     init {

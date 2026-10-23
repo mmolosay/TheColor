@@ -3,7 +3,6 @@ package io.github.mmolosay.thecolor.composition
 import app.cash.turbine.test
 import io.github.mmolosay.thecolor.utils.Lens
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.coroutineScope
@@ -12,11 +11,8 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.RepeatedTest
 import org.junit.jupiter.api.Test
-import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CyclicBarrier
 import java.util.concurrent.Executors
-import kotlin.concurrent.thread
-import kotlin.coroutines.CoroutineContext
 
 /**
  * Tests [Store] created with `Store(initialState)`, and its slices.
@@ -204,91 +200,8 @@ class StoreTest {
 
     // endregion
 
-    // region 'listen'
-
-    @Test
-    fun `when a commit on the main thread changes the state, then the listeners are called before 'update' returns, with the new state`() {
-        createSut(main = testDispatcher) // never dispatches: the test runs on the main thread
-        val seen = mutableListOf<Office>()
-        sut.listen { seen += sut.value }
-
-        sut.update {
-            Change(it.copy(other = 1))
-        }
-
-        seen shouldBe listOf(initialState.copy(other = 1))
-    }
-
-    @Test
-    fun `when a transition changes nothing, then NO listener is called`() {
-        createSut(main = testDispatcher) // never dispatches: the test runs on the main thread
-        var calls = 0
-        sut.listen { calls++ }
-
-        sut.update {
-            Change(it.copy()) // a new instance, equal to the current one
-        }
-
-        calls shouldBe 0
-    }
-
-    @Test
-    fun `when a commit is made through a slice, then a listener added through another slice is called, so that a View hears commits made anywhere on the screen`() {
-        createSut(main = testDispatcher) // never dispatches: the test runs on the main thread
-        var calls = 0
-        createOtherSlice().listen { calls++ }
-
-        createLetterSlice().update {
-            Change(Letter(text = "A"))
-        }
-
-        calls shouldBe 1
-    }
-
-    @Test
-    fun `given commits made off the main thread, when the main thread runs its tasks, then the listeners are called once, with the newest state`() {
-        val main = MainThreadDispatcher()
-        createSut(main = main)
-        val seen = mutableListOf<Office>()
-        sut.listen { seen += sut.value }
-        thread {
-            sut.update { Change(it.copy(other = 1)) }
-            sut.update { Change(it.copy(other = 2)) }
-        }.join()
-
-        main.runTasks()
-
-        seen shouldBe listOf(initialState.copy(other = 2))
-    }
-
-    /**
-     * Tests that a commit made off the main thread, whose listeners wait for a main-thread task,
-     * doesn't hold up the listeners of a commit made on the main thread in the meantime: a View
-     * still has its own action's change before the action returns.
-     */
-    @Test
-    fun `given a commit made off the main thread waits to notify, when the main thread commits, then the listeners are called inside that commit, with both changes`() {
-        val main = MainThreadDispatcher()
-        createSut(main = main)
-        val seen = mutableListOf<Office>()
-        sut.listen { seen += sut.value }
-        thread {
-            sut.update { Change(it.copy(other = 1)) }
-        }.join()
-
-        sut.update {
-            Change(it.copy(sent = "A"))
-        }
-
-        seen shouldBe listOf(initialState.copy(other = 1, sent = "A"))
-    }
-
-    // endregion
-
-    fun createSut(
-        main: CoroutineDispatcher = testDispatcher,
-    ) =
-        Store(initialState, main = main).also {
+    fun createSut() =
+        Store(initialState).also {
             sut = it
         }
 
@@ -350,26 +263,5 @@ class StoreTest {
 
     sealed interface DeskOutcome {
         data class Sent(val text: String) : DeskOutcome
-    }
-
-    // The main thread is the one that creates it. A task dispatched to it waits until 'runTasks()'
-    class MainThreadDispatcher : CoroutineDispatcher() {
-
-        val thread: Thread = Thread.currentThread()
-        val tasks = ConcurrentLinkedQueue<Runnable>()
-
-        override fun isDispatchNeeded(context: CoroutineContext): Boolean =
-            Thread.currentThread() !== thread
-
-        override fun dispatch(context: CoroutineContext, block: Runnable) {
-            tasks += block
-        }
-
-        fun runTasks() {
-            while (true) {
-                val task = tasks.poll() ?: return
-                task.run()
-            }
-        }
     }
 }

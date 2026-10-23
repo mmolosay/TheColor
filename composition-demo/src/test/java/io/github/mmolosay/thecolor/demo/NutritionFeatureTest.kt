@@ -22,7 +22,6 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -101,7 +100,7 @@ class NutritionFeatureTest {
 
     fun createSut(lifetime: CoroutineScope) {
         val state = context(environment) { NutritionStateFactory.create() }
-        store = Store(initialState = state, main = Dispatchers.Unconfined) // no View listens
+        store = Store(initialState = state)
         // the parent's part: it hands nothing up
         val slice = run {
             val lens = Lens<NutritionState, NutritionState>(

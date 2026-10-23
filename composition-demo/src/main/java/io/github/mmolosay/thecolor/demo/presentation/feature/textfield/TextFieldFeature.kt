@@ -5,15 +5,15 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.composition.Store
-import io.github.mmolosay.thecolor.composition.ViewDataSource
 import io.github.mmolosay.thecolor.composition.viewData
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.StateFlow
 
 /**
  * A field running in one place, and the only way its View changes the field's state.
  *
  * An action's change is in the store by the time the action returns, and a View that shows
- * [viewData] already has it.
+ * [viewData] has it by the next frame.
  */
 class TextFieldFeature @AssistedInject constructor(
     @Assisted lifetime: CoroutineScope, // no work runs in it, but its parents needn't know that
@@ -21,7 +21,7 @@ class TextFieldFeature @AssistedInject constructor(
     @Assisted private val environment: TextFieldEnvironment,
 ) {
 
-    val viewData: ViewDataSource<TextFieldViewData> =
+    val viewData: StateFlow<TextFieldViewData> =
         store.viewData { field -> context(environment) { field.toViewData() } }
 
     fun enterText(text: String, expected: String) {

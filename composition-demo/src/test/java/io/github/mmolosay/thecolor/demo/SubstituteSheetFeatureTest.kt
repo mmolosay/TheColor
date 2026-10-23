@@ -56,8 +56,7 @@ class SubstituteSheetFeatureTest {
 
     fun createSut() {
         val state = context(environment) { SubstituteSheetStateFactory.create() }
-        // called at once, inside each commit, as on the main thread
-        store = Store(initialState = state, main = Dispatchers.Unconfined)
+        store = Store(initialState = state)
         sut = SubstituteSheetFeature(
             lifetime = CoroutineScope(Job() + Dispatchers.Unconfined),
             store = store,

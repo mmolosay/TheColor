@@ -7,7 +7,6 @@ import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.composition.CompositionUtils.child
 import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.composition.Token
-import io.github.mmolosay.thecolor.composition.ViewDataSource
 import io.github.mmolosay.thecolor.composition.viewData
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.newSubmission
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.shown
@@ -15,6 +14,7 @@ import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextField
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldState
 import io.github.mmolosay.thecolor.utils.Lens
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.StateFlow
 
 class GramsInputFeature @AssistedInject constructor(
     @Assisted lifetime: CoroutineScope,
@@ -23,7 +23,7 @@ class GramsInputFeature @AssistedInject constructor(
     textFieldFactory: TextFieldFeature.Factory,
 ) {
 
-    val viewData: ViewDataSource<GramsInputViewData> =
+    val viewData: StateFlow<GramsInputViewData> =
         store.viewData { grams -> context(environment) { grams.toViewData() } }
 
     // for its View, which shows the field's View

@@ -16,7 +16,6 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runCurrent
@@ -69,7 +68,7 @@ class CupDialFeatureTest {
 
     fun createSut(lifetime: CoroutineScope) {
         val state = context(environment) { CupDialStateFactory.create(amount = null) }
-        store = Store(initialState = state, main = Dispatchers.Unconfined) // no View listens
+        store = Store(initialState = state)
         sut = CupDialFeature(
             lifetime = lifetime,
             store = store,

@@ -50,8 +50,7 @@ class OuncesInputFeatureTest {
 
     fun createSut() {
         val state = context(environment) { OuncesInputStateFactory.create(amount = null) }
-        // called at once, inside each commit, as on the main thread
-        val store = Store(initialState = state, main = Dispatchers.Unconfined)
+        val store = Store(initialState = state)
         // the parent's part: it answers no submission
         val slice = run {
             val lens = Lens<OuncesInputState, OuncesInputState>(

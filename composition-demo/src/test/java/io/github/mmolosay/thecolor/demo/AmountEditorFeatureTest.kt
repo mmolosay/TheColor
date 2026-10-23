@@ -31,13 +31,19 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 
 /**
  * Tests [AmountEditorFeature] with its real inputs, on a store of its own, as its parent gives it.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 class AmountEditorFeatureTest {
 
     // real implementations: the conversion between grams and ounces is what the inputs agree on
@@ -67,16 +73,19 @@ class AmountEditorFeatureTest {
     lateinit var sut: AmountEditorFeature
 
     @Test
-    fun `when the user types in grams, then every state committed has the ounces standing for the same amount`() {
-        createSut(amount = Amount.Grams(value = 4))
-        val committed = mutableListOf<AmountEditorState>()
-        sut.grams.textField.viewData.listen { committed += store.value } // hears every commit
+    fun `when the user types in grams, then every state committed has the ounces standing for the same amount`() =
+        runTest {
+            createSut(amount = Amount.Grams(value = 4))
+            val committed = mutableListOf<AmountEditorState>()
+            backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+                store.drop(1).collect { committed += it } // unconfined, so it runs inside each commit
+            }
 
-        sut.grams.textField.enterText(text = "42", expected = "4")
+            sut.grams.textField.enterText(text = "42", expected = "4")
 
-        committed.shouldNotBeEmpty()
-        committed.forAll { it.inputsAgree() shouldBe true }
-    }
+            committed.shouldNotBeEmpty()
+            committed.forAll { it.inputsAgree() shouldBe true }
+        }
 
     @Test
     fun `given the parent has just set an amount, when a keystroke made on the text before it arrives, then the keystroke is dropped and both inputs show the parent's amount`() {
@@ -92,8 +101,7 @@ class AmountEditorFeatureTest {
 
     fun createSut(amount: Amount?) {
         val state = context(environment) { AmountEditorStateFactory.create(amount) }
-        // called at once, inside each commit, as on the main thread
-        store = Store(initialState = state, main = Dispatchers.Unconfined)
+        store = Store(initialState = state)
         // the parent's part: it answers no submission and hands nothing up
         val slice = run {
             val lens = Lens<AmountEditorState, AmountEditorState>(

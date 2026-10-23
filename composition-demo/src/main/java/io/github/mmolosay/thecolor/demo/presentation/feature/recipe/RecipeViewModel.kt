@@ -7,7 +7,6 @@ import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.composition.CompositionUtils.launchAwaited
 import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.composition.Token
-import io.github.mmolosay.thecolor.composition.ViewDataSource
 import io.github.mmolosay.thecolor.composition.viewData
 import io.github.mmolosay.thecolor.demo.domain.Amount
 import io.github.mmolosay.thecolor.demo.domain.RecipeRepository
@@ -29,6 +28,7 @@ import io.github.mmolosay.thecolor.demo.presentation.feature.substitutes.withSor
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldStateFactory
 import io.github.mmolosay.thecolor.utils.Lens
+import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 @HiltViewModel
@@ -47,7 +47,7 @@ class RecipeViewModel @Inject constructor(
         Store(initialState = state)
     }
 
-    val viewData: ViewDataSource<RecipeViewData> =
+    val viewData: StateFlow<RecipeViewData> =
         store.viewData { recipe -> context(environment) { recipe.toViewData() } }
 
     // for its View, which shows the children's Views
