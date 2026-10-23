@@ -5,6 +5,7 @@ import io.github.mmolosay.thecolor.utils.mapState
 import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 
 // TODO: Transition and Reduce should be defined inside the Store once 'nested type aliases' is
 //  stable
@@ -29,13 +30,8 @@ private class RootStore<S>(
 ) : Store<S, Nothing>, StateFlow<S> by flow {
 
     // Any thread. A state equal to the current one keeps the current instance and isn't emitted
-    override fun update(transition: Transition<S, Nothing>) {
-        while (true) {
-            val current = flow.value
-            val state = transition(current).state
-            if (flow.compareAndSet(current, state)) return
-        }
-    }
+    override fun update(transition: Transition<S, Nothing>) =
+        flow.update { current -> transition(current).state }
 
     override fun <CS, CO> slice(
         lens: Lens<S, CS>,
