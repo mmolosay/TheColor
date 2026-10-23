@@ -14,6 +14,9 @@
     <string name="ounces_input_label">Ounces</string>
     <string name="ounces_input_rejected">Enter an amount such as 1.5</string>
 
+    <string name="cups_dial_label">Cups</string>
+    <string name="cups_dial_amount">Cups: about %1$s</string>
+
     <string name="nutrition_no_amount">Enter an amount to see its nutrition</string>
     <string name="nutrition_portion">%1$s, %2$s</string>
     <string name="nutrition_loading">Loading…</string>
@@ -30,6 +33,7 @@
     <string name="substitutes_retry">Retry</string>
     <string name="substitutes_item_figures">%1$s · %2$s</string>
 
+    <string name="recipe_servings_label">Servings</string>
     <string name="recipe_preset_cup_protein">1 cup, most protein</string>
     <string name="recipe_preset_half_cup_calories">½ cup, fewest calories</string>
 

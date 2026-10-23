@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.mmolosay.thecolor.demo.presentation.feature.cups.CupDial
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.GramsInput
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInput
 
@@ -19,5 +20,6 @@ fun AmountEditor(
     ) {
         GramsInput(input = editor.grams)
         OuncesInput(input = editor.ounces)
+        CupDial(dial = editor.cups)
     }
 }

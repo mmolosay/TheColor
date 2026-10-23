@@ -26,6 +26,8 @@ import io.github.mmolosay.thecolor.demo.presentation.feature.substitutes.Substit
 import io.github.mmolosay.thecolor.demo.presentation.feature.substitutes.SubstitutesOutcome
 import io.github.mmolosay.thecolor.demo.presentation.feature.substitutes.SubstitutesState
 import io.github.mmolosay.thecolor.demo.presentation.feature.substitutes.withSort
+import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldFeature
+import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldStateFactory
 import io.github.mmolosay.thecolor.utils.Lens
 import javax.inject.Inject
 
@@ -36,6 +38,7 @@ class RecipeViewModel @Inject constructor(
     nutritionFactory: NutritionFeature.Factory,
     substitutesFactory: SubstitutesFeature.Factory,
     sheetFactory: SubstituteSheetFeature.Factory,
+    textFieldFactory: TextFieldFeature.Factory,
     private val repository: RecipeRepository, // from dependency injection: only the work uses it
 ) : ViewModel() {
 
@@ -89,6 +92,17 @@ class RecipeViewModel @Inject constructor(
             lifetime = viewModelScope,
             store = slice,
             environment = environment.sheet,
+        )
+    }
+
+    // Nothing in the screen's functions reads or writes the servings, so the field gets a store of its
+    // own, and its commits call only its own View
+    val servings: TextFieldFeature = run {
+        val state = context(environment.servings) { TextFieldStateFactory.create(text = "1") }
+        textFieldFactory.create(
+            lifetime = viewModelScope,
+            store = Store(initialState = state),
+            environment = environment.servings,
         )
     }
 

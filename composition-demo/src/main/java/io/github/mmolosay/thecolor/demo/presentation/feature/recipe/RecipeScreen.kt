@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
@@ -21,7 +23,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import io.github.mmolosay.thecolor.demo.R
@@ -29,6 +36,8 @@ import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditor
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.Nutrition
 import io.github.mmolosay.thecolor.demo.presentation.feature.sheet.SubstituteSheet
 import io.github.mmolosay.thecolor.demo.presentation.feature.substitutes.Substitutes
+import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextField
+import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldFeature
 import io.github.mmolosay.thecolor.presentation.common.composition.collectAsViewData
 import kotlinx.coroutines.launch
 
@@ -56,6 +65,7 @@ fun RecipeScreen(
                 Text(text = stringResource(R.string.recipe_loading_saved_amount))
             }
             Presets(onApply = { preset -> viewModel.applyPreset(preset) })
+            Servings(field = viewModel.servings)
             AmountEditor(editor = viewModel.editor)
             // only looks around the cards' Views, so they're the screen's, not features
             Card(
@@ -105,4 +115,27 @@ private fun Presets(
             )
         }
     }
+}
+
+// The same field as in grams and ounces, with what depends on this place: here, its key reads Next
+// and moves on to the amount, where the key reads Done and submits
+@Composable
+private fun Servings(
+    field: TextFieldFeature,
+) {
+    val focusManager = LocalFocusManager.current
+    TextField(
+        field = field,
+        label = stringResource(R.string.recipe_servings_label),
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Number,
+            imeAction = ImeAction.Next,
+        ),
+        keyboardActions = KeyboardActions(
+            onNext = { focusManager.moveFocus(FocusDirection.Down) },
+        ),
+        hasClearButton = false,
+        supportingText = null,
+        visualTransformation = VisualTransformation.None,
+    )
 }

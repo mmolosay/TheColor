@@ -2,9 +2,12 @@ package io.github.mmolosay.thecolor.demo
 
 import io.github.mmolosay.thecolor.demo.domain.Amount
 import io.github.mmolosay.thecolor.demo.domain.AmountConverter
+import io.github.mmolosay.thecolor.demo.domain.CupSampler
 import io.github.mmolosay.thecolor.demo.domain.DemoSettings
 import io.github.mmolosay.thecolor.demo.domain.NutritionService
 import io.github.mmolosay.thecolor.demo.domain.RecipeRepository
+import io.github.mmolosay.thecolor.demo.presentation.feature.cups.CupDialEnvironment
+import io.github.mmolosay.thecolor.demo.presentation.feature.cups.CupDialFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorEnvironment
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.GramsInputEnvironment
@@ -29,6 +32,7 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -60,6 +64,10 @@ class RecipeViewModelTest {
             editor = AmountEditorEnvironment(
                 grams = GramsInputEnvironment(amountConverter = converter),
                 ounces = OuncesInputEnvironment(amountConverter = converter),
+                cups = CupDialEnvironment(
+                    amountConverter = converter,
+                    amountFormatter = formatter,
+                ),
                 amountConverter = converter,
             ),
             nutrition = NutritionEnvironment(
@@ -94,6 +102,9 @@ class RecipeViewModelTest {
         coEvery { nutritionFacts(any(), any()) } coAnswers { awaitCancellation() }
         coEvery { substitutes(any(), any()) } coAnswers { awaitCancellation() }
     }
+
+    // never called: no test drags the dial
+    val cupSampler: CupSampler = mockk()
 
     lateinit var sut: RecipeViewModel
 
@@ -164,6 +175,7 @@ class RecipeViewModelTest {
             nutritionFactory = nutritionFactory,
             substitutesFactory = substitutesFactory,
             sheetFactory = sheetFactory,
+            textFieldFactory = textFieldFactory,
             repository = repository,
         )
     }
@@ -180,8 +192,12 @@ class RecipeViewModelTest {
         OuncesInputFeature(lifetime, store, environment, textFieldFactory, settings)
     }
 
+    val cupsFactory = CupDialFeature.Factory { lifetime, store, environment ->
+        CupDialFeature(lifetime, store, environment, cupSampler, Dispatchers.Unconfined)
+    }
+
     val editorFactory = AmountEditorFeature.Factory { lifetime, store, environment ->
-        AmountEditorFeature(lifetime, store, environment, gramsFactory, ouncesFactory)
+        AmountEditorFeature(lifetime, store, environment, gramsFactory, ouncesFactory, cupsFactory)
     }
 
     val nutritionFactory = NutritionFeature.Factory { lifetime, store, environment ->

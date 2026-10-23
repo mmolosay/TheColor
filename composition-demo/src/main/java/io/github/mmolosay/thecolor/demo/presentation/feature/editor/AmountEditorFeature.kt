@@ -6,6 +6,9 @@ import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.composition.CompositionUtils.child
 import io.github.mmolosay.thecolor.composition.Store
+import io.github.mmolosay.thecolor.demo.presentation.feature.cups.CupDialFeature
+import io.github.mmolosay.thecolor.demo.presentation.feature.cups.CupDialState
+import io.github.mmolosay.thecolor.demo.presentation.feature.cups.amount
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.GramsInputFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.GramsInputOutcome
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.GramsInputState
@@ -26,6 +29,7 @@ class AmountEditorFeature @AssistedInject constructor(
     @Assisted environment: AmountEditorEnvironment,
     gramsFactory: GramsInputFeature.Factory,
     ouncesFactory: OuncesInputFeature.Factory,
+    cupsFactory: CupDialFeature.Factory,
 ) {
 
     // for its View, which shows the inputs' Views
@@ -51,6 +55,17 @@ class AmountEditorFeature @AssistedInject constructor(
         )
     }
 
+    val cups: CupDialFeature = run {
+        val slice = store.slice(cupsLens) { editor, _: Nothing? ->
+            context(environment) { onCups(editor) }
+        }
+        cupsFactory.create(
+            lifetime = lifetime.child(),
+            store = slice,
+            environment = environment.cups,
+        )
+    }
+
     @AssistedFactory
     fun interface Factory {
         fun create(
@@ -71,8 +86,13 @@ private val ouncesLens = Lens<AmountEditorState, OuncesInputState>(
     set = { editor, ounces -> editor.copy(ounces = ounces) },
 )
 
+private val cupsLens = Lens<AmountEditorState, CupDialState>(
+    get = { editor -> editor.cups },
+    set = { editor, cups -> editor.copy(cups = cups) },
+)
+
 // The reducers for its inputs. Only the feature instance runs them, inside an input's update. Each
-// brings the other input in line with the edited one. An edit that leaves no whole amount, such as
+// brings the other inputs in line with the edited one. An edit that leaves no whole amount, such as
 // clearing the text, leaves the other input as it is. A submission that stands for no amount is
 // rejected here; a whole amount is handed up, for the parent to answer
 
@@ -112,4 +132,13 @@ fun onOunces(
             Change(agreed, outcome = AmountEditorOutcome.Submitted(amount))
         }
     }
+}
+
+// The dial has no submissions. Each sample that lands brings the other inputs in line with it, as a
+// typed amount does
+context(environment: AmountEditorEnvironment)
+fun onCups(editor: AmountEditorState): Change<AmountEditorState, AmountEditorOutcome> {
+    val amount = context(environment.cups) { editor.cups.amount() }
+    val agreed = if (amount != null) editor.withAmount(amount) else editor
+    return Change(agreed)
 }

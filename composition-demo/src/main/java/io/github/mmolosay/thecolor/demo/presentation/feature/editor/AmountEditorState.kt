@@ -2,6 +2,11 @@ package io.github.mmolosay.thecolor.demo.presentation.feature.editor
 
 import io.github.mmolosay.thecolor.demo.domain.Amount
 import io.github.mmolosay.thecolor.demo.domain.isSameAs
+import io.github.mmolosay.thecolor.demo.presentation.feature.cups.CupDialState
+import io.github.mmolosay.thecolor.demo.presentation.feature.cups.CupDialStateFactory
+import io.github.mmolosay.thecolor.demo.presentation.feature.cups.amount
+import io.github.mmolosay.thecolor.demo.presentation.feature.cups.isEmpty
+import io.github.mmolosay.thecolor.demo.presentation.feature.cups.withAmount
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.GramsInputState
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.GramsInputStateFactory
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.amount
@@ -17,11 +22,12 @@ import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.isEmpty
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.withAmount
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.withSubmissionAccepted
 
-// Two inputs that agree on one amount: whichever the user types in, the other stands for the same
-// amount, in the same update
+// Inputs that agree on one amount: whichever the user types in or drags, the others stand for the
+// same amount, in the same update
 data class AmountEditorState(
     val grams: GramsInputState,
     val ounces: OuncesInputState,
+    val cups: CupDialState,
 )
 
 sealed interface AmountEditorOutcome {
@@ -36,18 +42,21 @@ object AmountEditorStateFactory {
     fun create(amount: Amount?): AmountEditorState {
         val grams = context(environment.grams) { GramsInputStateFactory.create(amount = null) }
         val ounces = context(environment.ounces) { OuncesInputStateFactory.create(amount = null) }
-        val empty = AmountEditorState(grams = grams, ounces = ounces)
+        val cups = context(environment.cups) { CupDialStateFactory.create(amount = null) }
+        val empty = AmountEditorState(grams = grams, ounces = ounces, cups = cups)
         return empty.withAmount(amount)
     }
 }
 
 // the fact: the amount the inputs stand for; an input whose text isn't a whole amount yet, such as an
-// empty one, leaves it to the other
+// empty one, leaves it to the others
 context(environment: AmountEditorEnvironment)
 fun AmountEditorState.amount(): Amount? {
     val grams = context(environment.grams) { this.grams.amount() }
     if (grams != null) return grams
-    return context(environment.ounces) { this.ounces.amount() }
+    val ounces = context(environment.ounces) { this.ounces.amount() }
+    if (ounces != null) return ounces
+    return context(environment.cups) { this.cups.amount() }
 }
 
 // The agreement, and the same fact given. Each input is set to the amount, unless it already stands
@@ -66,15 +75,22 @@ fun AmountEditorState.withAmount(amount: Amount?): AmountEditorState {
         if (isSame) return@run this.ounces
         context(environment.ounces) { this.ounces.withAmount(amount) }
     }
-    return this.copy(grams = grams, ounces = ounces)
+    val cups = run {
+        val current = context(environment.cups) { this.cups.amount() }
+        val isSame = context(environment.amountConverter) { amount isSameAs current }
+        if (isSame) return@run this.cups
+        context(environment.cups) { this.cups.withAmount(amount) }
+    }
+    return this.copy(grams = grams, ounces = ounces, cups = cups)
 }
 
-// for the parent: neither input has any text, so nothing the user typed would be lost
+// for the parent: no input holds anything the user entered, so nothing would be lost
 context(environment: AmountEditorEnvironment)
 fun AmountEditorState.isEmpty(): Boolean {
     val grams = context(environment.grams) { this.grams.isEmpty() }
     val ounces = context(environment.ounces) { this.ounces.isEmpty() }
-    return (grams && ounces)
+    val cups = context(environment.cups) { this.cups.isEmpty() }
+    return (grams && ounces && cups)
 }
 
 // for the parent: whether either input waits for an answer

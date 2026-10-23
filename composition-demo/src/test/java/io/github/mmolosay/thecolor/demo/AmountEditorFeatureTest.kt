@@ -4,8 +4,11 @@ import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.demo.domain.Amount
 import io.github.mmolosay.thecolor.demo.domain.AmountConverter
+import io.github.mmolosay.thecolor.demo.domain.CupSampler
 import io.github.mmolosay.thecolor.demo.domain.DemoSettings
 import io.github.mmolosay.thecolor.demo.domain.isSameAs
+import io.github.mmolosay.thecolor.demo.presentation.feature.cups.CupDialEnvironment
+import io.github.mmolosay.thecolor.demo.presentation.feature.cups.CupDialFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorEnvironment
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorOutcome
@@ -19,6 +22,7 @@ import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputE
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.amount
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldFeature
+import io.github.mmolosay.thecolor.demo.presentation.format.LocaleAmountFormatter
 import io.github.mmolosay.thecolor.utils.Lens
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldNotBeEmpty
@@ -42,6 +46,10 @@ class AmountEditorFeatureTest {
         AmountEditorEnvironment(
             grams = GramsInputEnvironment(amountConverter = converter),
             ounces = OuncesInputEnvironment(amountConverter = converter),
+            cups = CupDialEnvironment(
+                amountConverter = converter,
+                amountFormatter = LocaleAmountFormatter(),
+            ),
             amountConverter = converter,
         )
     }
@@ -50,6 +58,9 @@ class AmountEditorFeatureTest {
     val settings: DemoSettings = mockk {
         every { decimalSeparator } returns MutableStateFlow(null)
     }
+
+    // never called: no test drags the dial
+    val cupSampler: CupSampler = mockk()
 
     lateinit var store: Store<AmountEditorState, Nothing>
 
@@ -97,6 +108,7 @@ class AmountEditorFeatureTest {
             environment = environment,
             gramsFactory = gramsFactory,
             ouncesFactory = ouncesFactory,
+            cupsFactory = cupsFactory,
         )
     }
 
@@ -110,6 +122,10 @@ class AmountEditorFeatureTest {
 
     val ouncesFactory = OuncesInputFeature.Factory { lifetime, store, environment ->
         OuncesInputFeature(lifetime, store, environment, textFieldFactory, settings)
+    }
+
+    val cupsFactory = CupDialFeature.Factory { lifetime, store, environment ->
+        CupDialFeature(lifetime, store, environment, cupSampler, Dispatchers.Unconfined)
     }
 
     // the grams' text and the ounces' text, as their Views show them

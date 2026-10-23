@@ -6,10 +6,12 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dagger.hilt.migration.DisableInstallInCheck
+import io.github.mmolosay.thecolor.demo.data.FakeCupSampler
 import io.github.mmolosay.thecolor.demo.data.FakeDemoSettings
 import io.github.mmolosay.thecolor.demo.data.FakeNutritionService
 import io.github.mmolosay.thecolor.demo.data.SharedPreferencesRecipeRepository
 import io.github.mmolosay.thecolor.demo.domain.AmountFormatter
+import io.github.mmolosay.thecolor.demo.domain.CupSampler
 import io.github.mmolosay.thecolor.demo.domain.DemoSettings
 import io.github.mmolosay.thecolor.demo.domain.NutritionFormatter
 import io.github.mmolosay.thecolor.demo.domain.NutritionService
@@ -17,6 +19,7 @@ import io.github.mmolosay.thecolor.demo.domain.RecipeRepository
 import io.github.mmolosay.thecolor.demo.presentation.format.LocaleAmountFormatter
 import io.github.mmolosay.thecolor.demo.presentation.format.LocaleNutritionFormatter
 import io.github.mmolosay.thecolor.main.di.qualifiers.AppCoroutineScope
+import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.IoDispatcher
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -47,11 +50,19 @@ object DiDemoModule {
         @IoDispatcher
         fun provideIoDispatcher(): CoroutineDispatcher =
             Dispatchers.IO
+
+        @Provides
+        @DefaultDispatcher
+        fun provideDefaultDispatcher(): CoroutineDispatcher =
+            Dispatchers.Default
     }
 
     @Module
     @DisableInstallInCheck
     interface BindModule {
+
+        @Binds
+        fun bindCupSampler(impl: FakeCupSampler): CupSampler
 
         @Binds
         fun bindNutritionService(impl: FakeNutritionService): NutritionService
