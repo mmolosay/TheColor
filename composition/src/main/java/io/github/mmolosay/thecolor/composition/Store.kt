@@ -7,6 +7,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
+data class Change<out S, out O>(
+    val state: S,
+    val outcome: O? = null,
+)
+
 // TODO: Transition and Reduce should be defined inside the Store once 'nested type aliases' is
 //  stable
 typealias Transition<S, O> = (S) -> Change<S, O>
@@ -48,13 +53,19 @@ private class SliceStore<PS, PO, S, O>(
 
     override fun update(transition: Transition<S, O>) =
         parent.update { parentState ->
-            val state = lens.get(parentState)
-            val change = transition(state)
-            when {
-                // nothing happened: the parent's reducer isn't run, so it can't commit anything
-                (change.state == state && change.outcome == null) -> Change(parentState)
-                (change.state === state) -> reduce(parentState, change.outcome)
-                else -> reduce(lens.set(parentState, change.state), change.outcome)
+            val currentState = lens.get(parentState)
+            val change = transition(currentState)
+            if (change.state == currentState && change.outcome == null) {
+                // nothing happened; the parent's reducer isn't run, so it can't commit anything
+                return@update Change(parentState)
+            }
+            if (change.state === currentState) {
+                // no state change, only an Outcome; skip 'lens.set()' that would copy for nothing
+                return@update reduce(parentState, change.outcome)
+            }
+            run {
+                val newParentState = lens.set(parentState, change.state)
+                return@update reduce(newParentState, change.outcome)
             }
         }
 
