@@ -1,24 +1,25 @@
 package io.github.mmolosay.thecolor.demo.presentation.feature.textfield
 
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.InputTransformation
+import androidx.compose.foundation.text.input.KeyboardActionHandler
+import androidx.compose.foundation.text.input.OutputTransformation
+import androidx.compose.foundation.text.input.TextFieldBuffer
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.TextFieldState as ComposeTextFieldState
+import androidx.compose.foundation.text.input.placeCursorAtEnd
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.neverEqualPolicy
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.demo.R
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
@@ -35,46 +36,46 @@ fun TextField(
     field: TextFieldFeature,
     label: String,
     keyboardOptions: KeyboardOptions,
-    keyboardActions: KeyboardActions,
+    onKeyboardAction: KeyboardActionHandler?, // null for the key's own action, such as Next moving on
     hasClearButton: Boolean,
     supportingText: String?, // under the field, such as what the field waits for
-    visualTransformation: VisualTransformation, // how the text shows; edits are on the text itself
+    outputTransformation: OutputTransformation?, // how the text shows; edits are on the text itself
     modifier: Modifier = Modifier,
 ) {
     val viewData by field.viewData.collectAsStateWithLifecycle()
-    val text = viewData.text
-    // The text field applies each edit to its internal buffer and has to get the edit back in the
-    // same callback, so the View keeps a copy of what it shows, with the cursor the state doesn't
-    // hold. Every edit recomposes, even one equal to the last: a repeated rejected edit must still
-    // reset the latest value below to what the text field shows.
-    val copy = remember(field) {
-        val value = TextFieldValue(text = text, selection = TextRange(text.length))
-        mutableStateOf(value, neverEqualPolicy())
+    // The text field's internal buffer. The View owns it, so that it can write the state's text into
+    // it at once, before the user's next key
+    val buffer = remember(field) { ComposeTextFieldState(initialText = viewData.text) }
+    // Each edit of the user's goes to the field as it's made, with the text the buffer held before it
+    // as the expected value. The buffer then holds what the field holds: the edit, formatted, or the
+    // text from before, if the edit was dropped
+    val enterText = remember(field) {
+        InputTransformation {
+            val before = originalText.toString()
+            val after = asCharSequence().toString()
+            if (after != before) {
+                field.enterText(text = after, expected = before)
+            }
+            showText(field.viewData.value.text)
+        }
     }
-    // The text field's latest value: the result of its last edit, or what the View passed to it since,
-    // whichever came later. The next edit is built on it, so it's that edit's expected value.
-    val latest = remember(field) { mutableStateOf(copy.value) }
-    val shown = copy.value.withText(text)
-    SideEffect {
-        latest.value = shown
+    // A text set from elsewhere, such as by the parent, reaches the buffer by the next frame. An edit
+    // made on the old text before then is dropped, and the transformation above shows this text
+    LaunchedEffect(buffer, viewData.text) {
+        buffer.edit { showText(field.viewData.value.text) }
     }
     OutlinedTextField(
-        value = shown,
-        onValueChange = { new ->
-            val old = latest.value
-            latest.value = new
-            copy.value = new
-            if (new.text != old.text) {
-                field.enterText(text = new.text, expected = old.text)
-            }
-        },
+        state = buffer,
         modifier = modifier,
         label = { Text(text = label) },
         trailingIcon = if (hasClearButton) {
             {
                 ClearButton(
-                    visible = shown.text.isNotEmpty(),
-                    onClick = { field.clearText() },
+                    visible = buffer.text.isNotEmpty(),
+                    onClick = {
+                        field.clearText()
+                        buffer.edit { showText(field.viewData.value.text) } // before the next key
+                    },
                 )
             }
         } else {
@@ -83,10 +84,11 @@ fun TextField(
         supportingText = supportingText?.let { text ->
             { Text(text = text) }
         },
-        visualTransformation = visualTransformation,
+        inputTransformation = enterText,
+        outputTransformation = outputTransformation,
         keyboardOptions = keyboardOptions,
-        keyboardActions = keyboardActions,
-        singleLine = true,
+        onKeyboardAction = onKeyboardAction,
+        lineLimits = TextFieldLineLimits.SingleLine,
     )
 }
 
@@ -105,12 +107,9 @@ private fun ClearButton(
 }
 
 // the text the state holds, with the cursor kept at the end if it was there
-private fun TextFieldValue.withText(text: String): TextFieldValue {
-    if (this.text == text) return this
-    val wasCursorAtEnd = (this.selection.collapsed && this.selection.end == this.text.length)
-    val selection = when {
-        wasCursorAtEnd -> TextRange(text.length)
-        else -> this.selection // the constructor fits it into the new text
-    }
-    return TextFieldValue(text = text, selection = selection)
+private fun TextFieldBuffer.showText(text: String) {
+    if (this.asCharSequence().contentEquals(text)) return
+    val wasCursorAtEnd = (this.selection.collapsed && this.selection.end == this.length)
+    this.replace(0, this.length, text)
+    if (wasCursorAtEnd) this.placeCursorAtEnd()
 }

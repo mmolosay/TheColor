@@ -1,7 +1,6 @@
 package io.github.mmolosay.thecolor.demo.presentation.feature.grams
 
 import android.widget.Toast
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -11,7 +10,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.demo.R
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.Submission
@@ -30,12 +28,10 @@ fun GramsInput(
             keyboardType = KeyboardType.Number,
             imeAction = ImeAction.Done,
         ),
-        keyboardActions = KeyboardActions(
-            onDone = { input.submit() },
-        ),
+        onKeyboardAction = { input.submit() }, // Done
         hasClearButton = true,
         supportingText = if (viewData.isPending) stringResource(R.string.input_pending) else null,
-        visualTransformation = VisualTransformation.None,
+        outputTransformation = null,
         modifier = modifier,
     )
     val answerToShow = viewData.answerToShow ?: return
