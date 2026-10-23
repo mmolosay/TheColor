@@ -50,7 +50,7 @@ class CupDialFeatureTest {
             val firstSample = CompletableDeferred<Amount.Cups>()
             coEvery { sampler.amountAt(1f) } coAnswers { firstSample.await() }
             coEvery { sampler.amountAt(2f) } returns Amount.Cups(whole = 2, numerator = 0, denominator = 4)
-            createSut(lifetime = backgroundScope)
+            createSut(scope = backgroundScope)
             sut.drag(position = 1f)
             runCurrent() // the sample of 1 cup starts
 
@@ -66,11 +66,11 @@ class CupDialFeatureTest {
             store.value.amount shouldBe Amount.Cups(whole = 2, numerator = 0, denominator = 4)
         }
 
-    fun createSut(lifetime: CoroutineScope) {
+    fun createSut(scope: CoroutineScope) {
         val state = context(environment) { CupDialStateFactory.create(amount = null) }
         store = Store(initialState = state)
         sut = CupDialFeature(
-            lifetime = lifetime,
+            scope = scope,
             store = store,
             environment = environment,
             sampler = sampler,

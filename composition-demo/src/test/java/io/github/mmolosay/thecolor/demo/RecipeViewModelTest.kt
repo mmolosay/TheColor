@@ -180,35 +180,35 @@ class RecipeViewModelTest {
         )
     }
 
-    val textFieldFactory = TextFieldFeature.Factory { lifetime, store, environment ->
-        TextFieldFeature(lifetime, store, environment)
+    val textFieldFactory = TextFieldFeature.Factory { scope, store, environment ->
+        TextFieldFeature(scope, store, environment)
     }
 
-    val gramsFactory = GramsInputFeature.Factory { lifetime, store, environment ->
-        GramsInputFeature(lifetime, store, environment, textFieldFactory)
+    val gramsFactory = GramsInputFeature.Factory { scope, store, environment ->
+        GramsInputFeature(scope, store, environment, textFieldFactory)
     }
 
-    val ouncesFactory = OuncesInputFeature.Factory { lifetime, store, environment ->
-        OuncesInputFeature(lifetime, store, environment, textFieldFactory, settings)
+    val ouncesFactory = OuncesInputFeature.Factory { scope, store, environment ->
+        OuncesInputFeature(scope, store, environment, textFieldFactory, settings)
     }
 
-    val cupsFactory = CupDialFeature.Factory { lifetime, store, environment ->
-        CupDialFeature(lifetime, store, environment, cupSampler, Dispatchers.Unconfined)
+    val cupsFactory = CupDialFeature.Factory { scope, store, environment ->
+        CupDialFeature(scope, store, environment, cupSampler, Dispatchers.Unconfined)
     }
 
-    val editorFactory = AmountEditorFeature.Factory { lifetime, store, environment ->
-        AmountEditorFeature(lifetime, store, environment, gramsFactory, ouncesFactory, cupsFactory)
+    val editorFactory = AmountEditorFeature.Factory { scope, store, environment ->
+        AmountEditorFeature(scope, store, environment, gramsFactory, ouncesFactory, cupsFactory)
     }
 
-    val nutritionFactory = NutritionFeature.Factory { lifetime, store, environment ->
-        NutritionFeature(lifetime, store, environment, nutritionService)
+    val nutritionFactory = NutritionFeature.Factory { scope, store, environment ->
+        NutritionFeature(scope, store, environment, nutritionService)
     }
 
-    val substitutesFactory = SubstitutesFeature.Factory { lifetime, store, environment ->
-        SubstitutesFeature(lifetime, store, environment, nutritionService)
+    val substitutesFactory = SubstitutesFeature.Factory { scope, store, environment ->
+        SubstitutesFeature(scope, store, environment, nutritionService)
     }
 
-    val sheetFactory = SubstituteSheetFeature.Factory { lifetime, store, environment ->
-        SubstituteSheetFeature(lifetime, store, environment, nutritionFactory)
+    val sheetFactory = SubstituteSheetFeature.Factory { scope, store, environment ->
+        SubstituteSheetFeature(scope, store, environment, nutritionFactory)
     }
 }

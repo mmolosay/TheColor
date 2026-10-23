@@ -24,7 +24,7 @@ import kotlinx.coroutines.CoroutineScope
 
 // No view data of its own: its View only lays out the inputs' Views
 class AmountEditorFeature @AssistedInject constructor(
-    @Assisted lifetime: CoroutineScope,
+    @Assisted scope: CoroutineScope,
     @Assisted store: Store<AmountEditorState, AmountEditorOutcome>,
     @Assisted environment: AmountEditorEnvironment,
     gramsFactory: GramsInputFeature.Factory,
@@ -38,7 +38,7 @@ class AmountEditorFeature @AssistedInject constructor(
             context(environment) { onGrams(editor, outcome) }
         }
         gramsFactory.create(
-            lifetime = lifetime.child(),
+            scope = scope.child(),
             store = slice,
             environment = environment.grams,
         )
@@ -49,7 +49,7 @@ class AmountEditorFeature @AssistedInject constructor(
             context(environment) { onOunces(editor, outcome) }
         }
         ouncesFactory.create(
-            lifetime = lifetime.child(),
+            scope = scope.child(),
             store = slice,
             environment = environment.ounces,
         )
@@ -60,7 +60,7 @@ class AmountEditorFeature @AssistedInject constructor(
             context(environment) { onCups(editor) }
         }
         cupsFactory.create(
-            lifetime = lifetime.child(),
+            scope = scope.child(),
             store = slice,
             environment = environment.cups,
         )
@@ -69,7 +69,7 @@ class AmountEditorFeature @AssistedInject constructor(
     @AssistedFactory
     fun interface Factory {
         fun create(
-            lifetime: CoroutineScope,
+            scope: CoroutineScope,
             store: Store<AmountEditorState, AmountEditorOutcome>,
             environment: AmountEditorEnvironment,
         ): AmountEditorFeature

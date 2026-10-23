@@ -66,7 +66,7 @@ class NutritionFeatureTest {
             coEvery { service.nutritionFacts(Ingredient.Flour, Amount.Grams(value = 120)) } coAnswers {
                 awaitCancellation() // doesn't answer within the test
             }
-            createSut(lifetime = backgroundScope)
+            createSut(scope = backgroundScope)
             setAmount(Amount.Grams(value = 12))
             runCurrent() // the work for 12 g starts
 
@@ -86,7 +86,7 @@ class NutritionFeatureTest {
             } coAndThen {
                 awaitCancellation() // doesn't answer within the test
             }
-            createSut(lifetime = backgroundScope)
+            createSut(scope = backgroundScope)
             setAmount(Amount.Grams(value = 13))
             runCurrent() // the first work for 13 g starts
 
@@ -98,7 +98,7 @@ class NutritionFeatureTest {
             sut.viewData.value shouldBe NutritionViewData.Loading(portion = portion("13 g"))
         }
 
-    fun createSut(lifetime: CoroutineScope) {
+    fun createSut(scope: CoroutineScope) {
         val state = context(environment) { NutritionStateFactory.create() }
         store = Store(initialState = state)
         // the parent's part: it hands nothing up
@@ -110,7 +110,7 @@ class NutritionFeatureTest {
             store.slice(lens) { nutrition, _: NutritionOutcome? -> Change(nutrition) }
         }
         sut = NutritionFeature(
-            lifetime = lifetime,
+            scope = scope,
             store = slice,
             environment = environment,
             service = service,

@@ -16,7 +16,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
 
 class SubstituteSheetFeature @AssistedInject constructor(
-    @Assisted lifetime: CoroutineScope,
+    @Assisted scope: CoroutineScope,
     @Assisted private val store: Store<SubstituteSheetState, *>,
     @Assisted private val environment: SubstituteSheetEnvironment,
     nutritionFactory: NutritionFeature.Factory,
@@ -33,7 +33,7 @@ class SubstituteSheetFeature @AssistedInject constructor(
             Change(sheet)
         }
         nutritionFactory.create(
-            lifetime = lifetime.child(),
+            scope = scope.child(),
             store = slice,
             environment = environment.nutrition,
         )
@@ -48,7 +48,7 @@ class SubstituteSheetFeature @AssistedInject constructor(
     @AssistedFactory
     fun interface Factory {
         fun create(
-            lifetime: CoroutineScope,
+            scope: CoroutineScope,
             store: Store<SubstituteSheetState, *>,
             environment: SubstituteSheetEnvironment,
         ): SubstituteSheetFeature
@@ -61,7 +61,7 @@ private val nutritionLens = Lens<SubstituteSheetState, NutritionState>(
 )
 
 // The transitions behind the actions. Only the feature instance calls them. They're outside the
-// class so that they can't reach its lifetime or store: they can run more than once, so they must
+// class so that they can't reach its scope or store: they can run more than once, so they must
 // have no side effects
 
 // applies only to the session the View showed, so that closing an earlier session never closes a

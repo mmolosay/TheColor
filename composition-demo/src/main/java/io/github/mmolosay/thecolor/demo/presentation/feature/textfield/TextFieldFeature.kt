@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
  * [viewData] has it by the next frame.
  */
 class TextFieldFeature @AssistedInject constructor(
-    @Assisted lifetime: CoroutineScope, // no work runs in it, but its parents needn't know that
+    @Assisted scope: CoroutineScope, // no work runs in it, but its parents needn't know that
     @Assisted private val store: Store<TextFieldState, *>,
     @Assisted private val environment: TextFieldEnvironment,
 ) {
@@ -39,21 +39,21 @@ class TextFieldFeature @AssistedInject constructor(
     /**
      * Creates a field in the place its parent chooses, given only what depends on that place.
      *
-     * The lifetime must be derived from the parent's, so that the field ends with its parent. The
-     * environment must be the one the parent calls the field's operations with, so that the parent
-     * and the field's own transitions change the field the same way.
+     * The scope must be a child of the parent's, so that the field's work ends with its parent's.
+     * The environment must be the one the parent calls the field's operations with, so that the
+     * parent and the field's own transitions change the field the same way.
      */
     @AssistedFactory
     fun interface Factory {
         fun create(
-            lifetime: CoroutineScope,
+            scope: CoroutineScope,
             store: Store<TextFieldState, *>,
             environment: TextFieldEnvironment,
         ): TextFieldFeature
     }
 }
 
-// The transitions behind the actions, outside the class so that they can't reach its lifetime or
+// The transitions behind the actions, outside the class so that they can't reach its scope or
 // store: a transition can run more than once, so it must have no side effects
 
 /**

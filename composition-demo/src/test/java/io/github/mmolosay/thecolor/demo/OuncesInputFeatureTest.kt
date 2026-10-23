@@ -61,7 +61,7 @@ class OuncesInputFeatureTest {
         }
         sut = OuncesInputFeature(
             // a setting's value applies at once, inside 'MutableStateFlow.value' assignment
-            lifetime = CoroutineScope(Job() + Dispatchers.Unconfined),
+            scope = CoroutineScope(Job() + Dispatchers.Unconfined),
             store = slice,
             environment = environment,
             textFieldFactory = textFieldFactory,
@@ -69,7 +69,7 @@ class OuncesInputFeatureTest {
         )
     }
 
-    val textFieldFactory = TextFieldFeature.Factory { lifetime, store, environment ->
-        TextFieldFeature(lifetime, store, environment)
+    val textFieldFactory = TextFieldFeature.Factory { scope, store, environment ->
+        TextFieldFeature(scope, store, environment)
     }
 }

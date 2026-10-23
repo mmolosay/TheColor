@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 
 class OuncesInputFeature @AssistedInject constructor(
-    @Assisted lifetime: CoroutineScope,
+    @Assisted scope: CoroutineScope,
     @Assisted private val store: Store<OuncesInputState, OuncesInputOutcome>,
     @Assisted private val environment: OuncesInputEnvironment,
     textFieldFactory: TextFieldFeature.Factory,
@@ -37,15 +37,15 @@ class OuncesInputFeature @AssistedInject constructor(
             context(environment) { onTextField(ounces) }
         }
         textFieldFactory.create(
-            lifetime = lifetime.child(),
+            scope = scope.child(),
             store = slice,
             environment = environment.textField,
         )
     }
 
     init {
-        // for its whole lifetime: the setting has one writer, so each value applies as it arrives
-        lifetime.launch {
+        // while its scope is active: the setting has one writer, so each value applies as it arrives
+        scope.launch {
             settings.decimalSeparator.filterNotNull().collect { separator ->
                 store.update { ounces ->
                     context(environment) { ounces.receiveSeparator(separator) }
@@ -69,7 +69,7 @@ class OuncesInputFeature @AssistedInject constructor(
     @AssistedFactory
     fun interface Factory {
         fun create(
-            lifetime: CoroutineScope,
+            scope: CoroutineScope,
             store: Store<OuncesInputState, OuncesInputOutcome>,
             environment: OuncesInputEnvironment,
         ): OuncesInputFeature
@@ -99,7 +99,7 @@ fun OuncesInputState.receiveSeparator(
 }
 
 // The transitions behind the actions. Only the feature instance calls them. They're outside the
-// class so that they can't reach its lifetime or store: they can run more than once, so they must
+// class so that they can't reach its scope or store: they can run more than once, so they must
 // have no side effects
 
 context(_: OuncesInputEnvironment)

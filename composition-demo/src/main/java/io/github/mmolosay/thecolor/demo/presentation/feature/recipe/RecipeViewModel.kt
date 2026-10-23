@@ -55,7 +55,7 @@ class RecipeViewModel @Inject constructor(
             context(environment) { onEditor(recipe, outcome) }
         }
         editorFactory.create(
-            lifetime = viewModelScope,
+            scope = viewModelScope,
             store = slice,
             environment = environment.editor,
         )
@@ -66,7 +66,7 @@ class RecipeViewModel @Inject constructor(
             context(environment) { onNutrition(recipe, outcome) }
         }
         nutritionFactory.create(
-            lifetime = viewModelScope,
+            scope = viewModelScope,
             store = slice,
             environment = environment.nutrition,
         )
@@ -77,7 +77,7 @@ class RecipeViewModel @Inject constructor(
             context(environment) { onSubstitutes(recipe, outcome) }
         }
         substitutesFactory.create(
-            lifetime = viewModelScope,
+            scope = viewModelScope,
             store = slice,
             environment = environment.substitutes,
         )
@@ -87,7 +87,7 @@ class RecipeViewModel @Inject constructor(
         // nothing to decide: the sheet has no outcomes, and the screen opens it in onSubstitutes
         val slice = store.slice(sheetLens) { recipe, _: Nothing? -> Change(recipe) }
         sheetFactory.create(
-            lifetime = viewModelScope,
+            scope = viewModelScope,
             store = slice,
             environment = environment.sheet,
         )
@@ -98,7 +98,7 @@ class RecipeViewModel @Inject constructor(
     val servings: TextFieldFeature = run {
         val state = context(environment.servings) { TextFieldStateFactory.create(text = "1") }
         textFieldFactory.create(
-            lifetime = viewModelScope,
+            scope = viewModelScope,
             store = Store(initialState = state),
             environment = environment.servings,
         )
@@ -206,7 +206,7 @@ fun onSubstitutes(
     }
 
 // The transitions behind the actions and the results. Only the screen's ViewModel calls them.
-// They're outside the class so that they can't reach its lifetime or store: they can run more than
+// They're outside the class so that they can't reach its scope or store: they can run more than
 // once, so they must have no side effects
 
 // the amount and the sort change as one: the editor never holds the preset's amount while the

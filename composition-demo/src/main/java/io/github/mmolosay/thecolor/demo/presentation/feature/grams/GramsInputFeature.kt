@@ -16,7 +16,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
 
 class GramsInputFeature @AssistedInject constructor(
-    @Assisted lifetime: CoroutineScope,
+    @Assisted scope: CoroutineScope,
     @Assisted private val store: Store<GramsInputState, GramsInputOutcome>,
     @Assisted private val environment: GramsInputEnvironment,
     textFieldFactory: TextFieldFeature.Factory,
@@ -32,7 +32,7 @@ class GramsInputFeature @AssistedInject constructor(
             context(environment) { onTextField(grams) }
         }
         textFieldFactory.create(
-            lifetime = lifetime.child(),
+            scope = scope.child(),
             store = slice,
             environment = environment.textField,
         )
@@ -53,7 +53,7 @@ class GramsInputFeature @AssistedInject constructor(
     @AssistedFactory
     fun interface Factory {
         fun create(
-            lifetime: CoroutineScope,
+            scope: CoroutineScope,
             store: Store<GramsInputState, GramsInputOutcome>,
             environment: GramsInputEnvironment,
         ): GramsInputFeature
@@ -73,7 +73,7 @@ fun onTextField(grams: GramsInputState): Change<GramsInputState, GramsInputOutco
 }
 
 // The transitions behind the actions. Only the feature instance calls them. They're outside the
-// class so that they can't reach its lifetime or store: they can run more than once, so they must
+// class so that they can't reach its scope or store: they can run more than once, so they must
 // have no side effects
 
 context(_: GramsInputEnvironment)

@@ -58,7 +58,7 @@ class SubstituteSheetFeatureTest {
         val state = context(environment) { SubstituteSheetStateFactory.create() }
         store = Store(initialState = state)
         sut = SubstituteSheetFeature(
-            lifetime = CoroutineScope(Job() + Dispatchers.Unconfined),
+            scope = CoroutineScope(Job() + Dispatchers.Unconfined),
             store = store,
             environment = environment,
             nutritionFactory = nutritionFactory,
@@ -72,8 +72,8 @@ class SubstituteSheetFeatureTest {
         }
     }
 
-    val nutritionFactory = NutritionFeature.Factory { lifetime, store, environment ->
-        NutritionFeature(lifetime, store, environment, nutritionService)
+    val nutritionFactory = NutritionFeature.Factory { scope, store, environment ->
+        NutritionFeature(scope, store, environment, nutritionService)
     }
 
     val substitute = NutritionFacts(

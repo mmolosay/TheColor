@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
 
 class CupDialFeature @AssistedInject constructor(
-    @Assisted lifetime: CoroutineScope,
+    @Assisted scope: CoroutineScope,
     @Assisted private val store: Store<CupDialState, *>,
     @Assisted private val environment: CupDialEnvironment,
     // from dependency injection: only the work uses them
@@ -29,7 +29,7 @@ class CupDialFeature @AssistedInject constructor(
 
     init {
         // starts what the state awaits, and stops what it no longer awaits
-        lifetime.launchAwaited(
+        scope.launchAwaited(
             store = store,
             awaited = { dial -> context(environment) { dial.awaited() } },
             block = { request ->
@@ -54,7 +54,7 @@ class CupDialFeature @AssistedInject constructor(
     @AssistedFactory
     fun interface Factory {
         fun create(
-            lifetime: CoroutineScope,
+            scope: CoroutineScope,
             store: Store<CupDialState, *>,
             environment: CupDialEnvironment,
         ): CupDialFeature
@@ -62,7 +62,7 @@ class CupDialFeature @AssistedInject constructor(
 }
 
 // The transitions behind the actions and the results. Only the feature instance calls them. They're
-// outside the class so that they can't reach its lifetime or store: they can run more than once, so
+// outside the class so that they can't reach its scope or store: they can run more than once, so
 // they must have no side effects
 
 // the dial follows the finger at once; a sample starts unless one is being worked out already

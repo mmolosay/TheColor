@@ -14,7 +14,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
 
 class SubstitutesFeature @AssistedInject constructor(
-    @Assisted lifetime: CoroutineScope,
+    @Assisted scope: CoroutineScope,
     @Assisted private val store: Store<SubstitutesState, SubstitutesOutcome>,
     @Assisted private val environment: SubstitutesEnvironment,
     private val service: NutritionService, // from dependency injection: only the work uses it
@@ -25,7 +25,7 @@ class SubstitutesFeature @AssistedInject constructor(
 
     init {
         // starts what the state awaits, and stops what it no longer awaits
-        lifetime.launchAwaited(
+        scope.launchAwaited(
             store = store,
             awaited = { substitutes -> context(environment) { substitutes.awaited() } },
             block = { request ->
@@ -59,7 +59,7 @@ class SubstitutesFeature @AssistedInject constructor(
     @AssistedFactory
     fun interface Factory {
         fun create(
-            lifetime: CoroutineScope,
+            scope: CoroutineScope,
             store: Store<SubstitutesState, SubstitutesOutcome>,
             environment: SubstitutesEnvironment,
         ): SubstitutesFeature
@@ -67,7 +67,7 @@ class SubstitutesFeature @AssistedInject constructor(
 }
 
 // The transitions behind the actions and the results. Only the feature instance calls them. They're
-// outside the class so that they can't reach its lifetime or store: they can run more than once, so
+// outside the class so that they can't reach its scope or store: they can run more than once, so
 // they must have no side effects
 
 // applies only to the request the state still awaits

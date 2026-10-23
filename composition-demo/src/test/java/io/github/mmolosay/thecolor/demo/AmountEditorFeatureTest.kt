@@ -111,7 +111,7 @@ class AmountEditorFeatureTest {
             store.slice(lens) { editor, _: AmountEditorOutcome? -> Change(editor) }
         }
         sut = AmountEditorFeature(
-            lifetime = CoroutineScope(Job()),
+            scope = CoroutineScope(Job()),
             store = slice,
             environment = environment,
             gramsFactory = gramsFactory,
@@ -120,20 +120,20 @@ class AmountEditorFeatureTest {
         )
     }
 
-    val textFieldFactory = TextFieldFeature.Factory { lifetime, store, environment ->
-        TextFieldFeature(lifetime, store, environment)
+    val textFieldFactory = TextFieldFeature.Factory { scope, store, environment ->
+        TextFieldFeature(scope, store, environment)
     }
 
-    val gramsFactory = GramsInputFeature.Factory { lifetime, store, environment ->
-        GramsInputFeature(lifetime, store, environment, textFieldFactory)
+    val gramsFactory = GramsInputFeature.Factory { scope, store, environment ->
+        GramsInputFeature(scope, store, environment, textFieldFactory)
     }
 
-    val ouncesFactory = OuncesInputFeature.Factory { lifetime, store, environment ->
-        OuncesInputFeature(lifetime, store, environment, textFieldFactory, settings)
+    val ouncesFactory = OuncesInputFeature.Factory { scope, store, environment ->
+        OuncesInputFeature(scope, store, environment, textFieldFactory, settings)
     }
 
-    val cupsFactory = CupDialFeature.Factory { lifetime, store, environment ->
-        CupDialFeature(lifetime, store, environment, cupSampler, Dispatchers.Unconfined)
+    val cupsFactory = CupDialFeature.Factory { scope, store, environment ->
+        CupDialFeature(scope, store, environment, cupSampler, Dispatchers.Unconfined)
     }
 
     // the grams' text and the ounces' text, as their Views show them
