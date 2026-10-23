@@ -14,6 +14,7 @@ import io.github.mmolosay.thecolor.demo.domain.RecipeRepository
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorOutcome
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorState
+import io.github.mmolosay.thecolor.demo.presentation.feature.editor.isEmpty
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.withAmount
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.withSubmissionAccepted
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionFeature
@@ -73,7 +74,7 @@ class RecipeViewModel @Inject constructor(
         )
         viewModelScope.launchAwaited(
             store = store,
-            awaited = { recipe -> recipe.save },
+            awaited = { recipe -> context(environment) { recipe.awaitedSave() } },
             block = { request ->
                 repository.saveLastAmount(request.amount)
                 store.update { recipe ->
@@ -100,16 +101,15 @@ private val nutritionLens = Lens<RecipeState, NutritionState>(
     set = { recipe, nutrition -> recipe.copy(nutrition = nutrition) },
 )
 
-// The reducer for the editor. Only the screen's ViewModel runs it, inside the editor's update. The
-// nutrition card follows the amount the edit leaves. Whatever the user does in the editor ends the
-// wait for the saved amount, so that it never replaces what the user entered. A submitted amount is
-// saved, and its submission waits until it is
+// The reducer for the editor. Only the screen's ViewModel runs it, inside the editor's update, for
+// any change of the editor's own, the user's or not. The nutrition card follows the amount the change
+// leaves. A submitted amount is saved, and its submission waits until it is
 context(_: RecipeEnvironment)
 fun onEditor(
     recipe: RecipeState,
     outcome: AmountEditorOutcome?,
 ): Change<RecipeState, Nothing> {
-    val state = recipe.copy(load = null).withNutritionForAmount()
+    val state = recipe.withNutritionForAmount()
     return when (outcome) {
         null -> Change(state)
         is AmountEditorOutcome.Submitted -> {
@@ -123,24 +123,27 @@ fun onEditor(
 // They're outside the class so that they can't reach its lifetime or store: they can run more than
 // once, so they must have no side effects
 
-// applies only while the screen still waits for it
+// The saved amount fills only the empty editor the screen opened with, so that it never replaces
+// what the user typed meanwhile. The editor is the expected value: what the editor holds tells, not
+// which changes it went through, since some of them aren't the user's, such as a setting arriving
 context(environment: RecipeEnvironment)
 fun RecipeState.receiveLoad(
     request: LoadRequest,
     amount: Amount?,
 ): Change<RecipeState, Nothing> {
-    if (this.load !== request) return Change(this) // the user has acted meanwhile
+    if (this.load !== request) return Change(this) // already received
+    val isEmpty = context(environment.editor) { this.editor.isEmpty() }
+    if (!isEmpty) return Change(this.copy(load = null)) // the user has typed meanwhile
     val editor = context(environment.editor) { this.editor.withAmount(amount) }
     val state = this.copy(editor = editor, load = null).withNutritionForAmount()
     return Change(state)
 }
 
-// Applies only to the newest save. Accepts the submission it was made for, if it still waits, and
-// asks for the message, in one change. An edit made meanwhile has withdrawn the submission, and
-// stays as it is
+// Applies only to the save the screen still waits for. Accepts the submission it was made for, and
+// asks for the message, in one change, so that neither happens without the other
 context(environment: RecipeEnvironment)
 fun RecipeState.receiveSave(request: SaveRequest): Change<RecipeState, Nothing> {
-    if (this.save !== request) return Change(this) // a newer submission is being saved
+    if (this.awaitedSave() !== request) return Change(this) // withdrawn, or a newer one is saved
     val editor = context(environment.editor) { this.editor.withSubmissionAccepted() }
     val message = SavedMessage(token = Token(), amount = request.amount)
     val state = this.copy(editor = editor, save = null, messages = this.messages + message)

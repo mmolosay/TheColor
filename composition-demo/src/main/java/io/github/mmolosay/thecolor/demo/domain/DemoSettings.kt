@@ -4,5 +4,5 @@ import kotlinx.coroutines.flow.StateFlow
 
 interface DemoSettings {
     val preferredUnit: StateFlow<AmountUnit?> // null until it's read
-    val ouncesDecimalPlaces: StateFlow<Int?> // null until it's read
+    val decimalSeparator: StateFlow<DecimalSeparator?> // null until it's read; can change any time
 }

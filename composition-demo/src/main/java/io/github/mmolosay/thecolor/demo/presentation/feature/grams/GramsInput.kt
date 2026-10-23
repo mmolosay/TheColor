@@ -11,6 +11,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.VisualTransformation
 import io.github.mmolosay.thecolor.demo.R
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.Submission
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextField
@@ -34,6 +35,7 @@ fun GramsInput(
         ),
         hasClearButton = true,
         supportingText = if (viewData.isPending) stringResource(R.string.input_pending) else null,
+        visualTransformation = VisualTransformation.None,
         modifier = modifier,
     )
     val answerToShow = viewData.answerToShow ?: return

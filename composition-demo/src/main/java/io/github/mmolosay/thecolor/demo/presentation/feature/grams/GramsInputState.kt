@@ -39,6 +39,13 @@ fun GramsInputState.amount(): Amount? {
     return Amount.Grams(value = value)
 }
 
+// no text at all, not even text that isn't an amount yet
+context(environment: GramsInputEnvironment)
+fun GramsInputState.isEmpty(): Boolean {
+    val text = context(environment.textField) { this.textField.text() }
+    return text.isEmpty()
+}
+
 // the same fact, given
 context(environment: GramsInputEnvironment)
 fun GramsInputState.withAmount(amount: Amount?): GramsInputState {
@@ -60,6 +67,10 @@ fun GramsInputState.withTextChanged(): GramsInputState =
     this.copy(submission = this.submission.withdrawn())
 
 context(_: GramsInputEnvironment)
+fun GramsInputState.hasPendingSubmission(): Boolean =
+    this.submission.isPending()
+
+context(_: GramsInputEnvironment)
 fun GramsInputState.withSubmissionAccepted(): GramsInputState {
     val submission = this.submission.answered(Submission.Answer.Accepted)
     return this.copy(submission = submission)
@@ -74,6 +85,6 @@ fun GramsInputState.withSubmissionRejected(): GramsInputState {
 context(_: GramsInputEnvironment)
 fun GramsInputState.toViewData(): GramsInputViewData =
     GramsInputViewData(
-        isPending = this.submission.isPending(),
+        isPending = this.hasPendingSubmission(),
         answerToShow = this.submission.answerToShow(),
     )

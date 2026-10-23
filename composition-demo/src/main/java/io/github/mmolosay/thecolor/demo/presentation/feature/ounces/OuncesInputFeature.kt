@@ -9,18 +9,23 @@ import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.composition.Token
 import io.github.mmolosay.thecolor.composition.ViewDataSource
 import io.github.mmolosay.thecolor.composition.viewData
+import io.github.mmolosay.thecolor.demo.domain.DecimalSeparator
+import io.github.mmolosay.thecolor.demo.domain.DemoSettings
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.newSubmission
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.shown
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldState
 import io.github.mmolosay.thecolor.utils.Lens
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.launch
 
 class OuncesInputFeature @AssistedInject constructor(
     @Assisted lifetime: CoroutineScope,
     @Assisted private val store: Store<OuncesInputState, OuncesInputOutcome>,
     @Assisted private val environment: OuncesInputEnvironment,
     textFieldFactory: TextFieldFeature.Factory,
+    settings: DemoSettings, // from dependency injection: only the subscription uses it
 ) {
 
     val viewData: ViewDataSource<OuncesInputViewData> =
@@ -37,6 +42,17 @@ class OuncesInputFeature @AssistedInject constructor(
             store = slice,
             environment = environment.textField,
         )
+    }
+
+    init {
+        // for its whole lifetime: the setting has one writer, so each value applies as it arrives
+        lifetime.launch {
+            settings.decimalSeparator.filterNotNull().collect { separator ->
+                store.update { ounces ->
+                    context(environment) { ounces.receiveSeparator(separator) }
+                }
+            }
+        }
     }
 
     fun submit() {
@@ -70,6 +86,16 @@ private val textFieldLens = Lens<OuncesInputState, TextFieldState>(
 context(_: OuncesInputEnvironment)
 fun onTextField(ounces: OuncesInputState): Change<OuncesInputState, OuncesInputOutcome> {
     val state = ounces.withTextChanged()
+    return Change(state)
+}
+
+// The transition behind the setting's value. The text holds a point either way, so a keystroke
+// made on the text shown with the old separator still applies
+context(_: OuncesInputEnvironment)
+fun OuncesInputState.receiveSeparator(
+    separator: DecimalSeparator,
+): Change<OuncesInputState, OuncesInputOutcome> {
+    val state = this.copy(separator = separator)
     return Change(state)
 }
 

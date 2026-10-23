@@ -9,8 +9,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
 import io.github.mmolosay.thecolor.demo.R
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.Submission
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextField
@@ -34,6 +38,7 @@ fun OuncesInput(
         ),
         hasClearButton = true,
         supportingText = if (viewData.isPending) stringResource(R.string.input_pending) else null,
+        visualTransformation = SeparatorTransformation(separator = viewData.decimalSeparator),
         modifier = modifier,
     )
     val answerToShow = viewData.answerToShow ?: return
@@ -44,5 +49,17 @@ fun OuncesInput(
             Toast.makeText(context, rejection, Toast.LENGTH_SHORT).show()
         }
         input.answerShown(answerToShow.token)
+    }
+}
+
+// Shows the point the text holds as the separator the setting asks for. Both are one character, so
+// every offset maps to itself
+private data class SeparatorTransformation(
+    val separator: Char,
+) : VisualTransformation {
+
+    override fun filter(text: AnnotatedString): TransformedText {
+        val shown = text.text.replace('.', this.separator)
+        return TransformedText(AnnotatedString(shown), OffsetMapping.Identity)
     }
 }

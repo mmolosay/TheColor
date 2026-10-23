@@ -18,10 +18,11 @@ internal const val OuncesDecimalPlaces = 2
 
 private const val MaxWholeDigits = 3
 
-// keeps only the text it allows: digits and one point, up to three digits before it, and no leading
-// zeros except a single one before the point
+// Keeps only the text it allows: digits and one point, up to three digits before it, and no leading
+// zeros except a single one before the point. A comma becomes the point, so the text holds a point
+// whichever separator the setting shows
 private val ouncesTextFormatter = TextFormatter { text ->
-    val kept = text.filter { it.isDigit() || it == '.' }
+    val kept = text.replace(',', '.').filter { it.isDigit() || it == '.' }
     val point = kept.indexOf('.')
     val whole = run {
         val digits = if (point < 0) kept else kept.substring(0, point)

@@ -6,6 +6,7 @@ import io.github.mmolosay.thecolor.demo.domain.Ingredient
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorState
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorStateFactory
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.amount
+import io.github.mmolosay.thecolor.demo.presentation.feature.editor.hasPendingSubmission
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionState
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionStateFactory
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.forAmountOf
@@ -14,8 +15,8 @@ import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.forAmount
 data class RecipeState(
     val editor: AmountEditorState,
     val nutrition: NutritionState,
-    val load: LoadRequest?, // the saved amount, to fill the editor with; none once the user acts
-    val save: SaveRequest?, // a submitted amount being saved
+    val load: LoadRequest?, // the saved amount, to fill the editor with; none once it arrives
+    val save: SaveRequest?, // the last whole amount submitted, to save; see awaitedSave
     val messages: List<SavedMessage>, // in the order the View shows them
 )
 
@@ -60,6 +61,15 @@ fun RecipeState.withNutritionForAmount(): RecipeState {
         this.nutrition.forAmountOf(Ingredient.Flour, amount)
     }
     return this.copy(nutrition = nutrition)
+}
+
+// The save the screen waits for, derived from the state: only while its submission waits for an
+// answer. An edit that withdraws the submission leaves the save nothing to answer, so the wait ends,
+// and the work stops if it hasn't saved yet
+context(environment: RecipeEnvironment)
+fun RecipeState.awaitedSave(): SaveRequest? {
+    val isPending = context(environment.editor) { this.editor.hasPendingSubmission() }
+    return if (isPending) this.save else null
 }
 
 context(environment: RecipeEnvironment)

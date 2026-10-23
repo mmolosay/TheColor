@@ -18,6 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.VisualTransformation
 import io.github.mmolosay.thecolor.demo.R
 import io.github.mmolosay.thecolor.presentation.common.composition.collectAsViewData
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
@@ -37,6 +38,7 @@ fun TextField(
     keyboardActions: KeyboardActions,
     hasClearButton: Boolean,
     supportingText: String?, // under the field, such as what the field waits for
+    visualTransformation: VisualTransformation, // how the text shows; edits are on the text itself
     modifier: Modifier = Modifier,
 ) {
     val viewData by field.viewData.collectAsViewData()
@@ -81,6 +83,7 @@ fun TextField(
         supportingText = supportingText?.let { text ->
             { Text(text = text) }
         },
+        visualTransformation = visualTransformation,
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
         singleLine = true,

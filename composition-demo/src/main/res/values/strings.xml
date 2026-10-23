@@ -2,6 +2,8 @@
 
     <string name="app_name">Composition Demo</string>
 
+    <string name="settings_decimal_comma">App settings: decimal comma</string>
+
     <string name="text_field_clear">Clear</string>
 
     <string name="input_pending">Submitting…</string>

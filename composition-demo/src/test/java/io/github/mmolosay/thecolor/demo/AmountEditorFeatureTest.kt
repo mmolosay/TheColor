@@ -4,6 +4,7 @@ import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.demo.domain.Amount
 import io.github.mmolosay.thecolor.demo.domain.AmountConverter
+import io.github.mmolosay.thecolor.demo.domain.DemoSettings
 import io.github.mmolosay.thecolor.demo.domain.isSameAs
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorEnvironment
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorFeature
@@ -22,9 +23,12 @@ import io.github.mmolosay.thecolor.utils.Lens
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.shouldBe
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.jupiter.api.Test
 
 /**
@@ -40,6 +44,11 @@ class AmountEditorFeatureTest {
             ounces = OuncesInputEnvironment(amountConverter = converter),
             amountConverter = converter,
         )
+    }
+
+    // never read, so the ounces keep their default separator
+    val settings: DemoSettings = mockk {
+        every { decimalSeparator } returns MutableStateFlow(null)
     }
 
     lateinit var store: Store<AmountEditorState, Nothing>
@@ -100,7 +109,7 @@ class AmountEditorFeatureTest {
     }
 
     val ouncesFactory = OuncesInputFeature.Factory { lifetime, store, environment ->
-        OuncesInputFeature(lifetime, store, environment, textFieldFactory)
+        OuncesInputFeature(lifetime, store, environment, textFieldFactory, settings)
     }
 
     // the grams' text and the ounces' text, as their Views show them

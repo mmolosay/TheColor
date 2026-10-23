@@ -5,11 +5,15 @@ import io.github.mmolosay.thecolor.demo.domain.isSameAs
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.GramsInputState
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.GramsInputStateFactory
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.amount
+import io.github.mmolosay.thecolor.demo.presentation.feature.grams.hasPendingSubmission
+import io.github.mmolosay.thecolor.demo.presentation.feature.grams.isEmpty
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.withAmount
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.withSubmissionAccepted
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputState
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputStateFactory
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.amount
+import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.hasPendingSubmission
+import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.isEmpty
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.withAmount
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.withSubmissionAccepted
 
@@ -63,6 +67,22 @@ fun AmountEditorState.withAmount(amount: Amount?): AmountEditorState {
         context(environment.ounces) { this.ounces.withAmount(amount) }
     }
     return this.copy(grams = grams, ounces = ounces)
+}
+
+// for the parent: neither input has any text, so nothing the user typed would be lost
+context(environment: AmountEditorEnvironment)
+fun AmountEditorState.isEmpty(): Boolean {
+    val grams = context(environment.grams) { this.grams.isEmpty() }
+    val ounces = context(environment.ounces) { this.ounces.isEmpty() }
+    return (grams && ounces)
+}
+
+// for the parent: whether either input waits for an answer
+context(environment: AmountEditorEnvironment)
+fun AmountEditorState.hasPendingSubmission(): Boolean {
+    val grams = context(environment.grams) { this.grams.hasPendingSubmission() }
+    val ounces = context(environment.ounces) { this.ounces.hasPendingSubmission() }
+    return (grams || ounces)
 }
 
 // for the parent: answers whichever input waits for an answer
