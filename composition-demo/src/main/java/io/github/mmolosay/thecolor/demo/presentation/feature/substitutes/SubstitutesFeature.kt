@@ -76,7 +76,7 @@ fun SubstitutesState.receive(
     request: SubstitutesRequest,
     result: Result<List<NutritionFacts>>,
 ): Change<SubstitutesState, SubstitutesOutcome> {
-    if (this.awaited() !== request) return Change(this) // late, or already received
+    if (this.awaited() != request) return Change(this) // late, or already received
     val state = this.copy(result = result)
     return Change(state)
 }

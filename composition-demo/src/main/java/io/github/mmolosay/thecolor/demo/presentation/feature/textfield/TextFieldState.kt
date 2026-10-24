@@ -14,6 +14,7 @@ package io.github.mmolosay.thecolor.demo.presentation.feature.textfield
  */
 data class TextFieldState(
     val text: String,
+    val version: Int,
 )
 
 /**
@@ -26,7 +27,7 @@ object TextFieldStateFactory {
 
     context(_: TextFieldEnvironment)
     fun create(text: String): TextFieldState {
-        val empty = TextFieldState(text = "")
+        val empty = TextFieldState(text = "", version = 0)
         return empty.withText(text)
     }
 }
@@ -38,9 +39,19 @@ context(_: TextFieldEnvironment)
 fun TextFieldState.text(): String =
     this.text
 
+// The only way the text changes, so that its version moves with every change, whoever makes it.
+// Text that changes nothing leaves the state as it is, so that what was made on the text still holds
 context(environment: TextFieldEnvironment)
-fun TextFieldState.withText(text: String): TextFieldState =
-    this.copy(text = environment.formatter.format(text))
+fun TextFieldState.withText(text: String): TextFieldState {
+    val formatted = environment.formatter.format(text)
+    if (formatted == this.text) return this
+    return this.copy(text = formatted, version = this.version + 1)
+}
+
+// for the parent
+context(_: TextFieldEnvironment)
+fun TextFieldState.version(): Int =
+    this.version
 
 context(_: TextFieldEnvironment)
 fun TextFieldState.toViewData(): TextFieldViewData =

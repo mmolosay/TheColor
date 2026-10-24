@@ -4,11 +4,12 @@ import io.github.mmolosay.thecolor.demo.domain.Amount
 import io.github.mmolosay.thecolor.demo.domain.NutritionFacts
 import io.github.mmolosay.thecolor.demo.domain.Sort
 import io.github.mmolosay.thecolor.demo.domain.isSameAs
+import io.github.mmolosay.thecolor.utils.Identity
 
-// compared by reference: a new request is new work, even for the same amount and sort
-class SubstitutesRequest(
+data class SubstitutesRequest(
     val amount: Amount,
     val sort: Sort,
+    val identity: Identity = Identity(),
 )
 
 // The best substitutes for flour for an amount, as they load. The sort belongs to the request:

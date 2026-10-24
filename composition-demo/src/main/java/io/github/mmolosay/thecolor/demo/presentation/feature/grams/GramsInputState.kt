@@ -5,10 +5,10 @@ import io.github.mmolosay.thecolor.demo.presentation.feature.input.Submission
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.answerToShow
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.answered
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.isPending
-import io.github.mmolosay.thecolor.demo.presentation.feature.input.withdrawn
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldState
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldStateFactory
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.text
+import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.version
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.withText
 
 data class GramsInputState(
@@ -56,29 +56,27 @@ fun GramsInputState.withAmount(amount: Amount?): GramsInputState {
     }
     val textField = context(environment.textField) { this.textField.withText(text) }
     if (textField == this.textField) return this
-    return this.copy(textField = textField).withTextChanged()
+    return this.copy(textField = textField)
 }
 
-// A submission is for the text it was made on, so once the text changes, a submission still
-// waiting for an answer is withdrawn. Every path that changes the text calls it: the parent's
-// withAmount, and the reducer for the field's own edits
-context(_: GramsInputEnvironment)
-fun GramsInputState.withTextChanged(): GramsInputState =
-    this.copy(submission = this.submission.withdrawn())
+// for the parent
+context(environment: GramsInputEnvironment)
+fun GramsInputState.version(): Int =
+    context(environment.textField) { this.textField.version() }
 
 context(_: GramsInputEnvironment)
 fun GramsInputState.hasPendingSubmission(): Boolean =
-    this.submission.isPending()
+    this.submission.isPending(this.version())
 
 context(_: GramsInputEnvironment)
 fun GramsInputState.withSubmissionAccepted(): GramsInputState {
-    val submission = this.submission.answered(Submission.Answer.Accepted)
+    val submission = this.submission.answered(Submission.Answer.Accepted, this.version())
     return this.copy(submission = submission)
 }
 
 context(_: GramsInputEnvironment)
 fun GramsInputState.withSubmissionRejected(): GramsInputState {
-    val submission = this.submission.answered(Submission.Answer.Rejected)
+    val submission = this.submission.answered(Submission.Answer.Rejected, this.version())
     return this.copy(submission = submission)
 }
 

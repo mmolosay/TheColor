@@ -20,7 +20,7 @@ object CompositionUtils {
         this.launch {
             store
                 .map { state -> awaited(state) }
-                .distinctUntilChanged { old, new -> old === new }
+                .distinctUntilChanged()
                 .collectLatest {
                     if (it != null) block(it)
                 }

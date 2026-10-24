@@ -1,18 +1,24 @@
 package io.github.mmolosay.thecolor.demo.presentation.feature.cups
 
 import io.github.mmolosay.thecolor.demo.domain.Amount
+import io.github.mmolosay.thecolor.utils.Identity
 
-// Compared by reference: a sample of the position the dial was at when it started. It stays the same
-// through a drag, so that moving on doesn't restart it, and a sample always lands
-class CupSampleRequest(
+// A sample of the position the dial was at when it started. It stays the same through a drag, so
+// that moving on doesn't restart it, and a sample always lands, unless the amount is set from
+// elsewhere meanwhile
+data class CupSampleRequest(
     val position: Float,
+    val amountVersion: Int, // the amount's, when the sample started
+    val identity: Identity = Identity(),
 )
 
 // A dial the user drags over cups. Slow work works out the amount at the position it's dragged to
 data class CupDialState(
     val position: Float, // in cups: where the user dragged it, or where the amount set from elsewhere is
+    val positionVersion: Int,
     val amount: Amount?, // the last sample, or the amount set from elsewhere; none for no amount
-    val request: CupSampleRequest?, // the sample being worked out; none at rest
+    val amountVersion: Int,
+    val request: CupSampleRequest?, // the last sample started; see awaited
 )
 
 object CupDialStateFactory {
@@ -20,7 +26,13 @@ object CupDialStateFactory {
     // from the parent's choice of amount
     context(environment: CupDialEnvironment)
     fun create(amount: Amount?): CupDialState {
-        val empty = CupDialState(position = 0f, amount = null, request = null)
+        val empty = CupDialState(
+            position = 0f,
+            positionVersion = 0,
+            amount = null,
+            amountVersion = 0,
+            request = null,
+        )
         return empty.withAmount(amount)
     }
 }
@@ -30,8 +42,8 @@ context(_: CupDialEnvironment)
 fun CupDialState.amount(): Amount? =
     this.amount
 
-// The same fact, given. It ends the wait for a sample, which is of a position from before, so that
-// its late result never undoes the amount
+// The same fact, given. A sample being worked out is of a position from before: it finds the
+// amount's version moved on, so its late result never undoes the amount
 context(environment: CupDialEnvironment)
 fun CupDialState.withAmount(amount: Amount?): CupDialState {
     val position = run {
@@ -41,17 +53,36 @@ fun CupDialState.withAmount(amount: Amount?): CupDialState {
         val exact = cups.whole + cups.numerator / 100f
         exact.coerceAtMost(MaxCups)
     }
-    return CupDialState(position = position, amount = amount, request = null)
+    return this.withPosition(position).withAmountOnly(amount)
 }
 
-// the work the state awaits, derived from it
-context(_: CupDialEnvironment)
-fun CupDialState.awaited(): CupSampleRequest? =
-    this.request
+// The only ways the position and the amount change, so that each version moves with every change,
+// whoever makes it. A value that changes nothing leaves the state as it is
 
 context(_: CupDialEnvironment)
-fun CupDialState.isEmpty(): Boolean =
-    (this.amount == null && this.request == null)
+fun CupDialState.withPosition(position: Float): CupDialState {
+    if (position == this.position) return this
+    return this.copy(position = position, positionVersion = this.positionVersion + 1)
+}
+
+context(_: CupDialEnvironment)
+fun CupDialState.withAmountOnly(amount: Amount?): CupDialState {
+    if (amount == this.amount) return this
+    return this.copy(amount = amount, amountVersion = this.amountVersion + 1)
+}
+
+// for the parent
+context(_: CupDialEnvironment)
+fun CupDialState.version(): Int =
+    this.positionVersion + this.amountVersion
+
+// The work the state awaits, derived from it: the last sample, while nothing has set the amount
+// since it started. A drag moves only the position, so a sample lands while the drag goes on
+context(_: CupDialEnvironment)
+fun CupDialState.awaited(): CupSampleRequest? {
+    val request = this.request ?: return null
+    return if (request.amountVersion == this.amountVersion) request else null
+}
 
 context(environment: CupDialEnvironment)
 fun CupDialState.toViewData(): CupDialViewData {

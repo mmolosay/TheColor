@@ -1,6 +1,7 @@
 package io.github.mmolosay.thecolor.composition
 
 import io.github.mmolosay.thecolor.composition.CompositionUtils.launchAwaited
+import io.github.mmolosay.thecolor.utils.Identity
 import io.kotest.matchers.collections.shouldContainExactly
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
@@ -84,7 +85,7 @@ class CoroutineScopeExtLaunchAwaitedTest {
         }
 
     @Test
-    fun `given the work is running for a data class, when a transition replaces it with an equal copy and changes something else, then the work is restarted`() =
+    fun `given the work is running for a data class, when a transition replaces it with an equal copy and changes something else, then the work is NOT restarted, since an equal copy is the same work`() =
         runTest(testDispatcher) {
             store.update {
                 Change(it.copy(batch = Batch(bread = "rye")))
@@ -100,7 +101,7 @@ class CoroutineScopeExtLaunchAwaitedTest {
                 Change(it.copy(batch = it.batch?.copy(), other = 1))
             }
 
-            log shouldContainExactly listOf("started rye", "cancelled rye", "started rye")
+            log shouldContainExactly listOf("started rye")
         }
 
     @Test
@@ -134,9 +135,9 @@ class CoroutineScopeExtLaunchAwaitedTest {
         val batch: Batch? = null,
     )
 
-    // not a data class: an order placed again must not equal the awaited one, or the store drops it
-    class Order(
+    data class Order(
         val bread: String,
+        val identity: Identity = Identity(),
     )
 
     data class Batch(

@@ -27,10 +27,9 @@ class GramsInputFeature @AssistedInject constructor(
 
     // for its View, which shows the field's View
     val textField: TextFieldFeature = run {
-        // the field has no outcomes, and its environment keeps the rule for its text
-        val slice = store.slice(textFieldLens) { grams, _: Nothing? ->
-            context(environment) { onTextField(grams) }
-        }
+        // nothing to decide: the field has no outcomes, its environment keeps the rule for its text,
+        // and a submission made on older text is no longer pending
+        val slice = store.slice(textFieldLens) { grams, _: Nothing? -> Change(grams) }
         textFieldFactory.create(
             scope = scope.child(),
             store = slice,
@@ -65,20 +64,15 @@ private val textFieldLens = Lens<GramsInputState, TextFieldState>(
     set = { grams, textField -> grams.copy(textField = textField) },
 )
 
-// The reducer for its Text Field, which runs only when the field's own edit changes its text
-context(_: GramsInputEnvironment)
-fun onTextField(grams: GramsInputState): Change<GramsInputState, GramsInputOutcome> {
-    val state = grams.withTextChanged()
-    return Change(state)
-}
-
 // The transitions behind the actions. Only the feature instance calls them. They're outside the
 // class so that they can't reach its scope or store: they can run more than once, so they must
 // have no side effects
 
+// for the text as it is now: a change to it withdraws the submission
 context(_: GramsInputEnvironment)
 fun GramsInputState.submit(): Change<GramsInputState, GramsInputOutcome> {
-    val state = this.copy(submission = Submission(answer = null))
+    val submission = Submission(answer = null, version = this.version())
+    val state = this.copy(submission = submission)
     return Change(state, outcome = GramsInputOutcome.Submitted)
 }
 

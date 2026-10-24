@@ -70,7 +70,7 @@ fun NutritionState.receive(
     request: NutritionRequest,
     result: Result<NutritionFacts>,
 ): Change<NutritionState, Nothing> {
-    if (this.awaited() !== request) return Change(this) // late, or already received
+    if (this.awaited() != request) return Change(this) // late, or already received
     val state = this.copy(result = result)
     return Change(state)
 }

@@ -5,20 +5,20 @@ import io.github.mmolosay.thecolor.demo.domain.isSameAs
 import io.github.mmolosay.thecolor.demo.presentation.feature.cups.CupDialState
 import io.github.mmolosay.thecolor.demo.presentation.feature.cups.CupDialStateFactory
 import io.github.mmolosay.thecolor.demo.presentation.feature.cups.amount
-import io.github.mmolosay.thecolor.demo.presentation.feature.cups.isEmpty
+import io.github.mmolosay.thecolor.demo.presentation.feature.cups.version
 import io.github.mmolosay.thecolor.demo.presentation.feature.cups.withAmount
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.GramsInputState
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.GramsInputStateFactory
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.amount
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.hasPendingSubmission
-import io.github.mmolosay.thecolor.demo.presentation.feature.grams.isEmpty
+import io.github.mmolosay.thecolor.demo.presentation.feature.grams.version
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.withAmount
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.withSubmissionAccepted
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputState
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputStateFactory
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.amount
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.hasPendingSubmission
-import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.isEmpty
+import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.version
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.withAmount
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.withSubmissionAccepted
 
@@ -84,13 +84,13 @@ fun AmountEditorState.withAmount(amount: Amount?): AmountEditorState {
     return this.copy(grams = grams, ounces = ounces, cups = cups)
 }
 
-// for the parent: no input holds anything the user entered, so nothing would be lost
+// for the parent; each input's version only grows, so their sum changes whenever any of them does
 context(environment: AmountEditorEnvironment)
-fun AmountEditorState.isEmpty(): Boolean {
-    val grams = context(environment.grams) { this.grams.isEmpty() }
-    val ounces = context(environment.ounces) { this.ounces.isEmpty() }
-    val cups = context(environment.cups) { this.cups.isEmpty() }
-    return (grams && ounces && cups)
+fun AmountEditorState.version(): Int {
+    val grams = context(environment.grams) { this.grams.version() }
+    val ounces = context(environment.ounces) { this.ounces.version() }
+    val cups = context(environment.cups) { this.cups.version() }
+    return (grams + ounces + cups)
 }
 
 // for the parent: whether either input waits for an answer

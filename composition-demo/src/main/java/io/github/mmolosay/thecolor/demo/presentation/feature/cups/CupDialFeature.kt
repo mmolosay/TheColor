@@ -70,8 +70,11 @@ context(_: CupDialEnvironment)
 fun CupDialState.drag(position: Float): Change<CupDialState, Nothing> {
     val clamped = position.coerceIn(0f, MaxCups)
     if (clamped == this.position) return Change(this)
-    val request = this.request ?: CupSampleRequest(position = clamped)
-    val state = this.copy(position = clamped, request = request)
+    val moved = this.withPosition(clamped)
+    val request = moved.awaited() ?: run {
+        CupSampleRequest(position = clamped, amountVersion = moved.amountVersion)
+    }
+    val state = moved.copy(request = request)
     return Change(state)
 }
 
@@ -82,8 +85,12 @@ fun CupDialState.receiveSample(
     request: CupSampleRequest,
     amount: Amount.Cups,
 ): Change<CupDialState, Nothing> {
-    if (this.request !== request) return Change(this) // the amount was set from elsewhere since
-    val next = if (this.position != request.position) CupSampleRequest(this.position) else null
-    val state = this.copy(amount = amount, request = next)
+    if (this.awaited() != request) return Change(this) // the amount was set from elsewhere since
+    val sampled = this.withAmountOnly(amount)
+    val next = run {
+        if (sampled.position == request.position) return@run null
+        CupSampleRequest(position = sampled.position, amountVersion = sampled.amountVersion)
+    }
+    val state = sampled.copy(request = next)
     return Change(state)
 }

@@ -11,7 +11,6 @@ import io.github.mmolosay.thecolor.demo.domain.RecipeRepository
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorOutcome
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorState
-import io.github.mmolosay.thecolor.demo.presentation.feature.editor.isEmpty
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.withSubmissionAccepted
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionOutcome
@@ -108,7 +107,7 @@ class RecipeViewModel @Inject constructor(
         // each kind of work on its own, so that one never restarts the other
         viewModelScope.launchAwaited(
             store = store,
-            awaited = { recipe -> recipe.load },
+            awaited = { recipe -> context(environment) { recipe.awaitedLoad() } },
             block = { request ->
                 val amount = repository.lastAmount()
                 store.update { recipe ->
@@ -221,17 +220,15 @@ fun RecipeState.applyPreset(preset: RecipePreset): Change<RecipeState, Nothing> 
     return Change(state)
 }
 
-// The saved amount fills only the empty editor the screen opened with, so that it never replaces
-// what the user typed meanwhile. The editor is the expected value: what the editor holds tells, not
-// which changes it went through, since some of them aren't the user's, such as a setting arriving
+// Applies only to the load the screen still waits for, so that the saved amount fills only the
+// editor as the screen opened it, and never replaces what was entered meanwhile, even if it was
+// emptied since
 context(environment: RecipeEnvironment)
 fun RecipeState.receiveLoad(
     request: LoadRequest,
     amount: Amount?,
 ): Change<RecipeState, Nothing> {
-    if (this.load !== request) return Change(this) // already received
-    val isEmpty = context(environment.editor) { this.editor.isEmpty() }
-    if (!isEmpty) return Change(this.copy(load = null)) // the user has typed meanwhile
+    if (this.awaitedLoad() != request) return Change(this) // received, or the editor set since
     val state = this.copy(load = null).withAmount(amount)
     return Change(state)
 }
@@ -240,7 +237,7 @@ fun RecipeState.receiveLoad(
 // asks for the message, in one change, so that neither happens without the other
 context(environment: RecipeEnvironment)
 fun RecipeState.receiveSave(request: SaveRequest): Change<RecipeState, Nothing> {
-    if (this.awaitedSave() !== request) return Change(this) // withdrawn, or a newer one is saved
+    if (this.awaitedSave() != request) return Change(this) // withdrawn, or a newer one is saved
     val editor = context(environment.editor) { this.editor.withSubmissionAccepted() }
     val message = SavedMessage(amount = request.amount)
     val state = this.copy(editor = editor, save = null, messages = this.messages + message)
@@ -250,7 +247,7 @@ fun RecipeState.receiveSave(request: SaveRequest): Change<RecipeState, Nothing> 
 // what's left once the View has shown this message: a newer one stays
 context(_: RecipeEnvironment)
 fun RecipeState.messageShown(message: SavedMessage): Change<RecipeState, Nothing> {
-    val messages = this.messages.filterNot { it === message }
+    val messages = this.messages.filterNot { it == message }
     val state = this.copy(messages = messages)
     return Change(state)
 }

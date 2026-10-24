@@ -6,10 +6,10 @@ import io.github.mmolosay.thecolor.demo.presentation.feature.input.Submission
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.answerToShow
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.answered
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.isPending
-import io.github.mmolosay.thecolor.demo.presentation.feature.input.withdrawn
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldState
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldStateFactory
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.text
+import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.version
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.withText
 import java.math.BigDecimal
 
@@ -63,29 +63,27 @@ fun OuncesInputState.withAmount(amount: Amount?): OuncesInputState {
     }
     val textField = context(environment.textField) { this.textField.withText(text) }
     if (textField == this.textField) return this
-    return this.copy(textField = textField).withTextChanged()
+    return this.copy(textField = textField)
 }
 
-// A submission is for the text it was made on, so once the text changes, a submission still
-// waiting for an answer is withdrawn. Every path that changes the text calls it: the parent's
-// withAmount, and the reducer for the field's own edits
-context(_: OuncesInputEnvironment)
-fun OuncesInputState.withTextChanged(): OuncesInputState =
-    this.copy(submission = this.submission.withdrawn())
+// for the parent; the setting doesn't move it: it's how the text shows, not what the user enters
+context(environment: OuncesInputEnvironment)
+fun OuncesInputState.version(): Int =
+    context(environment.textField) { this.textField.version() }
 
 context(_: OuncesInputEnvironment)
 fun OuncesInputState.hasPendingSubmission(): Boolean =
-    this.submission.isPending()
+    this.submission.isPending(this.version())
 
 context(_: OuncesInputEnvironment)
 fun OuncesInputState.withSubmissionAccepted(): OuncesInputState {
-    val submission = this.submission.answered(Submission.Answer.Accepted)
+    val submission = this.submission.answered(Submission.Answer.Accepted, this.version())
     return this.copy(submission = submission)
 }
 
 context(_: OuncesInputEnvironment)
 fun OuncesInputState.withSubmissionRejected(): OuncesInputState {
-    val submission = this.submission.answered(Submission.Answer.Rejected)
+    val submission = this.submission.answered(Submission.Answer.Rejected, this.version())
     return this.copy(submission = submission)
 }
 

@@ -68,7 +68,7 @@ private val nutritionLens = Lens<SubstituteSheetState, NutritionState>(
 // newer one
 context(environment: SubstituteSheetEnvironment)
 fun SubstituteSheetState.close(session: SheetSession): Change<SubstituteSheetState, Nothing> {
-    if (this.session !== session) return Change(this)
+    if (this.session != session) return Change(this)
     val nutrition = context(environment.nutrition) { NutritionStateFactory.create() }
     val state = SubstituteSheetState(session = null, nutrition = nutrition)
     return Change(state)

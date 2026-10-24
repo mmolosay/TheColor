@@ -4,11 +4,12 @@ import io.github.mmolosay.thecolor.demo.domain.Amount
 import io.github.mmolosay.thecolor.demo.domain.Ingredient
 import io.github.mmolosay.thecolor.demo.domain.NutritionFacts
 import io.github.mmolosay.thecolor.demo.domain.isSameAs
+import io.github.mmolosay.thecolor.utils.Identity
 
-// compared by reference: a new request is new work, even for the same amount
-class NutritionRequest(
+data class NutritionRequest(
     val ingredient: Ingredient,
     val amount: Amount,
+    val identity: Identity = Identity(),
 )
 
 // The nutrition facts for an amount of an ingredient, as they load. The request stays once its

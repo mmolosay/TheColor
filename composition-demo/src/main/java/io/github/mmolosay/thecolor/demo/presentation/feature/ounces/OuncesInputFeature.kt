@@ -32,10 +32,9 @@ class OuncesInputFeature @AssistedInject constructor(
 
     // for its View, which shows the field's View
     val textField: TextFieldFeature = run {
-        // the field has no outcomes, and its environment keeps the rule for its text
-        val slice = store.slice(textFieldLens) { ounces, _: Nothing? ->
-            context(environment) { onTextField(ounces) }
-        }
+        // nothing to decide: the field has no outcomes, its environment keeps the rule for its text,
+        // and a submission made on older text is no longer pending
+        val slice = store.slice(textFieldLens) { ounces, _: Nothing? -> Change(ounces) }
         textFieldFactory.create(
             scope = scope.child(),
             store = slice,
@@ -81,13 +80,6 @@ private val textFieldLens = Lens<OuncesInputState, TextFieldState>(
     set = { ounces, textField -> ounces.copy(textField = textField) },
 )
 
-// The reducer for its Text Field, which runs only when the field's own edit changes its text
-context(_: OuncesInputEnvironment)
-fun onTextField(ounces: OuncesInputState): Change<OuncesInputState, OuncesInputOutcome> {
-    val state = ounces.withTextChanged()
-    return Change(state)
-}
-
 // The transition behind the setting's value. The text holds a point either way, so a keystroke
 // made on the text shown with the old separator still applies
 context(_: OuncesInputEnvironment)
@@ -102,9 +94,11 @@ fun OuncesInputState.receiveSeparator(
 // class so that they can't reach its scope or store: they can run more than once, so they must
 // have no side effects
 
+// for the text as it is now: a change to it withdraws the submission
 context(_: OuncesInputEnvironment)
 fun OuncesInputState.submit(): Change<OuncesInputState, OuncesInputOutcome> {
-    val state = this.copy(submission = Submission(answer = null))
+    val submission = Submission(answer = null, version = this.version())
+    val state = this.copy(submission = submission)
     return Change(state, outcome = OuncesInputOutcome.Submitted)
 }
 

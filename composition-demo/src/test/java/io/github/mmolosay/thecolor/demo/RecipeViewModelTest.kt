@@ -124,6 +124,22 @@ class RecipeViewModelTest {
         }
 
     @Test
+    fun `given the saved amount is loading, when it arrives after the user has typed and cleared the amount, then the amount stays cleared`() =
+        runTest(testDispatcher) {
+            val savedAmount = CompletableDeferred<Amount?>()
+            coEvery { repository.lastAmount() } coAnswers { savedAmount.await() }
+            createSut()
+            runCurrent() // the load starts
+            sut.editor.grams.textField.enterText(text = "7", expected = "")
+            sut.editor.grams.textField.clearText() // empties the other inputs too
+
+            savedAmount.complete(Amount.Grams(value = 150))
+            runCurrent()
+
+            sut.editor.grams.textField.viewData.value.text shouldBe ""
+        }
+
+    @Test
     fun `given 80 g is being saved, when the save ends as the user edits, then NO message shows, since the edit has withdrawn the submission`() =
         runTest(testDispatcher) {
             coEvery { repository.lastAmount() } returns null

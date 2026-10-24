@@ -1,9 +1,13 @@
 package io.github.mmolosay.thecolor.demo.presentation.feature.input
 
-// A submission and its answer, compared by reference: a new instance for each submission and each
-// answer, so each answer is shown once
-class Submission(
+import io.github.mmolosay.thecolor.utils.Identity
+
+// A submission and its answer: a new instance for each submission and each answer, so each answer
+// is shown once
+data class Submission(
     val answer: Answer?, // null while no parent has answered
+    val version: Int, // of the text it was made on
+    val identity: Identity = Identity(),
 ) {
     enum class Answer {
         Accepted,
@@ -11,25 +15,21 @@ class Submission(
     }
 }
 
-// answers only a submission that awaits one, so an answer is never overwritten
-fun Submission?.answered(answer: Submission.Answer): Submission? {
-    if (this == null || this.answer != null) return this
-    return Submission(answer = answer)
-}
+// A submission is for the text it was made on, so it waits for an answer only while the text is at
+// that version: any change to the text withdraws it, and an answer to it has nothing to apply to
+fun Submission?.isPending(version: Int): Boolean =
+    (this != null && this.answer == null && this.version == version)
 
-// what's left once the text it was made on changes: a submission still waiting is withdrawn, and an
-// answer still to show stays
-fun Submission?.withdrawn(): Submission? {
-    if (this == null || this.answer != null) return this
-    return null
+// answers only a submission that awaits one, so an answer is never overwritten, and a withdrawn
+// submission is never answered
+fun Submission?.answered(answer: Submission.Answer, version: Int): Submission? {
+    if (this == null || !this.isPending(version)) return this
+    return Submission(answer = answer, version = this.version)
 }
-
-fun Submission?.isPending(): Boolean =
-    (this != null && this.answer == null)
 
 // what's left once the View has shown this answered submission: a newer submission stays
 fun Submission?.shown(submission: Submission): Submission? {
-    if (this !== submission) return this
+    if (this != submission) return this
     return null
 }
 

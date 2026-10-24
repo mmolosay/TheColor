@@ -4,9 +4,12 @@ import io.github.mmolosay.thecolor.demo.domain.NutritionFacts
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionState
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionStateFactory
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.withFacts
+import io.github.mmolosay.thecolor.utils.Identity
 
-// compared by reference: one opening of the sheet
-class SheetSession
+// one opening of the sheet
+data class SheetSession(
+    val identity: Identity = Identity(),
+)
 
 // A substitute's nutrition, in a sheet over the screen. Each opening is a session of its own, even
 // for the same substitute, so that a sheet opened again is never taken for one the user closed
