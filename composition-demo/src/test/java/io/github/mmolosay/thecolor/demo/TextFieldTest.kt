@@ -68,7 +68,7 @@ class TextFieldTest {
         )
         setContent {
             TextField(
-                field = field,
+                feature = field,
                 label = "Grams",
                 keyboardOptions = KeyboardOptions.Default,
                 onKeyboardAction = null,

@@ -15,19 +15,19 @@ import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.Nutrition
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SubstituteSheet(
-    sheet: SubstituteSheetFeature,
+    feature: SubstituteSheetFeature,
 ) {
-    val viewData by sheet.viewData.collectAsStateWithLifecycle()
+    val viewData by feature.viewData.collectAsStateWithLifecycle()
     val session = viewData.session ?: return
     // The sheet keeps internal state, such as being dismissed, so each session gets a sheet of its
     // own. A session opened right after the user closed one shows open, rather than the sheet the
     // user dismissed
     key(session) {
         ModalBottomSheet(
-            onDismissRequest = { sheet.close(session) },
+            onDismissRequest = { feature.close(session) },
         ) {
             Nutrition(
-                nutrition = sheet.nutrition,
+                feature = feature.nutrition,
                 modifier = Modifier
                     .navigationBarsPadding()
                     .padding(horizontal = 24.dp, vertical = 16.dp),

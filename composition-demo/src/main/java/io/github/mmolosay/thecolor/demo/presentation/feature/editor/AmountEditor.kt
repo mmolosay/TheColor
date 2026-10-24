@@ -11,15 +11,15 @@ import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInput
 
 @Composable
 fun AmountEditor(
-    editor: AmountEditorFeature,
+    feature: AmountEditorFeature,
     modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        GramsInput(input = editor.grams)
-        OuncesInput(input = editor.ounces)
-        CupDial(dial = editor.cups)
+        GramsInput(feature = feature.grams)
+        OuncesInput(feature = feature.ounces)
+        CupDial(feature = feature.cups)
     }
 }

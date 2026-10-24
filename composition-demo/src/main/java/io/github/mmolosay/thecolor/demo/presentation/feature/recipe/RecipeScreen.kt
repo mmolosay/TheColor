@@ -61,14 +61,14 @@ fun RecipeScreen(
                 Text(text = stringResource(R.string.recipe_loading_saved_amount))
             }
             Presets(onApply = { preset -> viewModel.applyPreset(preset) })
-            Servings(field = viewModel.servings)
-            AmountEditor(editor = viewModel.editor)
+            Servings(feature = viewModel.servings)
+            AmountEditor(feature = viewModel.editor)
             // only looks around the cards' Views, so they're the screen's, not features
             Card(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Nutrition(
-                    nutrition = viewModel.nutrition,
+                    feature = viewModel.nutrition,
                     modifier = Modifier.padding(16.dp),
                 )
             }
@@ -76,13 +76,13 @@ fun RecipeScreen(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Substitutes(
-                    substitutes = viewModel.substitutes,
+                    feature = viewModel.substitutes,
                     modifier = Modifier.padding(16.dp),
                 )
             }
         }
     }
-    SubstituteSheet(sheet = viewModel.sheet)
+    SubstituteSheet(feature = viewModel.sheet)
     val messageToShow = viewData.messageToShow ?: return
     val text = stringResource(R.string.recipe_saved, messageToShow.amount)
     // acknowledged as it starts showing, so that it's never shown twice, even if the screen is
@@ -117,10 +117,10 @@ private fun Presets(
 // and moves on to the amount, where the key reads Done and submits
 @Composable
 private fun Servings(
-    field: TextFieldFeature,
+    feature: TextFieldFeature,
 ) {
     TextField(
-        field = field,
+        feature = feature,
         label = stringResource(R.string.recipe_servings_label),
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Number,

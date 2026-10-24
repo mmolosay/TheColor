@@ -23,7 +23,7 @@ import androidx.compose.foundation.text.input.TextFieldState as ComposeTextField
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 /**
- * An edit made on text that [field] no longer holds is dropped, and the field shows what it holds
+ * An edit made on text that [feature] no longer holds is dropped, and the field shows what it holds
  * instead.
  *
  * The other parameters depend on where the field sits rather than on its state, so the parent's
@@ -31,7 +31,7 @@ import io.github.mmolosay.thecolor.presentation.design.R as DesignR
  */
 @Composable
 fun TextField(
-    field: TextFieldFeature, // TODO: convention should be unified; each View that operates on its Feature instance should have it named "feature", e.g. `feature: TextFieldFeature`
+    feature: TextFieldFeature,
     label: String,
     keyboardOptions: KeyboardOptions,
     onKeyboardAction: KeyboardActionHandler?, // null for the key's own action, such as Next moving on
@@ -42,29 +42,29 @@ fun TextField(
 ) {
     // The text field's internal buffer. The View owns it, so that it can write the state's text into
     // it at once, before the user's next key
-    val buffer = remember(field) {
-        ComposeTextFieldState(initialText = field.viewData.value.text)
+    val buffer = remember(feature) {
+        ComposeTextFieldState(initialText = feature.viewData.value.text)
     }
     // A text set from elsewhere, such as by the parent, reaches the buffer from a collector, as it
     // reaches the other Views: their collectors run before the next frame is drawn, so the field shows
     // it in the same frame as they do. An edit made on the old text before then is dropped, and the
     // transformation above shows this text
-    LaunchedEffect(field, buffer) {
-        field.viewData.collect {
-            buffer.edit { showText(field.viewData.value.text) } // the newest
+    LaunchedEffect(feature, buffer) {
+        feature.viewData.collect {
+            buffer.edit { showText(feature.viewData.value.text) } // the newest
         }
     }
     // Each edit of the user's goes to the field as it's made, with the text the buffer held before it
     // as the expected value. The buffer then holds what the field holds: the edit, formatted, or the
     // text from before, if the edit was dropped
-    val enterText = remember(field) {
+    val enterText = remember(feature) {
         InputTransformation {
             val before = originalText.toString()
             val after = asCharSequence().toString()
             if (after != before) {
-                field.enterText(text = after, expected = before)
+                feature.enterText(text = after, expected = before)
             }
-            showText(field.viewData.value.text)
+            showText(feature.viewData.value.text)
         }
     }
     OutlinedTextField(
@@ -76,8 +76,8 @@ fun TextField(
                 ClearButton(
                     visible = buffer.text.isNotEmpty(),
                     onClick = {
-                        field.clearText()
-                        buffer.edit { showText(field.viewData.value.text) } // before the next key
+                        feature.clearText()
+                        buffer.edit { showText(feature.viewData.value.text) } // before the next key
                     },
                 )
             }

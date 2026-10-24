@@ -24,10 +24,10 @@ import io.github.mmolosay.thecolor.demo.domain.Sort
 
 @Composable
 fun Substitutes(
-    substitutes: SubstitutesFeature,
+    feature: SubstitutesFeature,
     modifier: Modifier = Modifier,
 ) {
-    val viewData by substitutes.viewData.collectAsStateWithLifecycle()
+    val viewData by feature.viewData.collectAsStateWithLifecycle()
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -41,7 +41,7 @@ fun Substitutes(
                 Text(text = stringResource(R.string.substitutes_no_amount))
             }
             is SubstitutesViewData.Loading -> {
-                SortChips(selected = data.sort, onSelect = { sort -> substitutes.sortBy(sort) })
+                SortChips(selected = data.sort, onSelect = { sort -> feature.sortBy(sort) })
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -51,15 +51,15 @@ fun Substitutes(
                 }
             }
             is SubstitutesViewData.Ready -> {
-                SortChips(selected = data.sort, onSelect = { sort -> substitutes.sortBy(sort) })
+                SortChips(selected = data.sort, onSelect = { sort -> feature.sortBy(sort) })
                 data.items.forEach { item ->
-                    Item(item = item, onClick = { substitutes.select(item.facts) })
+                    Item(item = item, onClick = { feature.select(item.facts) })
                 }
             }
             is SubstitutesViewData.Failed -> {
-                SortChips(selected = data.sort, onSelect = { sort -> substitutes.sortBy(sort) })
+                SortChips(selected = data.sort, onSelect = { sort -> feature.sortBy(sort) })
                 Text(text = stringResource(R.string.substitutes_failed))
-                TextButton(onClick = { substitutes.retry() }) {
+                TextButton(onClick = { feature.retry() }) {
                     Text(text = stringResource(R.string.substitutes_retry))
                 }
             }

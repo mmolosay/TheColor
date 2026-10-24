@@ -19,10 +19,10 @@ import io.github.mmolosay.thecolor.demo.R
 
 @Composable
 fun Nutrition(
-    nutrition: NutritionFeature,
+    feature: NutritionFeature,
     modifier: Modifier = Modifier,
 ) {
-    val viewData by nutrition.viewData.collectAsStateWithLifecycle()
+    val viewData by feature.viewData.collectAsStateWithLifecycle()
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -47,7 +47,7 @@ fun Nutrition(
                 Text(text = data.protein)
                 val suggestion = data.suggestion
                 if (suggestion != null) {
-                    TextButton(onClick = { nutrition.selectSuggestion(suggestion.amount) }) {
+                    TextButton(onClick = { feature.selectSuggestion(suggestion.amount) }) {
                         Text(text = stringResource(R.string.nutrition_suggestion, suggestion.label))
                     }
                 }
@@ -55,7 +55,7 @@ fun Nutrition(
             is NutritionViewData.Failed -> {
                 Portion(portion = data.portion)
                 Text(text = stringResource(R.string.nutrition_failed))
-                TextButton(onClick = { nutrition.retry() }) {
+                TextButton(onClick = { feature.retry() }) {
                     Text(text = stringResource(R.string.nutrition_retry))
                 }
             }

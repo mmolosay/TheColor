@@ -12,10 +12,10 @@ import io.github.mmolosay.thecolor.demo.R
 
 @Composable
 fun CupDial(
-    dial: CupDialFeature,
+    feature: CupDialFeature,
     modifier: Modifier = Modifier,
 ) {
-    val viewData by dial.viewData.collectAsStateWithLifecycle()
+    val viewData by feature.viewData.collectAsStateWithLifecycle()
     Column(
         modifier = modifier,
     ) {
@@ -29,7 +29,7 @@ fun CupDial(
         )
         Slider(
             value = viewData.position,
-            onValueChange = { position -> dial.drag(position) },
+            onValueChange = { position -> feature.drag(position) },
             valueRange = 0f..MaxCups,
         )
     }

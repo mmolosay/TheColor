@@ -19,18 +19,18 @@ import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextField
 
 @Composable
 fun OuncesInput(
-    input: OuncesInputFeature,
+    feature: OuncesInputFeature,
     modifier: Modifier = Modifier,
 ) {
-    val viewData by input.viewData.collectAsStateWithLifecycle()
+    val viewData by feature.viewData.collectAsStateWithLifecycle()
     TextField(
-        field = input.textField,
+        feature = feature.textField,
         label = stringResource(R.string.ounces_input_label),
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Decimal,
             imeAction = ImeAction.Done,
         ),
-        onKeyboardAction = { input.submit() }, // Done
+        onKeyboardAction = { feature.submit() }, // Done
         hasClearButton = true,
         supportingText = if (viewData.isPending) stringResource(R.string.input_pending) else null,
         outputTransformation = SeparatorTransformation(separator = viewData.decimalSeparator),
@@ -43,7 +43,7 @@ fun OuncesInput(
         if (answerToShow.answer == Submission.Answer.Rejected) {
             Toast.makeText(context, rejection, Toast.LENGTH_SHORT).show()
         }
-        input.answerShown(answerToShow.submission)
+        feature.answerShown(answerToShow.submission)
     }
 }
 
