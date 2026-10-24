@@ -42,10 +42,20 @@ fun TextField(
     outputTransformation: OutputTransformation?, // how the text shows; edits are on the text itself
     modifier: Modifier = Modifier,
 ) {
-    val viewData by field.viewData.collectAsStateWithLifecycle()
     // The text field's internal buffer. The View owns it, so that it can write the state's text into
     // it at once, before the user's next key
-    val buffer = remember(field) { ComposeTextFieldState(initialText = viewData.text) }
+    val buffer = remember(field) {
+        ComposeTextFieldState(initialText = field.viewData.value.text)
+    }
+    // A text set from elsewhere, such as by the parent, reaches the buffer from a collector, as it
+    // reaches the other Views: their collectors run before the next frame is drawn, so the field shows
+    // it in the same frame as they do. An edit made on the old text before then is dropped, and the
+    // transformation above shows this text
+    LaunchedEffect(field, buffer) {
+        field.viewData.collect {
+            buffer.edit { showText(field.viewData.value.text) } // the newest
+        }
+    }
     // Each edit of the user's goes to the field as it's made, with the text the buffer held before it
     // as the expected value. The buffer then holds what the field holds: the edit, formatted, or the
     // text from before, if the edit was dropped
@@ -58,11 +68,6 @@ fun TextField(
             }
             showText(field.viewData.value.text)
         }
-    }
-    // A text set from elsewhere, such as by the parent, reaches the buffer by the next frame. An edit
-    // made on the old text before then is dropped, and the transformation above shows this text
-    LaunchedEffect(buffer, viewData.text) {
-        buffer.edit { showText(field.viewData.value.text) }
     }
     OutlinedTextField(
         state = buffer,
