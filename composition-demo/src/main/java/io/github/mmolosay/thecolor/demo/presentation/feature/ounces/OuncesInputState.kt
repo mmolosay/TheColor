@@ -28,13 +28,13 @@ object OuncesInputStateFactory {
     // from the parent's choice of amount, with the point until the setting is read
     context(environment: OuncesInputEnvironment)
     fun create(amount: Amount?): OuncesInputState {
-        val textField = context(environment.textField) { TextFieldStateFactory.create(text = "") }
-        val empty = OuncesInputState(
+        val text = textFor(amount)
+        val textField = context(environment.textField) { TextFieldStateFactory.create(text = text) }
+        return OuncesInputState(
             textField = textField,
             submission = null,
             separator = DecimalSeparator.Point,
         )
-        return empty.withAmount(amount)
     }
 }
 
@@ -56,14 +56,18 @@ fun OuncesInputState.isEmpty(): Boolean {
 // the same fact, given
 context(environment: OuncesInputEnvironment)
 fun OuncesInputState.withAmount(amount: Amount?): OuncesInputState {
-    val text = run {
-        if (amount == null) return@run ""
-        val ounces = with(environment.amountConverter) { amount.toOunces(OuncesDecimalPlaces) }
-        ounces.value.toPlainString()
-    }
+    val text = textFor(amount)
     val textField = context(environment.textField) { this.textField.withText(text) }
     if (textField == this.textField) return this
     return this.copy(textField = textField)
+}
+
+// the text that stands for an amount, with a point
+context(environment: OuncesInputEnvironment)
+private fun textFor(amount: Amount?): String {
+    if (amount == null) return ""
+    val ounces = with(environment.amountConverter) { amount.toOunces(OuncesDecimalPlaces) }
+    return ounces.value.toPlainString()
 }
 
 // for the parent; the setting doesn't move it: it's how the text shows, not what the user enters

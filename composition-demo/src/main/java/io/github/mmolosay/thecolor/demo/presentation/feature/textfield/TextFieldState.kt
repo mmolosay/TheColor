@@ -25,11 +25,10 @@ data class TextFieldState(
  */
 object TextFieldStateFactory {
 
-    context(_: TextFieldEnvironment)
+    context(environment: TextFieldEnvironment)
     fun create(text: String): TextFieldState {
-        // TODO: I don't like this approach of creating a half-finished State with possibly inconsistent data, and then coercing it to the consistent state
-        val empty = TextFieldState(text = "", version = 0)
-        return empty.withText(text)
+        val formatted = environment.formatter.format(text)
+        return TextFieldState(text = formatted, version = 0)
     }
 }
 
@@ -41,7 +40,8 @@ fun TextFieldState.text(): String =
     this.text
 
 // The only way the text changes, so that its version moves with every change, whoever makes it.
-// Text that changes nothing leaves the state as it is, so that what was made on the text still holds
+// Text that changes nothing leaves the state as it is, so that what was made on the text still
+// holds
 context(environment: TextFieldEnvironment)
 fun TextFieldState.withText(text: String): TextFieldState {
     val formatted = environment.formatter.format(text)

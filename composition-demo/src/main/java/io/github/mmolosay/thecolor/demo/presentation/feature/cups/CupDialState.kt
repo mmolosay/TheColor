@@ -26,14 +26,13 @@ object CupDialStateFactory {
     // from the parent's choice of amount
     context(environment: CupDialEnvironment)
     fun create(amount: Amount?): CupDialState {
-        val empty = CupDialState(
-            position = 0f,
+        return CupDialState(
+            position = positionFor(amount),
             positionVersion = 0,
-            amount = null,
+            amount = amount,
             amountVersion = 0,
             request = null,
         )
-        return empty.withAmount(amount)
     }
 }
 
@@ -46,14 +45,17 @@ fun CupDialState.amount(): Amount? =
 // amount's version moved on, so its late result never undoes the amount
 context(environment: CupDialEnvironment)
 fun CupDialState.withAmount(amount: Amount?): CupDialState {
-    val position = run {
-        if (amount == null) return@run 0f
-        // to a hundredth of a cup, finer than a finger drags
-        val cups = with(environment.amountConverter) { amount.toCups(denominator = 100) }
-        val exact = cups.whole + cups.numerator / 100f
-        exact.coerceAtMost(MaxCups)
-    }
+    val position = positionFor(amount)
     return this.withPosition(position).withAmountOnly(amount)
+}
+
+// where the dial stands for an amount, to a hundredth of a cup, finer than a finger drags
+context(environment: CupDialEnvironment)
+private fun positionFor(amount: Amount?): Float {
+    if (amount == null) return 0f
+    val cups = with(environment.amountConverter) { amount.toCups(denominator = 100) }
+    val exact = cups.whole + cups.numerator / 100f
+    return exact.coerceAtMost(MaxCups)
 }
 
 // The only ways the position and the amount change, so that each version moves with every change,

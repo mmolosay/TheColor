@@ -25,9 +25,9 @@ object GramsInputStateFactory {
     // from the parent's choice of amount
     context(environment: GramsInputEnvironment)
     fun create(amount: Amount?): GramsInputState {
-        val textField = context(environment.textField) { TextFieldStateFactory.create(text = "") }
-        val empty = GramsInputState(textField = textField, submission = null)
-        return empty.withAmount(amount)
+        val text = textFor(amount)
+        val textField = context(environment.textField) { TextFieldStateFactory.create(text = text) }
+        return GramsInputState(textField = textField, submission = null)
     }
 }
 
@@ -49,14 +49,18 @@ fun GramsInputState.isEmpty(): Boolean {
 // the same fact, given
 context(environment: GramsInputEnvironment)
 fun GramsInputState.withAmount(amount: Amount?): GramsInputState {
-    val text = run {
-        if (amount == null) return@run ""
-        val grams = with(environment.amountConverter) { amount.toGrams() }
-        grams.value.toString()
-    }
+    val text = textFor(amount)
     val textField = context(environment.textField) { this.textField.withText(text) }
     if (textField == this.textField) return this
     return this.copy(textField = textField)
+}
+
+// the text that stands for an amount
+context(environment: GramsInputEnvironment)
+private fun textFor(amount: Amount?): String {
+    if (amount == null) return ""
+    val grams = with(environment.amountConverter) { amount.toGrams() }
+    return grams.value.toString()
 }
 
 // for the parent
