@@ -6,7 +6,6 @@ import androidx.compose.foundation.text.input.KeyboardActionHandler
 import androidx.compose.foundation.text.input.OutputTransformation
 import androidx.compose.foundation.text.input.TextFieldBuffer
 import androidx.compose.foundation.text.input.TextFieldLineLimits
-import androidx.compose.foundation.text.input.TextFieldState as ComposeTextFieldState
 import androidx.compose.foundation.text.input.placeCursorAtEnd
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -14,14 +13,13 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.demo.R
+import androidx.compose.foundation.text.input.TextFieldState as ComposeTextFieldState
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 /**
@@ -33,7 +31,7 @@ import io.github.mmolosay.thecolor.presentation.design.R as DesignR
  */
 @Composable
 fun TextField(
-    field: TextFieldFeature,
+    field: TextFieldFeature, // TODO: convention should be unified; each View that operates on its Feature instance should have it named "feature", e.g. `feature: TextFieldFeature`
     label: String,
     keyboardOptions: KeyboardOptions,
     onKeyboardAction: KeyboardActionHandler?, // null for the key's own action, such as Next moving on

@@ -22,6 +22,7 @@ typealias Reduce<S, O, CO> = (S, CO?) -> Change<S, O>
 @OptIn(ExperimentalForInheritanceCoroutinesApi::class)
 sealed interface Store<S, O> : StateFlow<S> {
     fun update(transition: Transition<S, O>)
+    // TODO: introduce an extension function Store.slice() which doesn't require CO type and just uses 'Nothing?' ?
     fun <CS, CO : Any> slice(lens: Lens<S, CS>, reduce: Reduce<S, O, CO>): Store<CS, CO>
 }
 

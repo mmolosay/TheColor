@@ -27,6 +27,7 @@ object TextFieldStateFactory {
 
     context(_: TextFieldEnvironment)
     fun create(text: String): TextFieldState {
+        // TODO: I don't like this approach of creating a half-finished State with possibly inconsistent data, and then coercing it to the consistent state
         val empty = TextFieldState(text = "", version = 0)
         return empty.withText(text)
     }

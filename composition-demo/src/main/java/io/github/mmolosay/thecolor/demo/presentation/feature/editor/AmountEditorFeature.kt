@@ -79,6 +79,8 @@ class AmountEditorFeature @AssistedInject constructor(
     }
 }
 
+// TODO: lenses for State should be declared beside the State class, inside `object FeatureNameStateLenses`
+//       Discuss.
 private val gramsLens = Lens<AmountEditorState, GramsInputState>(
     get = { editor -> editor.grams },
     set = { editor, grams -> editor.copy(grams = grams) },
@@ -103,6 +105,9 @@ fun onGrams(
     editor: AmountEditorState,
     outcome: GramsInputOutcome?,
 ): Change<AmountEditorState, AmountEditorOutcome> {
+    // TODO: three object trees (Environment, State, Feature) result in such verbose syntax, where
+    //       the feature is mentioned twice: its Environment and its State.
+    //       Is there a way to have something like `class FeatureStateOperator` with `fun amount(): ?` ?
     val amount = context(environment.grams) { editor.grams.amount() }
     val isEmpty = context(environment.grams) { editor.grams.isEmpty() }
     val agreed = editor.inLineWithInput(amount, isEmpty)

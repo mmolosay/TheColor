@@ -21,6 +21,7 @@ class TextFieldFeature @AssistedInject constructor(
     @Assisted private val environment: TextFieldEnvironment,
 ) {
 
+    // TODO: why do we need synchronous .mapState() ?
     val viewData: StateFlow<TextFieldViewData> =
         store.mapState { field -> context(environment) { field.toViewData() } }
 
