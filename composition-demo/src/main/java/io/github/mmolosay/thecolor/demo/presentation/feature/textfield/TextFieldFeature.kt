@@ -12,8 +12,8 @@ import kotlinx.coroutines.flow.StateFlow
 /**
  * A field running in one place, and the only way its View changes the field's state.
  *
- * An action's change is in the store by the time the action returns, and a View that shows
- * [viewData] has it by the next frame.
+ * An action's change is in the store by the time the action returns, so [viewData]'s value has it
+ * at once, and a View that collects [viewData] has it by the next frame.
  */
 class TextFieldFeature @AssistedInject constructor(
     @Assisted scope: CoroutineScope, // no work runs in it, but its parents needn't know that
@@ -21,7 +21,6 @@ class TextFieldFeature @AssistedInject constructor(
     @Assisted private val environment: TextFieldEnvironment,
 ) {
 
-    // TODO: why do we need synchronous .mapState() ?
     val viewData: StateFlow<TextFieldViewData> =
         store.mapState { field -> context(environment) { field.toViewData() } }
 
