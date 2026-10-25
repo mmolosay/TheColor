@@ -5,6 +5,7 @@ import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.Nutrition
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionStateFactory
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.withFacts
 import io.github.mmolosay.thecolor.utils.Identity
+import io.github.mmolosay.thecolor.utils.Lens
 
 // one opening of the sheet
 data class SheetSession(
@@ -17,6 +18,14 @@ data class SubstituteSheetState(
     val session: SheetSession?, // none while closed
     val nutrition: NutritionState,
 )
+
+object SubstituteSheetStateLenses {
+
+    val nutrition = Lens<SubstituteSheetState, NutritionState>(
+        get = { sheet -> sheet.nutrition },
+        set = { sheet, nutrition -> sheet.copy(nutrition = nutrition) },
+    )
+}
 
 object SubstituteSheetStateFactory {
 

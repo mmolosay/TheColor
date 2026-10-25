@@ -12,13 +12,12 @@ import io.github.mmolosay.thecolor.demo.domain.DemoSettings
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.Submission
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.shown
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldFeature
-import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldState
-import io.github.mmolosay.thecolor.utils.Lens
 import io.github.mmolosay.thecolor.utils.mapState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
+import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputStateLenses as StateLenses
 
 class OuncesInputFeature @AssistedInject constructor(
     @Assisted scope: CoroutineScope,
@@ -35,7 +34,7 @@ class OuncesInputFeature @AssistedInject constructor(
     val textField: TextFieldFeature = run {
         // nothing to decide: the field has no outcomes, its environment keeps the rule for its text,
         // and a submission made on older text is no longer pending
-        val slice = store.slice(textFieldLens) { ounces -> Change(ounces) }
+        val slice = store.slice(StateLenses.textField) { ounces -> Change(ounces) }
         textFieldFactory.create(
             scope = scope.child(),
             store = slice,
@@ -75,11 +74,6 @@ class OuncesInputFeature @AssistedInject constructor(
         ): OuncesInputFeature
     }
 }
-
-private val textFieldLens = Lens<OuncesInputState, TextFieldState>(
-    get = { ounces -> ounces.textField },
-    set = { ounces, textField -> ounces.copy(textField = textField) },
-)
 
 // The transition behind the setting's value. The text holds a point either way, so a keystroke
 // made on the text shown with the old separator still applies

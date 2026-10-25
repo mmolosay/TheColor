@@ -11,6 +11,7 @@ import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextField
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.text
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.version
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.withText
+import io.github.mmolosay.thecolor.utils.Lens
 import java.math.BigDecimal
 
 data class OuncesInputState(
@@ -18,6 +19,14 @@ data class OuncesInputState(
     val submission: Submission?,
     val separator: DecimalSeparator, // the setting: the text holds a point, the View shows this
 )
+
+object OuncesInputStateLenses {
+
+    val textField = Lens<OuncesInputState, TextFieldState>(
+        get = { ounces -> ounces.textField },
+        set = { ounces, textField -> ounces.copy(textField = textField) },
+    )
+}
 
 sealed interface OuncesInputOutcome {
     data object Submitted : OuncesInputOutcome // the parent reads the amount from the state

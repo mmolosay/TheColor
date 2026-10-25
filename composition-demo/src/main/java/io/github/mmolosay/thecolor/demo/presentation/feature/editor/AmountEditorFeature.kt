@@ -9,22 +9,19 @@ import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.composition.slice
 import io.github.mmolosay.thecolor.demo.domain.Amount
 import io.github.mmolosay.thecolor.demo.presentation.feature.cups.CupDialFeature
-import io.github.mmolosay.thecolor.demo.presentation.feature.cups.CupDialState
 import io.github.mmolosay.thecolor.demo.presentation.feature.cups.amount
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.GramsInputFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.GramsInputOutcome
-import io.github.mmolosay.thecolor.demo.presentation.feature.grams.GramsInputState
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.amount
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.isEmpty
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.withSubmissionRejected
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputOutcome
-import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputState
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.amount
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.isEmpty
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.withSubmissionRejected
-import io.github.mmolosay.thecolor.utils.Lens
 import kotlinx.coroutines.CoroutineScope
+import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorStateLenses as StateLenses
 
 // No view data of its own: its View only lays out the inputs' Views
 class AmountEditorFeature @AssistedInject constructor(
@@ -38,7 +35,7 @@ class AmountEditorFeature @AssistedInject constructor(
 
     // for its View, which shows the inputs' Views
     val grams: GramsInputFeature = run {
-        val slice = store.slice(gramsLens) { editor, outcome: GramsInputOutcome? ->
+        val slice = store.slice(StateLenses.grams) { editor, outcome: GramsInputOutcome? ->
             context(environment) { onGrams(editor, outcome) }
         }
         gramsFactory.create(
@@ -49,7 +46,7 @@ class AmountEditorFeature @AssistedInject constructor(
     }
 
     val ounces: OuncesInputFeature = run {
-        val slice = store.slice(ouncesLens) { editor, outcome: OuncesInputOutcome? ->
+        val slice = store.slice(StateLenses.ounces) { editor, outcome: OuncesInputOutcome? ->
             context(environment) { onOunces(editor, outcome) }
         }
         ouncesFactory.create(
@@ -60,7 +57,9 @@ class AmountEditorFeature @AssistedInject constructor(
     }
 
     val cups: CupDialFeature = run {
-        val slice = store.slice(cupsLens) { editor -> context(environment) { onCups(editor) } }
+        val slice = store.slice(StateLenses.cups) { editor ->
+            context(environment) { onCups(editor) }
+        }
         cupsFactory.create(
             scope = scope.child(),
             store = slice,
@@ -77,23 +76,6 @@ class AmountEditorFeature @AssistedInject constructor(
         ): AmountEditorFeature
     }
 }
-
-// TODO: lenses for State should be declared beside the State class, inside `object FeatureNameStateLenses`
-//       Discuss.
-private val gramsLens = Lens<AmountEditorState, GramsInputState>(
-    get = { editor -> editor.grams },
-    set = { editor, grams -> editor.copy(grams = grams) },
-)
-
-private val ouncesLens = Lens<AmountEditorState, OuncesInputState>(
-    get = { editor -> editor.ounces },
-    set = { editor, ounces -> editor.copy(ounces = ounces) },
-)
-
-private val cupsLens = Lens<AmountEditorState, CupDialState>(
-    get = { editor -> editor.cups },
-    set = { editor, cups -> editor.copy(cups = cups) },
-)
 
 // The reducers for its inputs. Only the feature instance runs them, inside an input's update. Each
 // brings the other inputs in line with the edited one. A submission that stands for no amount is

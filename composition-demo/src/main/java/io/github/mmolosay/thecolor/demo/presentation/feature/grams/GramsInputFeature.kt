@@ -10,11 +10,10 @@ import io.github.mmolosay.thecolor.composition.slice
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.Submission
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.shown
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldFeature
-import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldState
-import io.github.mmolosay.thecolor.utils.Lens
 import io.github.mmolosay.thecolor.utils.mapState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
+import io.github.mmolosay.thecolor.demo.presentation.feature.grams.GramsInputStateLenses as StateLenses
 
 class GramsInputFeature @AssistedInject constructor(
     @Assisted scope: CoroutineScope,
@@ -30,7 +29,7 @@ class GramsInputFeature @AssistedInject constructor(
     val textField: TextFieldFeature = run {
         // nothing to decide: the field has no outcomes, its environment keeps the rule for its text,
         // and a submission made on older text is no longer pending
-        val slice = store.slice(textFieldLens) { grams -> Change(grams) }
+        val slice = store.slice(StateLenses.textField) { grams -> Change(grams) }
         textFieldFactory.create(
             scope = scope.child(),
             store = slice,
@@ -59,11 +58,6 @@ class GramsInputFeature @AssistedInject constructor(
         ): GramsInputFeature
     }
 }
-
-private val textFieldLens = Lens<GramsInputState, TextFieldState>(
-    get = { grams -> grams.textField },
-    set = { grams, textField -> grams.copy(textField = textField) },
-)
 
 // The transitions behind the actions. Only the feature instance calls them. They're outside the
 // class so that they can't reach its scope or store: they can run more than once, so they must

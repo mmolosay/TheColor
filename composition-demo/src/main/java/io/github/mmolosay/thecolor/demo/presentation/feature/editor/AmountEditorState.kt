@@ -21,6 +21,7 @@ import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.hasPendingSu
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.version
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.withAmount
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.withSubmissionAccepted
+import io.github.mmolosay.thecolor.utils.Lens
 
 // Inputs that agree on one amount: whichever the user types in or drags, the others stand for the
 // same amount, in the same update
@@ -29,6 +30,24 @@ data class AmountEditorState(
     val ounces: OuncesInputState,
     val cups: CupDialState,
 )
+
+object AmountEditorStateLenses {
+
+    val grams = Lens<AmountEditorState, GramsInputState>(
+        get = { editor -> editor.grams },
+        set = { editor, grams -> editor.copy(grams = grams) },
+    )
+
+    val ounces = Lens<AmountEditorState, OuncesInputState>(
+        get = { editor -> editor.ounces },
+        set = { editor, ounces -> editor.copy(ounces = ounces) },
+    )
+
+    val cups = Lens<AmountEditorState, CupDialState>(
+        get = { editor -> editor.cups },
+        set = { editor, cups -> editor.copy(cups = cups) },
+    )
+}
 
 sealed interface AmountEditorOutcome {
     // a whole amount, submitted in either input; the parent answers it with withSubmissionAccepted

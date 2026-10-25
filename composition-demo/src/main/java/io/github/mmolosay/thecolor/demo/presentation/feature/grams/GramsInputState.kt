@@ -10,11 +10,20 @@ import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextField
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.text
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.version
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.withText
+import io.github.mmolosay.thecolor.utils.Lens
 
 data class GramsInputState(
     val textField: TextFieldState,
     val submission: Submission?,
 )
+
+object GramsInputStateLenses {
+
+    val textField = Lens<GramsInputState, TextFieldState>(
+        get = { grams -> grams.textField },
+        set = { grams, textField -> grams.copy(textField = textField) },
+    )
+}
 
 sealed interface GramsInputOutcome {
     data object Submitted : GramsInputOutcome // the parent reads the amount from the state

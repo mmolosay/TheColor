@@ -11,24 +11,20 @@ import io.github.mmolosay.thecolor.demo.domain.Amount
 import io.github.mmolosay.thecolor.demo.domain.RecipeRepository
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorOutcome
-import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorState
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.withSubmissionAccepted
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionOutcome
-import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionState
 import io.github.mmolosay.thecolor.demo.presentation.feature.sheet.SubstituteSheetFeature
-import io.github.mmolosay.thecolor.demo.presentation.feature.sheet.SubstituteSheetState
 import io.github.mmolosay.thecolor.demo.presentation.feature.sheet.withSubstitute
 import io.github.mmolosay.thecolor.demo.presentation.feature.substitutes.SubstitutesFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.substitutes.SubstitutesOutcome
-import io.github.mmolosay.thecolor.demo.presentation.feature.substitutes.SubstitutesState
 import io.github.mmolosay.thecolor.demo.presentation.feature.substitutes.withSort
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldStateFactory
-import io.github.mmolosay.thecolor.utils.Lens
 import io.github.mmolosay.thecolor.utils.mapState
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
+import io.github.mmolosay.thecolor.demo.presentation.feature.recipe.RecipeStateLenses as StateLenses
 
 @HiltViewModel
 class RecipeViewModel @Inject constructor(
@@ -51,7 +47,7 @@ class RecipeViewModel @Inject constructor(
 
     // for its View, which shows the children's Views
     val editor: AmountEditorFeature = run {
-        val slice = store.slice(editorLens) { recipe, outcome: AmountEditorOutcome? ->
+        val slice = store.slice(StateLenses.editor) { recipe, outcome: AmountEditorOutcome? ->
             context(environment) { onEditor(recipe, outcome) }
         }
         editorFactory.create(
@@ -62,7 +58,7 @@ class RecipeViewModel @Inject constructor(
     }
 
     val nutrition: NutritionFeature = run {
-        val slice = store.slice(nutritionLens) { recipe, outcome: NutritionOutcome? ->
+        val slice = store.slice(StateLenses.nutrition) { recipe, outcome: NutritionOutcome? ->
             context(environment) { onNutrition(recipe, outcome) }
         }
         nutritionFactory.create(
@@ -73,7 +69,7 @@ class RecipeViewModel @Inject constructor(
     }
 
     val substitutes: SubstitutesFeature = run {
-        val slice = store.slice(substitutesLens) { recipe, outcome: SubstitutesOutcome? ->
+        val slice = store.slice(StateLenses.substitutes) { recipe, outcome: SubstitutesOutcome? ->
             context(environment) { onSubstitutes(recipe, outcome) }
         }
         substitutesFactory.create(
@@ -85,7 +81,7 @@ class RecipeViewModel @Inject constructor(
 
     val sheet: SubstituteSheetFeature = run {
         // nothing to decide: the sheet has no outcomes, and the screen opens it in onSubstitutes
-        val slice = store.slice(sheetLens) { recipe -> Change(recipe) }
+        val slice = store.slice(StateLenses.sheet) { recipe -> Change(recipe) }
         sheetFactory.create(
             scope = viewModelScope,
             store = slice,
@@ -140,26 +136,6 @@ class RecipeViewModel @Inject constructor(
         }
     }
 }
-
-private val editorLens = Lens<RecipeState, AmountEditorState>(
-    get = { recipe -> recipe.editor },
-    set = { recipe, editor -> recipe.copy(editor = editor) },
-)
-
-private val nutritionLens = Lens<RecipeState, NutritionState>(
-    get = { recipe -> recipe.nutrition },
-    set = { recipe, nutrition -> recipe.copy(nutrition = nutrition) },
-)
-
-private val substitutesLens = Lens<RecipeState, SubstitutesState>(
-    get = { recipe -> recipe.substitutes },
-    set = { recipe, substitutes -> recipe.copy(substitutes = substitutes) },
-)
-
-private val sheetLens = Lens<RecipeState, SubstituteSheetState>(
-    get = { recipe -> recipe.sheet },
-    set = { recipe, sheet -> recipe.copy(sheet = sheet) },
-)
 
 // The reducers for its children. Only the screen's ViewModel runs them, inside a child's update
 

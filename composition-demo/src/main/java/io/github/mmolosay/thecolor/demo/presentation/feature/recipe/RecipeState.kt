@@ -18,6 +18,7 @@ import io.github.mmolosay.thecolor.demo.presentation.feature.substitutes.Substit
 import io.github.mmolosay.thecolor.demo.presentation.feature.substitutes.SubstitutesStateFactory
 import io.github.mmolosay.thecolor.demo.presentation.feature.substitutes.forAmount
 import io.github.mmolosay.thecolor.utils.Identity
+import io.github.mmolosay.thecolor.utils.Lens
 
 // The recipe's amount of flour, the nutrition card and the substitutes for it, and the sheet for a
 // substitute
@@ -30,6 +31,29 @@ data class RecipeState(
     val save: SaveRequest?, // the last whole amount submitted, to save; see awaitedSave
     val messages: List<SavedMessage>, // in the order the View shows them
 )
+
+object RecipeStateLenses {
+
+    val editor = Lens<RecipeState, AmountEditorState>(
+        get = { recipe -> recipe.editor },
+        set = { recipe, editor -> recipe.copy(editor = editor) },
+    )
+
+    val nutrition = Lens<RecipeState, NutritionState>(
+        get = { recipe -> recipe.nutrition },
+        set = { recipe, nutrition -> recipe.copy(nutrition = nutrition) },
+    )
+
+    val substitutes = Lens<RecipeState, SubstitutesState>(
+        get = { recipe -> recipe.substitutes },
+        set = { recipe, substitutes -> recipe.copy(substitutes = substitutes) },
+    )
+
+    val sheet = Lens<RecipeState, SubstituteSheetState>(
+        get = { recipe -> recipe.sheet },
+        set = { recipe, sheet -> recipe.copy(sheet = sheet) },
+    )
+}
 
 data class LoadRequest(
     val editorVersion: Int, // the editor's, when the load started

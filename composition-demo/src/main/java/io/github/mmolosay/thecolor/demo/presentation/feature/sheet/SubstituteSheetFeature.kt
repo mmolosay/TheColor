@@ -8,12 +8,11 @@ import io.github.mmolosay.thecolor.composition.CompositionUtils.child
 import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionOutcome
-import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionState
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionStateFactory
-import io.github.mmolosay.thecolor.utils.Lens
 import io.github.mmolosay.thecolor.utils.mapState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
+import io.github.mmolosay.thecolor.demo.presentation.feature.sheet.SubstituteSheetStateLenses as StateLenses
 
 class SubstituteSheetFeature @AssistedInject constructor(
     @Assisted scope: CoroutineScope,
@@ -29,7 +28,7 @@ class SubstituteSheetFeature @AssistedInject constructor(
     val nutrition: NutritionFeature = run {
         // A suggestion taken here moves only the sheet's card, which the card does itself; the
         // recipe's amount stays. So there's nothing more to decide
-        val slice = store.slice(nutritionLens) { sheet, _: NutritionOutcome? ->
+        val slice = store.slice(StateLenses.nutrition) { sheet, _: NutritionOutcome? ->
             Change(sheet)
         }
         nutritionFactory.create(
@@ -54,11 +53,6 @@ class SubstituteSheetFeature @AssistedInject constructor(
         ): SubstituteSheetFeature
     }
 }
-
-private val nutritionLens = Lens<SubstituteSheetState, NutritionState>(
-    get = { sheet -> sheet.nutrition },
-    set = { sheet, nutrition -> sheet.copy(nutrition = nutrition) },
-)
 
 // The transitions behind the actions. Only the feature instance calls them. They're outside the
 // class so that they can't reach its scope or store: they can run more than once, so they must
