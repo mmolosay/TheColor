@@ -1,0 +1,43 @@
+package io.github.mmolosay.thecolor.demo.data
+
+import io.github.mmolosay.thecolor.demo.domain.DecimalSeparator
+import io.github.mmolosay.thecolor.demo.domain.DemoSettings
+import io.github.mmolosay.thecolor.main.di.qualifiers.AppCoroutineScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+import javax.inject.Singleton
+import kotlin.time.Duration.Companion.milliseconds
+
+@Singleton
+class FakeDemoSettings @Inject constructor(
+    @AppCoroutineScope appScope: CoroutineScope,
+) : DemoSettings {
+
+    private val decimalSeparatorFlow = MutableStateFlow<DecimalSeparator?>(null)
+
+    // Read after the saved amount, so that the screen shows ounces before it arrives; not the
+    // ounces' default, so that its arrival can be seen on a device
+    override val decimalSeparator: StateFlow<DecimalSeparator?> =
+        decimalSeparatorFlow.asStateFlow()
+
+    init {
+        appScope.launch {
+            delay(SeparatorReadTime)
+            decimalSeparatorFlow.compareAndSet(expect = null, update = DecimalSeparator.Comma)
+        }
+    }
+
+    // for the demo's stand-in for the app's settings screen
+    fun setDecimalSeparator(separator: DecimalSeparator) {
+        decimalSeparatorFlow.value = separator
+    }
+
+    private companion object {
+        val SeparatorReadTime = 3000.milliseconds
+    }
+}

@@ -1,7 +1,5 @@
 package io.github.mmolosay.thecolor.presentation.center
 
-import android.content.Context
-
 /**
  * Strings that are pre-defined in UI and don't come from ViewModel.
  *
@@ -9,12 +7,6 @@ import android.content.Context
  * components (like Context), which should be avoided in ViewModels.
  */
 data class ColorCenterUiStrings(
-    val detailsPageChangePageButtonText: String,
-    val schemePageChangePageButtonText: String,
+    val page1ChangePageButtonText: String,
+    val page2ChangePageButtonText: String,
 )
-
-fun ColorCenterUiStrings(context: Context) =
-    ColorCenterUiStrings(
-        detailsPageChangePageButtonText = context.getString(R.string.color_center_details_page_change_button_text),
-        schemePageChangePageButtonText = context.getString(R.string.color_center_scheme_page_change_button_text),
-    )

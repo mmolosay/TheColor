@@ -3,6 +3,7 @@ package io.github.mmolosay.thecolor.presentation.input
 import io.github.mmolosay.thecolor.domain.color.prototype.ColorPrototype
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.model.isInShortForm
+import io.github.mmolosay.thecolor.utils.doubleEveryChar
 import javax.inject.Inject
 import io.github.mmolosay.thecolor.domain.color.Color as DomainColor
 
@@ -47,12 +48,4 @@ class ColorInputMapper @Inject constructor() {
             g = this.g.toString(),
             b = this.b.toString(),
         )
-
-    private fun String.doubleEveryChar(): String {
-        val result = StringBuilder()
-        for (char in this) {
-            repeat(2) { result.append(char) }
-        }
-        return result.toString()
-    }
 }

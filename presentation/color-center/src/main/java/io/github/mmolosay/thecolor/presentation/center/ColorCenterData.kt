@@ -1,19 +1,20 @@
 package io.github.mmolosay.thecolor.presentation.center
 
+import kotlinx.collections.immutable.ImmutableList
+import io.github.mmolosay.thecolor.utils.SideEffect as UtilsSideEffect
+
 /**
  * Platform-agnostic data provided by ViewModel to 'Color Center' View.
- *
- * @param changePage an action to be invoked by View to change the current page to some different page.
  */
 data class ColorCenterData(
-    val changePage: (destPage: Int) -> Unit,
-    val changePageEvent: ChangePageEvent?,
+    val sideEffects: ImmutableList<SideEffect>,
 ) {
 
-    // https://medium.com/androiddevelopers/viewmodel-one-off-event-antipatterns-16a1da869b95
-    // https://developer.android.com/topic/architecture/ui-layer/events#consuming-trigger-updates
-    data class ChangePageEvent(
-        val destPage: Int,
-        val onConsumed: () -> Unit,
-    )
+    sealed interface SideEffect : UtilsSideEffect {
+
+        data class ChangePage(
+            override val id: UtilsSideEffect.Id,
+            val pageIndex: Int,
+        ) : SideEffect
+    }
 }

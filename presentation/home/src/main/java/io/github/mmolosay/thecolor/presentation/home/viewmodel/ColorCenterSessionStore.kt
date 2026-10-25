@@ -1,6 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.home.viewmodel
 
 import io.github.mmolosay.thecolor.domain.color.Color
+import io.github.mmolosay.thecolor.domain.color.ColorComparator
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterSessionStore.SessionState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
@@ -100,4 +101,21 @@ internal val ColorCenterSessionStore.sessionState: SessionState
 
 internal fun SessionState.mustBeOngoing() {
     check(this is SessionState.Ongoing) { "SessionState $this must be Ongoing" }
+}
+
+@Suppress("unused") // I personally feel that this piece of logic may return to 'HomeViewModel' in some future
+internal fun Color.doesBelongToCurrentSession(
+    sessionState: SessionState,
+    colorComparator: () -> ColorComparator,
+    doesColorBelongToSession: () -> DoesColorBelongToSessionUseCase,
+): Boolean {
+    val color = this
+    return when (sessionState) {
+        is SessionState.NoSession ->
+            false // no session -> nothing to belong to
+        is SessionState.BeingBuilt ->
+            with(colorComparator()) { color isSameAs sessionState.seed } // started this session
+        is SessionState.Ongoing ->
+            with(doesColorBelongToSession()) { color doesBelongTo sessionState.session }
+    }
 }

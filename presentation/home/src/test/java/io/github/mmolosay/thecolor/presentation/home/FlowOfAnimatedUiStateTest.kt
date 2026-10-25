@@ -1,7 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.home
 
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
-import io.github.mmolosay.thecolor.presentation.home.ui.FlowOfAnimatedUiState
+import io.github.mmolosay.thecolor.presentation.home.ui.preview.FlowOfAnimatedUiState
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.CoroutineScope
@@ -27,9 +27,9 @@ internal class FlowOfAnimatedUiStateTest {
 
     fun sut(): StateFlow<UiState?> =
         FlowOfAnimatedUiState(
-            flowOfOriginalData = flowOfOriginalData,
-            flowOfVisibilityAnimDest = flowOfVisibilityAnimDest,
             coroutineScope = coroutineScope,
+            flowOfData = flowOfOriginalData,
+            flowOfVisibilityAnimDest = flowOfVisibilityAnimDest,
         )
 
     /**

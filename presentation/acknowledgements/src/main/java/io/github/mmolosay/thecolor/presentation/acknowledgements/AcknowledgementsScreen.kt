@@ -52,7 +52,8 @@ import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 @Composable
 fun AcknowledgementsScreen(
     navigateBack: () -> Unit,
-    produceLibraries: @Composable () -> State<Libs?> = { produceLibrariesByDefault() },
+    // referencing the resource by ID, not by name, keeps it from being removed by resource shrinking
+    produceLibraries: @Composable () -> State<Libs?> = { produceLibrariesByDefault(R.raw.aboutlibraries) },
 ) {
     val context = LocalContext.current
     val libraries by produceLibraries()

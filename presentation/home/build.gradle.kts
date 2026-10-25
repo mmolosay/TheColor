@@ -27,6 +27,7 @@ dependencies {
 
     // Kotlin
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.coroutines.get()}")
+    implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:${libs.versions.kotlinCollectionsImmutable.get()}")
 
     // Compose
     implementation("androidx.compose.material3:material3")

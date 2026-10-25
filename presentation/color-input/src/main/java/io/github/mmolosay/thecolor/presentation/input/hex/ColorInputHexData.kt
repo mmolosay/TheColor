@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.input.hex
 
+import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmissionResult
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 
 /**
@@ -7,5 +8,5 @@ import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
  */
 data class ColorInputHexData(
     val textField: TextFieldData,
-    val submitInput: () -> Unit,
+    val inputSubmissionResult: ColorInputSubmissionResult?,
 )
