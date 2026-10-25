@@ -69,7 +69,7 @@ class StoreTest {
     @Test
     fun `when a transition through a slice returns an equal state and no outcome, then the parent's reducer does NOT run, so that nothing is committed`() {
         createSut()
-        val desk = sut.slice(deskLens) { office, _: Nothing? ->
+        val desk = sut.slice(deskLens) { office ->
             Change(office.copy(other = office.other + 1)) // changes the office whenever it runs
         }
 
@@ -211,7 +211,7 @@ class StoreTest {
             .slice(letterLens, ::onLetter)
 
     fun createOtherSlice(): Store<Int, Nothing> =
-        sut.slice(otherLens) { office, _: Nothing? -> Change(office) }
+        sut.slice(otherLens) { office -> Change(office) }
 
     fun onDesk(office: Office, outcome: DeskOutcome?): Change<Office, Nothing> =
         when (outcome) {

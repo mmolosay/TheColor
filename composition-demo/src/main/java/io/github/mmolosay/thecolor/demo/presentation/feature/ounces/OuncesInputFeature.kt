@@ -6,6 +6,7 @@ import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.composition.CompositionUtils.child
 import io.github.mmolosay.thecolor.composition.Store
+import io.github.mmolosay.thecolor.composition.slice
 import io.github.mmolosay.thecolor.demo.domain.DecimalSeparator
 import io.github.mmolosay.thecolor.demo.domain.DemoSettings
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.Submission
@@ -34,7 +35,7 @@ class OuncesInputFeature @AssistedInject constructor(
     val textField: TextFieldFeature = run {
         // nothing to decide: the field has no outcomes, its environment keeps the rule for its text,
         // and a submission made on older text is no longer pending
-        val slice = store.slice(textFieldLens) { ounces, _: Nothing? -> Change(ounces) }
+        val slice = store.slice(textFieldLens) { ounces -> Change(ounces) }
         textFieldFactory.create(
             scope = scope.child(),
             store = slice,

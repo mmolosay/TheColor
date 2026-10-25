@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.composition.CompositionUtils.launchAwaited
 import io.github.mmolosay.thecolor.composition.Store
+import io.github.mmolosay.thecolor.composition.slice
 import io.github.mmolosay.thecolor.demo.domain.Amount
 import io.github.mmolosay.thecolor.demo.domain.RecipeRepository
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorFeature
@@ -84,7 +85,7 @@ class RecipeViewModel @Inject constructor(
 
     val sheet: SubstituteSheetFeature = run {
         // nothing to decide: the sheet has no outcomes, and the screen opens it in onSubstitutes
-        val slice = store.slice(sheetLens) { recipe, _: Nothing? -> Change(recipe) }
+        val slice = store.slice(sheetLens) { recipe -> Change(recipe) }
         sheetFactory.create(
             scope = viewModelScope,
             store = slice,

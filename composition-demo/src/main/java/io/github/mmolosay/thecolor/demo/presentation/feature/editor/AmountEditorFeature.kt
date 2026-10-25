@@ -6,6 +6,7 @@ import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.composition.CompositionUtils.child
 import io.github.mmolosay.thecolor.composition.Store
+import io.github.mmolosay.thecolor.composition.slice
 import io.github.mmolosay.thecolor.demo.domain.Amount
 import io.github.mmolosay.thecolor.demo.presentation.feature.cups.CupDialFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.cups.CupDialState
@@ -59,9 +60,7 @@ class AmountEditorFeature @AssistedInject constructor(
     }
 
     val cups: CupDialFeature = run {
-        val slice = store.slice(cupsLens) { editor, _: Nothing? ->
-            context(environment) { onCups(editor) }
-        }
+        val slice = store.slice(cupsLens) { editor -> context(environment) { onCups(editor) } }
         cupsFactory.create(
             scope = scope.child(),
             store = slice,
