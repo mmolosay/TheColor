@@ -14,9 +14,8 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.runComposeUiTest
 import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextField
-import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldEnvironment
+import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldCore
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldFeature
-import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldStateFactory
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFormatter
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.CoroutineScope
@@ -42,7 +41,7 @@ import tech.apter.junit.jupiter.robolectric.RobolectricExtension
 class TextFieldTest {
 
     // keeps any text, so that only the expected value decides whether an edit applies
-    val environment = TextFieldEnvironment(formatter = TextFormatter { text -> text })
+    val core = TextFieldCore(formatter = TextFormatter { text -> text })
 
     lateinit var field: TextFieldFeature
 
@@ -60,11 +59,10 @@ class TextFieldTest {
         }
 
     fun ComposeUiTest.createSut(text: String) {
-        val state = context(environment) { TextFieldStateFactory.create(text) }
         field = TextFieldFeature(
             scope = CoroutineScope(Job()),
-            store = Store(initialState = state),
-            environment = environment,
+            store = Store(initialState = core.initialState(text)),
+            core = core,
         )
         setContent {
             TextField(
@@ -86,7 +84,7 @@ class TextFieldTest {
     // the text of the field itself, without its label
     val ComposeUiTest.shownText: String
         get() {
-            val node = onNode(hasSetTextAction()).fetchSemanticsNode()
-            return node.config[SemanticsProperties.EditableText].text
+            val core = onNode(hasSetTextAction()).fetchSemanticsNode()
+            return core.config[SemanticsProperties.EditableText].text
         }
 }

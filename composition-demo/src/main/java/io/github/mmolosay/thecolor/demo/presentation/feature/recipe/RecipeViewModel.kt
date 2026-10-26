@@ -7,20 +7,15 @@ import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.composition.CompositionUtils.launchAwaited
 import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.composition.slice
-import io.github.mmolosay.thecolor.demo.domain.Amount
 import io.github.mmolosay.thecolor.demo.domain.RecipeRepository
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorOutcome
-import io.github.mmolosay.thecolor.demo.presentation.feature.editor.withSubmissionAccepted
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionOutcome
 import io.github.mmolosay.thecolor.demo.presentation.feature.sheet.SubstituteSheetFeature
-import io.github.mmolosay.thecolor.demo.presentation.feature.sheet.withSubstitute
 import io.github.mmolosay.thecolor.demo.presentation.feature.substitutes.SubstitutesFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.substitutes.SubstitutesOutcome
-import io.github.mmolosay.thecolor.demo.presentation.feature.substitutes.withSort
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldFeature
-import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldStateFactory
 import io.github.mmolosay.thecolor.utils.mapState
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
@@ -28,203 +23,88 @@ import io.github.mmolosay.thecolor.demo.presentation.feature.recipe.RecipeStateL
 
 @HiltViewModel
 class RecipeViewModel @Inject constructor(
-    private val environment: RecipeEnvironment,
+    coreFactory: RecipeCore.Factory,
     editorFactory: AmountEditorFeature.Factory,
     nutritionFactory: NutritionFeature.Factory,
     substitutesFactory: SubstitutesFeature.Factory,
     sheetFactory: SubstituteSheetFeature.Factory,
     textFieldFactory: TextFieldFeature.Factory,
-    private val repository: RecipeRepository, // from dependency injection: only the work uses it
+    repository: RecipeRepository, // from dependency injection: only the work uses it
 ) : ViewModel() {
 
-    private val store = run {
-        val state = context(environment) { RecipeStateFactory.create() }
-        Store(initialState = state)
-    }
+    // the screen's, which creates its children's, and so on down the tree
+    private val core: RecipeCore = coreFactory.create()
+
+    private val store = Store(initialState = core.initialState())
 
     val viewData: StateFlow<RecipeViewData> =
-        store.mapState { recipe -> context(environment) { recipe.toViewData() } }
+        store.mapState { state -> with(core) { state.toViewData() } }
 
     // for its View, which shows the children's Views
-    val editor: AmountEditorFeature = run {
-        val slice = store.slice(StateLenses.editor) { recipe, outcome: AmountEditorOutcome? ->
-            context(environment) { onEditor(recipe, outcome) }
-        }
-        editorFactory.create(
-            scope = viewModelScope,
-            store = slice,
-            environment = environment.editor,
-        )
-    }
+    val editor: AmountEditorFeature = editorFactory.create(
+        scope = viewModelScope,
+        store = store.slice(StateLenses.editor) { state, outcome: AmountEditorOutcome? ->
+            with(core) { state.onEditor(outcome) }
+        },
+        core = core.editorCore,
+    )
 
-    val nutrition: NutritionFeature = run {
-        val slice = store.slice(StateLenses.nutrition) { recipe, outcome: NutritionOutcome? ->
-            context(environment) { onNutrition(recipe, outcome) }
-        }
-        nutritionFactory.create(
-            scope = viewModelScope,
-            store = slice,
-            environment = environment.nutrition,
-        )
-    }
+    val nutrition: NutritionFeature = nutritionFactory.create(
+        scope = viewModelScope,
+        store = store.slice(StateLenses.nutrition) { state, outcome: NutritionOutcome? ->
+            with(core) { state.onNutrition(outcome) }
+        },
+        core = core.nutritionCore,
+    )
 
-    val substitutes: SubstitutesFeature = run {
-        val slice = store.slice(StateLenses.substitutes) { recipe, outcome: SubstitutesOutcome? ->
-            context(environment) { onSubstitutes(recipe, outcome) }
-        }
-        substitutesFactory.create(
-            scope = viewModelScope,
-            store = slice,
-            environment = environment.substitutes,
-        )
-    }
+    val substitutes: SubstitutesFeature = substitutesFactory.create(
+        scope = viewModelScope,
+        store = store.slice(StateLenses.substitutes) { state, outcome: SubstitutesOutcome? ->
+            with(core) { state.onSubstitutes(outcome) }
+        },
+        core = core.substitutesCore,
+    )
 
-    val sheet: SubstituteSheetFeature = run {
-        // nothing to decide: the sheet has no outcomes, and the screen opens it in onSubstitutes
-        val slice = store.slice(StateLenses.sheet) { recipe -> Change(recipe) }
-        sheetFactory.create(
-            scope = viewModelScope,
-            store = slice,
-            environment = environment.sheet,
-        )
-    }
+    // nothing to decide: the sheet has no outcomes, and the screen opens it in onSubstitutes
+    val sheet: SubstituteSheetFeature = sheetFactory.create(
+        scope = viewModelScope,
+        store = store.slice(StateLenses.sheet) { state -> Change(state) },
+        core = core.sheetCore,
+    )
 
     // Nothing in the screen's functions reads or writes the servings, so the field gets a store of its
     // own, and its commits wake only its own View
-    val servings: TextFieldFeature = run {
-        val state = context(environment.servings) { TextFieldStateFactory.create(text = "1") }
-        textFieldFactory.create(
-            scope = viewModelScope,
-            store = Store(initialState = state),
-            environment = environment.servings,
-        )
-    }
+    val servings: TextFieldFeature = textFieldFactory.create(
+        scope = viewModelScope,
+        store = Store(initialState = core.servingsCore.initialState(text = "1")),
+        core = core.servingsCore,
+    )
 
     init {
         // each kind of work on its own, so that one never restarts the other
         viewModelScope.launchAwaited(
             store = store,
-            awaited = { recipe -> context(environment) { recipe.awaitedLoad() } },
+            awaited = { state -> with(core) { state.awaitedLoad() } },
             block = { request ->
                 val amount = repository.lastAmount()
-                store.update { recipe ->
-                    context(environment) { recipe.receiveLoad(request, amount) }
-                }
+                store.update { state -> with(core) { state.receiveLoad(request, amount) } }
             },
         )
         viewModelScope.launchAwaited(
             store = store,
-            awaited = { recipe -> context(environment) { recipe.awaitedSave() } },
+            awaited = { state -> with(core) { state.awaitedSave() } },
             block = { request ->
                 repository.saveLastAmount(request.amount)
-                store.update { recipe ->
-                    context(environment) { recipe.receiveSave(request) }
-                }
+                store.update { state -> with(core) { state.receiveSave(request) } }
             },
         )
     }
 
-    fun applyPreset(preset: RecipePreset) {
-        store.update { recipe ->
-            context(environment) { recipe.applyPreset(preset) }
-        }
-    }
-
     fun messageShown(message: SavedMessage) {
-        store.update { recipe ->
-            context(environment) { recipe.messageShown(message) }
-        }
-    }
-}
-
-// The reducers for its children. Only the screen's ViewModel runs them, inside a child's update
-
-// For any change of the editor's own, the user's or not. The cards follow the amount the change
-// leaves. A submitted amount is saved, and its submission waits until it is
-context(_: RecipeEnvironment)
-fun onEditor(
-    recipe: RecipeState,
-    outcome: AmountEditorOutcome?,
-): Change<RecipeState, Nothing> {
-    val state = recipe.withCardsForAmount()
-    return when (outcome) {
-        null -> Change(state)
-        is AmountEditorOutcome.Submitted -> {
-            val save = SaveRequest(amount = outcome.amount)
-            Change(state.copy(save = save))
-        }
-    }
-}
-
-// a suggested portion taken on the card becomes the recipe's amount, as if the user had entered it
-context(_: RecipeEnvironment)
-fun onNutrition(
-    recipe: RecipeState,
-    outcome: NutritionOutcome?,
-): Change<RecipeState, Nothing> =
-    when (outcome) {
-        null -> Change(recipe)
-        is NutritionOutcome.SuggestionSelected -> Change(recipe.withAmount(outcome.amount))
+        store.update { state -> with(core) { state.messageShown(message) } }
     }
 
-// a substitute picked from the list opens in the sheet, as a new session
-context(environment: RecipeEnvironment)
-fun onSubstitutes(
-    recipe: RecipeState,
-    outcome: SubstitutesOutcome?,
-): Change<RecipeState, Nothing> =
-    when (outcome) {
-        null -> Change(recipe)
-        is SubstitutesOutcome.SubstituteSelected -> {
-            val sheet = context(environment.sheet) { recipe.sheet.withSubstitute(outcome.facts) }
-            Change(recipe.copy(sheet = sheet))
-        }
+    fun applyPreset(preset: RecipePreset) {
+        store.update { state -> with(core) { state.applyPreset(preset) } }
     }
-
-// The transitions behind the actions and the results. Only the screen's ViewModel calls them.
-// They're outside the class so that they can't reach its scope or store: they can run more than
-// once, so they must have no side effects
-
-// the amount and the sort change as one: the editor never holds the preset's amount while the
-// substitutes are in the old sort
-context(environment: RecipeEnvironment)
-fun RecipeState.applyPreset(preset: RecipePreset): Change<RecipeState, Nothing> {
-    val withAmount = this.withAmount(preset.amount)
-    val substitutes = context(environment.substitutes) {
-        withAmount.substitutes.withSort(preset.sort)
-    }
-    val state = withAmount.copy(substitutes = substitutes)
-    return Change(state)
-}
-
-// Applies only to the load the screen still waits for, so that the saved amount fills only the
-// editor as the screen opened it, and never replaces what was entered meanwhile, even if it was
-// emptied since
-context(environment: RecipeEnvironment)
-fun RecipeState.receiveLoad(
-    request: LoadRequest,
-    amount: Amount?,
-): Change<RecipeState, Nothing> {
-    if (this.awaitedLoad() != request) return Change(this) // received, or the editor set since
-    val state = this.copy(load = null).withAmount(amount)
-    return Change(state)
-}
-
-// Applies only to the save the screen still waits for. Accepts the submission it was made for, and
-// asks for the message, in one change, so that neither happens without the other
-context(environment: RecipeEnvironment)
-fun RecipeState.receiveSave(request: SaveRequest): Change<RecipeState, Nothing> {
-    if (this.awaitedSave() != request) return Change(this) // withdrawn, or a newer one is saved
-    val editor = context(environment.editor) { this.editor.withSubmissionAccepted() }
-    val message = SavedMessage(amount = request.amount)
-    val state = this.copy(editor = editor, save = null, messages = this.messages + message)
-    return Change(state)
-}
-
-// what's left once the View has shown this message: a newer one stays
-context(_: RecipeEnvironment)
-fun RecipeState.messageShown(message: SavedMessage): Change<RecipeState, Nothing> {
-    val messages = this.messages.filterNot { it == message }
-    val state = this.copy(messages = messages)
-    return Change(state)
 }

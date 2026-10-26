@@ -1,9 +1,6 @@
 package io.github.mmolosay.thecolor.demo.presentation.feature.sheet
 
-import io.github.mmolosay.thecolor.demo.domain.NutritionFacts
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionState
-import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionStateFactory
-import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.withFacts
 import io.github.mmolosay.thecolor.utils.Identity
 import io.github.mmolosay.thecolor.utils.Lens
 
@@ -22,28 +19,7 @@ data class SubstituteSheetState(
 object SubstituteSheetStateLenses {
 
     val nutrition = Lens<SubstituteSheetState, NutritionState>(
-        get = { sheet -> sheet.nutrition },
-        set = { sheet, nutrition -> sheet.copy(nutrition = nutrition) },
+        get = { state -> state.nutrition },
+        set = { state, nutrition -> state.copy(nutrition = nutrition) },
     )
 }
-
-object SubstituteSheetStateFactory {
-
-    // closed
-    context(environment: SubstituteSheetEnvironment)
-    fun create(): SubstituteSheetState {
-        val nutrition = context(environment.nutrition) { NutritionStateFactory.create() }
-        return SubstituteSheetState(session = null, nutrition = nutrition)
-    }
-}
-
-// for the parent: a new session for a substitute, from the facts the parent already has
-context(environment: SubstituteSheetEnvironment)
-fun SubstituteSheetState.withSubstitute(facts: NutritionFacts): SubstituteSheetState {
-    val nutrition = context(environment.nutrition) { this.nutrition.withFacts(facts) }
-    return SubstituteSheetState(session = SheetSession(), nutrition = nutrition)
-}
-
-context(_: SubstituteSheetEnvironment)
-fun SubstituteSheetState.toViewData(): SubstituteSheetViewData =
-    SubstituteSheetViewData(session = this.session)

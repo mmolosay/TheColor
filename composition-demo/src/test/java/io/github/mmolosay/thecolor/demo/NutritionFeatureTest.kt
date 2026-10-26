@@ -7,13 +7,11 @@ import io.github.mmolosay.thecolor.demo.domain.AmountConverter
 import io.github.mmolosay.thecolor.demo.domain.Ingredient
 import io.github.mmolosay.thecolor.demo.domain.NutritionFacts
 import io.github.mmolosay.thecolor.demo.domain.NutritionService
-import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionEnvironment
+import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionCore
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionOutcome
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionState
-import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionStateFactory
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionViewData
-import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.forAmountOf
 import io.github.mmolosay.thecolor.demo.presentation.format.LocaleAmountFormatter
 import io.github.mmolosay.thecolor.demo.presentation.format.LocaleNutritionFormatter
 import io.github.mmolosay.thecolor.utils.Lens
@@ -44,7 +42,7 @@ class NutritionFeatureTest {
     val testDispatcher = StandardTestDispatcher()
 
     // real implementations: the view data says which amount the card is for
-    val environment = NutritionEnvironment(
+    val core = NutritionCore(
         amountConverter = AmountConverter(),
         amountFormatter = LocaleAmountFormatter(),
         nutritionFormatter = LocaleNutritionFormatter(),
@@ -99,28 +97,27 @@ class NutritionFeatureTest {
         }
 
     fun createSut(scope: CoroutineScope) {
-        val state = context(environment) { NutritionStateFactory.create() }
-        store = Store(initialState = state)
+        store = Store(initialState = core.initialState())
         // the parent's part: it hands nothing up
         val slice = run {
             val lens = Lens<NutritionState, NutritionState>(
-                get = { nutrition -> nutrition },
-                set = { _, nutrition -> nutrition },
+                get = { state -> state },
+                set = { _, state -> state },
             )
-            store.slice(lens) { nutrition, _: NutritionOutcome? -> Change(nutrition) }
+            store.slice(lens) { state, _: NutritionOutcome? -> Change(state) }
         }
         sut = NutritionFeature(
             scope = scope,
             store = slice,
-            environment = environment,
+            core = core,
             service = service,
         )
     }
 
     // as the parent does, through the feature's operation
     fun setAmount(amount: Amount) {
-        store.update { nutrition ->
-            context(environment) { Change(nutrition.forAmountOf(Ingredient.Flour, amount)) }
+        store.update { state ->
+            with(core) { Change(state.forAmountOf(Ingredient.Flour, amount)) }
         }
     }
 

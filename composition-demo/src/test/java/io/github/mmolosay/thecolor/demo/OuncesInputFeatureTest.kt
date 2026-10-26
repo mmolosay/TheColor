@@ -5,11 +5,11 @@ import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.demo.domain.AmountConverter
 import io.github.mmolosay.thecolor.demo.domain.DecimalSeparator
 import io.github.mmolosay.thecolor.demo.domain.DemoSettings
-import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputEnvironment
+import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputCore
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputOutcome
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputState
-import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputStateFactory
+import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldCore
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldFeature
 import io.github.mmolosay.thecolor.utils.Lens
 import io.kotest.matchers.shouldBe
@@ -23,7 +23,10 @@ import org.junit.jupiter.api.Test
 
 class OuncesInputFeatureTest {
 
-    val environment = OuncesInputEnvironment(amountConverter = AmountConverter())
+    val core = OuncesInputCore(
+        amountConverter = AmountConverter(),
+        textFieldFactory = TextFieldCore.Factory(::TextFieldCore),
+    )
 
     val separator = MutableStateFlow<DecimalSeparator?>(DecimalSeparator.Point)
 
@@ -49,27 +52,24 @@ class OuncesInputFeatureTest {
     }
 
     fun createSut() {
-        val state = context(environment) { OuncesInputStateFactory.create(amount = null) }
-        val store = Store(initialState = state)
+        val store = Store(initialState = core.initialState(amount = null))
         // the parent's part: it answers no submission
         val slice = run {
             val lens = Lens<OuncesInputState, OuncesInputState>(
-                get = { ounces -> ounces },
-                set = { _, ounces -> ounces },
+                get = { state -> state },
+                set = { _, state -> state },
             )
-            store.slice(lens) { ounces, _: OuncesInputOutcome? -> Change(ounces) }
+            store.slice(lens) { state, _: OuncesInputOutcome? -> Change(state) }
         }
         sut = OuncesInputFeature(
             // a setting's value applies at once, inside 'MutableStateFlow.value' assignment
             scope = CoroutineScope(Job() + Dispatchers.Unconfined),
             store = slice,
-            environment = environment,
+            core = core,
             textFieldFactory = textFieldFactory,
             settings = settings,
         )
     }
 
-    val textFieldFactory = TextFieldFeature.Factory { scope, store, environment ->
-        TextFieldFeature(scope, store, environment)
-    }
+    val textFieldFactory = TextFieldFeature.Factory(::TextFieldFeature)
 }

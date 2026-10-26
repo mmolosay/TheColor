@@ -7,13 +7,11 @@ import io.github.mmolosay.thecolor.demo.domain.AmountConverter
 import io.github.mmolosay.thecolor.demo.domain.Ingredient
 import io.github.mmolosay.thecolor.demo.domain.NutritionFacts
 import io.github.mmolosay.thecolor.demo.domain.NutritionService
-import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionEnvironment
+import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionCore
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionFeature
-import io.github.mmolosay.thecolor.demo.presentation.feature.sheet.SubstituteSheetEnvironment
+import io.github.mmolosay.thecolor.demo.presentation.feature.sheet.SubstituteSheetCore
 import io.github.mmolosay.thecolor.demo.presentation.feature.sheet.SubstituteSheetFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.sheet.SubstituteSheetState
-import io.github.mmolosay.thecolor.demo.presentation.feature.sheet.SubstituteSheetStateFactory
-import io.github.mmolosay.thecolor.demo.presentation.feature.sheet.withSubstitute
 import io.github.mmolosay.thecolor.demo.presentation.format.LocaleAmountFormatter
 import io.github.mmolosay.thecolor.demo.presentation.format.LocaleNutritionFormatter
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -27,12 +25,14 @@ import java.math.BigDecimal
 
 class SubstituteSheetFeatureTest {
 
-    val environment = SubstituteSheetEnvironment(
-        nutrition = NutritionEnvironment(
-            amountConverter = AmountConverter(),
-            amountFormatter = LocaleAmountFormatter(),
-            nutritionFormatter = LocaleNutritionFormatter(),
-        ),
+    val core = SubstituteSheetCore(
+        nutritionFactory = {
+            NutritionCore(
+                amountConverter = AmountConverter(),
+                amountFormatter = LocaleAmountFormatter(),
+                nutritionFormatter = LocaleNutritionFormatter(),
+            )
+        },
     )
 
     // never called: the sheet opens with facts its parent already has
@@ -55,25 +55,24 @@ class SubstituteSheetFeatureTest {
     }
 
     fun createSut() {
-        val state = context(environment) { SubstituteSheetStateFactory.create() }
-        store = Store(initialState = state)
+        store = Store(initialState = core.initialState())
         sut = SubstituteSheetFeature(
             scope = CoroutineScope(Job() + Dispatchers.Unconfined),
             store = store,
-            environment = environment,
+            core = core,
             nutritionFactory = nutritionFactory,
         )
     }
 
     // as the parent does, through the feature's operation
     fun open(facts: NutritionFacts) {
-        store.update { sheet ->
-            context(environment) { Change(sheet.withSubstitute(facts)) }
+        store.update { state ->
+            with(core) { Change(state.withSubstitute(facts)) }
         }
     }
 
-    val nutritionFactory = NutritionFeature.Factory { scope, store, environment ->
-        NutritionFeature(scope, store, environment, nutritionService)
+    val nutritionFactory = NutritionFeature.Factory { scope, store, core ->
+        NutritionFeature(scope, store, core, nutritionService)
     }
 
     val substitute = NutritionFacts(

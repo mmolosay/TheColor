@@ -22,13 +22,6 @@ import io.github.mmolosay.thecolor.demo.R
 import androidx.compose.foundation.text.input.TextFieldState as ComposeTextFieldState
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
-/**
- * An edit made on text that [feature] no longer holds is dropped, and the field shows what it holds
- * instead.
- *
- * The other parameters depend on where the field sits rather than on its state, so the parent's
- * View sets them.
- */
 @Composable
 fun TextField(
     feature: TextFieldFeature,

@@ -7,20 +7,17 @@ import io.github.mmolosay.thecolor.demo.domain.AmountConverter
 import io.github.mmolosay.thecolor.demo.domain.CupSampler
 import io.github.mmolosay.thecolor.demo.domain.DemoSettings
 import io.github.mmolosay.thecolor.demo.domain.isSameAs
-import io.github.mmolosay.thecolor.demo.presentation.feature.cups.CupDialEnvironment
+import io.github.mmolosay.thecolor.demo.presentation.feature.cups.CupDialCore
 import io.github.mmolosay.thecolor.demo.presentation.feature.cups.CupDialFeature
-import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorEnvironment
+import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorCore
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorOutcome
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorState
-import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorStateFactory
-import io.github.mmolosay.thecolor.demo.presentation.feature.editor.withAmount
-import io.github.mmolosay.thecolor.demo.presentation.feature.grams.GramsInputEnvironment
+import io.github.mmolosay.thecolor.demo.presentation.feature.grams.GramsInputCore
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.GramsInputFeature
-import io.github.mmolosay.thecolor.demo.presentation.feature.grams.amount
-import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputEnvironment
+import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputCore
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputFeature
-import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.amount
+import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldCore
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldFeature
 import io.github.mmolosay.thecolor.demo.presentation.format.LocaleAmountFormatter
 import io.github.mmolosay.thecolor.utils.Lens
@@ -47,16 +44,15 @@ import org.junit.jupiter.api.Test
 class AmountEditorFeatureTest {
 
     // real implementations: the conversion between grams and ounces is what the inputs agree on
-    val environment = run {
-        val converter = AmountConverter()
-        AmountEditorEnvironment(
-            grams = GramsInputEnvironment(amountConverter = converter),
-            ounces = OuncesInputEnvironment(amountConverter = converter),
-            cups = CupDialEnvironment(
-                amountConverter = converter,
-                amountFormatter = LocaleAmountFormatter(),
-            ),
+    val converter = AmountConverter()
+
+    val core = run {
+        val textFieldCoreFactory = TextFieldCore.Factory(::TextFieldCore)
+        AmountEditorCore(
             amountConverter = converter,
+            gramsFactory = { GramsInputCore(converter, textFieldCoreFactory) },
+            ouncesFactory = { OuncesInputCore(converter, textFieldCoreFactory) },
+            cupsFactory = { CupDialCore(converter, LocaleAmountFormatter()) },
         )
     }
 
@@ -90,8 +86,8 @@ class AmountEditorFeatureTest {
     @Test
     fun `given the parent has just set an amount, when a keystroke made on the text before it arrives, then the keystroke is dropped and both inputs show the parent's amount`() {
         createSut(amount = Amount.Grams(value = 4))
-        store.update { editor ->
-            context(environment) { Change(editor.withAmount(Amount.Grams(value = 100))) }
+        store.update { state ->
+            with(core) { Change(state.withAmount(Amount.Grams(value = 100))) }
         }
 
         sut.grams.textField.enterText(text = "42", expected = "4")
@@ -100,40 +96,37 @@ class AmountEditorFeatureTest {
     }
 
     fun createSut(amount: Amount?) {
-        val state = context(environment) { AmountEditorStateFactory.create(amount) }
-        store = Store(initialState = state)
+        store = Store(initialState = core.initialState(amount))
         // the parent's part: it answers no submission and hands nothing up
         val slice = run {
             val lens = Lens<AmountEditorState, AmountEditorState>(
-                get = { editor -> editor },
-                set = { _, editor -> editor },
+                get = { state -> state },
+                set = { _, state -> state },
             )
-            store.slice(lens) { editor, _: AmountEditorOutcome? -> Change(editor) }
+            store.slice(lens) { state, _: AmountEditorOutcome? -> Change(state) }
         }
         sut = AmountEditorFeature(
             scope = CoroutineScope(Job()),
             store = slice,
-            environment = environment,
+            core = core,
             gramsFactory = gramsFactory,
             ouncesFactory = ouncesFactory,
             cupsFactory = cupsFactory,
         )
     }
 
-    val textFieldFactory = TextFieldFeature.Factory { scope, store, environment ->
-        TextFieldFeature(scope, store, environment)
+    val textFieldFactory = TextFieldFeature.Factory(::TextFieldFeature)
+
+    val gramsFactory = GramsInputFeature.Factory { scope, store, core ->
+        GramsInputFeature(scope, store, core, textFieldFactory)
     }
 
-    val gramsFactory = GramsInputFeature.Factory { scope, store, environment ->
-        GramsInputFeature(scope, store, environment, textFieldFactory)
+    val ouncesFactory = OuncesInputFeature.Factory { scope, store, core ->
+        OuncesInputFeature(scope, store, core, textFieldFactory, settings)
     }
 
-    val ouncesFactory = OuncesInputFeature.Factory { scope, store, environment ->
-        OuncesInputFeature(scope, store, environment, textFieldFactory, settings)
-    }
-
-    val cupsFactory = CupDialFeature.Factory { scope, store, environment ->
-        CupDialFeature(scope, store, environment, cupSampler, Dispatchers.Unconfined)
+    val cupsFactory = CupDialFeature.Factory { scope, store, core ->
+        CupDialFeature(scope, store, core, cupSampler, Dispatchers.Unconfined)
     }
 
     // the grams' text and the ounces' text, as their Views show them
@@ -145,8 +138,8 @@ class AmountEditorFeatureTest {
         }
 
     fun AmountEditorState.inputsAgree(): Boolean {
-        val grams = context(environment.grams) { this.grams.amount() }
-        val ounces = context(environment.ounces) { this.ounces.amount() }
-        return context(environment.amountConverter) { grams isSameAs ounces }
+        val gramsAmount = with(core.gramsCore) { grams.amount() }
+        val ouncesAmount = with(core.ouncesCore) { ounces.amount() }
+        return context(converter) { gramsAmount isSameAs ouncesAmount }
     }
 }

@@ -5,11 +5,9 @@ import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.demo.domain.Amount
 import io.github.mmolosay.thecolor.demo.domain.AmountConverter
 import io.github.mmolosay.thecolor.demo.domain.CupSampler
-import io.github.mmolosay.thecolor.demo.presentation.feature.cups.CupDialEnvironment
+import io.github.mmolosay.thecolor.demo.presentation.feature.cups.CupDialCore
 import io.github.mmolosay.thecolor.demo.presentation.feature.cups.CupDialFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.cups.CupDialState
-import io.github.mmolosay.thecolor.demo.presentation.feature.cups.CupDialStateFactory
-import io.github.mmolosay.thecolor.demo.presentation.feature.cups.withAmount
 import io.github.mmolosay.thecolor.demo.presentation.format.LocaleAmountFormatter
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
@@ -32,7 +30,7 @@ class CupDialFeatureTest {
 
     val testDispatcher = StandardTestDispatcher()
 
-    val environment = CupDialEnvironment(
+    val core = CupDialCore(
         amountConverter = AmountConverter(),
         amountFormatter = LocaleAmountFormatter(),
     )
@@ -67,12 +65,11 @@ class CupDialFeatureTest {
         }
 
     fun createSut(scope: CoroutineScope) {
-        val state = context(environment) { CupDialStateFactory.create(amount = null) }
-        store = Store(initialState = state)
+        store = Store(initialState = core.initialState(amount = null))
         sut = CupDialFeature(
             scope = scope,
             store = store,
-            environment = environment,
+            core = core,
             sampler = sampler,
             workDispatcher = testDispatcher,
         )
@@ -80,8 +77,8 @@ class CupDialFeatureTest {
 
     // as the parent does, through the feature's operation
     fun setAmount(amount: Amount) {
-        store.update { dial ->
-            context(environment) { Change(dial.withAmount(amount)) }
+        store.update { state ->
+            with(core) { Change(state.withAmount(amount)) }
         }
     }
 }

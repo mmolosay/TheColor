@@ -8,7 +8,6 @@ import io.github.mmolosay.thecolor.composition.CompositionUtils.child
 import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionOutcome
-import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionStateFactory
 import io.github.mmolosay.thecolor.utils.mapState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
@@ -17,31 +16,29 @@ import io.github.mmolosay.thecolor.demo.presentation.feature.sheet.SubstituteShe
 class SubstituteSheetFeature @AssistedInject constructor(
     @Assisted scope: CoroutineScope,
     @Assisted private val store: Store<SubstituteSheetState, *>,
-    @Assisted private val environment: SubstituteSheetEnvironment,
+    @Assisted private val core: SubstituteSheetCore,
     nutritionFactory: NutritionFeature.Factory,
 ) {
 
     val viewData: StateFlow<SubstituteSheetViewData> =
-        store.mapState { sheet -> context(environment) { sheet.toViewData() } }
+        store.mapState { state -> with(core) { state.toViewData() } }
 
     // for its View, which shows the card's View
     val nutrition: NutritionFeature = run {
         // A suggestion taken here moves only the sheet's card, which the card does itself; the
         // recipe's amount stays. So there's nothing more to decide
-        val slice = store.slice(StateLenses.nutrition) { sheet, _: NutritionOutcome? ->
-            Change(sheet)
+        val slice = store.slice(StateLenses.nutrition) { state, _: NutritionOutcome? ->
+            Change(state)
         }
         nutritionFactory.create(
             scope = scope.child(),
             store = slice,
-            environment = environment.nutrition,
+            core = core.nutritionCore,
         )
     }
 
     fun close(session: SheetSession) {
-        store.update { sheet ->
-            context(environment) { sheet.close(session) }
-        }
+        store.update { state -> with(core) { state.close(session) } }
     }
 
     @AssistedFactory
@@ -49,21 +46,7 @@ class SubstituteSheetFeature @AssistedInject constructor(
         fun create(
             scope: CoroutineScope,
             store: Store<SubstituteSheetState, *>,
-            environment: SubstituteSheetEnvironment,
+            core: SubstituteSheetCore,
         ): SubstituteSheetFeature
     }
-}
-
-// The transitions behind the actions. Only the feature instance calls them. They're outside the
-// class so that they can't reach its scope or store: they can run more than once, so they must
-// have no side effects
-
-// applies only to the session the View showed, so that closing an earlier session never closes a
-// newer one
-context(environment: SubstituteSheetEnvironment)
-fun SubstituteSheetState.close(session: SheetSession): Change<SubstituteSheetState, Nothing> {
-    if (this.session != session) return Change(this)
-    val nutrition = context(environment.nutrition) { NutritionStateFactory.create() }
-    val state = SubstituteSheetState(session = null, nutrition = nutrition)
-    return Change(state)
 }

@@ -6,22 +6,23 @@ import io.github.mmolosay.thecolor.demo.domain.CupSampler
 import io.github.mmolosay.thecolor.demo.domain.DemoSettings
 import io.github.mmolosay.thecolor.demo.domain.NutritionService
 import io.github.mmolosay.thecolor.demo.domain.RecipeRepository
-import io.github.mmolosay.thecolor.demo.presentation.feature.cups.CupDialEnvironment
+import io.github.mmolosay.thecolor.demo.presentation.feature.cups.CupDialCore
 import io.github.mmolosay.thecolor.demo.presentation.feature.cups.CupDialFeature
-import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorEnvironment
+import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorCore
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorFeature
-import io.github.mmolosay.thecolor.demo.presentation.feature.grams.GramsInputEnvironment
+import io.github.mmolosay.thecolor.demo.presentation.feature.grams.GramsInputCore
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.GramsInputFeature
-import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionEnvironment
+import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionCore
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionFeature
-import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputEnvironment
+import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputCore
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputFeature
-import io.github.mmolosay.thecolor.demo.presentation.feature.recipe.RecipeEnvironment
+import io.github.mmolosay.thecolor.demo.presentation.feature.recipe.RecipeCore
 import io.github.mmolosay.thecolor.demo.presentation.feature.recipe.RecipeViewModel
-import io.github.mmolosay.thecolor.demo.presentation.feature.sheet.SubstituteSheetEnvironment
+import io.github.mmolosay.thecolor.demo.presentation.feature.sheet.SubstituteSheetCore
 import io.github.mmolosay.thecolor.demo.presentation.feature.sheet.SubstituteSheetFeature
-import io.github.mmolosay.thecolor.demo.presentation.feature.substitutes.SubstitutesEnvironment
+import io.github.mmolosay.thecolor.demo.presentation.feature.substitutes.SubstitutesCore
 import io.github.mmolosay.thecolor.demo.presentation.feature.substitutes.SubstitutesFeature
+import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldCore
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldFeature
 import io.github.mmolosay.thecolor.demo.presentation.format.LocaleAmountFormatter
 import io.github.mmolosay.thecolor.demo.presentation.format.LocaleNutritionFormatter
@@ -56,37 +57,30 @@ class RecipeViewModelTest {
     @Suppress("unused")
     val mainDispatcherExtension = MainDispatcherExtension(testDispatcher)
 
-    // real implementations: the editor's texts are what the tests check
-    val environment = run {
+    // real implementations, as dependency injection builds them: the editor's texts are what the
+    // tests check
+    val coreFactory = RecipeCore.Factory {
         val converter = AmountConverter()
-        val formatter = LocaleAmountFormatter()
-        RecipeEnvironment(
-            editor = AmountEditorEnvironment(
-                grams = GramsInputEnvironment(amountConverter = converter),
-                ounces = OuncesInputEnvironment(amountConverter = converter),
-                cups = CupDialEnvironment(
+        val amountFormatter = LocaleAmountFormatter()
+        val nutritionFormatter = LocaleNutritionFormatter()
+        val textFieldCoreFactory = TextFieldCore.Factory(::TextFieldCore)
+        val nutritionCoreFactory = NutritionCore.Factory {
+            NutritionCore(converter, amountFormatter, nutritionFormatter)
+        }
+        RecipeCore(
+            amountFormatter = amountFormatter,
+            editorFactory = {
+                AmountEditorCore(
                     amountConverter = converter,
-                    amountFormatter = formatter,
-                ),
-                amountConverter = converter,
-            ),
-            nutrition = NutritionEnvironment(
-                amountConverter = converter,
-                amountFormatter = formatter,
-                nutritionFormatter = LocaleNutritionFormatter(),
-            ),
-            substitutes = SubstitutesEnvironment(
-                amountConverter = converter,
-                nutritionFormatter = LocaleNutritionFormatter(),
-            ),
-            sheet = SubstituteSheetEnvironment(
-                nutrition = NutritionEnvironment(
-                    amountConverter = converter,
-                    amountFormatter = formatter,
-                    nutritionFormatter = LocaleNutritionFormatter(),
-                ),
-            ),
-            amountFormatter = formatter,
+                    gramsFactory = { GramsInputCore(converter, textFieldCoreFactory) },
+                    ouncesFactory = { OuncesInputCore(converter, textFieldCoreFactory) },
+                    cupsFactory = { CupDialCore(converter, amountFormatter) },
+                )
+            },
+            nutritionFactory = nutritionCoreFactory,
+            substitutesFactory = { SubstitutesCore(converter, nutritionFormatter) },
+            sheetFactory = { SubstituteSheetCore(nutritionCoreFactory) },
+            textFieldFactory = textFieldCoreFactory,
         )
     }
 
@@ -186,7 +180,7 @@ class RecipeViewModelTest {
 
     fun createSut() {
         sut = RecipeViewModel(
-            environment = environment,
+            coreFactory = coreFactory,
             editorFactory = editorFactory,
             nutritionFactory = nutritionFactory,
             substitutesFactory = substitutesFactory,
@@ -196,35 +190,33 @@ class RecipeViewModelTest {
         )
     }
 
-    val textFieldFactory = TextFieldFeature.Factory { scope, store, environment ->
-        TextFieldFeature(scope, store, environment)
+    val textFieldFactory = TextFieldFeature.Factory(::TextFieldFeature)
+
+    val gramsFactory = GramsInputFeature.Factory { scope, store, core ->
+        GramsInputFeature(scope, store, core, textFieldFactory)
     }
 
-    val gramsFactory = GramsInputFeature.Factory { scope, store, environment ->
-        GramsInputFeature(scope, store, environment, textFieldFactory)
+    val ouncesFactory = OuncesInputFeature.Factory { scope, store, core ->
+        OuncesInputFeature(scope, store, core, textFieldFactory, settings)
     }
 
-    val ouncesFactory = OuncesInputFeature.Factory { scope, store, environment ->
-        OuncesInputFeature(scope, store, environment, textFieldFactory, settings)
+    val cupsFactory = CupDialFeature.Factory { scope, store, core ->
+        CupDialFeature(scope, store, core, cupSampler, Dispatchers.Unconfined)
     }
 
-    val cupsFactory = CupDialFeature.Factory { scope, store, environment ->
-        CupDialFeature(scope, store, environment, cupSampler, Dispatchers.Unconfined)
+    val editorFactory = AmountEditorFeature.Factory { scope, store, core ->
+        AmountEditorFeature(scope, store, core, gramsFactory, ouncesFactory, cupsFactory)
     }
 
-    val editorFactory = AmountEditorFeature.Factory { scope, store, environment ->
-        AmountEditorFeature(scope, store, environment, gramsFactory, ouncesFactory, cupsFactory)
+    val nutritionFactory = NutritionFeature.Factory { scope, store, core ->
+        NutritionFeature(scope, store, core, nutritionService)
     }
 
-    val nutritionFactory = NutritionFeature.Factory { scope, store, environment ->
-        NutritionFeature(scope, store, environment, nutritionService)
+    val substitutesFactory = SubstitutesFeature.Factory { scope, store, core ->
+        SubstitutesFeature(scope, store, core, nutritionService)
     }
 
-    val substitutesFactory = SubstitutesFeature.Factory { scope, store, environment ->
-        SubstitutesFeature(scope, store, environment, nutritionService)
-    }
-
-    val sheetFactory = SubstituteSheetFeature.Factory { scope, store, environment ->
-        SubstituteSheetFeature(scope, store, environment, nutritionFactory)
+    val sheetFactory = SubstituteSheetFeature.Factory { scope, store, core ->
+        SubstituteSheetFeature(scope, store, core, nutritionFactory)
     }
 }
