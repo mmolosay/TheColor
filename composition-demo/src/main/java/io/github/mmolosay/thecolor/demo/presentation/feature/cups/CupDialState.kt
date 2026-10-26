@@ -21,8 +21,5 @@ data class CupDialState(
     val request: CupSampleRequest?, // the last sample started; see awaited
 )
 
-// TODO: shouldn't be declared here. Probably should be a variable (constructor-injected, maybe with assisted injection)
-//       parameter inside the Environment. It should also be present in the State so that ViewData has the upper limit
-//       for the presentational purposes, or make the View work without a real upper bound if it's possible.
 // the dial's end, in cups; a larger amount shows there
 internal const val MaxCups = 4f
