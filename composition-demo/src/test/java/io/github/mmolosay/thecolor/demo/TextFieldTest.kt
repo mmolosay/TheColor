@@ -84,7 +84,7 @@ class TextFieldTest {
     // the text of the field itself, without its label
     val ComposeUiTest.shownText: String
         get() {
-            val core = onNode(hasSetTextAction()).fetchSemanticsNode()
-            return core.config[SemanticsProperties.EditableText].text
+            val node = onNode(hasSetTextAction()).fetchSemanticsNode()
+            return node.config[SemanticsProperties.EditableText].text
         }
 }
