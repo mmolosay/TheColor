@@ -41,7 +41,9 @@ fun TextField(
     // A text set from elsewhere, such as by the parent, reaches the buffer from a collector, as it
     // reaches the other Views: their collectors run before the next frame is drawn, so the field shows
     // it in the same frame as they do. An edit made on the old text before then is dropped, and the
-    // transformation above shows this text
+    // transformation above shows this text. The buffer also takes the field's own writes, so the view
+    // data carries the text's version: a text set back to one the collector delivered before still
+    // reaches it
     LaunchedEffect(feature, buffer) {
         feature.viewData.collect {
             buffer.edit { showText(feature.viewData.value.text) } // the newest

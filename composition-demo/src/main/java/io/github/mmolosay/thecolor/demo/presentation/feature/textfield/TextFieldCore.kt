@@ -21,7 +21,7 @@ class TextFieldCore @AssistedInject constructor(
         this.text
 
     fun TextFieldState.toViewData(): TextFieldViewData =
-        TextFieldViewData(text = this.text)
+        TextFieldViewData(text = this.text, version = this.version)
 
     // for the parent
     fun TextFieldState.version(): Int =
