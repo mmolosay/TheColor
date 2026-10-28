@@ -3,7 +3,7 @@ package io.github.mmolosay.thecolor.demo.presentation.feature.input
 import io.github.mmolosay.thecolor.utils.Identity
 
 // A submission and its answer: a new instance for each submission and each answer, so each answer
-// is shown once
+// is acknowledged once
 data class Submission(
     val answer: Answer?, // null while no parent has answered
     val version: Int, // of the text it was made on
@@ -27,8 +27,8 @@ fun Submission?.answered(answer: Submission.Answer, version: Int): Submission? {
     return Submission(answer = answer, version = this.version)
 }
 
-// what's left once the View has shown this answered submission: a newer submission stays
-fun Submission?.shown(submission: Submission): Submission? {
+// what's left once the View has acknowledged this answered submission: a newer submission stays
+fun Submission?.acknowledged(submission: Submission): Submission? {
     if (this != submission) return this
     return null
 }

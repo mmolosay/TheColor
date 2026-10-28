@@ -10,7 +10,7 @@ import io.github.mmolosay.thecolor.demo.presentation.feature.input.Submission
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.answerToShow
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.answered
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.isPending
-import io.github.mmolosay.thecolor.demo.presentation.feature.input.shown
+import io.github.mmolosay.thecolor.demo.presentation.feature.input.acknowledged
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldCore
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFormatter
 import java.math.BigDecimal
@@ -49,7 +49,7 @@ class OuncesInputCore @AssistedInject constructor(
         return text.isEmpty()
     }
 
-    // for the parent; the setting doesn't move it: it's how the text shows, not what the user
+    // for the parent; the setting doesn't move it: it's how the text is written, not what the user
     // enters
     fun OuncesInputState.version(): Int =
         with(textFieldCore) { textField.version() }
@@ -94,10 +94,10 @@ class OuncesInputCore @AssistedInject constructor(
 
     // For its Instance only. They can run more than once, so they must have no side effects
 
-    fun OuncesInputState.answerShown(
+    fun OuncesInputState.acknowledgeAnswer(
         submission: Submission,
     ): Change<OuncesInputState, OuncesInputOutcome> {
-        val state = this.copy(submission = this.submission.shown(submission))
+        val state = this.copy(submission = this.submission.acknowledged(submission))
         return Change(state)
     }
 
@@ -108,7 +108,7 @@ class OuncesInputCore @AssistedInject constructor(
         return Change(state, outcome = OuncesInputOutcome.Submitted)
     }
 
-    // The text holds a point either way, so a keystroke made on the text shown with the old
+    // The text holds a point either way, so a keystroke made on the text written with the old
     // separator still applies
     fun OuncesInputState.applySeparator(
         separator: DecimalSeparator,
@@ -139,7 +139,7 @@ private const val MaxWholeDigits = 3
 
 // Keeps only the text it allows: digits and one point, up to three digits before it, and no leading
 // zeros except a single one before the point. A comma becomes the point, so the text holds a point
-// whichever separator the setting shows
+// whichever separator the setting picks
 private val ouncesTextFormatter = TextFormatter { text ->
     val kept = text.replace(',', '.').filter { it.isDigit() || it == '.' }
     val point = kept.indexOf('.')

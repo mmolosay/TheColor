@@ -43,7 +43,7 @@ fun OuncesInput(
         if (answerToShow.answer == Submission.Answer.Rejected) {
             Toast.makeText(context, rejection, Toast.LENGTH_SHORT).show()
         }
-        feature.answerShown(answerToShow.submission)
+        feature.acknowledgeAnswer(answerToShow.submission)
     }
 }
 

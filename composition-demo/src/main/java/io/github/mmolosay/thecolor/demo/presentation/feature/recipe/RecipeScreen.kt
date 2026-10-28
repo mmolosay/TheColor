@@ -89,7 +89,7 @@ fun RecipeScreen(
     // recreated while it shows
     LaunchedEffect(messageToShow.message) {
         snackbarScope.launch { snackbarHostState.showSnackbar(text) }
-        viewModel.messageShown(messageToShow.message)
+        viewModel.acknowledgeMessage(messageToShow.message)
     }
 }
 

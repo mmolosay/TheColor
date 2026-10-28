@@ -28,7 +28,7 @@ class NutritionCore @AssistedInject constructor(
         if (this.result == null) this.request else null
 
     // The portion the facts suggest, unless it's the card's amount in another form. The view data
-    // and selectSuggestion both go by it, so a suggestion shows only where taking it changes
+    // and selectSuggestion both go by it, so there's a suggestion only where taking it changes
     // something
     private fun NutritionState.suggestion(): Amount? {
         val facts = this.result?.getOrNull() ?: return null

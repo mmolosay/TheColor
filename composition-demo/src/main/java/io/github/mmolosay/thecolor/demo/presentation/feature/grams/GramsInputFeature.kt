@@ -36,8 +36,8 @@ class GramsInputFeature @AssistedInject constructor(
         )
     }
 
-    fun answerShown(submission: Submission) {
-        store.update { state -> with(core) { state.answerShown(submission) } }
+    fun acknowledgeAnswer(submission: Submission) {
+        store.update { state -> with(core) { state.acknowledgeAnswer(submission) } }
     }
 
     fun submit() {

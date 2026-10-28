@@ -18,7 +18,7 @@ data class RecipeState(
     val sheet: SubstituteSheetState,
     val load: LoadRequest?, // the saved amount, to fill the editor with; see awaitedLoad
     val save: SaveRequest?, // the last whole amount submitted, to save; see awaitedSave
-    val messages: List<SavedMessage>, // in the order the View shows them
+    val messages: List<SavedMessage>, // oldest first
 )
 
 object RecipeStateLenses {
@@ -60,7 +60,7 @@ data class SavedMessage(
     val identity: Identity = Identity(),
 )
 
-// a button on the screen that sets the amount and the substitutes' sort together
+// a preset of the amount and the substitutes' sort, set together
 enum class RecipePreset(
     val amount: Amount,
     val sort: Sort,

@@ -9,7 +9,7 @@ import io.github.mmolosay.thecolor.demo.presentation.feature.input.Submission
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.answerToShow
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.answered
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.isPending
-import io.github.mmolosay.thecolor.demo.presentation.feature.input.shown
+import io.github.mmolosay.thecolor.demo.presentation.feature.input.acknowledged
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldCore
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFormatter
 
@@ -83,10 +83,10 @@ class GramsInputCore @AssistedInject constructor(
 
     // For its Instance only. They can run more than once, so they must have no side effects
 
-    fun GramsInputState.answerShown(
+    fun GramsInputState.acknowledgeAnswer(
         submission: Submission,
     ): Change<GramsInputState, GramsInputOutcome> {
-        val state = this.copy(submission = this.submission.shown(submission))
+        val state = this.copy(submission = this.submission.acknowledged(submission))
         return Change(state)
     }
 

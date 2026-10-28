@@ -106,8 +106,8 @@ class RecipeViewModel @Inject constructor(
         }
     }
 
-    fun messageShown(message: SavedMessage) {
-        store.update { state -> with(core) { state.messageShown(message) } }
+    fun acknowledgeMessage(message: SavedMessage) {
+        store.update { state -> with(core) { state.acknowledgeMessage(message) } }
     }
 
     fun applyPreset(preset: RecipePreset) {

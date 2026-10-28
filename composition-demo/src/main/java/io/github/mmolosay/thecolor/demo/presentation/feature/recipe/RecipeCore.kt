@@ -95,7 +95,7 @@ class RecipeCore @AssistedInject constructor(
 
     // The agreement: the nutrition card and the substitutes are for the amount the editor stands
     // for. Whatever changes the editor's amount calls it in the same update. The sheet isn't tied
-    // to it: it shows a substitute's portion, which stays true whatever the recipe's amount
+    // to it: it's for a substitute's portion, which stays true whatever the recipe's amount
     private fun RecipeState.withCardsForAmount(): RecipeState {
         val amount = with(editorCore) { editor.amount() }
         return this.copy(
@@ -142,8 +142,8 @@ class RecipeCore @AssistedInject constructor(
             }
         }
 
-    // what's left once the View has shown this message: a newer one stays
-    fun RecipeState.messageShown(message: SavedMessage): Change<RecipeState, Nothing> {
+    // what's left once the View has acknowledged this message: a newer one stays
+    fun RecipeState.acknowledgeMessage(message: SavedMessage): Change<RecipeState, Nothing> {
         val messages = this.messages.filterNot { it == message }
         val state = this.copy(messages = messages)
         return Change(state)

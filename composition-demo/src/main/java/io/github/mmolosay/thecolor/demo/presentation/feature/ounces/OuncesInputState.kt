@@ -8,7 +8,7 @@ import io.github.mmolosay.thecolor.utils.Lens
 data class OuncesInputState(
     val textField: TextFieldState,
     val submission: Submission?,
-    val separator: DecimalSeparator, // the setting: the text holds a point, the View shows this
+    val separator: DecimalSeparator, // the setting; the text holds a point either way
 )
 
 object OuncesInputStateLenses {

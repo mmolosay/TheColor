@@ -9,7 +9,7 @@ data class SheetSession(
     val identity: Identity = Identity(),
 )
 
-// A substitute's nutrition, in a sheet over the screen. Each opening is a session of its own, even
+// A substitute's nutrition, opened from the substitutes. Each opening is a session of its own, even
 // for the same substitute, so that a sheet opened again is never taken for one the user closed
 data class SubstituteSheetState(
     val session: SheetSession?, // none while closed

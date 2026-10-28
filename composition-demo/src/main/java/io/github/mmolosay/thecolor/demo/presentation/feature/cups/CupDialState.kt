@@ -21,5 +21,5 @@ data class CupDialState(
     val request: CupSampleRequest?, // the last sample started; see awaited
 )
 
-// the dial's end, in cups; a larger amount shows there
+// the dial's end, in cups; a larger amount puts the dial there
 internal const val MaxCups = 4f
