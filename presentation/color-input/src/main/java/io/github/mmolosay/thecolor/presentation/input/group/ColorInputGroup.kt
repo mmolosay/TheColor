@@ -21,9 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -33,12 +31,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.common.compose.Placeholder
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import kotlinx.coroutines.Job
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 
 @Composable
 fun ColorInputGroup(
-    handle: ColorInputGroupHandle,
+    feature: ColorInputGroupFeature,
     hexInput: @Composable () -> Unit,
     rgbInput: @Composable () -> Unit,
     hsvInput: @Composable () -> Unit,
@@ -46,11 +43,12 @@ fun ColorInputGroup(
 ) {
     val context = LocalContext.current
     val strings = remember(context) { ColorInputGroupUiStrings(context) }
-    val facade = rememberColorInputGroupFacade(handle)
+    val data = feature.viewData.collectAsStateWithLifecycle().value ?: return
     ColorInputGroup(
         modifier = modifier,
-        facade = facade,
+        data = data,
         strings = strings,
+        onTypeSelect = feature::select,
         hexInput = hexInput,
         rgbInput = rgbInput,
         hsvInput = hsvInput,
@@ -58,27 +56,21 @@ fun ColorInputGroup(
 }
 
 @Composable
-fun rememberColorInputGroupFacade(handle: ColorInputGroupHandle): ColorInputGroupFacade {
-    val data = handle.dataFlow.collectAsStateWithLifecycle().value
-    return remember(handle, data) { handle.facade(data) }
-}
-
-@Composable
 fun ColorInputGroup(
-    facade: ColorInputGroupFacade,
+    data: ColorInputGroupViewData,
     strings: ColorInputGroupUiStrings,
+    onTypeSelect: (DomainColorInputType) -> Unit,
     hexInput: @Composable () -> Unit,
     rgbInput: @Composable () -> Unit,
     hsvInput: @Composable () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val execute by rememberUpdatedState(facade.execute) // reference 'execute' directly to enable lambda memoization
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         AnimatedContent(
-            targetState = facade.data.selectedInputType,
+            targetState = data.selectedType,
             transitionSpec = {
                 fadeIn() togetherWith fadeOut() using SizeTransform(clip = false)
             },
@@ -99,12 +91,9 @@ fun ColorInputGroup(
 
         Spacer(modifier = Modifier.height(12.dp))
         InputSelector(
-            orderedInputTypes = facade.data.orderedInputTypes,
-            selectedInputType = facade.data.selectedInputType,
-            changeInputType = {
-                val action = ColorInputGroupAction.ChangeInputType(it)
-                execute(action)
-            },
+            orderedInputTypes = data.orderedTypes,
+            selectedInputType = data.selectedType,
+            onTypeSelect = onTypeSelect,
             strings = strings,
         )
     }
@@ -114,7 +103,7 @@ fun ColorInputGroup(
 private fun InputSelector(
     orderedInputTypes: List<DomainColorInputType>,
     selectedInputType: DomainColorInputType,
-    changeInputType: (DomainColorInputType) -> Unit,
+    onTypeSelect: (DomainColorInputType) -> Unit,
     strings: ColorInputGroupUiStrings,
 ) {
     Row(
@@ -135,7 +124,7 @@ private fun InputSelector(
             )
             FilterChip(
                 selected = isSelected,
-                onClick = { changeInputType(type) },
+                onClick = { onTypeSelect(type) },
                 label = {
                     val labelText = type.label(strings)
                     ChipLabel(text = labelText)
@@ -181,8 +170,9 @@ private fun Preview() {
     TheColorTheme {
         Surface {
             ColorInputGroup(
-                facade = previewFacade(),
+                data = previewViewData(),
                 strings = previewUiStrings(),
+                onTypeSelect = {},
                 hexInput = {
                     ColorInputPlaceholder("HEX Color Input")
                 },
@@ -197,17 +187,14 @@ private fun Preview() {
     }
 }
 
-private fun previewFacade() =
-    ColorInputGroupFacade(
-        data = ColorInputGroupData(
-            selectedInputType = DomainColorInputType.Hex,
-            orderedInputTypes = listOf(
-                DomainColorInputType.Hex,
-                DomainColorInputType.Rgb,
-                DomainColorInputType.Hsv,
-            ),
+private fun previewViewData() =
+    ColorInputGroupViewData(
+        selectedType = DomainColorInputType.Hex,
+        orderedTypes = listOf(
+            DomainColorInputType.Hex,
+            DomainColorInputType.Rgb,
+            DomainColorInputType.Hsv,
         ),
-        execute = { Job() },
     )
 
 private fun previewUiStrings() =

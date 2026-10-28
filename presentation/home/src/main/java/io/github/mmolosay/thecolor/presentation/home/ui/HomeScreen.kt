@@ -95,7 +95,7 @@ fun HomeScreen(
         BareColorInput(
             modifier = modifier,
             editorHandle = state.colorEditorHandle,
-            groupHandle = state.colorInputGroupHandle,
+            group = state.colorInputGroup,
         )
     }
     val colorPreview: BareColorPreviewComposable = { animController, onUiStateReached ->

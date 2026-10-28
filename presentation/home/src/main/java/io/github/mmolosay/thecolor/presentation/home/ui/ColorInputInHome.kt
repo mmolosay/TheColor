@@ -16,7 +16,7 @@ import io.github.mmolosay.thecolor.presentation.common.compose.Placeholder
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorHandle
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroup
-import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupHandle
+import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupFeature
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHex
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsv
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgb
@@ -30,7 +30,7 @@ internal typealias BareColorInputComposable =
 @Composable
 internal fun BareColorInput(
     editorHandle: ColorEditorHandle,
-    groupHandle: ColorInputGroupHandle,
+    group: ColorInputGroupFeature,
     modifier: Modifier = Modifier,
 ) {
     val editorFacade = run {
@@ -40,7 +40,7 @@ internal fun BareColorInput(
     }
     ColorInputGroup(
         modifier = modifier,
-        handle = groupHandle,
+        feature = group,
         hexInput = {
             ColorInputHex(facade = editorFacade.hex)
         },

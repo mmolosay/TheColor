@@ -2,6 +2,7 @@ package io.github.mmolosay.thecolor.presentation.input.textfield
 
 import io.github.mmolosay.thecolor.presentation.input.model.WithSource
 
+// TODO: the codebase needs a project-wide KDoc refining pass after the feature composition is finished
 /**
  * Platform-agnostic data provided by ViewModel to 'Text Field' View.
  *

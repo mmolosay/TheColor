@@ -3,6 +3,8 @@ package io.github.mmolosay.thecolor.presentation.home.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.mmolosay.thecolor.composition.CompositionUtils.child
+import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.domain.color.ColorComparator
 import io.github.mmolosay.thecolor.domain.color.GetPredictableRandomColorUseCase
@@ -31,9 +33,8 @@ import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorHandle
 import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorStateFactory
 import io.github.mmolosay.thecolor.presentation.input.editor.ColorState
 import io.github.mmolosay.thecolor.presentation.input.editor.colorState
-import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupDataFactory
-import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupHandle
-import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupViewModel
+import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupCore
+import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupFeature
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexHandle
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexViewModel
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvHandle
@@ -93,8 +94,8 @@ class HomeViewModel @Inject constructor(
     private val colorInputHsvViewModelFactory: ColorInputHsvViewModel.Factory,
     private val colorEditorStateFactory: ColorEditorStateFactory,
     private val colorEditorFactory: ColorEditor.Factory,
-    private val colorInputGroupDataFactory: ColorInputGroupDataFactory,
-    private val colorInputGroupViewModelFactory: ColorInputGroupViewModel.Factory,
+    private val colorInputGroupCoreFactory: ColorInputGroupCore.Factory,
+    private val colorInputGroupFeatureFactory: ColorInputGroupFeature.Factory,
     private val colorPreviewDataFactory: ColorPreviewDataFactory,
     colorCenterComponentsStoreFactory: ColorCenterComponentsStore.Factory,
     private val createColorData: CreateColorDataUseCase,
@@ -134,10 +135,20 @@ class HomeViewModel @Inject constructor(
             ).also {
                 colorEditor = it
             }
-            val colorInputGroupViewModel = colorInputGroupViewModelFactory.create(
-                coroutineScope = ViewModelCoroutineScope(parent = viewModelScope),
-                initialData = colorInputGroupDataFactory.create(),
-            )
+            // TODO: temporary: the group's own core and store, until Home has both
+            val colorInputGroup = run {
+                val core = colorInputGroupCoreFactory.create()
+                val store = Store(core.initialState())
+                val feature = colorInputGroupFeatureFactory.create(
+                    core = core,
+                    store = store,
+                    scope = viewModelScope.child(),
+                )
+                store.first { state ->
+                    with(core) { state.isInitialized() }
+                }
+                return@run feature
+            }
             _stateFlow.batch {
                 val initial = HomeState(
                     home = HomeData(
@@ -167,7 +178,7 @@ class HomeViewModel @Inject constructor(
                             hsv = ColorInputHsvHandle(hsvViewModel),
                         )
                     },
-                    colorInputGroupHandle = ColorInputGroupHandle(colorInputGroupViewModel),
+                    colorInputGroup = colorInputGroup,
                     colorPreview = colorPreviewDataFactory.create(color),
                     colorCenterHandles = null, // 'proceed' action wasn't invoked yet
                 )
