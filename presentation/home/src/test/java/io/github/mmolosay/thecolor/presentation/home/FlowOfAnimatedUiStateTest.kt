@@ -25,7 +25,7 @@ internal class FlowOfAnimatedUiStateTest {
     val testDispatcher = StandardTestDispatcher()
     val coroutineScope = CoroutineScope(testDispatcher)
 
-    fun sut(): StateFlow<UiState?> =
+    fun sut(): StateFlow<UiState> =
         FlowOfAnimatedUiState(
             coroutineScope = coroutineScope,
             flowOfData = flowOfOriginalData,
@@ -34,13 +34,14 @@ internal class FlowOfAnimatedUiStateTest {
 
     /**
      * GIVEN
-     * [flowOfOriginalData] and [flowOfVisibilityAnimDest] initialized in some way (doesn't matter)
+     * - [flowOfOriginalData] has no color
+     * - [flowOfVisibilityAnimDest] has [AnimState.Visibility.Hidden]
      *
      * WHEN
      * [sut] flow is created
      *
      * THEN
-     * SUT flow emits initial `null`.
+     * SUT flow value is [UiState.Hidden] at once, before its collector runs.
      */
     @Test
     fun `#0`() = runTest {
@@ -52,8 +53,8 @@ internal class FlowOfAnimatedUiStateTest {
 
         val flowOfUiState = sut()
 
-        // not advancing time here to preserve initial value
-        flowOfUiState.value shouldBe null
+        // not advancing time, so the value comes from the data alone
+        flowOfUiState.value shouldBe UiState.Hidden
     }
 
     /**
