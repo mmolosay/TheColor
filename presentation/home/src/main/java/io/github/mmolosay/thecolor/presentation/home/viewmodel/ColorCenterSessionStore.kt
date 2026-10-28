@@ -2,6 +2,7 @@ package io.github.mmolosay.thecolor.presentation.home.viewmodel
 
 import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.domain.color.ColorComparator
+import io.github.mmolosay.thecolor.domain.color.isSameAs
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterSessionStore.SessionState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
@@ -114,7 +115,7 @@ internal fun Color.doesBelongToCurrentSession(
         is SessionState.NoSession ->
             false // no session -> nothing to belong to
         is SessionState.BeingBuilt ->
-            with(colorComparator()) { color isSameAs sessionState.seed } // started this session
+            context(colorComparator()) { color isSameAs sessionState.seed } // started this session
         is SessionState.Ongoing ->
             with(doesColorBelongToSession()) { color doesBelongTo sessionState.session }
     }

@@ -11,6 +11,7 @@ import io.github.mmolosay.thecolor.domain.color.GetPredictableRandomColorUseCase
 import io.github.mmolosay.thecolor.domain.color.GetStartupColorUseCase
 import io.github.mmolosay.thecolor.domain.color.IsColorLightUseCase
 import io.github.mmolosay.thecolor.domain.color.LastSearchedColorRepository
+import io.github.mmolosay.thecolor.domain.color.isSameAs
 import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
 import io.github.mmolosay.thecolor.domain.utils.filterReady
@@ -385,7 +386,7 @@ class HomeViewModel @Inject constructor(
                     sessionBuilding.cancel() // will also cancel this coroutine
                     return@launch
                 }
-                with(colorComparator) { require(seed isSameAs seedDetails.color) }
+                context(colorComparator) { require(seed isSameAs seedDetails.color) }
                 val relatedColors = setOf(seedDetails.exact.color)
                 ColorCenterSession(seed, relatedColors)
             }

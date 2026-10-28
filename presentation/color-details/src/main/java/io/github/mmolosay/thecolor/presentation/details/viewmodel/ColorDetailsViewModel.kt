@@ -7,6 +7,7 @@ import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.domain.color.ColorComparator
 import io.github.mmolosay.thecolor.domain.color.ColorRepository
 import io.github.mmolosay.thecolor.domain.color.IsColorLightUseCase
+import io.github.mmolosay.thecolor.domain.color.isSameAs
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.IoDispatcher
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.SimpleViewModel
@@ -177,10 +178,10 @@ class ColorDetailsViewModel @AssistedInject constructor(
 
     private fun Color.inferColorRole(session: ColorDetailsSession): ColorRole? {
         val color = this
-        if (with(colorComparator) { color isSameAs session.seed }) {
+        if (context(colorComparator) { color isSameAs session.seed }) {
             return ColorRole.Seed
         }
-        if (with(colorComparator) { color isSameAs session.exact }) {
+        if (context(colorComparator) { color isSameAs session.exact }) {
             return ColorRole.Exact
         }
         return null

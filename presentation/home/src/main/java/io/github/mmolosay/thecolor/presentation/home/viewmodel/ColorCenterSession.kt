@@ -2,6 +2,7 @@ package io.github.mmolosay.thecolor.presentation.home.viewmodel
 
 import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.domain.color.ColorComparator
+import io.github.mmolosay.thecolor.domain.color.isSameAs
 import javax.inject.Inject
 
 /**
@@ -43,7 +44,7 @@ class DoesColorBelongToSessionUseCase @Inject constructor(
         if (color == null) return false // allowed colors do not contain null
         val allAllowedColors = session.allColors()
         return allAllowedColors.any { allowedColor ->
-            with(colorComparator) { color isSameAs allowedColor }
+            context(colorComparator) { color isSameAs allowedColor }
         }
     }
 }
