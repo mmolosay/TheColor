@@ -3,7 +3,7 @@ package io.github.mmolosay.thecolor.demo.presentation.feature.nutrition
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.composition.CompositionUtils.launchAwaited
+import io.github.mmolosay.thecolor.composition.CompositionUtils.serve
 import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.demo.domain.Amount
 import io.github.mmolosay.thecolor.demo.domain.NutritionService
@@ -12,26 +12,29 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
 
 class NutritionFeature @AssistedInject constructor(
-    @Assisted scope: CoroutineScope,
-    @Assisted private val store: Store<NutritionState, NutritionOutcome>,
     @Assisted private val core: NutritionCore,
-    service: NutritionService, // from dependency injection: only the work uses it
+    @Assisted private val store: Store<NutritionState, NutritionOutcome>,
+    @Assisted private val scope: CoroutineScope,
+    private val service: NutritionService, // from dependency injection: only the work uses it
 ) {
 
     val viewData: StateFlow<NutritionViewData> =
         store.mapState { state -> with(core) { state.toViewData() } }
 
     init {
-        // starts what the state awaits, and stops what it no longer awaits
-        scope.launchAwaited(
+        serveFacts()
+    }
+
+    // starts what the state awaits, and stops what it no longer awaits
+    private fun serveFacts() {
+        scope.serve(
             store = store,
-            awaited = { state -> with(core) { state.awaited() } },
-            block = { request ->
-                // a failure is a result too
-                val result = service.nutritionFacts(request.ingredient, request.amount)
-                store.update { state -> with(core) { state.receive(request, result) } }
-            },
-        )
+            request = { state -> with(core) { state.awaited() } },
+        ) { request ->
+            // a failure is a result too
+            val result = service.nutritionFacts(request.ingredient, request.amount)
+            store.update { state -> with(core) { state.completeFacts(result, request) } }
+        }
     }
 
     fun retry() {
@@ -45,9 +48,9 @@ class NutritionFeature @AssistedInject constructor(
     @AssistedFactory
     fun interface Factory {
         fun create(
-            scope: CoroutineScope,
-            store: Store<NutritionState, NutritionOutcome>,
             core: NutritionCore,
+            store: Store<NutritionState, NutritionOutcome>,
+            scope: CoroutineScope,
         ): NutritionFeature
     }
 }

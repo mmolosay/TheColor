@@ -60,9 +60,9 @@ class TextFieldTest {
 
     fun ComposeUiTest.createSut(text: String) {
         field = TextFieldFeature(
-            scope = CoroutineScope(Job()),
-            store = Store(initialState = core.initialState(text)),
             core = core,
+            store = Store(initialState = core.initialState(text)),
+            scope = CoroutineScope(Job()),
         )
         setContent {
             TextField(

@@ -15,9 +15,9 @@ import kotlinx.coroutines.flow.StateFlow
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.GramsInputStateLenses as StateLenses
 
 class GramsInputFeature @AssistedInject constructor(
-    @Assisted scope: CoroutineScope,
-    @Assisted private val store: Store<GramsInputState, GramsInputOutcome>,
     @Assisted private val core: GramsInputCore,
+    @Assisted private val store: Store<GramsInputState, GramsInputOutcome>,
+    @Assisted scope: CoroutineScope,
     textFieldFactory: TextFieldFeature.Factory,
 ) {
 
@@ -30,9 +30,9 @@ class GramsInputFeature @AssistedInject constructor(
         // submission made on older text is no longer pending
         val slice = store.slice(StateLenses.textField) { state -> Change(state) }
         textFieldFactory.create(
-            scope = scope.child(),
-            store = slice,
             core = core.textFieldCore,
+            store = slice,
+            scope = scope.child(),
         )
     }
 
@@ -47,9 +47,9 @@ class GramsInputFeature @AssistedInject constructor(
     @AssistedFactory
     fun interface Factory {
         fun create(
-            scope: CoroutineScope,
-            store: Store<GramsInputState, GramsInputOutcome>,
             core: GramsInputCore,
+            store: Store<GramsInputState, GramsInputOutcome>,
+            scope: CoroutineScope,
         ): GramsInputFeature
     }
 }

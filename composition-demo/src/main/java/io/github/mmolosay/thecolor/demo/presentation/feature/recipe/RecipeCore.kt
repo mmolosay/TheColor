@@ -161,23 +161,23 @@ class RecipeCore @AssistedInject constructor(
     // Applies only to the load the screen still waits for, so that the saved amount fills only the
     // editor as the screen opened it, and never replaces what was entered meanwhile, even if it was
     // emptied since
-    fun RecipeState.receiveLoad(
-        request: LoadRequest,
+    fun RecipeState.completeLoad(
         amount: Amount?,
+        expected: LoadRequest,
     ): Change<RecipeState, Nothing> {
-        // received, or the editor set since
-        if (this.awaitedLoad() != request) return Change(this)
+        // completed, or the editor set since
+        if (this.awaitedLoad() != expected) return Change(this)
         val state = this.copy(load = null).withAmount(amount)
         return Change(state)
     }
 
     // Applies only to the save the screen still waits for. Accepts the submission it was made for,
     // and asks for the message, in one change, so that neither happens without the other
-    fun RecipeState.receiveSave(request: SaveRequest): Change<RecipeState, Nothing> {
+    fun RecipeState.completeSave(expected: SaveRequest): Change<RecipeState, Nothing> {
         // withdrawn, or a newer one is saved
-        if (this.awaitedSave() != request) return Change(this)
+        if (this.awaitedSave() != expected) return Change(this)
         val accepted = with(editorCore) { editor.withSubmissionAccepted() }
-        val message = SavedMessage(amount = request.amount)
+        val message = SavedMessage(amount = expected.amount)
         val state = this.copy(editor = accepted, save = null, messages = this.messages + message)
         return Change(state)
     }

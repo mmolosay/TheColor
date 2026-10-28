@@ -81,11 +81,11 @@ class SubstitutesCore @AssistedInject constructor(
     // For its Instance only. They can run more than once, so they must have no side effects
 
     // applies only to the request the state still awaits
-    fun SubstitutesState.receive(
-        request: SubstitutesRequest,
+    fun SubstitutesState.completeSubstitutes(
         result: Result<List<NutritionFacts>>,
+        expected: SubstitutesRequest,
     ): Change<SubstitutesState, SubstitutesOutcome> {
-        if (this.awaited() != request) return Change(this) // late, or already received
+        if (this.awaited() != expected) return Change(this) // late, or already completed
         val state = this.copy(result = result)
         return Change(state)
     }

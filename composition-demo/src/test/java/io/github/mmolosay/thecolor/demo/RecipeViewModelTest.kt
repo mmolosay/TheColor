@@ -192,31 +192,31 @@ class RecipeViewModelTest {
 
     val textFieldFactory = TextFieldFeature.Factory(::TextFieldFeature)
 
-    val gramsFactory = GramsInputFeature.Factory { scope, store, core ->
-        GramsInputFeature(scope, store, core, textFieldFactory)
+    val gramsFactory = GramsInputFeature.Factory { core, store, scope ->
+        GramsInputFeature(core, store, scope, textFieldFactory)
     }
 
-    val ouncesFactory = OuncesInputFeature.Factory { scope, store, core ->
-        OuncesInputFeature(scope, store, core, textFieldFactory, settings)
+    val ouncesFactory = OuncesInputFeature.Factory { core, store, scope ->
+        OuncesInputFeature(core, store, scope, textFieldFactory, settings)
     }
 
-    val cupsFactory = CupDialFeature.Factory { scope, store, core ->
-        CupDialFeature(scope, store, core, cupSampler, Dispatchers.Unconfined)
+    val cupsFactory = CupDialFeature.Factory { core, store, scope ->
+        CupDialFeature(core, store, scope, cupSampler, Dispatchers.Unconfined)
     }
 
-    val editorFactory = AmountEditorFeature.Factory { scope, store, core ->
-        AmountEditorFeature(scope, store, core, gramsFactory, ouncesFactory, cupsFactory)
+    val editorFactory = AmountEditorFeature.Factory { core, store, scope ->
+        AmountEditorFeature(core, store, scope, gramsFactory, ouncesFactory, cupsFactory)
     }
 
-    val nutritionFactory = NutritionFeature.Factory { scope, store, core ->
-        NutritionFeature(scope, store, core, nutritionService)
+    val nutritionFactory = NutritionFeature.Factory { core, store, scope ->
+        NutritionFeature(core, store, scope, nutritionService)
     }
 
-    val substitutesFactory = SubstitutesFeature.Factory { scope, store, core ->
-        SubstitutesFeature(scope, store, core, nutritionService)
+    val substitutesFactory = SubstitutesFeature.Factory { core, store, scope ->
+        SubstitutesFeature(core, store, scope, nutritionService)
     }
 
-    val sheetFactory = SubstituteSheetFeature.Factory { scope, store, core ->
-        SubstituteSheetFeature(scope, store, core, nutritionFactory)
+    val sheetFactory = SubstituteSheetFeature.Factory { core, store, scope ->
+        SubstituteSheetFeature(core, store, scope, nutritionFactory)
     }
 }

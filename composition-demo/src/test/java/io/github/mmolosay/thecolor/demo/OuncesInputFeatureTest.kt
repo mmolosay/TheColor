@@ -62,10 +62,10 @@ class OuncesInputFeatureTest {
             store.slice(lens) { state, _: OuncesInputOutcome? -> Change(state) }
         }
         sut = OuncesInputFeature(
+            core = core,
+            store = slice,
             // a setting's value applies at once, inside 'MutableStateFlow.value' assignment
             scope = CoroutineScope(Job() + Dispatchers.Unconfined),
-            store = slice,
-            core = core,
             textFieldFactory = textFieldFactory,
             settings = settings,
         )

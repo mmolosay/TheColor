@@ -110,7 +110,7 @@ class OuncesInputCore @AssistedInject constructor(
 
     // The text holds a point either way, so a keystroke made on the text shown with the old
     // separator still applies
-    fun OuncesInputState.receiveSeparator(
+    fun OuncesInputState.applySeparator(
         separator: DecimalSeparator,
     ): Change<OuncesInputState, OuncesInputOutcome> {
         val state = this.copy(separator = separator)

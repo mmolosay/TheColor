@@ -67,9 +67,9 @@ class CupDialFeatureTest {
     fun createSut(scope: CoroutineScope) {
         store = Store(initialState = core.initialState(amount = null))
         sut = CupDialFeature(
-            scope = scope,
-            store = store,
             core = core,
+            store = store,
+            scope = scope,
             sampler = sampler,
             workDispatcher = testDispatcher,
         )

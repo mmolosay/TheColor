@@ -12,14 +12,14 @@ import kotlinx.coroutines.launch
 
 object CompositionUtils {
 
-    fun <S, R : Any> CoroutineScope.launchAwaited(
+    fun <S, R : Any> CoroutineScope.serve(
         store: StateFlow<S>,
-        awaited: (S) -> R?,
+        request: (S) -> R?,
         block: suspend (R) -> Unit,
     ): Job =
         this.launch {
             store
-                .map { state -> awaited(state) }
+                .map { state -> request(state) }
                 .distinctUntilChanged()
                 .collectLatest {
                     if (it != null) block(it)

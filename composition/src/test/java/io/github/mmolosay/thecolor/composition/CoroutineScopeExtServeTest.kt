@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.composition
 
-import io.github.mmolosay.thecolor.composition.CompositionUtils.launchAwaited
+import io.github.mmolosay.thecolor.composition.CompositionUtils.serve
 import io.github.mmolosay.thecolor.utils.Identity
 import io.kotest.matchers.collections.shouldContainExactly
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -10,10 +10,10 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 
 /**
- * Tests [CompositionUtils.launchAwaited].
+ * Tests [CompositionUtils.serve].
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-class CoroutineScopeExtLaunchAwaitedTest {
+class CoroutineScopeExtServeTest {
 
     val testDispatcher = UnconfinedTestDispatcher()
 
@@ -27,9 +27,9 @@ class CoroutineScopeExtLaunchAwaitedTest {
     @Test
     fun `given the state awaits an order, when the work is launched, then it starts for that order`() =
         runTest(testDispatcher) {
-            backgroundScope.launchAwaited(
+            backgroundScope.serve(
                 store = store,
-                awaited = { it.order },
+                request = { it.order },
                 block = { bake(it.bread) },
             )
 
@@ -39,9 +39,9 @@ class CoroutineScopeExtLaunchAwaitedTest {
     @Test
     fun `given the work is running, when another order is awaited, then the running work is cancelled and the work for the new order starts`() =
         runTest(testDispatcher) {
-            backgroundScope.launchAwaited(
+            backgroundScope.serve(
                 store = store,
-                awaited = { it.order },
+                request = { it.order },
                 block = { bake(it.bread) },
             )
 
@@ -55,9 +55,9 @@ class CoroutineScopeExtLaunchAwaitedTest {
     @Test
     fun `given the work is running, when the state changes but the awaited order stays the same instance, then the work is NOT restarted`() =
         runTest(testDispatcher) {
-            backgroundScope.launchAwaited(
+            backgroundScope.serve(
                 store = store,
-                awaited = { it.order },
+                request = { it.order },
                 block = { bake(it.bread) },
             )
 
@@ -71,9 +71,9 @@ class CoroutineScopeExtLaunchAwaitedTest {
     @Test
     fun `given the work is running, when a new order for the same bread is awaited, then the work is restarted`() =
         runTest(testDispatcher) {
-            backgroundScope.launchAwaited(
+            backgroundScope.serve(
                 store = store,
-                awaited = { it.order },
+                request = { it.order },
                 block = { bake(it.bread) },
             )
 
@@ -90,9 +90,9 @@ class CoroutineScopeExtLaunchAwaitedTest {
             store.update {
                 Change(it.copy(batch = Batch(bread = "rye")))
             }
-            backgroundScope.launchAwaited(
+            backgroundScope.serve(
                 store = store,
-                awaited = { it.batch },
+                request = { it.batch },
                 block = { bake(it.bread) },
             )
 
@@ -107,9 +107,9 @@ class CoroutineScopeExtLaunchAwaitedTest {
     @Test
     fun `given the work is running, when nothing is awaited anymore, then the running work is cancelled and no new work starts`() =
         runTest(testDispatcher) {
-            backgroundScope.launchAwaited(
+            backgroundScope.serve(
                 store = store,
-                awaited = { it.order },
+                request = { it.order },
                 block = { bake(it.bread) },
             )
 

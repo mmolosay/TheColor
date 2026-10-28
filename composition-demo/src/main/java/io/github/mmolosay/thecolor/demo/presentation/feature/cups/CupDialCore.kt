@@ -93,15 +93,15 @@ class CupDialCore @AssistedInject constructor(
 
     // Applies only to the sample the state still waits for. If the dial has moved on since the
     // sample started, another one starts, for where the dial is now
-    fun CupDialState.receiveSample(
-        request: CupSampleRequest,
+    fun CupDialState.completeSample(
         amount: Amount.Cups,
+        expected: CupSampleRequest,
     ): Change<CupDialState, Nothing> {
         // the amount was set from elsewhere since
-        if (this.awaited() != request) return Change(this)
+        if (this.awaited() != expected) return Change(this)
         val sampled = this.withAmountOnly(amount)
         val next = run {
-            if (sampled.position == request.position) return@run null
+            if (sampled.position == expected.position) return@run null
             CupSampleRequest(position = sampled.position, amountVersion = sampled.amountVersion)
         }
         val state = sampled.copy(request = next)

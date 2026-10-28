@@ -47,9 +47,9 @@ class TextFieldFeatureTest {
     fun createSut(text: String) {
         store = Store(initialState = core.initialState(text))
         sut = TextFieldFeature(
-            scope = CoroutineScope(Job()),
-            store = store,
             core = core,
+            store = store,
+            scope = CoroutineScope(Job()),
         )
     }
 }

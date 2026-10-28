@@ -107,9 +107,9 @@ class NutritionFeatureTest {
             store.slice(lens) { state, _: NutritionOutcome? -> Change(state) }
         }
         sut = NutritionFeature(
-            scope = scope,
-            store = slice,
             core = core,
+            store = slice,
+            scope = scope,
             service = service,
         )
     }

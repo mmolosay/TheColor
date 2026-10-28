@@ -16,9 +16,9 @@ import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditor
 
 // No view data of its own: its View only lays out the inputs' Views
 class AmountEditorFeature @AssistedInject constructor(
-    @Assisted scope: CoroutineScope,
-    @Assisted store: Store<AmountEditorState, AmountEditorOutcome>,
     @Assisted core: AmountEditorCore,
+    @Assisted store: Store<AmountEditorState, AmountEditorOutcome>,
+    @Assisted scope: CoroutineScope,
     gramsFactory: GramsInputFeature.Factory,
     ouncesFactory: OuncesInputFeature.Factory,
     cupsFactory: CupDialFeature.Factory,
@@ -26,33 +26,33 @@ class AmountEditorFeature @AssistedInject constructor(
 
     // for its View, which shows the inputs' Views
     val grams: GramsInputFeature = gramsFactory.create(
-        scope = scope.child(),
+        core = core.gramsCore,
         store = store.slice(StateLenses.grams) { state, outcome: GramsInputOutcome? ->
             with(core) { state.onGrams(outcome) }
         },
-        core = core.gramsCore,
+        scope = scope.child(),
     )
 
     val ounces: OuncesInputFeature = ouncesFactory.create(
-        scope = scope.child(),
+        core = core.ouncesCore,
         store = store.slice(StateLenses.ounces) { state, outcome: OuncesInputOutcome? ->
             with(core) { state.onOunces(outcome) }
         },
-        core = core.ouncesCore,
+        scope = scope.child(),
     )
 
     val cups: CupDialFeature = cupsFactory.create(
-        scope = scope.child(),
-        store = store.slice(StateLenses.cups) { state -> with(core) { state.onCups() } },
         core = core.cupsCore,
+        store = store.slice(StateLenses.cups) { state -> with(core) { state.onCups() } },
+        scope = scope.child(),
     )
 
     @AssistedFactory
     fun interface Factory {
         fun create(
-            scope: CoroutineScope,
-            store: Store<AmountEditorState, AmountEditorOutcome>,
             core: AmountEditorCore,
+            store: Store<AmountEditorState, AmountEditorOutcome>,
+            scope: CoroutineScope,
         ): AmountEditorFeature
     }
 }

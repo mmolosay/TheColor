@@ -57,9 +57,9 @@ class SubstituteSheetFeatureTest {
     fun createSut() {
         store = Store(initialState = core.initialState())
         sut = SubstituteSheetFeature(
-            scope = CoroutineScope(Job() + Dispatchers.Unconfined),
-            store = store,
             core = core,
+            store = store,
+            scope = CoroutineScope(Job() + Dispatchers.Unconfined),
             nutritionFactory = nutritionFactory,
         )
     }
@@ -71,8 +71,8 @@ class SubstituteSheetFeatureTest {
         }
     }
 
-    val nutritionFactory = NutritionFeature.Factory { scope, store, core ->
-        NutritionFeature(scope, store, core, nutritionService)
+    val nutritionFactory = NutritionFeature.Factory { core, store, scope ->
+        NutritionFeature(core, store, scope, nutritionService)
     }
 
     val substitute = NutritionFacts(

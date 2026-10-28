@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.mmolosay.thecolor.composition.Change
-import io.github.mmolosay.thecolor.composition.CompositionUtils.launchAwaited
+import io.github.mmolosay.thecolor.composition.CompositionUtils.serve
 import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.composition.slice
 import io.github.mmolosay.thecolor.demo.domain.RecipeRepository
@@ -29,7 +29,7 @@ class RecipeViewModel @Inject constructor(
     substitutesFactory: SubstitutesFeature.Factory,
     sheetFactory: SubstituteSheetFeature.Factory,
     textFieldFactory: TextFieldFeature.Factory,
-    repository: RecipeRepository, // from dependency injection: only the work uses it
+    private val repository: RecipeRepository, // from dependency injection: only the work uses it
 ) : ViewModel() {
 
     // the screen's, which creates its children's, and so on down the tree
@@ -42,62 +42,68 @@ class RecipeViewModel @Inject constructor(
 
     // for its View, which shows the children's Views
     val editor: AmountEditorFeature = editorFactory.create(
-        scope = viewModelScope,
+        core = core.editorCore,
         store = store.slice(StateLenses.editor) { state, outcome: AmountEditorOutcome? ->
             with(core) { state.onEditor(outcome) }
         },
-        core = core.editorCore,
+        scope = viewModelScope,
     )
 
     val nutrition: NutritionFeature = nutritionFactory.create(
-        scope = viewModelScope,
+        core = core.nutritionCore,
         store = store.slice(StateLenses.nutrition) { state, outcome: NutritionOutcome? ->
             with(core) { state.onNutrition(outcome) }
         },
-        core = core.nutritionCore,
+        scope = viewModelScope,
     )
 
     val substitutes: SubstitutesFeature = substitutesFactory.create(
-        scope = viewModelScope,
+        core = core.substitutesCore,
         store = store.slice(StateLenses.substitutes) { state, outcome: SubstitutesOutcome? ->
             with(core) { state.onSubstitutes(outcome) }
         },
-        core = core.substitutesCore,
+        scope = viewModelScope,
     )
 
     // nothing to decide: the sheet has no outcomes, and the screen opens it in onSubstitutes
     val sheet: SubstituteSheetFeature = sheetFactory.create(
-        scope = viewModelScope,
-        store = store.slice(StateLenses.sheet) { state -> Change(state) },
         core = core.sheetCore,
+        store = store.slice(StateLenses.sheet) { state -> Change(state) },
+        scope = viewModelScope,
     )
 
     // Nothing in the screen's functions reads or writes the servings, so the field gets a store of its
     // own, and its commits wake only its own View
     val servings: TextFieldFeature = textFieldFactory.create(
-        scope = viewModelScope,
-        store = Store(initialState = core.servingsCore.initialState(text = "1")),
         core = core.servingsCore,
+        store = Store(initialState = core.servingsCore.initialState(text = "1")),
+        scope = viewModelScope,
     )
 
     init {
         // each kind of work on its own, so that one never restarts the other
-        viewModelScope.launchAwaited(
+        serveLoad()
+        serveSave()
+    }
+
+    private fun serveLoad() {
+        viewModelScope.serve(
             store = store,
-            awaited = { state -> with(core) { state.awaitedLoad() } },
-            block = { request ->
-                val amount = repository.lastAmount()
-                store.update { state -> with(core) { state.receiveLoad(request, amount) } }
-            },
-        )
-        viewModelScope.launchAwaited(
+            request = { state -> with(core) { state.awaitedLoad() } },
+        ) { request ->
+            val amount = repository.lastAmount()
+            store.update { state -> with(core) { state.completeLoad(amount, request) } }
+        }
+    }
+
+    private fun serveSave() {
+        viewModelScope.serve(
             store = store,
-            awaited = { state -> with(core) { state.awaitedSave() } },
-            block = { request ->
-                repository.saveLastAmount(request.amount)
-                store.update { state -> with(core) { state.receiveSave(request) } }
-            },
-        )
+            request = { state -> with(core) { state.awaitedSave() } },
+        ) { request ->
+            repository.saveLastAmount(request.amount)
+            store.update { state -> with(core) { state.completeSave(request) } }
+        }
     }
 
     fun messageShown(message: SavedMessage) {

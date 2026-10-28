@@ -9,9 +9,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
 
 class TextFieldFeature @AssistedInject constructor(
-    @Assisted scope: CoroutineScope, // no work runs in it, but its parents needn't know that
-    @Assisted private val store: Store<TextFieldState, *>,
     @Assisted private val core: TextFieldCore,
+    @Assisted private val store: Store<TextFieldState, *>,
+    @Assisted scope: CoroutineScope, // no work runs in it, but its parents needn't know that
 ) {
 
     val viewData: StateFlow<TextFieldViewData> =
@@ -28,9 +28,9 @@ class TextFieldFeature @AssistedInject constructor(
     @AssistedFactory
     fun interface Factory {
         fun create(
-            scope: CoroutineScope,
-            store: Store<TextFieldState, *>,
             core: TextFieldCore,
+            store: Store<TextFieldState, *>,
+            scope: CoroutineScope,
         ): TextFieldFeature
     }
 }

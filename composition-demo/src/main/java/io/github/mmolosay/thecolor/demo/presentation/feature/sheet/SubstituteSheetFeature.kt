@@ -14,9 +14,9 @@ import kotlinx.coroutines.flow.StateFlow
 import io.github.mmolosay.thecolor.demo.presentation.feature.sheet.SubstituteSheetStateLenses as StateLenses
 
 class SubstituteSheetFeature @AssistedInject constructor(
-    @Assisted scope: CoroutineScope,
-    @Assisted private val store: Store<SubstituteSheetState, *>,
     @Assisted private val core: SubstituteSheetCore,
+    @Assisted private val store: Store<SubstituteSheetState, *>,
+    @Assisted scope: CoroutineScope,
     nutritionFactory: NutritionFeature.Factory,
 ) {
 
@@ -31,9 +31,9 @@ class SubstituteSheetFeature @AssistedInject constructor(
             Change(state)
         }
         nutritionFactory.create(
-            scope = scope.child(),
-            store = slice,
             core = core.nutritionCore,
+            store = slice,
+            scope = scope.child(),
         )
     }
 
@@ -44,9 +44,9 @@ class SubstituteSheetFeature @AssistedInject constructor(
     @AssistedFactory
     fun interface Factory {
         fun create(
-            scope: CoroutineScope,
-            store: Store<SubstituteSheetState, *>,
             core: SubstituteSheetCore,
+            store: Store<SubstituteSheetState, *>,
+            scope: CoroutineScope,
         ): SubstituteSheetFeature
     }
 }

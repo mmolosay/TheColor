@@ -18,11 +18,11 @@ import kotlinx.coroutines.launch
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputStateLenses as StateLenses
 
 class OuncesInputFeature @AssistedInject constructor(
-    @Assisted scope: CoroutineScope,
-    @Assisted private val store: Store<OuncesInputState, OuncesInputOutcome>,
     @Assisted private val core: OuncesInputCore,
+    @Assisted private val store: Store<OuncesInputState, OuncesInputOutcome>,
+    @Assisted private val scope: CoroutineScope,
     textFieldFactory: TextFieldFeature.Factory,
-    settings: DemoSettings, // from dependency injection: only the subscription uses it
+    private val settings: DemoSettings, // from dependency injection: only the subscription uses it
 ) {
 
     val viewData: StateFlow<OuncesInputViewData> =
@@ -34,17 +34,21 @@ class OuncesInputFeature @AssistedInject constructor(
         // submission made on older text is no longer pending
         val slice = store.slice(StateLenses.textField) { state -> Change(state) }
         textFieldFactory.create(
-            scope = scope.child(),
-            store = slice,
             core = core.textFieldCore,
+            store = slice,
+            scope = scope.child(),
         )
     }
 
     init {
-        // while its scope is active: the setting has one writer, so each value applies as it arrives
+        collectSeparator()
+    }
+
+    // while its scope is active: the setting has one writer, so each value applies as it arrives
+    private fun collectSeparator() {
         scope.launch {
             settings.decimalSeparator.filterNotNull().collect { separator ->
-                store.update { state -> with(core) { state.receiveSeparator(separator) } }
+                store.update { state -> with(core) { state.applySeparator(separator) } }
             }
         }
     }
@@ -60,9 +64,9 @@ class OuncesInputFeature @AssistedInject constructor(
     @AssistedFactory
     fun interface Factory {
         fun create(
-            scope: CoroutineScope,
-            store: Store<OuncesInputState, OuncesInputOutcome>,
             core: OuncesInputCore,
+            store: Store<OuncesInputState, OuncesInputOutcome>,
+            scope: CoroutineScope,
         ): OuncesInputFeature
     }
 }
