@@ -3,8 +3,10 @@ package io.github.mmolosay.thecolor.presentation.home.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.composition.CompositionUtils.child
 import io.github.mmolosay.thecolor.composition.Store
+import io.github.mmolosay.thecolor.composition.slice
 import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.domain.color.ColorComparator
 import io.github.mmolosay.thecolor.domain.color.GetPredictableRandomColorUseCase
@@ -29,11 +31,13 @@ import io.github.mmolosay.thecolor.presentation.details.viewmodel.asError
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.colorOrNull
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.SideEffect
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.Operation.Companion.isSupersededBy
-import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditor
+import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorCore
 import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorHandle
-import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorStateFactory
+import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorState
+import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorStateLenses
 import io.github.mmolosay.thecolor.presentation.input.editor.ColorState
-import io.github.mmolosay.thecolor.presentation.input.editor.colorState
+import io.github.mmolosay.thecolor.presentation.input.editor.asAtom
+import io.github.mmolosay.thecolor.presentation.input.editor.toData
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupCore
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupFeature
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexHandle
@@ -59,6 +63,7 @@ import io.github.mmolosay.thecolor.utils.batch
 import io.github.mmolosay.thecolor.utils.dropOnNull
 import io.github.mmolosay.thecolor.utils.focus
 import io.github.mmolosay.thecolor.utils.launchSuperseding
+import io.github.mmolosay.thecolor.utils.mapState
 import kotlinx.collections.immutable.minus
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.plus
@@ -93,8 +98,7 @@ class HomeViewModel @Inject constructor(
     private val colorInputHexViewModelFactory: ColorInputHexViewModel.Factory,
     private val colorInputRgbViewModelFactory: ColorInputRgbViewModel.Factory,
     private val colorInputHsvViewModelFactory: ColorInputHsvViewModel.Factory,
-    private val colorEditorStateFactory: ColorEditorStateFactory,
-    private val colorEditorFactory: ColorEditor.Factory,
+    private val colorEditorCoreFactory: ColorEditorCore.Factory,
     private val colorInputGroupCoreFactory: ColorInputGroupCore.Factory,
     private val colorInputGroupFeatureFactory: ColorInputGroupFeature.Factory,
     private val colorPreviewDataFactory: ColorPreviewDataFactory,
@@ -117,7 +121,9 @@ class HomeViewModel @Inject constructor(
     private val ccSessionStore = ColorCenterSessionStore()
     private val seFactory = SideEffectFactory()
 
-    private var colorEditor: ColorEditor? = null
+    // TODO: temporary: the editor's core and store, until Home has both
+    private val editorCore: ColorEditorCore = colorEditorCoreFactory.create()
+    private var editorStore: Store<ColorEditorState, Nothing>? = null
 
     private val colorCenterComponentsStore: ColorCenterComponentsStore =
         colorCenterComponentsStoreFactory.create(
@@ -131,10 +137,8 @@ class HomeViewModel @Inject constructor(
     private fun initialize(): Job =
         viewModelScope.launch {
             val color = getStartupColor()
-            val colorEditor = colorEditorFactory.create(
-                initialState = colorEditorStateFactory.create(color),
-            ).also {
-                colorEditor = it
+            val editorStore = Store(editorCore.initialState(color)).also {
+                editorStore = it
             }
             // TODO: temporary: the group's own core and store, until Home has both
             val colorInputGroup = run {
@@ -153,27 +157,39 @@ class HomeViewModel @Inject constructor(
             _stateFlow.batch {
                 val initial = HomeState(
                     home = HomeData(
-                        canProceed = CanProceed(colorEditor.colorState.color),
+                        canProceed = run {
+                            val color = with(editorCore) { editorStore.value.color() }
+                            CanProceed(color)
+                        },
                         proceedResult = null, // 'proceed' action wasn't invoked yet
                         sideEffects = persistentListOf(),
                     ),
                     colorEditorHandle = run {
+                        val hexSlice = editorStore.slice(ColorEditorStateLenses.hex) { state ->
+                            with(editorCore) { state.onHex() }
+                        }
                         val hexViewModel = colorInputHexViewModelFactory.create(
                             coroutineScope = ViewModelCoroutineScope(viewModelScope),
-                            atom = colorEditor.hexAtom,
+                            atom = hexSlice.asAtom(),
                             submitAction = ColorInputSubmitActionImpl(),
                         )
+                        val rgbSlice = editorStore.slice(ColorEditorStateLenses.rgb) { state ->
+                            with(editorCore) { state.onRgb() }
+                        }
                         val rgbViewModel = colorInputRgbViewModelFactory.create(
                             coroutineScope = ViewModelCoroutineScope(viewModelScope),
-                            atom = colorEditor.rgbAtom,
+                            atom = rgbSlice.asAtom(),
                             submitAction = ColorInputSubmitActionImpl(),
                         )
+                        val hsvSlice = editorStore.slice(ColorEditorStateLenses.hsv) { state ->
+                            with(editorCore) { state.onHsv() }
+                        }
                         val hsvViewModel = colorInputHsvViewModelFactory.create(
                             coroutineScope = ViewModelCoroutineScope(viewModelScope),
-                            atom = colorEditor.hsvAtom,
+                            atom = hsvSlice.asAtom(),
                         )
                         ColorEditorHandle(
-                            editor = colorEditor,
+                            dataFlow = editorStore.mapState { state -> state.toData() },
                             hex = ColorInputHexHandle(hexViewModel),
                             rgb = ColorInputRgbHandle(rgbViewModel),
                             hsv = ColorInputHsvHandle(hsvViewModel),
@@ -190,7 +206,7 @@ class HomeViewModel @Inject constructor(
                     }
                 }
             }
-            collectColorsFromColorInput(colorEditor)
+            collectColorsFromColorInput(editorStore)
         }
 
     context(updateScope: UpdateScope<HomeState>)
@@ -200,9 +216,7 @@ class HomeViewModel @Inject constructor(
         onColorBecameCurrent(color)
         setProceedResult(color)
         return launchTransition(Operation.Transition.Proceed) {
-            colorEditor
-                .let { requireNotNull(it) }
-                .setColor(color)
+            setEditorColor(color)
             val deferredDetails = CompletableDeferred<DomainColorDetails>()
             startColorCenterSession(seed = color, deferredDetails = deferredDetails)
             launchFetch(Operation.Fetch.ColorDetails) {
@@ -216,9 +230,23 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun collectColorsFromColorInput(colorEditor: ColorEditor): Job =
+    // TODO: temporary: Home's reads and writes of the editor's color, in place of 'colorState' and 'setColor'
+    private fun editorColor(): Color? =
+        with(editorCore) { requireNotNull(editorStore).value.color() }
+
+    private fun setEditorColor(color: Color?) {
+        requireNotNull(editorStore).update { state ->
+            val withColor = with(editorCore) { state.withColor(color, source = null) }
+            Change(withColor)
+        }
+    }
+
+    // TODO: temporary using memoized Store
+    private fun collectColorsFromColorInput(
+        editorStore: Store<ColorEditorState, Nothing>,
+    ): Job =
         viewModelScope.launch {
-            colorEditor.colorStateFlow
+            editorStore.mapState { state -> state.colorState }
                 .drop(1) // replayed value
                 .filter { it.source != null } // set by 'Color Input' feature
                 .collect(::onColorFromColorInput)
@@ -246,21 +274,15 @@ class HomeViewModel @Inject constructor(
 
     private fun proceed(): Job =
         launchTransition(Operation.Transition.Proceed) launch@{
-            val color = colorEditor
-                .let { requireNotNull(it) }
-                .colorState.color ?: return@launch // invalid state
-            colorEditor
-                .let { requireNotNull(it) }
-                .setColor(color)
+            val color = editorColor() ?: return@launch // invalid state
+            setEditorColor(color)
             proceedWith(color)
         }
 
     private fun randomizeColor(): Job =
         launchTransition(Operation.Transition.Proceed) launch@{
             val color = getPredictableRandomColor()
-            colorEditor
-                .let { requireNotNull(it) }
-                .setColor(color)
+            setEditorColor(color)
             val shouldProceed = userPreferencesRepository
                 .flowOfAutoProceedWithRandomizedColors
                 .filterReady().first()
@@ -446,9 +468,7 @@ class HomeViewModel @Inject constructor(
                 is ColorInputValidationResult.Valid -> {
                     launchTransition(Operation.Transition.Proceed) {
                         val color = validationResult.color
-                        colorEditor
-                            .let { requireNotNull(it) }
-                            .setColor(color)
+                        setEditorColor(color)
                         proceedWith(color)
                     }
                     return true
@@ -481,9 +501,7 @@ class HomeViewModel @Inject constructor(
                         val color = viewModel.stateFlow.value.colorOrNull(action.role)
                             ?: return@launch // stale invocation
                         ccSessionStore.sessionState.mustBeOngoing()
-                        colorEditor
-                            .let { requireNotNull(it) }
-                            .setColor(color)
+                        setEditorColor(color)
                         updateState {
                             onColorBecameCurrent(color)
                             // assuming any color selected belongs to ongoing session
