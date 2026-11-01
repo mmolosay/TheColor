@@ -21,60 +21,50 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsAction
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsError
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsFacade
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsHandle
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsState
+import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsFeature
+import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewData
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorRole
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ExecuteColorDetailsAction
 import io.github.mmolosay.thecolor.presentation.errors.ErrorMessageWithButton
 import io.github.mmolosay.thecolor.presentation.errors.messageOrUnknown
 import io.github.mmolosay.thecolor.presentation.errors.rememberDefaultErrorsUiStrings
 import io.github.mmolosay.thecolor.utils.doNothing
-import kotlinx.coroutines.Job
-
-@Composable
-fun rememberColorDetailsFacade(handle: ColorDetailsHandle): ColorDetailsFacade {
-    val state = handle.stateFlow.collectAsStateWithLifecycle().value
-    return remember(handle, state) { handle.facade(state) }
-}
 
 @Composable
 fun ColorDetails(
-    facade: ColorDetailsFacade,
+    data: ColorDetailsViewData,
+    feature: ColorDetailsFeature,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val strings = remember(context) { ColorDetailsUiStrings(context) }
-    val execute = facade.execute
-    when (val state = facade.state) {
-        is ColorDetailsState.Idle -> {
-            doNothing() // Color Details shouldn't be visible at Home at this point
+    when (data) {
+        is ColorDetailsViewData.Empty -> {
+            doNothing() // should promptly change to other state
         }
-        is ColorDetailsState.Loading -> {
-            ColorDetailsLoading()
-        }
-        is ColorDetailsState.Ready -> {
-            ColorDetails(
-                data = state.data,
-                strings = strings,
-                execute = execute,
+        is ColorDetailsViewData.Loading -> {
+            ColorDetailsLoading(
                 modifier = modifier,
             )
         }
-        is ColorDetailsState.Error -> {
+        is ColorDetailsViewData.Ready -> {
+            ColorDetails(
+                modifier = modifier,
+                data = data.data,
+                strings = strings,
+                onSelect = feature::select,
+            )
+        }
+        is ColorDetailsViewData.Error -> {
             Error(
-                error = state.error,
-                onTryAgainClick = { execute(ColorDetailsAction.RetryOnError) },
+                cause = data.cause,
+                onTryAgainClick = feature::retry,
             )
         }
     }
@@ -84,7 +74,7 @@ fun ColorDetails(
 fun ColorDetails(
     data: ColorDetailsData,
     strings: ColorDetailsUiStrings,
-    execute: ExecuteColorDetailsAction,
+    onSelect: (role: ColorRole) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -119,14 +109,8 @@ fun ColorDetails(
                 exactMatch = data.exactMatch,
                 colorRoleData = data.colorRoleData,
                 strings = strings,
-                onSelectSeedColorClick = {
-                    val action = ColorDetailsAction.SelectColor(role = ColorRole.Seed)
-                    execute(action)
-                },
-                onSelectExactColorClick = {
-                    val action = ColorDetailsAction.SelectColor(role = ColorRole.Exact)
-                    execute(action)
-                },
+                onSelectSeedColorClick = { onSelect(ColorRole.Seed) },
+                onSelectExactColorClick = { onSelect(ColorRole.Exact) },
             )
         }
     }
@@ -154,7 +138,7 @@ private fun Divider() =
 
 @Composable
 private fun Error(
-    error: ColorDetailsError,
+    cause: Throwable,
     onTryAgainClick: () -> Unit,
 ) {
     val strings = rememberDefaultErrorsUiStrings()
@@ -162,7 +146,7 @@ private fun Error(
         modifier = Modifier
             .padding(horizontal = 24.dp)
             .fillMaxWidth(),
-        message = error.cause.messageOrUnknown(strings),
+        message = cause.messageOrUnknown(strings),
         button = {
             val colors = ButtonDefaults.outlinedButtonColors(
                 contentColor = colorsOnTintedSurface.accent,
@@ -246,7 +230,7 @@ private fun ColorDetailsWithPreviewData(
         modifier = modifier,
         data = data,
         strings = previewUiStrings(),
-        execute = { Job() },
+        onSelect = {},
     )
 }
 

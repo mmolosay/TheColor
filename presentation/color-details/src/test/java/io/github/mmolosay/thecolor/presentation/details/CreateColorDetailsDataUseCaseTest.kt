@@ -28,14 +28,11 @@ class CreateColorDetailsDataUseCaseTest {
         val details = ColorDetails()
         val resultData = sut.invoke(
             details = details,
-            colorRole = ColorRole.Seed,
-            selectExactColor = {},
-            selectSeedColor = {},
-            getSeedColor = { null },
+            role = ColorRole.Seed,
+            seedColor = details.color,
         )
 
-        val comparableData = resultData.copyWithNoopLambdas()
-        comparableData shouldBe ColorDetailsData(
+        resultData shouldBe ColorDetailsData(
             colorName = "Jewel",
             hex = ColorDetailsData.Hex(value = "#1A803F"),
             rgb = ColorDetailsData.Rgb(
@@ -66,7 +63,6 @@ class CreateColorDetailsDataUseCaseTest {
             ),
             colorRoleData = ColorRoleData.Seed(
                 exactColor = ColorInt(0x126B40),
-                selectExactColor = NoopOnClickAction,
             )
         )
     }
@@ -77,30 +73,9 @@ class CreateColorDetailsDataUseCaseTest {
         ).also {
             sut = it
         }
-
-    // Arrow lenses are tedious to use with sealed classes without inherited properties.
-    // Doesn't worth employing lenses to be used only here.
-    // https://arrow-kt.io/learn/immutable-data/lens/#sealed-class-hierarchies
-    fun ColorDetailsData.copyWithNoopLambdas() =
-        this.copy(
-            colorRoleData = colorRoleData.run {
-                when (this) {
-                    is ColorRoleData.Seed -> this.copy(
-                        selectExactColor = NoopOnClickAction,
-                    )
-                    is ColorRoleData.Exact -> this.copy(
-                        selectSeedColor = NoopOnClickAction,
-                    )
-                }
-            },
-        )
-
-    object NoopOnClickAction : () -> Unit {
-        override fun invoke() {}
-    }
 }
 
-private fun ColorDetails() =
+private fun ColorDetails(): ColorDetails =
     ColorDetails(
         color = Color.Hex(0x1A803F),
         colorHexString = ColorDetails.ColorHexString(
