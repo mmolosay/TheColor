@@ -23,11 +23,9 @@ import io.github.mmolosay.thecolor.presentation.center.ColorCenterHandle
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsAction
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsError
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsHandle
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewModel
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ExecuteColorDetailsAction
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.asError
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.colorOrNull
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.SideEffect
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.Operation.Companion.isSupersededBy

@@ -1,55 +1,65 @@
 package io.github.mmolosay.thecolor.presentation.details.viewmodel
 
 import io.github.mmolosay.thecolor.domain.color.Color
+import io.github.mmolosay.thecolor.utils.Identity
+import io.github.mmolosay.thecolor.domain.color.ColorDetails as DomainColorDetails
 
 sealed interface ColorDetailsState {
 
-    data object Idle : ColorDetailsState
+    data object NotRequested : ColorDetailsState
 
     data class Loading(
-        val subjectColor: SubjectColorData,
-        val session: ColorDetailsSession?,
+        val session: Session?,
         val request: Request,
     ) : ColorDetailsState
 
     data class Ready(
-        val subjectColor: SubjectColorData,
-        val data: ColorDetailsData,
-        val session: ColorDetailsSession,
+        val details: DomainColorDetails,
+        val role: ColorRole,
+        val session: Session,
     ) : ColorDetailsState
 
     data class Error(
-        val subjectColor: SubjectColorData,
-        val error: ColorDetailsError,
-        val session: ColorDetailsSession?,
+        val session: Session?,
+        val cause: Throwable,
+        val request: Request,
     ) : ColorDetailsState
 
     data class Request(
         val color: Color,
+        val role: ColorRole,
+        val identity: Identity = Identity(),
+    )
+
+    data class Session(
+        val seed: DomainColorDetails,
+        val exact: DomainColorDetails?,
     )
 }
 
-fun ColorDetailsState.subjectColorOrNull(): SubjectColorData? =
-    when (this) {
-        is ColorDetailsState.Idle -> null
-        is ColorDetailsState.Loading -> this.subjectColor
-        is ColorDetailsState.Ready -> this.subjectColor
-        is ColorDetailsState.Error -> this.subjectColor
+/**
+ * Depicts a role of a color inside the 'Color Details' feature.
+ */
+enum class ColorRole {
+    Seed,
+    Exact,
+}
+
+fun ColorDetailsState.Session.color(role: ColorRole): Color =
+    when (role) {
+        ColorRole.Seed -> this.seed.color
+        ColorRole.Exact -> this.seed.exact.color
     }
 
-fun ColorDetailsState.sessionOrNull(): ColorDetailsSession? =
-    when (this) {
-        is ColorDetailsState.Idle -> null
-        is ColorDetailsState.Loading -> this.session
-        is ColorDetailsState.Ready -> this.session
-        is ColorDetailsState.Error -> this.session
+fun ColorDetailsState.Session.details(role: ColorRole): DomainColorDetails? =
+    when (role) {
+        ColorRole.Seed -> this.seed
+        ColorRole.Exact -> this.exact
     }
 
-fun ColorDetailsState.colorOrNull(role: ColorRole): Color? =
-    this.sessionOrNull()?.getByRole(role)
+sealed interface ColorDetailsOutcome {
 
-fun ColorDetailsState.asError(): ColorDetailsState.Error? =
-    this as? ColorDetailsState.Error
-
-internal fun ColorDetailsState.isAwaiting(request: ColorDetailsState.Request): Boolean =
-    (this is ColorDetailsState.Loading) && (this.request == request)
+    data class ColorSelected(
+        val color: Color,
+    ) : ColorDetailsOutcome
+}
