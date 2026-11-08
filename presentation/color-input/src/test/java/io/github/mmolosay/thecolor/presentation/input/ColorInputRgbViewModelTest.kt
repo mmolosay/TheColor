@@ -1,30 +1,25 @@
 package io.github.mmolosay.thecolor.presentation.input
 
-import io.github.mmolosay.thecolor.domain.color.Color
-import io.github.mmolosay.thecolor.domain.color.ColorConverter
-import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
-import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.SelectAllTextOnTextFieldFocus
+import io.github.mmolosay.thecolor.domain.color.ColorFactory
+import io.github.mmolosay.thecolor.domain.color.prototype.ColorPrototypeValidator
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
 import io.github.mmolosay.thecolor.domain.utils.PrefState
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
+import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmissionResult
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
-import io.github.mmolosay.thecolor.presentation.input.model.ColorInputValidationResult
-import io.github.mmolosay.thecolor.presentation.input.model.DataState
-import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbData
+import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
+import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbAction
+import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbState
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbViewModel
-import io.github.mmolosay.thecolor.presentation.input.testing.MockColorInputMediatorComponents
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldAction
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
-import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldViewModel
 import io.github.mmolosay.thecolor.testing.MainDispatcherExtension
-import io.github.mmolosay.thecolor.utils.pending
+import io.github.mmolosay.thecolor.utils.Atom
 import io.kotest.assertions.withClue
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.beOfType
-import io.kotest.matchers.types.shouldBeInstanceOf
-import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,7 +29,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
-import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
+import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.SelectAllTextOnTextFieldFocus as DomainSelectAllTextOnTextFieldFocus
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.SmartBackspace as DomainSmartBackspace
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -46,14 +41,11 @@ class ColorInputRgbViewModelTest {
     @Suppress("unused")
     val mainDispatcherExtension = MainDispatcherExtension(testDispatcher)
 
-    val mediatorComponents = MockColorInputMediatorComponents()
-    val mediator = mediatorComponents.mediator
-
     val submitAction: ColorInputSubmitAction = mockk()
 
     val userPreferencesRepository: UserPreferencesRepository = mockk {
         every { flowOfSelectAllTextOnTextFieldFocus } returns run {
-            val value = SelectAllTextOnTextFieldFocus(enabled = false)
+            val value = DomainSelectAllTextOnTextFieldFocus(enabled = false)
             val result = PrefState.Result.HasValue(value)
             val prefState = PrefState.Ready(result)
             MutableStateFlow(prefState)
@@ -66,290 +58,169 @@ class ColorInputRgbViewModelTest {
         }
     }
 
-    val textFieldViewModelFactory: TextFieldViewModel.Factory = TextFieldViewModelTestFactory(
-        userPreferencesRepository = userPreferencesRepository,
-        defaultDispatcher = testDispatcher,
-        uiDataUpdateDispatcher = testDispatcher,
+    // real implementation, there's no need to have mock for validating color input
+    val colorInputValidator = ColorInputValidator(
+        colorInputMapper = ColorInputMapper(),
+        colorFactory = ColorFactory(ColorPrototypeValidator()),
     )
-
-    val colorInputValidator: ColorInputValidator = mockk {
-        every { any<ColorInput>().validate() } returns mockk<ColorInputValidationResult.Invalid>()
-    }
-
-    val colorInputMapper: ColorInputMapper = mockk()
-
-    val colorConverter: ColorConverter = mockk()
 
     lateinit var sut: ColorInputRgbViewModel
 
-    @Test // ANCHOR:Label=0
-    fun `given SUT is created, when mediator has not-null color, then data state becomes Ready`() =
+    @Test
+    fun `when 'SetText' expects the texts the fields hold, then the texts are applied as typed by the user`() =
         runTest(testDispatcher) {
-            val color = Color.Hex(0x0)
-            val colorInRgb = Color.Rgb(0, 0, 0)
-            every { mediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = color, source = null, id = 0)
-                MutableStateFlow(value)
+            val stateFlow = run {
+                val state = MockColorInputStates.ColorInputRgbState(r = "", g = "", b = "")
+                MutableStateFlow(state)
             }
-            with(colorConverter) {
-                every { (color as Color).toRgb() } returns colorInRgb
-            }
-            with(colorInputMapper) {
-                every { colorInRgb.toColorInput() } returns ColorInput.Rgb("0", "0", "0")
-            }
+            createSut(stateFlow)
 
-            createSut()
+            setTextsByUser(stateFlow, r = "26", g = "128", b = "63")
 
-            dataState should beOfType<DataState.Ready<*>>()
+            val state = stateFlow.value
+            state.rTextField.text shouldBe (Text("26") causedByUser true)
+            state.gTextField.text shouldBe (Text("128") causedByUser true)
+            state.bTextField.text shouldBe (Text("63") causedByUser true)
         }
 
     @Test
-    fun `given SUT is created, when mediator has not-null color, then text fields are populated with the correct text`() =
+    fun `when 'SetText' expects a text the field no longer holds, then the text is NOT changed`() =
         runTest(testDispatcher) {
-            val color = Color.Hex(0x1A803F)
-            val colorInRgb = Color.Rgb(26, 128, 63)
-            every { mediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = color, source = null, id = 0)
-                MutableStateFlow(value)
+            val stateFlow = run {
+                val state = MockColorInputStates.ColorInputRgbState(r = "255", g = "255", b = "255")
+                MutableStateFlow(state)
             }
-            with(colorConverter) {
-                every { (color as Color).toRgb() } returns colorInRgb
-            }
-            with(colorInputMapper) {
-                every { colorInRgb.toColorInput() } returns ColorInput.Rgb("26", "128", "63")
-            }
-
-            createSut()
-
-            // REFERENCE:Label=0
-            val data = dataState.shouldBeInstanceOf<DataState.Ready<ColorInputRgbData>>().data
-            data.rTextField.text.data shouldBe Text("26")
-            data.gTextField.text.data shouldBe Text("128")
-            data.bTextField.text.data shouldBe Text("63")
-        }
-
-    @Test
-    fun `given SUT is created, when mediator has 'null' color, then data state becomes Ready nonetheless`() =
-        runTest(testDispatcher) {
-            every { mediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = null, source = null, id = 0)
-                MutableStateFlow(value)
-            }
-
-            createSut()
-
-            dataState should beOfType<DataState.Ready<*>>()
-        }
-
-    @Test
-    fun `given mediator has not-null color, when SUT is created, then the initial color is not set to mediator and update loop is not created`() =
-        runTest(testDispatcher) {
-            val color = Color.Hex(0x0)
-            val colorInRgb = Color.Rgb(0, 0, 0)
-            every { mediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = color, source = null, id = 0)
-                MutableStateFlow(value)
-            }
-            with(colorInputValidator) {
-                every { ColorInput.Rgb("", "", "").validate() } returns mockk<ColorInputValidationResult.Invalid>()
-                every { ColorInput.Rgb("0", "0", "0").validate() } returns ColorInputValidationResult.Valid(colorInRgb)
-            }
-            with(colorConverter) {
-                every { (color as Color).toRgb() } returns colorInRgb
-            }
-            with(colorInputMapper) {
-                every { colorInRgb.toColorInput() } returns ColorInput.Rgb("0", "0", "0")
-            }
-
-            createSut()
-
-            coVerify(exactly = 0) {
-                mediatorComponents.editor.set(color = any(), source = DomainColorInputType.Rgb)
-            }
-        }
-
-    @Test
-    fun `when text is changed to invalid color, then 'null' color is set to mediator`() =
-        runTest(testDispatcher) {
-            every { mediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = null, source = null, id = 0)
-                MutableStateFlow(value)
-            }
-            with(colorInputValidator) {
-                every { ColorInput.Rgb("", "", "").validate() } returns mockk<ColorInputValidationResult.Invalid>()
-                every { ColorInput.Rgb("gib", "ber", "rish").validate() } returns mockk<ColorInputValidationResult.Invalid>()
-            }
-            createSut()
-
-            data.rTextField.onTextChange(Text("gib"))
-            data.gTextField.onTextChange(Text("ber"))
-            data.bTextField.onTextChange(Text("rish"))
-
-            // one call to 'mediator.set()' for each update in 3 text fields, 3 total
-            coVerify(exactly = 3) {
-                mediatorComponents.editor.set(color = null /*invalid color input*/, source = DomainColorInputType.Rgb)
-            }
-        }
-
-    @Test
-    fun `when mediator emits not-null color from non-RGB source, then data is updated`() =
-        runTest(testDispatcher) {
-            val color = Color.Hex(0x1A803F)
-            val colorInRgb = Color.Rgb(26, 128, 63)
-            val colorStateFlow = MutableStateFlow(ColorInputMediator.InitialColorState)
-            every { mediator.colorStateFlow } returns colorStateFlow
-            with(colorInputValidator) {
-                every { ColorInput.Rgb("", "", "").validate() } returns mockk<ColorInputValidationResult.Invalid>()
-                every { ColorInput.Rgb("26", "128", "63").validate() } returns ColorInputValidationResult.Valid(color)
-            }
-            with(colorConverter) {
-                every { (color as Color).toRgb() } returns colorInRgb
-            }
-            with(colorInputMapper) {
-                every { colorInRgb.toColorInput() } returns ColorInput.Rgb("26", "128", "63")
-            }
-            createSut()
+            createSut(stateFlow)
 
             run {
-                val value = ColorInputMediator.ColorState(
-                    color = color,
-                    source = DomainColorInputType.Hex,
-                    id = 1,
-                )
-                colorStateFlow.emit(value)
+                val action = TextFieldAction.SetText(text = Text("1280"), expected = Text("128"))
+                sut.executeGTextFieldAction(action)
             }
 
-            data.rTextField.text.data.string shouldBe "26"
-            data.gTextField.text.data.string shouldBe "128"
-            data.bTextField.text.data.string shouldBe "63"
+            stateFlow.value.gTextField.text.data shouldBe Text("255")
         }
 
     @Test
-    fun `when mediator emits not-null color from RGB source, then data is not updated and update loop is not created`() =
+    fun `when 'SubmitInput' action is executed, then the current input is submitted`() =
         runTest(testDispatcher) {
-            val color = Color.Hex(0x1A803F)
-            val colorStateFlow = MutableStateFlow(ColorInputMediator.InitialColorState)
-            every { mediator.colorStateFlow } returns colorStateFlow
-            with(colorInputValidator) {
-                every { ColorInput.Rgb("", "", "").validate() } returns mockk<ColorInputValidationResult.Invalid>()
-                every { ColorInput.Rgb("26", "128", "63").validate() } returns ColorInputValidationResult.Valid(color)
+            every { submitAction.invoke(colorInput = any(), validationResult = any()) } returns true
+            val stateFlow = run {
+                val state = MockColorInputStates.ColorInputRgbState(r = "26", g = "128", b = "63")
+                MutableStateFlow(state)
             }
-            createSut()
+            createSut(stateFlow)
 
+            sut.execute(ColorInputRgbAction.SubmitInput)
+
+            verify(exactly = 1) {
+                submitAction.invoke(
+                    colorInput = ColorInput.Rgb(r = "26", g = "128", b = "63"),
+                    validationResult = any(),
+                )
+            }
+        }
+
+    @Test
+    fun `given 'submit action' returns 'true', when 'SubmitInput' action is executed, then state has accepted 'input submission result'`() =
+        runTest(testDispatcher) {
+            every { submitAction.invoke(colorInput = any(), validationResult = any()) } returns true
+            val stateFlow = run {
+                val state = MockColorInputStates.ColorInputRgbState(r = "26", g = "128", b = "63")
+                MutableStateFlow(state)
+            }
+            createSut(stateFlow)
+
+            sut.execute(ColorInputRgbAction.SubmitInput)
+
+            stateFlow.value.inputSubmissionResult shouldBe ColorInputSubmissionResult(wasAccepted = true)
+        }
+
+    @Test
+    fun `given state has 'input submission result', when 'AckInputSubmissionResult' action is executed, then it is cleared`() =
+        runTest(testDispatcher) {
+            val stateFlow = run {
+                val result = ColorInputSubmissionResult(wasAccepted = true)
+                val state = MockColorInputStates.ColorInputRgbState(r = "26", g = "128", b = "63")
+                MutableStateFlow(state.copy(inputSubmissionResult = result))
+            }
+            createSut(stateFlow)
+
+            sut.execute(ColorInputRgbAction.AckInputSubmissionResult)
+
+            stateFlow.value.inputSubmissionResult shouldBe null
+        }
+
+    @Test
+    fun `when 'select all text on text field focus' preference changes, then all text fields are updated accordingly`() =
+        runTest(testDispatcher) {
+            val flowOfSelectAllTextOnTextFieldFocus = run {
+                val prefState = PrefState.BeingInitialized
+                MutableStateFlow<PrefState<DomainSelectAllTextOnTextFieldFocus>>(prefState)
+            }
+            every {
+                userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus
+            } returns flowOfSelectAllTextOnTextFieldFocus
+            val stateFlow = run {
+                val state = MockColorInputStates.ColorInputRgbState(r = "", g = "", b = "")
+                MutableStateFlow(state)
+            }
+            createSut(stateFlow)
+
+            // WHEN-THEN #1
             run {
-                val value = ColorInputMediator.ColorState(
-                    color = color,
-                    source = DomainColorInputType.Rgb,
-                    id = 1,
-                )
-                colorStateFlow.emit(value)
+                val value = DomainSelectAllTextOnTextFieldFocus(enabled = true)
+                val result = PrefState.Result.HasValue(value)
+                val prefState = PrefState.Ready(result)
+                flowOfSelectAllTextOnTextFieldFocus.emit(prefState)
+                val state = stateFlow.value
+                state.rTextField.shouldSelectAllTextOnFocus shouldBe true
+                state.gTextField.shouldSelectAllTextOnFocus shouldBe true
+                state.bTextField.shouldSelectAllTextOnFocus shouldBe true
             }
 
-            data.rTextField.text.data.string shouldBe ""
-            data.gTextField.text.data.string shouldBe ""
-            data.bTextField.text.data.string shouldBe ""
+            // WHEN-THEN #2
+            run {
+                val value = DomainSelectAllTextOnTextFieldFocus(enabled = false)
+                val result = PrefState.Result.HasValue(value)
+                val prefState = PrefState.Ready(result)
+                flowOfSelectAllTextOnTextFieldFocus.emit(prefState)
+                val state = stateFlow.value
+                state.rTextField.shouldSelectAllTextOnFocus shouldBe false
+                state.gTextField.shouldSelectAllTextOnFocus shouldBe false
+                state.bTextField.shouldSelectAllTextOnFocus shouldBe false
+            }
         }
 
     @Test
-    fun `given 'submit action' returns 'true', when invoking 'submit input', then 'submission result' is emitted`() =
+    fun `when 'smart backspace' preference changes, then state is updated accordingly`() =
         runTest(testDispatcher) {
-            val color = Color.Hex(0x1A803F)
-            val colorInRgb = Color.Rgb(26, 128, 63)
-            val colorAsColorInput = ColorInput.Rgb("26", "128", "63")
-            every { mediator.colorStateFlow } returns run {
-                val value = ColorInputMediator.ColorState(color = color, source = null, id = 0)
-                MutableStateFlow(value)
-            }
-            with(colorInputValidator) {
-                every { ColorInput.Rgb("", "", "").validate() } returns mockk<ColorInputValidationResult.Invalid>()
-                every { colorAsColorInput.validate() } returns ColorInputValidationResult.Valid(color)
-            }
-            with(colorConverter) {
-                every { (color as Color).toRgb() } returns colorInRgb
-            }
-            with(colorInputMapper) {
-                every { colorInRgb.toColorInput() } returns colorAsColorInput
-            }
-            every { submitAction.invoke(colorInput = colorAsColorInput, validationResult = any()) } returns true
-            createSut()
-
-            data.submitInput()
-
-            coVerify(exactly = 1) {
-                submitAction.invoke(colorInput = colorAsColorInput, validationResult = any())
-            }
-            val submissionResult = sut.submissionResultStore.pending.last().value
-            submissionResult.wasAccepted shouldBe true
-        }
-
-    @Test
-    fun `given SUT is created, when 'smart backspace' feature value is 'being initialized', then data state becomes Ready nonetheless`() =
-        runTest(testDispatcher) {
-            val colorStateFlow = MutableStateFlow(ColorInputMediator.InitialColorState)
-            every { mediator.colorStateFlow } returns colorStateFlow
-            with(colorInputValidator) {
-                every { ColorInput.Rgb("", "", "").validate() } returns mockk<ColorInputValidationResult.Invalid>()
-            }
-            every { userPreferencesRepository.flowOfSmartBackspace } returns run {
-                val prefState = PrefState.BeingInitialized
-                MutableStateFlow(prefState)
-            }
-
-            createSut()
-
-            dataState should beOfType<DataState.Ready<*>>()
-        }
-
-    @Test
-    fun `given SUT is created, when 'smart backspace' feature value is 'being initialized', then data has default value for 'is smart backspace enabled'`() =
-        runTest(testDispatcher) {
-            val colorStateFlow = MutableStateFlow(ColorInputMediator.InitialColorState)
-            every { mediator.colorStateFlow } returns colorStateFlow
-            with(colorInputValidator) {
-                every { ColorInput.Rgb("", "", "").validate() } returns mockk<ColorInputValidationResult.Invalid>()
-            }
-            every { userPreferencesRepository.flowOfSmartBackspace } returns run {
-                val prefState = PrefState.BeingInitialized
-                MutableStateFlow(prefState)
-            }
-
-            createSut()
-
-            data.isSmartBackspaceEnabled shouldBe DefaultUserPreferences.SmartBackspace.enabled
-        }
-
-    @Test
-    fun `when 'smart backspace' feature value changes, then data is updated accordingly`() =
-        runTest(testDispatcher) {
-            val colorStateFlow = MutableStateFlow(ColorInputMediator.InitialColorState)
-            every { mediator.colorStateFlow } returns colorStateFlow
-            with(colorInputValidator) {
-                every { ColorInput.Rgb("", "", "").validate() } returns mockk<ColorInputValidationResult.Invalid>()
-            }
             val flowOfSmartBackspace = run {
                 val prefState = PrefState.BeingInitialized
                 MutableStateFlow<PrefState<DomainSmartBackspace>>(prefState)
             }
             every { userPreferencesRepository.flowOfSmartBackspace } returns flowOfSmartBackspace
-
-            createSut()
+            val stateFlow = run {
+                val state = MockColorInputStates.ColorInputRgbState(r = "", g = "", b = "")
+                MutableStateFlow(state)
+            }
+            createSut(stateFlow)
 
             // WHEN-THEN #1
-            run {
-                val value = DomainSmartBackspace(enabled = false)
-                val result = PrefState.Result.HasValue(value)
-                val prefState = PrefState.Ready(result)
-                flowOfSmartBackspace.emit(prefState)
-                data.isSmartBackspaceEnabled shouldBe false
-            }
-
-            // WHEN-THEN #2
             run {
                 val value = DomainSmartBackspace(enabled = true)
                 val result = PrefState.Result.HasValue(value)
                 val prefState = PrefState.Ready(result)
                 flowOfSmartBackspace.emit(prefState)
-                data.isSmartBackspaceEnabled shouldBe true
+                stateFlow.value.isSmartBackspaceEnabled shouldBe true
+            }
+
+            // WHEN-THEN #2
+            run {
+                val value = DomainSmartBackspace(enabled = false)
+                val result = PrefState.Result.HasValue(value)
+                val prefState = PrefState.Ready(result)
+                flowOfSmartBackspace.emit(prefState)
+                stateFlow.value.isSmartBackspaceEnabled shouldBe false
             }
         }
 
@@ -360,41 +231,53 @@ class ColorInputRgbViewModelTest {
         expectedTextString: String,
     ) =
         runTest(testDispatcher) {
-            every { mediator.colorStateFlow } returns MutableStateFlow(ColorInputMediator.InitialColorState)
-            createSut()
+            val stateFlow = run {
+                val state = MockColorInputStates.ColorInputRgbState(r = "", g = "", b = "")
+                MutableStateFlow(state)
+            }
+            createSut(stateFlow)
 
-            // we check only one component because the logic is same for all 3 of them
-            val text = data.rTextField.filterUserInput(input)
+            // only one component is checked, because the logic is the same for all three
+            val text = sut.rTextFieldHandle.facade(data = stateFlow.value.rTextField).inputProcessor(input)
 
             withClue("Filtering user input \"$input\" should return \"$expectedTextString\"") {
                 text shouldBe Text(expectedTextString)
             }
         }
 
-    fun createSut() =
+    fun createSut(
+        stateFlow: MutableStateFlow<ColorInputRgbState>,
+    ) =
         ColorInputRgbViewModel(
-            coroutineScope = CoroutineScope(testDispatcher),
-            mediator = mediator,
+            coroutineScope = CoroutineScope(context = testDispatcher),
+            atom = Atom(stateFlow),
             submitAction = submitAction,
-            textFieldViewModelFactory = textFieldViewModelFactory,
             colorInputValidator = colorInputValidator,
-            colorInputMapper = colorInputMapper,
-            colorConverter = colorConverter,
             userPreferencesRepository = userPreferencesRepository,
-            uiDataUpdateDispatcher = testDispatcher,
-            defaultDispatcher = testDispatcher,
         ).also {
             sut = it
         }
 
-    val dataState: DataState<ColorInputRgbData>
-        get() = sut.dataStateFlow.value
-
-    val data: ColorInputRgbData
-        get() {
-            dataState should beOfType<DataState.Ready<*>>() // assertion for clear failure message
-            return (dataState as DataState.Ready).data
+    /** Sets the texts as if the user typed them, each into its field while it held the text it holds now. */
+    fun setTextsByUser(
+        stateFlow: MutableStateFlow<ColorInputRgbState>,
+        r: String,
+        g: String,
+        b: String,
+    ) {
+        run {
+            val expected = stateFlow.value.rTextField.text.data
+            sut.executeRTextFieldAction(TextFieldAction.SetText(text = Text(r), expected = expected))
         }
+        run {
+            val expected = stateFlow.value.gTextField.text.data
+            sut.executeGTextFieldAction(TextFieldAction.SetText(text = Text(g), expected = expected))
+        }
+        run {
+            val expected = stateFlow.value.bTextField.text.data
+            sut.executeBTextFieldAction(TextFieldAction.SetText(text = Text(b), expected = expected))
+        }
+    }
 
     companion object {
 

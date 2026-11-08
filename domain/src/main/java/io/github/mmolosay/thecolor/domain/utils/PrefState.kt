@@ -42,6 +42,19 @@ fun <T> PrefState<T>.getOrElse(
     }
 }
 
+@OptIn(ExperimentalContracts::class)
+fun <T> PrefState<T>.readyOrElse(
+    block: (actual: PrefState<T>) -> PrefState.Result<T>,
+): PrefState.Result<T> {
+    contract {
+        callsInPlace(block, InvocationKind.AT_MOST_ONCE)
+    }
+    return when (this) {
+        is PrefState.BeingInitialized -> block(this)
+        is PrefState.Ready -> this.result
+    }
+}
+
 fun <T> Flow<PrefState<T>>.filterReady(): Flow<PrefState.Ready<T>> =
     transform { dataState ->
         when (dataState) {

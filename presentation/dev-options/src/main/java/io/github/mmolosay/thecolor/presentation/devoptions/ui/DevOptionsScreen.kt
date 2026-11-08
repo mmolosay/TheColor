@@ -275,6 +275,7 @@ fun DevOptions(
                     makeInfoProperty(name = strings.itemBuildInfoAppBuildTypeLabel, value = data.buildInfo.appBuildType),
                     makeInfoProperty(name = strings.itemBuildInfoAppVersionNameLabel, value = data.buildInfo.appVersionName),
                     makeInfoProperty(name = strings.itemBuildInfoAppVersionCodeLabel, value = data.buildInfo.appVersionCode),
+                    makeInfoProperty(name = strings.itemBuildInfoGitHeadLabel, value = data.buildInfo.gitHeadCommitHash),
                 ).joinToString(separator = "\n"),
             )
         }
@@ -330,5 +331,6 @@ private fun previewData() =
             appBuildType = DomainBuildType.Debug,
             appVersionName = "1",
             appVersionCode = 1,
+            gitHeadCommitHash = "97cd4bd5",
         ),
     )

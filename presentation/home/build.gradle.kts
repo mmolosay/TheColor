@@ -15,6 +15,7 @@ dependencies {
     // Modules
     implementation(project(":domain"))
     implementation(project(":utils"))
+    implementation(project(":composition"))
     implementation(project(":main:di-qualifiers"))
     implementation(project(":presentation:common"))
     implementation(project(":presentation:design-system"))
@@ -27,6 +28,7 @@ dependencies {
 
     // Kotlin
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.coroutines.get()}")
+    implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:${libs.versions.kotlinCollectionsImmutable.get()}")
 
     // Compose
     implementation("androidx.compose.material3:material3")

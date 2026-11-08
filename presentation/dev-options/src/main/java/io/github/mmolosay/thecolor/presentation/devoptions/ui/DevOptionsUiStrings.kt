@@ -44,6 +44,7 @@ data class DevOptionsUiStrings(
     val itemBuildInfoAppBuildTypeLabel: String,
     val itemBuildInfoAppVersionNameLabel: String,
     val itemBuildInfoAppVersionCodeLabel: String,
+    val itemBuildInfoGitHeadLabel: String,
 )
 
 fun DevOptionsUiStrings(context: Context) =
@@ -81,4 +82,5 @@ fun DevOptionsUiStrings(context: Context) =
         itemBuildInfoAppBuildTypeLabel = context.getString(R.string.dev_options_item_build_info_app_build_type_label),
         itemBuildInfoAppVersionNameLabel = context.getString(R.string.dev_options_item_build_info_app_version_name_label),
         itemBuildInfoAppVersionCodeLabel = context.getString(R.string.dev_options_item_build_info_app_version_code_label),
+        itemBuildInfoGitHeadLabel = context.getString(R.string.dev_options_item_build_info_git_head_label),
     )

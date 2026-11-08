@@ -3,7 +3,6 @@ package io.github.mmolosay.thecolor.utils
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
@@ -50,25 +49,3 @@ fun <T> MutableSharedFlow<T>.requireEmit(value: T) {
     val wasEmitted = this.tryEmit(value)
     require(wasEmitted) { "Failed to emit value $value" }
 }
-
-/**
- * This operator combines the source flow with an update flag flow, and suppresses
- * any emissions while the update flag is `true` (data is actively being updated).
- * Once the flag becomes `false` (update has finished), it emits the most recent value from the source flow.
- *
- * This is useful to prevent intermediate, unstable values from being collected while some
- * external update operation is in progress.
- *
- * You may want to apply [distinctUntilChanged] after this operator.
- * If flow of [isBeingUpdated] updates without source flow emitting a new value,
- * then the latest value will be re-emitted when [isBeingUpdated] becomes `false`.
- *
- * @param isBeingUpdated A flow indicating whether data is currently being updated.
- * One can think of it as of "is the source flow actively emitting non-final values" flow.
- */
-fun <T> Flow<T>.stabilize(
-    isBeingUpdated: Flow<Boolean>,
-): Flow<T> =
-    combineTransform(this, isBeingUpdated) { value, isBeingUpdated ->
-        if (!isBeingUpdated) emit(value)
-    }

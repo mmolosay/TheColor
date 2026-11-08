@@ -3,6 +3,7 @@ package io.github.mmolosay.thecolor.data.local
 import android.content.Context
 import androidx.core.content.pm.PackageInfoCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
+import io.github.mmolosay.thecolor.data.BuildConfig
 import io.github.mmolosay.thecolor.domain.buildfeatures.AppBuildTypeProvider
 import io.github.mmolosay.thecolor.domain.buildfeatures.BuildInfoRepository
 import io.github.mmolosay.thecolor.domain.buildfeatures.BuildType
@@ -30,6 +31,10 @@ class BuildInfoRepositoryImpl @Inject constructor(
         val packageInfo = context.packageManager.getPackageInfo(/*packageName*/ context.packageName, /*flags*/0)
         return packageInfo.versionName
     }
+
+    @Suppress("RedundantNullableReturnType")
+    override fun getGitHeadCommitShortHash(): String? =
+        BuildConfig.GIT_HEAD_COMMIT_SHORT_HASH
 
     @Suppress("NOTHING_TO_INLINE")
     private inline fun nullContextError(): Nothing =

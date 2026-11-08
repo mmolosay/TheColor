@@ -8,4 +8,7 @@
 
     <string name="home_invalid_color_message">Please enter a valid color</string>
 
+    <string name="home_color_center_details_page_change_button_text">View color scheme</string>
+    <string name="home_color_center_scheme_page_change_button_text">View color details</string>
+
 </resources>
