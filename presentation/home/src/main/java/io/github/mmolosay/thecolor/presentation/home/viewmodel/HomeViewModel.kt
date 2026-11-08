@@ -592,7 +592,7 @@ class HomeViewModel @Inject constructor(
                     viewModelScope.launchFetch(Operation.Fetch.SwatchColorDetails) launch@{
                         if (colorCenterComponentsStore.components !== components) return@launch // stale instance
                         val swatchDetails = viewModel.stateFlow.value.asReady()
-                            ?.domainColorScheme?.swatchDetails?.getOrNull(action.swatchIndex)
+                            ?.scheme?.swatchDetails?.getOrNull(action.swatchIndex)
                             ?: return@launch // stale invocation
                         val swatchViewModel = components.selectedSwatchColorDetailsViewModel
                         // set the data first, so that the handle is published already populated

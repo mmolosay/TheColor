@@ -13,7 +13,6 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,7 +22,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -46,7 +44,6 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.common.annotation
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
 import io.github.mmolosay.thecolor.presentation.common.format
@@ -60,50 +57,47 @@ import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.errors.ErrorMessageWithButton
 import io.github.mmolosay.thecolor.presentation.errors.messageOrUnknown
 import io.github.mmolosay.thecolor.presentation.errors.rememberDefaultErrorsUiStrings
-import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeAction
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeData
-import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeError
-import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeFacade
-import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeHandle
-import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeState
-import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ExecuteColorSchemeAction
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeFeature
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeViewData
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.SwatchCount
 import io.github.mmolosay.thecolor.utils.doNothing
 import kotlinx.collections.immutable.persistentListOf
-import kotlinx.coroutines.Job
-import io.github.mmolosay.thecolor.domain.color.ColorScheme.Mode as DomainMode
+import io.github.mmolosay.thecolor.domain.color.ColorScheme as DomainColorScheme
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 @Composable
-fun rememberColorSchemeFacade(handle: ColorSchemeHandle): ColorSchemeFacade {
-    val state = handle.stateFlow.collectAsStateWithLifecycle().value
-    return remember(handle, state) { handle.facade(state) }
-}
-
-@Composable
 fun ColorScheme(
-    facade: ColorSchemeFacade,
+    data: ColorSchemeViewData,
+    feature: ColorSchemeFeature,
+    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val strings = remember(context) { ColorSchemeUiStrings(context) }
-    val execute = facade.execute
-    when (val state = facade.state) {
-        is ColorSchemeState.Idle -> {
-            doNothing() // Color Scheme shouldn't be visible at Home at this point
+    when (data) {
+        is ColorSchemeViewData.Empty -> {
+            doNothing() // should promptly change to other state
         }
-        is ColorSchemeState.Loading -> {
-            ColorSchemeLoading()
-        }
-        is ColorSchemeState.Ready -> {
-            ColorScheme(
-                data = state.data,
-                strings = strings,
-                execute = execute,
+        is ColorSchemeViewData.Loading -> {
+            ColorSchemeLoading(
+                modifier = modifier,
             )
         }
-        is ColorSchemeState.Error -> {
+        is ColorSchemeViewData.Ready -> {
+            ColorScheme(
+                modifier = modifier,
+                data = data.data,
+                strings = strings,
+                onSwatchClick = feature::selectSwatch,
+                onModeClick = feature::selectMode,
+                onSwatchCountClick = feature::selectSwatchCount,
+                onApplyChangesClick = feature::applyChanges,
+            )
+        }
+        is ColorSchemeViewData.Error -> {
             Error(
-                error = state.error,
-                onTryAgainClick = { execute(ColorSchemeAction.RetryOnError) },
+                cause = data.cause,
+                onTryAgainClick = feature::retry,
             )
         }
     }
@@ -113,7 +107,10 @@ fun ColorScheme(
 fun ColorScheme(
     data: ColorSchemeData,
     strings: ColorSchemeUiStrings,
-    execute: ExecuteColorSchemeAction,
+    onSwatchClick: (index: Int) -> Unit,
+    onModeClick: (mode: DomainColorScheme.Mode) -> Unit,
+    onSwatchCountClick: (count: SwatchCount) -> Unit,
+    onApplyChangesClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -123,30 +120,21 @@ fun ColorScheme(
     ) {
         ListOfSwatches(
             swatches = data.swatches,
-            onSwatchClick = { index ->
-                val action = ColorSchemeAction.SelectSwatch(index)
-                execute(action)
-            },
+            onSwatchClick = onSwatchClick,
         )
 
         Spacer(modifier = Modifier.height(16.dp))
         ModeSection(
             data = data,
             strings = strings,
-            onModeClick = { mode ->
-                val action = ColorSchemeAction.SelectMode(mode)
-                execute(action)
-            },
+            onModeClick = onModeClick,
         )
 
         Spacer(modifier = Modifier.height(16.dp))
         SwatchCountSection(
             data = data,
             strings = strings,
-            onSwatchCountClick = { count ->
-                val action = ColorSchemeAction.SelectSwatchCount(count)
-                execute(action)
-            },
+            onSwatchCountClick = onSwatchCountClick,
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -154,7 +142,7 @@ fun ColorScheme(
             modifier = Modifier.align(Alignment.End),
             isVisible = data.hasChangesToApply,
             text = strings.applyChangesButtonText,
-            onClick = { execute(ColorSchemeAction.ApplyChanges) },
+            onClick = onApplyChangesClick,
         )
     }
 }
@@ -163,7 +151,7 @@ fun ColorScheme(
 private fun ModeSection(
     data: ColorSchemeData,
     strings: ColorSchemeUiStrings,
-    onModeClick: (DomainMode) -> Unit,
+    onModeClick: (DomainColorScheme.Mode) -> Unit,
 ) {
     val activeMode = data.activeMode.name(strings)
     val title = strings.modeTitle.format(activeMode)
@@ -178,18 +166,17 @@ private fun ModeSection(
     )
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun Modes(
     data: ColorSchemeData,
     strings: ColorSchemeUiStrings,
-    onModeClick: (mode: DomainMode) -> Unit,
+    onModeClick: (mode: DomainColorScheme.Mode) -> Unit,
 ) {
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        DomainMode.entries.forEach { mode ->
+        DomainColorScheme.Mode.entries.forEach { mode ->
             ModeChip(
                 selected = (mode == data.selectedMode),
                 onClick = { onModeClick(mode) },
@@ -214,25 +201,25 @@ private fun ModeChip(
     )
 }
 
-private fun DomainMode.name(
+private fun DomainColorScheme.Mode.name(
     strings: ColorSchemeUiStrings,
 ): String =
     when (this) {
-        DomainMode.Monochrome -> strings.modeMonochromeName
-        DomainMode.MonochromeDark -> strings.modeMonochromeDarkName
-        DomainMode.MonochromeLight -> strings.modeMonochromeLightName
-        DomainMode.Analogic -> strings.modeAnalogicName
-        DomainMode.Complement -> strings.modeComplementName
-        DomainMode.AnalogicComplement -> strings.modeAnalogicComplementName
-        DomainMode.Triad -> strings.modeTriadName
-        DomainMode.Quad -> strings.modeQuadName
+        DomainColorScheme.Mode.Monochrome -> strings.modeMonochromeName
+        DomainColorScheme.Mode.MonochromeDark -> strings.modeMonochromeDarkName
+        DomainColorScheme.Mode.MonochromeLight -> strings.modeMonochromeLightName
+        DomainColorScheme.Mode.Analogic -> strings.modeAnalogicName
+        DomainColorScheme.Mode.Complement -> strings.modeComplementName
+        DomainColorScheme.Mode.AnalogicComplement -> strings.modeAnalogicComplementName
+        DomainColorScheme.Mode.Triad -> strings.modeTriadName
+        DomainColorScheme.Mode.Quad -> strings.modeQuadName
     }
 
 @Composable
 private fun SwatchCountSection(
     data: ColorSchemeData,
     strings: ColorSchemeUiStrings,
-    onSwatchCountClick: (count: ColorSchemeData.SwatchCount) -> Unit,
+    onSwatchCountClick: (count: SwatchCount) -> Unit,
 ) {
     val activeSwatchCount = data.activeSwatchCount.stringValue()
     val title = strings.swatchCountTitle.format(activeSwatchCount)
@@ -247,17 +234,16 @@ private fun SwatchCountSection(
 
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SwatchCountItems(
     data: ColorSchemeData,
-    onSwatchCountClick: (count: ColorSchemeData.SwatchCount) -> Unit,
+    onSwatchCountClick: (count: SwatchCount) -> Unit,
 ) {
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        ColorSchemeData.SwatchCount.entries.forEach { swatchCount ->
+        SwatchCount.entries.forEach { swatchCount ->
             SwatchCountItem(
                 selected = (swatchCount == data.selectedSwatchCount),
                 onClick = { onSwatchCountClick(swatchCount) },
@@ -282,7 +268,7 @@ private fun SwatchCountItem(
     )
 }
 
-private fun ColorSchemeData.SwatchCount.stringValue(): String =
+private fun SwatchCount.stringValue(): String =
     this.value.toString()
 
 @Composable
@@ -304,7 +290,6 @@ private fun SectionTitle(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SelectableChip(
     selected: Boolean,
@@ -398,7 +383,7 @@ private fun ApplyChangesButton(
 
 @Composable
 private fun Error(
-    error: ColorSchemeError,
+    cause: Throwable,
     onTryAgainClick: () -> Unit,
 ) {
     val strings = rememberDefaultErrorsUiStrings()
@@ -406,7 +391,7 @@ private fun Error(
         modifier = Modifier
             .padding(horizontal = 24.dp)
             .fillMaxWidth(),
-        message = error.cause.messageOrUnknown(strings),
+        message = cause.messageOrUnknown(strings),
         button = {
             val colors = ButtonDefaults.outlinedButtonColors(
                 contentColor = colorsOnTintedSurface.accent,
@@ -446,7 +431,10 @@ private fun PreviewLight() {
                 modifier = Modifier.background(Color(0xFF_123123)),
                 data = previewData(),
                 strings = previewUiStrings(),
-                execute = { Job() },
+                onSwatchClick = {},
+                onModeClick = {},
+                onSwatchCountClick = {},
+                onApplyChangesClick = {},
             )
         }
     }
@@ -462,7 +450,10 @@ private fun PreviewDark() {
                 modifier = Modifier.background(Color(0xFF_F0F8FF)),
                 data = previewData(),
                 strings = previewUiStrings(),
-                execute = { Job() },
+                onSwatchClick = {},
+                onModeClick = {},
+                onSwatchCountClick = {},
+                onApplyChangesClick = {},
             )
         }
     }
@@ -508,10 +499,10 @@ private fun previewData() =
                 isDark = false,
             ),
         ),
-        activeMode = DomainMode.MonochromeDark,
-        selectedMode = DomainMode.MonochromeDark,
-        activeSwatchCount = ColorSchemeData.SwatchCount.Nine,
-        selectedSwatchCount = ColorSchemeData.SwatchCount.Nine,
+        activeMode = DomainColorScheme.Mode.MonochromeDark,
+        selectedMode = DomainColorScheme.Mode.MonochromeDark,
+        activeSwatchCount = SwatchCount.Nine,
+        selectedSwatchCount = SwatchCount.Nine,
         hasChangesToApply = true,
     )
 

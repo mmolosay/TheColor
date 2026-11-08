@@ -10,18 +10,28 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeFacade
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.mmolosay.thecolor.presentation.common.compose.retained
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeFeature
+import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeViewData
 
 @Composable
 fun ColorSchemeCrossfade(
     modifier: Modifier = Modifier,
-    actualFacade: ColorSchemeFacade,
+    feature: ColorSchemeFeature,
     animationSpec: FiniteAnimationSpec<Float> = ColorSchemeCrossfadeDefaults.animationSpec(),
-    colorScheme: @Composable (facade: ColorSchemeFacade) -> Unit,
+    colorScheme: @Composable (data: ColorSchemeViewData, feature: ColorSchemeFeature) -> Unit,
 ) {
+    val actual by feature.viewData.collectAsStateWithLifecycle()
+    val retained by retained(actual) { new ->
+        if (new !is ColorSchemeViewData.Empty) {
+            value = new
+        }
+    }
     val transition = updateTransition(
-        targetState = actualFacade,
+        targetState = retained,
         label = "Color Scheme cross-fade",
     )
     transition.AnimatedContent(
@@ -32,9 +42,9 @@ fun ColorSchemeCrossfade(
             val sizeTransform = SizeTransform(clip = false)
             (enter togetherWith exit) using sizeTransform
         },
-        contentKey = { it.state::class }, // don't animate when 'ColorSchemeState' type stays the same but only its values change
-    ) { facade ->
-        colorScheme(facade)
+        contentKey = { it::class }, // don't animate when only the values of the 'ViewData' change
+    ) { data ->
+        colorScheme(data, feature)
     }
 }
 
