@@ -1,6 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.home.viewmodel
 
-import io.github.mmolosay.thecolor.presentation.center.ColorCenterHandle
+import io.github.mmolosay.thecolor.presentation.center.viewmodel.ColorCenterHandle
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsHandle
 import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorHandle
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupFeature

@@ -19,9 +19,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import io.github.mmolosay.thecolor.presentation.center.ColorCenter
-import io.github.mmolosay.thecolor.presentation.center.ColorCenterUiStrings
-import io.github.mmolosay.thecolor.presentation.center.rememberColorCenterFacade
+import io.github.mmolosay.thecolor.presentation.center.ui.ColorCenter
+import io.github.mmolosay.thecolor.presentation.center.ui.ColorCenterUiStrings
+import io.github.mmolosay.thecolor.presentation.center.ui.rememberColorCenterFacade
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
 import io.github.mmolosay.thecolor.presentation.common.compose.Placeholder
 import io.github.mmolosay.thecolor.presentation.common.compose.PlaceholderDefaults

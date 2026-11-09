@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.center
+package io.github.mmolosay.thecolor.presentation.center.ui
 
 /**
  * Strings that are pre-defined in UI and don't come from ViewModel.

@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.center
+package io.github.mmolosay.thecolor.presentation.center.ui
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer

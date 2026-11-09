@@ -15,9 +15,13 @@ dependencies {
     // Modules
     implementation(project(":domain"))
     implementation(project(":utils"))
+    implementation(project(":composition"))
     implementation(project(":main:di-qualifiers"))
     implementation(project(":presentation:common"))
     implementation(project(":presentation:design-system"))
+
+    implementation(project(":presentation:color-details"))
+    implementation(project(":presentation:color-scheme"))
 
     // Kotlin
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.coroutines.get()}")

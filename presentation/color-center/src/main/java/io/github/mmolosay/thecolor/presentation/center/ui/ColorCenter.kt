@@ -1,6 +1,7 @@
-package io.github.mmolosay.thecolor.presentation.center
+package io.github.mmolosay.thecolor.presentation.center.ui
 
-import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -11,11 +12,11 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,49 +28,61 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import io.github.mmolosay.thecolor.presentation.center.ColorCenterData.SideEffect
+import io.github.mmolosay.thecolor.presentation.center.viewmodel.ColorCenterFeature
 import io.github.mmolosay.thecolor.presentation.common.compose.Placeholder
 import io.github.mmolosay.thecolor.presentation.common.compose.PlaceholderDefaults
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.coroutines.Job
+import io.github.mmolosay.thecolor.presentation.details.ui.ColorDetails
+import io.github.mmolosay.thecolor.presentation.details.ui.ColorDetailsCrossfade
+import io.github.mmolosay.thecolor.presentation.scheme.ui.ColorScheme
+import io.github.mmolosay.thecolor.presentation.scheme.ui.ColorSchemeCrossfade
+import kotlinx.coroutines.launch
 import kotlin.math.max
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 @Composable
-fun rememberColorCenterFacade(handle: ColorCenterHandle): ColorCenterFacade {
-    val data = handle.dataFlow.collectAsStateWithLifecycle().value
-    return remember(handle, data) { handle.facade(data) }
-}
-
-@Composable
 fun ColorCenter(
-    facade: ColorCenterFacade,
-    page1Content: @Composable () -> Unit,
-    page2Content: @Composable () -> Unit,
+    feature: ColorCenterFeature,
     strings: ColorCenterUiStrings,
     modifier: Modifier = Modifier,
 ) {
+    val crossfadeSpec = tween<Float>(
+        durationMillis = 500,
+        easing = FastOutSlowInEasing,
+    )
     ColorCenter(
-        data = facade.data,
-        strings = strings,
-        execute = facade.execute,
-        page1Content = page1Content,
-        page2Content = page2Content,
         modifier = modifier,
+        strings = strings,
+        page1Content = {
+            ColorDetailsCrossfade(
+                feature = feature.details,
+                animationSpec = crossfadeSpec,
+            ) { data, feature ->
+                ColorDetails(
+                    data = data,
+                    feature = feature
+                )
+            }
+        },
+        page2Content = {
+            ColorSchemeCrossfade(
+                feature = feature.scheme,
+                animationSpec = crossfadeSpec,
+            ) { data, feature ->
+                ColorScheme(
+                    data = data,
+                    feature = feature,
+                )
+            }
+        },
     )
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ColorCenter(
-    data: ColorCenterData,
     strings: ColorCenterUiStrings,
-    execute: ExecuteColorCenterAction,
     page1Content: @Composable () -> Unit,
     page2Content: @Composable () -> Unit,
     modifier: Modifier = Modifier,
@@ -78,9 +91,21 @@ fun ColorCenter(
     val pagerState = rememberPagerState(
         pageCount = { 2 },
     )
-    var userScrollEnabled by remember { mutableStateOf(true) }
+    val coroutineScope = rememberCoroutineScope()
+    var pageChangesInProgress by remember { mutableIntStateOf(0) }
     var minHeight by remember { mutableStateOf<Int?>(null) }
     val minHeightDp = with(density) { minHeight?.toDp() }
+
+    fun changePage(pageIndex: Int) {
+        coroutineScope.launch {
+            pageChangesInProgress++
+            try {
+                pagerState.animateScrollToPage(page = pageIndex)
+            } finally {
+                pageChangesInProgress--
+            }
+        }
+    }
 
     @Composable
     fun Page1() {
@@ -89,10 +114,7 @@ fun ColorCenter(
             changePageButton = {
                 ChangePageButton(
                     text = strings.page1ChangePageButtonText,
-                    onClick = {
-                        val action = ColorCenterAction.ChangePage(pageIndex = 1)
-                        execute(action)
-                    },
+                    onClick = { changePage(pageIndex = 1) },
                     icon = ImageVector.vectorResource(DesignR.drawable.ic_keyboard_arrow_right),
                     iconPlacement = IconPlacement.Trailing,
                 )
@@ -107,10 +129,7 @@ fun ColorCenter(
             changePageButton = {
                 ChangePageButton(
                     text = strings.page2ChangePageButtonText,
-                    onClick = {
-                        val action = ColorCenterAction.ChangePage(pageIndex = 0)
-                        execute(action)
-                    },
+                    onClick = { changePage(pageIndex = 0) },
                     icon = ImageVector.vectorResource(DesignR.drawable.ic_keyboard_arrow_left),
                     iconPlacement = IconPlacement.Leading,
                 )
@@ -127,7 +146,7 @@ fun ColorCenter(
                 minHeight = max(size.height, minHeight ?: 0)
             },
         verticalAlignment = Alignment.Top,
-        userScrollEnabled = userScrollEnabled,
+        userScrollEnabled = (pageChangesInProgress == 0),
         key = { index -> index }, // list of pages doesn't change
     ) { pageIndex ->
         Box(
@@ -138,43 +157,6 @@ fun ColorCenter(
                 0 -> Page1()
                 1 -> Page2()
                 else -> error("Unexpected page index. Have you forgotten to increase 'pageCount'?")
-            }
-        }
-    }
-
-    ProcessSideEffectsAsSideEffect(
-        sideEffects = data.sideEffects,
-        onProcessed = { se ->
-            val action = ColorCenterAction.OnSideEffectProcessed(se)
-            execute(action)
-        },
-        changePage = { se ->
-            try {
-                userScrollEnabled = false
-                pagerState.animateScrollToPage(page = se.pageIndex)
-            } finally {
-                userScrollEnabled = true // ensure re-enabled if LaunchedEffect() is cancelled
-            }
-        },
-    )
-}
-
-@Composable
-private fun ProcessSideEffectsAsSideEffect(
-    sideEffects: ImmutableList<SideEffect>,
-    onProcessed: (SideEffect) -> Unit,
-    changePage: suspend (SideEffect.ChangePage) -> Unit,
-) {
-    suspend fun process(se: SideEffect.ChangePage) {
-        changePage(se)
-        onProcessed(se)
-    }
-    for (se in sideEffects) {
-        key(se.id) {
-            LaunchedEffect(Unit) {
-                when (se) {
-                    is SideEffect.ChangePage -> process(se)
-                }
             }
         }
     }
@@ -199,9 +181,7 @@ private fun Preview() {
         ) {
             ProvideColorsOnTintedSurface(colors = colorsOnLightSurface()) {
                 ColorCenter(
-                    data = previewData(),
                     strings = previewUiStrings(),
-                    execute = { Job() },
                     page1Content = {
                         Page("Color details")
                     },
@@ -213,11 +193,6 @@ private fun Preview() {
         }
     }
 }
-
-private fun previewData() =
-    ColorCenterData(
-        sideEffects = persistentListOf(),
-    )
 
 private fun previewUiStrings() =
     ColorCenterUiStrings(
