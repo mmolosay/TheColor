@@ -1,7 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.home.ui
 
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeState
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewState
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewUiState
 import io.github.mmolosay.thecolor.presentation.preview.toUiState
 
@@ -20,7 +20,7 @@ internal fun HomeUiState.toAnimState(): HomeAnimState? =
         isColorCenterVisible = this.isColorCenterVisible,
     )
 
-internal fun HomeState.toUiState(): HomeUiState {
+internal fun HomeViewState.toUiState(): HomeUiState {
     val isColorPreviewVisible = (this.colorPreview.toUiState() is ColorPreviewUiState.Visible)
     val isColorCenterVisible = (this.home.proceedResult is ProceedResult.Success)
     return HomeUiState(

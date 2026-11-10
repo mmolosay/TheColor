@@ -39,8 +39,7 @@ import io.github.mmolosay.thecolor.presentation.common.navbar.RootNavBarAppearan
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.details.ui.ColorDetails
 import io.github.mmolosay.thecolor.presentation.details.ui.ColorDetailsCrossfade
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.SubjectColorData
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.subjectColorOrNull
+import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewData
 import io.github.mmolosay.thecolor.presentation.home.ui.center.BareColorCenter
 import io.github.mmolosay.thecolor.presentation.home.ui.center.BareColorCenterComposable
 import io.github.mmolosay.thecolor.presentation.home.ui.center.ColorCenterInHome
@@ -69,7 +68,7 @@ fun HomeScreen(
     val context = LocalContext.current
     val strings = remember(context) { HomeUiStrings(context) }
 
-    // TODO: HomeViewModel may take longer time to initialize HomeState on laggy devices.
+    // TODO: HomeViewModel may take longer time to initialize HomeViewState on laggy devices.
     //       Implement 'loading' state and cross-fade?
     val state = viewModel.stateFlow.collectAsStateWithLifecycle().value ?: return
 
@@ -107,29 +106,27 @@ fun HomeScreen(
     val colorPreviewDataFlow = remember {
         viewModel.stateFlow.mapState { requireNotNull(it).colorPreview }
     }
-    val colorCenter: BareColorCenterComposable? = run {
-        val handles = state.colorCenterHandles ?: return@run null
-        remember(handles) {
+    val colorCenter: BareColorCenterComposable = run {
+        val feature = state.colorCenter
+        remember(feature) {
             {
-                BareColorCenter(handles)
+                BareColorCenter(feature = feature)
             }
         }
     }
-    val selectedSwatchState = state.colorCenterHandles?.selectedSwatchDetails
-        ?.stateFlow?.collectAsStateWithLifecycle()?.value
-    val selectedSwatchData = selectedSwatchState?.subjectColorOrNull()
-    val selectedSwatchDetails: BareSelectedSwatchDetailsComposable? = run {
-        val handle = state.colorCenterHandles?.selectedSwatchDetails ?: return@run null
-        val state = selectedSwatchState ?: return@run null
-        val facade = remember(handle, state) { handle.facade(state) }
-        remember(facade) {
+    val selectedSwatchData: ColorDetailsViewData
+    val selectedSwatchDetails: BareSelectedSwatchDetailsComposable = run {
+        val feature = state.selectedSwatch
+        selectedSwatchData = feature.viewData.collectAsStateWithLifecycle().value
+        remember(feature) {
             { modifier ->
                 ColorDetailsCrossfade(
                     modifier = modifier,
-                    actualFacade = facade,
-                ) { facade ->
+                    feature = feature,
+                ) { data, feature ->
                     ColorDetails(
-                        facade = facade,
+                        data = data,
+                        feature = feature,
                     )
                 }
             }
@@ -162,7 +159,7 @@ private fun HomeScreen(
     colorPreviewDataFlow: StateFlow<ColorPreviewData>,
     colorCenter: BareColorCenterComposable?,
     selectedSwatchDetails: BareSelectedSwatchDetailsComposable?,
-    selectedSwatchData: SubjectColorData?,
+    selectedSwatchData: ColorDetailsViewData,
     animController: HomeAnimController?,
     navigateToSettings: () -> Unit,
     navBarAppearanceController: NavBarAppearanceController,
@@ -200,7 +197,7 @@ private fun Home(
     colorPreviewDataFlow: StateFlow<ColorPreviewData>,
     colorCenter: BareColorCenterComposable?,
     selectedSwatchDetails: BareSelectedSwatchDetailsComposable?,
-    selectedSwatchData: SubjectColorData?,
+    selectedSwatchData: ColorDetailsViewData,
     animController: HomeAnimController?,
     navigateToSettings: () -> Unit,
     navBarAppearanceController: NavBarAppearanceController,
@@ -269,7 +266,7 @@ private fun Home(
     )
 
     SelectedSwatchDetailsInHome(
-        subjectColorData = selectedSwatchData,
+        data = selectedSwatchData,
         navBarAppearanceController = remember(navBarAppearanceController) {
             navBarAppearanceController.branch("Selected Swatch Details Dialog")
         },
@@ -366,7 +363,7 @@ private fun Preview() {
                 }
             },
             selectedSwatchDetails = null,
-            selectedSwatchData = null,
+            selectedSwatchData = ColorDetailsViewData.Empty,
             animController = remember {
                 val currentState = HomeAnimState(
                     colorPreviewPosition = HomeAnimState.ColorPreview.Position.Dived,

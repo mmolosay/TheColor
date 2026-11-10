@@ -41,7 +41,7 @@ import io.github.mmolosay.thecolor.presentation.common.toLifecycleEventObserver
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.SubjectColorData
+import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewData
 import io.github.mmolosay.thecolor.utils.doNothing
 
 /**
@@ -56,21 +56,26 @@ internal typealias BareSelectedSwatchDetailsComposable =
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SelectedSwatchDetailsInHome(
-    subjectColorData: SubjectColorData?,
+    data: ColorDetailsViewData,
     navBarAppearanceController: NavBarAppearanceController,
     onDismissRequest: () -> Unit,
     content: BareSelectedSwatchDetailsComposable?,
 ) {
     if (content == null) return
-    if (subjectColorData == null) return
+    val subject = when (data) {
+        ColorDetailsViewData.Empty -> return // no swatch is selected
+        is ColorDetailsViewData.Loading -> data.subject
+        is ColorDetailsViewData.Ready -> data.subject
+        is ColorDetailsViewData.Error -> data.subject
+    }
 
     val animatedSurfaceColor by animateColorAsState(
-        targetValue = subjectColorData.color.toCompose(),
+        targetValue = subject.color.toCompose(),
         animationSpec = spring(stiffness = 100f),
         label = "surface color",
     )
     val colorsOnTintedSurface =
-        if (subjectColorData.isDark) colorsOnDarkSurface() else colorsOnLightSurface()
+        if (subject.isDark) colorsOnDarkSurface() else colorsOnLightSurface()
 
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
@@ -95,10 +100,10 @@ internal fun SelectedSwatchDetailsInHome(
 
     val lifecycleOwner = LocalLifecycleOwner.current
     val lifecycle = lifecycleOwner.lifecycle
-    DisposableEffect(lifecycleOwner, subjectColorData) {
+    DisposableEffect(lifecycleOwner, subject) {
         val observer = ModalBottomSheetLifecycleObserver(
             navBarAppearanceController = navBarAppearanceController,
-            appearance = navBarAppearance(useLightTintForControls = subjectColorData.isDark),
+            appearance = navBarAppearance(useLightTintForControls = subject.isDark),
         ).toLifecycleEventObserver()
         lifecycle.addObserver(observer)
         onDispose {
@@ -141,10 +146,13 @@ private fun Preview() {
             modifier = Modifier.fillMaxSize(),
         ) {
             SelectedSwatchDetailsInHome(
-                subjectColorData = SubjectColorData(
-                    color = ColorInt(0x1A803F),
-                    isDark = true,
-                ),
+                data = run {
+                    val subject = ColorDetailsViewData.Subject(
+                        color = ColorInt(0x1A803F),
+                        isDark = true,
+                    )
+                    ColorDetailsViewData.Loading(subject)
+                },
                 navBarAppearanceController = remember { RootNavBarAppearanceController() },
                 onDismissRequest = {},
                 content = { modifier ->

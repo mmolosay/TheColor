@@ -1,8 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.home.ui.center
 
 import android.content.res.Configuration
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,24 +19,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.mmolosay.thecolor.presentation.center.ui.ColorCenter
 import io.github.mmolosay.thecolor.presentation.center.ui.ColorCenterUiStrings
-import io.github.mmolosay.thecolor.presentation.center.ui.rememberColorCenterFacade
+import io.github.mmolosay.thecolor.presentation.center.viewmodel.ColorCenterFeature
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
 import io.github.mmolosay.thecolor.presentation.common.compose.Placeholder
 import io.github.mmolosay.thecolor.presentation.common.compose.PlaceholderDefaults
 import io.github.mmolosay.thecolor.presentation.common.navbar.NavBarAppearanceController
 import io.github.mmolosay.thecolor.presentation.common.navbar.RootNavBarAppearanceController
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.details.ui.ColorDetails
-import io.github.mmolosay.thecolor.presentation.details.ui.ColorDetailsCrossfade
-import io.github.mmolosay.thecolor.presentation.details.ui.rememberColorDetailsFacade
 import io.github.mmolosay.thecolor.presentation.home.R
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimController
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.ColorCenterHandles
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
-import io.github.mmolosay.thecolor.presentation.scheme.ui.ColorScheme
-import io.github.mmolosay.thecolor.presentation.scheme.ui.ColorSchemeCrossfade
-import io.github.mmolosay.thecolor.presentation.scheme.ui.rememberColorSchemeFacade
 import io.github.mmolosay.thecolor.utils.mapState
 
 /**
@@ -49,12 +40,8 @@ internal typealias BareColorCenterComposable =
 
 @Composable
 internal fun BareColorCenter(
-    handles: ColorCenterHandles,
+    feature: ColorCenterFeature,
 ) {
-    val crossfadeSpec = tween<Float>(
-        durationMillis = 500,
-        easing = FastOutSlowInEasing,
-    )
     val strings = run {
         val context = LocalContext.current
         remember(context) {
@@ -65,23 +52,7 @@ internal fun BareColorCenter(
         }
     }
     ColorCenter(
-        facade = rememberColorCenterFacade(handles.colorCenter),
-        page1Content = {
-            ColorDetailsCrossfade(
-                actualFacade = rememberColorDetailsFacade(handles.colorDetails),
-                animationSpec = crossfadeSpec,
-            ) { facade ->
-                ColorDetails(facade)
-            }
-        },
-        page2Content = {
-            ColorSchemeCrossfade(
-                actualFacade = rememberColorSchemeFacade(handles.colorScheme),
-                animationSpec = crossfadeSpec,
-            ) { facade ->
-                ColorScheme(facade)
-            }
-        },
+        feature = feature,
         strings = strings,
     )
 }
