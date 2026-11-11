@@ -4,10 +4,16 @@ plugins {
     id("thecolor.common")
     id("thecolor.hilt")
     id("thecolor.compose")
+    id("tech.apter.junit5.jupiter.robolectric-extension-gradle-plugin")
 }
 
 android {
     namespace = "io.github.mmolosay.thecolor.presentation.input"
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true // for Compose UI tests: the activity and the resources
+        }
+    }
 }
 
 @Suppress("SpellCheckingInspection")
@@ -47,4 +53,7 @@ dependencies {
     testImplementation("io.mockk:mockk:${libs.versions.mockk.get()}")
     testImplementation("io.kotest:kotest-assertions-core:${libs.versions.kotestAssertions.get()}")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:${libs.versions.coroutines.get()}")
+    testImplementation("org.robolectric:robolectric:${libs.versions.robolectric.get()}")
+    testImplementation("androidx.compose.ui:ui-test")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
