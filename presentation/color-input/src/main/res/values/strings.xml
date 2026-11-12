@@ -17,4 +17,6 @@
     <string name="color_input_rgb_g_placeholder" translatable="false">0</string>
     <string name="color_input_rgb_b_placeholder" translatable="false">0</string>
 
+    <string name="color_input_invalid_color_message">Please enter a valid color</string>
+
 </resources>
