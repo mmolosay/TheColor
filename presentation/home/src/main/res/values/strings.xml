@@ -6,6 +6,7 @@
     <string name="home_proceed_btn">Proceed</string>
     <string name="home_randomize_color_button_icon_content_desc">Randomize color</string>
 
+    <!-- TODO: remove string below after the Color Input migration is finished -->
     <string name="home_invalid_color_message">Please enter a valid color</string>
 
     <string name="home_color_center_details_page_change_button_text">View color scheme</string>

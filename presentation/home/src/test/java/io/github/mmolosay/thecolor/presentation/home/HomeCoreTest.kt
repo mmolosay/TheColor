@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.home
 
+import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.domain.color.ColorComparator
 import io.github.mmolosay.thecolor.domain.color.ColorConverter
@@ -15,10 +16,15 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeState
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMapper
 import io.github.mmolosay.thecolor.presentation.input.ColorInputValidator
 import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorCore
+import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorOutcome
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupCore
-import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexStateFactory
+import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexCore
+import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexOutcome
+import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexState
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvStateFactory
+import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmission
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbStateFactory
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldCore
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldDataFactory
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewDataFactory
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeCore
@@ -42,22 +48,27 @@ class HomeCoreTest {
 
     val inputEditorFactory = ColorEditorCore.Factory {
         val colorInputMapper = ColorInputMapper()
-        val textFieldDataFactory = TextFieldDataFactory()
+        val colorInputValidator = ColorInputValidator(
+            colorInputMapper = colorInputMapper,
+            colorFactory = ColorFactory(ColorPrototypeValidator()),
+        )
         ColorEditorCore(
+            hexFactory = ColorInputHexCore.Factory {
+                ColorInputHexCore(
+                    textFieldFactory = TextFieldCore.Factory { formatter ->
+                        TextFieldCore(formatter)
+                    },
+                    colorConverter = colorConverter,
+                    colorInputMapper = colorInputMapper,
+                    colorInputValidator = colorInputValidator,
+                )
+            },
             colorConverter = colorConverter,
             colorInputMapper = colorInputMapper,
-            colorInputValidator = ColorInputValidator(
-                colorInputMapper = colorInputMapper,
-                colorFactory = ColorFactory(ColorPrototypeValidator()),
-            ),
+            colorInputValidator = colorInputValidator,
             colorComparator = colorComparator,
-            hexStateFactory = ColorInputHexStateFactory(
-                textFieldDataFactory = textFieldDataFactory,
-                colorConverter = colorConverter,
-                colorInputMapper = colorInputMapper,
-            ),
             rgbStateFactory = ColorInputRgbStateFactory(
-                textFieldDataFactory = textFieldDataFactory,
+                textFieldDataFactory = TextFieldDataFactory(),
                 colorConverter = colorConverter,
                 colorInputMapper = colorInputMapper,
             ),
@@ -110,7 +121,7 @@ class HomeCoreTest {
                 .proceed().state
                 .withInputEditorColor(Color.Hex(0x126B40))
 
-            val handled = state.onInputEditor()
+            val handled = state.onInputEditor(outcome = null)
 
             handled.state.sessionColor() shouldBe null
         }
@@ -127,9 +138,27 @@ class HomeCoreTest {
                     it.withInputEditorColor(color)
                 }
 
-            val handled = state.onInputEditor()
+            val handled = state.onInputEditor(outcome = null)
 
             handled.state.colorCenter shouldBe state.colorCenter
+        }
+    }
+
+    @Test
+    fun `given 'hex' in 'inputEditor' is submitted with 'FFF', when 'onInputEditor' is invoked with 'ColorSubmitted', then 'hex' is answered with 'Accepted' and a session opens for that color`() {
+        with(sut) {
+            val submitted = initialState()
+                .withHexText("FFF")
+                .submitHex()
+            val state = submitted.state
+            val outcome = submitted.outcome.shouldBeInstanceOf<ColorEditorOutcome.ColorSubmitted>()
+
+            val handled = state.onInputEditor(outcome)
+
+            val submission = handled.state.inputEditor.hex.submission
+                .shouldBeInstanceOf<ColorInputSubmission.Answered>()
+            submission.answer shouldBe ColorInputSubmission.Answer.Accepted
+            handled.state.sessionColor() shouldBe Color.Hex(0xFFFFFF)
         }
     }
 
@@ -207,7 +236,7 @@ class HomeCoreTest {
                 }.state
                 .withInputEditorColor(Color.Hex(0x126B40))
 
-            val handled = state.onInputEditor() // the colors differ, so the session ends
+            val handled = state.onInputEditor(outcome = null) // the colors differ, so it ends
 
             handled.state.selectedSwatch shouldBe ColorDetailsState.NotRequested
         }
@@ -343,7 +372,7 @@ class HomeCoreTest {
                 .proceed().state
                 .withInputEditorColor(Color.Hex(0x126B40))
 
-            val handled = state.onInputEditor() // the colors differ, so the session ends
+            val handled = state.onInputEditor(outcome = null) // the colors differ, so it ends
 
             handled.state.data().proceedResult shouldBe null
         }
@@ -352,13 +381,42 @@ class HomeCoreTest {
     fun HomeState.sessionColor(): Color? =
         with(sut.colorCenterCore) { colorCenter.sessionColor() }
 
-    // the editor's color changes, as an edit in one of its inputs changes it
     fun HomeState.withInputEditorColor(color: Color): HomeState {
         val edited = with(sut.inputEditorCore) { inputEditor.withColor(color) }
         return this.copy(inputEditor = edited)
     }
 
-    // the input group's preferred type is read, as the group's Feature applies it
+    fun HomeState.withHexText(text: String): HomeState {
+        val inputEditor = this.inputEditor
+        val newHex = inputEditor.hex.enterText(text)
+        val newInputEditor = with(sut.inputEditorCore) {
+            inputEditor
+                .copy(hex = newHex)
+                .onHex(outcome = null)
+        }.state
+        return this.copy(inputEditor = newInputEditor)
+    }
+
+    fun HomeState.submitHex(): Change<HomeState, ColorEditorOutcome> {
+        val inputEditor = this.inputEditor
+        val newHex = with(sut.inputEditorCore.hexCore) { inputEditor.hex.submit() }.state
+        val newInputEditor = with(sut.inputEditorCore) {
+            inputEditor
+                .copy(hex = newHex)
+                .onHex(ColorInputHexOutcome.Submitted)
+        }
+        val state = this.copy(inputEditor = newInputEditor.state)
+        return Change(state, newInputEditor.outcome)
+    }
+
+    fun ColorInputHexState.enterText(text: String): ColorInputHexState {
+        val textField = this.textField
+        val newTextField = with(sut.inputEditorCore.hexCore.textFieldCore) {
+            textField.enterText(text, expected = textField.text)
+        }.state
+        return this.copy(textField = newTextField)
+    }
+
     fun HomeState.withInputGroupPreferredType(type: DomainColorInputType): HomeState {
         val applied = with(sut.inputGroupCore) { inputGroup.applyPreferredType(type).state }
         return this.copy(inputGroup = applied)

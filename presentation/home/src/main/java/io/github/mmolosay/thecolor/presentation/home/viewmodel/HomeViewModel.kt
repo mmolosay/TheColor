@@ -22,13 +22,14 @@ import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCorout
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsFeature
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsOutcome
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.SideEffect
+import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorFeature
 import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorHandle
+import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorOutcome
+import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorState
 import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorStateLenses
 import io.github.mmolosay.thecolor.presentation.input.editor.asAtom
 import io.github.mmolosay.thecolor.presentation.input.editor.toData
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupFeature
-import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexHandle
-import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexViewModel
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvHandle
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvViewModel
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
@@ -50,10 +51,10 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeStateLenses a
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     coreFactory: HomeCore.Factory,
+    colorEditorFactory: ColorEditorFeature.Factory,
     inputGroupFactory: ColorInputGroupFeature.Factory,
     colorCenterFactory: ColorCenterFeature.Factory,
     colorDetailsFactory: ColorDetailsFeature.Factory,
-    colorInputHexViewModelFactory: ColorInputHexViewModel.Factory,
     colorInputRgbViewModelFactory: ColorInputRgbViewModel.Factory,
     colorInputHsvViewModelFactory: ColorInputHsvViewModel.Factory,
     private val getStartupColor: GetStartupColorUseCase,
@@ -68,6 +69,18 @@ class HomeViewModel @Inject constructor(
     private val core: HomeCore = coreFactory.create()
     private val store = Store(initialState = core.initialState())
     private val seFactory = SideEffectFactory()
+
+    // TODO: temporary: the editor's slice, which the old RGB and HSV ViewModels slice too
+    private val inputEditorStore: Store<ColorEditorState, ColorEditorOutcome> =
+        store.slice(StateLenses.inputEditor) { state, outcome: ColorEditorOutcome? ->
+            with(core) { state.onInputEditor(outcome) }
+        }
+
+    private val colorEditor: ColorEditorFeature = colorEditorFactory.create(
+        core = core.inputEditorCore,
+        store = inputEditorStore,
+        scope = viewModelScope.child(),
+    )
 
     private val colorInputGroup: ColorInputGroupFeature = inputGroupFactory.create(
         core = core.inputGroupCore,
@@ -91,20 +104,9 @@ class HomeViewModel @Inject constructor(
         scope = viewModelScope.child(),
     )
 
-    // temporary: the old input ViewModels, on the editor's slices
+    // TODO: temporary: the old input ViewModels, on the editor's slices
     private val colorEditorHandle: ColorEditorHandle = run {
-        val inputEditor = store.slice(StateLenses.inputEditor) { state ->
-            with(core) { state.onInputEditor() }
-        }
-        val hexSlice = inputEditor.slice(ColorEditorStateLenses.hex) { state ->
-            with(core.inputEditorCore) { state.onHex() }
-        }
-        val hexViewModel = colorInputHexViewModelFactory.create(
-            coroutineScope = ViewModelCoroutineScope(viewModelScope),
-            atom = hexSlice.asAtom(),
-            submitAction = ColorInputSubmitActionImpl(),
-        )
-        val rgbSlice = inputEditor.slice(ColorEditorStateLenses.rgb) { state ->
+        val rgbSlice = inputEditorStore.slice(ColorEditorStateLenses.rgb) { state ->
             with(core.inputEditorCore) { state.onRgb() }
         }
         val rgbViewModel = colorInputRgbViewModelFactory.create(
@@ -112,7 +114,7 @@ class HomeViewModel @Inject constructor(
             atom = rgbSlice.asAtom(),
             submitAction = ColorInputSubmitActionImpl(),
         )
-        val hsvSlice = inputEditor.slice(ColorEditorStateLenses.hsv) { state ->
+        val hsvSlice = inputEditorStore.slice(ColorEditorStateLenses.hsv) { state ->
             with(core.inputEditorCore) { state.onHsv() }
         }
         val hsvViewModel = colorInputHsvViewModelFactory.create(
@@ -120,20 +122,20 @@ class HomeViewModel @Inject constructor(
             atom = hsvSlice.asAtom(),
         )
         val colorEditorHandle = ColorEditorHandle(
-            dataFlow = inputEditor.mapState { state -> state.toData() },
-            hex = ColorInputHexHandle(hexViewModel),
+            dataFlow = inputEditorStore.mapState { state -> state.toData() },
             rgb = ColorInputRgbHandle(rgbViewModel),
             hsv = ColorInputHsvHandle(hsvViewModel),
         )
         colorEditorHandle
     }
 
-    // temporary
+    // TODO: temporary
     val stateFlow: StateFlow<HomeViewState?> = store.mapState { state ->
         with(core) {
             if (!state.isInitialized()) return@mapState null
             HomeViewState(
                 home = state.data(),
+                colorEditor = colorEditor,
                 colorEditorHandle = colorEditorHandle,
                 colorInputGroup = colorInputGroup,
                 colorPreview = state.colorPreview(),
@@ -207,10 +209,10 @@ class HomeViewModel @Inject constructor(
                 }
             }
             is HomeAction.OnProceedResultProcessed -> store.update { state ->
-                with(core) { state.acknowledgeRejection() }
+                with(core) { state.ackRejection() }
             }
             is HomeAction.OnSideEffectProcessed -> store.update { state ->
-                with(core) { state.acknowledgeSideEffect(action.se) }
+                with(core) { state.ackSideEffect(action.se) }
             }
             is HomeAction.ClearColorSchemeSelectedSwatch -> store.update { state ->
                 with(core) { state.closeSwatch() }

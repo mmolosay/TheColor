@@ -2,7 +2,6 @@ package io.github.mmolosay.thecolor.presentation.input.editor
 
 import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexState
-import io.github.mmolosay.thecolor.presentation.input.hex.toData
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvState
 import io.github.mmolosay.thecolor.presentation.input.hsv.toData
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbState
@@ -34,7 +33,10 @@ object ColorEditorStateLenses {
 
 fun ColorEditorState.toData(): ColorEditorData =
     ColorEditorData(
-        hex = this.hex.toData(),
         rgb = this.rgb.toData(),
         hsv = this.hsv.toData(),
     )
+
+sealed interface ColorEditorOutcome {
+    data class ColorSubmitted(val color: Color) : ColorEditorOutcome
+}

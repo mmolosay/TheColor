@@ -12,6 +12,7 @@ import io.github.mmolosay.thecolor.presentation.center.viewmodel.ColorCenterOutc
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCore
 import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorCore
+import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorOutcome
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupCore
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewDataFactory
@@ -174,18 +175,31 @@ class HomeCore @AssistedInject constructor(
     fun HomeState.rejectSubmission(): Change<HomeState, Nothing> =
         Change(this.copy(submissionRejected = true))
 
-    fun HomeState.acknowledgeRejection(): Change<HomeState, Nothing> =
+    fun HomeState.ackRejection(): Change<HomeState, Nothing> =
         Change(this.copy(submissionRejected = false))
 
     // TODO: temporary, until going to Settings is state of its own
     fun HomeState.addSideEffect(se: HomeData.SideEffect): Change<HomeState, Nothing> =
         Change(this.copy(sideEffects = (this.sideEffects.toPersistentList() + se)))
 
-    fun HomeState.acknowledgeSideEffect(se: HomeData.SideEffect): Change<HomeState, Nothing> =
+    fun HomeState.ackSideEffect(se: HomeData.SideEffect): Change<HomeState, Nothing> =
         Change(this.copy(sideEffects = (this.sideEffects.toPersistentList() - se)))
 
-    fun HomeState.onInputEditor(): Change<HomeState, Nothing> =
-        Change(this.withAgreement())
+    fun HomeState.onInputEditor(outcome: ColorEditorOutcome?): Change<HomeState, Nothing> {
+        var state = this.withAgreement()
+        return when (outcome) {
+            null -> Change(state)
+            is ColorEditorOutcome.ColorSubmitted -> {
+                val inputEditor = with(inputEditorCore) {
+                    state.inputEditor.withSubmissionAccepted()
+                }
+                state = state
+                    .copy(inputEditor = inputEditor)
+                    .withSession(outcome.color)
+                Change(state)
+            }
+        }
+    }
 
     fun HomeState.onColorCenter(outcome: ColorCenterOutcome?): Change<HomeState, Nothing> =
         when (outcome) {
