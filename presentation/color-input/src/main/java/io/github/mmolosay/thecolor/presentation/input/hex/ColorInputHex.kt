@@ -2,70 +2,72 @@ package io.github.mmolosay.thecolor.presentation.input.hex
 
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.input.UiComponents.ProcessColorSubmissionResultAsSideEffect
+import io.github.mmolosay.thecolor.presentation.input.UiComponents.ProcessSubmissionAnswerAsSideEffect
+import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmission
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextField
-import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
-import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFacade
-import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldInputProcessor
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldUiStrings
-import kotlinx.coroutines.Job
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldViewData
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 
 @Composable
 fun ColorInputHex(
-    facade: ColorInputHexFacade,
+    feature: ColorInputHexFeature,
     strings: ColorInputHexUiStrings = rememberColorInputHexUiStrings(),
-) {
-    val execute by rememberUpdatedState(facade.execute) // stable across recompositions
+) =
+    ColorInputHex(
+        viewData = feature.viewData,
+        onSubmit = feature::submit,
+        onAckAnswer = feature::ackAnswer,
+        textFieldViewData = feature.textField.viewData,
+        onTextFieldEnterText = feature.textField::enterText,
+        onTextFieldClearText = feature.textField::clearText,
+        strings = strings,
+    )
 
-    var value by remember {
-        val text = facade.textField.text.string
-        val value = TextFieldValue(
-            text = text,
-            selection = TextRange(index = text.length), // cursor at the end of the text
-        )
-        mutableStateOf(value)
-    }
+@Composable
+fun ColorInputHex(
+    viewData: StateFlow<ColorInputHexViewData>,
+    onSubmit: () -> Unit,
+    onAckAnswer: (ColorInputSubmission.Answered) -> Unit,
+    textFieldViewData: StateFlow<TextFieldViewData>,
+    onTextFieldEnterText: (text: String, expected: String) -> Unit,
+    onTextFieldClearText: () -> Unit,
+    strings: ColorInputHexUiStrings,
+) {
+    val data = viewData.collectAsStateWithLifecycle().value
 
     TextField(
         modifier = Modifier
             .defaultMinSize(minWidth = 180.dp)
             .fillMaxWidth(0.5f),
-        facade = facade.textField,
+        viewData = textFieldViewData,
+        onEnterText = onTextFieldEnterText,
+        onClearText = onTextFieldClearText,
         strings = strings.textField,
-        value = value,
-        onValueChange = { new -> value = new },
         keyboardOptions = KeyboardOptions(
             imeAction = ImeAction.Done,
             capitalization = KeyboardCapitalization.Characters,
         ),
-        keyboardActions = KeyboardActions(
-            onDone = {
-                val action = ColorInputHexAction.SubmitInput
-                execute(action)
-            },
-        ),
+        onKeyboardAction = { onSubmit() },
     )
 
-    ProcessColorSubmissionResultAsSideEffect(
-        result = facade.inputSubmissionResult,
-        ack = { execute(ColorInputHexAction.AckInputSubmissionResult) },
+    ProcessSubmissionAnswerAsSideEffect(
+        submission = data.answeredSubmission,
+        rejectionMessage = strings.invalidSubmittedColorMessage,
+        onProcessed = onAckAnswer,
     )
 }
 
@@ -78,26 +80,34 @@ private fun rememberColorInputHexUiStrings(): ColorInputHexUiStrings {
 @Preview(showBackground = true)
 @Composable
 private fun Preview() {
+    val viewData = remember {
+        val value = ColorInputHexViewData(answeredSubmission = null)
+        MutableStateFlow(value)
+    }
+    val textFieldViewData = remember {
+        val value = TextFieldViewData(text = "1A803F", version = 0, selectAllTextOnFocus = true)
+        MutableStateFlow(value)
+    }
     TheColorTheme {
         ColorInputHex(
-            facade = previewFacade(),
+            viewData = viewData,
+            onSubmit = {},
+            onAckAnswer = {},
+            textFieldViewData = textFieldViewData,
+            onTextFieldEnterText = { text, _ ->
+                textFieldViewData.update {
+                    it.copy(text = text, version = it.version + 1)
+                }
+            },
+            onTextFieldClearText = {
+                textFieldViewData.update {
+                    it.copy(text = "", version = it.version + 1)
+                }
+            },
             strings = previewUiStrings(),
         )
     }
 }
-
-private fun previewFacade() =
-    ColorInputHexFacade(
-        textField = TextFieldFacade(
-            text = Text("1A803F"),
-            shouldSelectAllTextOnFocus = true,
-            isClearTextFeatureEnabled = true,
-            inputProcessor = TextFieldInputProcessor { Text(it) },
-            execute = { Job() },
-        ),
-        inputSubmissionResult = null,
-        execute = { Job() },
-    )
 
 private fun previewUiStrings() =
     ColorInputHexUiStrings(
@@ -107,4 +117,5 @@ private fun previewUiStrings() =
             prefix = "#",
             trailingIconContentDesc = "Clear text",
         ),
+        invalidSubmittedColorMessage = "Please enter a valid color",
     )

@@ -43,14 +43,14 @@ internal object UiComponents {
     }
 
     @Composable
-    fun ProceedSubmissionAnswerAsSideEffect(
+    fun ProcessSubmissionAnswerAsSideEffect(
         submission: ColorInputSubmission.Answered?,
         rejectionMessage: String,
-        onShown: (ColorInputSubmission.Answered) -> Unit,
+        onProcessed: (ColorInputSubmission.Answered) -> Unit,
     ) {
         val context = LocalContext.current
         val keyboardController = LocalSoftwareKeyboardController.current
-        val onShown by rememberUpdatedState(onShown) // intended name shadowing to enforce usage of latest lambda
+        val onProcessed by rememberUpdatedState(onProcessed) // intended name shadowing to enforce usage of latest lambda
         if (submission == null) return
         LaunchedEffect(submission) {
             when (submission.answer) {
@@ -63,7 +63,7 @@ internal object UiComponents {
                     Toast.makeText(context, rejectionMessage, Toast.LENGTH_SHORT).show()
                 }
             }
-            onShown(submission)
+            onProcessed(submission)
         }
     }
 

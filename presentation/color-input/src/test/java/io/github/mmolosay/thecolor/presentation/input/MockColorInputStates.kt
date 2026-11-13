@@ -7,6 +7,7 @@ import io.github.mmolosay.thecolor.presentation.input.model.causedByUser
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbState
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldState
 
 /**
  * States of the 'Color Input' features, as tests need them.
@@ -26,8 +27,12 @@ object MockColorInputStates {
 
     fun ColorInputHexState(text: String): ColorInputHexState =
         ColorInputHexState(
-            textField = TextFieldData(text),
-            inputSubmissionResult = null,
+            textField = TextFieldState(
+                text = text,
+                version = 0,
+                selectAllTextOnFocus = false,
+            ),
+            submission = null,
         )
 
     fun ColorInputRgbState(r: String, g: String, b: String): ColorInputRgbState =

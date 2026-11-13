@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.common.compose.Placeholder
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
+import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorFeature
 import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorHandle
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroup
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupFeature
@@ -29,6 +30,7 @@ internal typealias BareColorInputComposable =
 
 @Composable
 internal fun BareColorInput(
+    editor: ColorEditorFeature,
     editorHandle: ColorEditorHandle,
     group: ColorInputGroupFeature,
     modifier: Modifier = Modifier,
@@ -42,7 +44,7 @@ internal fun BareColorInput(
         modifier = modifier,
         feature = group,
         hexInput = {
-            ColorInputHex(facade = editorFacade.hex)
+            ColorInputHex(feature = editor.hex)
         },
         rgbInput = {
             ColorInputRgb(facade = editorFacade.rgb)

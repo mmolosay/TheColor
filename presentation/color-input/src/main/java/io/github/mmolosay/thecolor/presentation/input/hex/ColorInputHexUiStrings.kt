@@ -12,11 +12,13 @@ import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldUiStrin
  */
 data class ColorInputHexUiStrings(
     val textField: TextFieldUiStrings,
+    val invalidSubmittedColorMessage: String,
 )
 
 fun ColorInputHexUiStrings(context: Context) =
     ColorInputHexUiStrings(
         textField = TextFieldUiStrings(context),
+        invalidSubmittedColorMessage = context.getString(R.string.color_input_invalid_color_message),
     )
 
 private fun TextFieldUiStrings(context: Context) =

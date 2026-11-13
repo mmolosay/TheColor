@@ -5,7 +5,7 @@ import io.github.mmolosay.thecolor.utils.Identity
 sealed interface ColorInputSubmission {
 
     data class Pending(
-        val text: String,
+        val input: ColorInput,
         val identity: Identity = Identity(),
     ) : ColorInputSubmission
 
@@ -20,21 +20,15 @@ sealed interface ColorInputSubmission {
     }
 }
 
-fun ColorInputSubmission?.isPending(text: String): Boolean =
-    (this is ColorInputSubmission.Pending && this.text == text)
+fun ColorInputSubmission?.isPending(
+    expectedInput: ColorInput,
+): Boolean =
+    (this is ColorInputSubmission.Pending && this.input == expectedInput)
 
 fun ColorInputSubmission?.answered(
     answer: ColorInputSubmission.Answer,
-    text: String,
+    expectedInput: ColorInput,
 ): ColorInputSubmission? {
-    if (!this.isPending(text)) return this
+    if (!this.isPending(expectedInput)) return this
     return ColorInputSubmission.Answered(answer = answer)
-}
-
-// TODO: should probably be inlined in the place of use
-fun ColorInputSubmission?.acknowledged(
-    submission: ColorInputSubmission.Answered,
-): ColorInputSubmission? {
-    if (this != submission) return this
-    return null
 }

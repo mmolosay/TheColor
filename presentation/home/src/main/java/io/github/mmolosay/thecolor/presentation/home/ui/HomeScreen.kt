@@ -93,6 +93,7 @@ fun HomeScreen(
     val colorInput: BareColorInputComposable = { modifier ->
         BareColorInput(
             modifier = modifier,
+            editor = state.colorEditor,
             editorHandle = state.colorEditorHandle,
             group = state.colorInputGroup,
         )
