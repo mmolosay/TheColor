@@ -4,8 +4,6 @@ import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvFacade
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvHandle
-import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbFacade
-import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbHandle
 import io.github.mmolosay.thecolor.utils.Atom
 import kotlinx.coroutines.flow.StateFlow
 
@@ -30,30 +28,25 @@ interface ColorEditorHandle {
 }
 
 data class ColorEditorFacade(
-    val rgb: ColorInputRgbFacade,
     val hsv: ColorInputHsvFacade,
 )
 
 fun ColorEditorHandle(
     dataFlow: StateFlow<ColorEditorData>,
-    rgb: ColorInputRgbHandle,
     hsv: ColorInputHsvHandle,
 ): ColorEditorHandle =
     ColorEditorHandleImpl(
         dataFlow = dataFlow,
-        rgb = rgb,
         hsv = hsv,
     )
 
 private class ColorEditorHandleImpl(
     override val dataFlow: StateFlow<ColorEditorData>,
-    private val rgb: ColorInputRgbHandle,
     private val hsv: ColorInputHsvHandle,
 ) : ColorEditorHandle {
 
     override fun facade(data: ColorEditorData): ColorEditorFacade =
         ColorEditorFacade(
-            rgb = rgb.facade(data.rgb),
             hsv = hsv.facade(data.hsv),
         )
 }

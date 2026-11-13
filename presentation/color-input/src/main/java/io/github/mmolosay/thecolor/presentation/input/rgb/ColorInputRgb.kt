@@ -1,88 +1,111 @@
 package io.github.mmolosay.thecolor.presentation.input.rgb
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.KeyboardActionHandler
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.mmolosay.thecolor.presentation.common.compose.smartBackspace
 import io.github.mmolosay.thecolor.presentation.common.compose.thenIf
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.input.UiComponents.ProcessColorSubmissionResultAsSideEffect
-import io.github.mmolosay.thecolor.presentation.input.UiComponents.onBackspace
+import io.github.mmolosay.thecolor.presentation.input.UiComponents.ProcessSubmissionAnswerAsSideEffect
+import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmission
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextField
-import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
-import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFacade
-import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldInputProcessor
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldUiStrings
-import kotlinx.coroutines.Job
+import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldViewData
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 
 @Composable
 fun ColorInputRgb(
-    facade: ColorInputRgbFacade,
+    feature: ColorInputRgbFeature,
     strings: ColorInputRgbUiStrings = rememberColorInputRgbUiStrings(),
+) =
+    ColorInputRgb(
+        viewData = feature.viewData,
+        onSubmit = feature::submit,
+        onAckAnswer = feature::ackAnswer,
+        rViewData = feature.r.viewData,
+        onREnterText = feature.r::enterText,
+        gViewData = feature.g.viewData,
+        onGEnterText = feature.g::enterText,
+        bViewData = feature.b.viewData,
+        onBEnterText = feature.b::enterText,
+        strings = strings,
+    )
+
+@Composable
+fun ColorInputRgb(
+    viewData: StateFlow<ColorInputRgbViewData>,
+    onSubmit: () -> Unit,
+    onAckAnswer: (ColorInputSubmission.Answered) -> Unit,
+    rViewData: StateFlow<TextFieldViewData>,
+    onREnterText: (text: String, expected: String) -> Unit,
+    gViewData: StateFlow<TextFieldViewData>,
+    onGEnterText: (text: String, expected: String) -> Unit,
+    bViewData: StateFlow<TextFieldViewData>,
+    onBEnterText: (text: String, expected: String) -> Unit,
+    strings: ColorInputRgbUiStrings,
 ) {
-    val execute by rememberUpdatedState(facade.execute) // stable across recompositions
+    val data = viewData.collectAsStateWithLifecycle().value
+
     Row(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         val modifier = Modifier.weight(1f)
-        val isSmartBackspaceEnabled = facade.isSmartBackspaceEnabled
+        val isSmartBackspaceEnabled = data.isSmartBackspaceEnabled
 
         // R
         ComponentAdvancedTextField(
             modifier = modifier,
-            facade = facade.rTextField,
-            strings = strings.rTextField,
+            viewData = rViewData,
+            onEnterText = onREnterText,
             imeAction = ImeAction.Next,
-            hasPreviousComponent = false, // for R there's no previous
+            onKeyboardAction = null,
+            strings = strings.rTextField,
+            hasPreviousComponent = false,
             enableSmartBackspace = isSmartBackspaceEnabled,
         )
 
         // G
         ComponentAdvancedTextField(
             modifier = modifier,
-            facade = facade.gTextField,
-            strings = strings.gTextField,
+            viewData = gViewData,
+            onEnterText = onGEnterText,
             imeAction = ImeAction.Next,
-            hasPreviousComponent = true, // for G previous is R
+            onKeyboardAction = null,
+            strings = strings.gTextField,
+            hasPreviousComponent = true,
             enableSmartBackspace = isSmartBackspaceEnabled,
         )
 
         // B
         ComponentAdvancedTextField(
             modifier = modifier,
-            facade = facade.bTextField,
-            strings = strings.bTextField,
+            viewData = bViewData,
+            onEnterText = onBEnterText,
             imeAction = ImeAction.Done,
-            keyboardActions = KeyboardActions(
-                onDone = {
-                    val action = ColorInputRgbAction.SubmitInput
-                    execute(action)
-                },
-            ),
-            hasPreviousComponent = true, // for B previous is G
+            onKeyboardAction = { onSubmit() },
+            strings = strings.bTextField,
+            hasPreviousComponent = true,
             enableSmartBackspace = isSmartBackspaceEnabled,
         )
     }
 
-    ProcessColorSubmissionResultAsSideEffect(
-        result = facade.inputSubmissionResult,
-        ack = { execute(ColorInputRgbAction.AckInputSubmissionResult) },
+    ProcessSubmissionAnswerAsSideEffect(
+        submission = data.answeredSubmission,
+        rejectionMessage = strings.invalidSubmittedColorMessage,
+        onProcessed = onAckAnswer,
     )
 }
 
@@ -91,62 +114,51 @@ fun ColorInputRgb(
  */
 @Composable
 private fun ComponentAdvancedTextField(
-    facade: TextFieldFacade,
-    strings: TextFieldUiStrings,
+    modifier: Modifier = Modifier,
+    viewData: StateFlow<TextFieldViewData>,
+    onEnterText: (text: String, expected: String) -> Unit,
     imeAction: ImeAction,
+    onKeyboardAction: KeyboardActionHandler?,
+    strings: TextFieldUiStrings,
     hasPreviousComponent: Boolean,
     enableSmartBackspace: Boolean,
-    modifier: Modifier = Modifier,
-    keyboardActions: KeyboardActions = KeyboardActions(),
 ) {
-    val focusManager = LocalFocusManager.current
     ComponentBasicTextField(
         modifier = modifier
-            .thenIf(enableSmartBackspace) {
-                onBackspace {
-                    val text = facade.text.string
-                    if (text.isEmpty() && hasPreviousComponent) {
-                        focusManager.moveFocus(FocusDirection.Previous)
-                    }
-            }
-        },
-        facade = facade,
-        strings = strings,
+            .thenIf(enableSmartBackspace && hasPreviousComponent) {
+                smartBackspace(text = { viewData.value.text })
+            },
+        viewData = viewData,
+        onEnterText = onEnterText,
         imeAction = imeAction,
-        keyboardActions = keyboardActions,
+        onKeyboardAction = onKeyboardAction,
+        strings = strings,
     )
 }
 
 /**
- * A wrapper for a [TextField] that just manages [TextFieldValue].
+ * A wrapper for a [TextField] that is configured to be an RGB component.
  */
 @Composable
 private fun ComponentBasicTextField(
     modifier: Modifier = Modifier,
-    facade: TextFieldFacade,
-    strings: TextFieldUiStrings,
+    viewData: StateFlow<TextFieldViewData>,
+    onEnterText: (text: String, expected: String) -> Unit,
     imeAction: ImeAction,
-    keyboardActions: KeyboardActions = KeyboardActions(),
+    onKeyboardAction: KeyboardActionHandler?,
+    strings: TextFieldUiStrings,
 ) {
-    var value by remember {
-        val text = facade.text.string
-        val value = TextFieldValue(
-            text = text,
-            selection = TextRange(index = text.length), // cursor at the end of the text
-        )
-        mutableStateOf(value)
-    }
     TextField(
         modifier = modifier,
-        facade = facade,
+        viewData = viewData,
+        onEnterText = onEnterText,
+        onClearText = null,
         strings = strings,
-        value = value,
-        onValueChange = { new -> value = new },
         keyboardOptions = KeyboardOptions(
             imeAction = imeAction,
             keyboardType = KeyboardType.Number,
         ),
-        keyboardActions = keyboardActions,
+        onKeyboardAction = onKeyboardAction,
     )
 }
 
@@ -156,44 +168,68 @@ private fun rememberColorInputRgbUiStrings(): ColorInputRgbUiStrings {
     return remember(context) { ColorInputRgbUiStrings(context) }
 }
 
-@Preview(showBackground = true)
+@Preview(uiMode = Configuration.UI_MODE_TYPE_NORMAL)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL)
 @Composable
 private fun Preview() {
+    val viewData = remember {
+        val value = ColorInputRgbViewData(
+            answeredSubmission = null,
+            isSmartBackspaceEnabled = true,
+        )
+        MutableStateFlow(value)
+    }
+    val rViewData = remember {
+        val value = TextFieldViewData(
+            text = "12",
+            version = 0,
+            selectAllTextOnFocus = true,
+        )
+        MutableStateFlow(value)
+    }
+    val gViewData = remember {
+        val value = TextFieldViewData(
+            text = "",
+            version = 0,
+            selectAllTextOnFocus = true,
+        )
+        MutableStateFlow(value)
+    }
+    val bViewData = remember {
+        val value = TextFieldViewData(
+            text = "255",
+            version = 0,
+            selectAllTextOnFocus = true,
+        )
+        MutableStateFlow(value)
+    }
     TheColorTheme {
         ColorInputRgb(
-            facade = previewFacade(),
+            viewData = viewData,
+            onSubmit = {},
+            onAckAnswer = {},
+            rViewData = rViewData,
+            onREnterText = { text, _ ->
+                rViewData.update {
+                    it.copy(text = text, version = it.version + 1)
+                }
+            },
+            gViewData = gViewData,
+            onGEnterText = { text, _ ->
+                gViewData.update {
+                    it.copy(text = text, version = it.version + 1)
+                }
+            },
+            bViewData = bViewData,
+            onBEnterText = { text, _ ->
+                bViewData.update {
+                    it.copy(text = text, version = it.version + 1)
+                }
+            },
             strings = previewUiStrings(),
         )
     }
 }
-
-private fun previewFacade() =
-    ColorInputRgbFacade(
-        rTextField = TextFieldFacade(
-            text = Text("12"),
-            shouldSelectAllTextOnFocus = true,
-            isClearTextFeatureEnabled = false,
-            inputProcessor = TextFieldInputProcessor { Text(it) },
-            execute = { Job() },
-        ),
-        gTextField = TextFieldFacade(
-            text = Text(""),
-            shouldSelectAllTextOnFocus = true,
-            isClearTextFeatureEnabled = false,
-            inputProcessor = TextFieldInputProcessor { Text(it) },
-            execute = { Job() },
-        ),
-        bTextField = TextFieldFacade(
-            text = Text("255"),
-            shouldSelectAllTextOnFocus = true,
-            isClearTextFeatureEnabled = false,
-            inputProcessor = TextFieldInputProcessor { Text(it) },
-            execute = { Job() },
-        ),
-        inputSubmissionResult = null,
-        isSmartBackspaceEnabled = true,
-        execute = { Job() },
-    )
 
 private fun previewUiStrings() =
     ColorInputRgbUiStrings(
@@ -215,4 +251,5 @@ private fun previewUiStrings() =
             prefix = null,
             trailingIconContentDesc = null,
         ),
+        invalidSubmittedColorMessage = "Please enter a valid color",
     )

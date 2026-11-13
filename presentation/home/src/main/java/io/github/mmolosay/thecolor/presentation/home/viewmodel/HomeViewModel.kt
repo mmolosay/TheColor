@@ -32,11 +32,6 @@ import io.github.mmolosay.thecolor.presentation.input.editor.toData
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupFeature
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvHandle
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvViewModel
-import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
-import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmitAction
-import io.github.mmolosay.thecolor.presentation.input.model.ColorInputValidationResult
-import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbHandle
-import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbViewModel
 import io.github.mmolosay.thecolor.utils.SideEffectIdFactory
 import io.github.mmolosay.thecolor.utils.mapState
 import kotlinx.coroutines.CoroutineDispatcher
@@ -55,7 +50,6 @@ class HomeViewModel @Inject constructor(
     inputGroupFactory: ColorInputGroupFeature.Factory,
     colorCenterFactory: ColorCenterFeature.Factory,
     colorDetailsFactory: ColorDetailsFeature.Factory,
-    colorInputRgbViewModelFactory: ColorInputRgbViewModel.Factory,
     colorInputHsvViewModelFactory: ColorInputHsvViewModel.Factory,
     private val getStartupColor: GetStartupColorUseCase,
     private val userPreferencesRepository: UserPreferencesRepository,
@@ -70,7 +64,7 @@ class HomeViewModel @Inject constructor(
     private val store = Store(initialState = core.initialState())
     private val seFactory = SideEffectFactory()
 
-    // TODO: temporary: the editor's slice, which the old RGB and HSV ViewModels slice too
+    // TODO: temporary: the editor's slice, which the old HSV ViewModels slice too
     private val inputEditorStore: Store<ColorEditorState, ColorEditorOutcome> =
         store.slice(StateLenses.inputEditor) { state, outcome: ColorEditorOutcome? ->
             with(core) { state.onInputEditor(outcome) }
@@ -106,14 +100,6 @@ class HomeViewModel @Inject constructor(
 
     // TODO: temporary: the old input ViewModels, on the editor's slices
     private val colorEditorHandle: ColorEditorHandle = run {
-        val rgbSlice = inputEditorStore.slice(ColorEditorStateLenses.rgb) { state ->
-            with(core.inputEditorCore) { state.onRgb() }
-        }
-        val rgbViewModel = colorInputRgbViewModelFactory.create(
-            coroutineScope = ViewModelCoroutineScope(viewModelScope),
-            atom = rgbSlice.asAtom(),
-            submitAction = ColorInputSubmitActionImpl(),
-        )
         val hsvSlice = inputEditorStore.slice(ColorEditorStateLenses.hsv) { state ->
             with(core.inputEditorCore) { state.onHsv() }
         }
@@ -123,7 +109,6 @@ class HomeViewModel @Inject constructor(
         )
         val colorEditorHandle = ColorEditorHandle(
             dataFlow = inputEditorStore.mapState { state -> state.toData() },
-            rgb = ColorInputRgbHandle(rgbViewModel),
             hsv = ColorInputHsvHandle(hsvViewModel),
         )
         colorEditorHandle
@@ -208,9 +193,6 @@ class HomeViewModel @Inject constructor(
                     with(core) { state.addSideEffect(se) }
                 }
             }
-            is HomeAction.OnProceedResultProcessed -> store.update { state ->
-                with(core) { state.ackRejection() }
-            }
             is HomeAction.OnSideEffectProcessed -> store.update { state ->
                 with(core) { state.ackSideEffect(action.se) }
             }
@@ -219,29 +201,6 @@ class HomeViewModel @Inject constructor(
             }
         }
         return null
-    }
-
-    // TODO: temporary
-    private inner class ColorInputSubmitActionImpl : ColorInputSubmitAction {
-        override fun invoke(
-            colorInput: ColorInput,
-            validationResult: ColorInputValidationResult,
-        ): Boolean =
-            when (validationResult) {
-                is ColorInputValidationResult.Valid -> {
-                    val color = validationResult.color
-                    store.update { state ->
-                        with(core) { state.submit(color) }
-                    }
-                    true
-                }
-                is ColorInputValidationResult.Invalid -> {
-                    store.update { state ->
-                        with(core) { state.rejectSubmission() }
-                    }
-                    false
-                }
-            }
     }
 }
 

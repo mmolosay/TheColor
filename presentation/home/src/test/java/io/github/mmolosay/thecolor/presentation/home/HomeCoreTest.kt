@@ -23,9 +23,8 @@ import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexOutcome
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexState
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvStateFactory
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmission
-import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbStateFactory
+import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbCore
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldCore
-import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldDataFactory
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewDataFactory
 import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeCore
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -52,26 +51,28 @@ class HomeCoreTest {
             colorInputMapper = colorInputMapper,
             colorFactory = ColorFactory(ColorPrototypeValidator()),
         )
+        val textFieldFactory = TextFieldCore.Factory { formatter ->
+            TextFieldCore(formatter)
+        }
         ColorEditorCore(
             hexFactory = ColorInputHexCore.Factory {
                 ColorInputHexCore(
-                    textFieldFactory = TextFieldCore.Factory { formatter ->
-                        TextFieldCore(formatter)
-                    },
+                    textFieldFactory = textFieldFactory,
+                    colorConverter = colorConverter,
+                    colorInputMapper = colorInputMapper,
+                    colorInputValidator = colorInputValidator,
+                )
+            },
+            rgbFactory = ColorInputRgbCore.Factory {
+                ColorInputRgbCore(
+                    textFieldFactory = textFieldFactory,
                     colorConverter = colorConverter,
                     colorInputMapper = colorInputMapper,
                     colorInputValidator = colorInputValidator,
                 )
             },
             colorConverter = colorConverter,
-            colorInputMapper = colorInputMapper,
-            colorInputValidator = colorInputValidator,
             colorComparator = colorComparator,
-            rgbStateFactory = ColorInputRgbStateFactory(
-                textFieldDataFactory = TextFieldDataFactory(),
-                colorConverter = colorConverter,
-                colorInputMapper = colorInputMapper,
-            ),
             hsvStateFactory = ColorInputHsvStateFactory(
                 colorConverter = colorConverter,
             ),

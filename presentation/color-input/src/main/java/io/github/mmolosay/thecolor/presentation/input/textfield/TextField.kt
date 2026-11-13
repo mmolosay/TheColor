@@ -9,8 +9,13 @@ import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.interaction.InteractionSource
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.InputTransformation
+import androidx.compose.foundation.text.input.KeyboardActionHandler
+import androidx.compose.foundation.text.input.TextFieldBuffer
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.placeCursorAtEnd
+import androidx.compose.foundation.text.input.selectAll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -21,123 +26,167 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldData.Text
-import kotlinx.coroutines.Job
-import timber.log.Timber
-import androidx.compose.ui.text.input.TextFieldValue as MaterialTextFieldValue
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
+import androidx.compose.foundation.text.input.TextFieldState as ComposeTextFieldState
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
-/**
- * A text field used by various 'Color Input' Views.
- * Presents [TextFieldData].
- */
 @Composable
 internal fun TextField(
-    facade: TextFieldFacade,
+    feature: TextFieldFeature,
     strings: TextFieldUiStrings,
-    value: MaterialTextFieldValue,
-    onValueChange: (MaterialTextFieldValue) -> Unit,
+    hasClearTextButton: Boolean,
     keyboardOptions: KeyboardOptions,
-    keyboardActions: KeyboardActions,
+    onKeyboardAction: KeyboardActionHandler?,
+    modifier: Modifier = Modifier,
+) =
+    TextField(
+        modifier = modifier,
+        viewData = feature.viewData,
+        onEnterText = feature::enterText,
+        onClearText = if (hasClearTextButton) feature::clearText else null,
+        strings = strings,
+        keyboardOptions = keyboardOptions,
+        onKeyboardAction = onKeyboardAction,
+    )
+
+@Composable
+internal fun TextField(
+    viewData: StateFlow<TextFieldViewData>,
+    onEnterText: (text: String, expected: String) -> Unit,
+    onClearText: (() -> Unit)?,
+    strings: TextFieldUiStrings,
+    keyboardOptions: KeyboardOptions,
+    onKeyboardAction: KeyboardActionHandler?,
     modifier: Modifier = Modifier,
 ) {
-    val inputProcessor = facade.inputProcessor
-    val execute by rememberUpdatedState(facade.execute) // stable across recompositions
-
-    // The value the next edit is built on. The field applies edits that arrive between recompositions
-    // on top of each other, so until the next recomposition it is ahead of the 'value' parameter.
-    val latestValue = remember { mutableStateOf(value) }
-    SideEffect { latestValue.value = value }
-
-    val interactionSource = remember { MutableInteractionSource() }
-    if (facade.shouldSelectAllTextOnFocus) {
-        SelectAllTextOnFocusAsSideEffect(
-            interactionSource = interactionSource,
-            value = value,
-            onValueChange = onValueChange,
-        )
+    val data = viewData.collectAsStateWithLifecycle().value
+    val state: ComposeTextFieldState = remember(viewData) {
+        ComposeTextFieldState(initialText = data.text)
     }
-    OutlinedTextField(
+
+    // A text can be set from elsewhere other than user input via UI, e.g. by the parent feature.
+    // This collector writes such text into the buffer, in the same frame as other Views update.
+    // The ViewData's 'version' prevents the ABA problem.
+    LaunchedEffect(viewData, state) {
+        viewData.collect {
+            state.edit {
+                val newText = viewData.value.text
+                setWithCursor(newText)
+            }
+        }
+    }
+
+    // intended name shadowing to enforce usage of latest lambda
+    val onEnterText by rememberUpdatedState(onEnterText)
+    val inputTransformation = remember(viewData) {
+        InputTransformation {
+            val before = this.originalText.toString()
+            val after = this.asCharSequence().toString()
+            if (after != before) {
+                onEnterText(after, before)
+            }
+            val newText = viewData.value.text
+            setWithCursor(newText)
+        }
+    }
+
+    TextField(
         modifier = modifier,
-        value = value,
-        onValueChange = { new ->
-            val current = latestValue.value
-            if (current.text != new.text) {
-                // can't just pass new.text to ViewModel for filtering: TextFieldValue.selection will be lost
-                val newInput = new.text
-                val newText = inputProcessor(newInput)
-                val newValue = new.copy(text = newText.string)
-                latestValue.value = newValue
-                onValueChange(newValue)
-                run {
-                    val action = TextFieldAction.SetText(
-                        text = newText,
-                        expected = Text(current.text),
-                    )
-                    execute(action)
+        state = state,
+        strings = strings,
+        selectAllTextOnFocus = data.selectAllTextOnFocus,
+        onClearTextClick = run {
+            // 'onClearText' is captured anew on every composition, doesn't need 'rememberUpdatedState()'
+            if (onClearText == null) return@run null
+            {
+                onClearText()
+                // The 'viewData' collector above writes the cleared text only after this click is
+                // handled, so a key typed meanwhile would be made on the old text and dropped by
+                // the field. Writing it into the buffer here makes the next key see the clear (read-your-writes).
+                state.edit {
+                    val newText = viewData.value.text
+                    setWithCursor(newText)
                 }
-            } else {
-                latestValue.value = new
-                onValueChange(new)
             }
         },
+        inputTransformation = inputTransformation,
+        keyboardOptions = keyboardOptions,
+        onKeyboardAction = onKeyboardAction,
+    )
+}
+
+@Composable
+private fun TextField(
+    state: ComposeTextFieldState,
+    strings: TextFieldUiStrings,
+    selectAllTextOnFocus: Boolean,
+    onClearTextClick: (() -> Unit)?, // no clear button when 'null'
+    inputTransformation: InputTransformation?,
+    keyboardOptions: KeyboardOptions,
+    onKeyboardAction: KeyboardActionHandler?,
+    modifier: Modifier = Modifier,
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    if (selectAllTextOnFocus) {
+        SelectAllTextOnFocusAsSideEffect(
+            interactionSource = interactionSource,
+            state = state,
+        )
+    }
+
+    OutlinedTextField(
+        modifier = modifier,
+        state = state,
         textStyle = LocalTextStyle.current.copy(fontFamily = FontFamily.SansSerif),
         label = { Label(text = strings.label) },
         placeholder = { Placeholder(text = strings.placeholder) },
-        trailingIcon = icon@{
-            if (facade.isClearTextFeatureEnabled.not()) return@icon
-            ClearTextTrailingButton(
-                visible = value.text.isNotEmpty(),
-                onClick = {
-                    val action = TextFieldAction.ClearTextFeature.Invoke
-                    execute(action)
-                },
-                iconContentDesc = strings.trailingIconContentDesc ?: return@icon,
-            )
+        trailingIcon = run {
+            if (onClearTextClick == null) return@run null
+            icon@{
+                ClearTextTrailingButton(
+                    visible = state.text.isNotEmpty(),
+                    onClick = onClearTextClick,
+                    iconContentDesc = strings.trailingIconContentDesc ?: return@icon,
+                )
+            }
         },
-        prefix = if (strings.prefix != null)
-            ({ Prefix(text = strings.prefix) })
-        else null,
+        prefix = run {
+            if (strings.prefix == null) return@run null
+            {
+                Prefix(text = strings.prefix)
+            }
+        },
+        inputTransformation = inputTransformation,
         keyboardOptions = keyboardOptions,
-        keyboardActions = keyboardActions,
-        singleLine = true,
+        onKeyboardAction = onKeyboardAction,
+        lineLimits = TextFieldLineLimits.SingleLine,
         interactionSource = interactionSource,
     )
-    // for when text is changed programmatically
-    LaunchedEffect(facade.text) {
-        val shownText = latestValue.value.text // TODO: remove; temporary for the fast typing check
-        val oldValue = value
-        val newText = facade.text.string
-        val newSelection = run {
-            val hadSelectionAtTheEnd = (oldValue.selection.end == oldValue.text.length)
-            val isNewTextLongerThanOld = (newText.length > oldValue.text.length)
-            // if it was "123|" become "123456|" instead of "123|456"
-            if (hadSelectionAtTheEnd && isNewTextLongerThanOld) {
-                TextRange(index = newText.length)
-            } else {
-                oldValue.selection
-            }
-        }
-        val newValue = oldValue.copy(text = newText, selection = newSelection)
-        onValueChange(newValue)
-        // TODO: remove; temporary log for the fast typing check
-        if (shownText != newText) {
-            Timber.tag("TextFieldRace").d("sync replaced '$shownText' with '$newText'")
-        }
+}
+
+@Composable
+private fun SelectAllTextOnFocusAsSideEffect(
+    interactionSource: InteractionSource,
+    state: ComposeTextFieldState,
+) {
+    val isFocused by interactionSource.collectIsFocusedAsState()
+    LaunchedEffect(isFocused) {
+        if (!isFocused) return@LaunchedEffect
+        state.edit { selectAll() }
     }
 }
 
@@ -170,6 +219,7 @@ private fun ClearTextTrailingButton(
     ) {
         IconButton(
             onClick = onClick,
+            modifier = Modifier.testTag(TextFieldTestTags.ClearTextButton),
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(DesignR.drawable.ic_cross),
@@ -185,19 +235,11 @@ private fun Prefix(text: String) =
         text = text,
     )
 
-@Composable
-private fun SelectAllTextOnFocusAsSideEffect(
-    interactionSource: InteractionSource,
-    value: MaterialTextFieldValue,
-    onValueChange: (MaterialTextFieldValue) -> Unit,
-) {
-    val isFocused by interactionSource.collectIsFocusedAsState()
-    LaunchedEffect(isFocused) {
-        if (!isFocused) return@LaunchedEffect
-        val text = value.text
-        val newValue = value.copy(selection = TextRange(start = 0, end = text.length))
-        onValueChange(newValue)
-    }
+private fun TextFieldBuffer.setWithCursor(text: String) {
+    if (this.asCharSequence().contentEquals(text)) return
+    val wasCursorAtTheEnd = (this.selection.collapsed && this.selection.end == this.length)
+    this.replace(0, this.length, text)
+    if (wasCursorAtTheEnd) this.placeCursorAtEnd()
 }
 
 /*
@@ -208,31 +250,37 @@ private fun SelectAllTextOnFocusAsSideEffect(
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL)
 @Composable
 private fun Preview() {
+    val viewData = remember {
+        val value = TextFieldViewData(text = "1801FF", version = 0, selectAllTextOnFocus = true)
+        MutableStateFlow(value)
+    }
     TheColorTheme {
         Surface {
-            val textState = remember { mutableStateOf(Text("1801FF")) }
-            var value by remember {
-                mutableStateOf(MaterialTextFieldValue(text = textState.value.string))
-            }
             TextField(
-                facade = TextFieldFacade(
-                    text = textState.value,
-                    shouldSelectAllTextOnFocus = true,
-                    isClearTextFeatureEnabled = true,
-                    inputProcessor = TextFieldInputProcessor { Text(it) },
-                    execute = { Job() },
-                ),
+                viewData = viewData,
+                onEnterText = { text, _ ->
+                    viewData.update {
+                        it.copy(text = text, version = it.version + 1)
+                    }
+                },
+                onClearText = {
+                    viewData.update {
+                        it.copy(text = "", version = it.version + 1)
+                    }
+                },
                 strings = TextFieldUiStrings(
                     label = "HEX",
                     placeholder = "000000",
                     prefix = "#",
                     trailingIconContentDesc = "Clear text field",
                 ),
-                value = value,
-                onValueChange = { newValue -> value = newValue },
                 keyboardOptions = KeyboardOptions.Default,
-                keyboardActions = KeyboardActions(),
+                onKeyboardAction = {},
             )
         }
     }
+}
+
+internal object TextFieldTestTags {
+    const val ClearTextButton = "TextFieldTestTags.ClearTextButton"
 }

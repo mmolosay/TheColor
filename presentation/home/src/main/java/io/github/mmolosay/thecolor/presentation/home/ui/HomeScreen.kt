@@ -288,11 +288,6 @@ private fun Home(
 
     ProcessProceedResultAsSideEffect(
         proceedResult = data.proceedResult,
-        onProcessed = { proceedResult ->
-            val action = HomeAction.OnProceedResultProcessed(proceedResult)
-            execute(action)
-        },
-        strings = strings,
     )
 
     ScrollToTopOnNullProceedResultAsSideEffect(
@@ -397,5 +392,4 @@ private fun previewUiStrings() =
         headline = "Find your color",
         proceedButtonText = "Proceed",
         randomizeButtonIconContentDesc = "Randomize color",
-        invalidSubmittedColorMessage = "Please enter a valid color",
     )

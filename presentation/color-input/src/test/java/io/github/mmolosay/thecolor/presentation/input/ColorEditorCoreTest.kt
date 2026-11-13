@@ -14,9 +14,9 @@ import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexOutcome
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexState
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvStateFactory
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmission
-import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbStateFactory
+import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbCore
+import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbOutcome
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldCore
-import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldDataFactory
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -34,27 +34,29 @@ class ColorEditorCoreTest {
             colorPrototypeValidator = ColorPrototypeValidator(),
         ),
     )
+    val textFieldFactory = TextFieldCore.Factory { formatter ->
+        TextFieldCore(formatter)
+    }
 
     val sut = ColorEditorCore(
         hexFactory = ColorInputHexCore.Factory {
             ColorInputHexCore(
-                textFieldFactory = TextFieldCore.Factory { formatter ->
-                    TextFieldCore(formatter)
-                },
+                textFieldFactory = textFieldFactory,
+                colorConverter = colorConverter,
+                colorInputMapper = colorInputMapper,
+                colorInputValidator = colorInputValidator,
+            )
+        },
+        rgbFactory = ColorInputRgbCore.Factory {
+            ColorInputRgbCore(
+                textFieldFactory = textFieldFactory,
                 colorConverter = colorConverter,
                 colorInputMapper = colorInputMapper,
                 colorInputValidator = colorInputValidator,
             )
         },
         colorConverter = colorConverter,
-        colorInputMapper = colorInputMapper,
-        colorInputValidator = colorInputValidator,
         colorComparator = ColorComparator(colorConverter),
-        rgbStateFactory = ColorInputRgbStateFactory(
-            textFieldDataFactory = TextFieldDataFactory(),
-            colorConverter = colorConverter,
-            colorInputMapper = colorInputMapper,
-        ),
         hsvStateFactory = ColorInputHsvStateFactory(
             colorConverter = colorConverter,
         ),
@@ -67,8 +69,8 @@ class ColorEditorCoreTest {
 
             val handled = state.onHex(outcome = null)
 
-            val rgbTexts = with(handled.state.rgb) { listOf(rTextField, gTextField, bTextField) }
-                .map { it.text.data.string }
+            val rgbTexts = with(handled.state.rgb) { listOf(r, g, b) }
+                .map { it.text }
             rgbTexts shouldBe listOf("26", "128", "63")
             handled.state.hsv.color shouldBe with(colorConverter) { Color.Hex(0x1A803F).toHsv() }
         }
@@ -148,6 +150,36 @@ class ColorEditorCoreTest {
     }
 
     @Test
+    fun `given 'rgb' holds a color and is submitted, when 'onRgb' is invoked with 'Submitted', then 'ColorSubmitted' is handed up with that color`() {
+        with(sut) {
+            val state = initialState(Color.Hex(0xFFFFFF))
+                .withRgbGText("128")
+                .withRgbSubmitted()
+
+            val handled = state.onRgb(ColorInputRgbOutcome.Submitted)
+
+            val expectedColor = Color.Rgb(r = 255, g = 128, b = 255)
+            handled.outcome shouldBe ColorEditorOutcome.ColorSubmitted(expectedColor)
+        }
+    }
+
+    @Test
+    fun `given 'rgb' holds no color and is submitted, when 'onRgb' is invoked with 'Submitted', then 'rgb' is answered with 'Rejected', and nothing is handed up`() {
+        with(sut) {
+            val state = initialState(Color.Hex(0xFFFFFF))
+                .withRgbGText("") // not a color yet
+                .withRgbSubmitted()
+
+            val handled = state.onRgb(ColorInputRgbOutcome.Submitted)
+
+            val submission = handled.state.rgb.submission
+                .shouldBeInstanceOf<ColorInputSubmission.Answered>()
+            submission.answer shouldBe ColorInputSubmission.Answer.Rejected
+            handled.outcome.shouldBeNull()
+        }
+    }
+
+    @Test
     fun `given a gray with 'hsv' at another hue, when 'onHsv' is invoked, then nothing else changes`() {
         with(sut) {
             val state = initialState(Color.Hex(0x808080)).withHsvHue(120f)
@@ -181,12 +213,32 @@ class ColorEditorCoreTest {
         }
     }
 
-    fun ColorEditorState.withHexText(text: String): ColorEditorState =
-        this.copy(hex = MockColorInputStates.ColorInputHexState(text = text))
+    fun ColorEditorState.withHexText(text: String): ColorEditorState {
+        val textField = this.hex.textField
+        val newTextField = with(sut.hexCore.textFieldCore) {
+            textField.enterText(text, expected = textField.text)
+        }.state
+        val newHex = this.hex.copy(textField = newTextField)
+        return this.copy(hex = newHex)
+    }
 
     fun ColorEditorState.withHexSubmitted(): ColorEditorState {
         val submitted = with(sut.hexCore) { hex.submit() }.state
         return this.copy(hex = submitted)
+    }
+
+    fun ColorEditorState.withRgbGText(text: String): ColorEditorState {
+        val g = this.rgb.g
+        val newG = with(sut.rgbCore.gCore) {
+            g.enterText(text, expected = g.text)
+        }.state
+        val newRgb = this.rgb.copy(g = newG)
+        return this.copy(rgb = newRgb)
+    }
+
+    fun ColorEditorState.withRgbSubmitted(): ColorEditorState {
+        val submitted = with(sut.rgbCore) { rgb.submit() }.state
+        return this.copy(rgb = submitted)
     }
 
     fun ColorEditorState.withHsvHue(hue: Float): ColorEditorState {

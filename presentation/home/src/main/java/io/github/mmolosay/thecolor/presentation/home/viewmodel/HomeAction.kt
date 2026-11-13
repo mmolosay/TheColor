@@ -10,10 +10,6 @@ sealed interface HomeAction {
 
     data object RequestToGoToSettings : HomeAction
 
-    data class OnProceedResultProcessed(
-        val result: HomeData.ProceedResult,
-    ) : HomeAction
-
     data class OnSideEffectProcessed(
         val se: HomeData.SideEffect,
     ) : HomeAction

@@ -16,8 +16,6 @@ data class HomeData(
     /** Result of executing a 'proceed' action. */
     sealed interface ProceedResult {
 
-        data object InvalidSubmittedColor : ProceedResult
-
         data class Success(
             val colorData: ColorData,
         ) : ProceedResult {

@@ -17,7 +17,6 @@ data class HomeState(
     val startupColorRequest: StartupColorRequest?,
     val autoProceed: Boolean?, // TODO: non-descriptive state via nullability
     val lastSearchedColorSave: LastSearchedColorSave?,
-    val submissionRejected: Boolean, // TODO: temporary
     val sideEffects: ImmutableList<HomeData.SideEffect>, // TODO: temporary
 ) {
 

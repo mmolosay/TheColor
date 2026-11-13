@@ -7,6 +7,8 @@ import io.github.mmolosay.thecolor.composition.CompositionUtils.child
 import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexFeature
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexOutcome
+import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbFeature
+import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbOutcome
 import kotlinx.coroutines.CoroutineScope
 import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorStateLenses as StateLenses
 
@@ -15,12 +17,20 @@ class ColorEditorFeature @AssistedInject constructor(
     @Assisted private val store: Store<ColorEditorState, ColorEditorOutcome>,
     @Assisted scope: CoroutineScope,
     hexFactory: ColorInputHexFeature.Factory,
+    rgbFactory: ColorInputRgbFeature.Factory,
 ) {
 
     val hex: ColorInputHexFeature = hexFactory.create(
         core = core.hexCore,
         store = store.slice(StateLenses.hex) { state, outcome: ColorInputHexOutcome? ->
             with(core) { state.onHex(outcome) }
+        },
+        scope = scope.child(),
+    )
+    val rgb: ColorInputRgbFeature = rgbFactory.create(
+        core = core.rgbCore,
+        store = store.slice(StateLenses.rgb) { state, outcome: ColorInputRgbOutcome? ->
+            with(core) { state.onRgb(outcome) }
         },
         scope = scope.child(),
     )

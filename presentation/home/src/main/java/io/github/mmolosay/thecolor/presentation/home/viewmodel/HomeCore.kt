@@ -47,7 +47,6 @@ class HomeCore @AssistedInject constructor(
             startupColorRequest = HomeState.StartupColorRequest(editorVersion = inputEditor.version),
             autoProceed = null,
             lastSearchedColorSave = null,
-            submissionRejected = false,
             sideEffects = persistentListOf(),
         )
     }
@@ -77,7 +76,6 @@ class HomeCore @AssistedInject constructor(
 
     // TODO: Core probably shouldn't reference 'HomeData'
     private fun HomeState.proceedResult(): HomeData.ProceedResult? {
-        if (this.submissionRejected) return HomeData.ProceedResult.InvalidSubmittedColor
         val color = with(colorCenterCore) { colorCenter.sessionColor() } ?: return null
         val colorData = createColorData(color)
         return HomeData.ProceedResult.Success(colorData)
@@ -101,7 +99,6 @@ class HomeCore @AssistedInject constructor(
             colorCenter = with(colorCenterCore) { colorCenter.withSession(color) },
             selectedSwatch = with(selectedSwatchCore) { selectedSwatch.withoutSession() },
             lastSearchedColorSave = HomeState.LastSearchedColorSave(color),
-            submissionRejected = false,
         )
 
     private fun HomeState.withoutSession(): HomeState =
@@ -167,16 +164,6 @@ class HomeCore @AssistedInject constructor(
         val state = this.copy(lastSearchedColorSave = null)
         return Change(state)
     }
-
-    // TODO: temporary, until the inputs submit through outcomes
-    fun HomeState.submit(color: Color): Change<HomeState, Nothing> =
-        Change(this.withSession(color))
-
-    fun HomeState.rejectSubmission(): Change<HomeState, Nothing> =
-        Change(this.copy(submissionRejected = true))
-
-    fun HomeState.ackRejection(): Change<HomeState, Nothing> =
-        Change(this.copy(submissionRejected = false))
 
     // TODO: temporary, until going to Settings is state of its own
     fun HomeState.addSideEffect(se: HomeData.SideEffect): Change<HomeState, Nothing> =

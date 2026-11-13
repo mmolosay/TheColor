@@ -47,7 +47,7 @@ internal fun BareColorInput(
             ColorInputHex(feature = editor.hex)
         },
         rgbInput = {
-            ColorInputRgb(facade = editorFacade.rgb)
+            ColorInputRgb(feature = editor.rgb)
         },
         hsvInput = {
             ColorInputHsv(facade = editorFacade.hsv)
