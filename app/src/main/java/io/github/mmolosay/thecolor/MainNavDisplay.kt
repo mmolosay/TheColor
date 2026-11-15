@@ -72,7 +72,7 @@ private fun EntryProviderScope<NavDest>.home(
         }
         HomeScreen(
             viewModel = homeViewModel,
-            navigateToSettings = navigateToSettings,
+            onSettingsClick = navigateToSettings,
             navBarAppearanceController = childController,
         )
     }

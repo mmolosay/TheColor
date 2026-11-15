@@ -29,7 +29,7 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.home.R
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimController
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewData
 import io.github.mmolosay.thecolor.utils.mapState
 
 /**
@@ -62,7 +62,7 @@ internal fun BareColorCenter(
  */
 @Composable
 internal fun ColorCenterInHome(
-    proceedResult: HomeData.ProceedResult?,
+    sessionColor: HomeViewData.SessionColor?,
     homeAnimController: HomeAnimController?,
     navBarAppearanceController: NavBarAppearanceController,
     containerScrollState: ScrollState,
@@ -70,9 +70,9 @@ internal fun ColorCenterInHome(
     content: BareColorCenterComposable?,
 ) {
     if (homeAnimController == null) return
-    val decoratedColorCenter = remember(content, proceedResult) {
+    val decoratedColorCenter = remember(content, sessionColor) {
         decoratedColorCenterComposable(
-            proceededColorData = (proceedResult as? HomeData.ProceedResult.Success)?.colorData,
+            sessionColor = sessionColor,
             navBarAppearanceController = navBarAppearanceController,
             containerScrollState = containerScrollState,
             stateOfContainerPosInRoot = stateOfContainerPosInRoot,
@@ -99,11 +99,9 @@ private fun Preview() {
     TheColorTheme {
         Surface {
             ColorCenterInHome(
-                proceedResult = HomeData.ProceedResult.Success(
-                    colorData = HomeData.ProceedResult.Success.ColorData(
-                        color = ColorInt(0x1A803F),
-                        isDark = true,
-                    ),
+                sessionColor = HomeViewData.SessionColor(
+                    color = ColorInt(0x1A803F),
+                    isDark = true,
                 ),
                 homeAnimController = remember {
                     val currentState = HomeAnimState(

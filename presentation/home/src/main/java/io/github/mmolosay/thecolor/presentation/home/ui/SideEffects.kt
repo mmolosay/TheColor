@@ -3,77 +3,43 @@ package io.github.mmolosay.thecolor.presentation.home.ui
 import androidx.compose.foundation.ScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.SideEffect
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewData.SessionColor
 import io.github.mmolosay.thecolor.utils.cache.DequeCache
 import io.github.mmolosay.thecolor.utils.cache.PruneOnSizeThreshold
-import io.github.mmolosay.thecolor.utils.doNothing
-import kotlinx.collections.immutable.ImmutableList
 
 @Composable
-internal fun ProcessSideEffectsAsSideEffect(
-    sideEffects: ImmutableList<SideEffect>,
-    onProcessed: (SideEffect) -> Unit,
-    navigateToSettings: () -> Unit,
-) {
-    val focusManager = LocalFocusManager.current
-    fun process(se: SideEffect.GoToSettings) {
-        focusManager.clearFocus()
-        navigateToSettings()
-        onProcessed(se)
-    }
-    for (se in sideEffects) {
-        key(se.id) {
-            LaunchedEffect(Unit) {
-                when (se) {
-                    is SideEffect.GoToSettings -> process(se)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-internal fun ProcessProceedResultAsSideEffect(
-    proceedResult: ProceedResult?,
+internal fun ProcessSessionColorAsSideEffect(
+    sessionColor: SessionColor?,
 ) {
     val softwareKeyboardController = LocalSoftwareKeyboardController.current
-    LaunchedEffect(proceedResult) {
-        when (proceedResult) {
-            is ProceedResult.Success -> {
-                // keyboard blinks when hidden, similar issue: https://stackoverflow.com/q/76901241/8862499
-                // the issue is somewhere in 'Color Input', probably in the internals of TextField()
-                softwareKeyboardController?.hide()
-            }
-            null -> doNothing()
-        }
+    LaunchedEffect(sessionColor) {
+        if (sessionColor == null) return@LaunchedEffect
+        softwareKeyboardController?.hide()
     }
 }
 
 @Composable
-internal fun ScrollToTopOnNullProceedResultAsSideEffect(
-    proceedResult: ProceedResult?,
+internal fun ScrollToTopOnNullSessionColorAsSideEffect(
+    sessionColor: SessionColor?,
     scrollState: ScrollState,
 ) {
-    val cacheOfProceedResult = remember {
-        DequeCache<ProceedResult?>(
+    val cacheOfSessionColor = remember {
+        DequeCache<SessionColor?>(
             mutationListener = PruneOnSizeThreshold(cacheSizeThreshold = 2),
         )
     }
-    LaunchedEffect(proceedResult) {
-        val current = proceedResult
+    LaunchedEffect(sessionColor) {
+        val current = sessionColor
         // previous may be present but equal to 'null'
-        if (cacheOfProceedResult.isNotEmpty()) {
-            val previous = cacheOfProceedResult.last()
-            val wasSuccessButBecameNull = (previous is ProceedResult.Success && current == null)
-            if (wasSuccessButBecameNull && scrollState.value != 0) {
+        if (cacheOfSessionColor.isNotEmpty()) {
+            val previous = cacheOfSessionColor.last()
+            val hasSessionEnded = (previous != null && current == null)
+            if (hasSessionEnded && scrollState.value != 0) {
                 scrollState.animateScrollTo(0)
             }
         }
-        cacheOfProceedResult += proceedResult
+        cacheOfSessionColor += sessionColor
     }
 }

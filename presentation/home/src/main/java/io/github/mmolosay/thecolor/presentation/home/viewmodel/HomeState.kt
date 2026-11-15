@@ -7,7 +7,6 @@ import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorState
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupState
 import io.github.mmolosay.thecolor.utils.Identity
 import io.github.mmolosay.thecolor.utils.Lens
-import kotlinx.collections.immutable.ImmutableList
 
 data class HomeState(
     val inputEditor: ColorEditorState,
@@ -17,7 +16,6 @@ data class HomeState(
     val startupColorRequest: StartupColorRequest?,
     val autoProceed: Boolean?, // TODO: non-descriptive state via nullability
     val lastSearchedColorSave: LastSearchedColorSave?,
-    val sideEffects: ImmutableList<HomeData.SideEffect>, // TODO: temporary
 ) {
 
     // TODO: maybe all startup initialization should be described by one model?

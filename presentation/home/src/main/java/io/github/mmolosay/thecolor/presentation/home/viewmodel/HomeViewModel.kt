@@ -20,15 +20,12 @@ import io.github.mmolosay.thecolor.presentation.center.viewmodel.ColorCenterFeat
 import io.github.mmolosay.thecolor.presentation.center.viewmodel.ColorCenterOutcome
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsFeature
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsOutcome
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.SideEffect
 import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorFeature
 import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorOutcome
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupFeature
-import io.github.mmolosay.thecolor.utils.SideEffectIdFactory
 import io.github.mmolosay.thecolor.utils.mapState
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -53,9 +50,11 @@ class HomeViewModel @Inject constructor(
 
     private val core: HomeCore = coreFactory.create()
     private val store = Store(initialState = core.initialState())
-    private val seFactory = SideEffectFactory()
 
-    private val colorEditor: ColorEditorFeature = colorEditorFactory.create(
+    val viewData: StateFlow<HomeViewData?> =
+        store.mapState { state -> with(core) { state.toViewData() } }
+
+    val colorEditor: ColorEditorFeature = colorEditorFactory.create(
         core = core.inputEditorCore,
         store = store.slice(StateLenses.inputEditor) { state, outcome: ColorEditorOutcome? ->
             with(core) { state.onInputEditor(outcome) }
@@ -63,13 +62,13 @@ class HomeViewModel @Inject constructor(
         scope = viewModelScope.child(),
     )
 
-    private val colorInputGroup: ColorInputGroupFeature = inputGroupFactory.create(
+    val colorInputGroup: ColorInputGroupFeature = inputGroupFactory.create(
         core = core.inputGroupCore,
         store = store.slice(StateLenses.inputGroup) { state -> Change(state) },
         scope = viewModelScope.child(),
     )
 
-    private val colorCenter: ColorCenterFeature = colorCenterFactory.create(
+    val colorCenter: ColorCenterFeature = colorCenterFactory.create(
         core = core.colorCenterCore,
         store = store.slice(StateLenses.colorCenter) { state, outcome: ColorCenterOutcome? ->
             with(core) { state.onColorCenter(outcome) }
@@ -77,28 +76,13 @@ class HomeViewModel @Inject constructor(
         scope = viewModelScope.child(),
     )
 
-    private val selectedSwatch: ColorDetailsFeature = colorDetailsFactory.create(
+    val selectedSwatch: ColorDetailsFeature = colorDetailsFactory.create(
         core = core.selectedSwatchCore,
         store = store.slice(StateLenses.selectedSwatch) { state, _: ColorDetailsOutcome? ->
             Change(state)
         },
         scope = viewModelScope.child(),
     )
-
-    // TODO: temporary
-    val stateFlow: StateFlow<HomeViewState?> = store.mapState { state ->
-        with(core) {
-            if (!state.isInitialized()) return@mapState null
-            HomeViewState(
-                home = state.data(),
-                colorEditor = colorEditor,
-                colorInputGroup = colorInputGroup,
-                colorPreview = state.colorPreview(),
-                colorCenter = colorCenter,
-                selectedSwatch = selectedSwatch,
-            )
-        }
-    }
 
     init {
         serveStartup()
@@ -145,41 +129,22 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    // TODO: temporary: one method per action comes with Home finished
-    fun execute(action: HomeAction): Job? {
-        when (action) {
-            is HomeAction.Proceed -> store.update { state ->
-                with(core) { state.proceed() }
-            }
-            is HomeAction.RandomizeColor -> {
-                val color = getPredictableRandomColor()
-                store.update { state ->
-                    with(core) { state.randomize(color) }
-                }
-            }
-            is HomeAction.RequestToGoToSettings -> {
-                val se = seFactory.goToSettings()
-                store.update { state ->
-                    with(core) { state.addSideEffect(se) }
-                }
-            }
-            is HomeAction.OnSideEffectProcessed -> store.update { state ->
-                with(core) { state.ackSideEffect(action.se) }
-            }
-            is HomeAction.ClearColorSchemeSelectedSwatch -> store.update { state ->
-                with(core) { state.closeSwatch() }
-            }
+    fun proceed() {
+        store.update { state ->
+            with(core) { state.proceed() }
         }
-        return null
     }
-}
 
-private class SideEffectFactory {
+    fun randomize() {
+        val color = getPredictableRandomColor()
+        store.update { state ->
+            with(core) { state.randomize(color) }
+        }
+    }
 
-    private val idFactory = SideEffectIdFactory()
-
-    fun goToSettings(): SideEffect.GoToSettings =
-        SideEffect.GoToSettings(
-            id = idFactory.get(),
-        )
+    fun deselectSwatch() {
+        store.update { state ->
+            with(core) { state.deselectSwatch() }
+        }
+    }
 }

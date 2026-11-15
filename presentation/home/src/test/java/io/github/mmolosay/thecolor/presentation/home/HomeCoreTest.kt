@@ -8,9 +8,10 @@ import io.github.mmolosay.thecolor.domain.color.ColorFactory
 import io.github.mmolosay.thecolor.domain.color.prototype.ColorPrototypeValidator
 import io.github.mmolosay.thecolor.presentation.center.viewmodel.ColorCenterCore
 import io.github.mmolosay.thecolor.presentation.center.viewmodel.ColorCenterOutcome
+import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCore
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsState
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.CreateColorDataUseCase
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.CreateSessionColorUseCase
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeCore
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeState
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMapper
@@ -41,9 +42,13 @@ class HomeCoreTest {
     val colorConverter = ColorConverter()
     val colorComparator = ColorComparator(colorConverter)
 
-    // only 'colorPreview' and a 'Success' proceed result use them, and these tests read neither
-    val colorPreviewDataFactory: ColorPreviewDataFactory = mockk()
-    val createColorData: CreateColorDataUseCase = mockk()
+    // real implementation, it's pure and 'toViewData' always uses it
+    val colorPreviewDataFactory = ColorPreviewDataFactory(
+        colorToColorInt = ColorToColorIntUseCase(colorConverter),
+    )
+
+    // only an open session's color uses it, and these tests read none
+    val createSessionColor: CreateSessionColorUseCase = mockk()
 
     val inputEditorFactory = ColorEditorCore.Factory {
         val colorInputMapper = ColorInputMapper()
@@ -85,7 +90,7 @@ class HomeCoreTest {
         ColorInputGroupCore()
     }
 
-    // only 'toViewData' uses their use cases, and these tests don't read view data
+    // only the children's 'toViewData' uses their use cases, and these tests don't read it
     val colorDetailsFactory = ColorDetailsCore.Factory {
         ColorDetailsCore(
             createData = mockk(),
@@ -113,7 +118,7 @@ class HomeCoreTest {
         colorDetailsFactory = colorDetailsFactory,
         colorComparator = colorComparator,
         colorPreviewDataFactory = colorPreviewDataFactory,
-        createColorData = createColorData,
+        createSessionColor = createSessionColor,
     )
 
     @Test
@@ -381,18 +386,39 @@ class HomeCoreTest {
     }
 
     @Test
-    fun `given a session is open, when it ends, then the proceed result is 'null'`() {
+    fun `given a session is open, when it ends, then 'sessionColor' is 'null'`() {
         with(sut) {
-            val state = initialState()
+            val state = initializedState()
                 .withInputEditorColor(Color.Hex(0x1A803F))
                 .proceed().state
                 .withInputEditorColor(Color.Hex(0x126B40))
 
             val handled = state.onInputEditor(outcome = null) // the colors differ, so it ends
 
-            handled.state.data().proceedResult shouldBe null
+            handled.state.toViewData().shouldNotBeNull().sessionColor shouldBe null
         }
     }
+
+    @Test
+    fun `given 'inputEditor' has no color, when 'toViewData' is invoked, then 'canProceed' is 'false'`() {
+        with(sut) {
+            val state = initializedState()
+
+            val viewData = state.toViewData()
+
+            viewData.shouldNotBeNull().canProceed shouldBe false
+        }
+    }
+
+    fun initializedState(): HomeState =
+        with(sut) {
+            val state = initialState()
+            val request = state.awaitedStartup().shouldNotBeNull()
+            state
+                .completeStartup(color = null, expected = request).state
+                .withInputGroupPreferredType(DomainColorInputType.Hex)
+                .applyAutoProceed(enabled = false).state
+        }
 
     fun HomeState.sessionColor(): Color? =
         with(sut.colorCenterCore) { colorCenter.sessionColor() }

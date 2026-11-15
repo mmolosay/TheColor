@@ -25,6 +25,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -45,16 +46,11 @@ import io.github.mmolosay.thecolor.presentation.home.ui.center.BareColorCenterCo
 import io.github.mmolosay.thecolor.presentation.home.ui.center.ColorCenterInHome
 import io.github.mmolosay.thecolor.presentation.home.ui.preview.BareColorPreviewComposable
 import io.github.mmolosay.thecolor.presentation.home.ui.preview.ColorPreviewInHome
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.ExecuteHomeAction
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeAction
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
 import io.github.mmolosay.thecolor.presentation.preview.AnimatedColorPreview
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import io.github.mmolosay.thecolor.utils.mapState
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
@@ -62,18 +58,18 @@ import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
-    navigateToSettings: () -> Unit,
+    onSettingsClick: () -> Unit,
     navBarAppearanceController: NavBarAppearanceController,
 ) {
     val context = LocalContext.current
     val strings = remember(context) { HomeUiStrings(context) }
 
-    // TODO: HomeViewModel may take longer time to initialize HomeViewState on laggy devices.
+    // TODO: HomeViewModel may take longer time to initialize 'viewData' on laggy devices.
     //       Implement 'loading' state and cross-fade?
-    val state = viewModel.stateFlow.collectAsStateWithLifecycle().value ?: return
+    val data = viewModel.viewData.collectAsStateWithLifecycle().value ?: return
 
     val flowOfUiState = remember {
-        viewModel.stateFlow.mapState { requireNotNull(it).toUiState() }
+        viewModel.viewData.mapState { requireNotNull(it).toUiState() }
     }
     val animController = remember {
         val animState = flowOfUiState.value.toAnimState()
@@ -93,10 +89,10 @@ fun HomeScreen(
     val colorInput: BareColorInputComposable = { modifier ->
         BareColorInput(
             modifier = modifier,
-            group = state.colorInputGroup,
-            hex = state.colorEditor.hex,
-            rgb = state.colorEditor.rgb,
-            hsv = state.colorEditor.hsv,
+            group = viewModel.colorInputGroup,
+            hex = viewModel.colorEditor.hex,
+            rgb = viewModel.colorEditor.rgb,
+            hsv = viewModel.colorEditor.hsv,
         )
     }
     val colorPreview: BareColorPreviewComposable = { animController, onUiStateReached ->
@@ -106,10 +102,10 @@ fun HomeScreen(
         )
     }
     val colorPreviewDataFlow = remember {
-        viewModel.stateFlow.mapState { requireNotNull(it).colorPreview }
+        viewModel.viewData.mapState { requireNotNull(it).colorPreview }
     }
     val colorCenter: BareColorCenterComposable = run {
-        val feature = state.colorCenter
+        val feature = viewModel.colorCenter
         remember(feature) {
             {
                 BareColorCenter(feature = feature)
@@ -118,7 +114,7 @@ fun HomeScreen(
     }
     val selectedSwatchData: ColorDetailsViewData
     val selectedSwatchDetails: BareSelectedSwatchDetailsComposable = run {
-        val feature = state.selectedSwatch
+        val feature = viewModel.selectedSwatch
         selectedSwatchData = feature.viewData.collectAsStateWithLifecycle().value
         remember(feature) {
             { modifier ->
@@ -136,9 +132,12 @@ fun HomeScreen(
     }
 
     HomeScreen(
-        data = state.home,
+        data = data,
         strings = strings,
-        execute = viewModel::execute,
+        onProceedClick = viewModel::proceed,
+        onRandomizeColorClick = viewModel::randomize,
+        onSelectedSwatchDismissRequest = viewModel::deselectSwatch,
+        onSettingsClick = onSettingsClick,
         colorInput = colorInput,
         colorPreview = colorPreview,
         colorPreviewDataFlow = colorPreviewDataFlow,
@@ -146,16 +145,18 @@ fun HomeScreen(
         selectedSwatchDetails = selectedSwatchDetails,
         selectedSwatchData = selectedSwatchData,
         animController = animController,
-        navigateToSettings = navigateToSettings,
         navBarAppearanceController = navBarAppearanceController,
     )
 }
 
 @Composable
 private fun HomeScreen(
-    data: HomeData,
+    data: HomeViewData,
     strings: HomeUiStrings,
-    execute: ExecuteHomeAction,
+    onProceedClick: () -> Unit,
+    onRandomizeColorClick: () -> Unit,
+    onSelectedSwatchDismissRequest: () -> Unit,
+    onSettingsClick: () -> Unit,
     colorInput: BareColorInputComposable,
     colorPreview: BareColorPreviewComposable,
     colorPreviewDataFlow: StateFlow<ColorPreviewData>,
@@ -163,7 +164,6 @@ private fun HomeScreen(
     selectedSwatchDetails: BareSelectedSwatchDetailsComposable?,
     selectedSwatchData: ColorDetailsViewData,
     animController: HomeAnimController?,
-    navigateToSettings: () -> Unit,
     navBarAppearanceController: NavBarAppearanceController,
 ) {
     Scaffold(
@@ -175,7 +175,10 @@ private fun HomeScreen(
                 .consumeWindowInsets(contentPadding), // ensures correct height of 'TopAppBar()'
             data = data,
             strings = strings,
-            execute = execute,
+            onProceedClick = onProceedClick,
+            onRandomizeColorClick = onRandomizeColorClick,
+            onSelectedSwatchDismissRequest = onSelectedSwatchDismissRequest,
+            onSettingsClick = onSettingsClick,
             colorInput = colorInput,
             colorPreview = colorPreview,
             colorPreviewDataFlow = colorPreviewDataFlow,
@@ -183,7 +186,6 @@ private fun HomeScreen(
             selectedSwatchDetails = selectedSwatchDetails,
             selectedSwatchData = selectedSwatchData,
             animController = animController,
-            navigateToSettings = navigateToSettings,
             navBarAppearanceController = navBarAppearanceController,
         )
     }
@@ -191,9 +193,12 @@ private fun HomeScreen(
 
 @Composable
 private fun Home(
-    data: HomeData,
+    data: HomeViewData,
     strings: HomeUiStrings,
-    execute: ExecuteHomeAction,
+    onProceedClick: () -> Unit,
+    onRandomizeColorClick: () -> Unit,
+    onSelectedSwatchDismissRequest: () -> Unit,
+    onSettingsClick: () -> Unit,
     colorInput: BareColorInputComposable,
     colorPreview: BareColorPreviewComposable,
     colorPreviewDataFlow: StateFlow<ColorPreviewData>,
@@ -201,12 +206,12 @@ private fun Home(
     selectedSwatchDetails: BareSelectedSwatchDetailsComposable?,
     selectedSwatchData: ColorDetailsViewData,
     animController: HomeAnimController?,
-    navigateToSettings: () -> Unit,
     navBarAppearanceController: NavBarAppearanceController,
     modifier: Modifier = Modifier,
 ) {
     val scrollState = rememberScrollState()
     val stateOfPosInRoot = remember { mutableStateOf<Offset?>(null) }
+    val focusManager = LocalFocusManager.current
 
     HomeLayout(
         modifier = modifier,
@@ -214,7 +219,10 @@ private fun Home(
         onGloballyPositioned = { coords -> stateOfPosInRoot.value = coords.positionInRoot() },
         topBar = {
             TopBar(
-                onSettingsClick = { execute(HomeAction.RequestToGoToSettings) },
+                onSettingsClick = {
+                    focusManager.clearFocus()
+                    onSettingsClick()
+                },
                 settingsIconContentDesc = strings.settingsIconContentDesc,
             )
         },
@@ -228,14 +236,14 @@ private fun Home(
             ButtonSection(
                 proceedButton = {
                     ProceedButton(
-                        onClick = { execute(HomeAction.Proceed) },
+                        onClick = onProceedClick,
                         enabled = data.canProceed,
                         text = strings.proceedButtonText,
                     )
                 },
                 randomizeColorButton = {
                     RandomizeColorButton(
-                        onClick = { execute(HomeAction.RandomizeColor) },
+                        onClick = onRandomizeColorClick,
                         iconContentDesc = strings.randomizeButtonIconContentDesc,
                     )
                 },
@@ -257,7 +265,7 @@ private fun Home(
         },
         colorCenter = {
             ColorCenterInHome(
-                proceedResult = data.proceedResult,
+                sessionColor = data.sessionColor,
                 homeAnimController = animController,
                 navBarAppearanceController = navBarAppearanceController,
                 containerScrollState = scrollState,
@@ -272,27 +280,16 @@ private fun Home(
         navBarAppearanceController = remember(navBarAppearanceController) {
             navBarAppearanceController.branch("Selected Swatch Details Dialog")
         },
-        onDismissRequest = {
-            execute(HomeAction.ClearColorSchemeSelectedSwatch)
-        },
+        onDismissRequest = onSelectedSwatchDismissRequest,
         content = selectedSwatchDetails,
     )
 
-    ProcessSideEffectsAsSideEffect(
-        sideEffects = data.sideEffects,
-        onProcessed = { se ->
-            val action = HomeAction.OnSideEffectProcessed(se)
-            execute(action)
-        },
-        navigateToSettings = navigateToSettings,
+    ProcessSessionColorAsSideEffect(
+        sessionColor = data.sessionColor,
     )
 
-    ProcessProceedResultAsSideEffect(
-        proceedResult = data.proceedResult,
-    )
-
-    ScrollToTopOnNullProceedResultAsSideEffect(
-        proceedResult = data.proceedResult,
+    ScrollToTopOnNullSessionColorAsSideEffect(
+        sessionColor = data.sessionColor,
         scrollState = scrollState,
     )
 }
@@ -326,9 +323,11 @@ private fun TopBar(
 private fun Preview() {
     TheColorTheme {
         HomeScreen(
-            data = previewData(),
+            data = previewViewData(),
             strings = previewUiStrings(),
-            execute = { Job() },
+            onProceedClick = {},
+            onRandomizeColorClick = {},
+            onSelectedSwatchDismissRequest = {},
             colorInput = { modifier ->
                 Placeholder(
                     modifier = modifier
@@ -346,7 +345,7 @@ private fun Preview() {
                 }
             },
             colorPreviewDataFlow = remember {
-                val value = ColorPreviewData(color = ColorInt(0x1A803F))
+                val value = previewViewData().colorPreview
                 MutableStateFlow(value)
             },
             colorCenter = {
@@ -369,22 +368,20 @@ private fun Preview() {
                 )
                 HomeAnimController(currentState)
             },
-            navigateToSettings = {},
+            onSettingsClick = {},
             navBarAppearanceController = remember { RootNavBarAppearanceController() },
         )
     }
 }
 
-private fun previewData() =
-    HomeData(
+private fun previewViewData() =
+    HomeViewData(
         canProceed = true,
-        proceedResult = ProceedResult.Success(
-            colorData = ProceedResult.Success.ColorData(
-                color = ColorInt(0x1A803F),
-                isDark = true,
-            ),
+        sessionColor = HomeViewData.SessionColor(
+            color = ColorInt(0x1A803F),
+            isDark = true,
         ),
-        sideEffects = persistentListOf(),
+        colorPreview = ColorPreviewData(color = ColorInt(0x1A803F)),
     )
 
 private fun previewUiStrings() =

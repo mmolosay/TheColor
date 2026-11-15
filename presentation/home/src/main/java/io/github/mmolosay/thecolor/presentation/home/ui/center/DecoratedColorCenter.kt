@@ -48,22 +48,22 @@ import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.home.ui.center.StretchToContainerBottomUtils.rememberContainerPosInRoot
 import io.github.mmolosay.thecolor.presentation.home.ui.center.StretchToContainerBottomUtils.rememberContainerViewportHeight
-import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.ProceedResult
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewData.SessionColor
 import io.github.mmolosay.thecolor.utils.doNothing
 
 internal fun decoratedColorCenterComposable(
-    proceededColorData: ProceedResult.Success.ColorData?,
+    sessionColor: SessionColor?,
     navBarAppearanceController: NavBarAppearanceController,
     containerScrollState: ScrollState,
     stateOfContainerPosInRoot: State<Offset?>,
     content: (@Composable () -> Unit)?,
 ): (@Composable () -> Unit)? {
     if (content == null) return null
-    if (proceededColorData == null) return null
+    if (sessionColor == null) return null
     return {
         DecoratedColorCenter(
-            surfaceColor = proceededColorData.color.toCompose(),
-            isSurfaceColorDark = proceededColorData.isDark,
+            surfaceColor = sessionColor.color.toCompose(),
+            isSurfaceColorDark = sessionColor.isDark,
             navBarAppearanceController = navBarAppearanceController,
             containerViewportHeight = rememberContainerViewportHeight(containerScrollState),
             containerPosInRoot = rememberContainerPosInRoot(stateOfContainerPosInRoot),

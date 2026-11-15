@@ -14,12 +14,7 @@ import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCo
 import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorCore
 import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorOutcome
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupCore
-import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewDataFactory
-import kotlinx.collections.immutable.minus
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.plus
-import kotlinx.collections.immutable.toPersistentList
 import javax.inject.Inject
 
 class HomeCore @AssistedInject constructor(
@@ -29,7 +24,7 @@ class HomeCore @AssistedInject constructor(
     colorDetailsFactory: ColorDetailsCore.Factory,
     private val colorComparator: ColorComparator,
     private val colorPreviewDataFactory: ColorPreviewDataFactory,
-    private val createColorData: CreateColorDataUseCase,
+    private val createSessionColor: CreateSessionColorUseCase,
 ) {
 
     val inputEditorCore: ColorEditorCore = inputEditorFactory.create()
@@ -48,7 +43,6 @@ class HomeCore @AssistedInject constructor(
             startupColorRequest = HomeState.StartupColorRequest(editorVersion = editorVersion),
             autoProceed = null,
             lastSearchedColorSave = null,
-            sideEffects = persistentListOf(),
         )
     }
 
@@ -73,23 +67,15 @@ class HomeCore @AssistedInject constructor(
     fun HomeState.canProceed(): Boolean =
         (this.inputEditor.color != null)
 
-    fun HomeState.colorPreview(): ColorPreviewData =
-        colorPreviewDataFactory.create(this.inputEditor.color)
-
-    // TODO: Core probably shouldn't reference 'HomeData'
-    private fun HomeState.proceedResult(): HomeData.ProceedResult? {
-        val color = with(colorCenterCore) { colorCenter.sessionColor() } ?: return null
-        val colorData = createColorData(color)
-        return HomeData.ProceedResult.Success(colorData)
-    }
-
-    // TODO: temporary, today's 'HomeData'
-    fun HomeState.data(): HomeData =
-        HomeData(
+    fun HomeState.toViewData(): HomeViewData? {
+        if (!this.isInitialized()) return null
+        val sessionColor = with(colorCenterCore) { colorCenter.sessionColor() }
+        return HomeViewData(
             canProceed = this.canProceed(),
-            proceedResult = this.proceedResult(),
-            sideEffects = this.sideEffects,
+            sessionColor = sessionColor?.let { createSessionColor(it) },
+            colorPreview = colorPreviewDataFactory.create(this.inputEditor.color)
         )
+    }
 
     // endregion
 
@@ -109,8 +95,7 @@ class HomeCore @AssistedInject constructor(
             selectedSwatch = with(selectedSwatchCore) { selectedSwatch.withoutSession() },
         )
 
-    // TODO: refine name
-    private fun HomeState.withAgreement(): HomeState {
+    private fun HomeState.withoutStaleSession(): HomeState {
         val sessionColor = with(colorCenterCore) { colorCenter.sessionColor() } ?: return this
         if (context(colorComparator) { inputEditor.color isSameAs sessionColor }) return this
         return this.withoutSession()
@@ -133,11 +118,11 @@ class HomeCore @AssistedInject constructor(
         val edited = this.copy(
             inputEditor = with(inputEditorCore) { inputEditor.withColor(color) },
         )
-        val state = edited.withAgreement()
+        val state = edited.withoutStaleSession()
         return Change(state)
     }
 
-    fun HomeState.closeSwatch(): Change<HomeState, Nothing> {
+    fun HomeState.deselectSwatch(): Change<HomeState, Nothing> {
         val state = this.copy(
             selectedSwatch = with(selectedSwatchCore) { selectedSwatch.withoutSession() },
         )
@@ -167,15 +152,8 @@ class HomeCore @AssistedInject constructor(
         return Change(state)
     }
 
-    // TODO: temporary, until going to Settings is state of its own
-    fun HomeState.addSideEffect(se: HomeData.SideEffect): Change<HomeState, Nothing> =
-        Change(this.copy(sideEffects = (this.sideEffects.toPersistentList() + se)))
-
-    fun HomeState.ackSideEffect(se: HomeData.SideEffect): Change<HomeState, Nothing> =
-        Change(this.copy(sideEffects = (this.sideEffects.toPersistentList() - se)))
-
     fun HomeState.onInputEditor(outcome: ColorEditorOutcome?): Change<HomeState, Nothing> {
-        var state = this.withAgreement()
+        var state = this.withoutStaleSession()
         return when (outcome) {
             null -> Change(state)
             is ColorEditorOutcome.ColorSubmitted -> {
@@ -213,13 +191,13 @@ class HomeCore @AssistedInject constructor(
     }
 }
 
-class CreateColorDataUseCase @Inject constructor(
+class CreateSessionColorUseCase @Inject constructor(
     private val colorToColorInt: ColorToColorIntUseCase,
     private val isColorLight: IsColorLightUseCase,
 ) {
 
     operator fun invoke(color: Color) =
-        HomeData.ProceedResult.Success.ColorData(
+        HomeViewData.SessionColor(
             color = with(colorToColorInt) { color.toColorInt() },
             isDark = with(isColorLight) { color.isLight().not() },
         )
