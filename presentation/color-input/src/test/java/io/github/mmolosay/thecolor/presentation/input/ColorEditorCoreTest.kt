@@ -12,7 +12,7 @@ import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorState
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexCore
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexOutcome
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexState
-import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvStateFactory
+import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvCore
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmission
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbCore
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbOutcome
@@ -20,6 +20,7 @@ import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldCore
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import org.junit.jupiter.api.Test
 
@@ -27,6 +28,7 @@ class ColorEditorCoreTest {
 
     // real implementations, the editor's rule is only meaningful with the colors they produce
     val colorConverter = ColorConverter()
+    val colorComparator = ColorComparator(colorConverter)
     val colorInputMapper = ColorInputMapper()
     val colorInputValidator = ColorInputValidator(
         colorInputMapper = colorInputMapper,
@@ -55,11 +57,13 @@ class ColorEditorCoreTest {
                 colorInputValidator = colorInputValidator,
             )
         },
-        colorConverter = colorConverter,
-        colorComparator = ColorComparator(colorConverter),
-        hsvStateFactory = ColorInputHsvStateFactory(
-            colorConverter = colorConverter,
-        ),
+        hsvFactory = ColorInputHsvCore.Factory {
+            ColorInputHsvCore(
+                colorConverter = colorConverter,
+                colorComparator = colorComparator,
+            )
+        },
+        colorComparator = colorComparator,
     )
 
     @Test
@@ -213,6 +217,34 @@ class ColorEditorCoreTest {
         }
     }
 
+    @Test
+    fun `given 'hex' holds no color, when its text changes to another with no color, then 'version' moves`() {
+        with(sut) {
+            val state = initialState(Color.Hex(0xFFFFFF))
+                .withHexText("1A") // not a color yet
+                .onHex(outcome = null).state
+
+            val handled = state
+                .withHexText("1A80") // still not a color
+                .onHex(outcome = null)
+
+            handled.state.version() shouldNotBe state.version()
+        }
+    }
+
+    @Test
+    fun `when a setting is applied to 'hex', then 'version' stays`() {
+        with(sut) {
+            val state = initialState(Color.Hex(0x1A803F))
+
+            val handled = state
+                .withHexSelectAllTextOnFocus(enabled = !state.hex.textField.selectAllTextOnFocus)
+                .onHex(outcome = null)
+
+            handled.state.version() shouldBe state.version()
+        }
+    }
+
     fun ColorEditorState.withHexText(text: String): ColorEditorState {
         val textField = this.hex.textField
         val newTextField = with(sut.hexCore.textFieldCore) {
@@ -225,6 +257,15 @@ class ColorEditorCoreTest {
     fun ColorEditorState.withHexSubmitted(): ColorEditorState {
         val submitted = with(sut.hexCore) { hex.submit() }.state
         return this.copy(hex = submitted)
+    }
+
+    fun ColorEditorState.withHexSelectAllTextOnFocus(enabled: Boolean): ColorEditorState {
+        val textField = this.hex.textField
+        val newTextField = with(sut.hexCore.textFieldCore) {
+            textField.applySelectAllTextOnFocus(enabled)
+        }.state
+        val newHex = this.hex.copy(textField = newTextField)
+        return this.copy(hex = newHex)
     }
 
     fun ColorEditorState.withRgbGText(text: String): ColorEditorState {
@@ -242,8 +283,13 @@ class ColorEditorCoreTest {
     }
 
     fun ColorEditorState.withHsvHue(hue: Float): ColorEditorState {
-        val color = this.hsv.color.shouldNotBeNull().copy(hue = hue)
-        return this.copy(hsv = MockColorInputStates.ColorInputHsvState(color = color))
+        val hsv = this.hsv
+        val newHsv = with(sut.hsvCore) {
+            val picked = hsv.pick { current -> current.copy(hue = hue) }.state
+            val promotion = picked.awaitedPromotion().shouldNotBeNull()
+            picked.completePromotion(promotion).state
+        }
+        return this.copy(hsv = newHsv)
     }
 
     fun ColorInputHexState.text(): String =

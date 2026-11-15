@@ -51,6 +51,9 @@ class ColorInputRgbCore @AssistedInject constructor(
         return result.getColorOrNull()
     }
 
+    fun ColorInputRgbState.version(): Int =
+        (this.r.version + this.g.version + this.b.version)
+
     fun ColorInputRgbState.toViewData(): ColorInputRgbViewData =
         ColorInputRgbViewData(
             answeredSubmission = this.submission as? ColorInputSubmission.Answered,

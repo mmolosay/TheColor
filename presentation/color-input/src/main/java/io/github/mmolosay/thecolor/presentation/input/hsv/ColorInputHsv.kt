@@ -15,24 +15,41 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import io.github.mmolosay.thecolor.domain.color.Color as DomainColor
 
 @Composable
 fun ColorInputHsv(
-    facade: ColorInputHsvFacade,
+    feature: ColorInputHsvFeature,
+) =
+    ColorInputHsv(
+        viewData = feature.viewData,
+        onHueChange = { hue ->
+            feature.pick { current -> current.copy(hue = hue) }
+        },
+        onSaturationAndValueChange = { saturation, value ->
+            feature.pick { current -> current.copy(saturation = saturation, value = value) }
+        },
+    )
+
+@Composable
+fun ColorInputHsv(
+    viewData: StateFlow<ColorInputHsvViewData>,
+    onHueChange: (hue: Float) -> Unit,
+    onSaturationAndValueChange: (saturation: Float, value: Float) -> Unit,
 ) {
-    val execute by rememberUpdatedState(facade.execute) // stable across recompositions
-    val color = facade.color
-    val hue = HueValue(color)
-    val sv = SaturationAndValue(color)
+    val data = viewData.collectAsStateWithLifecycle().value
+    val hue = HueValue(data.color)
+    val sv = SaturationAndValue(data.color)
 
     Row(
         modifier = Modifier.height(IntrinsicSize.Min),
@@ -46,8 +63,7 @@ fun ColorInputHsv(
             hue = hue,
             sv = sv,
             onChange = { newSv ->
-                val action = ColorInputHsvAction.SetSaturationAndValue(newSv.saturation, newSv.value)
-                execute(action)
+                onSaturationAndValueChange(newSv.saturation, newSv.value)
             },
         )
 
@@ -60,8 +76,7 @@ fun ColorInputHsv(
                     .fillMaxHeight(),
                 hue = hue,
                 onChange = { newHue ->
-                    val action = ColorInputHsvAction.SetHue(newHue.value)
-                    execute(action)
+                    onHueChange(newHue.value)
                 },
             )
         }
@@ -74,15 +89,29 @@ fun ColorInputHsv(
 private fun Preview() {
     TheColorTheme {
         Surface(color = MaterialTheme.colorScheme.background) {
+            val viewData = remember {
+                val value = ColorInputHsvViewData(
+                    color = DomainColor.Hsv(hue = 117f, saturation = 0.59f, value = 0.31f),
+                )
+                MutableStateFlow(value)
+            }
             ColorInputHsv(
-                facade = previewFacade(),
+                viewData = viewData,
+                onHueChange = { hue ->
+                    viewData.update {
+                        it.copy(
+                            color = it.color.copy(hue = hue),
+                        )
+                    }
+                },
+                onSaturationAndValueChange = { saturation, value ->
+                    viewData.update {
+                        it.copy(
+                            color = it.color.copy(saturation = saturation, value = value),
+                        )
+                    }
+                },
             )
         }
     }
 }
-
-private fun previewFacade() =
-    ColorInputHsvFacade(
-        color = DomainColor.Hsv(hue = 117f, saturation = 0.59f, value = 0.31f),
-        execute = { Job() },
-    )

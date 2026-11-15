@@ -1,38 +1,27 @@
 package io.github.mmolosay.thecolor.presentation.input.hsv
 
 import io.github.mmolosay.thecolor.domain.color.Color
-import io.github.mmolosay.thecolor.domain.color.ColorComparator
-import io.github.mmolosay.thecolor.domain.color.ColorConverter
-import io.github.mmolosay.thecolor.domain.color.isSameAs
+import io.github.mmolosay.thecolor.utils.Identity
 
-data class ColorInputHsvState(
-    val displayColor: Color.Hsv?, // what the View presents
-    val color: Color.Hsv?, // the applied color
-)
+sealed interface ColorInputHsvState {
 
-fun ColorInputHsvState.toData(): ColorInputHsvData =
-    ColorInputHsvData(
-        color = this.displayColor.orDefault(),
-    )
+    val color: Color.Hsv?
+    val version: Int
 
-internal fun Color.Hsv?.orDefault(): Color.Hsv =
-    this
-        ?: Color.Hsv(
-            hue = Color.Hsv.HueRange.start,
-            saturation = Color.Hsv.SaturationRange.endInclusive,
-            value = Color.Hsv.ValueRange.endInclusive,
+    data class Settled(
+        override val color: Color.Hsv?,
+        override val version: Int,
+    ) : ColorInputHsvState
+
+    data class Picked(
+        val picked: Color.Hsv,
+        override val color: Color.Hsv?,
+        val promotion: Promotion,
+        override val version: Int,
+    ) : ColorInputHsvState {
+
+        data class Promotion(
+            val identity: Identity = Identity(),
         )
-
-context(
-    converter: ColorConverter,
-    comparator: ColorComparator,
-)
-fun ColorInputHsvState.withColor(color: Color?): ColorInputHsvState {
-    // the same color changes nothing, so a gray keeps its hue, which no HEX or RGB color holds
-    if (color isSameAs this.color) return this
-    val hsvColor = with(converter) { color?.toHsv() }
-    return this.copy(
-        displayColor = hsvColor,
-        color = hsvColor,
-    )
+    }
 }

@@ -5,12 +5,10 @@ import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.domain.color.ColorComparator
-import io.github.mmolosay.thecolor.domain.color.ColorConverter
 import io.github.mmolosay.thecolor.domain.color.isSameAs
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexCore
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexOutcome
-import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvStateFactory
-import io.github.mmolosay.thecolor.presentation.input.hsv.withColor
+import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvCore
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbCore
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbOutcome
 import io.github.mmolosay.thecolor.utils.Lens
@@ -19,36 +17,42 @@ import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorStateLen
 class ColorEditorCore @AssistedInject constructor(
     hexFactory: ColorInputHexCore.Factory,
     rgbFactory: ColorInputRgbCore.Factory,
-    private val colorConverter: ColorConverter,
+    hsvFactory: ColorInputHsvCore.Factory,
     private val colorComparator: ColorComparator,
-    // TODO: temporary
-    private val hsvStateFactory: ColorInputHsvStateFactory,
 ) {
 
     val hexCore = hexFactory.create()
     val rgbCore = rgbFactory.create()
+    val hsvCore = hsvFactory.create()
 
     fun initialState(color: Color?): ColorEditorState =
         ColorEditorState(
             hex = hexCore.initialState(color),
             rgb = rgbCore.initialState(color),
-            hsv = hsvStateFactory.create(color),
+            hsv = hsvCore.initialState(color),
             color = color,
-            version = 0,
         )
+
+    // region Getters
+
+    fun ColorEditorState.version(): Int {
+        val hexV = with(hexCore) { hex.version() }
+        val rgbV = with(rgbCore) { rgb.version() }
+        val hsvV = this.hsv.version
+        return (hexV + rgbV + hsvV)
+    }
+
+    // endregion
 
     // region Setters
 
     fun ColorEditorState.withColor(color: Color?): ColorEditorState =
-        context(colorConverter, colorComparator) {
-            this.copy(
-                hex = with(hexCore) { hex.withColor(color) },
-                rgb = with(rgbCore) { rgb.withColor(color) },
-                hsv = this.hsv.withColor(color),
-                color = color,
-                version = this.version + 1,
-            )
-        }
+        this.copy(
+            hex = with(hexCore) { hex.withColor(color) },
+            rgb = with(rgbCore) { rgb.withColor(color) },
+            hsv = with(hsvCore) { hsv.withColor(color) },
+            color = color,
+        )
 
     fun ColorEditorState.withSubmissionAccepted(): ColorEditorState =
         this.copy(

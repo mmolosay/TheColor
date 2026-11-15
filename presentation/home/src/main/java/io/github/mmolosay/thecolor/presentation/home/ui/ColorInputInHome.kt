@@ -7,20 +7,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.common.compose.Placeholder
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorFeature
-import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorHandle
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroup
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupFeature
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHex
+import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexFeature
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsv
+import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvFeature
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgb
+import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbFeature
 
 /**
  * The "bare" 'Color Input' [Composable], free of any 'Home'-specific logic.
@@ -30,27 +29,23 @@ internal typealias BareColorInputComposable =
 
 @Composable
 internal fun BareColorInput(
-    editor: ColorEditorFeature,
-    editorHandle: ColorEditorHandle,
     group: ColorInputGroupFeature,
+    hex: ColorInputHexFeature,
+    rgb: ColorInputRgbFeature,
+    hsv: ColorInputHsvFeature,
     modifier: Modifier = Modifier,
 ) {
-    val editorFacade = run {
-        val handle = editorHandle
-        val data = editorHandle.dataFlow.collectAsStateWithLifecycle().value
-        remember(handle, data) { handle.facade(data) }
-    }
     ColorInputGroup(
         modifier = modifier,
         feature = group,
         hexInput = {
-            ColorInputHex(feature = editor.hex)
+            ColorInputHex(feature = hex)
         },
         rgbInput = {
-            ColorInputRgb(feature = editor.rgb)
+            ColorInputRgb(feature = rgb)
         },
         hsvInput = {
-            ColorInputHsv(facade = editorFacade.hsv)
+            ColorInputHsv(feature = hsv)
         },
     )
 }

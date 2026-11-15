@@ -39,6 +39,9 @@ class ColorInputHexCore @AssistedInject constructor(
         return result.getColorOrNull()
     }
 
+    fun ColorInputHexState.version(): Int =
+        textField.version
+
     fun ColorInputHexState.toViewData(): ColorInputHexViewData =
         ColorInputHexViewData(
             answeredSubmission = this.submission as? ColorInputSubmission.Answered,

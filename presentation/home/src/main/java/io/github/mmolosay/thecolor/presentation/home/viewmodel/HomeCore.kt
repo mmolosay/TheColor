@@ -39,12 +39,13 @@ class HomeCore @AssistedInject constructor(
 
     fun initialState(): HomeState {
         val inputEditor = inputEditorCore.initialState(color = null)
+        val editorVersion = with(inputEditorCore) { inputEditor.version() }
         return HomeState(
             inputEditor = inputEditor,
             inputGroup = inputGroupCore.initialState(),
             colorCenter = colorCenterCore.initialState(),
             selectedSwatch = selectedSwatchCore.initialState(),
-            startupColorRequest = HomeState.StartupColorRequest(editorVersion = inputEditor.version),
+            startupColorRequest = HomeState.StartupColorRequest(editorVersion = editorVersion),
             autoProceed = null,
             lastSearchedColorSave = null,
             sideEffects = persistentListOf(),
@@ -62,7 +63,8 @@ class HomeCore @AssistedInject constructor(
 
     fun HomeState.awaitedStartup(): HomeState.StartupColorRequest? {
         val request = this.startupColorRequest ?: return null
-        return request.takeIf { it.editorVersion == this.inputEditor.version }
+        val editorVersion = with(inputEditorCore) { inputEditor.version() }
+        return request.takeIf { it.editorVersion == editorVersion }
     }
 
     fun HomeState.awaitedSave(): HomeState.LastSearchedColorSave? =

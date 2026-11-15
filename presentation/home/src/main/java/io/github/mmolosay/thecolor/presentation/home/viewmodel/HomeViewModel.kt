@@ -18,20 +18,12 @@ import io.github.mmolosay.thecolor.domain.utils.getOrElse
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.presentation.center.viewmodel.ColorCenterFeature
 import io.github.mmolosay.thecolor.presentation.center.viewmodel.ColorCenterOutcome
-import io.github.mmolosay.thecolor.presentation.common.viewmodel.ViewModelCoroutineScope
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsFeature
 import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsOutcome
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeData.SideEffect
 import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorFeature
-import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorHandle
 import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorOutcome
-import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorState
-import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorStateLenses
-import io.github.mmolosay.thecolor.presentation.input.editor.asAtom
-import io.github.mmolosay.thecolor.presentation.input.editor.toData
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupFeature
-import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvHandle
-import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvViewModel
 import io.github.mmolosay.thecolor.utils.SideEffectIdFactory
 import io.github.mmolosay.thecolor.utils.mapState
 import kotlinx.coroutines.CoroutineDispatcher
@@ -50,7 +42,6 @@ class HomeViewModel @Inject constructor(
     inputGroupFactory: ColorInputGroupFeature.Factory,
     colorCenterFactory: ColorCenterFeature.Factory,
     colorDetailsFactory: ColorDetailsFeature.Factory,
-    colorInputHsvViewModelFactory: ColorInputHsvViewModel.Factory,
     private val getStartupColor: GetStartupColorUseCase,
     private val userPreferencesRepository: UserPreferencesRepository,
     private val lastSearchedColorRepository: LastSearchedColorRepository,
@@ -64,15 +55,11 @@ class HomeViewModel @Inject constructor(
     private val store = Store(initialState = core.initialState())
     private val seFactory = SideEffectFactory()
 
-    // TODO: temporary: the editor's slice, which the old HSV ViewModels slice too
-    private val inputEditorStore: Store<ColorEditorState, ColorEditorOutcome> =
-        store.slice(StateLenses.inputEditor) { state, outcome: ColorEditorOutcome? ->
-            with(core) { state.onInputEditor(outcome) }
-        }
-
     private val colorEditor: ColorEditorFeature = colorEditorFactory.create(
         core = core.inputEditorCore,
-        store = inputEditorStore,
+        store = store.slice(StateLenses.inputEditor) { state, outcome: ColorEditorOutcome? ->
+            with(core) { state.onInputEditor(outcome) }
+        },
         scope = viewModelScope.child(),
     )
 
@@ -98,22 +85,6 @@ class HomeViewModel @Inject constructor(
         scope = viewModelScope.child(),
     )
 
-    // TODO: temporary: the old input ViewModels, on the editor's slices
-    private val colorEditorHandle: ColorEditorHandle = run {
-        val hsvSlice = inputEditorStore.slice(ColorEditorStateLenses.hsv) { state ->
-            with(core.inputEditorCore) { state.onHsv() }
-        }
-        val hsvViewModel = colorInputHsvViewModelFactory.create(
-            coroutineScope = ViewModelCoroutineScope(viewModelScope),
-            atom = hsvSlice.asAtom(),
-        )
-        val colorEditorHandle = ColorEditorHandle(
-            dataFlow = inputEditorStore.mapState { state -> state.toData() },
-            hsv = ColorInputHsvHandle(hsvViewModel),
-        )
-        colorEditorHandle
-    }
-
     // TODO: temporary
     val stateFlow: StateFlow<HomeViewState?> = store.mapState { state ->
         with(core) {
@@ -121,7 +92,6 @@ class HomeViewModel @Inject constructor(
             HomeViewState(
                 home = state.data(),
                 colorEditor = colorEditor,
-                colorEditorHandle = colorEditorHandle,
                 colorInputGroup = colorInputGroup,
                 colorPreview = state.colorPreview(),
                 colorCenter = colorCenter,

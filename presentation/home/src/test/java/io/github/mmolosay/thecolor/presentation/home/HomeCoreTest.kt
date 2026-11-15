@@ -21,7 +21,7 @@ import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupCore
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexCore
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexOutcome
 import io.github.mmolosay.thecolor.presentation.input.hex.ColorInputHexState
-import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvStateFactory
+import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvCore
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmission
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbCore
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldCore
@@ -71,11 +71,13 @@ class HomeCoreTest {
                     colorInputValidator = colorInputValidator,
                 )
             },
-            colorConverter = colorConverter,
+            hsvFactory = ColorInputHsvCore.Factory {
+                ColorInputHsvCore(
+                    colorConverter = colorConverter,
+                    colorComparator = colorComparator,
+                )
+            },
             colorComparator = colorComparator,
-            hsvStateFactory = ColorInputHsvStateFactory(
-                colorConverter = colorConverter,
-            ),
         )
     }
 
@@ -279,6 +281,19 @@ class HomeCoreTest {
             val completed = edited.completeStartup(Color.Hex(0x1A803F), request)
 
             completed.state.inputEditor.color shouldBe Color.Hex(0x126B40)
+        }
+    }
+
+    @Test
+    fun `given a text with no color was entered in 'hex' since the read started, when 'completeStartup' is invoked, then 'hex' keeps that text`() {
+        with(sut) {
+            val state = initialState()
+            val request = state.awaitedStartup().shouldNotBeNull()
+            val edited = state.withHexText("1A") // not a color yet
+
+            val completed = edited.completeStartup(Color.Hex(0x1A803F), request)
+
+            completed.state.inputEditor.hex.textField.text shouldBe "1A"
         }
     }
 
