@@ -139,11 +139,11 @@ fun HomeScreen(
         onSelectedSwatchDismissRequest = viewModel::deselectSwatch,
         onSettingsClick = onSettingsClick,
         colorInput = colorInput,
-        colorPreview = colorPreview,
         colorPreviewDataFlow = colorPreviewDataFlow,
+        colorPreview = colorPreview,
         colorCenter = colorCenter,
-        selectedSwatchDetails = selectedSwatchDetails,
         selectedSwatchData = selectedSwatchData,
+        selectedSwatchDetails = selectedSwatchDetails,
         animController = animController,
         navBarAppearanceController = navBarAppearanceController,
     )
@@ -158,11 +158,11 @@ private fun HomeScreen(
     onSelectedSwatchDismissRequest: () -> Unit,
     onSettingsClick: () -> Unit,
     colorInput: BareColorInputComposable,
-    colorPreview: BareColorPreviewComposable,
     colorPreviewDataFlow: StateFlow<ColorPreviewData>,
+    colorPreview: BareColorPreviewComposable,
     colorCenter: BareColorCenterComposable?,
-    selectedSwatchDetails: BareSelectedSwatchDetailsComposable?,
     selectedSwatchData: ColorDetailsViewData,
+    selectedSwatchDetails: BareSelectedSwatchDetailsComposable?,
     animController: HomeAnimController?,
     navBarAppearanceController: NavBarAppearanceController,
 ) {
@@ -180,11 +180,11 @@ private fun HomeScreen(
             onSelectedSwatchDismissRequest = onSelectedSwatchDismissRequest,
             onSettingsClick = onSettingsClick,
             colorInput = colorInput,
-            colorPreview = colorPreview,
             colorPreviewDataFlow = colorPreviewDataFlow,
+            colorPreview = colorPreview,
             colorCenter = colorCenter,
-            selectedSwatchDetails = selectedSwatchDetails,
             selectedSwatchData = selectedSwatchData,
+            selectedSwatchDetails = selectedSwatchDetails,
             animController = animController,
             navBarAppearanceController = navBarAppearanceController,
         )
@@ -200,11 +200,11 @@ private fun Home(
     onSelectedSwatchDismissRequest: () -> Unit,
     onSettingsClick: () -> Unit,
     colorInput: BareColorInputComposable,
-    colorPreview: BareColorPreviewComposable,
     colorPreviewDataFlow: StateFlow<ColorPreviewData>,
+    colorPreview: BareColorPreviewComposable,
     colorCenter: BareColorCenterComposable?,
-    selectedSwatchDetails: BareSelectedSwatchDetailsComposable?,
     selectedSwatchData: ColorDetailsViewData,
+    selectedSwatchDetails: BareSelectedSwatchDetailsComposable?,
     animController: HomeAnimController?,
     navBarAppearanceController: NavBarAppearanceController,
     modifier: Modifier = Modifier,
@@ -328,6 +328,7 @@ private fun Preview() {
             onProceedClick = {},
             onRandomizeColorClick = {},
             onSelectedSwatchDismissRequest = {},
+            onSettingsClick = {},
             colorInput = { modifier ->
                 Placeholder(
                     modifier = modifier
@@ -337,16 +338,16 @@ private fun Preview() {
                     Text("Color Input")
                 }
             },
+            colorPreviewDataFlow = remember {
+                val value = previewViewData().colorPreview
+                MutableStateFlow(value)
+            },
             colorPreview = { _, _ ->
                 Placeholder(
                     Modifier.size(48.dp),
                 ) {
                     Text("Color Preview")
                 }
-            },
-            colorPreviewDataFlow = remember {
-                val value = previewViewData().colorPreview
-                MutableStateFlow(value)
             },
             colorCenter = {
                 Placeholder(
@@ -358,8 +359,8 @@ private fun Preview() {
                     Text("Color Center")
                 }
             },
-            selectedSwatchDetails = null,
             selectedSwatchData = ColorDetailsViewData.Empty,
+            selectedSwatchDetails = null,
             animController = remember {
                 val currentState = HomeAnimState(
                     colorPreviewPosition = HomeAnimState.ColorPreview.Position.Dived,
@@ -368,7 +369,6 @@ private fun Preview() {
                 )
                 HomeAnimController(currentState)
             },
-            onSettingsClick = {},
             navBarAppearanceController = remember { RootNavBarAppearanceController() },
         )
     }

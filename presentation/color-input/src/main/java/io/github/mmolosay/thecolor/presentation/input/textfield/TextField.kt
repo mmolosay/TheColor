@@ -54,21 +54,21 @@ internal fun TextField(
     modifier: Modifier = Modifier,
 ) =
     TextField(
-        modifier = modifier,
         viewData = feature.viewData,
+        strings = strings,
         onEnterText = feature::enterText,
         onClearText = if (hasClearTextButton) feature::clearText else null,
-        strings = strings,
         keyboardOptions = keyboardOptions,
         onKeyboardAction = onKeyboardAction,
+        modifier = modifier,
     )
 
 @Composable
 internal fun TextField(
     viewData: StateFlow<TextFieldViewData>,
+    strings: TextFieldUiStrings,
     onEnterText: (text: String, expected: String) -> Unit,
     onClearText: (() -> Unit)?,
-    strings: TextFieldUiStrings,
     keyboardOptions: KeyboardOptions,
     onKeyboardAction: KeyboardActionHandler?,
     modifier: Modifier = Modifier,
@@ -105,7 +105,6 @@ internal fun TextField(
     }
 
     TextField(
-        modifier = modifier,
         state = state,
         strings = strings,
         selectAllTextOnFocus = data.selectAllTextOnFocus,
@@ -126,6 +125,7 @@ internal fun TextField(
         inputTransformation = inputTransformation,
         keyboardOptions = keyboardOptions,
         onKeyboardAction = onKeyboardAction,
+        modifier = modifier,
     )
 }
 
@@ -258,6 +258,12 @@ private fun Preview() {
         Surface {
             TextField(
                 viewData = viewData,
+                strings = TextFieldUiStrings(
+                    label = "HEX",
+                    placeholder = "000000",
+                    prefix = "#",
+                    trailingIconContentDesc = "Clear text field",
+                ),
                 onEnterText = { text, _ ->
                     viewData.update {
                         it.copy(text = text, version = it.version + 1)
@@ -268,12 +274,6 @@ private fun Preview() {
                         it.copy(text = "", version = it.version + 1)
                     }
                 },
-                strings = TextFieldUiStrings(
-                    label = "HEX",
-                    placeholder = "000000",
-                    prefix = "#",
-                    trailingIconContentDesc = "Clear text field",
-                ),
                 keyboardOptions = KeyboardOptions.Default,
                 onKeyboardAction = {},
             )

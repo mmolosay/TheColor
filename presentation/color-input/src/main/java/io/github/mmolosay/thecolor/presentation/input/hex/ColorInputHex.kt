@@ -30,39 +30,39 @@ fun ColorInputHex(
 ) =
     ColorInputHex(
         viewData = feature.viewData,
+        strings = strings,
         onSubmit = feature::submit,
         onAckAnswer = feature::ackAnswer,
         textFieldViewData = feature.textField.viewData,
         onTextFieldEnterText = feature.textField::enterText,
         onTextFieldClearText = feature.textField::clearText,
-        strings = strings,
     )
 
 @Composable
 fun ColorInputHex(
     viewData: StateFlow<ColorInputHexViewData>,
+    strings: ColorInputHexUiStrings,
     onSubmit: () -> Unit,
     onAckAnswer: (ColorInputSubmission.Answered) -> Unit,
     textFieldViewData: StateFlow<TextFieldViewData>,
     onTextFieldEnterText: (text: String, expected: String) -> Unit,
     onTextFieldClearText: () -> Unit,
-    strings: ColorInputHexUiStrings,
 ) {
     val data = viewData.collectAsStateWithLifecycle().value
 
     TextField(
-        modifier = Modifier
-            .defaultMinSize(minWidth = 180.dp)
-            .fillMaxWidth(0.5f),
         viewData = textFieldViewData,
+        strings = strings.textField,
         onEnterText = onTextFieldEnterText,
         onClearText = onTextFieldClearText,
-        strings = strings.textField,
         keyboardOptions = KeyboardOptions(
             imeAction = ImeAction.Done,
             capitalization = KeyboardCapitalization.Characters,
         ),
         onKeyboardAction = { onSubmit() },
+        modifier = Modifier
+            .defaultMinSize(minWidth = 180.dp)
+            .fillMaxWidth(0.5f),
     )
 
     ProcessSubmissionAnswerAsSideEffect(
@@ -93,6 +93,7 @@ private fun Preview() {
     TheColorTheme {
         ColorInputHex(
             viewData = viewData,
+            strings = previewUiStrings(),
             onSubmit = {},
             onAckAnswer = {},
             textFieldViewData = textFieldViewData,
@@ -106,7 +107,6 @@ private fun Preview() {
                     it.copy(text = "", version = it.version + 1)
                 }
             },
-            strings = previewUiStrings(),
         )
     }
 }

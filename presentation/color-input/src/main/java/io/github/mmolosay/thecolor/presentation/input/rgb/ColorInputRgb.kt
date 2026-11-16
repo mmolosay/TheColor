@@ -33,6 +33,7 @@ fun ColorInputRgb(
 ) =
     ColorInputRgb(
         viewData = feature.viewData,
+        strings = strings,
         onSubmit = feature::submit,
         onAckAnswer = feature::ackAnswer,
         rViewData = feature.r.viewData,
@@ -41,12 +42,12 @@ fun ColorInputRgb(
         onGEnterText = feature.g::enterText,
         bViewData = feature.b.viewData,
         onBEnterText = feature.b::enterText,
-        strings = strings,
     )
 
 @Composable
 fun ColorInputRgb(
     viewData: StateFlow<ColorInputRgbViewData>,
+    strings: ColorInputRgbUiStrings,
     onSubmit: () -> Unit,
     onAckAnswer: (ColorInputSubmission.Answered) -> Unit,
     rViewData: StateFlow<TextFieldViewData>,
@@ -55,7 +56,6 @@ fun ColorInputRgb(
     onGEnterText: (text: String, expected: String) -> Unit,
     bViewData: StateFlow<TextFieldViewData>,
     onBEnterText: (text: String, expected: String) -> Unit,
-    strings: ColorInputRgbUiStrings,
 ) {
     val data = viewData.collectAsStateWithLifecycle().value
 
@@ -67,38 +67,38 @@ fun ColorInputRgb(
 
         // R
         ComponentAdvancedTextField(
-            modifier = modifier,
             viewData = rViewData,
+            strings = strings.rTextField,
             onEnterText = onREnterText,
             imeAction = ImeAction.Next,
             onKeyboardAction = null,
-            strings = strings.rTextField,
             hasPreviousComponent = false,
             enableSmartBackspace = isSmartBackspaceEnabled,
+            modifier = modifier,
         )
 
         // G
         ComponentAdvancedTextField(
-            modifier = modifier,
             viewData = gViewData,
+            strings = strings.gTextField,
             onEnterText = onGEnterText,
             imeAction = ImeAction.Next,
             onKeyboardAction = null,
-            strings = strings.gTextField,
             hasPreviousComponent = true,
             enableSmartBackspace = isSmartBackspaceEnabled,
+            modifier = modifier,
         )
 
         // B
         ComponentAdvancedTextField(
-            modifier = modifier,
             viewData = bViewData,
+            strings = strings.bTextField,
             onEnterText = onBEnterText,
             imeAction = ImeAction.Done,
             onKeyboardAction = { onSubmit() },
-            strings = strings.bTextField,
             hasPreviousComponent = true,
             enableSmartBackspace = isSmartBackspaceEnabled,
+            modifier = modifier,
         )
     }
 
@@ -114,25 +114,25 @@ fun ColorInputRgb(
  */
 @Composable
 private fun ComponentAdvancedTextField(
-    modifier: Modifier = Modifier,
     viewData: StateFlow<TextFieldViewData>,
+    strings: TextFieldUiStrings,
     onEnterText: (text: String, expected: String) -> Unit,
     imeAction: ImeAction,
     onKeyboardAction: KeyboardActionHandler?,
-    strings: TextFieldUiStrings,
     hasPreviousComponent: Boolean,
     enableSmartBackspace: Boolean,
+    modifier: Modifier = Modifier,
 ) {
     ComponentBasicTextField(
+        viewData = viewData,
+        strings = strings,
+        onEnterText = onEnterText,
+        imeAction = imeAction,
+        onKeyboardAction = onKeyboardAction,
         modifier = modifier
             .thenIf(enableSmartBackspace && hasPreviousComponent) {
                 smartBackspace(text = { viewData.value.text })
             },
-        viewData = viewData,
-        onEnterText = onEnterText,
-        imeAction = imeAction,
-        onKeyboardAction = onKeyboardAction,
-        strings = strings,
     )
 }
 
@@ -141,24 +141,24 @@ private fun ComponentAdvancedTextField(
  */
 @Composable
 private fun ComponentBasicTextField(
-    modifier: Modifier = Modifier,
     viewData: StateFlow<TextFieldViewData>,
+    strings: TextFieldUiStrings,
     onEnterText: (text: String, expected: String) -> Unit,
     imeAction: ImeAction,
     onKeyboardAction: KeyboardActionHandler?,
-    strings: TextFieldUiStrings,
+    modifier: Modifier = Modifier,
 ) {
     TextField(
-        modifier = modifier,
         viewData = viewData,
+        strings = strings,
         onEnterText = onEnterText,
         onClearText = null,
-        strings = strings,
         keyboardOptions = KeyboardOptions(
             imeAction = imeAction,
             keyboardType = KeyboardType.Number,
         ),
         onKeyboardAction = onKeyboardAction,
+        modifier = modifier,
     )
 }
 
@@ -206,6 +206,7 @@ private fun Preview() {
     TheColorTheme {
         ColorInputRgb(
             viewData = viewData,
+            strings = previewUiStrings(),
             onSubmit = {},
             onAckAnswer = {},
             rViewData = rViewData,
@@ -226,7 +227,6 @@ private fun Preview() {
                     it.copy(text = text, version = it.version + 1)
                 }
             },
-            strings = previewUiStrings(),
         )
     }
 }
