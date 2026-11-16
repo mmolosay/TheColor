@@ -14,19 +14,16 @@ data class HomeState(
     val colorCenter: ColorCenterState,
     val selectedSwatch: ColorDetailsState,
     val startupColorRequest: StartupColorRequest?,
-    val autoProceed: Boolean?, // TODO: non-descriptive state via nullability
-    val lastSearchedColorSave: LastSearchedColorSave?,
+    val autoProceed: Boolean?,
+    val lastSearchedColorSaveRequest: LastSearchedColorSaveRequest?,
 ) {
-
-    // TODO: maybe all startup initialization should be described by one model?
 
     data class StartupColorRequest(
         val editorVersion: Int,
         val identity: Identity = Identity(),
     )
 
-    // TODO: refine name
-    data class LastSearchedColorSave(
+    data class LastSearchedColorSaveRequest(
         val color: Color,
         val identity: Identity = Identity(),
     )

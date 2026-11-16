@@ -86,7 +86,7 @@ class HomeViewModel @Inject constructor(
 
     init {
         serveStartup()
-        serveSave()
+        serveLastSearchedColorSave()
         collectAutoProceed()
     }
 
@@ -102,14 +102,14 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun serveSave() {
+    private fun serveLastSearchedColorSave() {
         viewModelScope.serve(
             store = store,
-            request = { state -> with(core) { state.awaitedSave() } },
-        ) { save ->
-            lastSearchedColorRepository.setLastSearchedColor(save.color)
+            request = { state -> with(core) { state.awaitedSaveRequest() } },
+        ) { request ->
+            lastSearchedColorRepository.setLastSearchedColor(request.color)
             store.update { state ->
-                with(core) { state.completeSave(save) }
+                with(core) { state.completeSave(request) }
             }
         }
     }

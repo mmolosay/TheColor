@@ -365,7 +365,7 @@ class HomeCoreTest {
 
             val proceeded = state.proceed()
 
-            val awaited = proceeded.state.awaitedSave().shouldNotBeNull()
+            val awaited = proceeded.state.awaitedSaveRequest().shouldNotBeNull()
             awaited.color shouldBe color
         }
     }
@@ -376,12 +376,12 @@ class HomeCoreTest {
             val older = initialState()
                 .withInputEditorColor(Color.Hex(0x1A803F))
                 .proceed().state
-            val olderSave = older.awaitedSave().shouldNotBeNull()
+            val olderSave = older.awaitedSaveRequest().shouldNotBeNull()
             val newer = older.proceed().state
 
             val completed = newer.completeSave(olderSave)
 
-            completed.state.awaitedSave() shouldBe newer.awaitedSave()
+            completed.state.awaitedSaveRequest() shouldBe newer.awaitedSaveRequest()
         }
     }
 

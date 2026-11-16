@@ -42,7 +42,7 @@ class HomeCore @AssistedInject constructor(
             selectedSwatch = selectedSwatchCore.initialState(),
             startupColorRequest = HomeState.StartupColorRequest(editorVersion = editorVersion),
             autoProceed = null,
-            lastSearchedColorSave = null,
+            lastSearchedColorSaveRequest = null,
         )
     }
 
@@ -61,8 +61,8 @@ class HomeCore @AssistedInject constructor(
         return request.takeIf { it.editorVersion == editorVersion }
     }
 
-    fun HomeState.awaitedSave(): HomeState.LastSearchedColorSave? =
-        this.lastSearchedColorSave
+    fun HomeState.awaitedSaveRequest(): HomeState.LastSearchedColorSaveRequest? =
+        this.lastSearchedColorSaveRequest
 
     fun HomeState.canProceed(): Boolean =
         (this.inputEditor.color != null)
@@ -86,7 +86,7 @@ class HomeCore @AssistedInject constructor(
             inputEditor = with(inputEditorCore) { inputEditor.withColor(color) },
             colorCenter = with(colorCenterCore) { colorCenter.withSession(color) },
             selectedSwatch = with(selectedSwatchCore) { selectedSwatch.withoutSession() },
-            lastSearchedColorSave = HomeState.LastSearchedColorSave(color),
+            lastSearchedColorSaveRequest = HomeState.LastSearchedColorSaveRequest(color),
         )
 
     private fun HomeState.withoutSession(): HomeState =
@@ -145,10 +145,10 @@ class HomeCore @AssistedInject constructor(
     }
 
     fun HomeState.completeSave(
-        expected: HomeState.LastSearchedColorSave,
+        expected: HomeState.LastSearchedColorSaveRequest,
     ): Change<HomeState, Nothing> {
-        if (this.awaitedSave() != expected) return Change(this)
-        val state = this.copy(lastSearchedColorSave = null)
+        if (this.awaitedSaveRequest() != expected) return Change(this)
+        val state = this.copy(lastSearchedColorSaveRequest = null)
         return Change(state)
     }
 
