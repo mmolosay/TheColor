@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.settings.ui
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -38,9 +39,9 @@ import io.github.mmolosay.thecolor.presentation.common.compose.onlyBottom
 import io.github.mmolosay.thecolor.presentation.common.compose.withoutBottom
 import io.github.mmolosay.thecolor.presentation.design.Material3DynamicColorsAvailability.areDynamicColorsAvailable
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.settings.SettingsData
+import io.github.mmolosay.thecolor.presentation.settings.SettingsViewData
 import io.github.mmolosay.thecolor.presentation.settings.SettingsViewModel
-import io.github.mmolosay.thecolor.presentation.settings.SettingsViewModel.DataState
+import kotlinx.collections.immutable.persistentListOf
 import kotlin.time.Duration.Companion.milliseconds
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.UiColorScheme as DomainUiColorScheme
@@ -54,49 +55,50 @@ fun SettingsScreen(
     navigateToDevOptions: () -> Unit,
     navigateToAcknowledgements: () -> Unit,
 ) {
-    val dataState by viewModel.dataStateFlow.collectAsStateWithLifecycle()
-    SettingsScreen(
-        dataState = dataState,
-        navigateBack = navigateBack,
-        navigateToDevOptions = navigateToDevOptions,
-        navigateToAcknowledgements = navigateToAcknowledgements,
-    )
-}
-
-@Composable
-fun SettingsScreen(
-    dataState: DataState,
-    navigateBack: () -> Unit,
-    navigateToDevOptions: () -> Unit,
-    navigateToAcknowledgements: () -> Unit,
-) {
-    when (dataState) {
-        is DataState.Loading -> {
-            // should promptly change to 'Ready', don't show loading indicator to avoid flashing
-            Box(
-                modifier = Modifier.fillMaxSize(),
-            )
-        }
-        is DataState.Ready -> {
-            SettingsScreen(
-                data = dataState.data,
-                navigateBack = navigateBack,
-                navigateToDevOptions = navigateToDevOptions,
-                navigateToAcknowledgements = navigateToAcknowledgements,
-            )
-        }
+    val context = LocalContext.current
+    val strings = remember(context) { SettingsUiStrings(context) }
+    val data = viewModel.viewData.collectAsStateWithLifecycle().value
+    if (data == null) {
+        // should promptly become non-null, don't show loading indicator to avoid flashing
+        Box(
+            modifier = Modifier.fillMaxSize(),
+        )
+    } else {
+        SettingsScreen(
+            data = data,
+            strings = strings,
+            onPreferredColorInputTypeChange = viewModel::changePreferredColorInputType,
+            onAppUiColorSchemeSetChange = viewModel::changeAppUiColorSchemeSet,
+            onDynamicUiColorsChange = viewModel::changeDynamicUiColors,
+            onResumeFromLastSearchedColorChange = viewModel::changeResumeFromLastSearchedColor,
+            onSmartBackspaceChange = viewModel::changeSmartBackspace,
+            onSelectAllTextOnTextFieldFocusChange = viewModel::changeSelectAllTextOnTextFieldFocus,
+            onAutoProceedWithRandomizedColorsChange = viewModel::changeAutoProceedWithRandomizedColors,
+            onResetToDefaultsConfirm = viewModel::resetToDefaults,
+            navigateBack = navigateBack,
+            navigateToDevOptions = navigateToDevOptions,
+            navigateToAcknowledgements = navigateToAcknowledgements,
+        )
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    data: SettingsData,
+    data: SettingsViewData,
+    strings: SettingsUiStrings,
+    onPreferredColorInputTypeChange: (DomainColorInputType) -> Unit,
+    onAppUiColorSchemeSetChange: (DomainUiColorSchemeSet) -> Unit,
+    onDynamicUiColorsChange: (Boolean) -> Unit,
+    onResumeFromLastSearchedColorChange: (Boolean) -> Unit,
+    onSmartBackspaceChange: (Boolean) -> Unit,
+    onSelectAllTextOnTextFieldFocusChange: (Boolean) -> Unit,
+    onAutoProceedWithRandomizedColorsChange: (Boolean) -> Unit,
+    onResetToDefaultsConfirm: () -> Unit,
     navigateBack: () -> Unit,
     navigateToDevOptions: () -> Unit,
     navigateToAcknowledgements: () -> Unit,
 ) {
-    val strings = SettingsUiStrings(LocalContext.current)
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     var showResetPreferencesToDefaultDialog by remember { mutableStateOf(false) }
@@ -108,7 +110,7 @@ fun SettingsScreen(
             onDismissRequest = ::dismissResetPreferencesToDefaultDialog,
             strings = strings,
             onConfirmClick = {
-                data.resetValuesToDefault()
+                onResetToDefaultsConfirm()
                 dismissResetPreferencesToDefaultDialog()
             },
         )
@@ -132,6 +134,13 @@ fun SettingsScreen(
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
             data = data,
             strings = strings,
+            onPreferredColorInputTypeChange = onPreferredColorInputTypeChange,
+            onAppUiColorSchemeSetChange = onAppUiColorSchemeSetChange,
+            onDynamicUiColorsChange = onDynamicUiColorsChange,
+            onResumeFromLastSearchedColorChange = onResumeFromLastSearchedColorChange,
+            onSmartBackspaceChange = onSmartBackspaceChange,
+            onSelectAllTextOnTextFieldFocusChange = onSelectAllTextOnTextFieldFocusChange,
+            onAutoProceedWithRandomizedColorsChange = onAutoProceedWithRandomizedColorsChange,
             navigateToDevOptions = navigateToDevOptions,
             navigateToAcknowledgements = navigateToAcknowledgements,
             extraContentPadding = ScaffoldDefaults.contentWindowInsets.onlyBottom()
@@ -186,8 +195,15 @@ private fun TopBar(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Settings(
-    data: SettingsData,
+    data: SettingsViewData,
     strings: SettingsUiStrings,
+    onPreferredColorInputTypeChange: (DomainColorInputType) -> Unit,
+    onAppUiColorSchemeSetChange: (DomainUiColorSchemeSet) -> Unit,
+    onDynamicUiColorsChange: (Boolean) -> Unit,
+    onResumeFromLastSearchedColorChange: (Boolean) -> Unit,
+    onSmartBackspaceChange: (Boolean) -> Unit,
+    onSelectAllTextOnTextFieldFocusChange: (Boolean) -> Unit,
+    onAutoProceedWithRandomizedColorsChange: (Boolean) -> Unit,
     navigateToDevOptions: () -> Unit,
     navigateToAcknowledgements: () -> Unit,
     modifier: Modifier = Modifier,
@@ -200,11 +216,11 @@ fun Settings(
     ) {
         item("preferred color input type") {
             var showSelectionDialog by remember { mutableStateOf(false) }
-            val options = DomainColorInputType.entries.map { colorInputType ->
+            val options = DomainColorInputType.entries.map { type ->
                 ColorInputTypeOption(
-                    text = colorInputType.toUiString(strings),
-                    isSelected = (data.preferredColorInputType == colorInputType),
-                    onSelect = { data.changePreferredColorInputType(colorInputType) },
+                    text = type.toUiString(strings),
+                    isSelected = (data.preferredColorInputType == type),
+                    onSelect = { onPreferredColorInputTypeChange(type) },
                 )
             }
             PreferredColorInputType(
@@ -226,11 +242,11 @@ fun Settings(
 
         item("app ui color scheme") {
             var showSelectionDialog by remember { mutableStateOf(false) }
-            val options = data.supportedAppUiColorSchemeSets.map { mode ->
+            val options = data.supportedAppUiColorSchemeSets.map { set ->
                 AppUiColorSchemeOption(
-                    text = mode.toVerboseUiString(strings),
-                    isSelected = (data.appUiColorSchemeSet == mode),
-                    onSelect = { data.changeAppUiColorSchemeSet(mode) },
+                    text = set.toVerboseUiString(strings),
+                    isSelected = (data.appUiColorSchemeSet == set),
+                    onSelect = { onAppUiColorSchemeSetChange(set) },
                 )
             }
             AppUiColorScheme(
@@ -256,7 +272,7 @@ fun Settings(
                     title = strings.itemDynamicUiColorsTitle,
                     description = strings.itemDynamicUiColorsDesc,
                     checked = data.isDynamicUiColorsEnabled,
-                    onCheckedChange = data.changeDynamicUiColorsEnablement,
+                    onCheckedChange = onDynamicUiColorsChange,
                 )
             }
         }
@@ -265,8 +281,8 @@ fun Settings(
             ResumeFromLastSearchedColor(
                 title = strings.itemResumeFromLastSearchedColorTitle,
                 description = strings.itemResumeFromLastSearchedColorDesc,
-                checked = data.isResumeFromLastSearchedColorOnStartupEnabled,
-                onCheckedChange = data.changeResumeFromLastSearchedColorOnStartupEnablement,
+                checked = data.isResumeFromLastSearchedColorEnabled,
+                onCheckedChange = onResumeFromLastSearchedColorChange,
             )
         }
 
@@ -275,7 +291,7 @@ fun Settings(
                 title = strings.itemSmartBackspaceTitle,
                 description = strings.itemSmartBackspaceDesc,
                 checked = data.isSmartBackspaceEnabled,
-                onCheckedChange = data.changeSmartBackspaceEnablement,
+                onCheckedChange = onSmartBackspaceChange,
             )
         }
 
@@ -284,7 +300,7 @@ fun Settings(
                 title = strings.itemSelectAllTextOnTextFieldFocusTitle,
                 description = strings.itemSelectAllTextOnTextFieldFocusDesc,
                 checked = data.isSelectAllTextOnTextFieldFocusEnabled,
-                onCheckedChange = data.changeSelectAllTextOnTextFieldFocusEnablement,
+                onCheckedChange = onSelectAllTextOnTextFieldFocusChange,
             )
         }
 
@@ -293,7 +309,7 @@ fun Settings(
                 title = strings.itemAutoProceedWithRandomizedColorsTitle,
                 description = strings.itemAutoProceedWithRandomizedColorsDesc,
                 checked = data.isAutoProceedWithRandomizedColorsEnabled,
-                onCheckedChange = data.changeAutoProceedWithRandomizedColorsEnablement,
+                onCheckedChange = onAutoProceedWithRandomizedColorsChange,
             )
         }
 
@@ -359,12 +375,22 @@ private fun DomainUiColorSchemeSet.toVerboseUiString(
         }
     }
 
-@Preview
+@Preview(uiMode = Configuration.UI_MODE_TYPE_NORMAL)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL)
 @Composable
 private fun Preview() {
     TheColorTheme {
         SettingsScreen(
             data = previewData(),
+            strings = SettingsUiStrings(LocalContext.current),
+            onPreferredColorInputTypeChange = {},
+            onAppUiColorSchemeSetChange = {},
+            onDynamicUiColorsChange = {},
+            onResumeFromLastSearchedColorChange = {},
+            onSmartBackspaceChange = {},
+            onSelectAllTextOnTextFieldFocusChange = {},
+            onAutoProceedWithRandomizedColorsChange = {},
+            onResetToDefaultsConfirm = {},
             navigateBack = {},
             navigateToDevOptions = {},
             navigateToAcknowledgements = {},
@@ -373,34 +399,18 @@ private fun Preview() {
 }
 
 private fun previewData() =
-    SettingsData(
-        resetValuesToDefault = {},
-
+    SettingsViewData(
         preferredColorInputType = DomainColorInputType.Hex,
-        changePreferredColorInputType = {},
-
         appUiColorSchemeSet = DomainUiColorSchemeSet.DayNight,
-        supportedAppUiColorSchemeSets = listOf(
+        supportedAppUiColorSchemeSets = persistentListOf(
             DomainUiColorScheme.Light.asSingletonSet(),
             DomainUiColorScheme.Dark.asSingletonSet(),
             DomainUiColorSchemeSet.DayNight,
         ),
-        changeAppUiColorSchemeSet = {},
-
         isDynamicUiColorsEnabled = true,
-        changeDynamicUiColorsEnablement = {},
-
-        isResumeFromLastSearchedColorOnStartupEnabled = true,
-        changeResumeFromLastSearchedColorOnStartupEnablement = {},
-
+        isResumeFromLastSearchedColorEnabled = true,
         isSmartBackspaceEnabled = true,
-        changeSmartBackspaceEnablement = {},
-
         isSelectAllTextOnTextFieldFocusEnabled = true,
-        changeSelectAllTextOnTextFieldFocusEnablement = {},
-
         isAutoProceedWithRandomizedColorsEnabled = true,
-        changeAutoProceedWithRandomizedColorsEnablement = {},
-
         isDevOptionsEnabled = true,
     )

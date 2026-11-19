@@ -3,190 +3,179 @@ package io.github.mmolosay.thecolor.presentation.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.mmolosay.thecolor.domain.buildfeatures.IsDevOptionsEnabledUseCase
+import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
-import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.asSingletonSet
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
-import io.github.mmolosay.thecolor.domain.utils.PrefState
-import io.github.mmolosay.thecolor.domain.utils.filterReady
-import io.github.mmolosay.thecolor.domain.utils.getOrElse
-import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.SharingStarted
+import io.github.mmolosay.thecolor.domain.utils.readyValues
+import io.github.mmolosay.thecolor.domain.utils.valueOrNull
+import io.github.mmolosay.thecolor.utils.mapState
+import io.github.mmolosay.thecolor.utils.requireSend
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.AutoProceedWithRandomizedColors as DomainAutoProceedWithRandomizedColors
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.DynamicUiColors as DomainDynamicUiColors
-import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.ResumeFromLastSearchedColorOnStartup as DomainShouldResumeFromLastSearchedColorOnStartup
+import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.ResumeFromLastSearchedColorOnStartup as DomainResumeFromLastSearchedColorOnStartup
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.SelectAllTextOnTextFieldFocus as DomainSelectAllTextOnTextFieldFocus
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.SmartBackspace as DomainSmartBackspace
-import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.UiColorScheme as DomainUiColorScheme
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.UiColorSchemeSet as DomainUiColorSchemeSet
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
+    coreFactory: SettingsCore.Factory,
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val isDevOptionsEnabled: IsDevOptionsEnabledUseCase,
-    @DefaultDispatcher defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
-    val dataStateFlow: StateFlow<DataState> =
-        combine(
-            flows = listOf(
-                userPreferencesRepository.flowOfColorInputType,
-                userPreferencesRepository.flowOfAppUiColorSchemeSet,
-                userPreferencesRepository.flowOfDynamicUiColors,
-                userPreferencesRepository.flowOfResumeFromLastSearchedColorOnStartup,
-                userPreferencesRepository.flowOfSmartBackspace,
-                userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus,
-                userPreferencesRepository.flowOfAutoProceedWithRandomizedColors,
-            ).map { flow ->
-                flow.filterReady() // await for all flows to initialize and emit stored values
-            },
-            transform = ::createData,
+    private val core = coreFactory.create()
+    private val store = run {
+        val state = SettingsState(
+            preferredColorInputType = userPreferencesRepository.flowOfColorInputType
+                .value.valueOrNull(DefaultUserPreferences.PreferredColorInputType),
+            appUiColorSchemeSet = userPreferencesRepository.flowOfAppUiColorSchemeSet
+                .value.valueOrNull(DefaultUserPreferences.AppUiColorSchemeSet),
+            dynamicUiColors = userPreferencesRepository.flowOfDynamicUiColors
+                .value.valueOrNull(DefaultUserPreferences.DynamicUiColors),
+            resumeFromLastSearchedColor = userPreferencesRepository.flowOfResumeFromLastSearchedColorOnStartup
+                .value.valueOrNull(DefaultUserPreferences.ResumeFromLastSearchedColorOnStartup),
+            smartBackspace = userPreferencesRepository.flowOfSmartBackspace
+                .value.valueOrNull(DefaultUserPreferences.SmartBackspace),
+            selectAllTextOnTextFieldFocus = userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus
+                .value.valueOrNull(DefaultUserPreferences.SelectAllTextOnTextFieldFocus),
+            autoProceedWithRandomizedColors = userPreferencesRepository.flowOfAutoProceedWithRandomizedColors
+                .value.valueOrNull(DefaultUserPreferences.AutoProceedWithRandomizedColors),
         )
-            .map { data -> DataState.Ready(data) }
-            .flowOn(defaultDispatcher)
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000),
-                initialValue = DataState.Loading,
-            )
+        Store(state)
+    }
+    private val writes = Channel<suspend () -> Unit>(capacity = Channel.UNLIMITED)
 
-    private fun clearRepository() {
+    val viewData: StateFlow<SettingsViewData?> =
+        store.mapState { state -> with(core) { state.toViewData() } }
+
+    init {
+        collectPreferences()
         viewModelScope.launch {
-            userPreferencesRepository.clear()
+            for (write in writes) write()
         }
     }
 
-    private fun updatePreferredColorInputType(value: DomainColorInputType) {
+    private fun collectPreferences() {
         viewModelScope.launch {
+            launch {
+                userPreferencesRepository.flowOfColorInputType
+                    .readyValues(DefaultUserPreferences.PreferredColorInputType)
+                    .collect { value ->
+                        store.update { state ->
+                            with(core) { state.applyPreferredColorInputType(value) }
+                        }
+                    }
+            }
+            launch {
+                userPreferencesRepository.flowOfAppUiColorSchemeSet
+                    .readyValues(DefaultUserPreferences.AppUiColorSchemeSet)
+                    .collect { value ->
+                        store.update { state ->
+                            with(core) { state.applyAppUiColorSchemeSet(value) }
+                        }
+                    }
+            }
+            launch {
+                userPreferencesRepository.flowOfDynamicUiColors
+                    .readyValues(DefaultUserPreferences.DynamicUiColors)
+                    .collect { value ->
+                        store.update { state ->
+                            with(core) { state.applyDynamicUiColors(value) }
+                        }
+                    }
+            }
+            launch {
+                userPreferencesRepository.flowOfResumeFromLastSearchedColorOnStartup
+                    .readyValues(DefaultUserPreferences.ResumeFromLastSearchedColorOnStartup)
+                    .collect { value ->
+                        store.update { state ->
+                            with(core) { state.applyResumeFromLastSearchedColor(value) }
+                        }
+                    }
+            }
+            launch {
+                userPreferencesRepository.flowOfSmartBackspace
+                    .readyValues(DefaultUserPreferences.SmartBackspace)
+                    .collect { value ->
+                        store.update { state ->
+                            with(core) { state.applySmartBackspace(value) }
+                        }
+                    }
+            }
+            launch {
+                userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus
+                    .readyValues(DefaultUserPreferences.SelectAllTextOnTextFieldFocus)
+                    .collect { value ->
+                        store.update { state ->
+                            with(core) { state.applySelectAllTextOnTextFieldFocus(value) }
+                        }
+                    }
+            }
+            launch {
+                userPreferencesRepository.flowOfAutoProceedWithRandomizedColors
+                    .readyValues(DefaultUserPreferences.AutoProceedWithRandomizedColors)
+                    .collect { value ->
+                        store.update { state ->
+                            with(core) { state.applyAutoProceedWithRandomizedColors(value) }
+                        }
+                    }
+            }
+        }
+    }
+
+    fun changePreferredColorInputType(value: DomainColorInputType) {
+        writes.requireSend {
             userPreferencesRepository.setColorInputType(value)
         }
     }
 
-    private fun updateAppUiColorSchemeSet(value: DomainUiColorSchemeSet) {
-        viewModelScope.launch {
+    fun changeAppUiColorSchemeSet(value: DomainUiColorSchemeSet) {
+        writes.requireSend {
             userPreferencesRepository.setAppUiColorSchemeSet(value)
         }
     }
 
-    private fun updateDynamicUiColorsEnablement(value: Boolean) {
-        viewModelScope.launch {
-            val domainModel = DomainDynamicUiColors(value)
-            userPreferencesRepository.setDynamicUiColors(domainModel)
+    fun changeDynamicUiColors(enabled: Boolean) {
+        writes.requireSend {
+            userPreferencesRepository.setDynamicUiColors(DomainDynamicUiColors(enabled))
         }
     }
 
-    private fun updateResumeFromLastSearchedColorOnStartupEnablement(value: Boolean) {
-        viewModelScope.launch {
-            val domainModel = DomainShouldResumeFromLastSearchedColorOnStartup(value)
-            userPreferencesRepository.setResumeFromLastSearchedColorOnStartup(domainModel)
+    fun changeResumeFromLastSearchedColor(enabled: Boolean) {
+        writes.requireSend {
+            val value = DomainResumeFromLastSearchedColorOnStartup(enabled)
+            userPreferencesRepository.setResumeFromLastSearchedColorOnStartup(value)
         }
     }
 
-    private fun updateSmartBackspaceEnablement(value: Boolean) {
-        viewModelScope.launch {
-            val domainModel = DomainSmartBackspace(value)
-            userPreferencesRepository.setSmartBackspace(domainModel)
+    fun changeSmartBackspace(enabled: Boolean) {
+        writes.requireSend {
+            userPreferencesRepository.setSmartBackspace(DomainSmartBackspace(enabled))
         }
     }
 
-    private fun updateSelectAllTextOnTextFieldFocusEnablement(value: Boolean) {
-        viewModelScope.launch {
-            val domainModel = DomainSelectAllTextOnTextFieldFocus(value)
-            userPreferencesRepository.setSelectAllTextOnTextFieldFocus(domainModel)
+    fun changeSelectAllTextOnTextFieldFocus(enabled: Boolean) {
+        writes.requireSend {
+            val value = DomainSelectAllTextOnTextFieldFocus(enabled)
+            userPreferencesRepository.setSelectAllTextOnTextFieldFocus(value)
         }
     }
 
-    private fun updateAutoProceedWithRandomizedColorsEnablement(value: Boolean) {
-        viewModelScope.launch {
-            val domainModel = DomainAutoProceedWithRandomizedColors(value)
-            userPreferencesRepository.setAutoProceedWithRandomizedColors(domainModel)
+    fun changeAutoProceedWithRandomizedColors(enabled: Boolean) {
+        writes.requireSend {
+            val value = DomainAutoProceedWithRandomizedColors(enabled)
+            userPreferencesRepository.setAutoProceedWithRandomizedColors(value)
         }
     }
 
-    // this is the only way to combine() more than 5 flows of different types
-    private fun createData(
-        userSettings: Array<PrefState<Any>>,
-    ): SettingsData {
-        val iterator = userSettings.iterator()
-        fun <T> nextValue(default: T): T {
-            @Suppress("UNCHECKED_CAST")
-            val prefState = iterator.next() as PrefState<T>
-            return prefState.getOrElse { default }
+    fun resetToDefaults() {
+        writes.requireSend {
+            userPreferencesRepository.clear()
         }
-        return createData(
-            preferredColorInputType = nextValue(DefaultUserPreferences.PreferredColorInputType),
-            appUiColorSchemeSet = nextValue(DefaultUserPreferences.AppUiColorSchemeSet),
-            dynamicUiColors = nextValue(DefaultUserPreferences.DynamicUiColors),
-            shouldResumeFromLastSearchedColorOnStartup = nextValue(DefaultUserPreferences.ResumeFromLastSearchedColorOnStartup),
-            smartBackspace = nextValue(DefaultUserPreferences.SmartBackspace),
-            selectAllTextOnTextFieldFocus = nextValue(DefaultUserPreferences.SelectAllTextOnTextFieldFocus),
-            autoProceedWithRandomizedColors = nextValue(DefaultUserPreferences.AutoProceedWithRandomizedColors),
-        )
-    }
-
-    private fun createData(
-        preferredColorInputType: DomainColorInputType,
-        appUiColorSchemeSet: DomainUiColorSchemeSet,
-        dynamicUiColors: DomainDynamicUiColors,
-        shouldResumeFromLastSearchedColorOnStartup: DomainShouldResumeFromLastSearchedColorOnStartup,
-        smartBackspace: DomainSmartBackspace,
-        selectAllTextOnTextFieldFocus: DomainSelectAllTextOnTextFieldFocus,
-        autoProceedWithRandomizedColors: DomainAutoProceedWithRandomizedColors,
-    ): SettingsData {
-        return SettingsData(
-            resetValuesToDefault = ::clearRepository,
-
-            preferredColorInputType = preferredColorInputType,
-            changePreferredColorInputType = ::updatePreferredColorInputType,
-
-            appUiColorSchemeSet = appUiColorSchemeSet,
-            supportedAppUiColorSchemeSets = supportedAppUiColorSchemeSets(),
-            changeAppUiColorSchemeSet = ::updateAppUiColorSchemeSet,
-
-            isDynamicUiColorsEnabled = dynamicUiColors.enabled,
-            changeDynamicUiColorsEnablement = ::updateDynamicUiColorsEnablement,
-
-            isResumeFromLastSearchedColorOnStartupEnabled = shouldResumeFromLastSearchedColorOnStartup.enabled,
-            changeResumeFromLastSearchedColorOnStartupEnablement = ::updateResumeFromLastSearchedColorOnStartupEnablement,
-
-            isSmartBackspaceEnabled = smartBackspace.enabled,
-            changeSmartBackspaceEnablement = ::updateSmartBackspaceEnablement,
-
-            isSelectAllTextOnTextFieldFocusEnabled = selectAllTextOnTextFieldFocus.enabled,
-            changeSelectAllTextOnTextFieldFocusEnablement = ::updateSelectAllTextOnTextFieldFocusEnablement,
-
-            isAutoProceedWithRandomizedColorsEnabled = autoProceedWithRandomizedColors.enabled,
-            changeAutoProceedWithRandomizedColorsEnablement = ::updateAutoProceedWithRandomizedColorsEnablement,
-
-            isDevOptionsEnabled = isDevOptionsEnabled(),
-        )
-    }
-
-    private fun supportedAppUiColorSchemeSets(): List<DomainUiColorSchemeSet> =
-        buildList {
-            DomainUiColorSchemeSet.DayNight
-                .also { add(it) }
-            DomainUiColorScheme.Light.asSingletonSet()
-                .also { add(it) }
-            DomainUiColorScheme.Dark.asSingletonSet()
-                .also { add(it) }
-            DomainUiColorScheme.Jungle.asSingletonSet()
-                .also { add(it) }
-            DomainUiColorScheme.Midnight.asSingletonSet()
-                .also { add(it) }
-        }
-
-    sealed interface DataState {
-        data object Loading : DataState
-        data class Ready(val data: SettingsData) : DataState
     }
 }
