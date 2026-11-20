@@ -3,19 +3,15 @@ package io.github.mmolosay.thecolor.presentation.devoptions
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.mmolosay.thecolor.domain.buildfeatures.BuildInfoRepository
+import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.domain.dev.options.DefaultDevOptions
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository
-import io.github.mmolosay.thecolor.domain.utils.PrefState
-import io.github.mmolosay.thecolor.domain.utils.getOrElse
-import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.SharingStarted
+import io.github.mmolosay.thecolor.domain.utils.readyValues
+import io.github.mmolosay.thecolor.domain.utils.valueOrNull
+import io.github.mmolosay.thecolor.utils.mapState
+import io.github.mmolosay.thecolor.utils.requireSend
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.HttpLogging as DomainHttpLogging
@@ -24,107 +20,88 @@ import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.StrictMode as D
 
 @HiltViewModel
 class DevOptionsViewModel @Inject constructor(
+    coreFactory: DevOptionsCore.Factory,
     private val devOptionsRepository: DevOptionsRepository,
     private val defaultDevOptions: DefaultDevOptions,
-    private val buildInfoRepository: BuildInfoRepository,
-    @DefaultDispatcher defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
-    val dataStateFlow: StateFlow<DataState> =
-        combine(
-            flows = listOf(
-                devOptionsRepository.flowOfPredictableRandomColors,
-                devOptionsRepository.flowOfStrictMode,
-                devOptionsRepository.flowOfHttpLogging,
-            ),
-            transform = ::createData,
+    private val core = coreFactory.create()
+    private val store = run {
+        val state = DevOptionsState(
+            predictableRandomColors = devOptionsRepository.flowOfPredictableRandomColors
+                .value.valueOrNull(defaultDevOptions.predictableRandomColors),
+            strictMode = devOptionsRepository.flowOfStrictMode
+                .value.valueOrNull(defaultDevOptions.strictMode),
+            httpLogging = devOptionsRepository.flowOfHttpLogging
+                .value.valueOrNull(defaultDevOptions.httpLogging),
         )
-            .map { data -> DataState.Ready(data) }
-            .flowOn(defaultDispatcher)
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000),
-                initialValue = DataState.Loading,
-            )
-
-    private val buildInfo by lazy {
-        DevOptionsData.BuildInfo(
-            appBuildType = buildInfoRepository.getAppBuildType(),
-            appVersionName = buildInfoRepository.getAppBuildVersionName(),
-            appVersionCode = buildInfoRepository.getAppBuildVersionCode(),
-            gitHeadCommitHash = buildInfoRepository.getGitHeadCommitShortHash().toString(),
-        )
+        Store(state)
     }
+    private val writes = Channel<suspend () -> Unit>(capacity = Channel.UNLIMITED)
 
-    private fun clearRepository() {
+    val viewData: StateFlow<DevOptionsViewData?> =
+        store.mapState { state -> with(core) { state.toViewData() } }
+
+    init {
+        collectDevOptions()
         viewModelScope.launch {
-            devOptionsRepository.clear()
+            for (write in writes) write()
         }
     }
 
-    private fun updatePredictableRandomColors(value: DomainPredictableRandomColors) {
+    private fun collectDevOptions() {
         viewModelScope.launch {
+            launch {
+                devOptionsRepository.flowOfPredictableRandomColors
+                    .readyValues(defaultDevOptions.predictableRandomColors)
+                    .collect { value ->
+                        store.update { state ->
+                            with(core) { state.applyPredictableRandomColors(value) }
+                        }
+                    }
+            }
+            launch {
+                devOptionsRepository.flowOfStrictMode
+                    .readyValues(defaultDevOptions.strictMode)
+                    .collect { value ->
+                        store.update { state ->
+                            with(core) { state.applyStrictMode(value) }
+                        }
+                    }
+            }
+            launch {
+                devOptionsRepository.flowOfHttpLogging
+                    .readyValues(defaultDevOptions.httpLogging)
+                    .collect { value ->
+                        store.update { state ->
+                            with(core) { state.applyHttpLogging(value) }
+                        }
+                    }
+            }
+        }
+    }
+
+    fun changePredictableRandomColors(value: DomainPredictableRandomColors) {
+        writes.requireSend {
             devOptionsRepository.setPredictableRandomColors(value)
         }
     }
 
-    private fun updateStrictModeEnablement(value: Boolean) {
-        viewModelScope.launch {
-            val domainModel = DomainStrictMode(enabled = value)
-            devOptionsRepository.setStrictMode(domainModel)
+    fun changeStrictMode(enabled: Boolean) {
+        writes.requireSend {
+            devOptionsRepository.setStrictMode(DomainStrictMode(enabled))
         }
     }
 
-    private fun updateHttpLoggingEnablement(value: Boolean) {
-        viewModelScope.launch {
-            val domainModel = DomainHttpLogging(enabled = value)
-            devOptionsRepository.setHttpLogging(domainModel)
+    fun changeHttpLogging(enabled: Boolean) {
+        writes.requireSend {
+            devOptionsRepository.setHttpLogging(DomainHttpLogging(enabled))
         }
     }
 
-    // this is the only way to combine() more than 5 flows of different types
-    private fun createData(
-        devOptions: Array<PrefState<Any>>,
-    ): DevOptionsData {
-        val iterator = devOptions.iterator()
-        fun <T> nextValue(default: T): T {
-            @Suppress("UNCHECKED_CAST")
-            val prefState = iterator.next() as PrefState<T>
-            return prefState.getOrElse { default }
+    fun resetToDefaults() {
+        writes.requireSend {
+            devOptionsRepository.clear()
         }
-        return createData(
-            predictableRandomColors = nextValue(defaultDevOptions.predictableRandomColors),
-            strictMode = nextValue(defaultDevOptions.strictMode),
-            httpLogging = nextValue(defaultDevOptions.httpLogging),
-        )
-    }
-
-    private fun createData(
-        predictableRandomColors: DomainPredictableRandomColors,
-        strictMode: DomainStrictMode,
-        httpLogging: DomainHttpLogging,
-    ): DevOptionsData {
-        return DevOptionsData(
-            resetValuesToDefault = ::clearRepository,
-
-            predictableRandomColors = predictableRandomColors,
-            predictableRandomColorsByDefault = defaultDevOptions.predictableRandomColors,
-            changePredictableRandomColors = ::updatePredictableRandomColors,
-
-            isStrictModeEnabled = strictMode.enabled,
-            isStrictModeEnabledByDefault = defaultDevOptions.strictMode.enabled,
-            changeStrictModeEnablement = ::updateStrictModeEnablement,
-
-            isHttpLoggingEnabled = httpLogging.enabled,
-            isHttpLoggingEnabledByDefault = defaultDevOptions.httpLogging.enabled,
-            changeHttpLoggingEnablement = ::updateHttpLoggingEnablement,
-
-            buildInfo = buildInfo,
-        )
-    }
-
-    sealed interface DataState {
-        data object Loading : DataState
-        data class Ready(val data: DevOptionsData) : DataState
     }
 }
