@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.details.viewmodel
+package io.github.mmolosay.thecolor.presentation.details.feature
 
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
 

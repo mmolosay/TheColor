@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.settings
+package io.github.mmolosay.thecolor.presentation.settings.viewmodel
 
 import kotlinx.collections.immutable.ImmutableList
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType

@@ -41,7 +41,7 @@ import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.details.R
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData
+import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsData
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
 @Composable

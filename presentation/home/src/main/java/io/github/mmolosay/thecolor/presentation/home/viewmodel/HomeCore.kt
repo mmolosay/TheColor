@@ -7,10 +7,10 @@ import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.domain.color.ColorComparator
 import io.github.mmolosay.thecolor.domain.color.IsColorLightUseCase
 import io.github.mmolosay.thecolor.domain.color.isSameAs
-import io.github.mmolosay.thecolor.presentation.center.viewmodel.ColorCenterCore
-import io.github.mmolosay.thecolor.presentation.center.viewmodel.ColorCenterOutcome
+import io.github.mmolosay.thecolor.presentation.center.feature.ColorCenterCore
+import io.github.mmolosay.thecolor.presentation.center.feature.ColorCenterOutcome
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCore
+import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsCore
 import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorCore
 import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorOutcome
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupCore

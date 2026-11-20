@@ -6,11 +6,11 @@ import io.github.mmolosay.thecolor.domain.color.ColorComparator
 import io.github.mmolosay.thecolor.domain.color.ColorConverter
 import io.github.mmolosay.thecolor.domain.color.ColorFactory
 import io.github.mmolosay.thecolor.domain.color.prototype.ColorPrototypeValidator
-import io.github.mmolosay.thecolor.presentation.center.viewmodel.ColorCenterCore
-import io.github.mmolosay.thecolor.presentation.center.viewmodel.ColorCenterOutcome
+import io.github.mmolosay.thecolor.presentation.center.feature.ColorCenterCore
+import io.github.mmolosay.thecolor.presentation.center.feature.ColorCenterOutcome
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCore
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsState
+import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsCore
+import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsState
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.CreateSessionColorUseCase
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeCore
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeState
@@ -27,7 +27,7 @@ import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmission
 import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbCore
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldCore
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewDataFactory
-import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeCore
+import io.github.mmolosay.thecolor.presentation.scheme.feature.ColorSchemeCore
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf

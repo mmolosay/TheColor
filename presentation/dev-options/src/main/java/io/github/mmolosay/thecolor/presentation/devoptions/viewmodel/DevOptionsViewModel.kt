@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.devoptions
+package io.github.mmolosay.thecolor.presentation.devoptions.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

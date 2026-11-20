@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.scheme.viewmodel
+package io.github.mmolosay.thecolor.presentation.scheme.feature
 
 import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.utils.Identity

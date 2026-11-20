@@ -1,15 +1,15 @@
 package io.github.mmolosay.thecolor.presentation.center
 
 import io.github.mmolosay.thecolor.domain.color.Color
-import io.github.mmolosay.thecolor.presentation.center.viewmodel.ColorCenterCore
-import io.github.mmolosay.thecolor.presentation.center.viewmodel.ColorCenterOutcome
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCore
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsOutcome
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsState
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorRole
-import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeCore
-import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeOutcome
-import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeState
+import io.github.mmolosay.thecolor.presentation.center.feature.ColorCenterCore
+import io.github.mmolosay.thecolor.presentation.center.feature.ColorCenterOutcome
+import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsCore
+import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsOutcome
+import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsState
+import io.github.mmolosay.thecolor.presentation.details.feature.ColorRole
+import io.github.mmolosay.thecolor.presentation.scheme.feature.ColorSchemeCore
+import io.github.mmolosay.thecolor.presentation.scheme.feature.ColorSchemeOutcome
+import io.github.mmolosay.thecolor.presentation.scheme.feature.ColorSchemeState
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.every

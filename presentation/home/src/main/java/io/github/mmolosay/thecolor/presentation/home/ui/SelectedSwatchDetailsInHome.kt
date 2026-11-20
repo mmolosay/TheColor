@@ -41,7 +41,7 @@ import io.github.mmolosay.thecolor.presentation.common.toLifecycleEventObserver
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewData
+import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsViewData
 import io.github.mmolosay.thecolor.utils.doNothing
 
 /**

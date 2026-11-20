@@ -14,8 +14,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.common.compose.retained
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsFeature
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewData
+import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsFeature
+import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsViewData
 
 @Composable
 fun ColorDetailsCrossfade(

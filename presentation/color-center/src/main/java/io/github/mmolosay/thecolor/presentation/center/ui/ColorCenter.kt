@@ -28,7 +28,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import io.github.mmolosay.thecolor.presentation.center.viewmodel.ColorCenterFeature
+import io.github.mmolosay.thecolor.presentation.center.feature.ColorCenterFeature
 import io.github.mmolosay.thecolor.presentation.common.compose.Placeholder
 import io.github.mmolosay.thecolor.presentation.common.compose.PlaceholderDefaults
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface

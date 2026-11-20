@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.scheme.viewmodel
+package io.github.mmolosay.thecolor.presentation.scheme.feature
 
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject

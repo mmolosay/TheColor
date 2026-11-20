@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.details.viewmodel
+package io.github.mmolosay.thecolor.presentation.details.feature
 
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -6,8 +6,8 @@ import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.domain.color.IsColorLightUseCase
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ColorRoleData
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ExactMatch
+import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsData.ColorRoleData
+import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsData.ExactMatch
 import io.github.mmolosay.thecolor.utils.Identity
 import javax.inject.Inject
 import io.github.mmolosay.thecolor.domain.color.ColorDetails as DomainColorDetails

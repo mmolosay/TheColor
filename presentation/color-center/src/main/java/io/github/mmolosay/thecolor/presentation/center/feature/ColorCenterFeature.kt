@@ -1,16 +1,16 @@
-package io.github.mmolosay.thecolor.presentation.center.viewmodel
+package io.github.mmolosay.thecolor.presentation.center.feature
 
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.composition.CompositionUtils.child
 import io.github.mmolosay.thecolor.composition.Store
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsFeature
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsOutcome
-import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeFeature
-import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeOutcome
+import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsFeature
+import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsOutcome
+import io.github.mmolosay.thecolor.presentation.scheme.feature.ColorSchemeFeature
+import io.github.mmolosay.thecolor.presentation.scheme.feature.ColorSchemeOutcome
 import kotlinx.coroutines.CoroutineScope
-import io.github.mmolosay.thecolor.presentation.center.viewmodel.ColorCenterStateLenses as StateLenses
+import io.github.mmolosay.thecolor.presentation.center.feature.ColorCenterStateLenses as StateLenses
 
 class ColorCenterFeature @AssistedInject constructor(
     @Assisted private val core: ColorCenterCore,

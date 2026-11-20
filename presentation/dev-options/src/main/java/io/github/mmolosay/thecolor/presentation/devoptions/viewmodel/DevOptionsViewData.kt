@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.devoptions
+package io.github.mmolosay.thecolor.presentation.devoptions.viewmodel
 
 import io.github.mmolosay.thecolor.domain.buildfeatures.BuildType as DomainBuildType
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.PredictableRandomColors as DomainPredictableRandomColors

@@ -57,10 +57,10 @@ import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
 import io.github.mmolosay.thecolor.presentation.errors.ErrorMessageWithButton
 import io.github.mmolosay.thecolor.presentation.errors.messageOrUnknown
 import io.github.mmolosay.thecolor.presentation.errors.rememberDefaultErrorsUiStrings
-import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeData
-import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeFeature
-import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeViewData
-import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.SwatchCount
+import io.github.mmolosay.thecolor.presentation.scheme.feature.ColorSchemeData
+import io.github.mmolosay.thecolor.presentation.scheme.feature.ColorSchemeFeature
+import io.github.mmolosay.thecolor.presentation.scheme.feature.ColorSchemeViewData
+import io.github.mmolosay.thecolor.presentation.scheme.feature.SwatchCount
 import io.github.mmolosay.thecolor.utils.doNothing
 import kotlinx.collections.immutable.persistentListOf
 import io.github.mmolosay.thecolor.domain.color.ColorScheme as DomainColorScheme

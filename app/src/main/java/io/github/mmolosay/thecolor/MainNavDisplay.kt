@@ -12,12 +12,12 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import io.github.mmolosay.thecolor.presentation.acknowledgements.AcknowledgementsScreen
 import io.github.mmolosay.thecolor.presentation.common.navbar.NavBarAppearanceController
-import io.github.mmolosay.thecolor.presentation.devoptions.DevOptionsViewModel
 import io.github.mmolosay.thecolor.presentation.devoptions.ui.DevOptionsScreen
+import io.github.mmolosay.thecolor.presentation.devoptions.viewmodel.DevOptionsViewModel
 import io.github.mmolosay.thecolor.presentation.home.ui.HomeScreen
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
-import io.github.mmolosay.thecolor.presentation.settings.SettingsViewModel
 import io.github.mmolosay.thecolor.presentation.settings.ui.SettingsScreen
+import io.github.mmolosay.thecolor.presentation.settings.viewmodel.SettingsViewModel
 import kotlinx.serialization.serializer
 
 @Composable

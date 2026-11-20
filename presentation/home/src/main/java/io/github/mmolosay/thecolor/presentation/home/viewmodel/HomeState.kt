@@ -1,8 +1,8 @@
 package io.github.mmolosay.thecolor.presentation.home.viewmodel
 
 import io.github.mmolosay.thecolor.domain.color.Color
-import io.github.mmolosay.thecolor.presentation.center.viewmodel.ColorCenterState
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsState
+import io.github.mmolosay.thecolor.presentation.center.feature.ColorCenterState
+import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsState
 import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorState
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupState
 import io.github.mmolosay.thecolor.utils.Identity

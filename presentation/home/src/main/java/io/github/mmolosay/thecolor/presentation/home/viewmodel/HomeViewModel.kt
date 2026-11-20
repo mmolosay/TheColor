@@ -16,10 +16,10 @@ import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesReposi
 import io.github.mmolosay.thecolor.domain.utils.filterReady
 import io.github.mmolosay.thecolor.domain.utils.getOrElse
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
-import io.github.mmolosay.thecolor.presentation.center.viewmodel.ColorCenterFeature
-import io.github.mmolosay.thecolor.presentation.center.viewmodel.ColorCenterOutcome
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsFeature
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsOutcome
+import io.github.mmolosay.thecolor.presentation.center.feature.ColorCenterFeature
+import io.github.mmolosay.thecolor.presentation.center.feature.ColorCenterOutcome
+import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsFeature
+import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsOutcome
 import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorFeature
 import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorOutcome
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupFeature

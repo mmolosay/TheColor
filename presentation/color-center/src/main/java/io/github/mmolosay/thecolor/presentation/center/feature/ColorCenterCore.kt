@@ -1,13 +1,13 @@
-package io.github.mmolosay.thecolor.presentation.center.viewmodel
+package io.github.mmolosay.thecolor.presentation.center.feature
 
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.domain.color.Color
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsCore
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsOutcome
-import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeCore
-import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeOutcome
+import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsCore
+import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsOutcome
+import io.github.mmolosay.thecolor.presentation.scheme.feature.ColorSchemeCore
+import io.github.mmolosay.thecolor.presentation.scheme.feature.ColorSchemeOutcome
 
 class ColorCenterCore @AssistedInject constructor(
     detailsFactory: ColorDetailsCore.Factory,

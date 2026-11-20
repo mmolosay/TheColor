@@ -39,8 +39,8 @@ import io.github.mmolosay.thecolor.presentation.common.compose.onlyBottom
 import io.github.mmolosay.thecolor.presentation.common.compose.withoutBottom
 import io.github.mmolosay.thecolor.presentation.design.Material3DynamicColorsAvailability.areDynamicColorsAvailable
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.settings.SettingsViewData
-import io.github.mmolosay.thecolor.presentation.settings.SettingsViewModel
+import io.github.mmolosay.thecolor.presentation.settings.viewmodel.SettingsViewData
+import io.github.mmolosay.thecolor.presentation.settings.viewmodel.SettingsViewModel
 import kotlinx.collections.immutable.persistentListOf
 import kotlin.time.Duration.Companion.milliseconds
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType

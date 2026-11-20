@@ -1,8 +1,8 @@
-package io.github.mmolosay.thecolor.presentation.center.viewmodel
+package io.github.mmolosay.thecolor.presentation.center.feature
 
 import io.github.mmolosay.thecolor.domain.color.Color
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsState
-import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeState
+import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsState
+import io.github.mmolosay.thecolor.presentation.scheme.feature.ColorSchemeState
 import io.github.mmolosay.thecolor.utils.Lens
 import io.github.mmolosay.thecolor.domain.color.ColorDetails as DomainColorDetails
 

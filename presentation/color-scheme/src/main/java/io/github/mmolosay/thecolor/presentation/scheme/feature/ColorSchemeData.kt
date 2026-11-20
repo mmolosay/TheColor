@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.presentation.scheme.viewmodel
+package io.github.mmolosay.thecolor.presentation.scheme.feature
 
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
 import kotlinx.collections.immutable.ImmutableList

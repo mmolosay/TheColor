@@ -11,7 +11,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import io.github.mmolosay.thecolor.presentation.common.colorint.toCompose
 import io.github.mmolosay.thecolor.presentation.design.ProvideColorsOnTintedSurface
-import io.github.mmolosay.thecolor.presentation.scheme.viewmodel.ColorSchemeData
+import io.github.mmolosay.thecolor.presentation.scheme.feature.ColorSchemeData
 
 @Composable
 internal fun Swatch(

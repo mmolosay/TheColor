@@ -5,11 +5,11 @@ import io.github.mmolosay.thecolor.domain.color.ColorConverter
 import io.github.mmolosay.thecolor.domain.color.ColorDetails
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ColorRoleData
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ExactMatch
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorRole
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.CreateColorDetailsDataUseCase
+import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsData
+import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsData.ColorRoleData
+import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsData.ExactMatch
+import io.github.mmolosay.thecolor.presentation.details.feature.ColorRole
+import io.github.mmolosay.thecolor.presentation.details.feature.CreateColorDetailsDataUseCase
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 

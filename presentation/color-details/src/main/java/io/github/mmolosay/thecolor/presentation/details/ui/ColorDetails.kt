@@ -27,10 +27,10 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnTintedSurface
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsFeature
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsViewData
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorRole
+import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsData
+import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsFeature
+import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsViewData
+import io.github.mmolosay.thecolor.presentation.details.feature.ColorRole
 import io.github.mmolosay.thecolor.presentation.errors.ErrorMessageWithButton
 import io.github.mmolosay.thecolor.presentation.errors.messageOrUnknown
 import io.github.mmolosay.thecolor.presentation.errors.rememberDefaultErrorsUiStrings
