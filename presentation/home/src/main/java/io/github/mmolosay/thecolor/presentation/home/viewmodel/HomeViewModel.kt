@@ -15,7 +15,6 @@ import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreference
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
 import io.github.mmolosay.thecolor.domain.utils.filterReady
 import io.github.mmolosay.thecolor.domain.utils.getOrElse
-import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
 import io.github.mmolosay.thecolor.presentation.center.feature.ColorCenterFeature
 import io.github.mmolosay.thecolor.presentation.center.feature.ColorCenterOutcome
 import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsFeature
@@ -24,9 +23,6 @@ import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorFeature
 import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorOutcome
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupFeature
 import io.github.mmolosay.thecolor.utils.mapState
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -43,10 +39,7 @@ class HomeViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
     private val lastSearchedColorRepository: LastSearchedColorRepository,
     private val getPredictableRandomColor: GetPredictableRandomColorUseCase,
-    @DefaultDispatcher defaultDispatcher: CoroutineDispatcher,
-) : ViewModel(
-    viewModelScope = CoroutineScope(SupervisorJob() + defaultDispatcher),
-) {
+) : ViewModel() {
 
     private val core: HomeCore = coreFactory.create()
     private val store = Store(initialState = core.initialState())
