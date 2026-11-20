@@ -13,6 +13,9 @@ import io.github.mmolosay.thecolor.domain.color.ColorRepository.GetColorSchemeRe
 import io.github.mmolosay.thecolor.domain.color.ColorScheme
 import io.github.mmolosay.thecolor.domain.exception.DomainFailureFactory
 import io.github.mmolosay.thecolor.domain.exception.tryMapFailureToDomain
+import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.IoDispatcher
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /**
@@ -25,33 +28,36 @@ class ColorRepositoryRemoteImpl @Inject constructor(
     private val colorDetailsMapper: ColorDetailsMapper,
     private val colorSchemeMapper: ColorSchemeMapper,
     private val domainFailureFactory: DomainFailureFactory,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ColorRepository {
 
-    override suspend fun getColorDetails(color: Color): Result<ColorDetails> {
-        val colorString = color.toDtoString()
-        return runCatching {
-            api.getColorDetails(hex = colorString)
-        }
-            .map { colorDetailsDto ->
-                with(colorDetailsMapper) { colorDetailsDto.toDomain() }
+    override suspend fun getColorDetails(color: Color): Result<ColorDetails> =
+        withContext(ioDispatcher) {
+            val colorString = color.toDtoString()
+            return@withContext runCatching {
+                api.getColorDetails(hex = colorString)
             }
-            .tryMapFailureToDomain(domainFailureFactory)
-    }
+                .map { colorDetailsDto ->
+                    with(colorDetailsMapper) { colorDetailsDto.toDomain() }
+                }
+                .tryMapFailureToDomain(domainFailureFactory)
+        }
 
-    override suspend fun getColorScheme(request: GetColorSchemeRequest): Result<ColorScheme> {
-        val seedHex = request.seed.toDtoString()
-        return runCatching {
-            api.getColorScheme(
-                hex = seedHex,
-                mode = request.mode.toDto(),
-                swatchCount = request.swatchCount,
-            )
-        }
-            .map { colorSchemeDto ->
-                with(colorSchemeMapper) { colorSchemeDto.toDomain() }
+    override suspend fun getColorScheme(request: GetColorSchemeRequest): Result<ColorScheme> =
+        withContext(ioDispatcher) {
+            val seedHex = request.seed.toDtoString()
+            return@withContext runCatching {
+                api.getColorScheme(
+                    hex = seedHex,
+                    mode = request.mode.toDto(),
+                    swatchCount = request.swatchCount,
+                )
             }
-            .tryMapFailureToDomain(domainFailureFactory)
-    }
+                .map { colorSchemeDto ->
+                    with(colorSchemeMapper) { colorSchemeDto.toDomain() }
+                }
+                .tryMapFailureToDomain(domainFailureFactory)
+        }
 
     private fun Color.toDtoString(): String {
         val hex = with(colorConverter) { toHex() }
