@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.scheme.feature
 
+import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
 import kotlinx.collections.immutable.ImmutableList
 import io.github.mmolosay.thecolor.domain.color.ColorScheme as DomainColorScheme
@@ -17,7 +18,8 @@ data class ColorSchemeData(
 ) {
 
     data class Swatch(
-        val color: ColorInt,
+        val color: Color,
+        val colorInt: ColorInt,
         val isDark: Boolean,
     )
 }

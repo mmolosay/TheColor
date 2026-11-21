@@ -63,6 +63,7 @@ import io.github.mmolosay.thecolor.presentation.scheme.feature.ColorSchemeViewDa
 import io.github.mmolosay.thecolor.presentation.scheme.feature.SwatchCount
 import io.github.mmolosay.thecolor.utils.doNothing
 import kotlinx.collections.immutable.persistentListOf
+import io.github.mmolosay.thecolor.domain.color.Color as DomainColor
 import io.github.mmolosay.thecolor.domain.color.ColorScheme as DomainColorScheme
 import io.github.mmolosay.thecolor.presentation.design.R as DesignR
 
@@ -107,7 +108,7 @@ fun ColorScheme(
 fun ColorScheme(
     data: ColorSchemeData,
     strings: ColorSchemeUiStrings,
-    onSwatchClick: (index: Int) -> Unit,
+    onSwatchClick: (color: DomainColor) -> Unit,
     onModeClick: (mode: DomainColorScheme.Mode) -> Unit,
     onSwatchCountClick: (count: SwatchCount) -> Unit,
     onApplyChangesClick: () -> Unit,
@@ -463,39 +464,48 @@ private fun previewData() =
     ColorSchemeData(
         swatches = persistentListOf(
             ColorSchemeData.Swatch(
-                color = ColorInt(0x05160B),
+                color = DomainColor.Hex(0x05160B),
+                colorInt = ColorInt(0x05160B),
                 isDark = true,
             ),
             ColorSchemeData.Swatch(
-                color = ColorInt(0x0A2D17),
+                color = DomainColor.Hex(0x0A2D17),
+                colorInt = ColorInt(0x0A2D17),
                 isDark = true,
             ),
             ColorSchemeData.Swatch(
-                color = ColorInt(0x0F4522),
+                color = DomainColor.Hex(0x0F4522),
+                colorInt = ColorInt(0x0F4522),
                 isDark = true,
             ),
             ColorSchemeData.Swatch(
-                color = ColorInt(0x135C2E),
+                color = DomainColor.Hex(0x135C2E),
+                colorInt = ColorInt(0x135C2E),
                 isDark = true,
             ),
             ColorSchemeData.Swatch(
-                color = ColorInt(0x187439),
+                color = DomainColor.Hex(0x187439),
+                colorInt = ColorInt(0x187439),
                 isDark = true,
             ),
             ColorSchemeData.Swatch(
-                color = ColorInt(0x1C8C45),
+                color = DomainColor.Hex(0x1C8C45),
+                colorInt = ColorInt(0x1C8C45),
                 isDark = false,
             ),
             ColorSchemeData.Swatch(
-                color = ColorInt(0x20A450),
+                color = DomainColor.Hex(0x20A450),
+                colorInt = ColorInt(0x20A450),
                 isDark = false,
             ),
             ColorSchemeData.Swatch(
-                color = ColorInt(0x24BC5C),
+                color = DomainColor.Hex(0x24BC5C),
+                colorInt = ColorInt(0x24BC5C),
                 isDark = false,
             ),
             ColorSchemeData.Swatch(
-                color = ColorInt(0x28D567),
+                color = DomainColor.Hex(0x28D567),
+                colorInt = ColorInt(0x28D567),
                 isDark = false,
             ),
         ),

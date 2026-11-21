@@ -39,12 +39,13 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.math.absoluteValue
+import io.github.mmolosay.thecolor.domain.color.Color as DomainColor
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun ListOfSwatches(
     swatches: List<ColorSchemeData.Swatch>,
-    onSwatchClick: (indexOfSwatch: Int) -> Unit,
+    onSwatchClick: (color: DomainColor) -> Unit,
 ) {
     val pagerState = rememberPagerState(
         initialPage = 0,
@@ -117,7 +118,7 @@ internal fun ListOfSwatches(
                 .zIndex(zIndex)
                 .scale(scale),
             swatch = swatch,
-            onClick = { onSwatchClick(pageIndex) },
+            onClick = { onSwatchClick(swatch.color) },
         )
     }
 }

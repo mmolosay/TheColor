@@ -26,7 +26,7 @@ internal fun Swatch(
             modifier = modifier
                 .size(SwatchSize)
                 .clip(CircleShape)
-                .background(swatch.color.toCompose())
+                .background(swatch.colorInt.toCompose())
                 .clickable(onClick = onClick),
         )
     }

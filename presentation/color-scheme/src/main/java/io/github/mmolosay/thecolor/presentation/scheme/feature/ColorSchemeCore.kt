@@ -92,10 +92,11 @@ class ColorSchemeCore @AssistedInject constructor(
 
     // region Transitions
 
-    // TODO: selecting by index is bug-prone, as swatch list may change, and the same index will point to the different swatch count. Find a better approach
-    fun ColorSchemeState.selectSwatch(index: Int): Change<ColorSchemeState, ColorSchemeOutcome> {
+    fun ColorSchemeState.selectSwatch(color: Color): Change<ColorSchemeState, ColorSchemeOutcome> {
         if (this !is ColorSchemeState.Ready) return Change(this)
-        val details = this.scheme.swatchDetails.getOrNull(index) ?: return Change(this)
+        val details = this.scheme.swatchDetails
+            .find { details -> details.color == color }
+            ?: return Change(this)
         val outcome = ColorSchemeOutcome.SwatchSelected(details)
         return Change(this, outcome)
     }
@@ -158,7 +159,8 @@ class CreateSwatchUseCase @Inject constructor(
 
     operator fun invoke(color: Color): ColorSchemeData.Swatch =
         ColorSchemeData.Swatch(
-            color = with(colorToColorInt) { color.toColorInt() },
+            color = color,
+            colorInt = with(colorToColorInt) { color.toColorInt() },
             isDark = with(isColorLight) { color.isLight().not() },
         )
 }

@@ -12,6 +12,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.Test
 import io.github.mmolosay.thecolor.domain.color.ColorDetails as DomainColorDetails
@@ -163,9 +164,15 @@ class ColorSchemeCoreTest {
     }
 
     @Test
-    fun `given a scheme is in, when 'selectSwatch' is invoked, then 'SwatchSelected' is handed up with the swatch's details`() {
+    fun `given a scheme is in, when 'selectSwatch' is invoked with a swatch's color, then 'SwatchSelected' is handed up with that swatch's details`() {
         with(sut) {
-            val swatchDetails = listOf<DomainColorDetails>(mockk(), mockk(), mockk())
+            val swatchDetails = listOf(
+                Color.Hex(0x0F4522),
+                Color.Hex(0x135C2E),
+                Color.Hex(0x187439),
+            ).map { swatchColor ->
+                mockk<DomainColorDetails> { every { color } returns swatchColor }
+            }
             val state = initialState()
                 .withSession(Color.Hex(0x1A803F))
                 .let { state ->
@@ -174,9 +181,30 @@ class ColorSchemeCoreTest {
                     state.completeScheme(Result.success(scheme), request).state
                 }
 
-            val selected = state.selectSwatch(index = 1)
+            val selected = state.selectSwatch(Color.Hex(0x135C2E))
 
             selected.outcome shouldBe ColorSchemeOutcome.SwatchSelected(swatchDetails[1])
+        }
+    }
+
+    @Test
+    fun `given a scheme is in, when 'selectSwatch' is invoked with a color it has no swatch of, then nothing changes`() {
+        with(sut) {
+            val swatchDetails = listOf(Color.Hex(0x0F4522), Color.Hex(0x135C2E))
+                .map { swatchColor ->
+                    mockk<DomainColorDetails> { every { color } returns swatchColor }
+                }
+            val state = initialState()
+                .withSession(Color.Hex(0x1A803F))
+                .let { state ->
+                    val request = state.awaited().shouldNotBeNull()
+                    val scheme = DomainColorScheme(swatchDetails = swatchDetails)
+                    state.completeScheme(Result.success(scheme), request).state
+                }
+
+            val selected = state.selectSwatch(Color.Hex(0x28D567)) // of a scheme shown before
+
+            selected shouldBe Change(state)
         }
     }
 
