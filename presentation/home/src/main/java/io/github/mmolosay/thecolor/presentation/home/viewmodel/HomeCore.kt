@@ -18,8 +18,8 @@ import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewDataFactory
 import javax.inject.Inject
 
 class HomeCore @AssistedInject constructor(
-    inputEditorFactory: ColorEditorCore.Factory,
-    inputGroupFactory: ColorInputGroupCore.Factory,
+    colorEditorFactory: ColorEditorCore.Factory,
+    colorInputGroupFactory: ColorInputGroupCore.Factory,
     colorCenterFactory: ColorCenterCore.Factory,
     colorDetailsFactory: ColorDetailsCore.Factory,
     private val colorComparator: ColorComparator,
@@ -27,20 +27,20 @@ class HomeCore @AssistedInject constructor(
     private val createSessionColor: CreateSessionColorUseCase,
 ) {
 
-    val inputEditorCore: ColorEditorCore = inputEditorFactory.create()
-    val inputGroupCore: ColorInputGroupCore = inputGroupFactory.create()
+    val colorEditorCore: ColorEditorCore = colorEditorFactory.create()
+    val colorInputGroupCore: ColorInputGroupCore = colorInputGroupFactory.create()
     val colorCenterCore: ColorCenterCore = colorCenterFactory.create()
     val selectedSwatchCore: ColorDetailsCore = colorDetailsFactory.create()
 
     fun initialState(): HomeState {
-        val inputEditor = inputEditorCore.initialState(color = null)
-        val editorVersion = with(inputEditorCore) { inputEditor.version() }
+        val colorEditor = colorEditorCore.initialState(color = null)
+        val editorVersion = with(colorEditorCore) { colorEditor.version() }
         return HomeState(
-            inputEditor = inputEditor,
-            inputGroup = inputGroupCore.initialState(),
+            colorEditor = colorEditor,
+            colorInputGroup = colorInputGroupCore.initialState(),
             colorCenter = colorCenterCore.initialState(),
             selectedSwatch = selectedSwatchCore.initialState(),
-            startupColorRequest = HomeState.StartupColorRequest(editorVersion = editorVersion),
+            startupColorRequest = HomeState.StartupColorRequest(colorEditorVersion = editorVersion),
             autoProceed = null,
             lastSearchedColorSaveRequest = null,
         )
@@ -49,23 +49,23 @@ class HomeCore @AssistedInject constructor(
     // region Getters
 
     fun HomeState.isInitialized(): Boolean {
-        val isInputGroupInit = with(inputGroupCore) { inputGroup.isInitialized() }
+        val isColorInputGroupInit = with(colorInputGroupCore) { colorInputGroup.isInitialized() }
         val isStartupColorInit = (this.awaitedStartup() == null)
         val isAutoProceedInit = (this.autoProceed != null)
-        return (isInputGroupInit && isStartupColorInit && isAutoProceedInit)
+        return (isColorInputGroupInit && isStartupColorInit && isAutoProceedInit)
     }
 
     fun HomeState.awaitedStartup(): HomeState.StartupColorRequest? {
         val request = this.startupColorRequest ?: return null
-        val editorVersion = with(inputEditorCore) { inputEditor.version() }
-        return request.takeIf { it.editorVersion == editorVersion }
+        val editorVersion = with(colorEditorCore) { colorEditor.version() }
+        return request.takeIf { it.colorEditorVersion == editorVersion }
     }
 
     fun HomeState.awaitedSaveRequest(): HomeState.LastSearchedColorSaveRequest? =
         this.lastSearchedColorSaveRequest
 
     fun HomeState.canProceed(): Boolean =
-        (this.inputEditor.color != null)
+        (this.colorEditor.color != null)
 
     fun HomeState.toViewData(): HomeViewData? {
         if (!this.isInitialized()) return null
@@ -73,7 +73,7 @@ class HomeCore @AssistedInject constructor(
         return HomeViewData(
             canProceed = this.canProceed(),
             sessionColor = sessionColor?.let { createSessionColor(it) },
-            colorPreview = colorPreviewDataFactory.create(this.inputEditor.color)
+            colorPreview = colorPreviewDataFactory.create(this.colorEditor.color)
         )
     }
 
@@ -83,7 +83,7 @@ class HomeCore @AssistedInject constructor(
 
     private fun HomeState.withSession(color: Color): HomeState =
         this.copy(
-            inputEditor = with(inputEditorCore) { inputEditor.withColor(color) },
+            colorEditor = with(colorEditorCore) { colorEditor.withColor(color) },
             colorCenter = with(colorCenterCore) { colorCenter.withSession(color) },
             selectedSwatch = with(selectedSwatchCore) { selectedSwatch.withoutSession() },
             lastSearchedColorSaveRequest = HomeState.LastSearchedColorSaveRequest(color),
@@ -97,7 +97,7 @@ class HomeCore @AssistedInject constructor(
 
     private fun HomeState.withoutStaleSession(): HomeState {
         val sessionColor = with(colorCenterCore) { colorCenter.sessionColor() } ?: return this
-        if (context(colorComparator) { inputEditor.color isSameAs sessionColor }) return this
+        if (context(colorComparator) { colorEditor.color isSameAs sessionColor }) return this
         return this.withoutSession()
     }
 
@@ -106,7 +106,7 @@ class HomeCore @AssistedInject constructor(
     // region Transitions
 
     fun HomeState.proceed(): Change<HomeState, Nothing> {
-        val color = this.inputEditor.color ?: return Change(this)
+        val color = this.colorEditor.color ?: return Change(this)
         val state = this.withSession(color)
         return Change(state)
     }
@@ -116,7 +116,7 @@ class HomeCore @AssistedInject constructor(
             return Change(this.withSession(color))
         }
         val edited = this.copy(
-            inputEditor = with(inputEditorCore) { inputEditor.withColor(color) },
+            colorEditor = with(colorEditorCore) { colorEditor.withColor(color) },
         )
         val state = edited.withoutStaleSession()
         return Change(state)
@@ -152,16 +152,16 @@ class HomeCore @AssistedInject constructor(
         return Change(state)
     }
 
-    fun HomeState.onInputEditor(outcome: ColorEditorOutcome?): Change<HomeState, Nothing> {
+    fun HomeState.onColorEditor(outcome: ColorEditorOutcome?): Change<HomeState, Nothing> {
         var state = this.withoutStaleSession()
         return when (outcome) {
             null -> Change(state)
             is ColorEditorOutcome.ColorSubmitted -> {
-                val inputEditor = with(inputEditorCore) {
-                    state.inputEditor.withSubmissionAccepted()
+                val editor = with(colorEditorCore) {
+                    state.colorEditor.withSubmissionAccepted()
                 }
                 state = state
-                    .copy(inputEditor = inputEditor)
+                    .copy(colorEditor = editor)
                     .withSession(outcome.color)
                 Change(state)
             }
@@ -172,8 +172,8 @@ class HomeCore @AssistedInject constructor(
         when (outcome) {
             null -> Change(this)
             is ColorCenterOutcome.SessionColorSelected -> {
-                val editor = with(inputEditorCore) { inputEditor.withColor(outcome.color) }
-                val state = this.copy(inputEditor = editor)
+                val editor = with(colorEditorCore) { colorEditor.withColor(outcome.color) }
+                val state = this.copy(colorEditor = editor)
                 Change(state)
             }
             is ColorCenterOutcome.SwatchSelected -> {

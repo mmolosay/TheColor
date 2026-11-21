@@ -9,8 +9,8 @@ import io.github.mmolosay.thecolor.utils.Identity
 import io.github.mmolosay.thecolor.utils.Lens
 
 data class HomeState(
-    val inputEditor: ColorEditorState,
-    val inputGroup: ColorInputGroupState,
+    val colorEditor: ColorEditorState,
+    val colorInputGroup: ColorInputGroupState,
     val colorCenter: ColorCenterState,
     val selectedSwatch: ColorDetailsState,
     val startupColorRequest: StartupColorRequest?,
@@ -19,7 +19,7 @@ data class HomeState(
 ) {
 
     data class StartupColorRequest(
-        val editorVersion: Int,
+        val colorEditorVersion: Int,
         val identity: Identity = Identity(),
     )
 
@@ -31,13 +31,13 @@ data class HomeState(
 
 object HomeStateLenses {
 
-    val inputEditor = Lens<HomeState, ColorEditorState>(
-        get = { s -> s.inputEditor },
-        set = { s, v -> s.copy(inputEditor = v) },
+    val colorEditor = Lens<HomeState, ColorEditorState>(
+        get = { s -> s.colorEditor },
+        set = { s, v -> s.copy(colorEditor = v) },
     )
-    val inputGroup = Lens<HomeState, ColorInputGroupState>(
-        get = { s -> s.inputGroup },
-        set = { s, v -> s.copy(inputGroup = v) },
+    val colorInputGroup = Lens<HomeState, ColorInputGroupState>(
+        get = { s -> s.colorInputGroup },
+        set = { s, v -> s.copy(colorInputGroup = v) },
     )
     val colorCenter = Lens<HomeState, ColorCenterState>(
         get = { s -> s.colorCenter },

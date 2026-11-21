@@ -32,7 +32,7 @@ import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeStateLenses a
 class HomeViewModel @Inject constructor(
     coreFactory: HomeCore.Factory,
     colorEditorFactory: ColorEditorFeature.Factory,
-    inputGroupFactory: ColorInputGroupFeature.Factory,
+    colorInputGroupFactory: ColorInputGroupFeature.Factory,
     colorCenterFactory: ColorCenterFeature.Factory,
     colorDetailsFactory: ColorDetailsFeature.Factory,
     private val getStartupColor: GetStartupColorUseCase,
@@ -48,16 +48,16 @@ class HomeViewModel @Inject constructor(
         store.mapState { state -> with(core) { state.toViewData() } }
 
     val colorEditor: ColorEditorFeature = colorEditorFactory.create(
-        core = core.inputEditorCore,
-        store = store.slice(StateLenses.inputEditor) { state, outcome: ColorEditorOutcome? ->
-            with(core) { state.onInputEditor(outcome) }
+        core = core.colorEditorCore,
+        store = store.slice(StateLenses.colorEditor) { state, outcome: ColorEditorOutcome? ->
+            with(core) { state.onColorEditor(outcome) }
         },
         scope = viewModelScope.child(),
     )
 
-    val colorInputGroup: ColorInputGroupFeature = inputGroupFactory.create(
-        core = core.inputGroupCore,
-        store = store.slice(StateLenses.inputGroup) { state -> Change(state) },
+    val colorInputGroup: ColorInputGroupFeature = colorInputGroupFactory.create(
+        core = core.colorInputGroupCore,
+        store = store.slice(StateLenses.colorInputGroup) { state -> Change(state) },
         scope = viewModelScope.child(),
     )
 

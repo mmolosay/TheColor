@@ -50,7 +50,7 @@ class HomeCoreTest {
     // only an open session's color uses it, and these tests read none
     val createSessionColor: CreateSessionColorUseCase = mockk()
 
-    val inputEditorFactory = ColorEditorCore.Factory {
+    val colorEditorFactory = ColorEditorCore.Factory {
         val colorInputMapper = ColorInputMapper()
         val colorInputValidator = ColorInputValidator(
             colorInputMapper = colorInputMapper,
@@ -86,7 +86,7 @@ class HomeCoreTest {
         )
     }
 
-    val inputGroupFactory = ColorInputGroupCore.Factory {
+    val colorInputGroupFactory = ColorInputGroupCore.Factory {
         ColorInputGroupCore()
     }
 
@@ -112,8 +112,8 @@ class HomeCoreTest {
     }
 
     val sut = HomeCore(
-        inputEditorFactory = inputEditorFactory,
-        inputGroupFactory = inputGroupFactory,
+        colorEditorFactory = colorEditorFactory,
+        colorInputGroupFactory = colorInputGroupFactory,
         colorCenterFactory = colorCenterFactory,
         colorDetailsFactory = colorDetailsFactory,
         colorComparator = colorComparator,
@@ -122,38 +122,38 @@ class HomeCoreTest {
     )
 
     @Test
-    fun `given 'inputEditor' has a color other than the session's, when 'onInputEditor' is invoked, then the session ends`() {
+    fun `given 'colorEditor' has a color other than the session's, when 'onColorEditor' is invoked, then the session ends`() {
         with(sut) {
             val state = initialState()
-                .withInputEditorColor(Color.Hex(0x1A803F))
+                .withColorEditorColor(Color.Hex(0x1A803F))
                 .proceed().state
-                .withInputEditorColor(Color.Hex(0x126B40))
+                .withColorEditorColor(Color.Hex(0x126B40))
 
-            val handled = state.onInputEditor(outcome = null)
+            val handled = state.onColorEditor(outcome = null)
 
             handled.state.sessionColor() shouldBe null
         }
     }
 
     @Test
-    fun `given 'inputEditor' has the session's color in another form, when 'onInputEditor' is invoked, then the session stays`() {
+    fun `given 'colorEditor' has the session's color in another form, when 'onColorEditor' is invoked, then the session stays`() {
         with(sut) {
             val state = initialState()
-                .withInputEditorColor(Color.Hex(0x1A803F))
+                .withColorEditorColor(Color.Hex(0x1A803F))
                 .proceed().state
                 .let {
                     val color = Color.Rgb(r = 26, g = 128, b = 63)
-                    it.withInputEditorColor(color)
+                    it.withColorEditorColor(color)
                 }
 
-            val handled = state.onInputEditor(outcome = null)
+            val handled = state.onColorEditor(outcome = null)
 
             handled.state.colorCenter shouldBe state.colorCenter
         }
     }
 
     @Test
-    fun `given 'hex' in 'inputEditor' is submitted with 'FFF', when 'onInputEditor' is invoked with 'ColorSubmitted', then 'hex' is answered with 'Accepted' and a session opens for that color`() {
+    fun `given 'hex' in 'colorEditor' is submitted with 'FFF', when 'onColorEditor' is invoked with 'ColorSubmitted', then 'hex' is answered with 'Accepted' and a session opens for that color`() {
         with(sut) {
             val submitted = initialState()
                 .withHexText("FFF")
@@ -161,9 +161,9 @@ class HomeCoreTest {
             val state = submitted.state
             val outcome = submitted.outcome.shouldBeInstanceOf<ColorEditorOutcome.ColorSubmitted>()
 
-            val handled = state.onInputEditor(outcome)
+            val handled = state.onColorEditor(outcome)
 
-            val submission = handled.state.inputEditor.hex.submission
+            val submission = handled.state.colorEditor.hex.submission
                 .shouldBeInstanceOf<ColorInputSubmission.Answered>()
             submission.answer shouldBe ColorInputSubmission.Answer.Accepted
             handled.state.sessionColor() shouldBe Color.Hex(0xFFFFFF)
@@ -171,17 +171,17 @@ class HomeCoreTest {
     }
 
     @Test
-    fun `given a session is open, when 'onColorCenter' is invoked with 'SessionColorSelected', then 'inputEditor' has that color`() {
+    fun `given a session is open, when 'onColorCenter' is invoked with 'SessionColorSelected', then 'colorEditor' has that color`() {
         with(sut) {
             val state = initialState()
-                .withInputEditorColor(Color.Hex(0x1A803F))
+                .withColorEditorColor(Color.Hex(0x1A803F))
                 .proceed().state
 
             val color = Color.Hex(0x126B40)
             val outcome = ColorCenterOutcome.SessionColorSelected(color)
             val handled = state.onColorCenter(outcome)
 
-            handled.state.inputEditor.color shouldBe color
+            handled.state.colorEditor.color shouldBe color
         }
     }
 
@@ -189,7 +189,7 @@ class HomeCoreTest {
     fun `given a session is open, when 'onColorCenter' is invoked with 'SessionColorSelected', then the session stays`() {
         with(sut) {
             val state = initialState()
-                .withInputEditorColor(Color.Hex(0x1A803F))
+                .withColorEditorColor(Color.Hex(0x1A803F))
                 .proceed().state
 
             val outcome = ColorCenterOutcome.SessionColorSelected(Color.Hex(0x126B40))
@@ -203,7 +203,7 @@ class HomeCoreTest {
     fun `given a session is open, when 'onColorCenter' is invoked with 'SwatchSelected', then 'selectedSwatch' is 'Ready' with the swatch's details`() {
         with(sut) {
             val state = initialState()
-                .withInputEditorColor(Color.Hex(0x1A803F))
+                .withColorEditorColor(Color.Hex(0x1A803F))
                 .proceed().state
 
             val details = mockk<DomainColorDetails>()
@@ -219,7 +219,7 @@ class HomeCoreTest {
     fun `given a swatch is selected, when 'proceed' is invoked, then 'selectedSwatch' is 'NotRequested'`() {
         with(sut) {
             val state = initialState()
-                .withInputEditorColor(Color.Hex(0x1A803F))
+                .withColorEditorColor(Color.Hex(0x1A803F))
                 .proceed().state
                 .let {
                     val outcome = ColorCenterOutcome.SwatchSelected(details = mockk())
@@ -236,22 +236,22 @@ class HomeCoreTest {
     fun `given a swatch is selected, when the session ends, then 'selectedSwatch' is 'NotRequested'`() {
         with(sut) {
             val state = initialState()
-                .withInputEditorColor(Color.Hex(0x1A803F))
+                .withColorEditorColor(Color.Hex(0x1A803F))
                 .proceed().state
                 .let {
                     val outcome = ColorCenterOutcome.SwatchSelected(details = mockk())
                     it.onColorCenter(outcome)
                 }.state
-                .withInputEditorColor(Color.Hex(0x126B40))
+                .withColorEditorColor(Color.Hex(0x126B40))
 
-            val handled = state.onInputEditor(outcome = null) // the colors differ, so it ends
+            val handled = state.onColorEditor(outcome = null) // the colors differ, so it ends
 
             handled.state.selectedSwatch shouldBe ColorDetailsState.NotRequested
         }
     }
 
     @Test
-    fun `when 'completeStartup' is invoked with a color, then 'inputEditor' has that color`() {
+    fun `when 'completeStartup' is invoked with a color, then 'colorEditor' has that color`() {
         with(sut) {
             val state = initialState()
             val request = state.awaitedStartup().shouldNotBeNull()
@@ -259,7 +259,7 @@ class HomeCoreTest {
             val color = Color.Hex(0x1A803F)
             val completed = state.completeStartup(color, request)
 
-            completed.state.inputEditor.color shouldBe color
+            completed.state.colorEditor.color shouldBe color
         }
     }
 
@@ -277,15 +277,15 @@ class HomeCoreTest {
     }
 
     @Test
-    fun `given the color in 'inputEditor' changed since the read started, when 'completeStartup' is invoked, then 'inputEditor' keeps its color`() {
+    fun `given the color in 'colorEditor' changed since the read started, when 'completeStartup' is invoked, then 'colorEditor' keeps its color`() {
         with(sut) {
             val state = initialState()
             val request = state.awaitedStartup().shouldNotBeNull()
-            val edited = state.withInputEditorColor(Color.Hex(0x126B40))
+            val edited = state.withColorEditorColor(Color.Hex(0x126B40))
 
             val completed = edited.completeStartup(Color.Hex(0x1A803F), request)
 
-            completed.state.inputEditor.color shouldBe Color.Hex(0x126B40)
+            completed.state.colorEditor.color shouldBe Color.Hex(0x126B40)
         }
     }
 
@@ -298,17 +298,17 @@ class HomeCoreTest {
 
             val completed = edited.completeStartup(Color.Hex(0x1A803F), request)
 
-            completed.state.inputEditor.hex.textField.text shouldBe "1A"
+            completed.state.colorEditor.hex.textField.text shouldBe "1A"
         }
     }
 
     @Test
-    fun `given the color in 'inputEditor' changed since the read started, when 'inputGroup' and 'autoProceed' are in, then the state is initialized`() {
+    fun `given the color in 'colorEditor' changed since the read started, when 'colorInputGroup' and 'autoProceed' are in, then the state is initialized`() {
         with(sut) {
-            val state = initialState().withInputEditorColor(Color.Hex(0x126B40))
+            val state = initialState().withColorEditorColor(Color.Hex(0x126B40))
 
             val applied = state
-                .withInputGroupPreferredType(DomainColorInputType.Hex)
+                .withColorInputGroupPreferredType(DomainColorInputType.Hex)
                 .applyAutoProceed(enabled = false).state
 
             applied.isInitialized() shouldBe true
@@ -316,14 +316,14 @@ class HomeCoreTest {
     }
 
     @Test
-    fun `given the startup color and 'inputGroup' are in, when 'isInitialized' is invoked before 'applyAutoProceed', then it's 'false'`() {
+    fun `given the startup color and 'colorInputGroup' are in, when 'isInitialized' is invoked before 'applyAutoProceed', then it's 'false'`() {
         with(sut) {
             val state = initialState()
                 .let { state ->
                     val request = state.awaitedStartup().shouldNotBeNull()
                     state.completeStartup(Color.Hex(0x1A803F), request)
                 }.state
-                .withInputGroupPreferredType(DomainColorInputType.Hex)
+                .withColorInputGroupPreferredType(DomainColorInputType.Hex)
 
             val isInitialized = state.isInitialized()
 
@@ -336,7 +336,7 @@ class HomeCoreTest {
         with(sut) {
             val state = initialState()
                 .applyAutoProceed(enabled = false).state
-                .withInputEditorColor(Color.Hex(0x1A803F))
+                .withColorEditorColor(Color.Hex(0x1A803F))
                 .proceed().state
 
             val randomized = state.randomize(Color.Hex(0x126B40))
@@ -358,10 +358,10 @@ class HomeCoreTest {
     }
 
     @Test
-    fun `given 'inputEditor' has a color, when 'proceed' is invoked, then a save of that color is awaited`() {
+    fun `given 'colorEditor' has a color, when 'proceed' is invoked, then a save of that color is awaited`() {
         with(sut) {
             val color = Color.Hex(0x1A803F)
-            val state = initialState().withInputEditorColor(color)
+            val state = initialState().withColorEditorColor(color)
 
             val proceeded = state.proceed()
 
@@ -374,7 +374,7 @@ class HomeCoreTest {
     fun `given a newer save is awaited, when 'completeSave' is invoked for the older one, then the newer one is still awaited`() {
         with(sut) {
             val older = initialState()
-                .withInputEditorColor(Color.Hex(0x1A803F))
+                .withColorEditorColor(Color.Hex(0x1A803F))
                 .proceed().state
             val olderSave = older.awaitedSaveRequest().shouldNotBeNull()
             val newer = older.proceed().state
@@ -389,18 +389,18 @@ class HomeCoreTest {
     fun `given a session is open, when it ends, then 'sessionColor' is 'null'`() {
         with(sut) {
             val state = initializedState()
-                .withInputEditorColor(Color.Hex(0x1A803F))
+                .withColorEditorColor(Color.Hex(0x1A803F))
                 .proceed().state
-                .withInputEditorColor(Color.Hex(0x126B40))
+                .withColorEditorColor(Color.Hex(0x126B40))
 
-            val handled = state.onInputEditor(outcome = null) // the colors differ, so it ends
+            val handled = state.onColorEditor(outcome = null) // the colors differ, so it ends
 
             handled.state.toViewData().shouldNotBeNull().sessionColor shouldBe null
         }
     }
 
     @Test
-    fun `given 'inputEditor' has no color, when 'toViewData' is invoked, then 'canProceed' is 'false'`() {
+    fun `given 'colorEditor' has no color, when 'toViewData' is invoked, then 'canProceed' is 'false'`() {
         with(sut) {
             val state = initializedState()
 
@@ -416,51 +416,53 @@ class HomeCoreTest {
             val request = state.awaitedStartup().shouldNotBeNull()
             state
                 .completeStartup(color = null, expected = request).state
-                .withInputGroupPreferredType(DomainColorInputType.Hex)
+                .withColorInputGroupPreferredType(DomainColorInputType.Hex)
                 .applyAutoProceed(enabled = false).state
         }
 
     fun HomeState.sessionColor(): Color? =
         with(sut.colorCenterCore) { colorCenter.sessionColor() }
 
-    fun HomeState.withInputEditorColor(color: Color): HomeState {
-        val edited = with(sut.inputEditorCore) { inputEditor.withColor(color) }
-        return this.copy(inputEditor = edited)
+    fun HomeState.withColorEditorColor(color: Color): HomeState {
+        val edited = with(sut.colorEditorCore) { colorEditor.withColor(color) }
+        return this.copy(colorEditor = edited)
     }
 
     fun HomeState.withHexText(text: String): HomeState {
-        val inputEditor = this.inputEditor
-        val newHex = inputEditor.hex.enterText(text)
-        val newInputEditor = with(sut.inputEditorCore) {
-            inputEditor
+        val editor = this.colorEditor
+        val newHex = editor.hex.enterText(text)
+        val newEditor = with(sut.colorEditorCore) {
+            editor
                 .copy(hex = newHex)
                 .onHex(outcome = null)
         }.state
-        return this.copy(inputEditor = newInputEditor)
+        return this.copy(colorEditor = newEditor)
     }
 
     fun HomeState.submitHex(): Change<HomeState, ColorEditorOutcome> {
-        val inputEditor = this.inputEditor
-        val newHex = with(sut.inputEditorCore.hexCore) { inputEditor.hex.submit() }.state
-        val newInputEditor = with(sut.inputEditorCore) {
-            inputEditor
+        val editor = this.colorEditor
+        val newHex = with(sut.colorEditorCore.hexCore) { editor.hex.submit() }.state
+        val newEditor = with(sut.colorEditorCore) {
+            editor
                 .copy(hex = newHex)
                 .onHex(ColorInputHexOutcome.Submitted)
         }
-        val state = this.copy(inputEditor = newInputEditor.state)
-        return Change(state, newInputEditor.outcome)
+        val state = this.copy(colorEditor = newEditor.state)
+        return Change(state, newEditor.outcome)
     }
 
     fun ColorInputHexState.enterText(text: String): ColorInputHexState {
         val textField = this.textField
-        val newTextField = with(sut.inputEditorCore.hexCore.textFieldCore) {
+        val newTextField = with(sut.colorEditorCore.hexCore.textFieldCore) {
             textField.enterText(text, expected = textField.text)
         }.state
         return this.copy(textField = newTextField)
     }
 
-    fun HomeState.withInputGroupPreferredType(type: DomainColorInputType): HomeState {
-        val applied = with(sut.inputGroupCore) { inputGroup.applyPreferredType(type).state }
-        return this.copy(inputGroup = applied)
+    fun HomeState.withColorInputGroupPreferredType(type: DomainColorInputType): HomeState {
+        val applied = with(sut.colorInputGroupCore) {
+            colorInputGroup.applyPreferredType(type).state
+        }
+        return this.copy(colorInputGroup = applied)
     }
 }
