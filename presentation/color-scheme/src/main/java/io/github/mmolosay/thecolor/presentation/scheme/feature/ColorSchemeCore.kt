@@ -22,7 +22,7 @@ class ColorSchemeCore @AssistedInject constructor(
 
     fun ColorSchemeState.awaited(): ColorSchemeState.Request? =
         this
-            .let { it as? ColorSchemeState.Loading }
+            .let { it as? ColorSchemeState.Requested }
             ?.request
 
     private fun ColorSchemeState.Ready.hasChangesToApply(): Boolean {
@@ -35,7 +35,7 @@ class ColorSchemeCore @AssistedInject constructor(
         when (this) {
             is ColorSchemeState.NotRequested ->
                 ColorSchemeViewData.Empty
-            is ColorSchemeState.Loading ->
+            is ColorSchemeState.Requested ->
                 ColorSchemeViewData.Loading
             is ColorSchemeState.Ready -> {
                 val data = ColorSchemeData(
@@ -68,13 +68,13 @@ class ColorSchemeCore @AssistedInject constructor(
             mode = DomainColorScheme.Mode.Monochrome,
             swatchCount = SwatchCount.Six,
         )
-        return ColorSchemeState.Loading(request = request)
+        return ColorSchemeState.Requested(request = request)
     }
 
     fun ColorSchemeState.withSeed(seed: Color): ColorSchemeState {
         val request = when (this) {
             is ColorSchemeState.NotRequested -> return this
-            is ColorSchemeState.Loading -> this.request
+            is ColorSchemeState.Requested -> this.request
             is ColorSchemeState.Ready -> this.request.copy(
                 mode = this.selectedMode,
                 swatchCount = this.selectedSwatchCount,
@@ -82,7 +82,7 @@ class ColorSchemeCore @AssistedInject constructor(
             is ColorSchemeState.Error -> this.request
         }
         val newRequest = request.copy(seed = seed, identity = Identity())
-        return ColorSchemeState.Loading(request = newRequest)
+        return ColorSchemeState.Requested(request = newRequest)
     }
 
     fun ColorSchemeState.withoutSession(): ColorSchemeState =

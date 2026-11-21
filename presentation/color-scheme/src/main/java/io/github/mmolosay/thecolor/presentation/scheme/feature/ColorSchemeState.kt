@@ -9,7 +9,7 @@ sealed interface ColorSchemeState {
 
     data object NotRequested : ColorSchemeState
 
-    data class Loading(
+    data class Requested(
         val request: Request,
     ) : ColorSchemeState
 

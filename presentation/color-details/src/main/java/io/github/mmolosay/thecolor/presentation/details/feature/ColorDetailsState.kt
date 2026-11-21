@@ -8,7 +8,7 @@ sealed interface ColorDetailsState {
 
     data object NotRequested : ColorDetailsState
 
-    data class Loading(
+    data class Requested(
         val session: Session?,
         val request: Request,
     ) : ColorDetailsState

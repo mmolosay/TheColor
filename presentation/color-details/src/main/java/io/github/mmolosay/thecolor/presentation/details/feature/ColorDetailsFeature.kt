@@ -27,7 +27,7 @@ class ColorDetailsFeature @AssistedInject constructor(
     private fun serveDetails() {
         scope.serve(
             store = store,
-            request = { state -> with(core) { state.awaited() } }, // TODO: should "was requested, not yet started" and "started, executing (loading)" statuses be separated for more clarity? Probably yes.
+            request = { state -> with(core) { state.awaited() } },
         ) { request ->
             val result = colorRepository.getColorDetails(request.color)
             store.update { state ->

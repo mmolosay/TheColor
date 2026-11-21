@@ -25,20 +25,20 @@ class ColorDetailsCore @AssistedInject constructor(
     fun ColorDetailsState.subject(): Color? =
         when (this) {
             is ColorDetailsState.NotRequested -> null
-            is ColorDetailsState.Loading -> this.request.color
+            is ColorDetailsState.Requested -> this.request.color
             is ColorDetailsState.Ready -> this.details.color
             is ColorDetailsState.Error -> this.request.color
         }
 
     fun ColorDetailsState.awaited(): ColorDetailsState.Request? =
         this
-            .let { it as? ColorDetailsState.Loading }
+            .let { it as? ColorDetailsState.Requested }
             ?.request
 
     private fun ColorDetailsState.session(): ColorDetailsState.Session? =
         when (this) {
             is ColorDetailsState.NotRequested -> null
-            is ColorDetailsState.Loading -> this.session
+            is ColorDetailsState.Requested -> this.session
             is ColorDetailsState.Ready -> this.session
             is ColorDetailsState.Error -> this.session
         }
@@ -47,7 +47,7 @@ class ColorDetailsCore @AssistedInject constructor(
         when (this) {
             is ColorDetailsState.NotRequested ->
                 ColorDetailsViewData.Empty
-            is ColorDetailsState.Loading ->
+            is ColorDetailsState.Requested ->
                 ColorDetailsViewData.Loading(
                     subject = createSubject(this.request.color),
                 )
@@ -73,7 +73,7 @@ class ColorDetailsCore @AssistedInject constructor(
 
     fun ColorDetailsState.withSession(seed: Color): ColorDetailsState {
         val request = ColorDetailsState.Request(color = seed, role = ColorRole.Seed)
-        return ColorDetailsState.Loading(session = null, request = request)
+        return ColorDetailsState.Requested(session = null, request = request)
     }
 
     fun ColorDetailsState.withSeedDetails(details: DomainColorDetails): ColorDetailsState {
@@ -100,7 +100,7 @@ class ColorDetailsCore @AssistedInject constructor(
             )
         } else {
             val request = ColorDetailsState.Request(color = color, role = role)
-            ColorDetailsState.Loading(
+            ColorDetailsState.Requested(
                 session = session,
                 request = request,
             )
@@ -112,7 +112,7 @@ class ColorDetailsCore @AssistedInject constructor(
     fun ColorDetailsState.retry(): Change<ColorDetailsState, Nothing> {
         if (this !is ColorDetailsState.Error) return Change(this)
         val newRequest = this.request.copy(identity = Identity())
-        val state = ColorDetailsState.Loading(session = this.session, request = newRequest)
+        val state = ColorDetailsState.Requested(session = this.session, request = newRequest)
         return Change(state)
     }
 
