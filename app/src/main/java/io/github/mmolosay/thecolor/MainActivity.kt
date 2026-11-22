@@ -7,26 +7,16 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.mmolosay.thecolor.presentation.design.Brightness
-import io.github.mmolosay.thecolor.presentation.design.ColorScheme
-import io.github.mmolosay.thecolor.presentation.design.LocalDefaultShouldUseLightTintForNavBarControls
 import io.github.mmolosay.thecolor.presentation.design.Material3DynamicColorsAvailability.areDynamicColorsAvailable
-import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.design.animateColors
 import io.github.mmolosay.thecolor.presentation.design.brightness
-import io.github.mmolosay.thecolor.presentation.design.shouldUseLightTintForNavBarControls
 import io.github.mmolosay.thecolor.presentation.design.systemBrightness
-import io.github.mmolosay.thecolor.presentation.design.toMaterialColorScheme
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -58,7 +48,10 @@ class MainActivity : ComponentActivity() {
                     )
             } ?: return@setContent
 
-            Content(colorScheme)
+            LaunchedEffect(colorScheme) {
+                enableEdgeToEdge(colorSchemeBrightness = colorScheme.brightness())
+            }
+            Application(colorScheme)
             SideEffect { isContentComposed = true }
         }
     }
@@ -97,31 +90,5 @@ class MainActivity : ComponentActivity() {
             statusBarStyle = systemBarStyle,
             navigationBarStyle = systemBarStyle,
         )
-    }
-
-    @Composable
-    private fun Content(colorScheme: ColorScheme) {
-        val context = LocalContext.current
-
-        LaunchedEffect(colorScheme) {
-            enableEdgeToEdge(colorSchemeBrightness = colorScheme.brightness())
-        }
-
-        val targetMaterialColorScheme = remember(colorScheme) { colorScheme.toMaterialColorScheme(context) }
-        val animatedMaterialColorScheme = targetMaterialColorScheme.animateColors()
-
-        val useLightTintForNavBarControls = remember(colorScheme) {
-            colorScheme.shouldUseLightTintForNavBarControls()
-        }
-
-        TheColorTheme(
-            materialColorScheme = animatedMaterialColorScheme,
-        ) {
-            CompositionLocalProvider(
-                LocalDefaultShouldUseLightTintForNavBarControls provides useLightTintForNavBarControls,
-            ) {
-                Application()
-            }
-        }
     }
 }
