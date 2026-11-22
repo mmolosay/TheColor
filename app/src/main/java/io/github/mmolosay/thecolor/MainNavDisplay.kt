@@ -22,7 +22,7 @@ import kotlinx.serialization.serializer
 
 @Composable
 internal fun MainNavDisplay(
-    rootNavBarAppearanceController: NavBarAppearanceController,
+    navBarAppearanceController: NavBarAppearanceController,
 ) {
     val backStack = rememberNavDestBackStack(NavDest.Home)
     NavDisplay(
@@ -35,7 +35,7 @@ internal fun MainNavDisplay(
         entryProvider = entryProvider {
             home(
                 navigateToSettings = { backStack += NavDest.Settings },
-                rootNavBarAppearanceController = rootNavBarAppearanceController,
+                navBarAppearanceController = navBarAppearanceController,
             )
             settings(
                 navigateBack = { backStack.removeLastOrNull() },
@@ -62,13 +62,13 @@ private fun rememberNavDestBackStack(
 
 private fun EntryProviderScope<NavDest>.home(
     navigateToSettings: () -> Unit,
-    rootNavBarAppearanceController: NavBarAppearanceController,
+    navBarAppearanceController: NavBarAppearanceController,
 ) =
     entry<NavDest.Home> {
         val homeViewModel: HomeViewModel = hiltViewModel()
-        val childController = remember(rootNavBarAppearanceController) {
+        val childController = remember(navBarAppearanceController) {
             val tag = NavDest.Home
-            rootNavBarAppearanceController.branch(tag)
+            navBarAppearanceController.branch(tag)
         }
         HomeScreen(
             viewModel = homeViewModel,

@@ -18,18 +18,18 @@ import io.github.mmolosay.thecolor.presentation.design.LocalDefaultShouldUseLigh
  */
 @Composable
 internal fun Application() {
-    val rootNavBarAppearanceController = remember { RootNavBarAppearanceController() }
+    val navBarAppearanceController = remember { RootNavBarAppearanceController() }
 
     MainNavDisplay(
-        rootNavBarAppearanceController = rootNavBarAppearanceController,
+        navBarAppearanceController = navBarAppearanceController,
     )
 
-    ChangeNavBarAppearanceAsSideEffect(rootNavBarAppearanceController)
+    ChangeNavBarAppearanceAsSideEffect(navBarAppearanceController)
 }
 
 @Composable
 private fun ChangeNavBarAppearanceAsSideEffect(
-    rootNavBarAppearanceController: NavBarAppearanceController,
+    navBarAppearanceController: NavBarAppearanceController,
 ) {
     val view = LocalView.current
     val defaultNavBarAppearance = navBarAppearance(
@@ -37,7 +37,7 @@ private fun ChangeNavBarAppearanceAsSideEffect(
         useLightTintForControls = LocalDefaultShouldUseLightTintForNavBarControls.current,
     )
     LaunchedEffect(Unit) {
-        rootNavBarAppearanceController.appearanceFlow.collect { appearance ->
+        navBarAppearanceController.appearanceFlow.collect { appearance ->
             val resultAppearance = if (appearance != null) {
                 appearance addFrom defaultNavBarAppearance
             } else {
