@@ -6,10 +6,10 @@ import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
-import io.github.mmolosay.thecolor.domain.utils.filterReady
-import io.github.mmolosay.thecolor.domain.utils.getOrElse
+import io.github.mmolosay.thecolor.domain.utils.readyValues
 import io.github.mmolosay.thecolor.utils.mapState
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -30,10 +30,10 @@ class ColorInputGroupFeature @AssistedInject constructor(
     }
 
     private fun initPreferredType() {
-        scope.launch {
+        scope.launch(start = CoroutineStart.UNDISPATCHED) {
             val type = userPreferencesRepository.flowOfColorInputType
-                .filterReady().first()
-                .getOrElse { DefaultUserPreferences.PreferredColorInputType }
+                .readyValues(DefaultUserPreferences.PreferredColorInputType)
+                .first()
             store.update { state ->
                 with(core) { state.applyPreferredType(type) }
             }

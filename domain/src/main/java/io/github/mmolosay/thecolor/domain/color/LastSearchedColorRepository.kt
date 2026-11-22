@@ -1,6 +1,9 @@
 package io.github.mmolosay.thecolor.domain.color
 
+import io.github.mmolosay.thecolor.domain.utils.PrefState
+import kotlinx.coroutines.flow.StateFlow
+
 interface LastSearchedColorRepository {
-    suspend fun getLastSearchedColor(): Color?
+    val flowOfLastSearchedColor: StateFlow<PrefState<Color>>
     suspend fun setLastSearchedColor(color: Color?)
 }

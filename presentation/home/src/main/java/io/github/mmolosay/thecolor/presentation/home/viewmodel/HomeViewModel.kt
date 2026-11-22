@@ -9,12 +9,12 @@ import io.github.mmolosay.thecolor.composition.CompositionUtils.serve
 import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.composition.slice
 import io.github.mmolosay.thecolor.domain.color.GetPredictableRandomColorUseCase
-import io.github.mmolosay.thecolor.domain.color.GetStartupColorUseCase
 import io.github.mmolosay.thecolor.domain.color.LastSearchedColorRepository
 import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
 import io.github.mmolosay.thecolor.domain.utils.filterReady
 import io.github.mmolosay.thecolor.domain.utils.getOrElse
+import io.github.mmolosay.thecolor.domain.utils.readyValues
 import io.github.mmolosay.thecolor.presentation.center.feature.ColorCenterFeature
 import io.github.mmolosay.thecolor.presentation.center.feature.ColorCenterOutcome
 import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsFeature
@@ -23,7 +23,9 @@ import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorFeature
 import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorOutcome
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupFeature
 import io.github.mmolosay.thecolor.utils.mapState
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeStateLenses as StateLenses
@@ -35,7 +37,6 @@ class HomeViewModel @Inject constructor(
     colorInputGroupFactory: ColorInputGroupFeature.Factory,
     colorCenterFactory: ColorCenterFeature.Factory,
     colorDetailsFactory: ColorDetailsFeature.Factory,
-    private val getStartupColor: GetStartupColorUseCase,
     private val userPreferencesRepository: UserPreferencesRepository,
     private val lastSearchedColorRepository: LastSearchedColorRepository,
     private val getPredictableRandomColor: GetPredictableRandomColorUseCase,
@@ -79,19 +80,37 @@ class HomeViewModel @Inject constructor(
 
     init {
         serveStartup()
-        serveLastSearchedColorSave()
         collectAutoProceed()
+        serveLastSearchedColorSave()
     }
 
     private fun serveStartup() {
-        viewModelScope.serve(
-            store = store,
-            request = { state -> with(core) { state.awaitedStartup() } },
-        ) { request ->
-            val color = getStartupColor()
+        val request = with(core) { store.value.awaitedStartup() } ?: return
+        viewModelScope.launch(start = CoroutineStart.UNDISPATCHED) {
+            val color = run {
+                val resume = userPreferencesRepository.flowOfResumeFromLastSearchedColorOnStartup
+                    .readyValues(DefaultUserPreferences.ResumeFromLastSearchedColorOnStartup)
+                    .first()
+                if (!resume.enabled) return@run null
+                val lastSearched = lastSearchedColorRepository.flowOfLastSearchedColor
+                    .filterReady().first()
+                return@run lastSearched.result.getOrElse { null }
+            }
             store.update { state ->
                 with(core) { state.completeStartup(color, request) }
             }
+        }
+    }
+
+    private fun collectAutoProceed() {
+        viewModelScope.launch(start = CoroutineStart.UNDISPATCHED) {
+            userPreferencesRepository.flowOfAutoProceedWithRandomizedColors
+                .readyValues(DefaultUserPreferences.AutoProceedWithRandomizedColors)
+                .collect { preference ->
+                    store.update { state ->
+                        with(core) { state.applyAutoProceed(preference.enabled) }
+                    }
+                }
         }
     }
 
@@ -104,21 +123,6 @@ class HomeViewModel @Inject constructor(
             store.update { state ->
                 with(core) { state.completeSave(request) }
             }
-        }
-    }
-
-    private fun collectAutoProceed() {
-        viewModelScope.launch {
-            userPreferencesRepository.flowOfAutoProceedWithRandomizedColors
-                .filterReady()
-                .collect { preference ->
-                    val enabled = preference
-                        .getOrElse { DefaultUserPreferences.AutoProceedWithRandomizedColors }
-                        .enabled
-                    store.update { state ->
-                        with(core) { state.applyAutoProceed(enabled) }
-                    }
-                }
         }
     }
 

@@ -10,14 +10,15 @@ import androidx.activity.viewModels
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.splashscreen.SplashScreen
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.mmolosay.thecolor.presentation.design.Brightness
+import io.github.mmolosay.thecolor.presentation.design.ColorScheme
 import io.github.mmolosay.thecolor.presentation.design.LocalDefaultShouldUseLightTintForNavBarControls
 import io.github.mmolosay.thecolor.presentation.design.Material3DynamicColorsAvailability.areDynamicColorsAvailable
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
@@ -26,24 +27,40 @@ import io.github.mmolosay.thecolor.presentation.design.brightness
 import io.github.mmolosay.thecolor.presentation.design.shouldUseLightTintForNavBarControls
 import io.github.mmolosay.thecolor.presentation.design.systemBrightness
 import io.github.mmolosay.thecolor.presentation.design.toMaterialColorScheme
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    private val splashViewModel: SplashViewModel by viewModels()
-    private var splashScreen: SplashScreen? = null
-
     private val mainViewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        var isContentComposed = false
         enableInitialEdgeToEdge()
-        setSplashScreen()
+        installSplashScreen().setKeepOnScreenCondition { !isContentComposed }
         super.onCreate(savedInstanceState)
         window.setBackgroundDrawable(null)
-        setContent { Content() }
-        collectSplashState()
+        val splashViewModel = ViewModelProvider(this)[SplashViewModel::class]
+        setContent {
+            val isSplashWorkComplete = splashViewModel.isWorkCompleteFlow
+                .collectAsStateWithLifecycle().value
+            if (!isSplashWorkComplete) return@setContent
+            val colorScheme = run {
+                val areDynamicColorsEnabled = mainViewModel.flowOfDynamicUiColors
+                    .collectAsStateWithLifecycle(initialValue = null).value
+                    ?.enabled
+                val useDynamicColorSchemes =
+                    (areDynamicColorsAvailable() && (areDynamicColorsEnabled ?: false))
+                mainViewModel.flowOfAppUiColorSchemeResolver
+                    .collectAsStateWithLifecycle(initialValue = null).value
+                    ?.resolve(
+                        brightness = systemBrightness(),
+                        useDynamicColorSchemes = useDynamicColorSchemes,
+                    )
+            } ?: return@setContent
+
+            Content(colorScheme)
+            SideEffect { isContentComposed = true }
+        }
     }
 
     /**
@@ -82,43 +99,9 @@ class MainActivity : ComponentActivity() {
         )
     }
 
-    private fun setSplashScreen() {
-        val splashScreen = installSplashScreen()
-        this.splashScreen = splashScreen
-        splashScreen.setKeepOnScreenCondition { true }
-    }
-
-    private fun collectSplashState() {
-        lifecycleScope.launch {
-            splashViewModel.isWorkCompleteFlow.collect { isWorkComplete ->
-                if (!isWorkComplete) return@collect
-
-                val splashScreen = requireNotNull(splashScreen)
-                splashScreen.setKeepOnScreenCondition { false }
-                this@MainActivity.splashScreen = null
-
-                cancel() // once splash phase has passed, cancel collection of splash state
-            }
-        }
-    }
-
     @Composable
-    private fun Content() {
+    private fun Content(colorScheme: ColorScheme) {
         val context = LocalContext.current
-        val colorScheme = kotlin.run {
-            val areDynamicColorsEnabled = mainViewModel.flowOfDynamicUiColors
-                .collectAsStateWithLifecycle(initialValue = null).value
-                ?.enabled
-            val useDynamicColorSchemes =
-                (areDynamicColorsAvailable() && (areDynamicColorsEnabled ?: false))
-            mainViewModel.flowOfAppUiColorSchemeResolver
-                .collectAsStateWithLifecycle(initialValue = null).value
-                ?.resolve(
-                    brightness = systemBrightness(),
-                    useDynamicColorSchemes = useDynamicColorSchemes,
-                )
-                ?: return
-        }
 
         LaunchedEffect(colorScheme) {
             enableEdgeToEdge(colorSchemeBrightness = colorScheme.brightness())

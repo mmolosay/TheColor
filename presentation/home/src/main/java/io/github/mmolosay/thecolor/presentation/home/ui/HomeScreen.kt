@@ -1,6 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.home.ui
 
 import android.content.res.Configuration
+import androidx.activity.compose.ReportDrawnWhen
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -64,9 +65,9 @@ fun HomeScreen(
     val context = LocalContext.current
     val strings = remember(context) { HomeUiStrings(context) }
 
-    // TODO: HomeViewModel may take longer time to initialize 'viewData' on laggy devices.
-    //       Implement 'loading' state and cross-fade?
-    val data = viewModel.viewData.collectAsStateWithLifecycle().value ?: return
+    val data = viewModel.viewData.collectAsStateWithLifecycle().value
+    ReportDrawnWhen { data != null }
+    if (data == null) return
 
     val flowOfUiState = remember {
         viewModel.viewData.mapState { requireNotNull(it).toUiState() }

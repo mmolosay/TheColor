@@ -13,6 +13,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.test.StandardTestDispatcher
 import org.junit.jupiter.api.Test
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 
@@ -45,11 +46,30 @@ class ColorInputGroupFeatureTest {
         viewData.orderedTypes.first() shouldBe DomainColorInputType.Rgb
     }
 
-    fun createSut() =
+    @Test
+    fun `given the preferred input type setting is already 'Rgb', when the Feature is created, then 'Rgb' is the first of 'orderedTypes' without any coroutine running`() {
+        val flowOfColorInputType = run {
+            // 'Rgb' isn't the default value, so the test can't pass by falling back to it
+            val value = DomainColorInputType.Rgb
+            val result = PrefState.Result.HasValue(value)
+            MutableStateFlow<PrefState<DomainColorInputType>>(PrefState.Ready(result))
+        }
+        every { userPreferencesRepository.flowOfColorInputType } returns flowOfColorInputType
+
+        // its coroutines never run, so only a read made at creation can pass
+        createSut(scope = CoroutineScope(Job() + StandardTestDispatcher()))
+
+        val viewData = sut.viewData.value.shouldNotBeNull()
+        viewData.orderedTypes.first() shouldBe DomainColorInputType.Rgb
+    }
+
+    fun createSut(
+        scope: CoroutineScope = CoroutineScope(Job() + Dispatchers.Unconfined),
+    ) =
         ColorInputGroupFeature(
             core = core,
             store = Store(initialState = core.initialState()),
-            scope = CoroutineScope(Job() + Dispatchers.Unconfined),
+            scope = scope,
             userPreferencesRepository = userPreferencesRepository,
         ).also {
             sut = it
