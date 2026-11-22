@@ -6,8 +6,7 @@ import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
-import io.github.mmolosay.thecolor.domain.utils.filterReady
-import io.github.mmolosay.thecolor.domain.utils.getOrElse
+import io.github.mmolosay.thecolor.domain.utils.readyValues
 import io.github.mmolosay.thecolor.utils.mapState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
@@ -30,13 +29,10 @@ class TextFieldFeature @AssistedInject constructor(
     private fun collectSelectAllTextOnFocus() {
         scope.launch {
             userPreferencesRepository.flowOfSelectAllTextOnTextFieldFocus
-                .filterReady()
+                .readyValues(DefaultUserPreferences.SelectAllTextOnTextFieldFocus)
                 .collect { preference ->
-                    val enabled = preference
-                        .getOrElse { DefaultUserPreferences.SelectAllTextOnTextFieldFocus }
-                        .enabled
                     store.update { state ->
-                        with(core) { state.applySelectAllTextOnFocus(enabled) }
+                        with(core) { state.applySelectAllTextOnFocus(preference.enabled) }
                     }
                 }
         }

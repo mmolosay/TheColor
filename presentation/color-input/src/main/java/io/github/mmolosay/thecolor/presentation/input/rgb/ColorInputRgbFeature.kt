@@ -9,8 +9,7 @@ import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.composition.slice
 import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
-import io.github.mmolosay.thecolor.domain.utils.filterReady
-import io.github.mmolosay.thecolor.domain.utils.getOrElse
+import io.github.mmolosay.thecolor.domain.utils.readyValues
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmission
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFeature
 import io.github.mmolosay.thecolor.utils.mapState
@@ -53,13 +52,10 @@ class ColorInputRgbFeature @AssistedInject constructor(
     private fun collectSmartBackspace() {
         scope.launch {
             userPreferencesRepository.flowOfSmartBackspace
-                .filterReady()
+                .readyValues(DefaultUserPreferences.SmartBackspace)
                 .collect { preference ->
-                    val enabled = preference
-                        .getOrElse { DefaultUserPreferences.SmartBackspace }
-                        .enabled
                     store.update { state ->
-                        with(core) { state.applySmartBackspace(enabled) }
+                        with(core) { state.applySmartBackspace(preference.enabled) }
                     }
                 }
         }
