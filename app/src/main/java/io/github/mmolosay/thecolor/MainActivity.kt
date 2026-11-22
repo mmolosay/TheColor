@@ -14,7 +14,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.mmolosay.thecolor.presentation.design.Brightness
-import io.github.mmolosay.thecolor.presentation.design.Material3DynamicColorsAvailability.areDynamicColorsAvailable
 import io.github.mmolosay.thecolor.presentation.design.brightness
 import io.github.mmolosay.thecolor.presentation.design.systemBrightness
 
@@ -34,19 +33,10 @@ class MainActivity : ComponentActivity() {
             val isSplashWorkComplete = splashViewModel.isWorkCompleteFlow
                 .collectAsStateWithLifecycle().value
             if (!isSplashWorkComplete) return@setContent
-            val colorScheme = run {
-                val areDynamicColorsEnabled = mainViewModel.flowOfDynamicUiColors
-                    .collectAsStateWithLifecycle(initialValue = null).value
-                    ?.enabled
-                val useDynamicColorSchemes =
-                    (areDynamicColorsAvailable() && (areDynamicColorsEnabled ?: false))
-                mainViewModel.flowOfAppUiColorSchemeResolver
-                    .collectAsStateWithLifecycle(initialValue = null).value
-                    ?.resolve(
-                        brightness = systemBrightness(),
-                        useDynamicColorSchemes = useDynamicColorSchemes,
-                    )
-            } ?: return@setContent
+            val colorScheme = mainViewModel.flowOfColorSchemeResolver
+                .collectAsStateWithLifecycle(initialValue = null).value
+                .let { it ?: return@setContent }
+                .resolve(brightness = systemBrightness())
 
             LaunchedEffect(colorScheme) {
                 enableEdgeToEdge(colorSchemeBrightness = colorScheme.brightness())
