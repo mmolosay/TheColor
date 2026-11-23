@@ -17,6 +17,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,6 +43,7 @@ import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
 import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsViewData
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.SwatchSession
 import io.github.mmolosay.thecolor.utils.doNothing
 
 /**
@@ -53,9 +55,34 @@ internal typealias BareSelectedSwatchDetailsComposable =
 /**
  * 'Color Details' of the selected swatch as the 'Home' feature presents it.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SelectedSwatchDetailsInHome(
+    session: SwatchSession?,
+    data: ColorDetailsViewData,
+    navBarAppearanceController: NavBarAppearanceController,
+    onDismissRequest: (SwatchSession) -> Unit,
+    content: BareSelectedSwatchDetailsComposable?,
+) {
+    val sheetNavBarAppearanceController = remember(navBarAppearanceController) {
+        navBarAppearanceController.branch("Selected Swatch Details Dialog")
+    }
+    if (session == null) return
+    // Compose remembers internal state by where it's called, not by what it shows.
+    // Without the key, a session replacing another with no frame drawn in between would reuse the old sheet:
+    // still hidden if it was swiped away, and a late dismissal of the old session could close the new one
+    key(session) {
+        SelectedSwatchDetailsSheet(
+            data = data,
+            navBarAppearanceController = sheetNavBarAppearanceController,
+            onDismissRequest = { onDismissRequest(session) },
+            content = content,
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SelectedSwatchDetailsSheet(
     data: ColorDetailsViewData,
     navBarAppearanceController: NavBarAppearanceController,
     onDismissRequest: () -> Unit,
@@ -135,7 +162,6 @@ private class ModalBottomSheetLifecycleObserver(
  * May render blank or blank out on tab switch — 'ModalBottomSheet' draws into its
  * own window, which 'Layoutlib' doesn't reliably capture. 'Build & Refresh' to restore.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Preview(uiMode = Configuration.UI_MODE_TYPE_NORMAL)
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL)
 @Composable
@@ -146,6 +172,7 @@ private fun Preview() {
             modifier = Modifier.fillMaxSize(),
         ) {
             SelectedSwatchDetailsInHome(
+                session = remember { SwatchSession() },
                 data = run {
                     val subject = ColorDetailsViewData.Subject(
                         color = ColorInt(0x1A803F),

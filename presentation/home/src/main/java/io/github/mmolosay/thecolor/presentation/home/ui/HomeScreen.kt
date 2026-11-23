@@ -49,6 +49,7 @@ import io.github.mmolosay.thecolor.presentation.home.ui.preview.BareColorPreview
 import io.github.mmolosay.thecolor.presentation.home.ui.preview.ColorPreviewInHome
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewData
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewModel
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.SwatchSession
 import io.github.mmolosay.thecolor.presentation.preview.AnimatedColorPreview
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewData
 import io.github.mmolosay.thecolor.utils.mapState
@@ -156,7 +157,7 @@ private fun HomeScreen(
     strings: HomeUiStrings,
     onProceedClick: () -> Unit,
     onRandomizeColorClick: () -> Unit,
-    onSelectedSwatchDismissRequest: () -> Unit,
+    onSelectedSwatchDismissRequest: (SwatchSession) -> Unit,
     onSettingsClick: () -> Unit,
     colorInput: BareColorInputComposable,
     colorPreviewDataFlow: StateFlow<ColorPreviewData>,
@@ -198,7 +199,7 @@ private fun Home(
     strings: HomeUiStrings,
     onProceedClick: () -> Unit,
     onRandomizeColorClick: () -> Unit,
-    onSelectedSwatchDismissRequest: () -> Unit,
+    onSelectedSwatchDismissRequest: (SwatchSession) -> Unit,
     onSettingsClick: () -> Unit,
     colorInput: BareColorInputComposable,
     colorPreviewDataFlow: StateFlow<ColorPreviewData>,
@@ -277,10 +278,9 @@ private fun Home(
     )
 
     SelectedSwatchDetailsInHome(
+        session = data.swatchSession,
         data = selectedSwatchData,
-        navBarAppearanceController = remember(navBarAppearanceController) {
-            navBarAppearanceController.branch("Selected Swatch Details Dialog")
-        },
+        navBarAppearanceController = navBarAppearanceController,
         onDismissRequest = onSelectedSwatchDismissRequest,
         content = selectedSwatchDetails,
     )
@@ -383,6 +383,7 @@ private fun previewViewData() =
             isDark = true,
         ),
         colorPreview = ColorPreviewData(color = ColorInt(0x1A803F)),
+        swatchSession = null,
     )
 
 private fun previewUiStrings() =

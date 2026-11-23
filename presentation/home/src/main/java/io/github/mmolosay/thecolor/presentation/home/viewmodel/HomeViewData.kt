@@ -7,6 +7,7 @@ data class HomeViewData(
     val canProceed: Boolean,
     val sessionColor: SessionColor?,
     val colorPreview: ColorPreviewData,
+    val swatchSession: SwatchSession?,
 ) {
 
     data class SessionColor(

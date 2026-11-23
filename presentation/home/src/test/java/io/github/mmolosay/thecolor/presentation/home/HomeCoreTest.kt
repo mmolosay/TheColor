@@ -216,7 +216,7 @@ class HomeCoreTest {
     }
 
     @Test
-    fun `given a swatch is selected, when 'proceed' is invoked, then 'selectedSwatch' is 'NotRequested'`() {
+    fun `given a swatch is selected, when 'proceed' is invoked, then 'selectedSwatch' is 'NotRequested' and there's no 'swatchSession'`() {
         with(sut) {
             val state = initialState()
                 .withColorEditorColor(Color.Hex(0x1A803F))
@@ -229,11 +229,12 @@ class HomeCoreTest {
             val proceeded = state.proceed()
 
             proceeded.state.selectedSwatch shouldBe ColorDetailsState.NotRequested
+            proceeded.state.swatchSession shouldBe null
         }
     }
 
     @Test
-    fun `given a swatch is selected, when the session ends, then 'selectedSwatch' is 'NotRequested'`() {
+    fun `given a swatch is selected, when the session ends, then 'selectedSwatch' is 'NotRequested' and there's no 'swatchSession'`() {
         with(sut) {
             val state = initialState()
                 .withColorEditorColor(Color.Hex(0x1A803F))
@@ -247,6 +248,44 @@ class HomeCoreTest {
             val handled = state.onColorEditor(outcome = null) // the colors differ, so it ends
 
             handled.state.selectedSwatch shouldBe ColorDetailsState.NotRequested
+            handled.state.swatchSession shouldBe null
+        }
+    }
+
+    @Test
+    fun `given a swatch is selected, when 'deselectSwatch' is invoked with its session, then 'selectedSwatch' is 'NotRequested' and there's no 'swatchSession'`() {
+        with(sut) {
+            val state = initialState()
+                .withColorEditorColor(Color.Hex(0x1A803F))
+                .proceed().state
+                .let {
+                    val outcome = ColorCenterOutcome.SwatchSelected(details = mockk())
+                    it.onColorCenter(outcome)
+                }.state
+            val session = state.swatchSession.shouldNotBeNull()
+
+            val deselected = state.deselectSwatch(expected = session)
+
+            deselected.state.selectedSwatch shouldBe ColorDetailsState.NotRequested
+            deselected.state.swatchSession shouldBe null
+        }
+    }
+
+    @Test
+    fun `given the same swatch is selected twice, when 'deselectSwatch' is invoked with the first session, then the state is unchanged, so that deselecting an earlier session never deselects a newer one`() {
+        with(sut) {
+            // the same details both times, so that only the session tells the two selections apart
+            val outcome = ColorCenterOutcome.SwatchSelected(details = mockk())
+            val selectedOnce = initialState()
+                .withColorEditorColor(Color.Hex(0x1A803F))
+                .proceed().state
+                .onColorCenter(outcome).state
+            val firstSession = selectedOnce.swatchSession.shouldNotBeNull()
+            val state = selectedOnce.onColorCenter(outcome).state
+
+            val deselected = state.deselectSwatch(expected = firstSession)
+
+            deselected.state shouldBe state
         }
     }
 

@@ -16,6 +16,7 @@ import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorOutcome
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupCore
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewDataFactory
 import javax.inject.Inject
+import io.github.mmolosay.thecolor.domain.color.ColorDetails as DomainColorDetails
 
 class HomeCore @AssistedInject constructor(
     colorEditorFactory: ColorEditorCore.Factory,
@@ -40,6 +41,7 @@ class HomeCore @AssistedInject constructor(
             colorInputGroup = colorInputGroupCore.initialState(),
             colorCenter = colorCenterCore.initialState(),
             selectedSwatch = selectedSwatchCore.initialState(),
+            swatchSession = null,
             startupColorRequest = HomeState.StartupColorRequest(colorEditorVersion = editorVersion),
             autoProceed = null,
             lastSearchedColorSaveRequest = null,
@@ -73,7 +75,8 @@ class HomeCore @AssistedInject constructor(
         return HomeViewData(
             canProceed = this.canProceed(),
             sessionColor = sessionColor?.let { createSessionColor(it) },
-            colorPreview = colorPreviewDataFactory.create(this.colorEditor.color)
+            colorPreview = colorPreviewDataFactory.create(this.colorEditor.color),
+            swatchSession = this.swatchSession,
         )
     }
 
@@ -82,24 +85,38 @@ class HomeCore @AssistedInject constructor(
     // region Setters
 
     private fun HomeState.withSession(color: Color): HomeState =
-        this.copy(
-            colorEditor = with(colorEditorCore) { colorEditor.withColor(color) },
-            colorCenter = with(colorCenterCore) { colorCenter.withSession(color) },
-            selectedSwatch = with(selectedSwatchCore) { selectedSwatch.withoutSession() },
-            lastSearchedColorSaveRequest = HomeState.LastSearchedColorSaveRequest(color),
-        )
+        this
+            .withoutSwatchSession()
+            .copy(
+                colorEditor = with(colorEditorCore) { colorEditor.withColor(color) },
+                colorCenter = with(colorCenterCore) { colorCenter.withSession(color) },
+                lastSearchedColorSaveRequest = HomeState.LastSearchedColorSaveRequest(color),
+            )
 
     private fun HomeState.withoutSession(): HomeState =
-        this.copy(
-            colorCenter = with(colorCenterCore) { colorCenter.withoutSession() },
-            selectedSwatch = with(selectedSwatchCore) { selectedSwatch.withoutSession() },
-        )
+        this
+            .withoutSwatchSession()
+            .copy(
+                colorCenter = with(colorCenterCore) { colorCenter.withoutSession() },
+            )
 
     private fun HomeState.withoutStaleSession(): HomeState {
         val sessionColor = with(colorCenterCore) { colorCenter.sessionColor() } ?: return this
         if (context(colorComparator) { colorEditor.color isSameAs sessionColor }) return this
         return this.withoutSession()
     }
+
+    private fun HomeState.withSwatchSession(details: DomainColorDetails): HomeState =
+        this.copy(
+            selectedSwatch = with(selectedSwatchCore) { selectedSwatch.withSeedDetails(details) },
+            swatchSession = SwatchSession(),
+        )
+
+    private fun HomeState.withoutSwatchSession(): HomeState =
+        this.copy(
+            selectedSwatch = with(selectedSwatchCore) { selectedSwatch.withoutSession() },
+            swatchSession = null,
+        )
 
     // endregion
 
@@ -122,10 +139,9 @@ class HomeCore @AssistedInject constructor(
         return Change(state)
     }
 
-    fun HomeState.deselectSwatch(): Change<HomeState, Nothing> {
-        val state = this.copy(
-            selectedSwatch = with(selectedSwatchCore) { selectedSwatch.withoutSession() },
-        )
+    fun HomeState.deselectSwatch(expected: SwatchSession): Change<HomeState, Nothing> {
+        if (this.swatchSession != expected) return Change(this)
+        val state = this.withoutSwatchSession()
         return Change(state)
     }
 
@@ -177,8 +193,7 @@ class HomeCore @AssistedInject constructor(
                 Change(state)
             }
             is ColorCenterOutcome.SwatchSelected -> {
-                val swatch = with(selectedSwatchCore) { selectedSwatch.withSeedDetails(outcome.details) }
-                val state = this.copy(selectedSwatch = swatch)
+                val state = this.withSwatchSession(outcome.details)
                 Change(state)
             }
         }

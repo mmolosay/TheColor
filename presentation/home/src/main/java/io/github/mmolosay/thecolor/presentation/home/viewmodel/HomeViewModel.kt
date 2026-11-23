@@ -139,9 +139,9 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun deselectSwatch() {
+    fun deselectSwatch(expected: SwatchSession) {
         store.update { state ->
-            with(core) { state.deselectSwatch() }
+            with(core) { state.deselectSwatch(expected) }
         }
     }
 }

@@ -13,6 +13,7 @@ data class HomeState(
     val colorInputGroup: ColorInputGroupState,
     val colorCenter: ColorCenterState,
     val selectedSwatch: ColorDetailsState,
+    val swatchSession: SwatchSession?,
     val startupColorRequest: StartupColorRequest?,
     val autoProceed: Boolean?,
     val lastSearchedColorSaveRequest: LastSearchedColorSaveRequest?,
@@ -28,6 +29,10 @@ data class HomeState(
         val identity: Identity = Identity(),
     )
 }
+
+data class SwatchSession(
+    val identity: Identity = Identity(),
+)
 
 object HomeStateLenses {
 
