@@ -29,8 +29,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
-import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.common.colorint.toCompose
+import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -169,32 +169,31 @@ private class AnimControllerViewImpl(
     private val coroutineScope: CoroutineScope,
 ) : ColorPreviewAnimController.View {
 
+    // the target of the last decided animation; the Animatable's own state can lag behind it
+    private var requestedTargetValue = scaleAnimatable.targetValue
+
     override fun animateVisibility(
         dest: ColorPreviewAnimController.UiStateWithVisibility,
         onAnimStarted: () -> Unit,
         onAnimFinished: () -> Unit,
     ) {
         val targetValue = scaleTargetValue(dest.visibility)
-
-        val isAlreadyInTargetState = (scaleAnimatable.value == targetValue)
-        if (isAlreadyInTargetState) {
-            return // already in target state
+        if (targetValue == requestedTargetValue) {
+            return // already there, or already on the way there
         }
+        requestedTargetValue = targetValue
 
-        val isAlreadyRunningTowardsTarget =
-            (scaleAnimatable.isRunning && scaleAnimatable.targetValue == targetValue)
-        if (isAlreadyRunningTowardsTarget) {
-            return // already animating towards target state
-        }
-
-        // no need to manually cancel previous animation: Animatable.animateTo() will handle this
         coroutineScope.launch {
-            // set uiState to the dest uiState right away so that it's visible during animation
-            val isCollapsed = (scaleAnimatable.value == 0f)
-            if (isCollapsed && dest.visibility == AnimState.Visibility.Expanded) {
-                updateUiState(dest.uiState)
+            run {
+                // set uiState to the dest uiState right away so that it's visible during animation
+                val isCollapsed = (scaleAnimatable.value == 0f)
+                val isExpanding = dest.visibility == AnimState.Visibility.Expanded
+                if (isCollapsed && isExpanding) {
+                    updateUiState(dest.uiState)
+                }
             }
             onAnimStarted()
+            // will also cancel any ongoing animation
             scaleAnimatable.animateTo(
                 targetValue = targetValue,
                 animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
