@@ -25,7 +25,6 @@ include(":main")
 include(":main:di-qualifiers")
 
 include(":app")
-include(":composition-demo")
 include(":presentation:common")
 include(":presentation:design-system")
 include(":presentation:errors")
