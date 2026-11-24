@@ -1,6 +1,5 @@
 package io.github.mmolosay.thecolor.presentation.home
 
-import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.domain.color.ColorComparator
 import io.github.mmolosay.thecolor.domain.color.ColorConverter
@@ -28,6 +27,7 @@ import io.github.mmolosay.thecolor.presentation.input.rgb.ColorInputRgbCore
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldCore
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewDataFactory
 import io.github.mmolosay.thecolor.presentation.scheme.feature.ColorSchemeCore
+import io.github.mmolosay.thecolor.utils.composition.Change
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf

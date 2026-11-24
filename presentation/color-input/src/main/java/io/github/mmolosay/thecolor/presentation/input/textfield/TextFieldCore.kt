@@ -3,8 +3,8 @@ package io.github.mmolosay.thecolor.presentation.input.textfield
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
+import io.github.mmolosay.thecolor.utils.composition.Change
 
 class TextFieldCore @AssistedInject constructor(
     @Assisted private val formatter: TextFormatter,

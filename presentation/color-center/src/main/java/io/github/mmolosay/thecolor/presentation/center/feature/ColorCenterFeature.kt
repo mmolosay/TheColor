@@ -3,12 +3,12 @@ package io.github.mmolosay.thecolor.presentation.center.feature
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.composition.CompositionUtils.child
-import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsFeature
 import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsOutcome
 import io.github.mmolosay.thecolor.presentation.scheme.feature.ColorSchemeFeature
 import io.github.mmolosay.thecolor.presentation.scheme.feature.ColorSchemeOutcome
+import io.github.mmolosay.thecolor.utils.composition.CompositionUtils.child
+import io.github.mmolosay.thecolor.utils.composition.Store
 import kotlinx.coroutines.CoroutineScope
 import io.github.mmolosay.thecolor.presentation.center.feature.ColorCenterStateLenses as StateLenses
 

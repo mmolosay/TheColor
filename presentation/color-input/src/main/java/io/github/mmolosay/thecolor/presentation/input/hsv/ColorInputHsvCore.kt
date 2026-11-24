@@ -2,11 +2,11 @@ package io.github.mmolosay.thecolor.presentation.input.hsv
 
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.domain.color.ColorComparator
 import io.github.mmolosay.thecolor.domain.color.ColorConverter
 import io.github.mmolosay.thecolor.domain.color.isSameAs
+import io.github.mmolosay.thecolor.utils.composition.Change
 
 class ColorInputHsvCore @AssistedInject constructor(
     private val colorConverter: ColorConverter,

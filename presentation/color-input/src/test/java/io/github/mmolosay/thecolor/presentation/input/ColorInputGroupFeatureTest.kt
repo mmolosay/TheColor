@@ -1,10 +1,10 @@
 package io.github.mmolosay.thecolor.presentation.input
 
-import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
 import io.github.mmolosay.thecolor.domain.utils.PrefState
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupCore
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupFeature
+import io.github.mmolosay.thecolor.utils.composition.Store
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.every

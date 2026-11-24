@@ -2,7 +2,7 @@ package io.github.mmolosay.thecolor.presentation.input.group
 
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.composition.Change
+import io.github.mmolosay.thecolor.utils.composition.Change
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 
 class ColorInputGroupCore @AssistedInject constructor() {

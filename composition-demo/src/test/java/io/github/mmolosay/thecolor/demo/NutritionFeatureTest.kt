@@ -1,7 +1,5 @@
 package io.github.mmolosay.thecolor.demo
 
-import io.github.mmolosay.thecolor.composition.Change
-import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.demo.domain.Amount
 import io.github.mmolosay.thecolor.demo.domain.AmountConverter
 import io.github.mmolosay.thecolor.demo.domain.Ingredient
@@ -15,6 +13,8 @@ import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.Nutrition
 import io.github.mmolosay.thecolor.demo.presentation.format.LocaleAmountFormatter
 import io.github.mmolosay.thecolor.demo.presentation.format.LocaleNutritionFormatter
 import io.github.mmolosay.thecolor.utils.Lens
+import io.github.mmolosay.thecolor.utils.composition.Change
+import io.github.mmolosay.thecolor.utils.composition.Store
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk

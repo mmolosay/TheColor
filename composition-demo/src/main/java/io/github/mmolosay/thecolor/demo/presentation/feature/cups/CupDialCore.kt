@@ -2,10 +2,10 @@ package io.github.mmolosay.thecolor.demo.presentation.feature.cups
 
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.demo.domain.Amount
 import io.github.mmolosay.thecolor.demo.domain.AmountConverter
 import io.github.mmolosay.thecolor.demo.domain.AmountFormatter
+import io.github.mmolosay.thecolor.utils.composition.Change
 
 class CupDialCore @AssistedInject constructor(
     private val amountConverter: AmountConverter,

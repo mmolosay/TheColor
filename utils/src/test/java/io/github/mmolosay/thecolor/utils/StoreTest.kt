@@ -1,7 +1,9 @@
-package io.github.mmolosay.thecolor.composition
+package io.github.mmolosay.thecolor.utils
 
 import app.cash.turbine.test
-import io.github.mmolosay.thecolor.utils.Lens
+import io.github.mmolosay.thecolor.utils.composition.Change
+import io.github.mmolosay.thecolor.utils.composition.Store
+import io.github.mmolosay.thecolor.utils.composition.slice
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -15,7 +17,7 @@ import java.util.concurrent.CyclicBarrier
 import java.util.concurrent.Executors
 
 /**
- * Tests [Store] created with `Store(initialState)`, and its slices.
+ * Tests [io.github.mmolosay.thecolor.utils.composition.Store] created with `Store(initialState)`, and its slices.
  *
  * The states model an office with a desk, and a letter on the desk.
  * The desk's reducer keeps its `summary` equal to the letter's text, and turns the letter's

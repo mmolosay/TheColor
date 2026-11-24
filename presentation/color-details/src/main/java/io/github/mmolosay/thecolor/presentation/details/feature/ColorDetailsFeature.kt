@@ -3,9 +3,9 @@ package io.github.mmolosay.thecolor.presentation.details.feature
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.composition.CompositionUtils.serve
-import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.domain.color.ColorRepository
+import io.github.mmolosay.thecolor.utils.composition.CompositionUtils.serve
+import io.github.mmolosay.thecolor.utils.composition.Store
 import io.github.mmolosay.thecolor.utils.mapState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow

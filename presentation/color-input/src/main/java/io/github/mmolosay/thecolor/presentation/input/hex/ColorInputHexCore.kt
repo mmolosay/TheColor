@@ -2,7 +2,6 @@ package io.github.mmolosay.thecolor.presentation.input.hex
 
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.domain.color.ColorConverter
 import io.github.mmolosay.thecolor.presentation.input.ColorInputMapper
@@ -13,6 +12,7 @@ import io.github.mmolosay.thecolor.presentation.input.model.answered
 import io.github.mmolosay.thecolor.presentation.input.model.getColorOrNull
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldCore
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFormatter
+import io.github.mmolosay.thecolor.utils.composition.Change
 
 class ColorInputHexCore @AssistedInject constructor(
     textFieldFactory: TextFieldCore.Factory,

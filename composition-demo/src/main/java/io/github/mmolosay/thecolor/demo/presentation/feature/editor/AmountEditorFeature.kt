@@ -3,14 +3,14 @@ package io.github.mmolosay.thecolor.demo.presentation.feature.editor
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.composition.CompositionUtils.child
-import io.github.mmolosay.thecolor.composition.Store
-import io.github.mmolosay.thecolor.composition.slice
 import io.github.mmolosay.thecolor.demo.presentation.feature.cups.CupDialFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.GramsInputFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.GramsInputOutcome
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputOutcome
+import io.github.mmolosay.thecolor.utils.composition.CompositionUtils.child
+import io.github.mmolosay.thecolor.utils.composition.Store
+import io.github.mmolosay.thecolor.utils.composition.slice
 import kotlinx.coroutines.CoroutineScope
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorStateLenses as StateLenses
 

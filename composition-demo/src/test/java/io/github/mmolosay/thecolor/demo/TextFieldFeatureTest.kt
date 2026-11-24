@@ -1,11 +1,11 @@
 package io.github.mmolosay.thecolor.demo
 
-import io.github.mmolosay.thecolor.composition.Change
-import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldCore
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldState
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFormatter
+import io.github.mmolosay.thecolor.utils.composition.Change
+import io.github.mmolosay.thecolor.utils.composition.Store
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi

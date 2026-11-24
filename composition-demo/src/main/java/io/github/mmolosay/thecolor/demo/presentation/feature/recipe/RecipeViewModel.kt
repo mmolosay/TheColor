@@ -3,10 +3,6 @@ package io.github.mmolosay.thecolor.demo.presentation.feature.recipe
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.mmolosay.thecolor.composition.Change
-import io.github.mmolosay.thecolor.composition.CompositionUtils.serve
-import io.github.mmolosay.thecolor.composition.Store
-import io.github.mmolosay.thecolor.composition.slice
 import io.github.mmolosay.thecolor.demo.domain.RecipeRepository
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.editor.AmountEditorOutcome
@@ -16,6 +12,10 @@ import io.github.mmolosay.thecolor.demo.presentation.feature.sheet.SubstituteShe
 import io.github.mmolosay.thecolor.demo.presentation.feature.substitutes.SubstitutesFeature
 import io.github.mmolosay.thecolor.demo.presentation.feature.substitutes.SubstitutesOutcome
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldFeature
+import io.github.mmolosay.thecolor.utils.composition.Change
+import io.github.mmolosay.thecolor.utils.composition.CompositionUtils.serve
+import io.github.mmolosay.thecolor.utils.composition.Store
+import io.github.mmolosay.thecolor.utils.composition.slice
 import io.github.mmolosay.thecolor.utils.mapState
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject

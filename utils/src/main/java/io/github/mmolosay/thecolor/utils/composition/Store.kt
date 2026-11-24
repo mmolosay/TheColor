@@ -1,4 +1,4 @@
-package io.github.mmolosay.thecolor.composition
+package io.github.mmolosay.thecolor.utils.composition
 
 import io.github.mmolosay.thecolor.utils.Lens
 import io.github.mmolosay.thecolor.utils.mapState

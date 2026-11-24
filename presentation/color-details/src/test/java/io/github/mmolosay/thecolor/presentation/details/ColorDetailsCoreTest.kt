@@ -1,6 +1,5 @@
 package io.github.mmolosay.thecolor.presentation.details
 
-import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsCore
 import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsOutcome
@@ -8,6 +7,7 @@ import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsStat
 import io.github.mmolosay.thecolor.presentation.details.feature.ColorRole
 import io.github.mmolosay.thecolor.presentation.details.feature.CreateColorDetailsDataUseCase
 import io.github.mmolosay.thecolor.presentation.details.feature.CreateSubjectUseCase
+import io.github.mmolosay.thecolor.utils.composition.Change
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe

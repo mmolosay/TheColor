@@ -1,7 +1,8 @@
-package io.github.mmolosay.thecolor.composition
+package io.github.mmolosay.thecolor.utils
 
-import io.github.mmolosay.thecolor.composition.CompositionUtils.serve
-import io.github.mmolosay.thecolor.utils.Identity
+import io.github.mmolosay.thecolor.utils.composition.Change
+import io.github.mmolosay.thecolor.utils.composition.CompositionUtils.serve
+import io.github.mmolosay.thecolor.utils.composition.Store
 import io.kotest.matchers.collections.shouldContainExactly
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
@@ -10,7 +11,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 
 /**
- * Tests [CompositionUtils.serve].
+ * Tests [kotlinx.coroutines.CoroutineScope.serve].
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class CoroutineScopeExtServeTest {

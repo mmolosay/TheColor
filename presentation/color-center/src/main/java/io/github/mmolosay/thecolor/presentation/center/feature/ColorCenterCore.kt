@@ -2,12 +2,12 @@ package io.github.mmolosay.thecolor.presentation.center.feature
 
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsCore
 import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsOutcome
 import io.github.mmolosay.thecolor.presentation.scheme.feature.ColorSchemeCore
 import io.github.mmolosay.thecolor.presentation.scheme.feature.ColorSchemeOutcome
+import io.github.mmolosay.thecolor.utils.composition.Change
 
 class ColorCenterCore @AssistedInject constructor(
     detailsFactory: ColorDetailsCore.Factory,

@@ -2,9 +2,9 @@ package io.github.mmolosay.thecolor.presentation.settings.viewmodel
 
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.domain.buildfeatures.IsDevOptionsEnabledUseCase
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.asSingletonSet
+import io.github.mmolosay.thecolor.utils.composition.Change
 import kotlinx.collections.immutable.toPersistentList
 import io.github.mmolosay.thecolor.domain.color.ColorInputType as DomainColorInputType
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.AutoProceedWithRandomizedColors as DomainAutoProceedWithRandomizedColors

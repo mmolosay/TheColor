@@ -3,11 +3,11 @@ package io.github.mmolosay.thecolor.presentation.devoptions.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.domain.dev.options.DefaultDevOptions
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository
 import io.github.mmolosay.thecolor.domain.utils.readyValues
 import io.github.mmolosay.thecolor.domain.utils.valueOrNull
+import io.github.mmolosay.thecolor.utils.composition.Store
 import io.github.mmolosay.thecolor.utils.mapState
 import io.github.mmolosay.thecolor.utils.requireSend
 import kotlinx.coroutines.channels.Channel

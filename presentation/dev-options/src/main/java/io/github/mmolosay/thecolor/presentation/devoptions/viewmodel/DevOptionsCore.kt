@@ -2,9 +2,9 @@ package io.github.mmolosay.thecolor.presentation.devoptions.viewmodel
 
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.domain.buildfeatures.BuildInfoRepository
 import io.github.mmolosay.thecolor.domain.dev.options.DefaultDevOptions
+import io.github.mmolosay.thecolor.utils.composition.Change
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.HttpLogging as DomainHttpLogging
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.PredictableRandomColors as DomainPredictableRandomColors
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.StrictMode as DomainStrictMode

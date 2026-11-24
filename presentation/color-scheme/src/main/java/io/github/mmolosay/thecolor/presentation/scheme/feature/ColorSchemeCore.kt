@@ -2,11 +2,11 @@ package io.github.mmolosay.thecolor.presentation.scheme.feature
 
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.domain.color.IsColorLightUseCase
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
 import io.github.mmolosay.thecolor.utils.Identity
+import io.github.mmolosay.thecolor.utils.composition.Change
 import kotlinx.collections.immutable.toPersistentList
 import javax.inject.Inject
 import io.github.mmolosay.thecolor.domain.color.ColorScheme as DomainColorScheme

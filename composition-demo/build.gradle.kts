@@ -24,7 +24,6 @@ android {
 @Suppress("SpellCheckingInspection")
 dependencies {
     // Modules
-    implementation(project(":composition"))
     implementation(project(":main:di-qualifiers"))
     implementation(project(":presentation:design-system"))
     implementation(project(":utils"))

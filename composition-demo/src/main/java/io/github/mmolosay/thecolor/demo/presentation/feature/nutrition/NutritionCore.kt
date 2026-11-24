@@ -2,7 +2,6 @@ package io.github.mmolosay.thecolor.demo.presentation.feature.nutrition
 
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.demo.domain.Amount
 import io.github.mmolosay.thecolor.demo.domain.AmountConverter
 import io.github.mmolosay.thecolor.demo.domain.AmountFormatter
@@ -10,6 +9,7 @@ import io.github.mmolosay.thecolor.demo.domain.Ingredient
 import io.github.mmolosay.thecolor.demo.domain.NutritionFacts
 import io.github.mmolosay.thecolor.demo.domain.NutritionFormatter
 import io.github.mmolosay.thecolor.demo.domain.isSameAs
+import io.github.mmolosay.thecolor.utils.composition.Change
 
 class NutritionCore @AssistedInject constructor(
     private val amountConverter: AmountConverter,

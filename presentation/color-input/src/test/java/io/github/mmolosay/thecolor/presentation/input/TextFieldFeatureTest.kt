@@ -1,7 +1,5 @@
 package io.github.mmolosay.thecolor.presentation.input
 
-import io.github.mmolosay.thecolor.composition.Change
-import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.SelectAllTextOnTextFieldFocus
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
 import io.github.mmolosay.thecolor.domain.utils.PrefState
@@ -9,6 +7,8 @@ import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldCore
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFeature
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldState
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFormatter
+import io.github.mmolosay.thecolor.utils.composition.Change
+import io.github.mmolosay.thecolor.utils.composition.Store
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk

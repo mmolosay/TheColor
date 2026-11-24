@@ -3,7 +3,7 @@ package io.github.mmolosay.thecolor.demo.presentation.feature.textfield
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.composition.Change
+import io.github.mmolosay.thecolor.utils.composition.Change
 
 class TextFieldCore @AssistedInject constructor(
     @Assisted private val formatter: TextFormatter, // the parent's: which text is allowed

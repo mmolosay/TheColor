@@ -1,11 +1,11 @@
 package io.github.mmolosay.thecolor.presentation.input
 
-import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.domain.color.ColorComparator
 import io.github.mmolosay.thecolor.domain.color.ColorConverter
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvCore
 import io.github.mmolosay.thecolor.presentation.input.hsv.ColorInputHsvState
+import io.github.mmolosay.thecolor.utils.composition.Change
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf

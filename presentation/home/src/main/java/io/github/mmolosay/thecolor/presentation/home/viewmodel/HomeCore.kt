@@ -2,7 +2,6 @@ package io.github.mmolosay.thecolor.presentation.home.viewmodel
 
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.domain.color.ColorComparator
 import io.github.mmolosay.thecolor.domain.color.IsColorLightUseCase
@@ -15,6 +14,7 @@ import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorCore
 import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorOutcome
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupCore
 import io.github.mmolosay.thecolor.presentation.preview.ColorPreviewDataFactory
+import io.github.mmolosay.thecolor.utils.composition.Change
 import javax.inject.Inject
 import io.github.mmolosay.thecolor.domain.color.ColorDetails as DomainColorDetails
 

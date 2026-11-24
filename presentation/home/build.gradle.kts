@@ -15,7 +15,6 @@ dependencies {
     // Modules
     implementation(project(":domain"))
     implementation(project(":utils"))
-    implementation(project(":composition"))
     implementation(project(":main:di-qualifiers"))
     implementation(project(":presentation:common"))
     implementation(project(":presentation:design-system"))

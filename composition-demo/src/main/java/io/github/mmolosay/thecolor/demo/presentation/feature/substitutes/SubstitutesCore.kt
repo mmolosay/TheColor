@@ -2,13 +2,13 @@ package io.github.mmolosay.thecolor.demo.presentation.feature.substitutes
 
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.demo.domain.Amount
 import io.github.mmolosay.thecolor.demo.domain.AmountConverter
 import io.github.mmolosay.thecolor.demo.domain.NutritionFacts
 import io.github.mmolosay.thecolor.demo.domain.NutritionFormatter
 import io.github.mmolosay.thecolor.demo.domain.Sort
 import io.github.mmolosay.thecolor.demo.domain.isSameAs
+import io.github.mmolosay.thecolor.utils.composition.Change
 
 class SubstitutesCore @AssistedInject constructor(
     private val amountConverter: AmountConverter,

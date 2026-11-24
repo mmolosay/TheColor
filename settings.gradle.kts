@@ -20,7 +20,6 @@ rootProject.name = "TheColor"
 include(":domain")
 include(":utils")
 include(":utils:testing")
-include(":composition")
 include(":data")
 include(":main")
 include(":main:di-qualifiers")

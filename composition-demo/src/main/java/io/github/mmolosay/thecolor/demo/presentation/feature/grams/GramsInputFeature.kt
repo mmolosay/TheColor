@@ -3,12 +3,12 @@ package io.github.mmolosay.thecolor.demo.presentation.feature.grams
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.composition.Change
-import io.github.mmolosay.thecolor.composition.CompositionUtils.child
-import io.github.mmolosay.thecolor.composition.Store
-import io.github.mmolosay.thecolor.composition.slice
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.Submission
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldFeature
+import io.github.mmolosay.thecolor.utils.composition.Change
+import io.github.mmolosay.thecolor.utils.composition.CompositionUtils.child
+import io.github.mmolosay.thecolor.utils.composition.Store
+import io.github.mmolosay.thecolor.utils.composition.slice
 import io.github.mmolosay.thecolor.utils.mapState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow

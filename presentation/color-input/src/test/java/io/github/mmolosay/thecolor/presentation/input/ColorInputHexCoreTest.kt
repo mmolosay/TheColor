@@ -1,6 +1,5 @@
 package io.github.mmolosay.thecolor.presentation.input
 
-import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.domain.color.ColorConverter
 import io.github.mmolosay.thecolor.domain.color.ColorFactory
@@ -12,6 +11,7 @@ import io.github.mmolosay.thecolor.presentation.input.model.ColorInput
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmission
 import io.github.mmolosay.thecolor.presentation.input.model.isPending
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldCore
+import io.github.mmolosay.thecolor.utils.composition.Change
 import io.kotest.assertions.withClue
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe

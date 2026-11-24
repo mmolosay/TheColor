@@ -11,7 +11,6 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.runComposeUiTest
-import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferences.SelectAllTextOnTextFieldFocus
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
 import io.github.mmolosay.thecolor.domain.utils.PrefState
@@ -21,6 +20,7 @@ import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFeature
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldTestTags
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldUiStrings
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFormatter
+import io.github.mmolosay.thecolor.utils.composition.Store
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk

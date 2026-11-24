@@ -2,9 +2,9 @@ package io.github.mmolosay.thecolor.demo.presentation.feature.sheet
 
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.demo.domain.NutritionFacts
 import io.github.mmolosay.thecolor.demo.presentation.feature.nutrition.NutritionCore
+import io.github.mmolosay.thecolor.utils.composition.Change
 
 class SubstituteSheetCore @AssistedInject constructor(
     nutritionFactory: NutritionCore.Factory,

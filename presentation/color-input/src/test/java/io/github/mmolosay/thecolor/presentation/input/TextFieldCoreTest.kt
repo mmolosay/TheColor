@@ -1,8 +1,8 @@
 package io.github.mmolosay.thecolor.presentation.input
 
-import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldCore
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFormatter
+import io.github.mmolosay.thecolor.utils.composition.Change
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 

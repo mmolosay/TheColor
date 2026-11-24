@@ -3,10 +3,10 @@ package io.github.mmolosay.thecolor.demo.presentation.feature.cups
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.composition.CompositionUtils.serve
-import io.github.mmolosay.thecolor.composition.Store
 import io.github.mmolosay.thecolor.demo.domain.CupSampler
 import io.github.mmolosay.thecolor.main.di.qualifiers.CoroutineDispatcherDiQualifiers.DefaultDispatcher
+import io.github.mmolosay.thecolor.utils.composition.CompositionUtils.serve
+import io.github.mmolosay.thecolor.utils.composition.Store
 import io.github.mmolosay.thecolor.utils.mapState
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope

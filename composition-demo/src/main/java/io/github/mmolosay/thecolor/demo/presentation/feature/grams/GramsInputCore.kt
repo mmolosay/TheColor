@@ -2,16 +2,16 @@ package io.github.mmolosay.thecolor.demo.presentation.feature.grams
 
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.demo.domain.Amount
 import io.github.mmolosay.thecolor.demo.domain.AmountConverter
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.Submission
+import io.github.mmolosay.thecolor.demo.presentation.feature.input.acknowledged
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.answerToShow
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.answered
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.isPending
-import io.github.mmolosay.thecolor.demo.presentation.feature.input.acknowledged
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldCore
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFormatter
+import io.github.mmolosay.thecolor.utils.composition.Change
 
 class GramsInputCore @AssistedInject constructor(
     private val amountConverter: AmountConverter,

@@ -3,11 +3,6 @@ package io.github.mmolosay.thecolor.presentation.home.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.mmolosay.thecolor.composition.Change
-import io.github.mmolosay.thecolor.composition.CompositionUtils.child
-import io.github.mmolosay.thecolor.composition.CompositionUtils.serve
-import io.github.mmolosay.thecolor.composition.Store
-import io.github.mmolosay.thecolor.composition.slice
 import io.github.mmolosay.thecolor.domain.color.GetPredictableRandomColorUseCase
 import io.github.mmolosay.thecolor.domain.color.LastSearchedColorRepository
 import io.github.mmolosay.thecolor.domain.user.preferences.DefaultUserPreferences
@@ -22,6 +17,11 @@ import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsOutc
 import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorFeature
 import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorOutcome
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupFeature
+import io.github.mmolosay.thecolor.utils.composition.Change
+import io.github.mmolosay.thecolor.utils.composition.CompositionUtils.child
+import io.github.mmolosay.thecolor.utils.composition.CompositionUtils.serve
+import io.github.mmolosay.thecolor.utils.composition.Store
+import io.github.mmolosay.thecolor.utils.composition.slice
 import io.github.mmolosay.thecolor.utils.mapState
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.flow.StateFlow

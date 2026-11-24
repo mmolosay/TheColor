@@ -2,17 +2,17 @@ package io.github.mmolosay.thecolor.demo.presentation.feature.ounces
 
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.demo.domain.Amount
 import io.github.mmolosay.thecolor.demo.domain.AmountConverter
 import io.github.mmolosay.thecolor.demo.domain.DecimalSeparator
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.Submission
+import io.github.mmolosay.thecolor.demo.presentation.feature.input.acknowledged
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.answerToShow
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.answered
 import io.github.mmolosay.thecolor.demo.presentation.feature.input.isPending
-import io.github.mmolosay.thecolor.demo.presentation.feature.input.acknowledged
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldCore
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFormatter
+import io.github.mmolosay.thecolor.utils.composition.Change
 import java.math.BigDecimal
 
 class OuncesInputCore @AssistedInject constructor(

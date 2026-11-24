@@ -2,7 +2,6 @@ package io.github.mmolosay.thecolor.demo.presentation.feature.recipe
 
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.demo.domain.Amount
 import io.github.mmolosay.thecolor.demo.domain.AmountFormatter
 import io.github.mmolosay.thecolor.demo.domain.Ingredient
@@ -15,6 +14,7 @@ import io.github.mmolosay.thecolor.demo.presentation.feature.substitutes.Substit
 import io.github.mmolosay.thecolor.demo.presentation.feature.substitutes.SubstitutesOutcome
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFieldCore
 import io.github.mmolosay.thecolor.demo.presentation.feature.textfield.TextFormatter
+import io.github.mmolosay.thecolor.utils.composition.Change
 
 class RecipeCore @AssistedInject constructor(
     private val amountFormatter: AmountFormatter,

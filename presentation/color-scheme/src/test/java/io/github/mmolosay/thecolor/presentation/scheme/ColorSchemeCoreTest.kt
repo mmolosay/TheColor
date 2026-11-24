@@ -1,6 +1,5 @@
 package io.github.mmolosay.thecolor.presentation.scheme
 
-import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.domain.color.Color
 import io.github.mmolosay.thecolor.presentation.scheme.feature.ColorSchemeCore
 import io.github.mmolosay.thecolor.presentation.scheme.feature.ColorSchemeOutcome
@@ -8,6 +7,7 @@ import io.github.mmolosay.thecolor.presentation.scheme.feature.ColorSchemeState
 import io.github.mmolosay.thecolor.presentation.scheme.feature.ColorSchemeViewData
 import io.github.mmolosay.thecolor.presentation.scheme.feature.CreateSwatchUseCase
 import io.github.mmolosay.thecolor.presentation.scheme.feature.SwatchCount
+import io.github.mmolosay.thecolor.utils.composition.Change
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe

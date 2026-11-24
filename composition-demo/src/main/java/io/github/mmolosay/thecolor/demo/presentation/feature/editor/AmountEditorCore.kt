@@ -2,7 +2,6 @@ package io.github.mmolosay.thecolor.demo.presentation.feature.editor
 
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.github.mmolosay.thecolor.composition.Change
 import io.github.mmolosay.thecolor.demo.domain.Amount
 import io.github.mmolosay.thecolor.demo.domain.AmountConverter
 import io.github.mmolosay.thecolor.demo.domain.isSameAs
@@ -11,6 +10,7 @@ import io.github.mmolosay.thecolor.demo.presentation.feature.grams.GramsInputCor
 import io.github.mmolosay.thecolor.demo.presentation.feature.grams.GramsInputOutcome
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputCore
 import io.github.mmolosay.thecolor.demo.presentation.feature.ounces.OuncesInputOutcome
+import io.github.mmolosay.thecolor.utils.composition.Change
 
 class AmountEditorCore @AssistedInject constructor(
     private val amountConverter: AmountConverter,
