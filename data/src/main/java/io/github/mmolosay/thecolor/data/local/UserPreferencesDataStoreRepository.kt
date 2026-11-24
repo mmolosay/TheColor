@@ -73,14 +73,18 @@ class UserPreferencesDataStoreRepository @Inject constructor(
                     with(UiColorSchemeMapper) { dtoValue.toUiColorScheme() }
                 }
 
-        val lightResult = getAppUiColorScheme(DataStoreKeys.AppUiColorSchemeLight)
-        val darkResult = getAppUiColorScheme(DataStoreKeys.AppUiColorSchemeDark)
-        if (lightResult is PrefState.Result.HasValue && darkResult is PrefState.Result.HasValue) {
-            val value = UiColorSchemeSet(light = lightResult.value, dark = darkResult.value)
-            return PrefState.Result.HasValue(value)
+        val light = getAppUiColorScheme(DataStoreKeys.AppUiColorSchemeLight)
+        val dark = getAppUiColorScheme(DataStoreKeys.AppUiColorSchemeDark)
+        return when {
+            light is PrefState.Result.HasValue && dark is PrefState.Result.HasValue -> {
+                val value = UiColorSchemeSet(light = light.value, dark = dark.value)
+                PrefState.Result.HasValue(value)
+            }
+            light is PrefState.Result.NoValue && dark is PrefState.Result.NoValue -> {
+                PrefState.Result.NoValue
+            }
+            else -> PrefState.Result.InvalidValue
         }
-        // Result.HasValue has been checked above, so block with error() will never be executed
-        return lightResult.map { error("unexpected DataState") }
     }
 
     override suspend fun setAppUiColorSchemeSet(value: UiColorSchemeSet?) {
