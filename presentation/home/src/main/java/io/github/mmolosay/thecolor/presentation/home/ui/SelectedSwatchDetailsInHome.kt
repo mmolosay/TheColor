@@ -12,6 +12,8 @@ import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetState
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -21,6 +23,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -55,6 +58,7 @@ internal typealias BareSelectedSwatchDetailsComposable =
 /**
  * 'Color Details' of the selected swatch as the 'Home' feature presents it.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SelectedSwatchDetailsInHome(
     session: SwatchSession?,
@@ -73,6 +77,7 @@ internal fun SelectedSwatchDetailsInHome(
     key(session) {
         SelectedSwatchDetailsSheet(
             data = data,
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
             navBarAppearanceController = sheetNavBarAppearanceController,
             onDismissRequest = { onDismissRequest(session) },
             content = content,
@@ -84,6 +89,7 @@ internal fun SelectedSwatchDetailsInHome(
 @Composable
 private fun SelectedSwatchDetailsSheet(
     data: ColorDetailsViewData,
+    sheetState: SheetState,
     navBarAppearanceController: NavBarAppearanceController,
     onDismissRequest: () -> Unit,
     content: BareSelectedSwatchDetailsComposable?,
@@ -106,7 +112,7 @@ private fun SelectedSwatchDetailsSheet(
 
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        sheetState = sheetState,
         containerColor = animatedSurfaceColor,
         contentColor = colorsOnTintedSurface.accent,
         dragHandle = {
@@ -158,12 +164,9 @@ private class ModalBottomSheetLifecycleObserver(
     }
 }
 
-/*
- * May render blank or blank out on tab switch — 'ModalBottomSheet' draws into its
- * own window, which 'Layoutlib' doesn't reliably capture. 'Build & Refresh' to restore.
- */
 @Preview(uiMode = Configuration.UI_MODE_TYPE_NORMAL)
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun Preview() {
     TheColorTheme {
@@ -171,14 +174,25 @@ private fun Preview() {
         Box(
             modifier = Modifier.fillMaxSize(),
         ) {
-            SelectedSwatchDetailsInHome(
-                session = remember { SwatchSession() },
-                data = run {
+            SelectedSwatchDetailsSheet(
+                data = remember {
                     val subject = ColorDetailsViewData.Subject(
                         color = ColorInt(0x1A803F),
                         isDark = true,
                     )
                     ColorDetailsViewData.Loading(subject)
+                },
+                // specify initial state as Expanded to make it visible in preview
+                sheetState = run {
+                    val density = LocalDensity.current
+                    remember(density) {
+                        SheetState(
+                            initialValue = SheetValue.Expanded,
+                            skipPartiallyExpanded = true,
+                            positionalThreshold = { with(density) { 56.dp.toPx() } },
+                            velocityThreshold = { with(density) { 125.dp.toPx() } },
+                        )
+                    }
                 },
                 navBarAppearanceController = remember { RootNavBarAppearanceController() },
                 onDismissRequest = {},
