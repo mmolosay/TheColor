@@ -72,11 +72,13 @@ class HomeCore @AssistedInject constructor(
     fun HomeState.toViewData(): HomeViewData? {
         if (!this.isInitialized()) return null
         val sessionColor = with(colorCenterCore) { colorCenter.sessionColor() }
+        val swatchSessionColor = with(selectedSwatchCore) { selectedSwatch.subject() }
         return HomeViewData(
             canProceed = this.canProceed(),
             sessionColor = sessionColor?.let { createSessionColor(it) },
             colorPreview = colorPreviewDataFactory.create(this.colorEditor.color),
             swatchSession = this.swatchSession,
+            swatchSessionColor = swatchSessionColor?.let { createSessionColor(it) },
         )
     }
 

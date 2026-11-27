@@ -8,6 +8,7 @@ data class HomeViewData(
     val sessionColor: SessionColor?,
     val colorPreview: ColorPreviewData,
     val swatchSession: SwatchSession?,
+    val swatchSessionColor: SessionColor?,
 ) {
 
     data class SessionColor(

@@ -45,7 +45,7 @@ import io.github.mmolosay.thecolor.presentation.common.toLifecycleEventObserver
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
 import io.github.mmolosay.thecolor.presentation.design.colorsOnDarkSurface
 import io.github.mmolosay.thecolor.presentation.design.colorsOnLightSurface
-import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsViewData
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewData.SessionColor
 import io.github.mmolosay.thecolor.presentation.home.viewmodel.SwatchSession
 import io.github.mmolosay.thecolor.utils.doNothing
 
@@ -62,7 +62,7 @@ internal typealias BareSelectedSwatchDetailsComposable =
 @Composable
 internal fun SelectedSwatchDetailsInHome(
     session: SwatchSession?,
-    data: ColorDetailsViewData,
+    sessionColor: SessionColor?,
     navBarAppearanceController: NavBarAppearanceController,
     onDismissRequest: (SwatchSession) -> Unit,
     content: BareSelectedSwatchDetailsComposable?,
@@ -76,7 +76,7 @@ internal fun SelectedSwatchDetailsInHome(
     // still hidden if it was swiped away, and a late dismissal of the old session could close the new one
     key(session) {
         SelectedSwatchDetailsSheet(
-            data = data,
+            sessionColor = sessionColor,
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
             navBarAppearanceController = sheetNavBarAppearanceController,
             onDismissRequest = { onDismissRequest(session) },
@@ -88,27 +88,22 @@ internal fun SelectedSwatchDetailsInHome(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SelectedSwatchDetailsSheet(
-    data: ColorDetailsViewData,
+    sessionColor: SessionColor?,
     sheetState: SheetState,
     navBarAppearanceController: NavBarAppearanceController,
     onDismissRequest: () -> Unit,
     content: BareSelectedSwatchDetailsComposable?,
 ) {
     if (content == null) return
-    val subject = when (data) {
-        ColorDetailsViewData.Empty -> return // no swatch is selected
-        is ColorDetailsViewData.Loading -> data.subject
-        is ColorDetailsViewData.Ready -> data.subject
-        is ColorDetailsViewData.Error -> data.subject
-    }
+    if (sessionColor == null) return
 
     val animatedSurfaceColor by animateColorAsState(
-        targetValue = subject.color.toCompose(),
+        targetValue = sessionColor.color.toCompose(),
         animationSpec = spring(stiffness = 100f),
         label = "surface color",
     )
     val colorsOnTintedSurface =
-        if (subject.isDark) colorsOnDarkSurface() else colorsOnLightSurface()
+        if (sessionColor.isDark) colorsOnDarkSurface() else colorsOnLightSurface()
 
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
@@ -133,10 +128,10 @@ private fun SelectedSwatchDetailsSheet(
 
     val lifecycleOwner = LocalLifecycleOwner.current
     val lifecycle = lifecycleOwner.lifecycle
-    DisposableEffect(lifecycleOwner, subject) {
+    DisposableEffect(lifecycleOwner, sessionColor) {
         val observer = ModalBottomSheetLifecycleObserver(
             navBarAppearanceController = navBarAppearanceController,
-            appearance = navBarAppearance(useLightTintForControls = subject.isDark),
+            appearance = navBarAppearance(useLightTintForControls = sessionColor.isDark),
         ).toLifecycleEventObserver()
         lifecycle.addObserver(observer)
         onDispose {
@@ -175,13 +170,10 @@ private fun Preview() {
             modifier = Modifier.fillMaxSize(),
         ) {
             SelectedSwatchDetailsSheet(
-                data = remember {
-                    val subject = ColorDetailsViewData.Subject(
-                        color = ColorInt(0x1A803F),
-                        isDark = true,
-                    )
-                    ColorDetailsViewData.Loading(subject)
-                },
+                sessionColor = SessionColor(
+                    color = ColorInt(0x1A803F),
+                    isDark = true,
+                ),
                 // specify initial state as Expanded to make it visible in preview
                 sheetState = run {
                     val density = LocalDensity.current

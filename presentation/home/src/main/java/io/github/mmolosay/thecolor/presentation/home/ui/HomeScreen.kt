@@ -39,7 +39,6 @@ import io.github.mmolosay.thecolor.presentation.common.compose.withoutBottom
 import io.github.mmolosay.thecolor.presentation.common.navbar.NavBarAppearanceController
 import io.github.mmolosay.thecolor.presentation.common.navbar.RootNavBarAppearanceController
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsViewData
 import io.github.mmolosay.thecolor.presentation.details.ui.ColorDetails
 import io.github.mmolosay.thecolor.presentation.details.ui.ColorDetailsCrossfade
 import io.github.mmolosay.thecolor.presentation.home.ui.center.BareColorCenter
@@ -114,10 +113,8 @@ fun HomeScreen(
             }
         }
     }
-    val selectedSwatchData: ColorDetailsViewData
     val selectedSwatchDetails: BareSelectedSwatchDetailsComposable = run {
         val feature = viewModel.selectedSwatch
-        selectedSwatchData = feature.viewData.collectAsStateWithLifecycle().value
         remember(feature) {
             { modifier ->
                 ColorDetailsCrossfade(
@@ -144,7 +141,6 @@ fun HomeScreen(
         colorPreviewDataFlow = colorPreviewDataFlow,
         colorPreview = colorPreview,
         colorCenter = colorCenter,
-        selectedSwatchData = selectedSwatchData,
         selectedSwatchDetails = selectedSwatchDetails,
         animController = animController,
         navBarAppearanceController = navBarAppearanceController,
@@ -163,7 +159,6 @@ private fun HomeScreen(
     colorPreviewDataFlow: StateFlow<ColorPreviewData>,
     colorPreview: BareColorPreviewComposable,
     colorCenter: BareColorCenterComposable?,
-    selectedSwatchData: ColorDetailsViewData,
     selectedSwatchDetails: BareSelectedSwatchDetailsComposable?,
     animController: HomeAnimController?,
     navBarAppearanceController: NavBarAppearanceController,
@@ -185,7 +180,6 @@ private fun HomeScreen(
             colorPreviewDataFlow = colorPreviewDataFlow,
             colorPreview = colorPreview,
             colorCenter = colorCenter,
-            selectedSwatchData = selectedSwatchData,
             selectedSwatchDetails = selectedSwatchDetails,
             animController = animController,
             navBarAppearanceController = navBarAppearanceController,
@@ -205,7 +199,6 @@ private fun Home(
     colorPreviewDataFlow: StateFlow<ColorPreviewData>,
     colorPreview: BareColorPreviewComposable,
     colorCenter: BareColorCenterComposable?,
-    selectedSwatchData: ColorDetailsViewData,
     selectedSwatchDetails: BareSelectedSwatchDetailsComposable?,
     animController: HomeAnimController?,
     navBarAppearanceController: NavBarAppearanceController,
@@ -279,7 +272,7 @@ private fun Home(
 
     SelectedSwatchDetailsInHome(
         session = data.swatchSession,
-        data = selectedSwatchData,
+        sessionColor = data.swatchSessionColor,
         navBarAppearanceController = navBarAppearanceController,
         onDismissRequest = onSelectedSwatchDismissRequest,
         content = selectedSwatchDetails,
@@ -360,7 +353,6 @@ private fun Preview() {
                     Text("Color Center")
                 }
             },
-            selectedSwatchData = ColorDetailsViewData.Empty,
             selectedSwatchDetails = null,
             animController = remember {
                 val currentState = HomeAnimState(
@@ -384,6 +376,7 @@ private fun previewViewData() =
         ),
         colorPreview = ColorPreviewData(color = ColorInt(0x1A803F)),
         swatchSession = null,
+        swatchSessionColor = null,
     )
 
 private fun previewUiStrings() =
