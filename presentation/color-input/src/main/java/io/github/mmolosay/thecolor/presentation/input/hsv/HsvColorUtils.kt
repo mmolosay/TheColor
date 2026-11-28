@@ -1,7 +1,7 @@
 package io.github.mmolosay.thecolor.presentation.input.hsv
 
-import androidx.compose.ui.graphics.Color
 import android.graphics.Color as AndroidColor
+import androidx.compose.ui.graphics.Color as ComposeColor
 
 /**
  * Color utils for the 'HSV Color Input' feature.
@@ -19,13 +19,13 @@ internal object HsvColorUtils {
     val HsvSaturationRange = 0f..1f
     val HsvValueRange = 0f..1f
 
-    fun HsvColor(components: FloatArray): Color {
+    fun HsvColor(components: FloatArray): ComposeColor {
         require(components.size == 3)
         val (h, s, v) = components
         require(h in HsvHueRange)
         require(s in HsvSaturationRange)
         require(v in HsvValueRange)
         val argb = AndroidColor.HSVToColor(components)
-        return Color(argb)
+        return ComposeColor(argb)
     }
 }

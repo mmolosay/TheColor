@@ -1,0 +1,129 @@
+package io.github.mmolosay.thecolor.presentation.home.ui.center
+
+import android.content.res.Configuration
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import io.github.mmolosay.thecolor.presentation.center.feature.ColorCenterFeature
+import io.github.mmolosay.thecolor.presentation.center.ui.ColorCenter
+import io.github.mmolosay.thecolor.presentation.center.ui.ColorCenterUiStrings
+import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
+import io.github.mmolosay.thecolor.presentation.common.compose.Placeholder
+import io.github.mmolosay.thecolor.presentation.common.compose.PlaceholderDefaults
+import io.github.mmolosay.thecolor.presentation.common.navbar.NavBarAppearanceController
+import io.github.mmolosay.thecolor.presentation.common.navbar.RootNavBarAppearanceController
+import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
+import io.github.mmolosay.thecolor.presentation.home.R
+import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimController
+import io.github.mmolosay.thecolor.presentation.home.ui.HomeAnimState
+import io.github.mmolosay.thecolor.presentation.home.viewmodel.HomeViewData
+import io.github.mmolosay.thecolor.utils.mapState
+
+/**
+ * The "bare" 'Color Center' [Composable], free of any 'Home'-specific logic.
+ */
+internal typealias BareColorCenterComposable =
+        @Composable () -> Unit
+
+@Composable
+internal fun BareColorCenter(
+    feature: ColorCenterFeature,
+) {
+    val strings = run {
+        val context = LocalContext.current
+        remember(context) {
+            ColorCenterUiStrings(
+                page1ChangePageButtonText = context.getString(R.string.home_color_center_details_page_change_button_text),
+                page2ChangePageButtonText = context.getString(R.string.home_color_center_scheme_page_change_button_text),
+            )
+        }
+    }
+    ColorCenter(
+        feature = feature,
+        strings = strings,
+    )
+}
+
+/**
+ * 'Color Center' as the 'Home' feature presents it.
+ */
+@Composable
+internal fun ColorCenterInHome(
+    sessionColor: HomeViewData.SessionColor?,
+    homeAnimController: HomeAnimController?,
+    navBarAppearanceController: NavBarAppearanceController,
+    containerScrollState: ScrollState,
+    stateOfContainerPosInRoot: State<Offset?>,
+    content: BareColorCenterComposable?,
+) {
+    if (homeAnimController == null) return
+    val decoratedColorCenter = remember(content, sessionColor) {
+        decoratedColorCenterComposable(
+            sessionColor = sessionColor,
+            navBarAppearanceController = navBarAppearanceController,
+            containerScrollState = containerScrollState,
+            stateOfContainerPosInRoot = stateOfContainerPosInRoot,
+            content = content,
+        )
+    }
+    CircularRevealColorCenter(
+        flowOfAnimDest = run {
+            val upstream = homeAnimController.flowOfDestState
+            remember(upstream) {
+                upstream.mapState { it.colorCenter }
+            }
+        },
+        onReached = homeAnimController::onValueReached,
+        containerScrollState = containerScrollState,
+        content = decoratedColorCenter,
+    )
+}
+
+@Preview(uiMode = Configuration.UI_MODE_TYPE_NORMAL)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL)
+@Composable
+private fun Preview() {
+    TheColorTheme {
+        Surface {
+            ColorCenterInHome(
+                sessionColor = HomeViewData.SessionColor(
+                    color = ColorInt(0x1A803F),
+                    isDark = true,
+                ),
+                homeAnimController = remember {
+                    val currentState = HomeAnimState(
+                        colorPreviewPosition = HomeAnimState.ColorPreview.Position.Dived,
+                        colorPreviewVisibility = HomeAnimState.ColorPreview.Visibility.Visible,
+                        colorCenter = HomeAnimState.ColorCenter.Expanded,
+                    )
+                    HomeAnimController(currentState)
+                },
+                navBarAppearanceController = remember { RootNavBarAppearanceController() },
+                containerScrollState = rememberScrollState(),
+                stateOfContainerPosInRoot = remember { mutableStateOf(Offset.Zero) },
+            ) {
+                Placeholder(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(512.dp),
+                    color = PlaceholderDefaults.adjustedColor(LocalContentColor.current),
+                ) {
+                    Text("Bare Color Center")
+                }
+            }
+        }
+    }
+}

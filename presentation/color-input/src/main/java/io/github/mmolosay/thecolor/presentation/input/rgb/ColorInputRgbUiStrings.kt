@@ -14,6 +14,7 @@ data class ColorInputRgbUiStrings(
     val rTextField: TextFieldUiStrings,
     val gTextField: TextFieldUiStrings,
     val bTextField: TextFieldUiStrings,
+    val invalidSubmittedColorMessage: String,
 )
 
 fun ColorInputRgbUiStrings(context: Context) =
@@ -21,6 +22,7 @@ fun ColorInputRgbUiStrings(context: Context) =
         rTextField = TextFieldRUiStrings(context),
         gTextField = TextFieldGUiStrings(context),
         bTextField = TextFieldBUiStrings(context),
+        invalidSubmittedColorMessage = context.getString(R.string.color_input_invalid_color_message),
     )
 
 private fun TextFieldRUiStrings(context: Context) =

@@ -1,268 +1,213 @@
 package io.github.mmolosay.thecolor.utils
 
+import io.github.mmolosay.thecolor.utils.CoroutineRegistry.Item
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContainExactly
-import io.kotest.matchers.collections.shouldNotContain
-import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.shouldNotBeTypeOf
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.RepeatedTest
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Timeout
+import java.util.concurrent.Callable
 import java.util.concurrent.CyclicBarrier
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.max
-import kotlin.time.Duration.Companion.milliseconds
 
-@OptIn(ExperimentalCoroutinesApi::class)
+
+@Timeout(value = 30, unit = TimeUnit.SECONDS, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
 class CoroutineRegistryTest {
-
-    val testDispatcher = UnconfinedTestDispatcher()
 
     lateinit var sut: CoroutineRegistry<String>
 
-    @Test
-    fun `when value is added, then it is present in the items`() =
-        runTest(testDispatcher) {
-            sut = CoroutineRegistry<String>()
-
-            val value = "1"
-            sut.add(Job(), value)
-
-            sut.items().any { it.value == value } shouldBe true
-        }
-
-    @Test
-    fun `when the same value is added multiple times, then all of them are present in the items`() =
-        runTest(testDispatcher) {
-            sut = CoroutineRegistry<String>()
-
-            val value = "1"
-            val job = Job()
-            val numberOfDuplicates = 5
-            repeat(numberOfDuplicates) {
-                sut.add(job, value)
-            }
-
-            sut.items().filter { it.value == value }.size shouldBe numberOfDuplicates
-        }
-
-    @Test
-    fun `when value is removed, then it is no longer present in the items`() =
-        runTest(testDispatcher) {
-            sut = CoroutineRegistry<String>()
-
-            val value = "1"
-            val job = Job()
-            val removedItem = sut.access {
-                add(job, value)
-                remove(job)
-            }
-
-            sut.items() shouldNotContain removedItem
-        }
-
-    @Test
-    fun `when items is removed, then it is returned`() =
-        runTest(testDispatcher) {
-            sut = CoroutineRegistry<String>()
-
-            val value = "1"
-            val job = Job()
-            sut.add(job, value)
-            val removedItem = sut.remove(job)
-
-            val expectedItem = CoroutineRegistry.Item(
-                value = value,
-                job = job,
-            )
-            removedItem.shouldNotBeNull()
-            removedItem shouldBe expectedItem
-        }
-
-    @Test
-    fun `when value is removed, then subsequent attempts to remove it are idempotent`() =
-        runTest(testDispatcher) {
-            sut = CoroutineRegistry<String>()
-
-            val value = "1"
-            val job = Job()
-            sut.add(job, value)
-            sut.remove(job)
-            val items = sut.items()
-            shouldNotThrowAny {
-                repeat(5) {
-                    sut.remove(job)
-                }
-            }
-
-            sut.items() shouldContainExactly items
-        }
-
-    @Test
-    fun `when items are accessed, then the list is truly immutable`() =
-        runTest(testDispatcher) {
-            sut = CoroutineRegistry<String>()
-
-            sut.add(Job(), "1")
-
-            val items = sut.items()
-            items.shouldNotBeTypeOf<MutableList<*>>()
-            items.shouldNotBeTypeOf<ArrayList<*>>()
-        }
-
     /**
-     * Tests that [CoroutineRegistry.access] can only be entered from a single thread (coroutine) at a time,
+     * Tests that [CoroutineRegistry.access] can only be entered from a single thread at a time,
      * thus critical section and updates are synchronized and safe for concurrency.
      */
     @RepeatedTest(10) // executed sequentially (by default)
-    fun `when SUT is accessed from multiple threads concurrently, then the critical section is synchronized`() =
-        runTest(testDispatcher) {
-            sut = CoroutineRegistry<String>()
-
-            val numberOfThreads = 16
-            val dispatcher = Executors.newFixedThreadPool(numberOfThreads).asCoroutineDispatcher()
-            val barrier = CyclicBarrier(numberOfThreads)
-            // atomics to have accurate values in case if test fails and the critical section is not synchronized
-            val activeConcurrentExecutions = AtomicInteger(0)
-            val maxConcurrentExecutions = AtomicInteger(0)
-            suspend fun executeCoroutine() {
+    fun `when SUT is accessed from multiple threads concurrently, then the critical section is synchronized`() {
+        sut = CoroutineRegistry<String>()
+        val numberOfThreads = 16
+        val executor = Executors.newFixedThreadPool(numberOfThreads)
+        val barrier = CyclicBarrier(numberOfThreads)
+        // atomics to have accurate values in case if test fails and the critical section is not synchronized
+        val activeConcurrentExecutions = AtomicInteger(0)
+        val maxConcurrentExecutions = AtomicInteger(0)
+        val tasks = List(numberOfThreads) {
+            Callable {
                 barrier.await()
                 sut.access {
                     val active = activeConcurrentExecutions.incrementAndGet()
                     maxConcurrentExecutions.updateAndGet { max(it, active) }
                     // widen the time window of the critical section to give other threads a bigger chance to enter it if it's not synchronized
-                    delay(10.milliseconds)
+                    Thread.sleep(10)
                     activeConcurrentExecutions.decrementAndGet()
                 }
             }
-            coroutineScope {
-                repeat(numberOfThreads) {
-                    launch(dispatcher) {
-                        executeCoroutine()
-                    }
-                }
-            }
-
-            activeConcurrentExecutions.get() shouldBe 0
-            maxConcurrentExecutions.get() shouldBe 1
-            dispatcher.close()
         }
 
+        try {
+            val results = executor.invokeAll(tasks)
+            results.forEach { it.get() } // rethrows what has been thrown in the threads
+        } finally {
+            executor.shutdown()
+        }
+
+        activeConcurrentExecutions.get() shouldBe 0
+        maxConcurrentExecutions.get() shouldBe 1
+    }
+
     @Test
-    fun `when updates are made outside of the 'access' block, then an exception is thrown`() =
-        runTest(testDispatcher) {
-            sut = CoroutineRegistry<String>()
+    fun `given an 'access' block is in progress, when a nested 'access' block is entered on the same thread, then it does not deadlock and observes mutations of the outer block`() {
+        sut = CoroutineRegistry<String>()
 
-            val capturedAccessProvider: CoroutineRegistry<String>.AccessProvider
+        // if the nested access deadlocks, then the test fails on the class' timeout, not on an assertion
+        val itemsInNestedBlock = sut.access {
+            add(Job(), "1")
+            sut.access { items }
+        }
+
+        itemsInNestedBlock.map { it.value } shouldContainExactly listOf("1")
+    }
+
+    @Test
+    fun `given a nested 'access' block is in progress, when the outer 'AccessProvider' is used, then an exception is thrown`() {
+        sut = CoroutineRegistry<String>()
+
+        shouldThrow<IllegalStateException> {
             sut.access {
-                capturedAccessProvider = this
+                val outerAccessProvider = this
+                sut.access {
+                    // the AccessProvider of this nested block is the only valid one at this point
+                    outerAccessProvider.add(Job(), "1")
+                }
             }
+        }
+    }
 
-            shouldThrow<IllegalStateException> {
+    @Test
+    fun `given a nested 'access' block has returned, when the outer 'AccessProvider' is used, then it is valid again`() {
+        sut = CoroutineRegistry<String>()
+
+        shouldNotThrowAny {
+            sut.access {
+                val outerAccessProvider = this
+                sut.access { items }
+                outerAccessProvider.add(Job(), "1")
+            }
+        }
+    }
+
+    @Test
+    fun `given an 'access' block has finished, when its 'AccessProvider' is used outside of it, then an exception is thrown`() {
+        sut = CoroutineRegistry<String>()
+
+        val capturedAccessProvider = sut.access { this }
+
+        shouldThrow<IllegalStateException> {
+            capturedAccessProvider.add(Job(), "1")
+        }
+    }
+
+    @Test
+    fun `given an 'AccessProvider' of a finished 'access' block, when it is used inside another 'access' block, then an exception is thrown`() {
+        sut = CoroutineRegistry<String>()
+
+        val capturedAccessProvider = sut.access { this }
+
+        shouldThrow<IllegalStateException> {
+            sut.access {
+                // using foreign access provider, not the one from this 'access' block
                 capturedAccessProvider.add(Job(), "1")
             }
         }
+    }
 
     @Test
-    fun `when updates are made via foreign access provider inside the 'access' block, then an exception is thrown`() =
-        runTest(testDispatcher) {
-            sut = CoroutineRegistry<String>()
+    fun `given an exception is thrown inside an 'access' block, when it is caught outside, then the lock is released`() {
+        sut = CoroutineRegistry<String>()
 
-            val capturedAccessProvider: CoroutineRegistry<String>.AccessProvider
+        try {
             sut.access {
-                capturedAccessProvider = this
+                add(Job(), "1")
+                error("exception")
             }
+        } catch (_: IllegalStateException) {}
 
-            shouldThrow<IllegalStateException> {
-                sut.access {
-                    // using foreign access provider, not the one from this 'access' block
-                    capturedAccessProvider.add(Job(), "1")
-                }
-            }
-        }
+        sut.isAccessibleFromAnotherThread() shouldBe true
+    }
 
     @Test
-    fun `when 'track' is called, then the value is added to the items immediately when the block starts`() =
-        runTest(testDispatcher) {
-            sut = CoroutineRegistry<String>()
+    fun `given an exception is thrown inside a nested 'access' block, when it is caught in the outer one, then the outer 'AccessProvider' is valid again`() {
+        sut = CoroutineRegistry<String>()
 
-            val value = "1"
-            sut.track(Job(), value) {
-                sut.items().any { it.value == value } shouldBe true // <- "THEN"
-                // some work
+        shouldNotThrowAny {
+            sut.access {
+                val outerAccessProvider = this
+                try {
+                    sut.access { error("exception") }
+                } catch (_: IllegalStateException) {}
+                outerAccessProvider.add(Job(), "1")
             }
         }
+    }
 
     @Test
-    fun `when 'track' is called, then the value is removed from the items when the block finishes`() =
-        runTest(testDispatcher) {
-            sut = CoroutineRegistry<String>()
+    fun `given 'items' were read inside an 'access' block, when the registry is mutated afterwards, then the previously read list is unchanged`() {
+        sut = CoroutineRegistry<String>()
 
-            val value = "1"
-            sut.track(Job(), value) {
-                // some work
-            }
-
-            sut.items().none { it.value == value } shouldBe true
+        val itemsReadBeforeMutation = sut.access {
+            add(Job(), "1")
+            val snapshot = items
+            add(Job(), "2")
+            snapshot
         }
+
+        itemsReadBeforeMutation.map { it.value } shouldContainExactly listOf("1")
+    }
 
     @Test
-    fun `when 'track' is called and the value is removed before the block finishes, then no exception is thrown`() =
-        runTest(testDispatcher) {
-            sut = CoroutineRegistry<String>()
+    fun `given a registered job, when an unregistered job is removed, then 'null' is returned and the 'items' are unchanged`() {
+        sut = CoroutineRegistry<String>()
+        val registeredItem = sut.access { add(Job(), "1") }
 
-            val value = "1"
-            val gate = ClosableSuspendGate(closed = true)
-            launch {
-                sut.trackThis(value) {
-                    // some work
-                    gate.awaitOpen()
-                }
-                // exception will be thrown here if the test fails
-            }
-            launch {
-                val job = sut.items().first { it.value == value }.job
-                sut.remove(job)
-                gate.open() // open the gate to allow 'withRegistry()' to finish executing the block and remove added value
-            }
-        }
+        val removedItem = sut.access { remove(Job()) }
+
+        removedItem.shouldBeNull()
+        sut.access { items } shouldContainExactly listOf(registeredItem)
+    }
 
     @Test
-    fun `when 'track' is called and an exception is thrown inside the block, then it is re-thrown up the call stack`() =
-        runTest(testDispatcher) {
-            sut = CoroutineRegistry<String>()
+    fun `given several items with the same value, when one of them is removed, then the others remain registered`() {
+        sut = CoroutineRegistry<String>()
+        val value = "1"
+        val firstItem = sut.access { add(Job(), value) }
+        val secondItem = sut.access { add(Job(), value) }
+        val thirdItem = sut.access { add(Job(), value) }
 
-            shouldThrow<IllegalStateException> {
-                sut.track(Job(), "1") {
-                    // some work
-                    error("exception")
-                }
-            }
-        }
+        val removedItem = sut.access { remove(secondItem.job) }
 
-    @Test
-    fun `when 'track' is called and an exception is thrown inside the block, then the added value is removed nonetheless`() =
-        runTest(testDispatcher) {
-            sut = CoroutineRegistry<String>()
-
-            val value = "1"
-            try {
-                sut.track(Job(), value) {
-                    // some work
-                    error("exception")
-                }
-            } catch (_: IllegalStateException) {}
-
-            sut.items().none { it.value == value } shouldBe true
-        }
+        removedItem shouldBe secondItem
+        sut.access { items } shouldContainExactly listOf(firstItem, thirdItem)
+    }
 }
+
+/**
+ * Tries to enter a [CoroutineRegistry.access] block from a different thread and reports whether it has
+ * succeeded within the [timeoutMillis].
+ *
+ * The lock is reentrant, so a thread that holds it cannot tell that it does.
+ * Only a different thread can.
+ */
+fun CoroutineRegistry<*>.isAccessibleFromAnotherThread(timeoutMillis: Long = 1_000): Boolean {
+    val thread = Thread { this.access { } }.apply { isDaemon = true }
+    thread.start()
+    thread.join(timeoutMillis)
+    return !thread.isAlive
+}
+
+fun <T> CoroutineRegistry<T>.items(): List<Item<T>> =
+    access { items }

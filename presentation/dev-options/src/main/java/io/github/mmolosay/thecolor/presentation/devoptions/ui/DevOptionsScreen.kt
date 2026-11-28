@@ -1,5 +1,6 @@
 package io.github.mmolosay.thecolor.presentation.devoptions.ui
 
+import android.content.res.Configuration
 import android.text.Annotation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,9 +39,8 @@ import io.github.mmolosay.thecolor.presentation.common.compose.onlyBottom
 import io.github.mmolosay.thecolor.presentation.common.compose.withoutBottom
 import io.github.mmolosay.thecolor.presentation.common.toAnnotatedString
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.devoptions.DevOptionsData
-import io.github.mmolosay.thecolor.presentation.devoptions.DevOptionsViewModel
-import io.github.mmolosay.thecolor.presentation.devoptions.DevOptionsViewModel.DataState
+import io.github.mmolosay.thecolor.presentation.devoptions.viewmodel.DevOptionsViewData
+import io.github.mmolosay.thecolor.presentation.devoptions.viewmodel.DevOptionsViewModel
 import kotlin.time.Duration.Companion.milliseconds
 import io.github.mmolosay.thecolor.domain.buildfeatures.BuildType as DomainBuildType
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptions.PredictableRandomColors as DomainPredictableRandomColors
@@ -51,42 +51,39 @@ fun DevOptionsScreen(
     viewModel: DevOptionsViewModel,
     navigateBack: () -> Unit,
 ) {
-    val dataState by viewModel.dataStateFlow.collectAsStateWithLifecycle()
-    DevOptionsScreen(
-        dataState = dataState,
-        navigateBack = navigateBack,
-    )
-}
-
-@Composable
-fun DevOptionsScreen(
-    dataState: DataState,
-    navigateBack: () -> Unit,
-) {
-    when (dataState) {
-        is DataState.Loading -> {
-            // should promptly change to 'Ready', don't show loading indicator to avoid flashing
-            Box(
-                modifier = Modifier.fillMaxSize(),
-            )
-        }
-        is DataState.Ready -> {
-            DevOptionsScreen(
-                data = dataState.data,
-                navigateBack = navigateBack,
-            )
-        }
+    val context = LocalContext.current
+    val strings = remember(context) { DevOptionsUiStrings(context) }
+    val data = viewModel.viewData.collectAsStateWithLifecycle().value
+    if (data == null) {
+        // should promptly become non-null, don't show loading indicator to avoid flashing
+        Box(
+            modifier = Modifier.fillMaxSize(),
+        )
+    } else {
+        DevOptionsScreen(
+            data = data,
+            strings = strings,
+            onPredictableRandomColorsChange = viewModel::changePredictableRandomColors,
+            onStrictModeChange = viewModel::changeStrictMode,
+            onHttpLoggingChange = viewModel::changeHttpLogging,
+            onResetToDefaultsConfirm = viewModel::resetToDefaults,
+            navigateBack = navigateBack,
+        )
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DevOptionsScreen(
-    data: DevOptionsData,
+    data: DevOptionsViewData,
+    strings: DevOptionsUiStrings,
+    onPredictableRandomColorsChange: (DomainPredictableRandomColors) -> Unit,
+    onStrictModeChange: (Boolean) -> Unit,
+    onHttpLoggingChange: (Boolean) -> Unit,
+    onResetToDefaultsConfirm: () -> Unit,
     navigateBack: () -> Unit,
 ) {
     val context = LocalContext.current
-    val strings = DevOptionsUiStrings(LocalContext.current)
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     var dialogToShow: Dialog? by remember { mutableStateOf(null) }
@@ -107,7 +104,7 @@ fun DevOptionsScreen(
                     strings = strings,
                     onDismissRequest = ::clearDialogToShow,
                     onConfirmClick = {
-                        data.resetValuesToDefault()
+                        onResetToDefaultsConfirm()
                         clearDialogToShow()
                     },
                 )
@@ -133,6 +130,9 @@ fun DevOptionsScreen(
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
             data = data,
             strings = strings,
+            onPredictableRandomColorsChange = onPredictableRandomColorsChange,
+            onStrictModeChange = onStrictModeChange,
+            onHttpLoggingChange = onHttpLoggingChange,
             extraContentPadding = ScaffoldDefaults.contentWindowInsets.onlyBottom()
                 .asPaddingValues(),
         )
@@ -201,8 +201,11 @@ private fun TopBar(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DevOptions(
-    data: DevOptionsData,
+    data: DevOptionsViewData,
     strings: DevOptionsUiStrings,
+    onPredictableRandomColorsChange: (DomainPredictableRandomColors) -> Unit,
+    onStrictModeChange: (Boolean) -> Unit,
+    onHttpLoggingChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
     extraContentPadding: PaddingValues = PaddingValues.Zero,
 ) {
@@ -218,7 +221,7 @@ fun DevOptions(
                     text = predictableRandomColors.toVerboseUiString(strings),
                     isDefault = (predictableRandomColors == data.predictableRandomColorsByDefault),
                     isSelected = (predictableRandomColors == data.predictableRandomColors),
-                    onSelect = { data.changePredictableRandomColors(predictableRandomColors) },
+                    onSelect = { onPredictableRandomColorsChange(predictableRandomColors) },
                 )
             }
             PredictableRandomColors(
@@ -250,7 +253,7 @@ fun DevOptions(
                 title = strings.itemStrictModeTitle,
                 description = description,
                 checked = data.isStrictModeEnabled,
-                onCheckedChange = data.changeStrictModeEnablement,
+                onCheckedChange = onStrictModeChange,
                 showAttentionBadge = (data.isStrictModeEnabled != data.isStrictModeEnabledByDefault),
             )
         }
@@ -260,7 +263,7 @@ fun DevOptions(
                 title = strings.itemHttpLoggingTitle,
                 description = strings.itemHttpLoggingDesc,
                 checked = data.isHttpLoggingEnabled,
-                onCheckedChange = data.changeHttpLoggingEnablement,
+                onCheckedChange = onHttpLoggingChange,
                 showAttentionBadge = (data.isHttpLoggingEnabled != data.isHttpLoggingEnabledByDefault),
             )
         }
@@ -275,6 +278,7 @@ fun DevOptions(
                     makeInfoProperty(name = strings.itemBuildInfoAppBuildTypeLabel, value = data.buildInfo.appBuildType),
                     makeInfoProperty(name = strings.itemBuildInfoAppVersionNameLabel, value = data.buildInfo.appVersionName),
                     makeInfoProperty(name = strings.itemBuildInfoAppVersionCodeLabel, value = data.buildInfo.appVersionCode),
+                    makeInfoProperty(name = strings.itemBuildInfoGitHeadLabel, value = data.buildInfo.gitHeadCommitHash),
                 ).joinToString(separator = "\n"),
             )
         }
@@ -299,36 +303,35 @@ private fun DomainPredictableRandomColors.toVerboseUiString(
         DomainPredictableRandomColors.CyclingLightDark -> strings.itemPredictableRandomColorsValueCyclingLightDarkVerbose
     }
 
-@Preview
+@Preview(uiMode = Configuration.UI_MODE_TYPE_NORMAL)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL)
 @Composable
 private fun Preview() {
     TheColorTheme {
         DevOptionsScreen(
             data = previewData(),
+            strings = DevOptionsUiStrings(LocalContext.current),
+            onPredictableRandomColorsChange = {},
+            onStrictModeChange = {},
+            onHttpLoggingChange = {},
+            onResetToDefaultsConfirm = {},
             navigateBack = {},
         )
     }
 }
 
 private fun previewData() =
-    DevOptionsData(
-        resetValuesToDefault = {},
-
+    DevOptionsViewData(
         predictableRandomColors = DomainPredictableRandomColors.CyclingLightDark,
         predictableRandomColorsByDefault = DomainPredictableRandomColors.Random,
-        changePredictableRandomColors = {},
-
         isStrictModeEnabled = true,
         isStrictModeEnabledByDefault = false,
-        changeStrictModeEnablement = {},
-
         isHttpLoggingEnabled = true,
         isHttpLoggingEnabledByDefault = false,
-        changeHttpLoggingEnablement = {},
-
-        buildInfo = DevOptionsData.BuildInfo(
+        buildInfo = DevOptionsViewData.BuildInfo(
             appBuildType = DomainBuildType.Debug,
             appVersionName = "1",
             appVersionCode = 1,
+            gitHeadCommitHash = "97cd4bd5",
         ),
     )

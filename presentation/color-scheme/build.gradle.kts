@@ -22,6 +22,7 @@ dependencies {
 
     // Kotlin
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.coroutines.get()}")
+    implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:${libs.versions.kotlinCollectionsImmutable.get()}")
 
     // Compose
     implementation("androidx.compose.material3:material3")
@@ -35,8 +36,6 @@ dependencies {
 
     // Misc (preserve alphabetical order)
     implementation("com.valentinilk.shimmer:compose-shimmer:${libs.versions.valentinilkShimmer.get()}")
-    implementation("io.arrow-kt:arrow-optics:${libs.versions.arrow.optics.get()}")
-    ksp("io.arrow-kt:arrow-optics-ksp-plugin:${libs.versions.arrow.optics.get()}")
 
     // Testing
     testImplementation(project(":utils:testing"))

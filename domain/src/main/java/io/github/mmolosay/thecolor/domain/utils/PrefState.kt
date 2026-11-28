@@ -3,6 +3,7 @@ package io.github.mmolosay.thecolor.domain.utils
 import io.github.mmolosay.thecolor.domain.dev.options.DevOptionsRepository
 import io.github.mmolosay.thecolor.domain.user.preferences.UserPreferencesRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.transform
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -29,6 +30,8 @@ sealed interface PrefState<out T> {
     }
 }
 
+// region Extensions for PrefState
+
 @OptIn(ExperimentalContracts::class)
 fun <T> PrefState<T>.getOrElse(
     block: () -> T,
@@ -42,13 +45,28 @@ fun <T> PrefState<T>.getOrElse(
     }
 }
 
-fun <T> Flow<PrefState<T>>.filterReady(): Flow<PrefState.Ready<T>> =
-    transform { dataState ->
-        when (dataState) {
-            is PrefState.BeingInitialized -> return@transform
-            is PrefState.Ready -> emit(dataState)
-        }
+@OptIn(ExperimentalContracts::class)
+fun <T> PrefState<T>.readyOrElse(
+    block: (actual: PrefState<T>) -> PrefState.Result<T>,
+): PrefState.Result<T> {
+    contract {
+        callsInPlace(block, InvocationKind.AT_MOST_ONCE)
     }
+    return when (this) {
+        is PrefState.BeingInitialized -> block(this)
+        is PrefState.Ready -> this.result
+    }
+}
+
+fun <T : Any> PrefState<T>.valueOrNull(default: T): T? =
+    when (this) {
+        is PrefState.BeingInitialized -> null
+        is PrefState.Ready -> this.result.getOrElse { default }
+    }
+
+// endregion
+
+// region Extensions for PrefState.Result
 
 @OptIn(ExperimentalContracts::class)
 inline fun <T> PrefState.Result<T>.getOrElse(
@@ -77,3 +95,20 @@ inline fun <T, R> PrefState.Result<T>.map(
         is PrefState.Result.InvalidValue -> this
     }
 }
+
+// endregion
+
+// region Extensions for Flow<PrefState>
+
+fun <T : Any> Flow<PrefState<T>>.readyValues(default: T): Flow<T> =
+    this.mapNotNull { it.valueOrNull(default) }
+
+fun <T> Flow<PrefState<T>>.filterReady(): Flow<PrefState.Ready<T>> =
+    transform { dataState ->
+        when (dataState) {
+            is PrefState.BeingInitialized -> return@transform
+            is PrefState.Ready -> emit(dataState)
+        }
+    }
+
+// endregion

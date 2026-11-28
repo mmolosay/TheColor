@@ -5,11 +5,11 @@ import io.github.mmolosay.thecolor.domain.color.ColorConverter
 import io.github.mmolosay.thecolor.domain.color.ColorDetails
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorInt
 import io.github.mmolosay.thecolor.presentation.common.colorint.ColorToColorIntUseCase
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ColorRoleData
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorDetailsData.ExactMatch
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.ColorRole
-import io.github.mmolosay.thecolor.presentation.details.viewmodel.CreateColorDetailsDataUseCase
+import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsData
+import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsData.ColorRoleData
+import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsData.ExactMatch
+import io.github.mmolosay.thecolor.presentation.details.feature.ColorRole
+import io.github.mmolosay.thecolor.presentation.details.feature.CreateColorDetailsDataUseCase
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
@@ -28,14 +28,11 @@ class CreateColorDetailsDataUseCaseTest {
         val details = ColorDetails()
         val resultData = sut.invoke(
             details = details,
-            colorRole = ColorRole.Seed,
-            selectExactColor = {},
-            selectSeedColor = {},
-            getSeedColor = { null },
+            role = ColorRole.Seed,
+            seedColor = details.color,
         )
 
-        val comparableData = resultData.copyWithNoopLambdas()
-        comparableData shouldBe ColorDetailsData(
+        resultData shouldBe ColorDetailsData(
             colorName = "Jewel",
             hex = ColorDetailsData.Hex(value = "#1A803F"),
             rgb = ColorDetailsData.Rgb(
@@ -66,7 +63,6 @@ class CreateColorDetailsDataUseCaseTest {
             ),
             colorRoleData = ColorRoleData.Seed(
                 exactColor = ColorInt(0x126B40),
-                selectExactColor = NoopOnClickAction,
             )
         )
     }
@@ -77,30 +73,9 @@ class CreateColorDetailsDataUseCaseTest {
         ).also {
             sut = it
         }
-
-    // Arrow lenses are tedious to use with sealed classes without inherited properties.
-    // Doesn't worth employing lenses to be used only here.
-    // https://arrow-kt.io/learn/immutable-data/lens/#sealed-class-hierarchies
-    fun ColorDetailsData.copyWithNoopLambdas() =
-        this.copy(
-            colorRoleData = colorRoleData.run {
-                when (this) {
-                    is ColorRoleData.Seed -> this.copy(
-                        selectExactColor = NoopOnClickAction,
-                    )
-                    is ColorRoleData.Exact -> this.copy(
-                        selectSeedColor = NoopOnClickAction,
-                    )
-                }
-            },
-        )
-
-    object NoopOnClickAction : () -> Unit {
-        override fun invoke() {}
-    }
 }
 
-private fun ColorDetails() =
+private fun ColorDetails(): ColorDetails =
     ColorDetails(
         color = Color.Hex(0x1A803F),
         colorHexString = ColorDetails.ColorHexString(

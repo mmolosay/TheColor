@@ -60,7 +60,10 @@ private fun Preview() {
     TheColorTheme {
         BuildInfo(
             title = "Build info",
-            info = "Build type: Debug\n" + "App version name: 1.0.0\n" + "App version code: 1",
+            info = "Build type: Debug\n" +
+                    "App version name: 1.0.0\n" +
+                    "App version code: 1\n" +
+                    "Git head: 97cd4bd5",
         )
     }
 }

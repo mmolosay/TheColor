@@ -15,61 +15,44 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.mmolosay.thecolor.presentation.design.TheColorTheme
-import io.github.mmolosay.thecolor.presentation.input.UiComponents.DataStateCrossfade
-import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvHueRange
-import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvSaturationRange
-import io.github.mmolosay.thecolor.presentation.input.hsv.HsvColorUtils.HsvValueRange
-import io.github.mmolosay.thecolor.presentation.input.model.DataState
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import io.github.mmolosay.thecolor.domain.color.Color as DomainColor
 
 @Composable
 fun ColorInputHsv(
-    viewModel: ColorInputHsvViewModel,
-) {
-    val dataState = viewModel.dataStateFlow.collectAsStateWithLifecycle().value
-
-    DataStateCrossfade(
-        actualDataState = dataState,
-    ) { state ->
-        when (state) {
-            is DataState.BeingInitialized ->
-                ColorInputHsvLoading()
-            is DataState.Ready ->
-                ColorInputHsv(
-                    data = state.data,
-                )
-        }
-    }
-}
+    feature: ColorInputHsvFeature,
+) =
+    ColorInputHsv(
+        viewData = feature.viewData,
+        onHueChange = { hue ->
+            feature.pick { current -> current.copy(hue = hue) }
+        },
+        onSaturationAndValueChange = { saturation, value ->
+            feature.pick { current -> current.copy(saturation = saturation, value = value) }
+        },
+    )
 
 @Composable
 fun ColorInputHsv(
-    data: ColorInputHsvData,
+    viewData: StateFlow<ColorInputHsvViewData>,
+    onHueChange: (hue: Float) -> Unit,
+    onSaturationAndValueChange: (saturation: Float, value: Float) -> Unit,
 ) {
-    val hue = run {
-        if (data.color != null) HueValue(data.color)
-        else HueValue(HsvHueRange.start)
-    }
-    val sv = run {
-        if (data.color != null) SaturationAndValue(data.color)
-        else SaturationAndValue(saturation = HsvSaturationRange.endInclusive, value = HsvValueRange.endInclusive)
-    }
-    fun HsvColor(hue: HueValue, sv: SaturationAndValue): DomainColor.Hsv =
-        DomainColor.Hsv(
-            hue = hue.value,
-            saturation = sv.saturation,
-            value = sv.value,
-        )
+    val data = viewData.collectAsStateWithLifecycle().value
+    val hue = HueValue(data.color)
+    val sv = SaturationAndValue(data.color)
 
     Row(
-        modifier = Modifier
-            .height(IntrinsicSize.Min),
+        modifier = Modifier.height(IntrinsicSize.Min),
         horizontalArrangement = Arrangement.Center,
     ) {
         SaturationAndValuePicker(
@@ -80,8 +63,7 @@ fun ColorInputHsv(
             hue = hue,
             sv = sv,
             onChange = { newSv ->
-                val newColor = HsvColor(hue, newSv)
-                data.onColorChanged(newColor)
+                onSaturationAndValueChange(newSv.saturation, newSv.value)
             },
         )
 
@@ -94,8 +76,7 @@ fun ColorInputHsv(
                     .fillMaxHeight(),
                 hue = hue,
                 onChange = { newHue ->
-                    val newColor = HsvColor(newHue, sv)
-                    data.onColorChanged(newColor)
+                    onHueChange(newHue.value)
                 },
             )
         }
@@ -108,15 +89,29 @@ fun ColorInputHsv(
 private fun Preview() {
     TheColorTheme {
         Surface(color = MaterialTheme.colorScheme.background) {
+            val viewData = remember {
+                val value = ColorInputHsvViewData(
+                    color = DomainColor.Hsv(hue = 117f, saturation = 0.59f, value = 0.31f),
+                )
+                MutableStateFlow(value)
+            }
             ColorInputHsv(
-                data = previewData(),
+                viewData = viewData,
+                onHueChange = { hue ->
+                    viewData.update {
+                        it.copy(
+                            color = it.color.copy(hue = hue),
+                        )
+                    }
+                },
+                onSaturationAndValueChange = { saturation, value ->
+                    viewData.update {
+                        it.copy(
+                            color = it.color.copy(saturation = saturation, value = value),
+                        )
+                    }
+                },
             )
         }
     }
 }
-
-private fun previewData() =
-    ColorInputHsvData(
-        color = DomainColor.Hsv(hue = 117f, saturation = 0.59f, value = 0.31f),
-        onColorChanged = {},
-    )

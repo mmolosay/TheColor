@@ -6,6 +6,8 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.getByType
+import org.jetbrains.kotlin.compose.compiler.gradle.ComposeCompilerGradlePluginExtension
 
 @Suppress("unused") // registered in 'build.gradle.kts'
 class TheColorComposeConventionPlugin : Plugin<Project> {
@@ -22,6 +24,8 @@ class TheColorComposeConventionPlugin : Plugin<Project> {
             }
         }
 
+//        target.enableComposeCompilerReports()
+
         target.dependencies {
             val bom = "androidx.compose:compose-bom:${libs.findVersion("compose.bom").get()}"
             add("implementation", platform(bom))
@@ -29,5 +33,15 @@ class TheColorComposeConventionPlugin : Plugin<Project> {
             add("implementation", "androidx.compose.ui:ui-tooling-preview")
             add("debugImplementation", "androidx.compose.ui:ui-tooling")
         }
+    }
+}
+
+@Suppress("unused")
+private fun Project.enableComposeCompilerReports() {
+    val extension = extensions.getByType<ComposeCompilerGradlePluginExtension>()
+    extension.apply {
+        val directory = layout.buildDirectory.dir("compose_compiler")
+        reportsDestination.set(directory)
+        metricsDestination.set(directory)
     }
 }

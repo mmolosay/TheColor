@@ -1,3 +1,5 @@
+import io.github.mmolosay.thecolor.buildlogic.GitUtils.headCommitShortHash
+
 plugins {
     id("thecolor.android.library")
     id("thecolor.kotlin.android")
@@ -9,6 +11,10 @@ android {
     namespace = "io.github.mmolosay.thecolor.data"
     defaultConfig {
         consumerProguardFiles("consumer-proguard-rules.pro")
+        buildConfigField("String", "GIT_HEAD_COMMIT_SHORT_HASH", "\"${headCommitShortHash}\"")
+    }
+    buildFeatures {
+        buildConfig = true
     }
 }
 

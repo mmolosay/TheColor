@@ -84,20 +84,20 @@ private val FullForwardSequence: List<HomeAnimState> = run {
 }
 
 /**
- * Returns a list of [HomeAnimState]s between [from] state and [to] state.
+ * Returns a list of [HomeAnimState]s between [start] state and [finish] state.
  * Those states can be considered as "key frames" of the 'Home' animation.
  *
- * Resulting list contains [from], all intermediate states in between, and [to].
- * Contains only one state if [from] and [to] are identical.
+ * Resulting list contains [start], all intermediate states in between, and [finish].
+ * Contains only one state if [start] and [finish] are identical.
  */
 private fun homeAnimSequence(
-    from: HomeAnimState,
-    to: HomeAnimState,
+    start: HomeAnimState,
+    finish: HomeAnimState,
 ): List<HomeAnimState> {
-    require(from in FullForwardSequence)
-    require(to in FullForwardSequence)
-    val indexOfCurrent = FullForwardSequence.indexOf(from) // -1 is impossible due to 'contains()' check above
-    val indexOfDest = FullForwardSequence.indexOf(to) // -1 is impossible due to 'contains()' check above
+    require(start in FullForwardSequence)
+    require(finish in FullForwardSequence)
+    val indexOfCurrent = FullForwardSequence.indexOf(start) // -1 is impossible due to 'contains()' check above
+    val indexOfDest = FullForwardSequence.indexOf(finish) // -1 is impossible due to 'contains()' check above
     return when {
         indexOfCurrent < indexOfDest ->
             FullForwardSequence.subList(indexOfCurrent, indexOfDest + 1)
@@ -105,26 +105,26 @@ private fun homeAnimSequence(
             FullForwardSequence.subList(indexOfDest, indexOfCurrent + 1).reversed()
         else -> {
             assert(indexOfCurrent == indexOfDest)
-            assert(from == to)
-            listOf(to)
+            assert(start == finish)
+            listOf(finish)
         }
     }
 }
 
 /**
  * Creates list of dest states to animate from current state of [HomeAnimController]
- * to [to] state.
+ * to [finish] state.
  * Returned list is meant to be submitted to [HomeAnimController.run].
  */
 internal fun HomeAnimController.makeDestStates(
-    to: HomeAnimState,
+    finish: HomeAnimState,
 ): List<HomeAnimState>? {
     val state = this.state
-    val from = when (state) {
+    val start = when (state) {
         is HomeAnimController.State.Idle -> state.state
         is HomeAnimController.State.Running -> state.segment.start
     }
-    val sequence = homeAnimSequence(from = from, to = to)
+    val sequence = homeAnimSequence(start = start, finish = finish)
     val destStates = sequence.toMutableList()
     if (sequence.size == 1 && state is HomeAnimController.State.Idle && state.state == sequence.single()) {
         return null // single state in sequence which is already reached

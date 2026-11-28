@@ -9,10 +9,7 @@ import androidx.compose.material3.ColorScheme as MaterialColorScheme
 
 @Composable
 fun TheColorTheme(
-    colorScheme: ColorScheme = DayNightColorSchemeResolver.resolve(
-        brightness = systemBrightness(),
-        useDynamicColorSchemes = false,
-    ),
+    colorScheme: ColorScheme = DayNightColorSchemeResolver.resolve(systemBrightness()),
     content: @Composable () -> Unit,
 ) {
     TheColorTheme(

@@ -11,8 +11,4 @@ object CoroutineDispatcherDiQualifiers {
     @Qualifier
     @Retention(AnnotationRetention.RUNTIME)
     annotation class IoDispatcher
-
-    @Qualifier
-    @Retention(AnnotationRetention.RUNTIME)
-    annotation class UiDataUpdateDispatcher
 }
