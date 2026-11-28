@@ -7,7 +7,6 @@ import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsFeat
 import io.github.mmolosay.thecolor.presentation.details.feature.ColorDetailsOutcome
 import io.github.mmolosay.thecolor.presentation.scheme.feature.ColorSchemeFeature
 import io.github.mmolosay.thecolor.presentation.scheme.feature.ColorSchemeOutcome
-import io.github.mmolosay.thecolor.utils.composition.CompositionUtils.child
 import io.github.mmolosay.thecolor.utils.composition.Store
 import kotlinx.coroutines.CoroutineScope
 import io.github.mmolosay.thecolor.presentation.center.feature.ColorCenterStateLenses as StateLenses
@@ -25,7 +24,7 @@ class ColorCenterFeature @AssistedInject constructor(
         store = store.slice(StateLenses.details) { state, outcome: ColorDetailsOutcome? ->
             with(core) { state.onDetails(outcome) }
         },
-        scope = scope.child(),
+        scope = scope,
     )
 
     val scheme: ColorSchemeFeature = schemeFactory.create(
@@ -33,7 +32,7 @@ class ColorCenterFeature @AssistedInject constructor(
         store = store.slice(StateLenses.scheme) { state, outcome: ColorSchemeOutcome? ->
             with(core) { state.onScheme(outcome) }
         },
-        scope = scope.child(),
+        scope = scope,
     )
 
     @AssistedFactory

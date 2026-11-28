@@ -1,9 +1,7 @@
 package io.github.mmolosay.thecolor.utils.composition
 
-import io.github.mmolosay.thecolor.utils.CoroutineScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -24,7 +22,4 @@ object CompositionUtils {
                     if (it != null) block(it)
                 }
         }
-
-    fun CoroutineScope.child(): CoroutineScope =
-        CoroutineScope(parent = this, job = { SupervisorJob(it) })
 }

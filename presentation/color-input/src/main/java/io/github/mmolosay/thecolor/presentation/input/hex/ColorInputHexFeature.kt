@@ -6,7 +6,6 @@ import dagger.assisted.AssistedInject
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmission
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFeature
 import io.github.mmolosay.thecolor.utils.composition.Change
-import io.github.mmolosay.thecolor.utils.composition.CompositionUtils.child
 import io.github.mmolosay.thecolor.utils.composition.Store
 import io.github.mmolosay.thecolor.utils.composition.slice
 import io.github.mmolosay.thecolor.utils.mapState
@@ -27,7 +26,7 @@ class ColorInputHexFeature @AssistedInject constructor(
     val textField: TextFieldFeature = textFieldFactory.create(
         core = core.textFieldCore,
         store = store.slice(StateLenses.textField) { state -> Change(state) },
-        scope = scope.child(),
+        scope = scope,
     )
 
     fun submit() {

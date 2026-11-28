@@ -18,7 +18,6 @@ import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorFeature
 import io.github.mmolosay.thecolor.presentation.input.editor.ColorEditorOutcome
 import io.github.mmolosay.thecolor.presentation.input.group.ColorInputGroupFeature
 import io.github.mmolosay.thecolor.utils.composition.Change
-import io.github.mmolosay.thecolor.utils.composition.CompositionUtils.child
 import io.github.mmolosay.thecolor.utils.composition.CompositionUtils.serve
 import io.github.mmolosay.thecolor.utils.composition.Store
 import io.github.mmolosay.thecolor.utils.composition.slice
@@ -53,13 +52,13 @@ class HomeViewModel @Inject constructor(
         store = store.slice(StateLenses.colorEditor) { state, outcome: ColorEditorOutcome? ->
             with(core) { state.onColorEditor(outcome) }
         },
-        scope = viewModelScope.child(),
+        scope = viewModelScope,
     )
 
     val colorInputGroup: ColorInputGroupFeature = colorInputGroupFactory.create(
         core = core.colorInputGroupCore,
         store = store.slice(StateLenses.colorInputGroup) { state -> Change(state) },
-        scope = viewModelScope.child(),
+        scope = viewModelScope,
     )
 
     val colorCenter: ColorCenterFeature = colorCenterFactory.create(
@@ -67,7 +66,7 @@ class HomeViewModel @Inject constructor(
         store = store.slice(StateLenses.colorCenter) { state, outcome: ColorCenterOutcome? ->
             with(core) { state.onColorCenter(outcome) }
         },
-        scope = viewModelScope.child(),
+        scope = viewModelScope,
     )
 
     val selectedSwatch: ColorDetailsFeature = colorDetailsFactory.create(
@@ -75,7 +74,7 @@ class HomeViewModel @Inject constructor(
         store = store.slice(StateLenses.selectedSwatch) { state, _: ColorDetailsOutcome? ->
             Change(state)
         },
-        scope = viewModelScope.child(),
+        scope = viewModelScope,
     )
 
     init {

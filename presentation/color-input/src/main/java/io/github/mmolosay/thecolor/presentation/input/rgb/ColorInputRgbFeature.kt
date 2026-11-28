@@ -9,7 +9,6 @@ import io.github.mmolosay.thecolor.domain.utils.readyValues
 import io.github.mmolosay.thecolor.presentation.input.model.ColorInputSubmission
 import io.github.mmolosay.thecolor.presentation.input.textfield.TextFieldFeature
 import io.github.mmolosay.thecolor.utils.composition.Change
-import io.github.mmolosay.thecolor.utils.composition.CompositionUtils.child
 import io.github.mmolosay.thecolor.utils.composition.Store
 import io.github.mmolosay.thecolor.utils.composition.slice
 import io.github.mmolosay.thecolor.utils.mapState
@@ -32,17 +31,17 @@ class ColorInputRgbFeature @AssistedInject constructor(
     val r: TextFieldFeature = textFieldFactory.create(
         core = core.rCore,
         store = store.slice(StateLenses.r) { state -> Change(state) },
-        scope = scope.child(),
+        scope = scope,
     )
     val g: TextFieldFeature = textFieldFactory.create(
         core = core.gCore,
         store = store.slice(StateLenses.g) { state -> Change(state) },
-        scope = scope.child(),
+        scope = scope,
     )
     val b: TextFieldFeature = textFieldFactory.create(
         core = core.bCore,
         store = store.slice(StateLenses.b) { state -> Change(state) },
-        scope = scope.child(),
+        scope = scope,
     )
 
     init {

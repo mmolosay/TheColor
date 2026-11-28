@@ -95,9 +95,8 @@ the States, the Cores and the Features each form a tree that mirrors the tree of
 * **Core.** The parent's pure functions read and change the child's State through the child's Core.
   They run where no Feature is at hand, before the root Store exists and inside updates.
 * **Feature.** Only the parent's Feature has what a child's Feature is created with. It has the
-  child's Core, a scope to derive the child's scope from, and the Store to give the child, which is
-  either a Store view that carries the parent's Reducer or the root Store of the child's own
-  hierarchy.
+  child's Core, its own scope to pass on, and the Store to give the child, which is either a Store
+  view that carries the parent's Reducer or the root Store of the child's own hierarchy.
 
 Only the parent knows where its child's State sits, how it reacts to the child, and what it chooses
 for the child's place. Flattening any of the trees would move that knowledge up to the screen
@@ -252,7 +251,7 @@ class ColorInputHexFeature @AssistedInject constructor(
     val textField: TextFieldFeature = textFieldFactory.create(
         core = core.textFieldCore,
         store = store.slice(StateLenses.textField) { state -> Change(state) },
-        scope = scope.child(),
+        scope = scope,
     )
 
     fun submit() {
@@ -305,7 +304,7 @@ class HomeViewModel @Inject constructor(
         store = store.slice(StateLenses.colorEditor) { state, outcome: ColorEditorOutcome? ->
             with(core) { state.onColorEditor(outcome) }
         },
-        scope = viewModelScope.child(),
+        scope = viewModelScope,
     )
     …
 }
